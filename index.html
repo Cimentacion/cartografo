@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#13181a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Cartógrafo del páramo</title>
+<style>
+  :root{
+    --bg:#13181a;--panel:#1a2124;--panel2:#212a2d;--line:#2c383b;
+    --ink:#c6cecb;--dim:#7f8d88;--faint:#556360;
+    --lantern:#d9862f;--warn:#c65a4c;--ok:#5a9d6b;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;
+    display:flex;flex-direction:column;height:100vh;overflow:hidden;-webkit-tap-highlight-color:transparent}
+  header{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  header h1{font-size:15px;font-weight:500;margin:0;letter-spacing:.2px}
+  header .sub{color:var(--faint);font-size:12px;font-family:var(--mono)}
+  header .spacer{flex:1}
+  .mtoggle{display:none;background:var(--panel);border:1px solid var(--line);border-radius:7px;color:var(--ink);
+    padding:6px 11px;cursor:pointer;font-family:inherit;font-size:13px}
+  .mtoggle.on{border-color:var(--lantern);color:#f0d9bd}
+  .wrap{flex:1;display:flex;min-height:0;position:relative}
+  .side{width:232px;flex-shrink:0;border-right:1px solid var(--line);overflow-y:auto;padding:12px 10px}
+  .side.right{border-right:none;border-left:1px solid var(--line);width:260px}
+  .tabs{display:flex;gap:4px;margin-bottom:8px}
+  .tab{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:7px;color:var(--dim);
+    padding:6px 0;cursor:pointer;font-family:inherit;font-size:13px}
+  .tab.on{border-color:var(--lantern);color:#f0d9bd;background:var(--panel2)}
+  .grp{color:var(--dim);font-size:11px;letter-spacing:.4px;margin:14px 6px 6px;font-weight:500}
+  .grp:first-child{margin-top:2px}
+  .sw{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:1px solid transparent;
+    border-radius:7px;padding:6px 7px;cursor:pointer;color:var(--ink);font-family:inherit;font-size:13px}
+  .sw:hover{background:var(--panel2)}
+  .sw.on{border-color:var(--lantern);background:var(--panel2)}
+  .sw canvas{width:22px;height:22px;border-radius:4px;flex-shrink:0;border:1px solid rgba(255,255,255,.12)}
+  .sw.rnd canvas{border-radius:50%}
+  .sw .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sw .hx{font-family:var(--mono);font-size:10px;color:var(--faint)}
+  .note{color:var(--dim);font-size:11.5px;line-height:1.45;margin:1px 7px 0 38px;display:none}
+  .sw.on + .note{display:block}
+  .center{flex:1;display:flex;flex-direction:column;min-width:0}
+  .toolbar{display:flex;align-items:center;gap:6px;padding:9px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .tool{background:var(--panel);border:1px solid var(--line);border-radius:7px;color:var(--ink);
+    padding:6px 10px;cursor:pointer;font-family:inherit;font-size:13px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .tool:hover{border-color:var(--faint)}
+  .tool.on{border-color:var(--lantern);color:#f0d9bd}
+  .tool.primary{background:var(--lantern);border-color:var(--lantern);color:#241203;font-weight:500}
+  .tool.primary:hover{background:#e5954a}
+  .sep{width:1px;height:22px;background:var(--line);margin:0 4px}
+  .fld{display:flex;align-items:center;gap:6px;color:var(--dim);font-size:12px;white-space:nowrap}
+  .fld input[type=number]{width:50px;background:var(--panel);border:1px solid var(--line);color:var(--ink);
+    border-radius:6px;padding:4px 6px;font-family:var(--mono);font-size:12px}
+  #zlbl{font-family:var(--mono);font-size:11px;color:var(--dim);min-width:34px;text-align:center}
+  .stage{flex:1;overflow:auto;padding:18px;display:flex;align-items:flex-start;justify-content:center}
+  #board{image-rendering:pixelated;touch-action:none;cursor:crosshair;
+    box-shadow:0 0 0 1px var(--line),0 12px 40px rgba(0,0,0,.4)}
+  .rpanel h2{font-size:12px;color:var(--dim);font-weight:500;letter-spacing:.3px;margin:2px 4px 8px}
+  .warn-row{display:flex;gap:8px;align-items:flex-start;padding:7px 8px;border-radius:7px;background:var(--panel);
+    margin-bottom:6px;font-size:12px;line-height:1.4}
+  .warn-row .dot{width:8px;height:8px;border-radius:50%;background:var(--warn);margin-top:5px;flex-shrink:0}
+  .warn-row.good .dot{background:var(--ok)}
+  .warn-row b{font-weight:500;color:var(--ink)}
+  .warn-row span{color:var(--dim)}
+  .empty{color:var(--faint);font-size:12px;padding:10px 6px;font-style:italic}
+  .hint-off{color:var(--faint);font-size:12px;padding:10px 4px}
+  .adet .atitle{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;margin:2px 4px 8px}
+  .adet .atitle canvas{width:22px;height:22px;border-radius:50%}
+  .adet .arule{color:var(--dim);font-size:12px;line-height:1.5;background:var(--panel);border-radius:8px;padding:9px 10px;margin-bottom:10px}
+  .adet .recipe{font-size:11.5px;color:var(--dim);margin:0 4px 10px;line-height:1.5}
+  .adet .recipe b{color:var(--ink);font-weight:500}
+  .btnrow{display:flex;gap:6px;margin:0 2px;flex-wrap:wrap}
+  .logictag{font-size:11px;color:var(--warn);margin:0 4px 8px;font-style:italic}
+  .help{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+  .help summary{cursor:pointer;color:var(--dim);font-size:12px;list-style:none}
+  .help summary::-webkit-details-marker{display:none}
+  .help p{color:var(--dim);font-size:11.5px;line-height:1.55;margin:8px 4px}
+  .help code{font-family:var(--mono);color:var(--ink);background:var(--panel2);padding:1px 4px;border-radius:4px}
+  input[type=file]{display:none}
+  .foot{color:var(--faint);font-size:11px;font-family:var(--mono);padding:6px 16px;border-top:1px solid var(--line)}
+  .foot #coord{color:var(--dim)}
+  #backdrop{display:none;position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:15}
+  @media(max-width:820px){
+    .mtoggle{display:inline-flex}
+    header h1{font-size:14px} header .sub{display:none}
+    .side{position:absolute;top:0;bottom:0;z-index:20;background:var(--panel);transition:transform .2s ease;box-shadow:0 0 30px rgba(0,0,0,.5)}
+    .side:not(.right){left:0;transform:translateX(-105%)}
+    .side.right{right:0;transform:translateX(105%)}
+    .side.open{transform:none}
+    .toolbar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    #backdrop.on{display:block}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Cartógrafo del páramo</h1>
+  <span class="sub">splatmap · 1&nbsp;casilla = 1&nbsp;píxel</span>
+  <span class="spacer"></span>
+  <button class="mtoggle" id="tgl-pal">Paleta</button>
+  <button class="mtoggle" id="tgl-pan">Panel</button>
+</header>
+
+<div class="wrap">
+  <div class="side" id="pal-panel">
+    <div class="tabs">
+      <button class="tab on" id="m-terrain">Terreno</button>
+      <button class="tab" id="m-points">Puntos</button>
+    </div>
+    <div id="palette"></div>
+  </div>
+
+  <div class="center">
+    <div class="toolbar">
+      <span id="terrain-tools" style="display:contents">
+        <button class="tool on" id="t-paint">Pincel</button>
+        <button class="tool" id="t-fill">Relleno</button>
+        <button class="tool" id="t-erase">Borrar</button>
+        <div class="fld">tamaño
+          <select id="brush" class="tool" style="padding:5px 8px">
+            <option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="5">5</option>
+          </select>
+        </div>
+        <div class="sep"></div>
+        <button class="tool" id="t-hints">Avisos</button>
+        <button class="tool" id="t-soft">Bordes</button>
+        <button class="tool" id="t-solve">Resolver</button>
+      </span>
+      <span id="points-hint" style="display:none;color:var(--dim);font-size:12px;white-space:nowrap">Toca para poner · mantén/clic derecho para quitar</span>
+      <button class="tool" id="t-grid" style="margin-left:4px">Rejilla</button>
+      <button class="tool" id="undo" style="margin-left:4px">Deshacer</button>
+      <div class="sep"></div>
+      <div class="fld">zoom
+        <button class="tool" id="zout" style="padding:5px 9px">−</button>
+        <span id="zlbl"></span>
+        <button class="tool" id="zin" style="padding:5px 9px">＋</button>
+        <button class="tool" id="zfit" style="padding:5px 8px">ajustar</button>
+      </div>
+      <div class="sep"></div>
+      <div class="fld">rejilla
+        <button class="tool sz" data-n="16">16²</button>
+        <button class="tool sz" data-n="24">24²</button>
+        <button class="tool sz" data-n="32">32²</button>
+        <button class="tool sz" data-n="48">48²</button>
+        <button class="tool sz" data-n="64">64²</button>
+        <input type="number" id="gw" min="8" max="200" value="48"> ×
+        <input type="number" id="gh" min="8" max="200" value="48">
+        <button class="tool" id="resize">aplicar</button>
+      </div>
+      <div class="sep"></div>
+      <button class="tool" id="save">Guardar</button>
+      <button class="tool" id="load">Abrir</button>
+      <button class="tool" id="clear">Vaciar</button>
+      <div class="sep"></div>
+      <button class="tool primary" id="export">PNG datos</button>
+      <button class="tool" id="exportview">PNG vista</button>
+      <input type="file" id="file" accept=".json,application/json">
+    </div>
+    <div class="stage"><canvas id="board"></canvas></div>
+  </div>
+
+  <div class="side right rpanel" id="right-panel">
+    <div id="rcontent"></div>
+    <details class="help">
+      <summary>Cargarlo en Godot</summary>
+      <p>El PNG es el splatmap real: cada color = un <code>TerrenoTipo</code>. Impórtalo con filtro <code>Nearest</code> (sin mipmaps) o los bordes se mezclan. Los iconos son solo del editor, no salen en el PNG.</p>
+      <p>Los <b>puntos de lógica</b> (ancla, ente) no se pintan: viven en el <code>.json</code>, para colocarlos como nodos en tu escena.</p>
+      <p><button class="tool" id="copyhex" style="font-size:11px;padding:4px 8px">Copiar tabla color→tipo</button></p>
+    </details>
+  </div>
+
+  <div id="backdrop"></div>
+</div>
+
+<div class="foot"><span id="coord">—</span> &nbsp;·&nbsp; <span id="status">listo</span></div>
+
+<script>
+/* ---- puente plataforma: app Android / navegador ---- */
+(function(){
+  if(!window.storage){
+    window.storage={
+      async get(k){const v=localStorage.getItem(k);if(v===null)throw new Error("no key");return {key:k,value:v,shared:false};},
+      async set(k,v){localStorage.setItem(k,v);return {key:k,value:v,shared:false};},
+      async delete(k){localStorage.removeItem(k);return {key:k,deleted:true,shared:false};},
+      async list(){return {keys:Object.keys(localStorage),shared:false};}
+    };
+  }
+  window.saveBlob=function(name,blob){
+    if(window.AndroidBridge){
+      const rd=new FileReader();
+      rd.onload=()=>{const b64=String(rd.result).split(",")[1];
+        const r=window.AndroidBridge.saveFile(name,blob.type||"application/octet-stream",b64);
+        const st=document.getElementById("status");if(st)st.textContent=r;};
+      rd.readAsDataURL(blob);return;
+    }
+    const a=document.createElement("a");a.download=name;a.href=URL.createObjectURL(blob);
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  };
+  window.copyText=function(t){
+    if(window.AndroidBridge){window.AndroidBridge.copy(t);return Promise.resolve();}
+    return navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject();
+  };
+  if("serviceWorker" in navigator&&location.protocol==="https:"&&!window.AndroidBridge){
+    addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+  }
+})();
+</script>
+<script>
+/* ---------------- terrenos ---------------- */
+const TERRAINS=[
+  {g:"Firme / cruzable"},
+  {id:"hierba",nm:"Hierba firme",c:"#3f8f3a",note:"Base firme. Raíz alta sobre barro = poco profundo."},
+  {id:"brezo",nm:"Brezo",c:"#6b6b3a",note:"Manta por defecto. Firme, pero todo se ve igual → te pierdes."},
+  {id:"barro",nm:"Barro leve",c:"#8a6a44",note:"Cruzable, poco profundo. Piedras lisas encima lo confirman."},
+  {id:"champas",nm:"Champas",c:"#4a6b3a",note:"Matas sobre ciénaga. Saltas de una a otra; pericia."},
+  {id:"roca",nm:"Roca / ancla",c:"#8f8f96",note:"Peñasco firme. Raro = ancla. No admite marca."},
+  {id:"agua",nm:"Agua / río",c:"#2f6fb0",note:"Borra tus huellas. El tojo crece en su borde."},
+  {g:"Peligro"},
+  {id:"turbera",nm:"Turbera negra",c:"#151310",note:"Te traga si te paras. Muerte. Debe estar telegrafiada."},
+  {id:"enredadera",nm:"Enredadera alta",c:"#24421f",note:"Orienta mal y tapa el vacío: lo que ves te hundirá."},
+  {g:"Falsos amigos"},
+  {id:"esfagno",nm:"Esfagno",c:"#7ed957",note:"Verde brillante = lo más blando. Cuanto más bonito, más traidor."},
+  {id:"algodon",nm:"Algodón",c:"#e8e4d0",note:"Aviso natural: borde de la ciénaga. Pozo cerca."},
+  {id:"tojo",nm:"Tojo / pincho",c:"#c9a227",note:"Te araña pero oculta. Crece cerca del agua."},
+  {g:"Refugio / especial"},
+  {id:"campamento",nm:"Zona segura",c:"#d9862f",note:"Llano de acampada. Real salvo que haya pasos que no son tuyos."},
+  {id:"bruja",nm:"Puesto bruja",c:"#7a4fb0",note:"Su humo no sigue al viento. Trato: velas por lo tuyo."},
+];
+const TYPES=TERRAINS.filter(t=>t.id);
+const idx=Object.fromEntries(TYPES.map((t,i)=>[t.id,i]));
+const hex2rgb=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+const RGB=TYPES.map(t=>hex2rgb(t.c));
+const GLYPHCOL=TYPES.map(t=>{const [r,g,b]=RGB[idx[t.id]];return (0.299*r+0.587*g+0.114*b)>140?"rgba(18,22,18,.82)":"rgba(236,240,237,.9)";});
+
+/* ---------------- puntos clave ---------------- */
+const ANCHORS=[
+  {id:"pozo",nm:"Pozo",c:"#151310",logic:false,glyph:"turbera",
+   rule:"El pozo mata. Rodéalo de algodón (aviso honesto) y esconde un esfagno como tapa traidora. Deja champas como única ruta de escape. Nunca un pozo a ciegas.",
+   recipe:"turbera al centro · algodón alrededor · esfagno como cebo · champas de escape"},
+  {id:"refugio",nm:"Refugio",c:"#d9862f",logic:false,glyph:"campamento",
+   rule:"Refugio real. Necesita suelo firme para llegar (roca/brezo) y una roca tallada a 90° que lo enseñe — salvo que haya pasos que no son tuyos.",
+   recipe:"campamento al centro · brezo firme alrededor · roca tallada como tell a 90°"},
+  {id:"rio",nm:"Río",c:"#2f6fb0",logic:false,glyph:"agua",
+   rule:"El agua borra huellas. Siembra tojo en la orilla: el jugador aprende que un pincho = agua cerca.",
+   recipe:"agua en línea · tojo en las orillas"},
+  {id:"bruja",nm:"Bruja",c:"#7a4fb0",logic:false,glyph:"bruja",
+   rule:"Su humo no sigue al viento. Dale un llano firme alrededor para que sea un alto reconocible.",
+   recipe:"puesto al centro · hierba firme despejada alrededor"},
+  {id:"ancla",nm:"Ancla (norte fijo)",c:"#5a9d6b",logic:true,glyph:"ancla",
+   rule:"Punto fijo de referencia: el castillo, un peñasco, las estrellas. No pinta terreno — es la capa lógica. Nunca se mueve… hasta el engaño final.",
+   recipe:""},
+  {id:"ente",nm:"Paso falso / ente",c:"#c65a4c",logic:true,glyph:"ente",
+   rule:"Marca de engaño: pasos-espejo, refugio cebo, tono impostor. No pinta terreno — vive en la lógica del juego, no en el splatmap.",
+   recipe:""},
+];
+const aidx=Object.fromEntries(ANCHORS.map((a,i)=>[a.id,i]));
+
+/* ---------------- iconos vectoriales ---------------- */
+function glyph(g,type,cx,cy,s,col){
+  if(type==="hierba")return;
+  g.save();g.translate(cx,cy);g.strokeStyle=col;g.fillStyle=col;
+  g.lineWidth=Math.max(1,s*0.11);g.lineCap="round";g.lineJoin="round";
+  const u=s*0.42,PI=Math.PI;
+  const circ=(x,y,r,f)=>{g.beginPath();g.arc(x,y,r,0,7);f?g.fill():g.stroke();};
+  const line=(x1,y1,x2,y2)=>{g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();};
+  switch(type){
+    case "brezo": line(0,u,0,-u*0.1);circ(-u*0.4,-u*0.45,u*0.26,1);circ(u*0.4,-u*0.5,u*0.26,1);circ(0,-u*0.8,u*0.26,1);break;
+    case "barro": line(-u*0.75,-u*0.15,u*0.75,-u*0.15);line(-u*0.75,u*0.35,u*0.75,u*0.35);break;
+    case "champas": g.beginPath();g.arc(-u*0.4,u*0.25,u*0.5,PI,0);g.stroke();g.beginPath();g.arc(u*0.4,u*0.25,u*0.5,PI,0);g.stroke();break;
+    case "roca": g.beginPath();g.moveTo(0,-u);g.lineTo(u,u*0.7);g.lineTo(-u,u*0.7);g.closePath();g.stroke();break;
+    case "agua": for(const y of [-u*0.25,u*0.3]){g.beginPath();g.moveTo(-u,y);g.quadraticCurveTo(-u*0.5,y-u*0.4,0,y);g.quadraticCurveTo(u*0.5,y+u*0.4,u,y);g.stroke();}break;
+    case "turbera": g.lineWidth=Math.max(1.2,s*0.13);circ(0,0,u*0.82,0);circ(0,0,u*0.3,1);break;
+    case "enredadera": g.beginPath();g.moveTo(0,u);g.bezierCurveTo(u*0.9,u*0.4,-u*0.9,-u*0.4,0,-u);g.stroke();break;
+    case "esfagno": line(0,-u,0,u);line(-u,0,u,0);g.lineWidth=Math.max(1,s*0.08);line(-u*0.55,-u*0.55,u*0.55,u*0.55);line(-u*0.55,u*0.55,u*0.55,-u*0.55);break;
+    case "algodon": circ(-u*0.38,u*0.12,u*0.32,1);circ(u*0.38,u*0.12,u*0.32,1);circ(0,-u*0.32,u*0.34,1);break;
+    case "tojo": for(let k=0;k<8;k++){const a=k*PI/4;line(Math.cos(a)*u*0.28,Math.sin(a)*u*0.28,Math.cos(a)*u,Math.sin(a)*u);}break;
+    case "campamento": g.beginPath();g.moveTo(0,-u);g.lineTo(u*0.85,u*0.7);g.lineTo(-u*0.85,u*0.7);g.closePath();g.stroke();line(0,-u*0.3,0,u*0.7);break;
+    case "bruja": g.lineWidth=Math.max(1.2,s*0.13);g.beginPath();g.arc(0,0,u*0.8,PI*0.38,PI*1.62);g.stroke();break;
+    case "ancla": g.beginPath();g.moveTo(0,-u);g.lineTo(u*0.7,u*0.5);g.lineTo(-u*0.7,u*0.5);g.closePath();g.stroke();circ(0,u*0.05,u*0.14,1);break;
+    case "ente": g.save();g.scale(1,0.62);circ(0,0,u*0.85,0);g.restore();circ(0,0,u*0.26,1);break;
+  }
+  g.restore();
+}
+
+/* ---------------- estado ---------------- */
+let W=48,H=48,cells=new Uint8Array(W*H),cur=0,tool="paint",brush=1;
+let hints=false,showGrid=true,painting=false;
+let mode="terrain",curAnchor="pozo",anchors=[],selAnchor=-1;
+let userCell=null;
+const board=document.getElementById("board"),ctx=board.getContext("2d");
+let cell=12;
+let undoStack=[];
+function snapshot(){undoStack.push({w:W,h:H,c:cells.slice(),a:JSON.stringify(anchors)});if(undoStack.length>20)undoStack.shift();}
+function undo(){const s=undoStack.pop();if(!s){status("nada que deshacer");return;}W=s.w;H=s.h;cells=s.c;anchors=JSON.parse(s.a);selAnchor=-1;gwEl.value=W;ghEl.value=H;fitCell();render();autosave();status("deshecho");}
+
+function fitCell(){
+  if(userCell){cell=userCell;}
+  else{
+    const stage=document.querySelector(".stage");
+    const availW=Math.min(stage.clientWidth-36,900);
+    cell=Math.max(4,Math.floor(availW/W));
+    if(cell*H>stage.clientHeight-36)cell=Math.max(4,Math.floor((stage.clientHeight-36)/H));
+  }
+  board.width=W*cell;board.height=H*cell;
+  document.getElementById("zlbl").textContent=cell+"px";
+}
+
+/* ---------------- render ---------------- */
+function drawCell(i){
+  const x=(i%W)*cell,y=(i/W|0)*cell,t=cells[i];
+  ctx.fillStyle=TYPES[t].c;ctx.fillRect(x,y,cell,cell);
+  if(showGrid&&cell>=6){ctx.strokeStyle="rgba(0,0,0,.22)";ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,cell-1,cell-1);}
+  if(cell>=11)glyph(ctx,TYPES[t].id,x+cell/2,y+cell/2,cell,GLYPHCOL[t]);
+}
+function render(){
+  for(let i=0;i<cells.length;i++)drawCell(i);
+  if(mode==="terrain"&&hints)drawHints();
+  if(mode==="points"&&selAnchor>=0)drawSuggestion(anchors[selAnchor]);
+  drawAnchors();
+  updatePanel();
+}
+function drawAnchors(){
+  const dim=mode!=="points";
+  anchors.forEach((a,i)=>{
+    const A=ANCHORS[aidx[a.t]];
+    const x=a.x*cell+cell/2,y=a.y*cell+cell/2,rr=Math.max(5,Math.min(cell*0.44,11));
+    ctx.globalAlpha=dim?0.5:1;
+    ctx.beginPath();ctx.arc(x,y,rr,0,7);ctx.fillStyle=A.c;ctx.fill();
+    ctx.lineWidth=2;ctx.strokeStyle=(i===selAnchor&&!dim)?"#f0d9bd":"rgba(255,255,255,.75)";ctx.stroke();
+    if(rr>=8)glyph(ctx,A.glyph,x,y,rr*1.7,"rgba(255,255,255,.95)");
+    ctx.globalAlpha=1;
+  });
+}
+function drawSuggestion(a){
+  const s=suggest(a);
+  ctx.globalAlpha=.55;
+  s.terrain.forEach(({x,y,t})=>{ctx.fillStyle=TYPES[idx[t]].c;ctx.fillRect(x*cell,y*cell,cell,cell);
+    if(cell>=11)glyph(ctx,t,x*cell+cell/2,y*cell+cell/2,cell,GLYPHCOL[idx[t]]);});
+  ctx.globalAlpha=1;
+  ctx.setLineDash([4,3]);ctx.lineWidth=1.5;ctx.strokeStyle="#f0d9bd";
+  s.terrain.forEach(({x,y})=>ctx.strokeRect(x*cell+1,y*cell+1,cell-2,cell-2));
+  ctx.setLineDash([]);
+}
+
+/* ---------------- sugerencias ---------------- */
+function suggest(a){
+  const out=[],cx=a.x,cy=a.y;
+  const P=(dx,dy,t)=>{const x=cx+dx,y=cy+dy;if(x>=0&&y>=0&&x<W&&y<H)out.push({x,y,t});};
+  if(a.t==="pozo"){
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)P(dx,dy,"turbera");
+    [[0,-2],[0,2],[-2,0],[2,0],[-2,-2]].forEach(([dx,dy])=>P(dx,dy,"algodon"));
+    [[2,-1],[2,-2]].forEach(([dx,dy])=>P(dx,dy,"esfagno"));
+    [[-2,1],[-2,2]].forEach(([dx,dy])=>P(dx,dy,"champas"));
+  }else if(a.t==="refugio"){
+    P(0,0,"campamento");
+    [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]].forEach(([dx,dy])=>P(dx,dy,"brezo"));
+    P(0,-3,"roca");P(-2,0,"roca");
+  }else if(a.t==="rio"){
+    for(let dx=-2;dx<=2;dx++)P(dx,0,"agua");
+    [[-2,-1],[0,-1],[2,-1],[-1,1],[1,1]].forEach(([dx,dy])=>P(dx,dy,"tojo"));
+  }else if(a.t==="bruja"){
+    P(0,0,"bruja");
+    [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]].forEach(([dx,dy])=>P(dx,dy,"hierba"));
+  }
+  return {terrain:out};
+}
+function sealSuggestion(){
+  if(selAnchor<0)return;const a=anchors[selAnchor],A=ANCHORS[aidx[a.t]];if(A.logic)return;
+  snapshot();
+  suggest(a).terrain.forEach(({x,y,t})=>{cells[y*W+x]=idx[t];});
+  render();autosave();status("gramática sellada");
+}
+
+/* ---------------- avisos ---------------- */
+function near(i,typeId,r){
+  const cx=i%W,cy=(i/W|0),t=idx[typeId];
+  for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+    const nx=cx+dx,ny=cy+dy;if(nx<0||ny<0||nx>=W||ny>=H)continue;
+    if(cells[ny*W+nx]===t)return true;}
+  return false;
+}
+function computeWarnings(){
+  const marks=new Map(),tally={};
+  const add=(i,k,key)=>{if(!marks.has(i))marks.set(i,k);tally[key]=(tally[key]||0)+1;};
+  for(let i=0;i<cells.length;i++){
+    const t=cells[i];
+    if(t===idx.tojo)near(i,"agua",3)?add(i,"ok","tojo_ok"):add(i,"warn","tojo_lejos");
+    if(t===idx.algodon)near(i,"turbera",3)?add(i,"ok","alg_ok"):add(i,"warn","alg_vacio");
+    if(t===idx.turbera){const tel=near(i,"algodon",3)||near(i,"esfagno",2)||near(i,"enredadera",2)||near(i,"champas",2);tel?add(i,"ok","pozo_ok"):add(i,"warn","pozo_ciego");}
+    if(t===idx.campamento){const firme=near(i,"roca",2)||near(i,"brezo",2)||near(i,"hierba",1);if(!firme)add(i,"warn","refugio_aislado");}
+  }
+  const msgs=[];const M=(key,k,b,s)=>{if(tally[key])msgs.push({kind:k,b:b+" ("+tally[key]+")",s});};
+  M("tojo_lejos","warn","Tojo lejos del agua","El tojo avisa de agua cerca. Aislado, engaña.");
+  M("alg_vacio","warn","Algodón sin ciénaga","Promete un pozo. Sin turbera cerca es una pista rota.");
+  M("pozo_ciego","warn","Pozo sin telegrafiar","Turbera sin tell cerca = muerte injusta.");
+  M("refugio_aislado","warn","Refugio inaccesible","Zona segura sin suelo firme para llegar.");
+  M("tojo_ok","good","Tojo junto al agua","Pista coherente: se puede deducir el río.");
+  M("alg_ok","good","Algodón sobre ciénaga","Aviso honesto: el pozo está cerca.");
+  M("pozo_ok","good","Pozo telegrafiado","La trampa tiene su tell. Justa.");
+  return {marks,msgs};
+}
+function drawHints(){
+  const {marks}=computeWarnings();
+  marks.forEach((k,i)=>{
+    const x=(i%W)*cell,y=(i/W|0)*cell,s=Math.max(3,Math.min(cell*0.32,9));
+    ctx.beginPath();ctx.moveTo(x+cell,y);ctx.lineTo(x+cell-s,y);ctx.lineTo(x+cell,y+s);ctx.closePath();
+    ctx.fillStyle=k==="warn"?"#e2685a":"#6fbf82";ctx.fill();
+  });
+}
+function setBase(x,y,val,base){if(x<0||y<0||x>=W||y>=H)return false;const i=y*W+x;if(base.has(cells[i])){cells[i]=val;return true;}return false;}
+function ringApply(cx,cy,r,val,base){for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;setBase(cx+dx,cy+dy,val,base);}}
+function autoSolve(){
+  snapshot();
+  const base=new Set([idx.hierba,idx.brezo]);
+  for(let pass=0;pass<2;pass++){
+    for(let i=0;i<cells.length;i++){
+      const t=cells[i],cx=i%W,cy=(i/W|0);
+      if(t===idx.turbera){
+        const tel=near(i,"algodon",3)||near(i,"esfagno",2)||near(i,"enredadera",2)||near(i,"champas",2);
+        if(!tel){ringApply(cx,cy,1,idx.barro,base);[[0,-2],[0,2],[-2,0],[2,0]].forEach(([dx,dy])=>setBase(cx+dx,cy+dy,idx.algodon,base));}
+      }else if(t===idx.campamento){
+        if(!(near(i,"roca",2)||near(i,"brezo",2)||near(i,"hierba",1)))ringApply(cx,cy,1,idx.brezo,base);
+      }else if(t===idx.algodon){
+        if(!near(i,"turbera",3))(setBase(cx,cy+2,idx.turbera,base)||setBase(cx,cy-2,idx.turbera,base)||setBase(cx+2,cy,idx.turbera,base)||setBase(cx-2,cy,idx.turbera,base));
+      }else if(t===idx.tojo){
+        if(!near(i,"agua",3))(setBase(cx+1,cy,idx.agua,base)||setBase(cx-1,cy,idx.agua,base)||setBase(cx,cy+1,idx.agua,base)||setBase(cx,cy-1,idx.agua,base));
+      }
+    }
+  }
+  hints=true;document.getElementById("t-hints").classList.add("on");
+  render();autosave();
+  let warn=0;computeWarnings().marks.forEach(k=>{if(k==="warn")warn++;});
+  status(warn?`resuelto · quedan ${warn} avisos por revisar a mano`:"resuelto · sin avisos");
+}
+
+/* ---------------- panel derecho ---------------- */
+function updatePanel(){
+  const box=document.getElementById("rcontent");
+  if(mode==="terrain"){
+    let html='<h2>Avisos de gramática</h2>';
+    if(!hints)html+='<div class="hint-off">Activa <b style="color:var(--ink)">Avisos</b> para revisar la coherencia del mapa.</div>';
+    else{const {msgs}=computeWarnings();
+      html+=msgs.length?msgs.map(m=>`<div class="warn-row ${m.kind==='good'?'good':''}"><span class="dot"></span><div><b>${m.b}</b><br><span>${m.s}</span></div></div>`).join(""):'<div class="empty">Sin nada que marcar. Pinta pistas y pozos.</div>';}
+    box.innerHTML=html;return;
+  }
+  if(selAnchor<0){box.innerHTML='<h2>Puntos clave</h2><div class="hint-off">Elige un tipo y toca el mapa. Al colocarlo verás en fantasma lo que la gramática pide alrededor.</div>';return;}
+  const a=anchors[selAnchor],A=ANCHORS[aidx[a.t]];
+  box.innerHTML=`<div class="adet"><div class="atitle"><canvas width="22" height="22" id="acan"></canvas>${A.nm} <span style="color:var(--faint);font-family:var(--mono);font-size:11px">${a.x},${a.y}</span></div>`
+    +`<div class="arule">${A.rule}</div>`
+    +(A.logic?'<div class="logictag">No se pinta — se guarda en el .json para la capa lógica.</div>':`<div class="recipe"><b>Alrededor:</b> ${A.recipe}</div>`)
+    +'<div class="btnrow">'+(A.logic?'':'<button class="tool primary" id="seal">Sellar sugerencia</button>')+'<button class="tool" id="delA">Quitar punto</button></div></div>';
+  const ac=document.getElementById("acan"),actx=ac.getContext("2d");actx.fillStyle=A.c;actx.beginPath();actx.arc(11,11,11,0,7);actx.fill();glyph(actx,A.glyph,11,11,20,"rgba(255,255,255,.95)");
+  const seal=document.getElementById("seal");if(seal)seal.onclick=sealSuggestion;
+  document.getElementById("delA").onclick=()=>{anchors.splice(selAnchor,1);selAnchor=-1;render();autosave();};
+}
+
+/* ---------------- pintar ---------------- */
+const CHAINS={turbera:["turbera","barro"],enredadera:["enredadera","brezo"]};
+let autoTrans=false;
+function feather(core,typeId){
+  const chain=CHAINS[typeId];if(!chain)return;
+  const base=new Set([idx.hierba,idx.brezo]);
+  for(const [cx,cy] of core){
+    for(let r=1;r<chain.length;r++){
+      const cand=idx[chain[r]];
+      for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+        if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;
+        const nx=cx+dx,ny=cy+dy;if(nx<0||ny<0||nx>=W||ny>=H)continue;
+        const i=ny*W+nx;if(base.has(cells[i])){cells[i]=cand;drawCell(i);}
+      }
+    }
+  }
+}
+function paintAt(px,py){
+  const cx=Math.floor(px/cell),cy=Math.floor(py/cell);
+  if(cx<0||cy<0||cx>=W||cy>=H)return;
+  const val=tool==="erase"?idx.hierba:cur;
+  if(tool==="fill"){flood(cx,cy,val);render();return;}
+  const r=brush-1,core=[];
+  for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+    const nx=cx+dx,ny=cy+dy;if(nx<0||ny<0||nx>=W||ny>=H)continue;
+    const i=ny*W+nx;if(cells[i]!==val){cells[i]=val;drawCell(i);}core.push([nx,ny]);}
+  if(autoTrans&&tool==="paint")feather(core,TYPES[val].id);
+}
+function flood(sx,sy,val){
+  const target=cells[sy*W+sx];if(target===val)return;const st=[[sx,sy]];
+  while(st.length){const [x,y]=st.pop();if(x<0||y<0||x>=W||y>=H)continue;
+    const i=y*W+x;if(cells[i]!==target)continue;cells[i]=val;st.push([x+1,y],[x-1,y],[x,y+1],[x,y-1]);}
+}
+function hitAnchor(px,py){
+  const cx=px/cell,cy=py/cell;let best=-1,bd=0.8*0.8;
+  anchors.forEach((a,i)=>{const dx=(a.x+.5)-cx,dy=(a.y+.5)-cy,d=dx*dx+dy*dy;if(d<bd){bd=d;best=i;}});
+  return best;
+}
+function evtPos(e){const r=board.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top];}
+let holdTimer=null;
+board.addEventListener("pointerdown",e=>{
+  const [x,y]=evtPos(e);
+  if(mode==="terrain"){snapshot();painting=true;board.setPointerCapture(e.pointerId);paintAt(x,y);}
+  else{
+    const h=hitAnchor(x,y);
+    if(h>=0){
+      selAnchor=h;render();autosave();
+      holdTimer=setTimeout(()=>{snapshot();anchors.splice(h,1);selAnchor=-1;render();autosave();status("punto quitado");},600);
+    }else{
+      const cx=Math.floor(x/cell),cy=Math.floor(y/cell);if(cx<0||cy<0||cx>=W||cy>=H)return;
+      snapshot();anchors.push({t:curAnchor,x:cx,y:cy});selAnchor=anchors.length-1;render();autosave();
+    }
+  }
+});
+board.addEventListener("pointermove",e=>{
+  if(holdTimer){clearTimeout(holdTimer);holdTimer=null;}
+  const [x,y]=evtPos(e),cx=Math.floor(x/cell),cy=Math.floor(y/cell);
+  document.getElementById("coord").textContent=(cx>=0&&cy>=0&&cx<W&&cy<H)?`x ${cx} · y ${cy} · ${TYPES[cells[cy*W+cx]].nm}`:"—";
+  if(painting)paintAt(x,y);
+});
+function endStroke(){if(holdTimer){clearTimeout(holdTimer);holdTimer=null;}if(!painting)return;painting=false;if(hints)render();autosave();}
+board.addEventListener("pointerup",endStroke);
+board.addEventListener("pointercancel",endStroke);
+board.addEventListener("contextmenu",e=>{
+  if(mode!=="points")return;e.preventDefault();
+  const [x,y]=evtPos(e),h=hitAnchor(x,y);
+  if(h>=0){snapshot();anchors.splice(h,1);if(selAnchor===h)selAnchor=-1;else if(selAnchor>h)selAnchor--;render();autosave();}
+});
+
+/* ---------------- paleta ---------------- */
+function chip(colorHex,iconType,round){
+  const cv=document.createElement("canvas");cv.width=22;cv.height=22;const c=cv.getContext("2d");
+  c.fillStyle=colorHex;if(round){c.beginPath();c.arc(11,11,11,0,7);c.fill();}else{c.fillRect(0,0,22,22);}
+  const gc=round?"rgba(255,255,255,.95)":((0.299*hex2rgb(colorHex)[0]+0.587*hex2rgb(colorHex)[1]+0.114*hex2rgb(colorHex)[2])>140?"rgba(18,22,18,.82)":"rgba(236,240,237,.9)");
+  glyph(c,iconType,11,11,20,gc);return cv;
+}
+function buildPalette(){
+  const p=document.getElementById("palette");p.innerHTML="";
+  if(mode==="terrain"){
+    TERRAINS.forEach(t=>{
+      if(t.g){const h=document.createElement("div");h.className="grp";h.textContent=t.g;p.appendChild(h);return;}
+      const i=idx[t.id];
+      const b=document.createElement("button");b.className="sw"+(i===cur?" on":"");
+      b.appendChild(chip(t.c,t.id,false));
+      const nm=document.createElement("span");nm.className="nm";nm.textContent=t.nm;b.appendChild(nm);
+      const hx=document.createElement("span");hx.className="hx";hx.textContent=t.c;b.appendChild(hx);
+      b.onclick=()=>{cur=i;tool="paint";setTool();document.querySelectorAll(".sw").forEach(s=>s.classList.remove("on"));b.classList.add("on");};
+      p.appendChild(b);
+      const n=document.createElement("div");n.className="note";n.textContent=t.note;p.appendChild(n);
+    });
+  }else{
+    let logicHdr=false;
+    const h=document.createElement("div");h.className="grp";h.textContent="Puntos que arman terreno";p.appendChild(h);
+    ANCHORS.forEach(a=>{
+      if(a.logic&&!logicHdr){const g=document.createElement("div");g.className="grp";g.textContent="Puntos de lógica (no se pintan)";p.appendChild(g);logicHdr=true;}
+      const b=document.createElement("button");b.className="sw rnd"+(a.id===curAnchor?" on":"");
+      b.appendChild(chip(a.c,a.glyph,true));
+      const nm=document.createElement("span");nm.className="nm";nm.textContent=a.nm;b.appendChild(nm);
+      b.onclick=()=>{curAnchor=a.id;document.querySelectorAll(".sw").forEach(s=>s.classList.remove("on"));b.classList.add("on");};
+      p.appendChild(b);
+    });
+  }
+}
+
+/* ---------------- tools ui ---------------- */
+function setTool(){
+  document.getElementById("t-paint").classList.toggle("on",tool==="paint");
+  document.getElementById("t-fill").classList.toggle("on",tool==="fill");
+  document.getElementById("t-erase").classList.toggle("on",tool==="erase");
+}
+document.getElementById("t-paint").onclick=()=>{tool="paint";setTool();};
+document.getElementById("t-fill").onclick=()=>{tool="fill";setTool();};
+document.getElementById("t-erase").onclick=()=>{tool="erase";setTool();};
+document.getElementById("brush").onchange=e=>brush=+e.target.value;
+document.getElementById("t-hints").onclick=e=>{hints=!hints;e.target.classList.toggle("on",hints);render();};
+document.getElementById("t-soft").onclick=e=>{autoTrans=!autoTrans;e.target.classList.toggle("on",autoTrans);status(autoTrans?"bordes suaves activados":"bordes suaves desactivados");};
+document.getElementById("t-solve").onclick=autoSolve;
+document.getElementById("undo").onclick=undo;
+document.getElementById("t-grid").onclick=e=>{showGrid=!showGrid;e.target.classList.toggle("on",showGrid);render();};
+document.getElementById("t-grid").classList.toggle("on",showGrid);
+
+/* ---------------- zoom ---------------- */
+function setZoom(v){userCell=Math.max(4,Math.min(40,v));fitCell();render();}
+document.getElementById("zin").onclick=()=>setZoom((userCell||cell)+3);
+document.getElementById("zout").onclick=()=>setZoom((userCell||cell)-3);
+document.getElementById("zfit").onclick=()=>{userCell=null;fitCell();render();};
+
+/* ---------------- mode ---------------- */
+function setMode(m){
+  mode=m;selAnchor=-1;painting=false;
+  document.getElementById("m-terrain").classList.toggle("on",m==="terrain");
+  document.getElementById("m-points").classList.toggle("on",m==="points");
+  document.getElementById("terrain-tools").style.display=m==="terrain"?"contents":"none";
+  document.getElementById("points-hint").style.display=m==="points"?"inline":"none";
+  buildPalette();render();
+}
+document.getElementById("m-terrain").onclick=()=>setMode("terrain");
+document.getElementById("m-points").onclick=()=>setMode("points");
+
+/* ---------------- móvil: cajones ---------------- */
+const palPanel=document.getElementById("pal-panel"),rightPanel=document.getElementById("right-panel"),backdrop=document.getElementById("backdrop");
+function closeDrawers(){palPanel.classList.remove("open");rightPanel.classList.remove("open");backdrop.classList.remove("on");
+  document.getElementById("tgl-pal").classList.remove("on");document.getElementById("tgl-pan").classList.remove("on");}
+document.getElementById("tgl-pal").onclick=()=>{const o=palPanel.classList.contains("open");closeDrawers();if(!o){palPanel.classList.add("open");backdrop.classList.add("on");document.getElementById("tgl-pal").classList.add("on");}};
+document.getElementById("tgl-pan").onclick=()=>{const o=rightPanel.classList.contains("open");closeDrawers();if(!o){rightPanel.classList.add("open");backdrop.classList.add("on");document.getElementById("tgl-pan").classList.add("on");}};
+backdrop.onclick=closeDrawers;
+
+/* ---------------- resize / clear ---------------- */
+const gwEl=document.getElementById("gw"),ghEl=document.getElementById("gh");
+function doResize(nw,nh){
+  nw=Math.max(8,Math.min(200,nw||48));nh=Math.max(8,Math.min(200,nh||48));
+  snapshot();
+  const old=cells,ow=W;const nc=new Uint8Array(nw*nh);
+  for(let y=0;y<Math.min(H,nh);y++)for(let x=0;x<Math.min(ow,nw);x++)nc[y*nw+x]=old[y*ow+x];
+  anchors=anchors.filter(a=>a.x<nw&&a.y<nh);selAnchor=-1;
+  W=nw;H=nh;cells=nc;userCell=null;
+  gwEl.value=W;ghEl.value=H;
+  fitCell();render();autosave();status(`rejilla ${W}×${H}`);
+}
+document.getElementById("resize").onclick=()=>doResize(+gwEl.value,+ghEl.value);
+document.querySelectorAll(".sz").forEach(b=>b.onclick=()=>doResize(+b.dataset.n,+b.dataset.n));
+[gwEl,ghEl].forEach(el=>el.addEventListener("keydown",e=>{if(e.key==="Enter")doResize(+gwEl.value,+ghEl.value);}));
+document.getElementById("clear").onclick=()=>{if(confirm("¿Vaciar todo el mapa a hierba firme? (los puntos se conservan)")){snapshot();cells.fill(idx.hierba);render();autosave();}};
+
+/* ---------------- export ---------------- */
+document.getElementById("export").onclick=()=>{
+  const off=document.createElement("canvas");off.width=W;off.height=H;
+  const octx=off.getContext("2d"),img=octx.createImageData(W,H);
+  for(let i=0;i<cells.length;i++){const c=RGB[cells[i]],o=i*4;img.data[o]=c[0];img.data[o+1]=c[1];img.data[o+2]=c[2];img.data[o+3]=255;}
+  octx.putImageData(img,0,0);
+  off.toBlob(b=>saveBlob(`splatmap_${W}x${H}.png`,b),"image/png");
+  status(`PNG datos · ${W}×${H} px (para Godot, filtro Nearest)`);
+};
+document.getElementById("exportview").onclick=()=>{
+  const s=Math.max(12,Math.floor(768/Math.max(W,H)));
+  const off=document.createElement("canvas");off.width=W*s;off.height=H*s;
+  const g=off.getContext("2d");
+  for(let i=0;i<cells.length;i++){
+    const t=cells[i],x=(i%W)*s,y=(i/W|0)*s;
+    g.fillStyle=TYPES[t].c;g.fillRect(x,y,s,s);
+    g.strokeStyle="rgba(0,0,0,.22)";g.lineWidth=1;g.strokeRect(x+.5,y+.5,s-1,s-1);
+    if(s>=11)glyph(g,TYPES[t].id,x+s/2,y+s/2,s,GLYPHCOL[t]);
+  }
+  anchors.forEach(a=>{const A=ANCHORS[aidx[a.t]];const x=a.x*s+s/2,y=a.y*s+s/2,rr=Math.max(5,Math.min(s*0.44,11));
+    g.beginPath();g.arc(x,y,rr,0,7);g.fillStyle=A.c;g.fill();g.lineWidth=2;g.strokeStyle="rgba(255,255,255,.8)";g.stroke();
+    if(rr>=8)glyph(g,A.glyph,x,y,rr*1.7,"rgba(255,255,255,.95)");});
+  off.toBlob(b=>saveBlob(`vista_${W}x${H}.png`,b),"image/png");
+  status(`vista exportada · ${W*s}×${H*s} px`);
+};
+
+/* ---------------- save / load ---------------- */
+document.getElementById("save").onclick=()=>{
+  const data={w:W,h:H,cells:Array.from(cells),anchors,legend:Object.fromEntries(TYPES.map(t=>[t.id,t.c]))};
+  saveBlob("paramo_mapa.json",new Blob([JSON.stringify(data)],{type:"application/json"}));
+  status("mapa guardado");
+};
+document.getElementById("load").onclick=()=>document.getElementById("file").click();
+document.getElementById("file").onchange=e=>{
+  const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{try{const d=JSON.parse(rd.result);W=d.w;H=d.h;cells=Uint8Array.from(d.cells);anchors=d.anchors||[];selAnchor=-1;
+    document.getElementById("gw").value=W;document.getElementById("gh").value=H;
+    fitCell();render();autosave();status("mapa cargado");}catch(err){status("archivo no válido");}};
+  rd.readAsText(f);e.target.value="";
+};
+document.getElementById("copyhex").onclick=()=>{
+  const txt=TYPES.map(t=>`${t.c}  ${t.id}`).join("\n");
+  copyText(txt).then(()=>status("tabla copiada")).catch(()=>status("no se pudo copiar"));
+};
+
+/* ---------------- autosave ---------------- */
+async function autosave(){try{if(window.storage)await window.storage.set("moor_map",JSON.stringify({w:W,h:H,cells:Array.from(cells),anchors}),false);}catch(e){}}
+async function restore(){try{if(window.storage){const r=await window.storage.get("moor_map",false);if(r&&r.value){const d=JSON.parse(r.value);W=d.w;H=d.h;cells=Uint8Array.from(d.cells);anchors=d.anchors||[];document.getElementById("gw").value=W;document.getElementById("gh").value=H;}}}catch(e){}}
+function status(m){document.getElementById("status").textContent=m;}
+
+/* ---------------- teclas ---------------- */
+addEventListener("keydown",e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"){e.preventDefault();undo();return;}
+  if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+  const k=e.key.toLowerCase();
+  if(mode==="terrain"){
+    if(k==="p"){tool="paint";setTool();}else if(k==="f"){tool="fill";setTool();}
+    else if(k==="e"){tool="erase";setTool();}else if(k==="h"){document.getElementById("t-hints").click();}
+  }
+  if(k==="g")document.getElementById("t-grid").click();
+  else if(k==="+"||k==="=")setZoom((userCell||cell)+3);
+  else if(k==="-")setZoom((userCell||cell)-3);
+});
+addEventListener("resize",()=>{fitCell();render();});
+
+/* ---------------- init ---------------- */
+(async()=>{await restore();buildPalette();fitCell();render();})();
+</script>
+</body>
+</html>

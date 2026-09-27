@@ -1,0 +1,24 @@
+plugins { id "com.android.application" }
+android {
+    namespace "com.cimentacion.cartografo"
+    compileSdk 34
+    defaultConfig {
+        applicationId "com.cimentacion.cartografo"
+        minSdk 24
+        targetSdk 34
+        versionCode (System.getenv("GITHUB_RUN_NUMBER") ? System.getenv("GITHUB_RUN_NUMBER").toInteger() : 1)
+        versionName "1.0." + (System.getenv("GITHUB_RUN_NUMBER") ?: "0")
+    }
+    signingConfigs {
+        release {
+            storeFile file("../cartografo.jks")
+            storePassword "cartografo"
+            keyAlias "cartografo"
+            keyPassword "cartografo"
+        }
+    }
+    buildTypes {
+        release { minifyEnabled false; signingConfig signingConfigs.release }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
