@@ -100,6 +100,8 @@ input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 #hundiendo{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 132px);z-index:4;text-align:center;pointer-events:none;font:600 20px/1.2 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--blood);text-shadow:0 2px 6px #000}
 #avisos{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 54px);z-index:5;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
 #avisos div{font:600 16px/1.2 var(--font-ui);letter-spacing:.04em;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:8px 12px;max-width:26rem;text-align:center;animation:entra .3s}
+#avisos div.espectro,#llamada.espectro{animation:tiembla .14s steps(2) infinite}
+@keyframes tiembla{0%{transform:translateX(0)}50%{transform:translateX(1.5px);opacity:.82}}
 @keyframes entra{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 
 /* guía */
@@ -227,6 +229,7 @@ input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
   <button class="redondo grande" id="b-tirar" hidden>Tirar</button>
   <button class="redondo" id="b-mapa" hidden>Mapa</button>
   <button class="redondo grande" id="b-levantar" hidden>Levantar</button>
+  <button class="redondo grande" id="b-bruja" hidden style="background:#5a2f80">Trato<br>3 velas</button>
   <button class="redondo" id="b-aqui">Decir</button>
   <button class="redondo" id="b-vela"><b id="n-velas">5</b>Vela</button>
 </div>

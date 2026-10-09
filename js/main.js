@@ -6,7 +6,7 @@
 const $ = s => document.querySelector(s);
 const P = { fase: null, seed: null, rol: 'caminante', mapa: null, velasPuestas: 0, encima: false, flecha: null, llamadaT: 0, finVisto: false };
 const J = { x: 0, z: 2.2, yaw: 0, pitch: -0.05, roll: 0, yCam: OJOS, s: 0, hundido: 0, estado: 'ok', tEn: 0, firme: { x: 0, z: 2.2 },
-            velas: 8, lev: 0, tPartida: 0, bob: 0, muerteT: 0, envioT: 0, aquiT: 0, pasoT: 0, gluT: 0 };
+            velas: 12, lev: 0, zona: '', racha: 0, rachaT: 6, rachaDur: 0, giro: 0, sinCastillo: false, susto: 0, fatuoT: 20, manoT: 30, marcaT: 40, vozT: 50, tPartida: 0, bob: 0, muerteT: 0, envioT: 0, aquiT: 0, pasoT: 0, gluT: 0 };
 let rolElegido = 'caminante';
 
 /* ------------------------------------------------------------ arranque */
@@ -38,6 +38,10 @@ const EXTRA_LEYENDA = [
   ['#9fe0ff', 'Losas de las compuertas', 'Mientras alguien pisa una, el puente del río sube. Hay una a cada orilla.'],
   ['#8a6a44', 'Tablón', 'Pesa: solo se tiende si dos lo levantan a la vez. Tapa la turbera de la senda.'],
   ['#e0453a', 'Cruz roja', 'Ahí se hundió alguien.'],
+  ['#e8e4d0', 'Otero', 'Loma en la ladera. Desde arriba quien camina ve por encima de la enredadera.'],
+  ['#b070ff', 'Choza de la bruja', 'Por 3 velas te enseña (con rombos morados) un buen trozo de la senda que viene. Una vez por choza.'],
+  ['#b070ff', 'Mensajes que tiemblan', 'Son los espíritus hablando con la voz de alguien. Pregúntale si de verdad lo ha dicho.'],
+  ['#e8c15a', 'Zonas', 'La entrada, la ladera (enredadera alta), la gran llanura (viento que te gira; la niebla corre al este), el gran barrizal (laberinto, espíritus) y el valle.'],
 ];
 $('#l-leyenda').innerHTML = TERR.map(t => `<li><i style="background:${t.c}"></i><div><b>${t.nm}${t.kind === 'muerte' ? ' — te traga' : t.kind === 'agua' ? ' — no se cruza' : ''}</b><span>${t.note}</span></div></li>`).join('') + EXTRA_LEYENDA.map(e => `<li><i style="background:${e[0]}"></i><div><b>${e[1]}</b><span>${e[2]}</span></div></li>`).join('');
 
@@ -162,7 +166,8 @@ function reloj(ms) { const s = Math.max(0, Math.floor(ms / 1000)); return Math.f
 function pintarMarcador(E) {
   const cam = E.pl.filter(p => p[2] === 'caminante');
   const lleg = cam.filter(p => p[9]).length;
-  $('#marcador').innerHTML = `Castillo <b>${lleg}/${cam.length}</b> · Hundidos <b>${E.de}/${E.lim}</b> · <b>${reloj(E.el)}</b>`;
+  const z = P.rol === 'caminante' && J.zona ? ZONAS.find(q => q.id === J.zona) : null;
+  $('#marcador').innerHTML = (z ? `<b>${z.nm}</b> · ` : '') + `Castillo <b>${lleg}/${cam.length}</b> · Hundidos <b>${E.de}/${E.lim}</b> · <b>${reloj(E.el)}</b>`;
 }
 
 /* ------------------------------------------------------------ empezar / terminar */
@@ -192,7 +197,7 @@ function empezarPartida(E, yo) {
   if (camina) {
     mundoCrear(P.mapa);
     const yoI = E.pl.filter(p => p[2] === 'caminante').findIndex(p => p[0] === RED.yo);
-    Object.assign(J, { x: ((Math.max(0, yoI) % 3) - 1) * 0.9 - 1.2, z: 6.5, yaw: 0, pitch: -0.05, s: 0, estado: 'ok', tEn: 0, velas: 8, lev: 0, muerteT: 0 });
+    Object.assign(J, { x: ((Math.max(0, yoI) % 3) - 1) * 0.9 - 1.2, z: 6.5, yaw: 0, pitch: -0.05, s: 0, estado: 'ok', tEn: 0, velas: 12, lev: 0, muerteT: 0, zona: '', racha: 0, rachaT: 6, fatuoT: 20, manoT: 30, marcaT: 40, vozT: 50, sinCastilloT: 0 });
     J.firme = { x: J.x, z: J.z };
     $('#n-velas').textContent = J.velas; $('#b-vela').disabled = false;
     const am = $('#ayuda-mov');
@@ -219,7 +224,7 @@ function terminarPartida() { ocultarJuego(); mundoQuitar(); P.mapa = null; }
 
 /* lo que hay en el mundo según el estado: velas, marcas del guía, los demás */
 function sincronizar(E) {
-  M3.estado = { pu: E.pu || [], tb: E.tb || 0 };
+  M3.estado = { pu: E.pu || [], tb: E.tb || [] };
   if (P.rol !== 'caminante' || !M3.scene) return;
   const cd = E.cd || [];
   for (let i = P.velasPuestas; i < cd.length; i++) ponerVela(cd[i][0], cd[i][1], cd[i][2]);
@@ -251,8 +256,9 @@ RED.onEvento = (ev) => {
     case 'rol': aviso(a + (b === 'guia' ? ' ahora guía' : ' ahora camina')); break;
     case 'llamada':
       if (b === 'veo') {
-        const txt = ev[5] || '';
-        if (a !== (mio(RED.EST) || [])[1]) { aviso(a + ': ' + txt); sonido.campana(880); }
+        const txt = ev[5] || '', falsa = ev[6] === 1;
+        if (falsa && camina && a === (mio(RED.EST) || [])[1]) break;     // tu propia voz falsa no la oyes
+        if (a !== (mio(RED.EST) || [])[1] || falsa) { aviso(a + ': ' + txt, falsa); sonido.campana(880); }
         break;
       }
       if (b === 'aqui') {
@@ -282,28 +288,31 @@ RED.onEvento = (ev) => {
       break;
     }
     case 'campo':
-      aviso(a + ' ha llegado a un campamento' + (camina ? ': +3 velas' : ''));
-      if (camina) { J.velas += 3; $('#n-velas').textContent = J.velas; $('#b-vela').disabled = false; }
+      aviso(a + ' ha llegado a un campamento' + (camina ? ': +5 velas' : ''));
+      if (camina) { J.velas += 5; $('#n-velas').textContent = J.velas; $('#b-vela').disabled = false; }
       break;
     case 'sube': if (camina) aviso('Una compuerta sube: hay paso por el río'); sonido.tono('sine', 180, 260, 0.6, 0.08); break;
     case 'baja': if (camina) aviso('La compuerta baja'); sonido.tono('sine', 260, 150, 0.6, 0.08); break;
     case 'tablon': aviso(a + ' y ' + b + ' han tendido el tablón'); sonido.campana(392); break;
     case 'cerrado': break;
+    case 'bruja': aviso(a + ' ha hecho un trato con la bruja: el guía ve un trozo de la senda'); sonido.tono('sine', 220, 110, 1.6, 0.1); break;
     case 'vela': if (!camina) sonido.campana(990); break;
   }
 };
 
 const avisosEl = $('#avisos');
-function aviso(txt) {
+function aviso(txt, espectro) {
   const d = document.createElement('div'); d.textContent = txt;
+  if (espectro) d.className = 'espectro';
   avisosEl.appendChild(d);
   while (avisosEl.children.length > 3) avisosEl.firstChild.remove();
   setTimeout(() => d.remove(), 4200);
 }
 window.toast = aviso;
 let llamadaT = 0;
-function llamada(txt, de) {
+function llamada(txt, de, espectro) {
   const e = $('#llamada');
+  e.classList.toggle('espectro', !!espectro);
   e.innerHTML = '';
   if (txt) e.appendChild(document.createTextNode(txt));
   if (de) { const s = document.createElement('small'); s.textContent = de; e.appendChild(s); }
@@ -420,6 +429,14 @@ $('#decir-enviar').addEventListener('click', () => {
   $('#decir').hidden = true;
 });
 $('#decir-cerrar').addEventListener('click', () => { $('#decir').hidden = true; });
+$('#b-bruja').addEventListener('click', () => {
+  const b = +$('#b-bruja').dataset.b;
+  if (!(b >= 0) || J.velas < 3) return;
+  J.velas -= 3; $('#n-velas').textContent = J.velas; $('#b-vela').disabled = J.velas <= 0;
+  accion('bruja', { b });
+  llamada('La bruja acepta tus velas', 'Quien guía verá un trozo de la senda');
+  sonido.tono('sine', 220, 110, 1.6, 0.1);
+});
 const bLev = $('#b-levantar');
 bLev.addEventListener('pointerdown', e => { e.preventDefault(); J.lev = 1; try { bLev.setPointerCapture(e.pointerId); } catch (_) {} });
 for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) bLev.addEventListener(ev, () => { J.lev = 0; });
@@ -446,10 +463,10 @@ function aqui() {
 
 /* ------------------------------------------------------------ caminante: cada frame */
 const BORDE_X = MAP_W * C / 2 - 0.3, Z_MAX = 4 * C - 0.4, Z_MIN = -(MAP_L + 7) * C + 2.4;
+const NOMBRE_SUELO = { turbera: 'La turbera te ha tragado', esfagno: 'El esfagno no aguantaba', enredadera: 'Bajo la enredadera no había suelo' };
 function pasoCaminante(dt) {
   const E = RED.EST; if (!E || !M3.scene) return;
   J.tPartida = E.el / 1000;
-  J.aquiT = Math.max(0, J.aquiT - dt);
   if (J.estado === 'muerto') {
     J.muerteT -= dt;
     if (J.muerteT <= 0) reaparecer(E);
@@ -462,14 +479,23 @@ function pasoCaminante(dt) {
   const li = Math.hypot(ix, iy); if (li > 1) { ix /= li; iy /= li; }
   if (P.encima) { ix = iy = 0; }
 
-  /* suelo que pisas (y lo que han hecho los demás: compuertas, tablón) */
-  const ES = RED.EST, M = P.mapa;
-  const enPuente = (r, c) => { const k = M.puentes.findIndex(pu => pu.celdas.some(([pr, pc]) => pr === r && pc === c)); return k; };
+  /* suelo que pisas (y lo que han hecho los demás: compuertas, tablones) */
+  const ES = E, M = P.mapa;
+  const enPuente = (r, c) => M.puentes.findIndex(pu => pu.celdas.some(([pr, pc]) => pr === r && pc === c));
   const pasoAgua = (r, c) => { const k = enPuente(r, c); return k >= 0 && ES.pu && ES.pu[k] === 1; };
-  const tablonPuesto = (r, c) => M.tablon && ES.tb && M.tablon.r === r && M.tablon.c === c;
+  const tablonPuesto = (r, c) => M.tablones.some((tb, k) => tb.r === r && tb.c === c && ES.tb && ES.tb[k]);
   const q = celdaDe(J.x, J.z), k = tipoEn(q.r, q.c);
   let tp = k >= 0 ? TERR[k] : null;
   if (tp && tablonPuesto(q.r, q.c)) tp = TERR[T.brezo];
+  const zona = zonaDe(q.r), zid = zona ? zona.id : '';
+
+  /* zona nueva: su nombre y su regla */
+  if (zona && J.zona !== zid) {
+    J.zona = zid;
+    llamada(zona.nm, zona.pista);
+    sonido.tono('sine', 110, 98, 2.2, 0.12); sonido.tono('triangle', 165, 147, 2.2, 0.05);
+  }
+
   /* si la compuerta baja contigo encima, el agua te devuelve a la orilla */
   if (k === T.agua && !pasoAgua(q.r, q.c)) { J.x = J.firme.x; J.z = J.firme.z; llamada('El agua te arrastra', 'a la orilla'); return; }
   if (tp && tp.kind === 'muerte') {
@@ -479,15 +505,41 @@ function pasoCaminante(dt) {
     if (J.s >= 0.5) J.s += dt * 0.5 / tp.hundir;
   } else {
     J.tEn = 0;
-    if (J.s < 0.5) J.s = 0;
+    J.s = 0;
     if (J.s === 0 && k !== T.agua) { J.firme.x = J.x; J.firme.z = J.z; }
   }
   const atrapado = J.s >= 0.5;
   J.estado = J.s > 0 ? 'hund' : 'ok';
+
+  /* viento: en la llanura, rachas que te empujan hacia el este y te giran el cuerpo */
+  const fuerzaViento = zid === 'llanura' ? 1 : zid === 'ladera' ? 0.35 : 0;
+  J.rachaT -= dt;
+  if (fuerzaViento > 0 && J.rachaT <= 0 && J.racha <= 0) {
+    J.rachaT = (zid === 'llanura' ? 9 : 22) + Math.random() * (zid === 'llanura' ? 10 : 18);
+    J.racha = 0.01; J.rachaDur = 2.4;
+    J.giro = (Math.random() < 0.5 ? -1 : 1) * (0.9 + Math.random() * 1.9) * fuerzaViento;
+    J.sinCastilloT = zid === 'llanura' ? 7 + Math.random() * 6 : 0;
+    sonido.racha(fuerzaViento);
+    if (zid === 'llanura') llamada('', 'Una racha te da la vuelta');
+  }
+  if (J.racha > 0) {
+    J.rachaDur -= dt;
+    const f = Math.sin(Math.min(1, 1 - J.rachaDur / 2.4) * Math.PI);
+    J.racha = Math.max(0.0001, f);
+    if (!atrapado) J.yaw += J.giro * f * dt * 1.3;
+    if (J.rachaDur <= 0) J.racha = 0;
+  }
+  J.sinCastilloT = Math.max(0, (J.sinCastilloT || 0) - dt);
+  J.sinCastillo = J.sinCastilloT > 0;
+
   const vel = (J.lev ? 0 : 2.5) * (atrapado ? 0 : 1);
   const sy = Math.sin(J.yaw), cy = Math.cos(J.yaw);
   const mx = cy * ix - sy * (-iy), mz = -sy * ix - cy * (-iy);
   let nx = J.x + mx * vel * dt, nz = J.z + mz * vel * dt;
+  if (!atrapado) {
+    nx += J.racha * fuerzaViento * 1.1 * dt;                                         // el viento empuja al este
+    if (zid === 'ladera' && tp && tp.id === 'barro') nz += 1.4 * dt;                  // el barro de la ladera resbala cuesta abajo
+  }
   /* el agua no se cruza (salvo por una compuerta subida): te empuja fuera */
   for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
     const r = q.r + dr, c = q.c + dc;
@@ -498,36 +550,37 @@ function pasoCaminante(dt) {
     if (d < 1e-4) { nx = J.x; nz = J.z; }
     else if (d < RAD) { nx = cx + dx / d * RAD; nz = cz + dz / d * RAD; }
   }
-  /* peñascos, árboles, menhires: no se atraviesan */
+  /* hitos y chozas: no se atraviesan */
   for (const o of M3.solidos || []) {
+    if (Math.abs(o.z - nz) > 4) continue;
     const dx = nx - o.x, dz = nz - o.z, d = Math.hypot(dx, dz), R0 = o.r + 0.3;
     if (d < R0 && d > 1e-4) { nx = o.x + dx / d * R0; nz = o.z + dz / d * R0; }
   }
   J.x = Math.max(-BORDE_X, Math.min(BORDE_X, nx));
   J.z = Math.max(Z_MIN, Math.min(Z_MAX, nz));
 
-  const sobrePuenteAntes = k === T.agua;
-  const andando = li > 0.1 && vel > 0.2;
-  if (andando) { J.bob += dt * vel * 2.7; J.pasoT -= dt * vel; if (J.pasoT <= 0) { J.pasoT = 1.25; sonido.paso(sobrePuenteAntes ? 'puente' : 'brezo'); } }
-  const hondo = tp && tp.id === 'enredadera' ? 3.6 : 1.45;
   const sobrePuente = k === T.agua && pasoAgua(q.r, q.c);
-  J.yCam = (sobrePuente ? 0.02 : sueloEn(J.x, J.z)) + OJOS + (andando ? Math.sin(J.bob) * 0.04 : 0) - J.s * hondo;
-  J.roll = atrapado ? Math.sin(performance.now() / 300) * 0.05 : 0;
+  const andando = li > 0.1 && vel > 0.2;
+  if (andando) { J.bob += dt * vel * 2.7; J.pasoT -= dt * vel; if (J.pasoT <= 0) { J.pasoT = 1.25; sonido.paso(sobrePuente ? 'puente' : 'brezo'); } }
+  const hondo = tp && tp.id === 'enredadera' ? 3.6 : 1.45;
+  J.yCam = (sobrePuente ? alturaFila(q.r + 0.5) + 0.02 : sueloEn(J.x, J.z)) + OJOS + (andando ? Math.sin(J.bob) * 0.04 : 0) - J.s * hondo;
+  J.roll = atrapado ? Math.sin(performance.now() / 300) * 0.05 : J.racha * fuerzaViento * 0.06 * Math.sign(J.giro || 1);
   J.hundido = J.s;
   if (J.s > 0.05) { J.gluT -= dt; if (J.gluT <= 0) { J.gluT = 0.5 + Math.random() * 0.6; sonido.glu(); } }
+
+  espiritus(dt, zid, E);
 
   /* hundido del todo */
   if (J.s >= 1) {
     J.estado = 'muerto'; J.muerteT = 2.6;
-    const ng = $('#negro');
-    $('#negro-t').textContent = { turbera: 'La turbera te ha tragado', esfagno: 'El esfagno no aguantaba', enredadera: 'Bajo la enredadera no había suelo' }[tp ? tp.id : ''] || 'El páramo te ha tragado';
+    $('#negro-t').textContent = NOMBRE_SUELO[tp ? tp.id : ''] || 'El páramo te ha tragado';
     $('#negro-s').textContent = E.camp >= 0 ? 'Vuelves al último campamento' : 'Vuelves al principio';
-    ng.classList.add('on');
+    $('#negro').classList.add('on');
     accion('muerto', { tipo: tp ? tp.id : '', i: q.r * MAP_W + q.c });
     sonido.muerte();
   }
 
-  /* aviso de hundirse y botón de tirar de otro */
+  /* avisos y botones según lo que tengas cerca */
   const hu = $('#hundiendo');
   if (J.s > 0 && J.estado !== 'muerto') {
     const otros = E.pl.some(p => p[2] === 'caminante' && p[0] !== RED.yo);
@@ -540,15 +593,47 @@ function pasoCaminante(dt) {
     if (Math.hypot(p[3] - J.x, p[4] - J.z) < 3) { cerca = p; break; }
   }
   const bl = $('#b-levantar');
-  const cercaTablon = M.tablon && !ES.tb && J.s === 0 && (() => { const pd = centroDe(M.tablon.de[0], M.tablon.de[1]); return Math.hypot(J.x - pd.x, J.z - pd.z) < 3.2; })();
+  const tabK = M.tablones.findIndex((tb, kk) => { if (ES.tb && ES.tb[kk]) return false; const pd = centroDe(tb.de[0], tb.de[1]); return Math.hypot(J.x - pd.x, J.z - pd.z) < 3.4; });
+  const cercaTablon = tabK >= 0 && J.s === 0;
   bl.hidden = !cercaTablon;
   if (!cercaTablon) J.lev = 0;
   bl.textContent = J.lev ? 'Levantando…' : 'Levantar tablón';
   const bt = $('#b-tirar');
   if (cerca && J.s === 0) { bt.hidden = false; bt.dataset.o = cerca[0]; bt.textContent = 'Tirar de ' + cerca[1]; }
   else { bt.hidden = true; bt.dataset.o = ''; }
+  const bb = $('#b-bruja');
+  const bruK = M.brujas.findIndex((b, kk) => !(ES.br && ES.br[kk]) && Math.hypot(J.x - b.x, J.z - b.z) < 4.8);
+  bb.hidden = !(bruK >= 0 && J.s === 0);
+  bb.dataset.b = bruK;
+  bb.disabled = J.velas < 3;
 
   enviarPos(dt);
+}
+
+/* los espíritus: no matan, mienten. Fuegos fatuos sobre el suelo malo, manos, caras en los relámpagos,
+   banderas que dicen lo contrario y voces que imitan a quien guía */
+function espiritus(dt, zid, E) {
+  const activos = zid === 'llanura' ? 1 : zid === 'barrizal' ? 1.4 : zid === 'valle' ? 0.4 : 0;
+  let susto = 0;
+  for (const f of M3.fatuos) if (f.t > 0) susto = Math.max(susto, 0.5 * (1 - Math.min(1, Math.hypot(f.x - J.x, f.z - J.z) / 16)));
+  for (const m of M3.manos) if (m.t > 0) susto = Math.max(susto, 0.9);
+  J.susto = susto;
+  if (!activos || J.estado === 'muerto') return;
+  for (const k of ['fatuoT', 'manoT', 'marcaT', 'vozT']) J[k] -= dt * activos;
+  if (J.fatuoT <= 0) { J.fatuoT = 12 + Math.random() * 14; if (soltarFatuo(J)) sonido.susurro(); }
+  if (J.manoT <= 0) { J.manoT = 20 + Math.random() * 22; soltarMano(J); sonido.susurro(); sonido.glu(); }
+  if (J.marcaT <= 0) { J.marcaT = 35 + Math.random() * 35; if (falsearMarca(J)) sonido.susurro(); }
+  if (J.vozT <= 0) {
+    J.vozT = 45 + Math.random() * 50;
+    const guias = E.pl.filter(p => p[2] === 'guia');
+    if (guias.length) {
+      const g = guias[(Math.random() * guias.length) | 0];
+      const gritos = ['sigue', 'bien', 'sigue', 'atras'];
+      const k = gritos[(Math.random() * gritos.length) | 0];
+      llamada(GRITOS[k], g[1], true);
+      sonido.voz(k);
+    }
+  }
 }
 
 function enviarPos(dt) {
@@ -643,6 +728,12 @@ const sonido = window.sonido = {
     o.type = tipo; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
     g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
     o.connect(g); g.connect(this.salida); o.start(t); o.stop(t + dur + 0.05);
+  },
+  racha(f) { this.golpe('bandpass', 300, 900, 2.6, 0.18 * f); this.golpe('lowpass', 500, 120, 2.8, 0.2 * f, 0.2); },
+  susurro() {
+    if (!this.ac) return;
+    for (let i = 0; i < 3; i++) this.golpe('bandpass', 2400 + Math.random() * 1500, 1500 + Math.random() * 800, 0.5 + Math.random() * 0.4, 0.05, i * 0.35 + Math.random() * 0.2);
+    this.tono('sine', 520 + Math.random() * 80, 470, 1.6, 0.025, 0.3);
   },
   relampago(lejos) { if (lejos < 0.45) this.golpe('highpass', 3000, 900, 0.25, 0.25 * (1 - lejos)); },
   trueno() { this.golpe('lowpass', 420, 60, 2.6, 0.5); this.golpe('lowpass', 200, 40, 3.2, 0.35, 0.25); },

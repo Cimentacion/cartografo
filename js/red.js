@@ -29,8 +29,9 @@ const r2 = v => Math.round(v * 100) / 100;
 let S = null;
 
 function hostNuevo() {
+  RED._rv = -1;
   S = { ph: 'sala', seed: 0, mapa: null, t0: 0, tFin: 0, rev: null, mk: new Map(), cd: [], de: 0, lim: 3, camp: -1,
-        pu: [], tb: 0, mu: [], pl: new Map(), ev: [], seq: 0, nCol: 0 };
+        pu: [], tb: [], br: [], mu: [], pl: new Map(), ev: [], seq: 0, nCol: 0, revV: 0, espT: 60 };
 }
 
 function hostEvento(k, a, b, c) {
@@ -55,8 +56,10 @@ function hostEmpezar() {
   S.seed = (Math.random() * 2147483647) | 0;
   S.mapa = genMap(S.seed, caminantes >= 2);
   S.rev = new Uint8Array(MAP_W * MAP_L);
-  S.mk = new Map(); S.cd = []; S.de = 0; S.camp = -1; S.tFin = 0; S.mu = []; S.tb = 0;
-  S.lim = 2 + Math.max(1, caminantes);
+  S.mk = new Map(); S.cd = []; S.de = 0; S.camp = -1; S.tFin = 0; S.mu = [];
+  S.tb = S.mapa.tablones.map(() => 0); S.br = S.mapa.brujas.map(() => 0);
+  S.lim = 4 + 2 * Math.max(1, caminantes);
+  S.revV++; S.espT = 50 + Math.random() * 40;
   S.pu = S.mapa.puentes.map(() => 0);
   S.t0 = Date.now();
   let k = 0;
@@ -72,6 +75,7 @@ function hostDescubrir(x, z, radio) {
     const rr = r + dr, cc = c + dc;
     if (rr >= 0 && rr < MAP_L && cc >= 0 && cc < MAP_W) S.rev[rr * MAP_W + cc] = 1;
   }
+  S.revV++;
 }
 
 function hostMsg(id, m) {
@@ -94,11 +98,24 @@ function hostMsg(id, m) {
   if (S.ph !== 'juego') return;
   if (a === 'marca' && Number.isInteger(m.i) && m.i >= 0 && m.i < N) {
     const v = m.v | 0;
-    if (v <= 0) S.mk.delete(m.i); else S.mk.set(m.i, Math.min(3, v));
+    if (v <= 0) S.mk.delete(m.i); else S.mk.set(m.i, Math.min(4, v));
+    S.revV++;
     return;
   }
-  if (a === 'vela' && typeof m.x === 'number' && typeof m.z === 'number' && isFinite(m.x) && isFinite(m.z) && S.cd.length < 80) {
+  if (a === 'bruja' && Number.isInteger(m.b) && S.mapa.brujas[m.b] && !S.br[m.b]) {
+    /* el trato: tres velas a cambio de enseñarle al guía un trozo de la senda que viene */
+    const b = S.mapa.brujas[m.b];
+    if (Math.hypot(p.x - b.x, p.z - b.z) > 6) return;
+    S.br[m.b] = 1;
+    const seq = S.mapa.seq;
+    for (let j = b.desde; j < Math.min(seq.length, b.desde + 12); j++) { const i = seq[j][0] * MAP_W + seq[j][1]; S.rev[i] = 1; if (!S.mk.has(i)) S.mk.set(i, 4); }
+    S.revV++;
+    hostEvento('bruja', p.nm);
+    return;
+  }
+  if (a === 'vela' && typeof m.x === 'number' && typeof m.z === 'number' && isFinite(m.x) && isFinite(m.z) && S.cd.length < 400) {
     S.cd.push([r2(m.x), r2(m.z), p.col, p.nm, Date.now() - S.t0]);
+    S.revV++;
     hostDescubrir(m.x, m.z, 1);
     hostEvento('vela', p.nm);
     return;
@@ -109,7 +126,7 @@ function hostMsg(id, m) {
   if (a === 'tirar' && typeof m.o === 'string') { const o = S.pl.get(m.o); if (o) hostEvento('tirar', p.nm, o.id, o.nm); return; }
   if (a === 'muerto') {
     S.de++;
-    if (Number.isInteger(m.i) && m.i >= 0 && m.i < N) { S.rev[m.i] = 1; S.mu.push([m.i, p.nm]); }
+    if (Number.isInteger(m.i) && m.i >= 0 && m.i < N) { S.rev[m.i] = 1; S.revV++; S.mu.push([m.i, p.nm]); }
     hostEvento('muerto', p.nm, String(m.tipo || ''), id);
     if (S.de > S.lim) { S.ph = 'cerrado'; S.tFin = Date.now() - S.t0; hostEvento('cerrado'); }
     return;
@@ -137,11 +154,27 @@ function hostCalcular() {
     const abierto = vivos.some(p => { const q = celdaDe(p.x, p.z); return (q.r === pu.cerca[0] && q.c === pu.cerca[1]) || (q.r === pu.lejos[0] && q.c === pu.lejos[1]); }) ? 1 : 0;
     if (abierto !== S.pu[k]) { S.pu[k] = abierto; hostEvento(abierto ? 'sube' : 'baja', k); }
   });
-  /* tablón: hacen falta dos levantándolo a la vez */
-  if (M.tablon && !S.tb) {
-    const pd = centroDe(M.tablon.de[0], M.tablon.de[1]);
-    const juntos = vivos.filter(p => p.lev && Math.hypot(p.x - pd.x, p.z - pd.z) < 3.2);
-    if (juntos.length >= 2) { S.tb = 1; S.rev[M.tablon.r * MAP_W + M.tablon.c] = 1; hostEvento('tablon', juntos[0].nm, juntos[1].nm); }
+  /* tablones: hacen falta dos levantándolo a la vez */
+  M.tablones.forEach((tb, k) => {
+    if (S.tb[k]) return;
+    const pd = centroDe(tb.de[0], tb.de[1]);
+    const juntos = vivos.filter(p => p.lev && Math.hypot(p.x - pd.x, p.z - pd.z) < 3.4);
+    if (juntos.length >= 2) { S.tb[k] = 1; S.rev[tb.r * MAP_W + tb.c] = 1; S.revV++; hostEvento('tablon', juntos[0].nm, juntos[1].nm); }
+  });
+  /* los espíritus hablan con la voz de quien camina por la llanura o el barrizal */
+  S.espT -= 0.11;
+  if (S.espT <= 0) {
+    S.espT = 45 + Math.random() * 55;
+    const enZona = vivos.filter(p => { const z = zonaDe(celdaDe(p.x, p.z).r); return z && (z.id === 'llanura' || z.id === 'barrizal'); });
+    if (enZona.length) {
+      const p = enZona[(Math.random() * enZona.length) | 0];
+      const que = ['un peñasco', 'un árbol muerto', 'un menhir', 'una cruz de piedra', 'una roca tallada', 'el río', 'un fuego', 'una vela', 'una bandera verde'];
+      const donde = ['delante', 'a la izquierda', 'a la derecha', 'detrás', 'muy cerca'];
+      const frases = ['Estoy en la losa', 'Voy bien, sigo recto', 'Enciendo una vela', 'Aquí es firme'];
+      const txt = Math.random() < 0.7 ? 'Veo ' + que[(Math.random() * que.length) | 0] + ' ' + donde[(Math.random() * donde.length) | 0] : frases[(Math.random() * frases.length) | 0];
+      hostEvento('llamada', p.nm, 'veo', '');
+      S.ev[S.ev.length - 1].push(txt, 1);
+    }
   }
   if (caminantes > 0 && llegados === caminantes) {
     S.ph = 'fin'; S.tFin = Date.now() - S.t0;
@@ -154,8 +187,8 @@ function hostFoto() {
   for (const p of S.pl.values()) pl.push([p.id, p.nm, p.rol, r2(p.x), r2(p.z), r2(p.y), r2(p.yaw), r2(p.s), p.st, p.cast, p.col, idPeer(p.id), p.voz]);
   return {
     t: 'st', ph: S.ph, seed: S.seed, gr: S.mapa ? (S.mapa.grupo ? 1 : 0) : 0, el: S.ph === 'juego' ? Date.now() - S.t0 : S.tFin,
-    rev: S.rev ? Array.from(S.rev).join('') : '', mk: Array.from(S.mk.entries()), cd: S.cd, de: S.de, lim: S.lim, camp: S.camp,
-    pu: S.pu, tb: S.tb, mu: S.mu, pl, ev: S.ev, code: RED.code,
+    de: S.de, lim: S.lim, camp: S.camp,
+    pu: S.pu, tb: S.tb, br: S.br, pl, ev: S.ev, code: RED.code, revV: S.revV,
   };
 }
 /* id de PeerJS de cada jugador (para la voz): el anfitrión es la sala, los demás su propio id */
@@ -168,10 +201,18 @@ function hostBucle() {
     if (RED.cerrado) return;
     hostCalcular();
     const f = hostFoto();
+    /* lo pesado (mapa descubierto, marcas, velas, hundimientos) solo viaja cuando cambia */
+    let datos = null;
+    const pesado = () => datos || (datos = { rev: S.rev ? Array.from(S.rev).join('') : '', mk: Array.from(S.mk.entries()), cd: S.cd.slice(), mu: S.mu.slice() });
     for (const [id, c] of RED.conns) {
-      if (c.open) { try { c.send(Object.assign({}, f, { yo: id })); } catch (_) {} }
+      if (!c.open) continue;
+      const m = Object.assign({}, f, { yo: id });
+      if (c._rv !== S.revV) { Object.assign(m, pesado()); c._rv = S.revV; }
+      try { c.send(m); } catch (_) { c._rv = -1; }
     }
-    recibirEstado(Object.assign({}, f, { yo: RED.yo }));
+    const yo = Object.assign({}, f, { yo: RED.yo });
+    if (RED._rv !== S.revV) { Object.assign(yo, pesado()); RED._rv = S.revV; }
+    recibirEstado(yo);
   }, 110);
 }
 
@@ -179,6 +220,7 @@ function hostBucle() {
 function recibirEstado(e) {
   if (!e || e.t !== 'st') return;
   const antes = RED.EST;
+  if (e.rev === undefined) { e.rev = antes ? antes.rev : ''; e.mk = antes ? antes.mk : []; e.cd = antes ? antes.cd : []; e.mu = antes ? antes.mu : []; }
   RED.EST = e;
   /* al entrar no se repiten los avisos de antes */
   if (!antes && Array.isArray(e.ev) && e.ev.length && RED.modo === 'cliente') RED.vistos = e.ev[e.ev.length - 1][0];

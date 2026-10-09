@@ -129,7 +129,7 @@ function glifo(g, id, x, y, s) {
   g.restore();
 }
 
-const SIMB_MARCA = { 1: ['✓', '#6fe08a'], 2: ['✗', '#e0453a'], 3: ['?', '#f0d04a'] };
+const SIMB_MARCA = { 1: ['✓', '#6fe08a'], 2: ['✗', '#e0453a'], 3: ['?', '#f0d04a'], 4: ['◆', '#b070ff'] };
 
 function guiaDibujar(dt, E, yo) {
   const g = GUIA.g, cs = GUIA.cs, W = GUIA.w, H = GUIA.h, M = GUIA.mapa;
@@ -171,6 +171,15 @@ function guiaDibujar(dt, E, yo) {
       }
     }
   }
+  /* zonas: una raya y su nombre al borde del mapa */
+  g.font = `600 ${Math.round(Math.max(11 * GUIA.dpr, cs * 0.34))}px "Barlow Condensed", sans-serif`;
+  for (const z of (typeof ZONAS !== 'undefined' ? ZONAS : [])) {
+    const y = GUIA.oy - z.r0 * cs;
+    if (y < -cs || y > H + cs * 4) continue;
+    g.strokeStyle = 'rgba(232,193,90,.55)'; g.lineWidth = 2 * GUIA.dpr; g.setLineDash([6 * GUIA.dpr, 5 * GUIA.dpr]);
+    g.beginPath(); g.moveTo(GUIA.ox - cs * 0.3, y); g.lineTo(GUIA.ox + MAP_W * cs + cs * 0.3, y); g.stroke(); g.setLineDash([]);
+    g.save(); g.textAlign = 'left'; g.fillStyle = '#e8c15a'; g.fillText(z.nm.toUpperCase(), GUIA.ox + 4 * GUIA.dpr, y - 8 * GUIA.dpr); g.restore();
+  }
   /* rejilla */
   g.strokeStyle = 'rgba(0,0,0,.45)'; g.lineWidth = 1;
   g.beginPath();
@@ -210,14 +219,27 @@ function guiaDibujar(dt, E, yo) {
       g.fillRect(x - cs * 0.22, y - cs * 0.22, cs * 0.44, cs * 0.44); g.strokeRect(x - cs * 0.22, y - cs * 0.22, cs * 0.44, cs * 0.44);
     }
   });
-  /* tablón */
-  if (M.tablon) {
-    const a = centroDe(M.tablon.de[0], M.tablon.de[1]), b = centroDe(M.tablon.r, M.tablon.c);
-    const [ax, ay] = aMapa(E.tb ? (a.x + b.x) / 2 + (b.x - a.x) * 0.25 : a.x + 1, E.tb ? (a.z + b.z) / 2 + (b.z - a.z) * 0.25 : a.z + 0.6);
-    const ang = Math.atan2(b.z - a.z, b.x - a.x) + (E.tb ? 0 : 0.5), L = cs * (E.tb ? 1.6 : 1.1);
+  /* tablones */
+  (M.tablones || []).forEach((tb, k) => {
+    const puesto = E.tb && E.tb[k];
+    const a = centroDe(tb.de[0], tb.de[1]), b = centroDe(tb.r, tb.c);
+    const [ax, ay] = aMapa(puesto ? (a.x + b.x) / 2 + (b.x - a.x) * 0.25 : a.x + 1, puesto ? (a.z + b.z) / 2 + (b.z - a.z) * 0.25 : a.z + 0.6);
+    const ang = Math.atan2(b.z - a.z, b.x - a.x) + (puesto ? 0 : 0.5), L = cs * (puesto ? 1.6 : 1.1);
     g.strokeStyle = '#000'; g.lineWidth = cs * 0.24; g.beginPath(); g.moveTo(ax - Math.cos(ang) * L / 2, ay - Math.sin(ang) * L / 2); g.lineTo(ax + Math.cos(ang) * L / 2, ay + Math.sin(ang) * L / 2); g.stroke();
     g.strokeStyle = '#8a6a44'; g.lineWidth = cs * 0.16; g.stroke();
+  });
+  /* oteros (lomas para mirar por encima de la enredadera) y chozas de la bruja */
+  for (const o of M.oteros || []) {
+    const [x, y] = aMapa(o.x, o.z);
+    g.strokeStyle = 'rgba(232,228,208,.75)'; g.lineWidth = 2 * GUIA.dpr;
+    g.beginPath(); g.arc(x, y, cs * 0.9, Math.PI * 1.1, Math.PI * 1.9); g.stroke();
+    g.beginPath(); g.arc(x, y + cs * 0.15, cs * 0.55, Math.PI * 1.15, Math.PI * 1.85); g.stroke();
   }
+  (M.brujas || []).forEach((b, k) => {
+    const [x, y] = aMapa(b.x, b.z), u = cs * 0.32;
+    g.fillStyle = E.br && E.br[k] ? '#5a4a66' : '#b070ff'; g.strokeStyle = '#000'; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(x - u, y + u * 0.7); g.lineTo(x, y - u); g.lineTo(x + u, y + u * 0.7); g.closePath(); g.fill(); g.stroke();
+  });
   /* hitos: lo que el que camina puede ver y contarte */
   for (const h of M.hitos || []) {
     const [x, y] = aMapa(h.x, h.z), u = cs * 0.22;
