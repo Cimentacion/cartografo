@@ -49,6 +49,9 @@ button:focus-visible{outline:2px solid var(--yel);outline-offset:2px}
 .hp i{display:block;height:100%;background:var(--ok)}
 #cross{position:fixed;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:rgba(255,255,255,.85);box-shadow:0 0 0 2px rgba(0,0,0,.35);z-index:3;pointer-events:none}
 #prompt{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 22px);display:flex;flex-direction:column;gap:4px;align-items:center;pointer-events:none;z-index:6;max-width:calc(100vw - 32px)}
+#homeNav{position:fixed;left:50%;transform:translateX(-50%);top:calc(var(--topH,70px) + 4px);z-index:6;display:flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:4px 12px 4px 8px;font-size:13px;font-weight:600;cursor:pointer;user-select:none}
+#homeNav b{display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;background:#ff9f1c;color:#111;font-size:14px}
+#homeNav.off{opacity:.45}
 #prompt div{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:14px;font-weight:500;text-align:center}
 #prompt kbd{font-family:var(--disp);background:var(--yel);color:#111;border-radius:5px;padding:0 6px;margin-right:6px;font-size:12px}
 #toasts{position:fixed;top:calc(env(safe-area-inset-top,0px) + 54px);left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;z-index:7;pointer-events:none;width:min(440px,calc(100vw - 32px))}
@@ -143,6 +146,7 @@ body.touch #prompt{bottom:calc(env(safe-area-inset-bottom,0px) + 160px)}
   <div class="panel" id="me"></div>
 </div>
 <div id="prompt"></div>
+<div id="homeNav" hidden><b>↑</b><span></span></div>
 <div id="lockhint" hidden data-t="Haz clic para mirar con el ratón · Esc suelta el ratón">Haz clic para mirar con el ratón · Esc suelta el ratón</div>
 <div id="toasts"></div>
 <div id="touch">
@@ -262,6 +266,7 @@ const SHOPS=[
   {id:'b2',type:'bar',n:'Bar El Tío',x:7000,y:700,w:110,h:80,door:'n'},
 ];
 const PISO={id:'piso',type:'piso',n:'Piso compartido',x:1955,y:1036,w:170,h:120,door:'s'};
+function HOMEP0(){return{x:PISO.x+PISO.w/2,y:PISO.door==='s'?PISO.y+PISO.h+14:PISO.y-14}}
 const RESERVED=[...UDACOS,...SHOPS,PISO].map(u=>({x:u.x-24,y:u.y-24,w:u.w+48,h:u.h+48}));
 for(const u of[...SHOPS,PISO]){const t=5,cx=u.x+u.w/2,gap=26,S2=u.door==='s';u.cx=cx;
   for(const yy of[u.y,u.y+u.h-t]){const isDoor=(S2&&yy===u.y+u.h-t)||(!S2&&yy===u.y);if(isDoor){solid(u.x,yy,cx-gap/2-u.x,t);solid(cx+gap/2,yy,u.x+u.w-(cx+gap/2),t)}else solid(u.x,yy,u.w,t)}
@@ -885,6 +890,7 @@ const skyDome=new THREE.Mesh(new THREE.SphereGeometry(2900,32,16),new THREE.Shad
   fragmentShader:'uniform vec3 top,hor,bot,sunCol,sunDir;varying vec3 vp;void main(){float h=vp.y;vec3 c=h>0.?mix(hor,top,pow(clamp(h,0.,1.),.45)):mix(hor,bot,clamp(-h*5.,0.,1.));float s=max(dot(vp,sunDir),0.);c+=sunCol*(pow(s,350.)*1.2+pow(s,12.)*.25);gl_FragColor=vec4(c,1.);}'}));
 skyDome.renderOrder=-10;
 const camera=new THREE.PerspectiveCamera(72,1,1,3200);camera.rotation.order='YXZ';scene.add(camera);scene.add(skyDome);
+{const hp=HOMEP0(),z=PISO.h0||0;const bm=new THREE.Mesh(new THREE.CylinderGeometry(4,4,600,10,1,true),new THREE.MeshBasicMaterial({color:0xff9f1c,transparent:true,opacity:.28,depthWrite:false,side:THREE.DoubleSide}));bm.position.set(hp.x,z+300,hp.y);bm.renderOrder=5;scene.add(bm);window.HOMEBEAM=bm}
 const hemi=new THREE.HemisphereLight(0xb8c4ff,0x4a3b3a,.6);scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xffcfa0,.7);sun.position.set(-.7,.55,.7);scene.add(sun);
 const salonLight=new THREE.PointLight(0xffc98a,0,260,1.2);salonLight.position.set(520,46,630);scene.add(salonLight);
@@ -1537,12 +1543,19 @@ function syncFloaters(){const al=new Set(floaters);for(const f of floaters){let 
 
 // ================= HUD
 const mini=document.getElementById('mini'),mg=mini.getContext('2d');
+I18N['CASA']=['ACASĂ','HOME'];I18N['Casa']=['Acasă','Home'];I18N['Flecha a casa oculta (toca para mostrar)']=['Săgeata spre casă ascunsă (atinge pentru a afișa)','Home arrow hidden (tap to show)'];I18N['Flecha a casa visible']=['Săgeata spre casă vizibilă','Home arrow visible'];
+const HOMEP=HOMEP0;
+let homeOn=true;{const hn=document.getElementById('homeNav');hn.addEventListener('click',e=>{e.stopPropagation();homeOn=!homeOn;hn.classList.toggle('off',!homeOn);toast(homeOn?'Flecha a casa visible':'Flecha a casa oculta (toca para mostrar)')})}
+function updateHomeNav(){const hn=document.getElementById('homeNav');if(!running){hn.hidden=true;return}const P=S.player,C=S.car,h=HOMEP();const px=P.inCar?C.x:P.x,py=P.inCar?C.y:P.y;const d=Math.hypot(h.x-px,h.y-py);
+  const inside=px>PISO.x&&px<PISO.x+PISO.w&&py>PISO.y&&py<PISO.y+PISO.h;hn.hidden=inside;if(inside)return;
+  const f=P.inCar?C.a+(typeof lookOff==='number'?lookOff:0):P.face;const rel=Math.atan2(h.y-py,h.x-px)-f;
+  hn.querySelector('b').style.transform=homeOn?`rotate(${rel}rad)`:'none';hn.querySelector('span').textContent=TR('Casa')+(homeOn?' · '+Math.round(d*.06)+' m':'')}
 function drawMini(){const s=mini.width/W;mg.fillStyle='#24222a';mg.fillRect(0,0,mini.width,mini.height);mg.fillStyle='#3d8fc0';mg.fillRect(0,2770*s,mini.width,mini.height);mg.fillStyle='#d9c48e';mg.fillRect(0,2530*s,mini.width,240*s);
   mg.fillStyle='#4a4954';for(const b of BUILDINGS)mg.fillRect(b.x*s,b.y*s,b.w*s,b.h*s);
   mg.fillStyle='#8d8b96';for(const r of DRIVE)mg.fillRect(r.x*s,r.y*s,r.w*s,r.h*s);
   mg.fillStyle='#2f7bff';for(const b of BLUE)mg.fillRect(b.x*s,b.y*s,b.w*s,Math.max(1.5,b.h*s));
   const lab=(x,y,c,t)=>{mg.fillStyle=c;mg.fillRect(x*s-3,y*s-3,6,6);mg.font='700 8px Rubik, sans-serif';mg.fillStyle='#fff';mg.fillText(t,x*s+5,y*s+3)};
-  lab(540,600,'#ff2e88','OXYA');lab(3260,920,'#e53935','MAKRO');lab(1790,1640,'#ffd23f','⛽');lab(2470,1640,'#ffd23f','⛽');lab(3900,1400,'#27c3ff','TALLER');for(const u of UDACOS){mg.fillStyle='#16a36a';mg.fillRect(u.x*s-2.5,u.y*s-2.5,5,5)}
+  lab(540,600,'#ff2e88','OXYA');lab(3260,920,'#e53935','MAKRO');lab(1790,1640,'#ffd23f','⛽');lab(2470,1640,'#ffd23f','⛽');lab(3900,1400,'#27c3ff','TALLER');lab(PISO.cx,PISO.y+PISO.h/2,'#ff9f1c',TR('CASA'));for(const u of UDACOS){mg.fillStyle='#16a36a';mg.fillRect(u.x*s-2.5,u.y*s-2.5,5,5)}
   const C=S.car,P=S.player;mg.fillStyle='#fff';mg.fillRect(C.x*s-2.5,C.y*s-2.5,5,5);
   const fa=P.inCar?C.a:P.face;mg.fillStyle='#ffd23f';mg.beginPath();mg.moveTo(P.x*s+Math.cos(fa)*7,P.y*s+Math.sin(fa)*7);mg.lineTo(P.x*s+Math.cos(fa+2.5)*4,P.y*s+Math.sin(fa+2.5)*4);mg.lineTo(P.x*s+Math.cos(fa-2.5)*4,P.y*s+Math.sin(fa-2.5)*4);mg.fill();
   for(const e of enemies){if(e.kind==='thief'&&e.state!=='ko'){mg.fillStyle='#ff5252';mg.beginPath();mg.arc(e.x*s,e.y*s,2.5,0,7);mg.fill()}}}
@@ -1593,7 +1606,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;
     T.save-=dt;if(T.save<=0){T.save=20;save()}}
   }
   if(running)netTick(dt);
-  if(running){tileT-=dt;if(tileT<=0){if(buildNextTile())tileT=.12}render3D(dt);T.hud-=dt;if(T.hud<=0){T.hud=.15;updateHUD()}T.mini-=dt;if(T.mini<=0){T.mini=.25;drawMini()}}
+  if(running){tileT-=dt;if(tileT<=0){if(buildNextTile())tileT=.12}render3D(dt);T.hud-=dt;if(T.hud<=0){T.hud=.15;updateHUD();updateHomeNav()}T.mini-=dt;if(T.mini<=0){T.mini=.25;drawMini()}}
   requestAnimationFrame(frame)}
 addEventListener('visibilitychange',()=>{if(document.hidden&&running)save()});
 
