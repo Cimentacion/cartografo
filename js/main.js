@@ -6,7 +6,7 @@
 const $ = s => document.querySelector(s);
 const P = { fase: null, seed: null, rol: 'caminante', mapa: null, velasPuestas: 0, encima: false, flecha: null, llamadaT: 0, finVisto: false };
 const J = { x: 0, z: 2.2, yaw: 0, pitch: -0.05, roll: 0, yCam: OJOS, s: 0, hundido: 0, estado: 'ok', tEn: 0, firme: { x: 0, z: 2.2 },
-            velas: 12, lev: 0, zona: '', racha: 0, rachaT: 6, rachaDur: 0, giro: 0, sinCastillo: false, susto: 0, fatuoT: 20, manoT: 30, marcaT: 40, vozT: 50, tPartida: 0, bob: 0, muerteT: 0, envioT: 0, aquiT: 0, pasoT: 0, gluT: 0 };
+            velas: 12, palos: 30, paloT: 0, lev: 0, zona: '', racha: 0, rachaT: 6, rachaDur: 0, giro: 0, sinCastillo: false, susto: 0, fatuoT: 20, manoT: 30, marcaT: 40, vozT: 50, tPartida: 0, bob: 0, muerteT: 0, envioT: 0, aquiT: 0, pasoT: 0, gluT: 0 };
 let rolElegido = 'caminante';
 
 /* ------------------------------------------------------------ arranque */
@@ -18,6 +18,7 @@ try {
   f.textContent = 'Este navegador no puede dibujar en 3D (WebGL). Prueba con Chrome o Safari actualizados.';
 }
 guiaIniciar($('#cmapa'));
+$('#t-version').textContent = 'Versión ' + VERSION + ' · todos tenéis que ver el mismo número';
 try { $('#i-nombre').value = localStorage.getItem('paramo-nombre') || ''; } catch (_) {}
 try { rolElegido = localStorage.getItem('paramo-rol') === 'guia' ? 'guia' : 'caminante'; } catch (_) {}
 pintarRoles();
@@ -37,7 +38,9 @@ const EXTRA_LEYENDA = [
   ['#ffb070', 'Velas', 'Lo único que descubre el mapa (la casilla y las de alrededor) y lo único que te dice dónde ha estado cada uno.'],
   ['#9fe0ff', 'Losas de las compuertas', 'Mientras alguien pisa una, el puente del río sube. Hay una a cada orilla.'],
   ['#8a6a44', 'Tablón', 'Pesa: solo se tiende si dos lo levantan a la vez. Tapa la turbera de la senda.'],
+  ['#c9a46a', 'Palos', 'Quien camina clava uno en la casilla que tiene delante: tú ves qué suelo es (él no). Gastan poco y además te dicen por dónde va.'],
   ['#e0453a', 'Cruz roja', 'Ahí se hundió alguien.'],
+  ['#e8e4d0', 'Cómo adivinar lo que no ves', 'El algodón siempre tiene turbera al lado. El tojo crece junto a los ríos. El esfagno suele estar pegado a la senda, tentando. En la ladera abunda la enredadera; en el barrizal, lo firme son champas y barro. La senda no da saltos: va de casilla en casilla, sin diagonales.'],
   ['#e8e4d0', 'Otero', 'Loma en la ladera. Desde arriba quien camina ve por encima de la enredadera.'],
   ['#b070ff', 'Choza de la bruja', 'Por 3 velas te enseña (con rombos morados) un buen trozo de la senda que viene. Una vez por choza.'],
   ['#b070ff', 'Mensajes que tiemblan', 'Son los espíritus hablando con la voz de alguien. Pregúntale si de verdad lo ha dicho.'],
@@ -175,7 +178,7 @@ function empezarPartida(E, yo) {
   P.fase = 'juego'; P.seed = E.seed; P.finVisto = false;
   P.mapa = genMap(E.seed, E.gr === 1);
   P.rol = yo ? yo[2] : 'guia';
-  P.velasPuestas = 0; P.encima = false; P.flecha = null;
+  P.velasPuestas = 0; P.palosPuestos = 0; P.encima = false; P.flecha = null;
   for (const p of ['#p-inicio', '#p-sala', '#p-fin']) $(p).hidden = true;
   $('#barra-arriba').hidden = false;
   guiaNuevoMapa(P.mapa);
@@ -197,11 +200,11 @@ function empezarPartida(E, yo) {
   if (camina) {
     mundoCrear(P.mapa);
     const yoI = E.pl.filter(p => p[2] === 'caminante').findIndex(p => p[0] === RED.yo);
-    Object.assign(J, { x: ((Math.max(0, yoI) % 3) - 1) * 0.9 - 1.2, z: 6.5, yaw: 0, pitch: -0.05, s: 0, estado: 'ok', tEn: 0, velas: 12, lev: 0, muerteT: 0, zona: '', racha: 0, rachaT: 6, fatuoT: 20, manoT: 30, marcaT: 40, vozT: 50, sinCastilloT: 0 });
+    Object.assign(J, { x: ((Math.max(0, yoI) % 3) - 1) * 0.9 - 1.2, z: 6.5, yaw: 0, pitch: -0.05, s: 0, estado: 'ok', tEn: 0, velas: 12, palos: 30, paloT: 0, lev: 0, muerteT: 0, zona: '', racha: 0, rachaT: 6, fatuoT: 20, manoT: 30, marcaT: 40, vozT: 50, sinCastilloT: 0 });
     J.firme = { x: J.x, z: J.z };
-    $('#n-velas').textContent = J.velas; $('#b-vela').disabled = false;
+    $('#n-velas').textContent = J.velas; $('#b-vela').disabled = false; $('#n-palos').textContent = J.palos; $('#b-palo').disabled = false;
     const am = $('#ayuda-mov');
-    am.textContent = touchy ? 'Desliza a la izquierda para andar y a la derecha para mirar.' : 'WASD o flechas para andar · arrastra o haz clic para mirar · V vela · Q decir · R levantar';
+    am.textContent = touchy ? 'Desliza a la izquierda para andar y a la derecha para mirar.' : 'WASD o flechas para andar · arrastra o haz clic para mirar · V vela · F palo · Q decir · R levantar';
     am.hidden = false; am.classList.remove('fuera');
     setTimeout(() => am.classList.add('fuera'), 7000);
     llamada('Busca la senda', RED.modo === 'solo' ? 'Práctica: el mapa solo enseña lo que alumbran tus velas' : (E.pl.some(p => p[2] === 'guia') ? 'De noche todo parece brezo: escucha a quien guía' : 'Nadie guía: ve con cuidado'));
@@ -229,6 +232,9 @@ function sincronizar(E) {
   const cd = E.cd || [];
   for (let i = P.velasPuestas; i < cd.length; i++) ponerVela(cd[i][0], cd[i][1], cd[i][2]);
   P.velasPuestas = cd.length;
+  const pa = E.pa || [];
+  for (let i = P.palosPuestos; i < pa.length; i++) ponerPalo(pa[i][0], pa[i][1], pa[i][2]);
+  P.palosPuestos = pa.length;
   const mk = new Map(E.mk || []);
   for (const [i, v] of mk) { const m = M3.marcas.get(i); if (!m || m.v !== v) ponerMarca(i, v); }
   for (const i of [...M3.marcas.keys()]) if (!mk.has(i)) ponerMarca(i, 0);
@@ -288,8 +294,8 @@ RED.onEvento = (ev) => {
       break;
     }
     case 'campo':
-      aviso(a + ' ha llegado a un campamento' + (camina ? ': +5 velas' : ''));
-      if (camina) { J.velas += 5; $('#n-velas').textContent = J.velas; $('#b-vela').disabled = false; }
+      aviso(a + ' ha llegado a un campamento' + (camina ? ': +5 velas y +10 palos' : ''));
+      if (camina) { J.velas += 5; J.palos += 10; $('#n-velas').textContent = J.velas; $('#b-vela').disabled = false; $('#n-palos').textContent = J.palos; $('#b-palo').disabled = false; }
       break;
     case 'sube': if (camina) aviso('Una compuerta sube: hay paso por el río'); sonido.tono('sine', 180, 260, 0.6, 0.08); break;
     case 'baja': if (camina) aviso('La compuerta baja'); sonido.tono('sine', 260, 150, 0.6, 0.08); break;
@@ -371,6 +377,7 @@ addEventListener('keydown', e => {
   keys[e.code] = true;
   if (P.fase === 'juego' && P.rol === 'caminante') {
     if (e.code === 'KeyV') ponerMiVela();
+    if (e.code === 'KeyF') clavarPalo();
     if (e.code === 'KeyQ') aqui();
     if (e.code === 'KeyR' && !$('#b-levantar').hidden) J.lev = 1;
     if (e.code === 'KeyE' && !$('#b-tirar').hidden) $('#b-tirar').click();
@@ -410,6 +417,15 @@ stage.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('mousemove', e => { if (bloqueado()) mirar(e.movementX || 0, e.movementY || 0, 0.0024); });
 
 $('#b-vela').addEventListener('click', ponerMiVela);
+$('#b-palo').addEventListener('click', clavarPalo);
+/* clavar un palo en la casilla de delante: tú no sabes qué hay, pero el guía sí lo ve */
+function clavarPalo() {
+  if (J.palos <= 0 || J.estado === 'muerto' || performance.now() < (J.paloHasta || 0)) return;
+  J.palos--; J.paloHasta = performance.now() + 700; $('#n-palos').textContent = J.palos; $('#b-palo').disabled = J.palos <= 0;
+  const x = J.x - Math.sin(J.yaw) * 2.6, z = J.z - Math.cos(J.yaw) * 2.6;
+  accion('palo', { x, z });
+  sonido.paso('turbera');
+}
 $('#b-aqui').addEventListener('click', aqui);
 const DECIR = { que: '', donde: '', frase: '' };
 function pintarDecir() {

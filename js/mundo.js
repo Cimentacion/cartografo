@@ -618,6 +618,17 @@ function ponerVela(x, z, col) {
   M3.velas.push({ g, fl, x, y: y + 0.3, z, ph: Math.random() * 6 });
 }
 
+function ponerPalo(x, z, col) {
+  const g = new THREE.Group(), y = sueloEn(x, z);
+  const palo = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, 1.1, 5), new THREE.MeshLambertMaterial({ color: 0x4a3a28 }));
+  palo.position.y = 0.4; palo.rotation.z = 0.12; g.add(palo);
+  const cinta = new THREE.Mesh(new THREE.PlaneGeometry(0.12, 0.18), new THREE.MeshLambertMaterial({ color: new THREE.Color(col), side: THREE.DoubleSide }));
+  cinta.position.set(0.07, 0.9, 0); g.add(cinta);
+  g.position.set(x, y, z);
+  const tr = M3.trozos.find(t => -z / C >= t.r0 && -z / C < t.r1);
+  (tr ? tr.g : M3.scene).add(g);
+}
+
 const COL_MARCA = { 1: 0x6fe08a, 2: 0xe0453a, 3: 0xf0d04a, 4: 0xb070ff };
 function ponerMarca(i, v) {
   const viejo = M3.marcas.get(i);

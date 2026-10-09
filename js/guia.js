@@ -144,6 +144,8 @@ function guiaDibujar(dt, E, yo) {
     const v = obj ? [...velas].reverse().find(q => q[3] === obj[1]) : velas[velas.length - 1];
     if (v) fijo = v[1];
   } else fijo = 6.5;
+  const palos = E.pa || [];
+  if (!GUIA.verCaminantes && palos.length) { const obj = caminantes.find(p => p[0] === GUIA.objetivo); const pv = obj ? [...palos].reverse().find(q => q[3] === obj[1]) : palos[palos.length - 1]; if (pv && (!velas.length || palos.length && pv[1] < fijo)) fijo = pv[1]; }
   if (GUIA.seguir && fijo !== null) {
     const objetivoY = H * GUIA.centroY - fijo / C * cs;
     GUIA.oy += (objetivoY - GUIA.oy) * Math.min(1, dt * 4);
@@ -260,7 +262,13 @@ function guiaDibujar(dt, E, yo) {
     g.beginPath(); g.moveTo(x - cs * 0.25, y - cs * 0.25); g.lineTo(x + cs * 0.25, y + cs * 0.25); g.moveTo(x + cs * 0.25, y - cs * 0.25); g.lineTo(x - cs * 0.25, y + cs * 0.25); g.stroke();
     g.fillStyle = '#e0453a'; g.fillText(nm, x, y + cs * 0.4);
   }
-  /* velas: lo único que dice dónde ha estado cada caminante */
+  /* palos: dónde ha tanteado cada uno */
+  for (const v of E.pa || []) {
+    const [x, y] = aMapa(v[0], v[1]);
+    g.strokeStyle = v[2]; g.lineWidth = Math.max(2, cs * 0.08);
+    g.beginPath(); g.moveTo(x - cs * 0.08, y + cs * 0.14); g.lineTo(x + cs * 0.08, y - cs * 0.16); g.stroke();
+  }
+  /* velas: lo que más dice dónde ha estado cada caminante */
   const ultima = new Map();
   velas.forEach((v, i) => ultima.set(v[3], i));
   const ahora = E.el;
