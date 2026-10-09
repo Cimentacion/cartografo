@@ -262,6 +262,14 @@ function guiaDibujar(dt, E, yo) {
     g.beginPath(); g.moveTo(x - cs * 0.25, y - cs * 0.25); g.lineTo(x + cs * 0.25, y + cs * 0.25); g.moveTo(x + cs * 0.25, y - cs * 0.25); g.lineTo(x - cs * 0.25, y + cs * 0.25); g.stroke();
     g.fillStyle = '#e0453a'; g.fillText(nm, x, y + cs * 0.4);
   }
+  /* velas azules (el espíritu): parecen de alguien, no descubren nada */
+  for (const v of E.cf || []) {
+    const [x, y] = aMapa(v[0], v[1]);
+    g.fillStyle = '#7fb0ff'; g.strokeStyle = '#2a4a8a'; g.lineWidth = 2 * GUIA.dpr;
+    g.beginPath(); g.arc(x, y, Math.max(3, cs * 0.09), 0, 6.283); g.fill(); g.stroke();
+    const hace = Math.max(0, Math.round((E.el - v[4]) / 1000));
+    g.fillStyle = '#9fc4ff'; g.fillText(v[3] + ' · hace ' + (hace < 60 ? hace + ' s' : Math.floor(hace / 60) + ' min'), x, y - cs * 0.42);
+  }
   /* palos: dónde ha tanteado cada uno */
   for (const v of E.pa || []) {
     const [x, y] = aMapa(v[0], v[1]);

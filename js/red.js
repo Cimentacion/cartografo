@@ -21,7 +21,7 @@ const RED = {
 };
 
 const PFX = 'paramo-castillo-cimentacion-';
-const VERSION = 5;   // todos tienen que jugar con la misma
+const VERSION = 6;   // todos tienen que jugar con la misma
 const LETRAS = 'ABCDEFGHJKMNPQRSTUVWXYZ';
 const COLORES = ['#e8c15a', '#7fd1c7', '#e07a5f', '#b39ddb', '#9ccc65', '#f48fb1', '#90caf9', '#ffcc80'];
 const r2 = v => Math.round(v * 100) / 100;
@@ -32,7 +32,7 @@ let S = null;
 function hostNuevo() {
   RED._rv = -1;
   S = { ph: 'sala', seed: 0, mapa: null, t0: 0, tFin: 0, rev: null, mk: new Map(), cd: [], de: 0, lim: 3, camp: -1,
-        pu: [], tb: [], br: [], mu: [], pa: [], pl: new Map(), ev: [], seq: 0, nCol: 0, revV: 0, espT: 60 };
+        pu: [], tb: [], br: [], mu: [], pa: [], cf: [], ids: new Set(), cfT: 80, pl: new Map(), ev: [], seq: 0, nCol: 0, revV: 0, espT: 60 };
 }
 
 function hostEvento(k, a, b, c) {
@@ -57,7 +57,7 @@ function hostEmpezar() {
   S.seed = (Math.random() * 2147483647) | 0;
   S.mapa = genMap(S.seed, caminantes >= 2);
   S.rev = new Uint8Array(MAP_W * MAP_L);
-  S.mk = new Map(); S.cd = []; S.de = 0; S.camp = -1; S.tFin = 0; S.mu = []; S.pa = [];
+  S.mk = new Map(); S.cd = []; S.de = 0; S.camp = -1; S.tFin = 0; S.mu = []; S.pa = []; S.cf = []; S.ids = new Set(); S.cfT = 70 + Math.random() * 40;
   S.tb = S.mapa.tablones.map(() => 0); S.br = S.mapa.brujas.map(() => 0);
   S.lim = 4 + 2 * Math.max(1, caminantes);
   S.revV++; S.espT = 50 + Math.random() * 40;
@@ -117,16 +117,18 @@ function hostMsg(id, m) {
     hostEvento('bruja', p.nm);
     return;
   }
-  if (a === 'palo' && typeof m.x === 'number' && typeof m.z === 'number' && isFinite(m.x) && isFinite(m.z) && S.pa.length < 600) {
+  /* velas y palos llevan un id: si el móvil lo reenvía porque no le llegó la respuesta, no se cuenta dos veces */
+  if ((a === 'palo' || a === 'vela') && typeof m.id === 'string') { if (S.ids.has(m.id)) { S.revV++; return; } S.ids.add(m.id); }
+  if (a === 'palo' && typeof m.x === 'number' && typeof m.z === 'number' && isFinite(m.x) && isFinite(m.z) && S.pa.length < 900) {
     /* el palo tantea el suelo: el guía ve qué hay en esa casilla (y dónde anda quien lo clavó) */
     const q = celdaDe(m.x, m.z);
     if (q.r >= 0 && q.r < MAP_L && q.c >= 0 && q.c < MAP_W) S.rev[q.r * MAP_W + q.c] = 1;
-    S.pa.push([r2(m.x), r2(m.z), p.col, p.nm]);
+    S.pa.push([r2(m.x), r2(m.z), p.col, p.nm, String(m.id || '')]);
     S.revV++;
     return;
   }
-  if (a === 'vela' && typeof m.x === 'number' && typeof m.z === 'number' && isFinite(m.x) && isFinite(m.z) && S.cd.length < 400) {
-    S.cd.push([r2(m.x), r2(m.z), p.col, p.nm, Date.now() - S.t0]);
+  if (a === 'vela' && typeof m.x === 'number' && typeof m.z === 'number' && isFinite(m.x) && isFinite(m.z) && S.cd.length < 600) {
+    S.cd.push([r2(m.x), r2(m.z), p.col, p.nm, Date.now() - S.t0, String(m.id || '')]);
     S.revV++;
     hostDescubrir(m.x, m.z, 1);
     hostEvento('vela', p.nm);
@@ -173,6 +175,21 @@ function hostCalcular() {
     const juntos = vivos.filter(p => p.lev && Math.hypot(p.x - pd.x, p.z - pd.z) < 3.4);
     if (juntos.length >= 2) { S.tb[k] = 1; S.rev[tb.r * MAP_W + tb.c] = 1; S.revV++; hostEvento('tablon', juntos[0].nm, juntos[1].nm); }
   });
+  /* un caminante que no existe enciende velas azules con el nombre de alguien (no descubren nada) */
+  const ahora = Date.now() - S.t0;
+  const antesCf = S.cf.length;
+  S.cf = S.cf.filter(v => ahora - v[4] < 120000);
+  S.cfT -= 0.11;
+  if (S.cfT <= 0) {
+    S.cfT = 60 + Math.random() * 60;
+    const enZona = vivos.filter(p => { const z = zonaDe(celdaDe(p.x, p.z).r); return z && (z.id === 'llanura' || z.id === 'barrizal' || z.id === 'valle'); });
+    if (enZona.length) {
+      const p = enZona[(Math.random() * enZona.length) | 0], a = Math.random() * 6.283, d = 10 + Math.random() * 14;
+      const x = Math.max(-MAP_W * C / 2 + 2, Math.min(MAP_W * C / 2 - 2, p.x + Math.cos(a) * d)), z = p.z + Math.sin(a) * d;
+      S.cf.push([r2(x), r2(z), '#7fb0ff', p.nm, ahora]);
+    }
+  }
+  if (S.cf.length !== antesCf) S.revV++;
   /* los espíritus hablan con la voz de quien camina por la llanura o el barrizal */
   S.espT -= 0.11;
   if (S.espT <= 0) {
@@ -215,7 +232,7 @@ function hostBucle() {
     const f = hostFoto();
     /* lo pesado (mapa descubierto, marcas, velas, hundimientos) solo viaja cuando cambia */
     let datos = null;
-    const pesado = () => datos || (datos = { rev: S.rev ? Array.from(S.rev).join('') : '', mk: Array.from(S.mk.entries()), cd: S.cd.slice(), mu: S.mu.slice(), pa: S.pa.slice() });
+    const pesado = () => datos || (datos = { rev: S.rev ? Array.from(S.rev).join('') : '', mk: Array.from(S.mk.entries()), cd: S.cd.slice(), mu: S.mu.slice(), pa: S.pa.slice(), cf: S.cf.slice() });
     for (const [id, c] of RED.conns) {
       if (!c.open) continue;
       const m = Object.assign({}, f, { yo: id });
@@ -232,7 +249,7 @@ function hostBucle() {
 function recibirEstado(e) {
   if (!e || e.t !== 'st') return;
   const antes = RED.EST;
-  if (e.rev === undefined) { e.rev = antes ? antes.rev : ''; e.mk = antes ? antes.mk : []; e.cd = antes ? antes.cd : []; e.mu = antes ? antes.mu : []; e.pa = antes ? antes.pa : []; }
+  if (e.rev === undefined) { e.rev = antes ? antes.rev : ''; e.mk = antes ? antes.mk : []; e.cd = antes ? antes.cd : []; e.mu = antes ? antes.mu : []; e.pa = antes ? antes.pa : []; e.cf = antes ? antes.cf : []; }
   RED.EST = e;
   /* al entrar no se repiten los avisos de antes */
   if (!antes && Array.isArray(e.ev) && e.ev.length && RED.modo === 'cliente') RED.vistos = e.ev[e.ev.length - 1][0];

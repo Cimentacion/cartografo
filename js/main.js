@@ -4,9 +4,9 @@
 'use strict';
 
 const $ = s => document.querySelector(s);
-const P = { fase: null, seed: null, rol: 'caminante', mapa: null, velasPuestas: 0, encima: false, flecha: null, llamadaT: 0, finVisto: false };
+const P = { pend: [], locales: new Set(), confirmados: new Set(), nAcc: 0, ultimoEstado: 0, azules: new Map(), fase: null, seed: null, rol: 'caminante', mapa: null, velasPuestas: 0, encima: false, flecha: null, llamadaT: 0, finVisto: false };
 const J = { x: 0, z: 2.2, yaw: 0, pitch: -0.05, roll: 0, yCam: OJOS, s: 0, hundido: 0, estado: 'ok', tEn: 0, firme: { x: 0, z: 2.2 },
-            velas: 12, palos: 30, paloT: 0, lev: 0, zona: '', racha: 0, rachaT: 6, rachaDur: 0, giro: 0, sinCastillo: false, susto: 0, fatuoT: 20, manoT: 30, marcaT: 40, vozT: 50, tPartida: 0, bob: 0, muerteT: 0, envioT: 0, aquiT: 0, pasoT: 0, gluT: 0 };
+            velas: 12, palos: 30, paloT: 0, lev: 0, zona: '', racha: 0, rachaT: 6, rachaDur: 0, giro: 0, sinCastillo: false, susto: 0, fatuoT: 20, manoT: 30, marcaT: 40, vozT: 50, siluetaT: 10, ojosT: 8, falsoT: 25, tPartida: 0, bob: 0, muerteT: 0, envioT: 0, aquiT: 0, pasoT: 0, gluT: 0 };
 let rolElegido = 'caminante';
 
 /* ------------------------------------------------------------ arranque */
@@ -43,6 +43,7 @@ const EXTRA_LEYENDA = [
   ['#e8e4d0', 'Cómo adivinar lo que no ves', 'El algodón siempre tiene turbera al lado. El tojo crece junto a los ríos. El esfagno suele estar pegado a la senda, tentando. En la ladera abunda la enredadera; en el barrizal, lo firme son champas y barro. La senda no da saltos: va de casilla en casilla, sin diagonales.'],
   ['#e8e4d0', 'Otero', 'Loma en la ladera. Desde arriba quien camina ve por encima de la enredadera.'],
   ['#b070ff', 'Choza de la bruja', 'Por 3 velas te enseña (con rombos morados) un buen trozo de la senda que viene. Una vez por choza.'],
+  ['#7fb0ff', 'Velas azules', 'Las enciende un caminante que no existe, con el nombre de alguno de los vuestros. No descubren nada.'],
   ['#b070ff', 'Mensajes que tiemblan', 'Son los espíritus hablando con la voz de alguien. Pregúntale si de verdad lo ha dicho.'],
   ['#e8c15a', 'Zonas', 'La entrada, la ladera (enredadera alta), la gran llanura (viento que te gira; la niebla corre al este), el gran barrizal (laberinto, espíritus) y el valle.'],
 ];
@@ -113,6 +114,7 @@ function mio(E) { return (E.pl || []).find(p => p[0] === RED.yo); }
 
 RED.onEstado = (E) => {
   const yo = mio(E);
+  P.ultimoEstado = performance.now();
   vozRepasar(E);
   if (E.ph === 'sala') {
     if (P.fase === 'juego' || P.fase === 'fin') terminarPartida();
@@ -178,7 +180,7 @@ function empezarPartida(E, yo) {
   P.fase = 'juego'; P.seed = E.seed; P.finVisto = false;
   P.mapa = genMap(E.seed, E.gr === 1);
   P.rol = yo ? yo[2] : 'guia';
-  P.velasPuestas = 0; P.palosPuestos = 0; P.encima = false; P.flecha = null;
+  P.velasPuestas = 0; P.palosPuestos = 0; P.encima = false; P.pend = []; P.locales = new Set(); P.confirmados = new Set(); P.azules = new Map(); P.flecha = null;
   for (const p of ['#p-inicio', '#p-sala', '#p-fin']) $(p).hidden = true;
   $('#barra-arriba').hidden = false;
   guiaNuevoMapa(P.mapa);
@@ -200,7 +202,7 @@ function empezarPartida(E, yo) {
   if (camina) {
     mundoCrear(P.mapa);
     const yoI = E.pl.filter(p => p[2] === 'caminante').findIndex(p => p[0] === RED.yo);
-    Object.assign(J, { x: ((Math.max(0, yoI) % 3) - 1) * 0.9 - 1.2, z: 6.5, yaw: 0, pitch: -0.05, s: 0, estado: 'ok', tEn: 0, velas: 12, palos: 30, paloT: 0, lev: 0, muerteT: 0, zona: '', racha: 0, rachaT: 6, fatuoT: 20, manoT: 30, marcaT: 40, vozT: 50, sinCastilloT: 0 });
+    Object.assign(J, { x: ((Math.max(0, yoI) % 3) - 1) * 0.9 - 1.2, z: 6.5, yaw: 0, pitch: -0.05, s: 0, estado: 'ok', tEn: 0, velas: 12, palos: 30, paloT: 0, lev: 0, muerteT: 0, zona: '', racha: 0, rachaT: 6, fatuoT: 20, manoT: 30, marcaT: 40, vozT: 50, siluetaT: 10, ojosT: 8, falsoT: 25, sinCastilloT: 0 });
     J.firme = { x: J.x, z: J.z };
     $('#n-velas').textContent = J.velas; $('#b-vela').disabled = false; $('#n-palos').textContent = J.palos; $('#b-palo').disabled = false;
     const am = $('#ayuda-mov');
@@ -213,7 +215,12 @@ function empezarPartida(E, yo) {
     aviso('Guías. Las casillas se descubren alrededor de quien camina.');
   }
   sonido.ambiente(true);
+  pantallaEncendida();
 }
+/* que el móvil no se apague en mitad de la partida (si apaga la pantalla quien abrió la sala, se corta para todos) */
+let _wake = null;
+async function pantallaEncendida() { try { if (navigator.wakeLock && !_wake) { _wake = await navigator.wakeLock.request('screen'); _wake.addEventListener('release', () => { _wake = null; }); } } catch (_) {} }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && P.fase === 'juego') pantallaEncendida(); });
 
 function ocultarJuego() {
   $('#barra-arriba').hidden = true; $('#panel-guia').hidden = true; $('#botones-cam').hidden = true;
@@ -230,11 +237,15 @@ function sincronizar(E) {
   M3.estado = { pu: E.pu || [], tb: E.tb || [] };
   if (P.rol !== 'caminante' || !M3.scene) return;
   const cd = E.cd || [];
-  for (let i = P.velasPuestas; i < cd.length; i++) ponerVela(cd[i][0], cd[i][1], cd[i][2]);
+  for (let i = P.velasPuestas; i < cd.length; i++) { P.confirmados.add(cd[i][5]); if (!P.locales.has(cd[i][5])) ponerVela(cd[i][0], cd[i][1], cd[i][2]); }
   P.velasPuestas = cd.length;
   const pa = E.pa || [];
-  for (let i = P.palosPuestos; i < pa.length; i++) ponerPalo(pa[i][0], pa[i][1], pa[i][2]);
+  for (let i = P.palosPuestos; i < pa.length; i++) { P.confirmados.add(pa[i][4]); if (!P.locales.has(pa[i][4])) ponerPalo(pa[i][0], pa[i][1], pa[i][2]); }
   P.palosPuestos = pa.length;
+  /* velas azules del caminante que no existe */
+  const cf = E.cf || [], vivas = new Set();
+  for (const v of cf) { const k = v[0] + ',' + v[1] + ',' + v[4]; vivas.add(k); if (!P.azules.has(k)) P.azules.set(k, ponerVelaAzul(v[0], v[1])); }
+  for (const [k, v] of P.azules) if (!vivas.has(k)) { quitarVela(v); P.azules.delete(k); }
   const mk = new Map(E.mk || []);
   for (const [i, v] of mk) { const m = M3.marcas.get(i); if (!m || m.v !== v) ponerMarca(i, v); }
   for (const i of [...M3.marcas.keys()]) if (!mk.has(i)) ponerMarca(i, 0);
@@ -423,7 +434,8 @@ function clavarPalo() {
   if (J.palos <= 0 || J.estado === 'muerto' || performance.now() < (J.paloHasta || 0)) return;
   J.palos--; J.paloHasta = performance.now() + 700; $('#n-palos').textContent = J.palos; $('#b-palo').disabled = J.palos <= 0;
   const x = J.x - Math.sin(J.yaw) * 2.6, z = J.z - Math.cos(J.yaw) * 2.6;
-  accion('palo', { x, z });
+  const yo = mio(RED.EST);
+  mandarConfirmado('palo', x, z, ponerPalo(x, z, yo ? yo[10] : '#e8c15a'));
   sonido.paso('turbera');
 }
 $('#b-aqui').addEventListener('click', aqui);
@@ -466,10 +478,36 @@ $('#b-voz').addEventListener('click', async () => {
   if (!ok) aviso('No hay permiso para el micrófono');
 });
 $('#b-tirar').addEventListener('click', () => { const o = $('#b-tirar').dataset.o; if (o) { accion('tirar', { o }); sonido.campana(440); } });
+/* vela y palo: se ponen ya en tu mundo y se mandan con un id; si la sala no contesta, se reenvían */
+function mandarConfirmado(a, x, z, obj) {
+  const id = (RED.yo || 'yo') + ':' + (++P.nAcc);
+  P.locales.add(id);
+  P.pend.push({ a, x, z, id, obj, t: performance.now(), n: 1 });
+  accion(a, { x, z, id });
+}
+function repasarPendientes() {
+  const ahora = performance.now();
+  for (let i = P.pend.length - 1; i >= 0; i--) {
+    const q = P.pend[i];
+    if (P.confirmados.has(q.id)) { P.pend.splice(i, 1); continue; }
+    if (ahora - q.t < 2500) continue;
+    if (q.n >= 6) {
+      P.pend.splice(i, 1); P.locales.delete(q.id);
+      if (q.a === 'vela') { quitarVela(q.obj); J.velas++; $('#n-velas').textContent = J.velas; $('#b-vela').disabled = false; }
+      else { quitarPalo(q.obj); J.palos++; $('#n-palos').textContent = J.palos; $('#b-palo').disabled = false; }
+      aviso((q.a === 'vela' ? 'La vela' : 'El palo') + ' no ha llegado a la sala: te lo devuelvo. Revisa la conexión.');
+      continue;
+    }
+    q.t = ahora; q.n++;
+    accion(q.a, { x: q.x, z: q.z, id: q.id });
+  }
+}
 function ponerMiVela() {
   if (J.velas <= 0 || J.estado === 'muerto') return;
   J.velas--; $('#n-velas').textContent = J.velas; $('#b-vela').disabled = J.velas <= 0;
-  accion('vela', { x: J.x - Math.sin(J.yaw) * 0.7, z: J.z - Math.cos(J.yaw) * 0.7 });
+  const x = J.x - Math.sin(J.yaw) * 0.7, z = J.z - Math.cos(J.yaw) * 0.7;
+  const yo = mio(RED.EST);
+  mandarConfirmado('vela', x, z, ponerVela(x, z, yo ? yo[10] : '#e8c15a'));
   sonido.campana(990);
 }
 function aqui() {
@@ -635,7 +673,10 @@ function espiritus(dt, zid, E) {
   for (const m of M3.manos) if (m.t > 0) susto = Math.max(susto, 0.9);
   J.susto = susto;
   if (!activos || J.estado === 'muerto') return;
-  for (const k of ['fatuoT', 'manoT', 'marcaT', 'vozT']) J[k] -= dt * activos;
+  for (const k of ['fatuoT', 'manoT', 'marcaT', 'vozT', 'siluetaT', 'ojosT', 'falsoT']) J[k] -= dt * activos;
+  if (J.siluetaT <= 0) { J.siluetaT = 18 + Math.random() * 20; soltarSilueta(J); }
+  if (J.ojosT <= 0) { J.ojosT = 12 + Math.random() * 16; soltarOjos(J); }
+  if (J.falsoT <= 0) { J.falsoT = 55 + Math.random() * 45; soltarFalso(J); sonido.susurro(); }
   if (J.fatuoT <= 0) { J.fatuoT = 12 + Math.random() * 14; if (soltarFatuo(J)) sonido.susurro(); }
   if (J.manoT <= 0) { J.manoT = 20 + Math.random() * 22; soltarMano(J); sonido.susurro(); sonido.glu(); }
   if (J.marcaT <= 0) { J.marcaT = 35 + Math.random() * 35; if (falsearMarca(J)) sonido.susurro(); }
@@ -685,7 +726,9 @@ let antes = performance.now();
 function bucle(ahora) {
   const dt = Math.min(0.05, (ahora - antes) / 1000); antes = ahora;
   if (P.fase === 'juego' && RED.EST) {
-    if (P.rol === 'caminante') { pasoCaminante(dt); mundoFrame(dt, J); pintarFlecha(dt); }
+    if (P.rol === 'caminante') { pasoCaminante(dt); repasarPendientes(); mundoFrame(dt, J); pintarFlecha(dt); }
+    /* si la sala deja de mandar (el móvil del anfitrión se ha bloqueado o ha cambiado de app) */
+    $('#sinred').hidden = !(RED.modo === 'cliente' && performance.now() - P.ultimoEstado > 3000);
     if (P.rol === 'guia' || P.encima) {
       /* el caminante que sigues queda en el hueco libre entre la barra de arriba y los mandos */
       const arriba = $('#barra-arriba').getBoundingClientRect().bottom, abajo = $('#panel-guia').hidden ? innerHeight : $('#panel-guia').getBoundingClientRect().top;
