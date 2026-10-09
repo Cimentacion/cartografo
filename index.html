@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#050605">
+<title>El Páramo · Hasta el castillo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+/* Todo a oscuras: el lienzo 3D (o el mapa del guía) a pantalla completa y, encima, una barra fina arriba y los mandos abajo. */
+:root{
+  --ink:#050605;
+  --panel:rgba(9,11,8,.86);
+  --line:rgba(232,228,208,.16);
+  --bone:#e8e4d0;          /* algodón: texto */
+  --mute:#8f8c7c;
+  --ember:#d9862f;         /* campamento: acción principal */
+  --gold:#e8c15a;          /* ventana del castillo: rótulos */
+  --moss:#7ed957;          /* esfagno */
+  --blood:#e0453a;
+  --font-title:'IM Fell English SC','Georgia',serif;
+  --font-ui:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--ink);color:var(--bone);font-family:var(--font-ui);font-size:16px;overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+#stage{position:fixed;inset:0;touch-action:none}
+#c3d,#cmapa{position:absolute;inset:0;width:100%;height:100%;display:block;outline:none;touch-action:none}
+#cmapa{z-index:1}
+#cmapa.encima{opacity:.93}
+[hidden]{display:none!important}
+
+/* ---------- pantallas de menú ---------- */
+.pantalla{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 18px) 16px calc(env(safe-area-inset-bottom,0px) + 18px);
+  background:radial-gradient(ellipse at 50% 30%,rgba(40,48,30,.55),rgba(5,6,5,.97) 70%),var(--ink);overflow-y:auto}
+.caja{width:100%;max-width:27rem;display:flex;flex-direction:column;gap:12px;text-align:center}
+.titulo{font:400 52px/0.95 var(--font-title);letter-spacing:.02em;color:var(--bone);margin:0;text-shadow:0 2px 18px rgba(232,193,90,.18)}
+.titulo small{display:block;font:600 15px/1.3 var(--font-ui);letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-top:10px}
+.texto{margin:0;font-size:17px;line-height:1.38;color:var(--bone)}
+.texto.flojo{color:var(--mute);font-size:15px}
+.campo{display:flex;flex-direction:column;gap:5px;text-align:left}
+.campo span{font:600 13px/1 var(--font-ui);letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+input{font:600 20px/1 var(--font-ui);letter-spacing:.06em;padding:12px 12px;border-radius:3px;border:1px solid var(--line);background:rgba(232,228,208,.06);color:var(--bone);width:100%}
+input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+#i-codigo{text-transform:uppercase;letter-spacing:.35em;text-align:center;font-size:24px}
+.fila{display:flex;gap:8px}
+.fila>*{flex:1}
+.btn{font:600 18px/1 var(--font-ui);letter-spacing:.09em;text-transform:uppercase;padding:14px 14px;border-radius:3px;border:1px solid var(--line);background:transparent;color:var(--bone);cursor:pointer;min-height:48px}
+.btn.main{background:var(--ember);border-color:var(--ember);color:#160d04}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:focus-visible,.chip:focus-visible,.redondo:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.roles{display:flex;gap:8px}
+.rol{flex:1;display:flex;flex-direction:column;gap:4px;align-items:center;padding:12px 8px;border-radius:3px;border:1px solid var(--line);background:transparent;color:var(--bone);cursor:pointer;font-family:var(--font-ui)}
+.rol b{font:600 19px/1 var(--font-ui);letter-spacing:.08em;text-transform:uppercase}
+.rol small{font-size:14px;line-height:1.25;color:var(--mute)}
+.rol[aria-pressed="true"]{border-color:var(--gold);background:rgba(232,193,90,.12)}
+.rol[aria-pressed="true"] b{color:var(--gold)}
+.codigo-grande{font:600 64px/1 var(--font-ui);letter-spacing:.3em;padding-left:.3em;color:var(--gold);font-variant-numeric:tabular-nums}
+.lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;text-align:left}
+.lista li{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:3px;font-size:18px;font-weight:600}
+.lista li i{width:12px;height:12px;border-radius:50%;flex:0 0 auto}
+.lista li em{margin-left:auto;font-style:normal;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.estado-red{min-height:1.3em;color:var(--mute);font-size:15px}
+.estado-red.mal{color:var(--blood)}
+.cifras{display:flex;justify-content:center;gap:26px;margin:4px 0}
+.cifras div{display:flex;flex-direction:column;gap:2px}
+.cifras b{font:600 40px/1 var(--font-ui);color:var(--gold);font-variant-numeric:tabular-nums}
+.cifras span{font:600 13px/1 var(--font-ui);letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+
+/* ---------- en partida ---------- */
+.arriba{position:fixed;left:0;right:0;top:0;z-index:4;pointer-events:none;padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.marcador{font:600 16px/1 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;text-shadow:0 2px 0 rgba(0,0,0,.8);font-variant-numeric:tabular-nums;white-space:nowrap}
+.marcador b{color:var(--gold);font-weight:600}
+.chip{pointer-events:auto;font:600 14px/1 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--bone);background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:9px 9px;cursor:pointer;min-height:36px;white-space:nowrap}
+.chip.on{border-color:var(--gold);color:var(--gold)}
+.der{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+#llamada{position:fixed;left:12px;right:12px;top:24%;z-index:4;text-align:center;pointer-events:none;font:400 40px/1.05 var(--font-title);color:var(--gold);
+  text-shadow:0 3px 12px rgba(0,0,0,.9);opacity:0;transition:opacity .35s;text-wrap:balance}
+#llamada.on{opacity:1}
+#llamada small{display:block;margin-top:8px;font:600 15px/1.2 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--bone)}
+#flecha{position:fixed;left:50%;top:44%;width:110px;height:110px;margin:-55px 0 0 -55px;z-index:4;pointer-events:none;opacity:0;transition:opacity .35s}
+#flecha.on{opacity:1}
+#flecha svg{width:100%;height:100%;filter:drop-shadow(0 3px 6px rgba(0,0,0,.8))}
+.abajo{position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 16px);z-index:4;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.redondo{width:76px;height:76px;border-radius:50%;border:2px solid rgba(232,228,208,.7);background:rgba(9,11,8,.72);color:var(--bone);font:600 15px/1.05 var(--font-ui);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;touch-action:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.redondo b{font-size:20px;color:var(--gold)}
+.redondo.grande{width:96px;height:96px;background:var(--blood);border-color:#fff;color:#fff;font-size:17px}
+#stick{position:fixed;z-index:3;width:112px;height:112px;margin:-56px 0 0 -56px;border-radius:50%;border:2px solid rgba(232,228,208,.4);background:rgba(9,11,8,.3);pointer-events:none}
+#stick i{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(217,134,47,.85);box-shadow:0 0 0 2px rgba(232,228,208,.7)}
+#ayuda-mov{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:3;text-align:center;pointer-events:none;color:var(--mute);font-size:15px;transition:opacity .8s;padding:0 110px 0 16px}
+#ayuda-mov.fuera{opacity:0}
+#negro{position:fixed;inset:0;z-index:6;background:#000;display:grid;place-items:center;text-align:center;opacity:0;pointer-events:none;transition:opacity .6s;padding:20px}
+#negro.on{opacity:1}
+#negro p{font:400 34px/1.1 var(--font-title);color:var(--bone);margin:0}
+#negro small{display:block;margin-top:12px;font:600 15px/1.3 var(--font-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+#hundiendo{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 132px);z-index:4;text-align:center;pointer-events:none;font:600 20px/1.2 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--blood);text-shadow:0 2px 6px #000}
+#avisos{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 54px);z-index:5;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+#avisos div{font:600 16px/1.2 var(--font-ui);letter-spacing:.04em;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:8px 12px;max-width:26rem;text-align:center;animation:entra .3s}
+@keyframes entra{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+/* guía */
+.panel-guia{position:fixed;left:0;right:0;bottom:0;z-index:4;padding:0 10px calc(env(safe-area-inset-bottom,0px) + 10px);display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.barra{pointer-events:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:8px}
+.barra .btn{flex:1 1 0;min-width:0;padding:11px 6px;font-size:16px;min-height:44px}
+.barra p{flex:1 0 100%;margin:0 0 2px;text-align:center;font-size:15px;color:var(--mute)}
+.barra p b{color:var(--bone)}
+.btn.si{border-color:#6fe08a;color:#6fe08a}.btn.no{border-color:var(--blood);color:var(--blood)}.btn.duda{border-color:#f0d04a;color:#f0d04a}
+.mandos{pointer-events:auto;display:flex;gap:8px;align-items:stretch}
+.cruz{display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,48px);gap:3px;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:6px}
+.cruz button{border:1px solid var(--line);border-radius:3px;background:rgba(232,228,208,.06);color:var(--gold);font:700 22px/1 var(--font-ui);cursor:pointer}
+.cruz span{display:grid;place-items:center;font:600 11px/1 var(--font-ui);letter-spacing:.1em;color:var(--mute);text-transform:uppercase}
+.gritos{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:5px;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:6px}
+.gritos .btn{padding:8px 4px;font-size:15px;min-height:44px}
+#leyenda{position:fixed;inset:0;z-index:8;background:rgba(5,6,5,.92);overflow-y:auto;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px 24px}
+#leyenda ul{list-style:none;margin:12px auto;padding:0;max-width:30rem;display:flex;flex-direction:column;gap:8px}
+#leyenda li{display:flex;gap:10px;align-items:flex-start;font-size:16px;line-height:1.3}
+#leyenda li i{flex:0 0 26px;height:26px;border-radius:3px;border:1px solid rgba(0,0,0,.6)}
+#leyenda li b{display:block;font-weight:600}
+#leyenda li span{color:var(--mute)}
+#leyenda h2{font:400 32px/1 var(--font-title);margin:0;text-align:center}
+#fallo{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:24px;text-align:center;background:var(--ink);font-size:18px;line-height:1.4}
+@media (min-width:760px){.titulo{font-size:66px}}
+/* móvil tumbado: todo más bajo y a los lados, que se vea el mapa / el páramo */
+@media (max-height:480px) and (orientation:landscape){
+  .titulo{font-size:40px}
+  .abajo{flex-direction:row;align-items:flex-end;gap:8px}
+  .redondo{width:60px;height:60px;font-size:13px}
+  .redondo b{font-size:17px}
+  .redondo.grande{width:76px;height:76px;font-size:14px}
+  #llamada{top:15%;font-size:30px}
+  #flecha{top:60%;width:80px;height:80px;margin:-40px 0 0 -40px}
+  #avisos{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);left:12px;right:auto;align-items:flex-start;max-width:46%}
+  #avisos div{font-size:14px;padding:6px 10px}
+  #hundiendo{bottom:auto;top:40%}
+  .panel-guia{padding:0 8px calc(env(safe-area-inset-bottom,0px) + 8px)}
+  .mandos{justify-content:space-between;align-items:flex-end}
+  .cruz{grid-template-columns:repeat(3,40px);grid-template-rows:repeat(3,40px);padding:4px;background:rgba(9,11,8,.7)}
+  .gritos{flex:0 0 220px;grid-template-columns:1fr 1fr;background:rgba(9,11,8,.7)}
+  .gritos .btn{min-height:36px;padding:6px 4px;font-size:14px}
+  .barra{max-width:430px;margin:0 auto}
+  .barra .btn{min-height:38px;padding:8px 4px;font-size:15px}
+}
+@media (prefers-reduced-motion:reduce){#llamada,#flecha,#negro,#ayuda-mov{transition:none}#avisos div{animation:none}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="c3d" tabindex="0" aria-label="El páramo, en primera persona"></canvas>
+  <canvas id="cmapa" aria-label="Mapa del páramo" hidden></canvas>
+</div>
+
+<!-- ===== inicio ===== -->
+<section class="pantalla" id="p-inicio">
+  <div class="caja">
+    <h1 class="titulo">El Páramo<small>Hasta el castillo · en grupo</small></h1>
+    <p class="texto">Uno guía con el mapa, los demás caminan a oscuras. Solo hay una senda firme hasta el castillo; lo demás os traga.</p>
+    <label class="campo"><span>Tu nombre</span><input id="i-nombre" maxlength="14" autocomplete="off" placeholder="Nombre"></label>
+    <div class="roles" role="group" aria-label="Qué quieres hacer">
+      <button class="rol" data-rol="caminante" aria-pressed="true"><b>Caminar</b><small>A oscuras, con un farol</small></button>
+      <button class="rol" data-rol="guia" aria-pressed="false"><b>Guiar</b><small>Con el mapa, desde arriba</small></button>
+    </div>
+    <button class="btn main" id="b-crear">Crear sala</button>
+    <div class="fila"><input id="i-codigo" maxlength="4" autocomplete="off" placeholder="CÓDIGO" aria-label="Código de la sala"><button class="btn" id="b-unirse">Unirme</button></div>
+    <p class="estado-red" id="e-inicio" role="status"></p>
+    <button class="btn" id="b-solo">Probar solo (con mapa)</button>
+  </div>
+</section>
+
+<!-- ===== sala ===== -->
+<section class="pantalla" id="p-sala" hidden>
+  <div class="caja">
+    <p class="texto flojo">Código de la sala</p>
+    <div class="codigo-grande" id="t-codigo">····</div>
+    <p class="texto flojo" id="t-sala-ayuda">Pásale este código a los demás.</p>
+    <ul class="lista" id="l-jugadores"></ul>
+    <div class="roles" role="group" aria-label="Tu papel">
+      <button class="rol" data-rol="caminante" aria-pressed="true"><b>Caminar</b><small>Primera persona</small></button>
+      <button class="rol" data-rol="guia" aria-pressed="false"><b>Guiar</b><small>El mapa</small></button>
+    </div>
+    <button class="btn main" id="b-empezar" hidden>Empezar</button>
+    <p class="estado-red" id="e-sala" role="status"></p>
+    <button class="btn" id="b-salir-sala">Salir</button>
+  </div>
+</section>
+
+<!-- ===== fin ===== -->
+<section class="pantalla" id="p-fin" hidden>
+  <div class="caja">
+    <h2 class="titulo">Habéis llegado<small>Las puertas del castillo se abren</small></h2>
+    <div class="cifras"><div><b id="f-tiempo">0:00</b><span>Tiempo</span></div><div><b id="f-muertes">0</b><span>Hundidos</span></div></div>
+    <button class="btn main" id="b-otra">Otro páramo</button>
+    <p class="estado-red" id="e-fin"></p>
+    <button class="btn" id="b-salir-fin">Salir</button>
+  </div>
+</section>
+
+<!-- ===== en partida: comunes ===== -->
+<div class="arriba" id="barra-arriba" hidden>
+  <span class="marcador" id="marcador"></span>
+  <div class="der">
+    <button class="chip" id="b-seguir" hidden>Seguir</button>
+    <button class="chip" id="b-objetivo" hidden>A todos</button>
+    <button class="chip" id="b-leyenda" hidden>Leyenda</button>
+    <button class="chip" id="b-sonido">Sonido</button>
+    <button class="chip" id="b-menu">Salir</button>
+  </div>
+</div>
+<div id="avisos" aria-live="polite"></div>
+
+<!-- caminante -->
+<div id="llamada"></div>
+<div id="flecha" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M50 6 L84 52 L62 52 L62 94 L38 94 L38 52 L16 52 Z" fill="#e8c15a" stroke="#000" stroke-width="4" stroke-linejoin="round"/></svg></div>
+<div id="stick" hidden><i></i></div>
+<div id="ayuda-mov" hidden></div>
+<div id="hundiendo" hidden></div>
+<div class="abajo" id="botones-cam" hidden>
+  <button class="redondo grande" id="b-tirar" hidden>Tirar</button>
+  <button class="redondo" id="b-mapa" hidden>Mapa</button>
+  <button class="redondo" id="b-aqui">¡Aquí!</button>
+  <button class="redondo" id="b-vela"><b id="n-velas">5</b>Vela</button>
+</div>
+<div id="negro"><div><p id="negro-t">El páramo te ha tragado</p><small id="negro-s">Volvéis al último campamento</small></div></div>
+
+<!-- guía -->
+<div class="panel-guia" id="panel-guia" hidden>
+  <div class="barra" id="acciones" hidden>
+    <p id="acc-titulo">Casilla</p>
+    <button class="btn si" data-marca="1">✓ Segura</button>
+    <button class="btn no" data-marca="2">✗ Peligro</button>
+    <button class="btn duda" data-marca="3">? Duda</button>
+    <button class="btn" id="b-baliza">Baliza</button>
+    <button class="btn" data-marca="0">Quitar</button>
+  </div>
+  <div class="mandos">
+    <div class="cruz" role="group" aria-label="Señalar dirección">
+      <span></span><button data-dir="n" aria-label="Hacia el castillo">▲</button><span></span>
+      <button data-dir="o" aria-label="Oeste">◀</button><span>Ir</span><button data-dir="e" aria-label="Este">▶</button>
+      <span></span><button data-dir="s" aria-label="Hacia atrás">▼</button><span></span>
+    </div>
+    <div class="gritos" role="group" aria-label="Avisos rápidos">
+      <button class="btn" data-grito="para">¡Para!</button>
+      <button class="btn" data-grito="sigue">¡Sigue!</button>
+      <button class="btn" data-grito="bien">¡Bien!</button>
+      <button class="btn" data-grito="atras">¡Atrás!</button>
+      <button class="btn" data-grito="vela">Deja vela</button>
+      <button class="btn" data-grito="ayuda">¡Tira de él!</button>
+    </div>
+  </div>
+</div>
+<div id="leyenda" hidden>
+  <h2>Suelos del páramo</h2>
+  <ul id="l-leyenda"></ul>
+  <div class="caja" style="margin:0 auto"><p class="texto flojo">Toca una casilla para marcarla. Mantén pulsado para lanzar una baliza de luz. Arrastra para moverte y pellizca para acercar.</p><button class="btn main" id="b-cerrar-leyenda">Volver al mapa</button></div>
+</div>
+
+<div id="fallo" hidden></div>
+
+<script src="lib/three.min.js"></script>
+<script src="lib/peerjs.min.js"></script>
+<script src="js/mapa.js"></script>
+<script src="js/red.js"></script>
+<script src="js/mundo.js"></script>
+<script src="js/guia.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
