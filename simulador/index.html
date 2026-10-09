@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0d0b14">
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#0d0b14">
 </head><body>
 <title>Oxya Burger Simulator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -95,6 +95,8 @@ body.touch #prompt{bottom:calc(env(safe-area-inset-bottom,0px) + 160px)}
 #intro ul{margin:0;padding-left:18px;line-height:1.6;font-size:14px;color:#ddd6ea}
 #intro kbd{font-family:var(--disp);font-size:11px;background:var(--yel);color:#111;border-radius:4px;padding:0 5px}
 #loading{font-family:var(--disp);color:var(--yel);font-size:13px}
+.lang{background:transparent;border:1px solid var(--line);border-radius:999px;padding:5px 12px;font:700 12px var(--body)}
+.lang.on{background:var(--blue);color:#05202c;border-color:var(--blue)}
 .online{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;background:rgba(255,255,255,.04)}
 .charrow{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
 #charPrev{background:radial-gradient(circle at 50% 30%,#2b2340,#120d1c);border-radius:10px;border:1px solid var(--line);flex:none}
@@ -141,41 +143,42 @@ body.touch #prompt{bottom:calc(env(safe-area-inset-bottom,0px) + 160px)}
   <div class="panel" id="me"></div>
 </div>
 <div id="prompt"></div>
-<div id="lockhint" hidden>Haz clic para mirar con el ratón · Esc suelta el ratón</div>
+<div id="lockhint" hidden data-t="Haz clic para mirar con el ratón · Esc suelta el ratón">Haz clic para mirar con el ratón · Esc suelta el ratón</div>
 <div id="toasts"></div>
 <div id="touch">
   <div id="joy"><div id="knob"></div></div>
   <div id="btns">
-    <button id="tV">VISTA</button><button class="bC" id="tC">🚙</button><button class="bE" id="tE">E</button>
-    <button id="tQ">ARMA</button><button id="tM">MAPA</button><button class="bA" id="tA">⚔</button>
+    <button id="tV" data-t="VISTA">VISTA</button><button class="bC" id="tC">🚙</button><button class="bE" id="tE">E</button>
+    <button id="tQ" data-t="ARMA">ARMA</button><button id="tM" data-t="MAPA">MAPA</button><button class="bA" id="tA">⚔</button>
   </div>
 </div>
 <div id="modal" hidden><div class="box"><div class="mh"><h2 id="mt"></h2><span class="mm" id="mmoney"></span><button id="mclose" aria-label="Cerrar">✕</button></div><div id="mtabs"></div><div id="mbody"></div></div></div>
 <div id="intro"><div class="card">
-  <h1>OXYA BURGER<small>SIMULADOR EN PRIMERA PERSONA · BENIDORM</small></h1>
-  <p>Eres el encargado de compras del Oxya. Los clientes entran, se sientan y piden, y la cocina gasta pan, carne, salsas, butano, patatas, aceite y bebida. Cuando algo se acaba, coges el G-Wagen, bajas la cuesta hasta el Makro y lo repones cada cosa en su sitio.</p>
-  <ul>
+  <div class="row" id="langRow" role="group" aria-label="Idioma"></div>
+  <h1>OXYA BURGER<small id="iSub">SIMULADOR EN PRIMERA PERSONA · BENIDORM</small></h1>
+  <p id="iP">Eres el encargado de compras del Oxya. Los clientes entran, se sientan y piden, y la cocina gasta pan, carne, salsas, butano, patatas, aceite y bebida. Cuando algo se acaba, coges el G-Wagen, bajas la cuesta hasta el Makro y lo repones cada cosa en su sitio.</p>
+  <ul id="iUL">
     <li><kbd>WASD</kbd> andar · ratón mirar (clic en la pantalla) · <kbd>E</kbd> acción · <kbd>C</kbd> subir/bajar del coche</li>
     <li>Conduciendo: <kbd>W</kbd>/<kbd>S</kbd> acelerar y frenar, <kbd>A</kbd>/<kbd>D</kbd> girar, <kbd>V</kbd> vista cabina/exterior</li>
     <li><kbd>F</kbd> o clic izquierdo atacar · <kbd>Q</kbd> cambiar arma · <kbd>T</kbd> acelerar tiempo · <kbd>M</kbd> menú</li>
     <li>En móvil: joystick para andar o conducir, arrastra el dedo por la pantalla para mirar.</li>
     <li>Zona azul de 9 a 14 h y de 16 a 20 h: saca tique en el parquímetro o te multan.</li>
   </ul>
-  <div class="row"><button class="mbtn pink" id="bPlay">JUGAR SOLO</button><button class="mbtn ghost" id="bNew" hidden>Nueva partida</button></div>
+  <div class="row"><button class="mbtn pink" id="bPlay">JUGAR SOLO</button><button class="mbtn ghost" id="bNew" hidden data-t="Nueva partida">Nueva partida</button></div>
   <div class="online">
-    <h3>Tu personaje</h3>
+    <h3 data-t="Tu personaje">Tu personaje</h3>
     <div class="charrow"><canvas id="charPrev" width="120" height="160" aria-label="Vista previa del personaje"></canvas>
       <div class="charopts">
-        <div class="lbl">Tono de piel</div><div class="sw" id="swSkin"></div>
-        <div class="lbl">Pelo</div><div class="sw" id="swHair"></div>
-        <div class="lbl">Camiseta</div><div class="sw" id="swShirt"></div>
-        <div class="row"><label class="tg"><input type="checkbox" id="optCap"> Gorra</label><label class="tg"><input type="checkbox" id="optWc"> Silla de ruedas</label></div>
+        <div class="lbl" data-t="Tono de piel">Tono de piel</div><div class="sw" id="swSkin"></div>
+        <div class="lbl" data-t="Pelo">Pelo</div><div class="sw" id="swHair"></div>
+        <div class="lbl" data-t="Camiseta">Camiseta</div><div class="sw" id="swShirt"></div>
+        <div class="row"><label class="tg"><input type="checkbox" id="optCap"> <span data-t="Gorra">Gorra</span></label><label class="tg"><input type="checkbox" id="optWc"> <span data-t="Silla de ruedas">Silla de ruedas</span></label></div>
       </div></div>
   </div>
   <div class="online">
-    <h3>Online con un amigo</h3>
-    <div class="row"><input id="nick" maxlength="16" placeholder="Tu nombre" autocomplete="off"><button class="mbtn" id="bHost">Crear partida</button></div>
-    <div class="row"><input id="joinCode" maxlength="4" inputmode="numeric" placeholder="Código de 4 cifras" autocomplete="off"><button class="mbtn" id="bJoin">Unirse</button></div>
+    <h3 data-t="Online con un amigo">Online con un amigo</h3>
+    <div class="row"><input id="nick" maxlength="16" placeholder="Tu nombre" data-tp="Tu nombre" autocomplete="off"><button class="mbtn" id="bHost" data-t="Crear partida">Crear partida</button></div>
+    <div class="row"><input id="joinCode" maxlength="4" inputmode="numeric" placeholder="Código de 4 cifras" data-tp="Código de 4 cifras" autocomplete="off"><button class="mbtn" id="bJoin" data-t="Unirse">Unirse</button></div>
     <p class="note" id="netNote">Conectando…</p>
   </div>
   <p class="note" id="introNote"></p><p id="loading"></p>
@@ -194,6 +197,16 @@ const dRect=(px,py,r)=>Math.hypot(Math.max(r.x-px,0,px-(r.x+r.w)),Math.max(r.y-p
 const angDiff=(a,b)=>{let d=(b-a)%(Math.PI*2);if(d>Math.PI)d-=Math.PI*2;if(d<-Math.PI)d+=Math.PI*2;return d};
 const eur=v=>(Math.round(v*100)/100).toLocaleString('es-ES',{minimumFractionDigits:v%1?2:0,maximumFractionDigits:2})+' €';
 const IS_TOUCH=matchMedia('(pointer:coarse)').matches;
+const I18N={" y te enseña el producto exclusivo": [" și îți arată produsul exclusiv", " and shows you the exclusive item"], " · con {0}": [" · cu {0}", " · with {0}"], " · esperando amigo": [" · aștept un prieten", " · waiting for a friend"], " · gasta {0} más para ser {1}": [" · mai cheltuie {0} ca să devii {1}", " · spend {0} more to become {1}"], " · nivel máximo": [" · nivel maxim", " · top level"], "anfitrión": ["gazdă", "host"], "invitado": ["invitat", "guest"], "{0} · {1}": ["{0} · {1}", "{0} · {1}"], "{0} (necesitas {1})": ["{0} (ai nevoie de {1})", "{0} (you need {1})"], "el carro plegable": ["căruciorul pliabil", "the folding trolley"], "el lanzador": ["lansatorul", "the launcher"], "Cocina {0}": ["Bucătărie {0}", "Kitchen {0}"], "Sala {0}": ["Sală {0}", "Floor {0}"], "cocina": ["bucătărie", "the kitchen"], "sala": ["sală", "the floor"], "Cocina": ["Bucătărie", "Kitchen"], "Sala": ["Sală", "Floor"], "{0}: {1}/{2} ({3})": ["{0}: {1}/{2} ({3})", "{0}: {1}/{2} ({3})"], "Arma: {0}": ["Armă: {0}", "Weapon: {0}"], "{0} comprado.": ["Ai cumpărat {0}.", "{0} bought."], "{0} equipada.": ["{0} echipată.", "{0} equipped."], "{0} equipado.": ["{0} echipat.", "{0} equipped."], "{0} instalado en el G-Wagen.": ["{0} montat pe G-Wagen.", "{0} fitted to the G-Wagen."], "Recupera {0} de vida": ["Recuperezi {0} viață", "Restores {0} health"], "Recupera toda la vida": ["Recuperezi toată viața", "Restores all health"], "{0} minutos": ["{0} minute", "{0} minutes"], "{0} al día": ["{0} pe zi", "{0} a day"], "+{0} al maletero": ["+{0} în portbagaj", "+{0} to the boot"], "Repostados {0} L.": ["Ai alimentat {0} L.", "Refuelled {0} L."], "ABIERTO": ["DESCHIS", "OPEN"], "CERRADO": ["ÎNCHIS", "CLOSED"], "STOCK DEL OXYA": ["STOCUL OXYA", "OXYA STOCK"], "Día {0} · {1}:{2}": ["Ziua {0} · {1}:{2}", "Day {0} · {1}:{2}"], "Gasolina": ["Benzină", "Fuel"], "Velocidad": ["Viteză", "Speed"], "Zona azul": ["Zonă albastră", "Blue zone"], "Vida": ["Viață", "Health"], "Arma": ["Armă", "Weapon"], "Manos": ["Mâini", "Hands"], "Pedidos": ["Comenzi", "Orders"], "Falta: {0}": ["Lipsește: {0}", "Missing: {0}"], "Poca gasolina ({0} L)": ["Puțină benzină ({0} L)", "Low fuel ({0} L)"], "¡Ladrón a la vista!": ["Hoț în zonă!", "Thief nearby!"], "gratis ahora": ["gratis acum", "free now"], "¡sin tique!": ["fără tichet!", "no ticket!"], "{0} min": ["{0} min", "{0} min"], "Bajar del coche": ["Coboară din mașină", "Get out of the car"], "Vista": ["Vedere", "View"], "Subir al G-Wagen": ["Urcă în G-Wagen", "Get in the G-Wagen"], "ONLINE {0} · {1}{2}": ["ONLINE {0} · {1}{2}", "ONLINE {0} · {1}{2}"], "Pan": ["Pâine", "Buns"], "Carne": ["Carne", "Meat"], "Salsas": ["Sosuri", "Sauces"], "Patatas": ["Cartofi", "Fries"], "Aceite": ["Ulei", "Oil"], "Refresco": ["Răcoritoare", "Soft drink"], "Cerveza": ["Bere", "Beer"], "Butano": ["Butan", "Butane"], "pan": ["pâine", "buns"], "carne": ["carne", "meat"], "salsas": ["sosuri", "sauces"], "patatas": ["cartofi", "fries"], "aceite": ["ulei", "oil"], "refresco": ["răcoritoare", "soft drinks"], "cerveza": ["bere", "beer"], "butano": ["butan", "butane"], "Pan de burger": ["Chifle de burger", "Burger buns"], "Carne de burger": ["Carne de burger", "Burger patties"], "Patatas congeladas": ["Cartofi congelați", "Frozen fries"], "Aceite de freidora": ["Ulei de friteuză", "Fryer oil"], "Refrescos": ["Răcoritoare", "Soft drinks"], "Bombona de butano": ["Butelie de butan", "Butane bottle"], "pan de burger": ["chifle de burger", "burger buns"], "carne de burger": ["carne de burger", "burger patties"], "patatas congeladas": ["cartofi congelați", "frozen fries"], "aceite de freidora": ["ulei de friteuză", "fryer oil"], "refrescos": ["răcoritoare", "soft drinks"], "bombona de butano": ["butelie de butan", "butane bottle"], "Caja 40 panes brioche": ["Cutie cu 40 de chifle brioșă", "Box of 40 brioche buns"], "Caja 40 hamburguesas 150 g": ["Cutie cu 40 de burgeri de 150 g", "Box of 40 x 150 g patties"], "Caja de bolsas de salsa (60 usos)": ["Cutie cu pliculețe de sos (60 de porții)", "Box of sauce sachets (60 uses)"], "Caja 30 raciones": ["Cutie cu 30 de porții", "Box of 30 portions"], "Garrafa 25 L (40 raciones)": ["Bidon de 25 L (40 de porții)", "25 L drum (40 portions)"], "Pack 24 latas": ["Bax de 24 de doze", "Pack of 24 cans"], "Caja 24 botellines": ["Ladă cu 24 de sticluțe", "Crate of 24 bottles"], "Para la plancha (50 burgers)": ["Pentru plită (50 de burgeri)", "For the griddle (50 burgers)"], "Nevera Pepsi": ["Frigider Pepsi", "Pepsi fridge"], "Nevera de bebidas": ["Frigider de băuturi", "Drinks fridge"], "Arcón congelador": ["Ladă frigorifică", "Chest freezer"], "Estación de salsas": ["Stația de sosuri", "Sauce station"], "Estantería del pan": ["Raftul de pâine", "Bread shelf"], "Freidora": ["Friteuză", "Fryer"], "Cámara frigorífica": ["Cameră frigorifică", "Walk-in fridge"], "Rack de butano (patio)": ["Rastel de butan (curte)", "Butane rack (yard)"], "Repostar": ["Alimentează", "Refuel"], "Entrar al taller": ["Intră în service", "Enter the garage"], "Colocar {0} en {1}": ["Pune {0} în {1}", "Put {0} in {1}"], "Meter en el maletero ({0}/{1})": ["Pune în portbagaj ({0}/{1})", "Put in the boot ({0}/{1})"], "Maletero lleno": ["Portbagaj plin", "Boot full"], "Maletero lleno. Mejora el coche en el taller para más huecos.": ["Portbagajul e plin. Îmbunătățește mașina la service ca să ai mai mult loc.", "The boot is full. Upgrade the car at the garage for more space."], "Sacar del maletero ({0} cajas)": ["Scoate din portbagaj ({0} cutii)", "Take from the boot ({0} boxes)"], "Maletero vacío": ["Portbagaj gol", "Boot empty"], "Coger {0}{1}": ["Ia {0}{1}", "Pick up {0}{1}"], "Parquímetro zona azul": ["Parcometru zonă albastră", "Blue-zone parking meter"], "Entrar al Makro": ["Intră în Makro", "Enter Makro"], "Mostrador del taller": ["Ghișeul service-ului", "Garage counter"], "Caja del {0}": ["Casa de la {0}", "Checkout at {0}"], "Mostrador de {0}": ["Tejgheaua de la {0}", "{0} counter"], "Tu litera: dormir": ["Patul tău supraetajat: dormi", "Your bunk: sleep"], "Decirle al camello que se largue": ["Spune-i dealerului să plece", "Tell the dealer to get lost"], "Soltar caja aquí": ["Lasă cutia aici", "Drop the box here"], "{0} guarda {1}.": ["{0} păstrează {1}.", "The {0} holds {1}."], "{0} está llena.": ["{0} e plin(ă).", "The {0} is full."], "Frena antes de bajarte.": ["Frânează înainte să cobori.", "Brake before getting out."], "No hay sitio para bajarte aquí.": ["Nu e loc să cobori aici.", "No room to get out here."], "Mete las cajas en el maletero (detrás del coche) antes de subir.": ["Pune cutiile în portbagaj (în spatele mașinii) înainte să urci.", "Put the boxes in the boot (behind the car) before getting in."], "Solo quien creó la partida puede acelerar el tiempo.": ["Doar cine a creat jocul poate accelera timpul.", "Only the host can speed up time."], "Puños": ["Pumni", "Fists"], "Escoba del local": ["Mătura localului", "The restaurant broom"], "Bate de béisbol": ["Bâtă de baseball", "Baseball bat"], "Golpe fuerte a corta distancia": ["Lovitură puternică de aproape", "Heavy hit at close range"], "Porra extensible": ["Baston telescopic", "Extendable baton"], "Rápida y contundente": ["Rapid și eficient", "Fast and hard-hitting"], "Táser": ["Taser", "Taser"], "Paraliza 3 s al ladrón": ["Paralizează hoțul 3 s", "Stuns the thief for 3 s"], "Lanzador de paintball": ["Lansator de paintball", "Paintball launcher"], "A distancia. Incluye 50 bolas": ["De la distanță. Include 50 de bile", "Ranged. Comes with 50 balls"], "Katana del encargado": ["Katana șefului", "The manager's katana"], "Exclusiva del Udaco Levante": ["Exclusivă la Udaco Levante", "Exclusive to Udaco Levante"], "Ballesta": ["Arbaletă", "Crossbow"], "Exclusiva del Udaco Polígono. Incluye 50 virotes": ["Exclusivă la Udaco Polígono. Include 50 de săgeți", "Exclusive to Udaco Polígono. Comes with 50 bolts"], "Lanzapatatas": ["Tun de cartofi", "Potato cannon"], "Exclusiva del Udaco Playa. Incluye 50 patatas": ["Exclusiv la Udaco Playa. Include 50 de cartofi", "Exclusive to Udaco Playa. Comes with 50 potatoes"], "Pistola de balines": ["Pistol cu bile", "BB pistol"], "A distancia, más daño. Incluye 50 balines": ["De la distanță, daune mai mari. Include 50 de bile", "Ranged, more damage. Comes with 50 BBs"], "Zapatillas de running": ["Adidași de alergare", "Running shoes"], "+25 % de velocidad a pie": ["+25 % viteză pe jos", "+25% walking speed"], "Carro plegable": ["Cărucior pliabil", "Folding trolley"], "Llevas 3 cajas a la vez": ["Duci 3 cutii deodată", "Carry 3 boxes at once"], "Carretilla de almacén": ["Transpalet de depozit", "Warehouse hand truck"], "Llevas 5 cajas a la vez": ["Duci 5 cutii deodată", "Carry 5 boxes at once"], "Chaleco acolchado": ["Vestă căptușită", "Padded vest"], "Recibes la mitad de daño": ["Primești jumătate din daune", "You take half damage"], "Botiquín": ["Trusă de prim ajutor", "First-aid kit"], "Munición ×50": ["Muniție ×50", "Ammo ×50"], "Bolas o balines para tu arma de disparo": ["Bile pentru arma ta de tras", "Balls or BBs for your ranged weapon"], "Organizador de maletero": ["Organizator de portbagaj", "Boot organiser"], "+1 hueco de carga": ["+1 loc de încărcare", "+1 cargo slot"], "Baca portaequipajes": ["Portbagaj de plafon", "Roof rack"], "+2 huecos de carga (en el techo)": ["+2 locuri de încărcare (pe plafon)", "+2 cargo slots (on the roof)"], "Remolque con enganche": ["Remorcă cu cârlig", "Trailer with tow hitch"], "+4 huecos de carga": ["+4 locuri de încărcare", "+4 cargo slots"], "Depósito auxiliar": ["Rezervor auxiliar", "Auxiliary tank"], "+40 L de capacidad": ["+40 L capacitate", "+40 L capacity"], "Neumáticos deportivos": ["Anvelope sport", "Sports tyres"], "Gira mejor en las curvas": ["Virează mai bine în curbe", "Corners better"], "Centralita y escape AMG": ["Calculator și eșapament AMG", "AMG ECU and exhaust"], "+25 % velocidad y aceleración": ["+25 % viteză și accelerație", "+25% speed and acceleration"], "Sin munición. Cómprala en el Makro.": ["Fără muniție. Cumpăr-o de la Makro.", "Out of ammo. Buy some at Makro."], "{0}. Daño {1}": ["{0}. Daune {1}", "{0}. Damage {1}"], "¡Ay!": ["Au!", "Ouch!"], "¡Me voy!": ["Plec!", "I'm leaving!"], "¡Me largo!": ["Mă car!", "I'm out of here!"], "¡SIMPA!": ["FUGE FĂRĂ SĂ PLĂTEASCĂ!", "DINE AND DASH!"], "¡Pillado!": ["Prins!", "Caught!"], "¡Pillado! +{0}": ["Prins! +{0}", "Caught! +{0}"], "robando…": ["fură…", "stealing…"], "Rata fuera": ["Șobolan eliminat", "Rat gone"], "+20 € recompensa": ["+20 € recompensă", "+20 € reward"], "-2 pan": ["-2 pâine", "-2 buns"], "Un cliente se ha ido sin comer. Revisa el stock.": ["Un client a plecat fără să mănânce. Verifică stocul.", "A customer left without eating. Check the stock."], "¡SIMPA! Un cliente se va corriendo sin pagar. ¡Píllalo!": ["Un client fuge fără să plătească. Prinde-l!", "A customer is running off without paying. Catch them!"], "El del simpa se ha escapado: {0} sin cobrar.": ["Cel care a fugit a scăpat: {0} neîncasați.", "The runner got away: {0} unpaid."], "Has pillado al del simpa. Paga la cuenta y propina.": ["L-ai prins pe cel care fugea. Plătește nota și bacșișul.", "You caught the runner. They pay the bill and a tip."], "Has tumbado a un cliente. Baja la reputación y los demás se asustan.": ["Ai doborât un client. Reputația scade și ceilalți se sperie.", "You knocked a customer down. Your reputation drops and the others get scared."], "La Policía Local te pone 150 € de multa por atacar a clientes.": ["Poliția Locală îți dă 150 € amendă pentru că ai atacat clienți.", "The local police fine you 150 € for attacking customers."], "⚠ ¡Te están robando el maletero del G-Wagen!": ["⚠ Cineva îți fură din portbagajul G-Wagen-ului!", "⚠ Someone is robbing your G-Wagen's boot!"], "⚠ Alguien se ha colado en el patio trasero.": ["⚠ Cineva a intrat în curtea din spate.", "⚠ Someone has sneaked into the back yard."], "⚠ Un ladrón ha entrado por la puerta del salón.": ["⚠ Un hoț a intrat pe ușa salonului.", "⚠ A thief came in through the dining-room door."], "Hay una rata en la cocina comiéndose el pan.": ["E un șobolan în bucătărie care mănâncă pâinea.", "There's a rat in the kitchen eating the bread."], "¡El ladrón se encara contigo!": ["Hoțul se ia la bătaie cu tine!", "The thief squares up to you!"], "¡El camello se encara contigo!": ["Dealerul se ia la bătaie cu tine!", "The dealer squares up to you!"], "Ladrón reducido.": ["Hoț imobilizat.", "Thief down."], "Ladrón reducido. Has recuperado lo robado.": ["Hoț imobilizat. Ai recuperat ce a furat.", "Thief down. You got the stolen goods back."], "Te han robado una caja de {0} del coche.": ["Ți-au furat o cutie de {0} din mașină.", "Someone stole a box of {0} from your car."], "Se han llevado {0} de {1}.": ["Au luat {0} de {1}.", "They took {0} {1}."], "¿Qué buscas, jefe?": ["Ce cauți, șefu'?", "What you after, boss?"], "Vale, vale…": ["Bine, bine…", "Alright, alright…"], "¿Y tú quién eres?": ["Și tu cine ești?", "And who are you?"], "Hay un camello cerca de la puerta del Oxya y espanta a los clientes.": ["E un dealer lângă ușa Oxya și sperie clienții.", "There's a dealer near the Oxya door scaring customers off."], "Camello reducido. Un vecino te da 30 € por limpiar la calle.": ["Dealer imobilizat. Un vecin îți dă 30 € că ai curățat strada.", "Dealer down. A neighbour gives you 30 € for cleaning up the street."], "⚠ Un sicario te está buscando. Escóndete o defiéndete.": ["⚠ Un asasin plătit te caută. Ascunde-te sau apără-te.", "⚠ A hitman is looking for you. Hide or fight back."], "Sicario reducido. La policía te da 150 € de recompensa.": ["Asasin imobilizat. Poliția îți dă 150 € recompensă.", "Hitman down. The police give you a 150 € reward."], "Te han dejado K.O. Despiertas en el Oxya y te faltan {0} €.": ["Te-au făcut K.O. Te trezești și îți lipsesc {0} €.", "You were knocked out. You wake up {0} € poorer."], "¡Golpe! Cuidado con el tráfico.": ["Bum! Atenție la trafic.", "Crash! Watch the traffic."], "¡Pum! Golpe contra el bordillo.": ["Bum! Ai lovit bordura.", "Bang! You hit the kerb."], "Sin gasolina. Llama a la grúa desde el menú ☰.": ["Ai rămas fără benzină. Cheamă macaraua din meniul ☰.", "Out of fuel. Call the tow truck from the ☰ menu."], "🅿 Multa de zona azul: −40 €. Saca el tique en el parquímetro.": ["🅿 Amendă de zonă albastră: −40 €. Ia tichet de la parcometru.", "🅿 Blue-zone fine: −40 €. Get a ticket at the meter."], "PARQUÍMETRO · ZONA AZUL": ["PARCOMETRU · ZONĂ ALBASTRĂ", "PARKING METER · BLUE ZONE"], "Horario de pago: 9:00–14:00 y 16:00–20:00. {0} El tique va en el salpicadero del G-Wagen.": ["Program cu plată: 9:00–14:00 și 16:00–20:00. {0} Tichetul stă pe bordul G-Wagen-ului.", "Paid hours: 9:00–14:00 and 16:00–20:00. {0} The ticket goes on the G-Wagen's dashboard."], "Tique válido {0} min más.": ["Tichet valabil încă {0} min.", "Ticket valid for {0} more min."], "Sin tique válido.": ["Niciun tichet valabil.", "No valid ticket."], "Sacar tique": ["Ia tichet", "Get ticket"], "Tique de {0} min sacado.": ["Ai luat tichet pentru {0} min.", "{0}-minute ticket bought."], "Depósito: {0} / {1} L · Gasolina 95: {2} €/L": ["Rezervor: {0} / {1} L · Benzină 95: {2} €/L", "Tank: {0} / {1} L · Petrol 95: {2} €/L"], "Lleno": ["Plin", "Fill up"], "Llenar": ["Umple", "Fill"], "Depósito lleno.": ["Rezervor plin.", "Tank full."], "TALLER MECÁNICO": ["SERVICE AUTO", "MECHANIC'S GARAGE"], "Mejoras": ["Îmbunătățiri", "Upgrades"], "Reparación": ["Reparație", "Repairs"], "Huecos de carga actuales: {0}. Depósito: {1} L.": ["Locuri de încărcare acum: {0}. Rezervor: {1} L.", "Current cargo slots: {0}. Tank: {1} L."], "Instalado": ["Montat", "Fitted"], "Instalar": ["Montează", "Fit"], "Reparar": ["Repară", "Repair"], "Estado del G-Wagen: {0} %. Por debajo del 35 % pierde potencia.": ["Starea G-Wagen-ului: {0} %. Sub 35 % pierde putere.", "G-Wagen condition: {0}%. Below 35% it loses power."], "Reparar chapa y mecánica · {0}": ["Reparație caroserie și mecanică · {0}", "Fix bodywork and mechanics · {0}"], "Deja el coche al 100 %": ["Aduce mașina la 100 %", "Brings the car back to 100%"], "Coche reparado.": ["Mașină reparată.", "Car repaired."], "El Makro está cerrado. Abre de 07:00 a 22:00.": ["Makro e închis. Deschide de la 07:00 la 22:00.", "Makro is closed. Open 07:00–22:00."], "MAKRO · CASH & CARRY": ["MAKRO · CASH & CARRY", "MAKRO · CASH & CARRY"], "Alimentación y bebida": ["Alimente și băuturi", "Food and drink"], "Armas": ["Arme", "Weapons"], "Mejoras para ti": ["Îmbunătățiri pentru tine", "Upgrades for you"], "Lo que compras sale en el muelle de recogida, a la derecha de la entrada (zona amarilla). Llévalo al coche y mételo por detrás, por el maletero.": ["Ce cumperi apare pe rampa de ridicare, în dreapta intrării (zona galbenă). Du-l la mașină și pune-l în portbagaj.", "What you buy appears on the pick-up dock, right of the entrance (yellow area). Take it to the car and load it through the boot."], "{0}. En el Oxya: {1}/{2} ({3})": ["{0}. În Oxya: {1}/{2} ({3})", "{0}. At the Oxya: {1}/{2} ({3})"], "Comprar": ["Cumpără", "Buy"], "Tienes": ["Ai deja", "Owned"], "Bloqueado": ["Blocat", "Locked"], "No tienes dinero suficiente.": ["Nu ai destui bani.", "You don't have enough money."], "{0} en el muelle de recogida.": ["{0} pe rampa de ridicare.", "{0} at the pick-up dock."], "Para echar ladrones y ratas, y frenar a los que intentan irse sin pagar. Cambia de arma con Q o con el botón ARMA.": ["Pentru hoți, șobolani și cei care vor să plece fără să plătească. Schimbi arma cu Q sau cu butonul ARMĂ.", "For thieves, rats and people trying to leave without paying. Switch weapons with Q or the WEAPON button."], "El {0} está cerrado. Abre de 09:00 a 23:00.": ["{0} e închis. Deschide de la 09:00 la 23:00.", "{0} is closed. Open 09:00–23:00."], "Comida y bebida": ["Mâncare și băutură", "Food and drink"], "Para ti": ["Pentru tine", "For you"], "Exclusivo": ["Exclusiv", "Exclusive"], "Trato con la cajera: {0}{1}. Precios ×{2} sobre el Makro, pero abierto hasta las 23:00 y en cada barrio.": ["Relația cu casiera: {0}{1}. Prețuri ×{2} față de Makro, dar deschis până la 23:00 și în fiecare cartier.", "Cashier relationship: {0}{1}. Prices ×{2} over Makro, but open until 23:00 and in every neighbourhood."], "Desconocido": ["Necunoscut", "Stranger"], "Conocido": ["Cunoscut", "Regular"], "Amigo": ["Prieten", "Friend"], "Íntimo": ["Apropiat", "Close friend"], "Lo que compres te lo dejan en la puerta de la tienda.": ["Ce cumperi îți lasă la ușa magazinului.", "Whatever you buy is left at the shop door."], "{0} en la puerta del {1}.": ["{0} la ușa de la {1}.", "{0} at the door of {1}."], "La cajera del {0} ya te trata como {1}: precios más bajos{2}.": ["Casiera de la {0} te tratează acum ca {1}: prețuri mai mici{2}.", "The cashier at {0} now treats you as a {1}: lower prices{2}."], "Bocadillo de calamares": ["Sandviș cu calamar", "Squid sandwich"], "Recupera 40 de vida": ["Recuperezi 40 viață", "Restores 40 health"], "Bebida energética": ["Băutură energizantă", "Energy drink"], "Vas un 35 % más rápido durante 2 minutos": ["Mergi cu 35 % mai repede timp de 2 minute", "You move 35% faster for 2 minutes"], "Agua fresquita": ["Apă rece", "Cold water"], "{0}. ¡Rico!": ["{0}. Delicios!", "{0}. Tasty!"], "Este Udaco no tiene nada exclusivo. Prueba en el Udaco Levante, el del Polígono o el de la Playa.": ["Acest Udaco nu are nimic exclusiv. Încearcă la Udaco Levante, Polígono sau Playa.", "This Udaco has nothing exclusive. Try Udaco Levante, Polígono or Playa."], "La cajera te saca de la trastienda algo que no vende a cualquiera.": ["Casiera îți aduce din spate ceva ce nu vinde oricui.", "The cashier brings out something from the back she doesn't sell to just anyone."], "Esto solo se lo enseñan a los clientes de confianza. Hazte AMIGO de la cajera (gasta 300 € aquí).": ["Asta le arată doar clienților de încredere. Fă-te PRIETEN cu casiera (cheltuie 300 € aici).", "They only show this to trusted customers. Become the cashier's FRIEND (spend 300 € here)."], "{0} está cerrado. Abre a las 10:00.": ["{0} e închis. Deschide la 10:00.", "{0} is closed. Opens at 10:00."], "Dürüm de pollo": ["Dürüm cu pui", "Chicken dürüm"], "Döner box": ["Döner box", "Döner box"], "Lahmacun": ["Lahmacun", "Lahmacun"], "Lata de refresco": ["Doză de suc", "Can of soda"], "Café solo": ["Espresso", "Espresso"], "Recupera 5 de vida y vas más rápido 1 minuto": ["Recuperezi 5 viață și mergi mai repede 1 minut", "Restores 5 health and you move faster for 1 minute"], "Caña": ["Bere la halbă mică", "Small beer"], "Bocadillo de tortilla": ["Sandviș cu omletă spaniolă", "Spanish omelette sandwich"], "Botiquín completo": ["Trusă medicală completă", "Full first-aid kit"], "Vendas y yodo": ["Bandaje și iod", "Bandages and iodine"], "Ibuprofeno": ["Ibuprofen", "Ibuprofen"], "Partido en directo: Benidorm CF contra Villajoyosa. Si aciertas cobras el doble. La casa siempre gana un poco más de lo que crees.": ["Meci în direct: Benidorm CF contra Villajoyosa. Dacă ghicești, câștigi dublu. Casa câștigă mereu puțin mai mult decât crezi.", "Live match: Benidorm CF v Villajoyosa. Get it right and you win double. The house always wins a bit more than you think."], "Apostar {0} a que gana el Benidorm": ["Pariază {0} că Benidorm câștigă", "Bet {0} on Benidorm to win"], "Cuota 2,00": ["Cotă 2,00", "Odds 2.00"], "Apostar": ["Pariază", "Bet"], "¡Gol del Benidorm! Cobras {0}.": ["Gol Benidorm! Încasezi {0}.", "Benidorm score! You collect {0}."], "Ha ganado el Villajoyosa. Has perdido la apuesta.": ["A câștigat Villajoyosa. Ai pierdut pariul.", "Villajoyosa won. You lost the bet."], "Comida para aguantar el turno.": ["Mâncare ca să reziști la tură.", "Food to get you through the shift."], "Un respiro en la barra.": ["O pauză la bar.", "A breather at the bar."], "Para curarte después de una pelea.": ["Ca să te vindeci după o bătaie.", "To patch you up after a fight."], "{0}. ¡Te sienta bien!": ["{0}. Îți face bine!", "{0}. That hits the spot!"], "Solo quien creó la partida puede dormir y pasar la noche.": ["Doar cine a creat jocul poate dormi și trece noaptea.", "Only the host can sleep through the night."], "Aún es pronto para dormir. Puedes dormir a partir de las 20:00.": ["E încă devreme pentru somn. Poți dormi de la 20:00.", "It's too early to sleep. You can sleep from 20:00."], "Has dormido en tu litera entre ronquidos. Son las 09:00 y tienes la vida al máximo.": ["Ai dormit în patul supraetajat printre sforăieli. E 09:00 și ai viața la maxim.", "You slept in your bunk among the snoring. It's 09:00 and you're at full health."], "PERSONAL DEL OXYA": ["PERSONALUL OXYA", "OXYA STAFF"], "Personal": ["Personal", "Staff"], "Cada persona en cocina saca un pedido más a la vez; cada persona en sala sirve más rápido. El sueldo se paga cada noche. Plantilla: {0}/3.": ["Fiecare om în bucătărie mai scoate o comandă în paralel; fiecare om în sală servește mai repede. Salariul se plătește în fiecare seară. Echipa: {0}/3.", "Each kitchen hire cooks one more order at a time; each floor hire serves faster. Wages are paid every night. Team: {0}/3."], "Despedir": ["Concediază", "Fire"], "Candidatos de hoy:": ["Candidații de azi:", "Today's candidates:"], "Contratar": ["Angajează", "Hire"], "Pide {0} al día. {1}": ["Cere {0} pe zi. {1}", "Asks {0} a day. {1}"], "Mucha experiencia.": ["Multă experiență.", "Very experienced."], "Algo de experiencia.": ["Ceva experiență.", "Some experience."], "Empieza ahora.": ["Abia începe.", "Just starting out."], "{0} empieza hoy en {1}.": ["{0} începe azi în {1}.", "{0} starts today in {1}."], "{0} ya no trabaja en el Oxya.": ["{0} nu mai lucrează la Oxya.", "{0} no longer works at the Oxya."], "El personal lo contrata quien creó la partida.": ["Personalul îl angajează cine a creat jocul.", "Only the host can hire staff."], "Cierre del día {0}: {1} clientes servidos, {2} perdidos. Ingresos {3}, gastos {4} (150 € de luz y local, 12 € de tu litera y {5} de sueldos).": ["Închiderea zilei {0}: {1} clienți serviți, {2} pierduți. Venituri {3}, cheltuieli {4} (150 € curent și chirie, 12 € patul tău și {5} salarii).", "Day {0} closed: {1} customers served, {2} lost. Income {3}, costs {4} (150 € power and rent, 12 € for your bunk and {5} in wages)."], "MENÚ": ["MENIU", "MENU"], "Día {0} · Reputación {1}/100 · Hoy: {2} servidos, {3} perdidos.": ["Ziua {0} · Reputație {1}/100 · Azi: {2} serviți, {3} pierduți.", "Day {0} · Reputation {1}/100 · Today: {2} served, {3} lost."], "Precios de venta: burger 9,50 € · patatas 3,50 € · refresco 2,50 € · cerveza 3 €. Cada noche se pagan 150 € de sueldos y luz.": ["Prețuri de vânzare: burger 9,50 € · cartofi 3,50 € · suc 2,50 € · bere 3 €. În fiecare seară se plătesc 150 € pe curent și chirie.", "Menu prices: burger 9.50 € · fries 3.50 € · soft drink 2.50 € · beer 3 €. 150 € is paid every night for power and rent."], "Ruta al Makro: sal por la puerta del Oxya a la calle, sube al G-Wagen, ve hacia el este hasta la cuesta, bájala, gira a la izquierda en la Av. del Mediterráneo y el parking del Makro queda a la izquierda pasado el polígono. Usa el minimapa.": ["Drumul spre Makro: ieși pe ușa Oxya în stradă, urcă în G-Wagen, mergi spre est până la pantă, coboar-o, fă la stânga pe Av. del Mediterráneo, iar parcarea Makro e pe stânga după zona industrială. Folosește minimapa.", "Route to Makro: leave the Oxya by the front door, get in the G-Wagen, head east to the hill, drive down it, turn left onto Av. del Mediterráneo and the Makro car park is on the left past the industrial estate. Use the minimap."], "Llamar grúa (70 €)": ["Cheamă macaraua (70 €)", "Call a tow truck (70 €)"], "Salir del online": ["Ieși din online", "Leave online game"], "Guardar": ["Salvează", "Save"], "Nueva partida": ["Joc nou", "New game"], "¿Seguro? Se borra la partida actual.": ["Sigur? Jocul actual se șterge.", "Are you sure? Your current game will be deleted."], "Sí, empezar de cero": ["Da, de la zero", "Yes, start over"], "Cancelar": ["Anulează", "Cancel"], "La grúa ha dejado el G-Wagen en la Gasolinera La Cuesta con 10 L.": ["Macaraua a lăsat G-Wagen-ul la Benzinăria La Cuesta cu 10 L.", "The tow truck left the G-Wagen at the La Cuesta petrol station with 10 L."], "Has salido de la partida online.": ["Ai ieșit din jocul online.", "You left the online game."], "Como invitado, la partida la guarda tu amigo.": ["Ca invitat, jocul îl salvează prietenul tău.", "As a guest, your friend saves the game."], "Partida guardada en este navegador.": ["Joc salvat în acest browser.", "Game saved in this browser."], "Nueva partida. Revisa el stock y planifica la primera compra.": ["Joc nou. Verifică stocul și planifică prima cumpărătură.", "New game. Check the stock and plan your first shop."], "Crea una partida y pásale el código a tu amigo. Tu amigo necesita tener acceso a este juego (compártelo desde el menú Compartir).": ["Creează un joc și dă-i codul prietenului tău. Prietenul tău trebuie să aibă acces la acest joc (distribuie-l din meniul Distribuie).", "Create a game and give your friend the code. Your friend needs access to this game (share it from the Share menu)."], "Crea una partida y pásale el código a tu amigo. Él abre este mismo enlace, pone el código y pulsa Unirse.": ["Creează un joc și dă-i codul prietenului tău. El deschide același link, scrie codul și apasă Intră.", "Create a game and give your friend the code. They open this same link, enter the code and press Join."], "El modo online solo funciona abriendo el juego en claude.ai con la sesión iniciada. Aquí puedes jugar solo.": ["Modul online merge doar deschizând jocul pe claude.ai, autentificat. Aici poți juca singur.", "Online mode only works when the game is opened on claude.ai while signed in. Here you can play solo."], "Creando partida…": ["Se creează jocul…", "Creating game…"], "Buscando la partida…": ["Se caută jocul…", "Looking for the game…"], "No se ha podido crear la sala. Revisa la conexión a internet y prueba otra vez.": ["Camera nu a putut fi creată. Verifică internetul și încearcă din nou.", "Couldn't create the room. Check your internet connection and try again."], "Escribe el código de 4 cifras que te ha pasado tu amigo.": ["Scrie codul de 4 cifre primit de la prietenul tău.", "Type the 4-digit code your friend gave you."], "No se ha podido entrar en la sala.": ["Nu ai putut intra în cameră.", "Couldn't join the room."], "No hay ninguna partida abierta con ese código.": ["Nu există niciun joc deschis cu acest cod.", "There's no open game with that code."], "Partida online creada. Código: {0}. Pásaselo a tu amigo.": ["Joc online creat. Cod: {0}. Dă-i-l prietenului tău.", "Online game created. Code: {0}. Give it to your friend."], "Te has unido a la partida. El dinero y el stock del Oxya son compartidos; tu G-Wagen es el aparcado más adelante.": ["Ai intrat în joc. Banii și stocul Oxya sunt comune; G-Wagen-ul tău e cel parcat mai încolo.", "You've joined the game. The money and the Oxya's stock are shared; your G-Wagen is the one parked further along."], "Se ha perdido la conexión con quien creó la partida. Sigues jugando solo.": ["S-a pierdut legătura cu gazda. Continui să joci singur.", "Lost connection to the host. You carry on playing solo."], "Partida guardada: día {0}, {1}.": ["Joc salvat: ziua {0}, {1}.", "Saved game: day {0}, {1}."], "Empiezas a las 10:00 en la puerta del Oxya. Abre a las 12:00. El G-Wagen está aparcado delante, con tique de zona azul hasta las 13:00.": ["Începi la 10:00 la ușa Oxya. Se deschide la 12:00. G-Wagen-ul e parcat în față, cu tichet de zonă albastră până la 13:00.", "You start at 10:00 at the Oxya's door. It opens at 12:00. The G-Wagen is parked out front with a blue-zone ticket until 13:00."], "No se ha podido cargar el motor 3D. Recarga la página.": ["Motorul 3D nu s-a putut încărca. Reîncarcă pagina.", "The 3D engine couldn't load. Reload the page."], "CONTINUAR SOLO": ["CONTINUĂ SINGUR", "CONTINUE SOLO"], "JUGAR SOLO": ["JOACĂ SINGUR", "PLAY SOLO"], "Jugador": ["Jucător", "Player"], "Amigo ": ["Prieten ", "Friend "], "Tu personaje": ["Personajul tău", "Your character"], "Tono de piel": ["Nuanța pielii", "Skin tone"], "Pelo": ["Păr", "Hair"], "Camiseta": ["Tricou", "T-shirt"], "Gorra": ["Șapcă", "Cap"], "Silla de ruedas": ["Scaun cu rotile", "Wheelchair"], "Online con un amigo": ["Online cu un prieten", "Online with a friend"], "Crear partida": ["Creează joc", "Create game"], "Unirse": ["Intră", "Join"], "Tu nombre": ["Numele tău", "Your name"], "Código de 4 cifras": ["Cod din 4 cifre", "4-digit code"], "Conectando…": ["Se conectează…", "Connecting…"], "VISTA": ["VEDERE", "VIEW"], "ARMA": ["ARMĂ", "WEAPON"], "MAPA": ["HARTĂ", "MAP"], "Idioma": ["Limbă", "Language"], "Haz clic para mirar con el ratón · Esc suelta el ratón": ["Dă clic ca să privești cu mouse-ul · Esc eliberează mouse-ul", "Click to look around with the mouse · Esc releases it"], "Piso compartido": ["Apartament la comun", "Shared flat"], "ZONA AZUL": ["ZONĂ ALBASTRĂ", "BLUE ZONE"], "MUELLE DE RECOGIDA": ["RAMPĂ DE RIDICARE", "PICK-UP DOCK"], "PARKING MAKRO · GRATUITO": ["PARCARE MAKRO · GRATUITĂ", "MAKRO CAR PARK · FREE"], "CUESTA ABAJO · 12%": ["PANTĂ ÎN JOS · 12%", "DOWNHILL · 12%"], "TALLER": ["SERVICE", "GARAGE"], "Gasolinera La Cuesta": ["Benzinăria La Cuesta", "La Cuesta petrol station"], "Gasolinera Low Cost": ["Benzinăria Low Cost", "Low Cost petrol station"]};
+let LANG='es';try{LANG=localStorage.getItem('oxya-lang')||((navigator.language||'es').startsWith('ro')?'ro':(navigator.language||'es').startsWith('en')?'en':'es')}catch(e){}
+if(!['es','ro','en'].includes(LANG))LANG='es';
+const I18L={},I18P=[];for(const k in I18N){I18L[k.toLowerCase()]=I18N[k];if(/\{\d\}/.test(k)){const parts=k.split(/(\{\d\})/);const idx=[];const re=parts.map(pt=>{const m=pt.match(/^\{(\d)\}$/);if(m){idx.push(+m[1]);return'([\\s\\S]+?)'}return pt.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}).join('');I18P.push({re:new RegExp('^'+re+'$'),idx,k,lit:k.replace(/\{\d\}/g,'').length})}}
+I18P.sort((a,b)=>b.lit-a.lit);
+function FR(k,...a){let o=TR(k);a.forEach((v,i)=>{o=o.split('{'+i+'}').join(TR(String(v)))});return o}
+function TR(s,depth=0){if(LANG==='es'||s==null)return s;s=String(s);const li=LANG==='ro'?0:1;const e=I18N[s];if(e)return e[li];
+  const lo=I18L[s.toLowerCase()];if(lo){const r=lo[li];return s===s.toUpperCase()&&s!==s.toLowerCase()?r.toUpperCase():s[0]===s[0].toLowerCase()?r[0].toLowerCase()+r.slice(1):r}
+  if(depth>3)return s;for(const p of I18P){const m=s.match(p.re);if(!m)continue;let out=I18N[p.k][li];p.idx.forEach((n,gi)=>{out=out.split('{'+n+'}').join(TR(m[gi+1],depth+1))});return out}return s}
+
 
 // ================= mundo (plano: x = este, y = sur; 1 unidad ≈ 6 cm)
 const W=8000,H=3000;
@@ -210,7 +223,9 @@ const DRIVE=[
   R(1640,1560,300,240,{gas:1}),
   R(2320,1560,300,240,{gas:2}),
   R(3800,1560,200,240,{apron:1}),
-  R(4000,1100,4000,100,{hor:1,n:'Av. de la Sierra'}),R(4400,560,120,1820),R(5400,560,120,1820),R(6400,560,120,1820),R(7400,560,120,1820),
+  R(4000,1100,4000,100,{hor:1,n:'Av. de la Sierra'}),
+  R(1880,0,60,1560,{narrow:1}),R(2140,0,60,1800,{narrow:1}),R(2400,0,60,1560,{narrow:1}),
+  R(1620,300,1040,60,{hor:1,narrow:1}),R(1620,580,1040,60,{hor:1,narrow:1}),R(1620,860,1040,60,{hor:1,narrow:1}),R(1620,1180,1040,60,{hor:1,narrow:1}),R(1620,1460,1040,60,{hor:1,narrow:1}),R(4400,560,120,1820),R(5400,560,120,1820),R(6400,560,120,1820),R(7400,560,120,1820),
 ];
 const SLOPE=DRIVE[1], APRON=DRIVE[12];
 const SOLIDS=[], BUILDINGS=[], OXWALLS=[], ROOMS=[], FURN=[];
@@ -219,24 +234,41 @@ const FAC=['#f1ece2','#e8dfcf','#f6f4ef','#dce5ec','#ecd9c6','#d3ddd6','#f2e5c9'
 function shade(hex,amt){const n=parseInt(hex.slice(1),16);let r=(n>>16)+amt,g=(n>>8&255)+amt,b=(n&255)+amt;return'#'+[r,g,b].map(v=>clamp(v,0,255).toString(16).padStart(2,'0')).join('')}
 function bld(x,y,w,h,o={}){const b=Object.assign({x,y,w,h,hgt:40},o);if(!b.fac)b.fac=spick(FAC);if(!b.roof)b.roof=shade(b.fac,-28);
   b.det=[];const n=Math.floor(sr(0,4));for(let i=0;i<n;i++)b.det.push([sr(6,Math.max(7,w-26)),sr(6,Math.max(7,h-26)),sr(10,20),sr(8,16)]);
-  b.pool=!o.kind&&w>90&&h>70&&srand()<.28;b.glass=!o.kind&&srand()<.18;b.H=o.kind?b.hgt*3:b.hgt*2.4;BUILDINGS.push(b);solid(x,y,w,h);return b}
+  b.pool=!o.kind&&!o.style&&w>90&&h>70&&srand()<.28;b.glass=!o.kind&&!o.style&&srand()<.18;b.H=o.kind?b.hgt*3:b.hgt*2.4;BUILDINGS.push(b);solid(x,y,w,h);return b}
 function fillBlock(x0,y0,x1,y1,o){const RS=typeof RESERVED!=='undefined'?RESERVED:[];const pad=o.pad??36,gap=o.gap??30;let y=y0+pad;const Y1=y1-pad,X1=x1-pad;
   while(y<Y1-50){let rh=Math.min(sr(o.minS,o.maxS),Y1-y);if(Y1-(y+rh)<80)rh=Y1-y;let x=x0+pad;
     while(x<X1-50){let rw=Math.min(sr(o.minS,o.maxS),X1-x);if(X1-(x+rw)<80)rw=X1-x;
-      if(!RS.some(r=>x<r.x+r.w&&x+rw>r.x&&y<r.y+r.h&&y+rh>r.y))bld(x,y,rw,rh,{hgt:sr(o.minH,o.maxH),kind:o.kind,fac:o.facs?spick(o.facs):undefined});x+=rw+gap}
+      if(!RS.some(r=>x<r.x+r.w&&x+rw>r.x&&y<r.y+r.h&&y+rh>r.y))bld(x,y,rw,rh,{hgt:sr(o.minH,o.maxH),kind:o.kind,style:o.style,fac:o.facs?spick(o.facs):undefined});x+=rw+gap}
     y+=rh+gap}}
 // supermercados Udaco (se puede entrar): puerta al sur (s) o al norte (n)
 const UDACOS=[
   {id:'u1',n:'Udaco Rincón',x:220,y:1560,w:220,h:160,door:'s'},
   {id:'u2',n:'Udaco Levante',x:900,y:1980,w:220,h:160,door:'n',excl:'katana'},
   {id:'u3',n:'Udaco Mercado',x:2450,y:1980,w:220,h:160,door:'n'},
-  {id:'u4',n:'Udaco La Cuesta',x:1700,y:1340,w:220,h:160,door:'s'},
+  {id:'u4',n:'Udaco La Cuesta',x:1650,y:1270,w:220,h:160,door:'s'},
   {id:'u5',n:'Udaco Polígono',x:4600,y:1580,w:220,h:160,door:'s',excl:'ballesta'},
   {id:'u6',n:'Udaco Sierra',x:5700,y:700,w:220,h:160,door:'n'},
   {id:'u7',n:'Udaco Playa',x:6700,y:1980,w:220,h:160,door:'n',excl:'lanzapatatas'},
   {id:'u8',n:'Udaco Alto',x:7600,y:1240,w:220,h:160,door:'n'},
 ];
-const RESERVED=UDACOS.map(u=>({x:u.x-24,y:u.y-24,w:u.w+48,h:u.h+48}));
+// tiendas pequeñas en las que se puede entrar y el piso compartido
+const SHOPS=[
+  {id:'k1',type:'kebab',n:'Kebab Anatolia',x:1700,y:766,w:110,h:80,door:'s'},
+  {id:'a1',type:'apuestas',n:'Apuestas La Suerte',x:2215,y:1086,w:110,h:80,door:'s'},
+  {id:'b1',type:'bar',n:'Bar Manolo',x:1960,y:206,w:110,h:80,door:'s'},
+  {id:'k2',type:'kebab',n:'Döner Benidorm',x:4800,y:1990,w:110,h:80,door:'n'},
+  {id:'f1',type:'farmacia',n:'Farmacia Levante',x:6000,y:1240,w:110,h:80,door:'n'},
+  {id:'k3',type:'kebab',n:'Kebab Calle Oxya',x:1000,y:986,w:110,h:80,door:'n'},
+  {id:'b2',type:'bar',n:'Bar El Tío',x:7000,y:700,w:110,h:80,door:'n'},
+];
+const PISO={id:'piso',type:'piso',n:'Piso compartido',x:1955,y:1036,w:170,h:120,door:'s'};
+const RESERVED=[...UDACOS,...SHOPS,PISO].map(u=>({x:u.x-24,y:u.y-24,w:u.w+48,h:u.h+48}));
+for(const u of[...SHOPS,PISO]){const t=5,cx=u.x+u.w/2,gap=26,S2=u.door==='s';u.cx=cx;
+  for(const yy of[u.y,u.y+u.h-t]){const isDoor=(S2&&yy===u.y+u.h-t)||(!S2&&yy===u.y);if(isDoor){solid(u.x,yy,cx-gap/2-u.x,t);solid(cx+gap/2,yy,u.x+u.w-(cx+gap/2),t)}else solid(u.x,yy,u.w,t)}
+  solid(u.x,u.y,t,u.h);solid(u.x+u.w-t,u.y,t,u.h);const back=S2?u.y+t:u.y+u.h-t,inw=S2?1:-1;u.backY=back;u.inw=inw;
+  if(u.type!=='piso'){u.counter={x:u.x+18,y:S2?u.y+28:u.y+u.h-28-10,w:u.w-36,h:10};solid(u.counter.x,u.counter.y,u.counter.w,u.counter.h);u.ip={x:cx,y:S2?u.y+52:u.y+u.h-52};u.clerk={x:cx,y:S2?u.y+18:u.y+u.h-18}}
+  else{u.beds=[{x:u.x+8,y:S2?u.y+8:u.y+u.h-30,w:40,h:22},{x:u.x+56,y:S2?u.y+8:u.y+u.h-30,w:40,h:22},{x:u.x+u.w-48,y:S2?u.y+8:u.y+u.h-30,w:40,h:22}];u.beds.forEach(b=>solid(b.x,b.y,b.w,b.h));
+    u.ip={x:u.x+28,y:S2?u.y+40:u.y+u.h-40};u.sofa={x:u.x+u.w-52,y:S2?u.y+u.h-36:u.y+10,w:40,h:14};solid(u.sofa.x,u.sofa.y,u.sofa.w,u.sofa.h)}}
 for(const u of UDACOS){const t=6,cx=u.x+u.w/2,gap=34,S2=u.door==='s';
   for(const yy of[u.y,u.y+u.h-t]){const isDoor=(S2&&yy===u.y+u.h-t)||(!S2&&yy===u.y);if(isDoor){solid(u.x,yy,cx-gap/2-u.x,t);solid(cx+gap/2,yy,u.x+u.w-(cx+gap/2),t)}else solid(u.x,yy,u.w,t)}
   solid(u.x,u.y,t,u.h);solid(u.x+u.w-t,u.y,t,u.h);
@@ -249,8 +281,8 @@ bld(0,0,440,760,{hgt:60});bld(440,0,240,352,{hgt:46});
 fillBlock(680,0,1480,760,{minS:150,maxS:260,minH:60,maxH:150,pad:30});
 bld(1480,0,140,760,{hgt:46});
 fillBlock(0,940,1480,1800,{minS:170,maxS:280,minH:50,maxH:200});
-fillBlock(1620,0,2660,1560,{minS:180,maxS:300,minH:50,maxH:230});
-fillBlock(1940,1520,2320,1800,{minS:120,maxS:200,minH:30,maxH:70,pad:30});
+for(const[x0,x1]of[[1620,1880],[1940,2140],[2200,2400],[2460,2660]])for(const[y0,y1]of[[0,300],[360,580],[640,860],[920,1180],[1240,1460]])fillBlock(x0,y0,x1,y1,{minS:46,maxS:92,minH:14,maxH:30,pad:14,gap:3,style:'old'});
+fillBlock(1940,1520,2140,1800,{minS:50,maxS:90,minH:14,maxH:28,pad:14,gap:3,style:'old'});fillBlock(2200,1520,2320,1800,{minS:50,maxS:90,minH:14,maxH:28,pad:14,gap:3,style:'old'});
 fillBlock(0,1940,640,2380,{minS:150,maxS:250,minH:80,maxH:260});
 fillBlock(750,1940,2140,2380,{minS:160,maxS:260,minH:80,maxH:280});
 fillBlock(2250,1940,3300,2380,{minS:160,maxS:260,minH:80,maxH:260});
@@ -313,6 +345,7 @@ table(556,648,16,14,'salon',[apE(549,655),apE(579,655)],'table2');
 table(548,705,16,16,'terraza',[apP(540,713),apP(572,713)],'porch');
 table(590,705,16,16,'terraza',[apP(582,713),apP(614,713)],'porch');
 
+for(const u of[...SHOPS,PISO]){u.h0=rawH(u.x+u.w/2,u.y+u.h/2);FLATZ.push({x:u.x-10,y:u.y-10,w:u.w+20,h:u.h+20,m:40,h0:u.h0})}
 for(const u of UDACOS){u.h0=rawH(u.x+u.w/2,u.y+u.h/2);FLATZ.push({x:u.x-10,y:u.y-10,w:u.w+20,h:u.h+20,m:60,h0:u.h0})}
 FLATZ.push({x:MAKRO.x,y:MAKRO.y,w:MAKRO.w,h:MAKRO.h,m:40,h0:rawH(MAKRO.x+MAKRO.w/2,MAKRO.y+MAKRO.h)});
 const PRODUCTS={
@@ -370,7 +403,7 @@ function patCanvas(n){if(PC[n])return PC[n];const c=document.createElement('canv
   };S[n]();PC[n]=c;return c}
 const patCache=new WeakMap();
 function pat(g,n){let m=patCache.get(g);if(!m){m={};patCache.set(g,m)}if(!m[n])m[n]=g.createPattern(patCanvas(n),'repeat');return m[n]}
-function txt(g,s,x,y,o={}){g.save();g.translate(x,y);if(o.rot)g.rotate(o.rot);g.font=(o.w||'700')+' '+(o.s||12)+'px '+(o.f||'Rubik, system-ui, sans-serif');g.textAlign=o.a||'center';g.textBaseline='middle';
+function txt(g,s,x,y,o={}){s=TR(s);g.save();g.translate(x,y);if(o.rot)g.rotate(o.rot);g.font=(o.w||'700')+' '+(o.s||12)+'px '+(o.f||'Rubik, system-ui, sans-serif');g.textAlign=o.a||'center';g.textBaseline='middle';
   if(o.stroke){g.lineWidth=o.lw||3;g.strokeStyle=o.stroke;g.strokeText(s,0,0)}g.fillStyle=o.c||'#fff';g.fillText(s,0,0);g.restore()}
 function drawGround(g){
   g.fillStyle=pat(g,'paver');g.fillRect(0,0,W,H);
@@ -475,8 +508,8 @@ if(IS_TOUCH)document.body.classList.add('touch');
 
 // ================= avisos
 const toastsEl=document.getElementById('toasts');
-function toast(msg,kind=''){const d=document.createElement('div');d.className='toast '+kind;d.textContent=msg;toastsEl.prepend(d);while(toastsEl.children.length>4)toastsEl.lastChild.remove();setTimeout(()=>d.remove(),4200)}
-function floater(x,y,s,c='#ffd23f'){floaters.push({x,y,s,c,t:1.6})}
+function toast(msg,kind=''){msg=TR(msg);const d=document.createElement('div');d.className='toast '+kind;d.textContent=msg;toastsEl.prepend(d);while(toastsEl.children.length>4)toastsEl.lastChild.remove();setTimeout(()=>d.remove(),4200)}
+function floater(x,y,s,c='#ffd23f'){floaters.push({x,y,s:TR(s),c,t:1.6})}
 function addMoney(v){S.money+=v;if(NET.mode==='guest'){sendAct({k:'m',v:Math.round(v*100)/100});return}if(v>0)S.day.ing+=v;else S.day.gas+=-v}
 let CID=0,EID=0,GID=0;
 function stockAdd(s,u){S.stock[s.id]=Math.min(s.cap,S.stock[s.id]+u);if(NET.mode==='guest')sendAct({k:'s',id:s.id,u})}
@@ -488,7 +521,7 @@ function toastW(msg,kind){toast(msg,kind);if(NET.mode==='host'){NET.evs.push([++
 function hitsSolid(x,y,r){for(const s of SOLIDS){if(x+r<s.x||x-r>s.x+s.w||y+r<s.y||y-r>s.y+s.h)continue;if(dRect(x,y,s)<r)return true}return false}
 const onDrive=(x,y)=>{for(const r of DRIVE)if(x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h)return true;return false};
 function carFits(x,y,a){const c=Math.cos(a),s=Math.sin(a);const L=CAR_L/2-1,Wd=CAR_W/2-2;
-  for(const[l,w]of[[L,Wd],[L,-Wd],[-L,Wd],[-L,-Wd],[0,0]]){if(!onDrive(x+c*l-s*w,y+s*l+c*w))return false}return true}
+  for(const[l,w]of[[L,Wd],[L,-Wd],[-L,Wd],[-L,-Wd],[0,0]]){const px=x+c*l-s*w,py=y+s*l+c*w;if(!onDrive(px,py))return false;for(const q of PARKED)if(inR(q,px,py))return false}return true}
 const trunkPt=()=>({x:S.car.x-Math.cos(S.car.a)*(CAR_L/2+8),y:S.car.y-Math.sin(S.car.a)*(CAR_L/2+8)});
 
 // ================= acciones
@@ -514,6 +547,9 @@ function getAction(){
   for(const m of METERS)if(dist(x,y,m.x,m.y)<34)return{l:'Parquímetro zona azul',fn:openMeter};
   if(dist(x,y,MAKRO_DOOR.x,MAKRO_DOOR.y)<46)return{l:'Entrar al Makro',fn:openMakro};
   for(const u of UDACOS)if(dist(x,y,u.ip.x,u.ip.y)<26)return{l:`Caja del ${u.n}`,fn:()=>openUdaco(u)};
+  for(const u of SHOPS)if(dist(x,y,u.ip.x,u.ip.y)<24)return{l:`Mostrador de ${u.n}`,fn:()=>openShop(u)};
+  if(dist(x,y,PISO.ip.x,PISO.ip.y)<26)return{l:'Tu litera: dormir',fn:sleepNow};
+  for(const e of enemies)if(e.kind==='camello'&&e.state==='loiter'&&dist(x,y,e.x,e.y)<32)return{l:'Decirle al camello que se largue',fn:()=>shoo(e)};
   if(dist(x,y,TALLER.x+100,TALLER.y+TALLER.h+14)<50)return{l:'Mostrador del taller',fn:openTaller};
   if(info)return info;
   if(P.hands.length)return{l:'Soltar caja aquí',fn:dropCrate};
@@ -534,7 +570,7 @@ function toggleCar(){const P=S.player,C=S.car;
     toast('No hay sitio para bajarte aquí.');return}
   if(dist(P.x,P.y,C.x,C.y)<56){if(P.hands.length){toast('Mete las cajas en el maletero (detrás del coche) antes de subir.','warn');return}P.inCar=true;C.fined=false;C.unpaid=0;C.multa=false;lookOff=0;P.pitch=-.05}
 }
-function cycleWeapon(){const P=S.player;const i=P.weapons.indexOf(P.weapon);P.weapon=P.weapons[(i+1)%P.weapons.length];toast('Arma: '+WEAPONS[P.weapon].n)}
+function cycleWeapon(){const P=S.player;const i=P.weapons.indexOf(P.weapon);P.weapon=P.weapons[(i+1)%P.weapons.length];toast(TR('Arma: {0}').replace('{0}',TR(WEAPONS[P.weapon].n)))}
 function toggleFast(){if(NET.mode==='guest'){toast('Solo quien creó la partida puede acelerar el tiempo.');return}timeMul=timeMul===1?5:1;const b=document.getElementById('btnFast');b.textContent=timeMul===1?'⏩ x1':'⏩ x5';b.classList.toggle('on',timeMul>1)}
 
 // ================= armas y mejoras
@@ -579,9 +615,11 @@ function hurtCustomer(c){if(c.state==='ko'||c.gone)return;if(NET.mode==='guest')
 function hurt(e,dmg,stun){if(NET.mode==='guest'){sendAct({k:'he',id:e.id,d:dmg,st:stun||0});e.flash=.18;floater(e.x,e.y,'-'+dmg,'#ff5252');return}e.hp-=dmg;e.flash=.18;const a=Math.atan2(e.y-S.player.y,e.x-S.player.x);e.x+=Math.cos(a)*10;e.y+=Math.sin(a)*10;floater(e.x,e.y,'-'+dmg,'#ff5252');
   if(stun)e.stun=stun;if(e.hp<=0){ko(e);return}
   if(e.kind==='thief'&&e.state!=='fight'&&e.state!=='flee'){if(Math.random()<.5){e.state='fight';toastW('¡El ladrón se encara contigo!','bad')}else flee(e)}
-  else if(e.kind==='rat')flee(e)}
+  else if(e.kind==='rat'||e.kind==='camello')flee(e)}
 function ko(e){e.state='ko';e.t=5;
   if(e.kind==='rat'){floater(e.x,e.y,'Rata fuera','#3ddc84');return}
+  if(e.kind==='camello'){addMoney(30);toastW('Camello reducido. Un vecino te da 30 € por limpiar la calle.','good');return}
+  if(e.kind==='sicario'){addMoney(150);toastW('Sicario reducido. La policía te da 150 € de recompensa.','good');return}
   if(e.loot){if(e.loot.crate)groundAdd({x:e.x,y:e.y,t:e.loot.crate});else{const s=STORES.find(s=>s.id===e.loot.store);S.stock[s.id]=Math.min(s.cap,S.stock[s.id]+e.loot.u)}e.loot=null;toastW('Ladrón reducido. Has recuperado lo robado.','good')}
   else toastW('Ladrón reducido.','good');addMoney(20);floater(e.x,e.y,'+20 € recompensa','#ffd23f')}
 function flee(e){e.state='flee';e.speed=130;e.path=e.exit.slice()}
@@ -642,6 +680,20 @@ function spawnThief(){const C=S.car,P=S.player;
   else if(S.stock.nevera>0){const p=[{x:-20,y:790},{x:511,y:790},{x:511,y:740},{x:490,y:725},{x:470,y:716}];
     enemies.push(mkThief(-30,790,p.slice(),[...p].reverse().concat([{x:-60,y:790}]),'nevera'));toastW('⚠ Un ladrón ha entrado por la puerta del salón.','bad')}}
 function mkThief(x,y,path,exit,target){return{id:++EID,kind:'thief',x,y,r:10,hp:50,maxHp:50,path,exit,target,state:'go',speed:62,t:0,loot:null,stun:0,cd:0,flash:0}}
+// gente paseando por las aceras (solo cerca de ti)
+const PEDS=[],PEDM=new Map();
+function updatePeds(dt){const P=S.player;
+  for(const p of PEDS){const nx=p.x+Math.cos(p.dir)*p.sp*dt,ny=p.y+Math.sin(p.dir)*p.sp*dt;p.left-=p.sp*dt;if(p.left<=0||hitsSolid(nx,ny,6)){p.dir+=Math.PI;p.left=200+Math.random()*500}else{p.x=nx;p.y=ny}}
+  for(let i=PEDS.length-1;i>=0;i--)if(dist(PEDS[i].x,PEDS[i].y,P.x,P.y)>1000)PEDS.splice(i,1);
+  if(PEDS.length<(IS_TOUCH?10:16)&&Math.random()<.08){const rs=DRIVE.filter(r=>!r.lot&&!r.gas&&!r.apron&&dRect(P.x,P.y,r)<600);if(!rs.length)return;const r=pick(rs),hor=r.w>r.h,off=r.narrow?7:16,side=Math.random()<.5?-1:1,t=Math.random();
+    const x=hor?r.x+t*r.w:(side<0?r.x-off:r.x+r.w+off),y=hor?(side<0?r.y-off:r.y+r.h+off):r.y+t*r.h,d=dist(x,y,P.x,P.y);
+    if(d>220&&d<800&&!hitsSolid(x,y,7)&&!inR(OX,x,y))PEDS.push({x,y,dir:hor?(Math.random()<.5?0:Math.PI):(Math.random()<.5?Math.PI/2:-Math.PI/2),sp:28+Math.random()*24,left:300+Math.random()*500,look:{shirt:pick(SHIRTS),skin:pick(SKINS),hair:pick(['#1a1210','#3b2416','#6b4423','#c9a063','#8a8a8a']),pants:pick(PANTS)}})}}
+const CAMELLO_SPOTS=[[1945,925],[2195,645],[2465,1245],[380,800],[4530,1210],[6530,1210],[1630,1250],[2205,1525]];
+function nightNPCs(){const h=hour();const night=h>=21||h<5;
+  if(night){for(const [x,y]of CAMELLO_SPOTS){if(enemies.some(e=>e.kind==='camello'&&e.home===x+','+y))continue;if(Math.random()<.004){enemies.push({id:++EID,kind:'camello',home:x+','+y,x,y,r:9,hp:40,maxHp:40,state:'loiter',speed:60,path:[],exit:[{x:x+(Math.random()<.5?-260:260),y}],t:0,stun:0,cd:0,flash:0,dir:Math.random()*6})}}}
+  else for(const e of enemies)if(e.kind==='camello'&&e.state==='loiter')flee(e);
+  const P=S.player;if((h>=22||h<5)&&!P.inCar&&!inR(OX,P.x,P.y)&&!enemies.some(e=>e.kind==='sicario')&&Math.random()<.0009){
+    for(let i=0;i<20;i++){const a=Math.random()*7,x=P.x+Math.cos(a)*320,y=P.y+Math.sin(a)*320;if(!hitsSolid(x,y,10)&&x>0&&y>0&&x<W&&y<2700){enemies.push({id:++EID,kind:'sicario',x,y,r:10,hp:110,maxHp:110,state:'hunt',speed:78,path:[],exit:[{x:x+(x-P.x)*2,y:y+(y-P.y)*2}],t:25,stun:0,cd:2,flash:0});toastW('⚠ Un sicario te está buscando. Escóndete o defiéndete.','bad');break}}}}
 function spawnRat(){const p=[{x:541,y:440},{x:541,y:462},{x:538,y:472}];enemies.push({id:++EID,kind:'rat',x:600,y:425,r:6,hp:10,maxHp:10,path:p.slice(),exit:[{x:541,y:462},{x:541,y:440},{x:600,y:425},{x:620,y:392},{x:660,y:392}],state:'go',speed:55,t:0,stun:0,flash:0});toastW('Hay una rata en la cocina comiéndose el pan.','warn')}
 function updateEnemies(dt){const P=S.player,C=S.car;
   for(const e of enemies){if(e.flash>0)e.flash-=dt;if(e.stun>0){e.stun-=dt;continue}
@@ -657,10 +709,14 @@ function updateEnemies(dt){const P=S.player,C=S.car;
       case'fight':{if(P.inCar){flee(e);break}const d=dist(e.x,e.y,P.x,P.y);e.dir=Math.atan2(P.y-e.y,P.x-e.x);if(d>20){e.x+=Math.cos(e.dir)*80*dt;e.y+=Math.sin(e.dir)*80*dt}
         e.cd-=dt;if(d<24&&e.cd<=0){e.cd=.9;const dmg=P.up.chaleco?4:8;P.hp-=dmg;P.hurt=.25}if(d>420)flee(e)}break;
       case'ko':e.t-=dt;if(e.t<=0)e.state='gone';break;
+      case'loiter':{e.dir=(e.dir||0)+Math.sin(performance.now()/1500+e.id)*dt*.3;const d=dist(e.x,e.y,P.x,P.y);if(d<70&&!P.inCar&&!e.said){e.said=1;floater(e.x,e.y,'¿Qué buscas, jefe?','#ffd23f')}if(d>140)e.said=0;
+        if(dist(e.x,e.y,511,790)<260&&isOpen()){S.rep=clamp(S.rep-dt*.015,0,100);if(!NET.camW||performance.now()-NET.camW>60000){NET.camW=performance.now();toastW('Hay un camello cerca de la puerta del Oxya y espanta a los clientes.','warn')}}break}
+      case'hunt':{e.t-=dt;if(e.t<=0||P.inCar){flee(e);break}const d=dist(e.x,e.y,P.x,P.y);e.dir=Math.atan2(P.y-e.y,P.x-e.x);if(d>170){const nx=e.x+Math.cos(e.dir)*e.speed*dt,ny=e.y+Math.sin(e.dir)*e.speed*dt;if(!hitsSolid(nx,ny,8)){e.x=nx;e.y=ny}}
+        e.cd-=dt;if(e.cd<=0&&d<320){e.cd=1.5;const sp=430,a=e.dir+rr(-.06,.06),z0=th(e.x,e.y)+floorH(e.x,e.y)+22;projectiles.push({x:e.x,y:e.y,z:z0,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,vz:0,t:1,dmg:P.up.chaleco?5:10,col:'#ff3b30',enemy:1})}break}
     }}
   enemies=enemies.filter(e=>e.state!=='gone')}
 function updateProjectiles(dt){
-  for(const p of projectiles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;p.t-=dt;const gz=th(p.x,p.y)+floorH(p.x,p.y);if(p.z<gz||hitsSolid(p.x,p.y,2))p.t=0;
+  for(const p of projectiles){if(p.enemy){p.x+=p.vx*dt;p.y+=p.vy*dt;p.t-=dt;if(hitsSolid(p.x,p.y,2))p.t=0;const P=S.player;if(p.t>0&&!P.inCar&&dist(p.x,p.y,P.x,P.y)<10){P.hp-=p.dmg;P.hurt=.3;p.t=0;floater(P.x,P.y,'-'+p.dmg,'#ff5252')}continue}p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;p.t-=dt;const gz=th(p.x,p.y)+floorH(p.x,p.y);if(p.z<gz||hitsSolid(p.x,p.y,2))p.t=0;
     for(const e of enemies){if(e.state==='ko')continue;if(dist(p.x,p.y,e.x,e.y)<e.r+5&&p.z-gz<34){hurt(e,p.dmg);p.t=0;break}}
     for(const c of customers){if(p.t<=0)break;if(c.state!=='ko'&&dist(p.x,p.y,c.x,c.y)<11&&p.z-gz<34){p.t=0;if(c.state==='dash')catchDasher(c);else hurtCustomer(c)}}}
   projectiles=projectiles.filter(p=>p.t>0)}
@@ -716,23 +772,23 @@ function updatePlayer(dt){const P=S.player;if(P.cd>0)P.cd-=dt;if(P.swing>0)P.swi
   if(!hitsSolid(nx,P.y,8))P.x=clamp(nx,5,W-5);if(!hitsSolid(P.x,ny,8))P.y=clamp(ny,5,H-5);
   if(P.moving)P.bob=(P.bob||0)+dt*sp*.11;
   if(inR(OX,P.x,P.y)&&P.hp<100)P.hp=Math.min(100,P.hp+dt*1.5);
-  if(P.hp<=0){const lost=Math.round(S.money*.15);addMoney(-lost);P.hp=60;P.x=520;P.y=640;P.hands=[];enemies.forEach(e=>{if(e.state==='fight')flee(e)});toast(`Te han dejado K.O. Despiertas en el Oxya y te faltan ${lost} €.`,'bad')}}
-function updateTime(dt){const before=S.gm;S.gm+=dt*2*timeMul;
-  if(Math.floor(before/1440)!==Math.floor(S.gm/1440)){const d=S.day;const wages=(S.staff||[]).reduce((a,x)=>a+x.wage,0);const fix=150+wages;addMoney(-fix);S.cands=genCands();
-    toastW(`Cierre del día ${dayN()-1}: ${d.served} clientes servidos, ${d.lost} perdidos. Ingresos ${eur(d.ing)}, gastos ${eur(d.gas+fix)} (150 € de luz y local y ${eur(wages)} de sueldos).`,'warn');S.day={ing:0,gas:0,served:0,lost:0}}}
+  if(P.hp<=0){const lost=Math.round(S.money*.15);addMoney(-lost);P.hp=60;P.x=PISO.ip.x;P.y=PISO.ip.y+(PISO.door==='s'?14:-14);P.hands=[];enemies.forEach(e=>{if(e.state==='fight')flee(e)});toast(`Te han dejado K.O. Despiertas en el Oxya y te faltan ${lost} €.`,'bad')}}
+function updateTime(dt){const before=S.gm;S.gm+=dt*2*timeMul;if(Math.floor(before/1440)!==Math.floor(S.gm/1440))nightly()}
+function nightly(){const d=S.day;const wages=(S.staff||[]).reduce((a,x)=>a+x.wage,0);const fix=150+12+wages;addMoney(-fix);S.cands=genCands();
+    toastW(`Cierre del día ${dayN()-1}: ${d.served} clientes servidos, ${d.lost} perdidos. Ingresos ${eur(d.ing)}, gastos ${eur(d.gas+fix)} (150 € de luz y local, 12 € de tu litera y ${eur(wages)} de sueldos).`,'warn');S.day={ing:0,gas:0,served:0,lost:0}}
 
 // ================= menús
 const modal=document.getElementById('modal'),mt=document.getElementById('mt'),mtabs=document.getElementById('mtabs'),mbody=document.getElementById('mbody');
 let modalRender=null;
-function openModal(title,tabs,render){modalOpen=true;modal.hidden=false;mt.textContent=title;let cur=tabs?tabs[0]:null;try{document.exitPointerLock&&document.exitPointerLock()}catch(e){}
-  modalRender=()=>{document.getElementById('mmoney').textContent=eur(S.money);mtabs.innerHTML='';if(tabs)tabs.forEach(t=>{const b=document.createElement('button');b.textContent=t;b.className=t===cur?'on':'';b.onclick=()=>{cur=t;modalRender()};mtabs.appendChild(b)});mbody.innerHTML='';render(mbody,cur)};
+function openModal(title,tabs,render){modalOpen=true;modal.hidden=false;mt.textContent=TR(title);let cur=tabs?tabs[0]:null;try{document.exitPointerLock&&document.exitPointerLock()}catch(e){}
+  modalRender=()=>{document.getElementById('mmoney').textContent=eur(S.money);mtabs.innerHTML='';if(tabs)tabs.forEach(t=>{const b=document.createElement('button');b.textContent=TR(t);b.className=t===cur?'on':'';b.onclick=()=>{cur=t;modalRender()};mtabs.appendChild(b)});mbody.innerHTML='';render(mbody,cur)};
   modalRender();for(const k in keys)keys[k]=false;joy={x:0,y:0,on:false};knob.style.transform=''}
 function closeModal(){modal.hidden=true;modalOpen=false;modalRender=null}
 document.getElementById('mclose').onclick=closeModal;modal.addEventListener('pointerdown',e=>{if(e.target===modal)closeModal()});
 function item(body,{ic,col,t,d,btn,dis,fn}){const el=document.createElement('div');el.className='it';
   el.innerHTML=`<div class="ic" style="background:${col||'#555'}">${ic||''}</div><div><h4></h4><p></p></div><button></button>`;
-  el.querySelector('h4').textContent=t;el.querySelector('p').textContent=d||'';const b=el.querySelector('button');b.textContent=btn;b.disabled=!!dis;b.onclick=()=>{fn();modalRender&&modalRender()};body.appendChild(el)}
-function note(body,s){const p=document.createElement('p');p.className='note';p.textContent=s;body.appendChild(p)}
+  el.querySelector('h4').textContent=TR(t);el.querySelector('p').textContent=TR(d||'');const b=el.querySelector('button');b.textContent=TR(btn);b.disabled=!!dis;b.onclick=()=>{fn();modalRender&&modalRender()};body.appendChild(el)}
+function note(body,s){const p=document.createElement('p');p.className='note';p.textContent=TR(s);body.appendChild(p)}
 function pay(v){if(S.money<v){toast('No tienes dinero suficiente.','bad');return false}addMoney(-v);return true}
 function dockSpot(){for(let j=0;j<6;j++)for(let i=0;i<8;i++){const x=DOCK.x+12+i*26,y=DOCK.y+12+j*24;if(!S.ground.some(g=>Math.abs(g.x-x)<8&&Math.abs(g.y-y)<8))return{x,y}}return{x:DOCK.x+rr(0,200),y:DOCK.y+rr(0,60)}}
 const UD_LV=[[0,'Desconocido',1.6],[100,'Conocido',1.45],[300,'Amigo',1.3],[800,'Íntimo',1.15]];
@@ -741,7 +797,7 @@ function udSpend(u,v){const before=udLevel(u).i;const r=S.udaco[u.id]||(S.udaco[
 function udSpot(u){const n=S.ground.filter(g=>Math.abs(g.y-u.out.y)<30&&Math.abs(g.x-u.out.x)<60).length;return{x:u.out.x-36+(n%7)*12,y:u.out.y+u.out.dy*Math.floor(n/7)*12}}
 function openUdaco(u){const h=hour();if(h<9||h>=23){toast(`El ${u.n} está cerrado. Abre de 09:00 a 23:00.`,'warn');return}
   openModal(u.n.toUpperCase(),['Comida y bebida','Para ti','Exclusivo'],(b,tab)=>{const L=udLevel(u);
-    note(b,`Trato con la cajera: ${L.name}${L.next?` · gasta ${eur(L.next[0]-L.sp)} más para ser ${L.next[1]}`:' · nivel máximo'}. Precios ×${L.mul.toFixed(2)} sobre el Makro, pero abierto hasta las 23:00 y en cada barrio.`);
+    note(b,FR('Trato con la cajera: {0}{1}. Precios ×{2} sobre el Makro, pero abierto hasta las 23:00 y en cada barrio.',L.name,L.next?FR(' · gasta {0} más para ser {1}',eur(L.next[0]-L.sp),L.next[1]):' · nivel máximo',L.mul.toFixed(2)));
     if(tab==='Comida y bebida'){note(b,'Lo que compres te lo dejan en la puerta de la tienda.');for(const k in PRODUCTS){const p=PRODUCTS[k],pr=Math.round(p.price*L.mul*100)/100;
       item(b,{ic:p.L,col:p.col,t:`${p.n} · ${eur(pr)}`,d:p.d,btn:'Comprar',dis:S.money<pr,fn:()=>{if(pay(pr)){const sp=udSpot(u);groundAdd({x:sp.x,y:sp.y,t:k});udSpend(u,pr);toast(`${p.n} en la puerta del ${u.n}.`,'good')}}})}}
     else if(tab==='Para ti'){for(const sn of[{id:'bocata',n:'Bocadillo de calamares',d:'Recupera 40 de vida',p:7.9},{id:'energy',n:'Bebida energética',d:'Vas un 35 % más rápido durante 2 minutos',p:4.5},{id:'agua',n:'Agua fresquita',d:'Recupera 10 de vida',p:1.9}]){const pr=Math.round(sn.p*L.mul*100)/100;
@@ -749,6 +805,19 @@ function openUdaco(u){const h=hour();if(h<9||h>=23){toast(`El ${u.n} está cerra
     else{if(!u.excl){note(b,'Este Udaco no tiene nada exclusivo. Prueba en el Udaco Levante, el del Polígono o el de la Playa.');return}const w=WEAPONS[u.excl],own=S.player.weapons.includes(u.excl),ok=L.i>=2;
       note(b,ok?'La cajera te saca de la trastienda algo que no vende a cualquiera.':'Esto solo se lo enseñan a los clientes de confianza. Hazte AMIGO de la cajera (gasta 300 € aquí).');
       item(b,{ic:'⚔',col:'#ff5252',t:`${w.n} · ${eur(w.price)}`,d:w.d,btn:own?'Tienes':ok?'Comprar':'Bloqueado',dis:own||!ok||S.money<w.price,fn:()=>{if(pay(w.price)){S.player.weapons.push(u.excl);S.player.weapon=u.excl;if(w.ranged)S.player.ammo+=50;udSpend(u,w.price);toast(w.n+' equipada.','good')}}})}})}
+function openShop(u){const h=hour();if(u.type!=='farmacia'&&h>=4&&h<10){toast(`${u.n} está cerrado. Abre a las 10:00.`,'warn');return}
+  const menus={kebab:[['Dürüm de pollo',6,'Recupera 35 de vida',35],['Döner box',7.5,'Recupera 45 de vida',45],['Lahmacun',5,'Recupera 30 de vida',30],['Lata de refresco',1.8,'Recupera 8 de vida',8]],
+    bar:[['Café solo',1.4,'Recupera 5 de vida y vas más rápido 1 minuto',5,60],['Caña',2,'Recupera 6 de vida',6],['Bocadillo de tortilla',4.5,'Recupera 30 de vida',30]],
+    farmacia:[['Botiquín completo',12,'Recupera toda la vida',100],['Vendas y yodo',5,'Recupera 30 de vida',30],['Ibuprofeno',3,'Recupera 15 de vida',15]]};
+  openModal(u.n.toUpperCase(),null,b=>{const P=S.player;
+    if(u.type==='apuestas'){note(b,'Partido en directo: Benidorm CF contra Villajoyosa. Si aciertas cobras el doble. La casa siempre gana un poco más de lo que crees.');
+      for(const v of[10,50,100])item(b,{ic:'€',col:'#3ddc84',t:`Apostar ${eur(v)} a que gana el Benidorm`,d:'Cuota 2,00',btn:'Apostar',dis:S.money<v,fn:()=>{if(!pay(v))return;if(Math.random()<.44){addMoney(v*2);toast(`¡Gol del Benidorm! Cobras ${eur(v*2)}.`,'good')}else toast('Ha ganado el Villajoyosa. Has perdido la apuesta.','bad')}});return}
+    note(b,u.type==='kebab'?'Comida para aguantar el turno.':u.type==='bar'?'Un respiro en la barra.':'Para curarte después de una pelea.');
+    for(const[n,pr,d,hp,buff]of menus[u.type])item(b,{ic:'+',col:'#ffd23f',t:`${n} · ${eur(pr)}`,d,btn:'Comprar',dis:S.money<pr,fn:()=>{if(!pay(pr))return;P.hp=Math.min(100,P.hp+hp);if(buff)P.buff=performance.now()+buff*1000;toast(`${n}. ¡Te sienta bien!`,'good')}})})}
+function sleepNow(){if(NET.mode==='guest'){toast('Solo quien creó la partida puede dormir y pasar la noche.');return}const h=hour();if(h<20&&h>=9){toast('Aún es pronto para dormir. Puedes dormir a partir de las 20:00.');return}
+  const d=Math.floor(S.gm/1440),target=h>=20?(d+1)*1440+540:d*1440+540,prev=S.gm;S.gm=target;customers.forEach(c=>{if(c.seat&&c.seat.occ===c)c.seat.occ=null});customers=[];queue=[];waiterQ=[];kitchen.list=[];
+  if(Math.floor(prev/1440)!==Math.floor(S.gm/1440))nightly();S.player.hp=100;save();toast('Has dormido en tu litera entre ronquidos. Son las 09:00 y tienes la vida al máximo.','good')}
+function shoo(e){if(Math.random()<.6){flee(e);floater(e.x,e.y,'Vale, vale…','#ffd23f')}else{floater(e.x,e.y,'¿Y tú quién eres?','#ff5252');if(Math.random()<.5){e.state='fight';toastW('¡El camello se encara contigo!','bad')}}}
 function openStaff(){if(NET.mode==='guest'){toast('El personal lo contrata quien creó la partida.');return}if(!S.cands||!S.cands.length)S.cands=genCands();
   openModal('PERSONAL DEL OXYA',null,b=>{const st=S.staff||[];note(b,`Cada persona en cocina saca un pedido más a la vez; cada persona en sala sirve más rápido. El sueldo se paga cada noche. Plantilla: ${st.length}/3.`);
     for(const x of st)item(b,{ic:x.role==='cocina'?'🍳':'🍽',col:'#ffd23f',t:`${x.name} · ${x.role==='cocina'?'Cocina':'Sala'} ${'★'.repeat(x.lvl)}`,d:`${eur(x.wage)} al día`,btn:'Despedir',fn:()=>{S.staff=st.filter(y=>y!==x);toast(`${x.name} ya no trabaja en el Oxya.`)}});
@@ -782,13 +851,13 @@ function openMenu(){openModal('MENÚ',null,b=>{
   note(b,'Precios de venta: burger 9,50 € · patatas 3,50 € · refresco 2,50 € · cerveza 3 €. Cada noche se pagan 150 € de sueldos y luz.');
   note(b,'Ruta al Makro: sal por la puerta del Oxya a la calle, sube al G-Wagen, ve hacia el este hasta la cuesta, bájala, gira a la izquierda en la Av. del Mediterráneo y el parking del Makro queda a la izquierda pasado el polígono. Usa el minimapa.');
   const r=document.createElement('div');r.className='row';
-  const mk=(t,cls,fn)=>{const x=document.createElement('button');x.className='mbtn '+cls;x.textContent=t;x.onclick=fn;r.appendChild(x)};
+  const mk=(t,cls,fn)=>{const x=document.createElement('button');x.className='mbtn '+cls;x.textContent=TR(t);x.onclick=fn;r.appendChild(x)};
   mk('Personal','',()=>{closeModal();openStaff()});
   mk('Llamar grúa (70 €)','',()=>{if(pay(70)){S.car.x=1720;S.car.y=1610;S.car.a=0;S.car.v=0;S.car.fuel=Math.max(S.car.fuel,10);if(S.player.inCar){S.player.x=S.car.x;S.player.y=S.car.y}closeModal();toast('La grúa ha dejado el G-Wagen en la Gasolinera La Cuesta con 10 L.','good')}});
   if(NET.mode!=='solo')mk('Salir del online','ghost',()=>{leaveOnline();closeModal();toast('Has salido de la partida online.')});
   mk('Guardar','ghost',()=>{save();toast(NET.mode==='guest'?'Como invitado, la partida la guarda tu amigo.':'Partida guardada en este navegador.','good')});
-  mk('Nueva partida','pink',()=>{r.innerHTML='';const q=document.createElement('p');q.className='note';q.textContent='¿Seguro? Se borra la partida actual.';b.appendChild(q);const r2=document.createElement('div');r2.className='row';
-    const y=document.createElement('button');y.className='mbtn pink';y.textContent='Sí, empezar de cero';y.onclick=()=>{if(NET.mode!=='solo')leaveOnline();newGame();closeModal()};const n=document.createElement('button');n.className='mbtn ghost';n.textContent='Cancelar';n.onclick=()=>modalRender();r2.append(y,n);b.appendChild(r2)});
+  mk('Nueva partida','pink',()=>{r.innerHTML='';const q=document.createElement('p');q.className='note';q.textContent=TR('¿Seguro? Se borra la partida actual.');b.appendChild(q);const r2=document.createElement('div');r2.className='row';
+    const y=document.createElement('button');y.className='mbtn pink';y.textContent=TR('Sí, empezar de cero');y.onclick=()=>{if(NET.mode!=='solo')leaveOnline();newGame();closeModal()};const n=document.createElement('button');n.className='mbtn ghost';n.textContent=TR('Cancelar');n.onclick=()=>modalRender();r2.append(y,n);b.appendChild(r2)});
   b.appendChild(r)})}
 document.getElementById('btnMenu').onclick=()=>{if(running&&!modalOpen)openMenu()};
 document.getElementById('btnFast').onclick=()=>{if(running)toggleFast()};
@@ -839,9 +908,18 @@ const TEX={
 const signTex=(w,h,bg,lines)=>ctex(w,h,(g)=>{g.fillStyle=bg;g.fillRect(0,0,w,h);g.textAlign='center';g.textBaseline='middle';for(const l of lines){g.font=l.f;if(l.stroke){g.lineWidth=l.lw||6;g.strokeStyle=l.stroke;g.strokeText(l.t,w/2,l.y)}g.fillStyle=l.c;g.fillText(l.t,w/2,l.y)}},false);
 
 // ---- fachadas de Benidorm: 4 tipos + bajos comerciales, con su versión de ventanas encendidas
-function facadeTex(type,seed){const r=mulberry(seed);const W2=256,H2=512,cols=4,rows=4,cw=W2/cols,rh=H2/rows;
-  const base=document.createElement('canvas');base.width=W2;base.height=H2;const g=base.getContext('2d');
-  const lit=document.createElement('canvas');lit.width=W2;lit.height=H2;const l=lit.getContext('2d');l.fillStyle='#000';l.fillRect(0,0,W2,H2);
+function facadeTex(type,seed){const r=mulberry(seed);const W2=256,H2=512,cols=4,rows=4,cw=W2/cols,rh=H2/rows,Q=IS_TOUCH?1.5:2;
+  const base=document.createElement('canvas');base.width=W2*Q;base.height=H2*Q;const g=base.getContext('2d');g.scale(Q,Q);
+  const lit=document.createElement('canvas');lit.width=W2*Q;lit.height=H2*Q;const l=lit.getContext('2d');l.scale(Q,Q);l.fillStyle='#000';l.fillRect(0,0,W2,H2);
+  if(type==='f5'){g.fillStyle='#f6f3ea';g.fillRect(0,0,W2,H2);for(let i=0;i<900;i++){g.fillStyle=r()<.5?'rgba(120,100,80,.05)':'rgba(255,255,255,.06)';g.fillRect(r()*W2,r()*H2,2+r()*3,2+r()*3)}
+    g.fillStyle='rgba(90,70,50,.10)';for(let i=0;i<14;i++){const x=r()*W2;g.fillRect(x,0,3+r()*6,H2*r())}
+    for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){const x=i*cw,y=j*rh;const sh=pick(['#2e6b4f','#3d5f8a','#7a4a2a','#8a2f2f','#4f7a3a']);
+      g.fillStyle='#2a2522';g.fillRect(x+18,y+20,cw-36,66);g.fillStyle=sh;const op=r();g.fillRect(x+14,y+20,10,66);g.fillRect(x+cw-24,y+20,10,66);if(op<.4){g.fillRect(x+18,y+20,cw-36,66);g.fillStyle='rgba(0,0,0,.25)';for(let k=0;k<66;k+=5)g.fillRect(x+18,y+20+k,cw-36,1.5)}
+      g.fillStyle='#e6dfcf';g.fillRect(x+12,y+86,cw-24,5);if(r()<.45){g.fillStyle='#222';g.fillRect(x+12,y+70,cw-24,2);for(let k=x+14;k<x+cw-12;k+=5)g.fillRect(k,y+70,1.2,16)}
+      if(r()<.35){for(let k=0;k<3;k++){g.fillStyle=pick(['#c0392b','#e67e22','#9b59b6','#e84393']);g.beginPath();g.arc(x+22+k*10,y+82,4,0,7);g.fill();g.fillStyle='#2e7d32';g.fillRect(x+20+k*10,y+84,4,4)}}
+      if(r()<.18){g.strokeStyle='#999';g.lineWidth=1;g.beginPath();g.moveTo(x+6,y+60);g.lineTo(x+cw-6,y+60);g.stroke();for(let k=0;k<4;k++){g.fillStyle=pick(['#e74c3c','#3498db','#f1c40f','#fff','#2ecc71']);g.fillRect(x+10+k*12,y+60,8,10+r()*6)}}
+      if(r()<.3){l.fillStyle=pick(['#ffd79a','#ffc070']);l.fillRect(x+18,y+20,cw-36,66)}}
+    const t0=new THREE.CanvasTexture(base),te0=new THREE.CanvasTexture(lit);for(const q of[t0,te0]){q.wrapS=q.wrapT=THREE.RepeatWrapping;q.anisotropy=ANISO}return{t:t0,te:te0}}
   const winC=['#2c3a4c','#34465a','#26313f','#3d4f63'];
   if(type==='f2'){const gr=g.createLinearGradient(0,0,W2,H2);gr.addColorStop(0,'#5f7f9e');gr.addColorStop(.5,'#2f4660');gr.addColorStop(1,'#6d8db0');g.fillStyle=gr;g.fillRect(0,0,W2,H2);
     g.fillStyle='rgba(220,235,255,.18)';g.beginPath();g.moveTo(0,H2*.2);g.lineTo(W2,0);g.lineTo(W2,H2*.15);g.lineTo(0,H2*.4);g.fill();
@@ -856,13 +934,13 @@ function facadeTex(type,seed){const r=mulberry(seed);const W2=256,H2=512,cols=4,
         if(type==='f1'){g.fillStyle=winC[(i+j)%4];g.fillRect(x+8,y+16,cw-16,70);g.fillStyle='rgba(150,180,210,.35)';g.fillRect(x+10,y+18,(cw-20)/2,66);
           g.fillStyle='#ffffff';g.fillRect(x,y+86,cw,10);g.fillStyle='rgba(200,225,240,.55)';g.fillRect(x+2,y+70,cw-4,16);g.fillStyle='#cfd5da';g.fillRect(x+2,y+69,cw-4,2);
           if(r()<.25){g.fillStyle=pick(['#2e7d9a','#3d8b5a','#c0503a','#d9a43a']);g.fillRect(x+6,y+10,cw-12,12);g.fillStyle='rgba(255,255,255,.5)';for(let k=0;k<5;k++)g.fillRect(x+8+k*10,y+10,4,12)}}
-        else{g.fillStyle=winC[(i*3+j)%4];g.fillRect(x+18,y+22,cw-36,62);const bl=r()*.9;g.fillStyle=pick(['#c8bfae','#a78f6e','#d7d2c8','#8a9a7a']);g.fillRect(x+18,y+22,cw-36,62*bl);
+        else{if(r()<.25){g.fillStyle='#d8d8d8';g.fillRect(x+cw-20,y+60,12,9);g.fillStyle='#999';g.beginPath();g.arc(x+cw-14,y+64,3,0,7);g.fill()}if(r()<.12){g.fillStyle='#ddd';g.beginPath();g.arc(x+12,y+30,6,0,7);g.fill()}g.fillStyle=winC[(i*3+j)%4];g.fillRect(x+18,y+22,cw-36,62);const bl=r()*.9;g.fillStyle=pick(['#c8bfae','#a78f6e','#d7d2c8','#8a9a7a']);g.fillRect(x+18,y+22,cw-36,62*bl);
           g.fillStyle='rgba(0,0,0,.25)';for(let k=0;k<62*bl;k+=4)g.fillRect(x+18,y+22+k,cw-36,1);g.fillStyle='#d6cfc2';g.fillRect(x+12,y+84,cw-24,6);g.fillStyle='#565656';g.fillRect(x+12,y+74,cw-24,2);
           if(r()<.3){g.fillStyle=pick(['#3f7d3a','#6a9a3a','#b0457a']);g.beginPath();g.arc(x+cw/2,y+76,7,0,7);g.fill()}}
         if(r()<.32){l.fillStyle=pick(['#ffd79a','#ffe9c4','#ffc070']);const ins=type==='f1'?[8,16,cw-16,70]:[18,22+62*.5,cw-36,31];l.fillRect(x+ins[0],y+ins[1],ins[2],ins[3])}}}}
   const t=new THREE.CanvasTexture(base),te=new THREE.CanvasTexture(lit);for(const q of[t,te]){q.wrapS=q.wrapT=THREE.RepeatWrapping;q.anisotropy=ANISO}return{t,te}}
 function shopTex(){const W2=1024,H2=128;const c=document.createElement('canvas');c.width=W2;c.height=H2;const g=c.getContext('2d');const lc=document.createElement('canvas');lc.width=W2;lc.height=H2;const l=lc.getContext('2d');l.fillStyle='#000';l.fillRect(0,0,W2,H2);
-  const names=['BAR TAPAS','FARMACIA','SOUVENIRS','SUPERMERCADO','HELADOS','PANADERÍA','ESTANCO','KEBAB','ROPA','CAFETERÍA','INMOBILIARIA','PELUQUERÍA','PUB','TIENDA 24H','ÓPTICA','CERVECERÍA'];
+  const names=['KEBAB','BAZAR','COMPRO ORO','LOCUTORIO','APUESTAS','TATTOO','BAR TAPAS','FARMACIA','SOUVENIRS','SUPERMERCADO','HELADOS','PANADERÍA','ESTANCO','KEBAB','ROPA','CAFETERÍA','INMOBILIARIA','PELUQUERÍA','PUB','TIENDA 24H','ÓPTICA','CERVECERÍA'];
   g.fillStyle='#3b3631';g.fillRect(0,0,W2,H2);const sw=W2/6;
   for(let i=0;i<6;i++){const x=i*sw,col=pick(['#c0392b','#1e7d5a','#2c5aa0','#d68910','#7d3c98','#117a65','#a04000','#1b4f72']);
     g.fillStyle='#1d2228';g.fillRect(x+6,46,sw-12,82);g.fillStyle='rgba(160,190,210,.25)';g.fillRect(x+8,48,(sw-16)/2,78);
@@ -870,7 +948,7 @@ function shopTex(){const W2=1024,H2=128;const c=document.createElement('canvas')
     g.fillStyle=col;g.beginPath();g.moveTo(x+4,40);g.lineTo(x+sw-4,40);g.lineTo(x+sw-10,52);g.lineTo(x+10,52);g.fill();g.fillStyle='rgba(255,255,255,.35)';for(let k=x+10;k<x+sw-10;k+=14)g.fillRect(k,40,6,12);
     l.fillStyle='#ffdca0';l.fillRect(x+8,48,sw-16,78);l.fillStyle='#fff';l.fillRect(x+2,10,sw-4,30)}
   const t=new THREE.CanvasTexture(c),te=new THREE.CanvasTexture(lc);for(const q of[t,te]){q.wrapS=q.wrapT=THREE.RepeatWrapping;q.anisotropy=ANISO}return{t,te}}
-const FAC4={f1:facadeTex('f1',11),f2:facadeTex('f2',22),f3:facadeTex('f3',33),f4:facadeTex('f4',44),shop:shopTex()};
+const FAC4={f1:facadeTex('f1',11),f2:facadeTex('f2',22),f3:facadeTex('f3',33),f4:facadeTex('f4',44),f5:facadeTex('f5',55),shop:shopTex()};
 
 // ---- acumuladores de geometría estática (un draw call por material)
 const ACC={};
@@ -887,7 +965,7 @@ const MATS={
   lampHead:new THREE.MeshLambertMaterial({color:0xfff3c4,emissive:0x000000}),
 };
 for(const k in FAC4)MATS[k]=new THREE.MeshLambertMaterial({vertexColors:true,map:FAC4[k].t,emissiveMap:FAC4[k].te,emissive:0x000000});
-const TS={f1:[104,200],f2:[104,200],f3:[104,200],f4:[104,200],shop:[200,25],win:[26,50],winG:[24,24],nave:[24,60],celo:[12,12],tile:[12,12],plain:[1,1],glass:[1,1],ceil:[1,1],graf:[1,1]};
+const TS={f5:[104,200],f1:[104,200],f2:[104,200],f3:[104,200],f4:[104,200],shop:[200,25],win:[26,50],winG:[24,24],nave:[24,60],celo:[12,12],tile:[12,12],plain:[1,1],glass:[1,1],ceil:[1,1],graf:[1,1]};
 function A(k){return ACC[k]||(ACC[k]={p:[],n:[],u:[],c:[]})}
 const _c=new THREE.Color();
 function quad(k,a,b,c,d,n,uv,col){const Q=A(k);const vs=[a,b,c,a,c,d],us=[uv[0],uv[1],uv[2],uv[0],uv[2],uv[3]];const cs=Array.isArray(col)?[col[0],col[1],col[2],col[0],col[2],col[3]]:null;for(let i=0;i<6;i++){const cc=cs?cs[i]:col;Q.p.push(vs[i][0],vs[i][1],vs[i][2]);Q.n.push(n[0],n[1],n[2]);Q.u.push(us[i][0],us[i][1]);Q.c.push(cc.r,cc.g,cc.b)}}
@@ -900,7 +978,7 @@ function box(k,x,y,w,h,z0,z1,hex,o={}){const col=new THREE.Color(hex);const x0=x
     quad(k,[x1,z0,Z0],[x0,z0,Z0],[x0,z1,Z0],[x1,z1,Z0],[0,0,-1],[[u0,v0],[su,v0],[su,v1],[u0,v1]],gc);
     quad(k,[x1,z0,Z1],[x1,z0,Z0],[x1,z1,Z0],[x1,z1,Z1],[1,0,0],[[u0,v0],[eu,v0],[eu,v1],[u0,v1]],gc);
     quad(k,[x0,z0,Z0],[x0,z0,Z1],[x0,z1,Z1],[x0,z1,Z0],[-1,0,0],[[u0,v0],[eu,v0],[eu,v1],[u0,v1]],gc)}
-  if(o.top!==false){const tk=o.topKey||(['win','winG','nave','celo','f1','f2','f3','f4','shop'].includes(k)?'plain':k);const tc=o.topHex?new THREE.Color(o.topHex):col;
+  if(o.top!==false){const tk=o.topKey||(['win','winG','nave','celo','f1','f2','f3','f4','f5','shop'].includes(k)?'plain':k);const tc=o.topHex?new THREE.Color(o.topHex):col;
     const uv=o.topLocal?[[0,0],[1,0],[1,1],[0,1]]:[[x0/40,-Z1/40],[x1/40,-Z1/40],[x1/40,-Z0/40],[x0/40,-Z0/40]];
     quad(tk,[x0,z1,Z1],[x1,z1,Z1],[x1,z1,Z0],[x0,z1,Z0],[0,1,0],uv,tc)}}
 function flushAcc(){for(const k in ACC){const Q=ACC[k];const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(Q.p,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(Q.n,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(Q.u,2));g.setAttribute('color',new THREE.Float32BufferAttribute(Q.c,3));
@@ -1009,6 +1087,60 @@ function buildUdacos(){const before=scene.children.length;
     fbox(u.counter.x,u.counter.y,u.counter.w,u.counter.h,z,z+16,{t:mat('#2b2b2e'),all:mat('#0f7a50')});fbox(u.counter.x+30,u.counter.y+2,8,8,z+16,z+22,{all:mat('#222')});
     const cp=makePerson({shirt:'#0f7a50',skin:pick(SKINS),hair:'#2b1b10',pants:'#222'});poseP(cp,u.cashier.x,u.cashier.y,S2?Math.PI/2:-Math.PI/2);u.cpMesh=cp}
   const ex=new Set(UDACOS.map(u=>u.cpMesh));mergeStatic(scene.children.slice(before).filter(o=>!o.isSprite&&!o.isLight&&!ex.has(o)),ex)}
+function signTexFor(u){const cols={kebab:['#b71c1c','#ffd23f'],apuestas:['#0d47a1','#3ddc84'],bar:['#4e342e','#ffcc80'],farmacia:['#1b5e20','#a5d6a7'],piso:['#555','#ddd']}[u.type]||['#333','#fff'];
+  return ctex(512,96,(g)=>{g.fillStyle=cols[0];g.fillRect(0,0,512,96);g.fillStyle=cols[1];g.font='400 44px Bungee, Impact, sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(u.n.toUpperCase(),256,50,490);if(u.type==='farmacia'){g.fillStyle='#3ddc84';g.fillRect(20,28,40,14);g.fillRect(33,15,14,40)}},false)}
+function buildShops(){const before=scene.children.length;const keep=new Set();
+  const dirtyFloor=ctex(128,128,(g)=>{g.fillStyle='#b9b2a3';g.fillRect(0,0,128,128);for(let i=0;i<60;i++){g.fillStyle=pick(['rgba(70,50,30,.25)','rgba(30,30,30,.18)','rgba(120,90,40,.2)']);g.beginPath();g.ellipse(Math.random()*128,Math.random()*128,3+Math.random()*12,2+Math.random()*8,Math.random()*3,0,7);g.fill()}g.strokeStyle='rgba(0,0,0,.12)';for(let i=0;i<=128;i+=32){g.beginPath();g.moveTo(i,0);g.lineTo(i,128);g.moveTo(0,i);g.lineTo(128,i);g.stroke()}},true);
+  const tileFloor=ctex(64,64,(g)=>{g.fillStyle='#d8d2c6';g.fillRect(0,0,64,64);g.fillStyle='#c9c1b2';g.fillRect(0,0,32,32);g.fillRect(32,32,32,32)},true);
+  for(const u of[...SHOPS,PISO]){const z=u.h0,t=5,cx=u.cx,gap=26,S2=u.door==='s',piso=u.type==='piso';const wc=piso?'#d8cfbf':'#efe9de';
+    for(const yy of[u.y,u.y+u.h-t]){const isDoor=(S2&&yy===u.y+u.h-t)||(!S2&&yy===u.y);
+      if(isDoor){for(const[x0,x1]of[[u.x,cx-gap/2],[cx+gap/2,u.x+u.w]]){if(piso){box('plain',x0,yy,x1-x0,t,z-6,z+46,wc)}else{box('plain',x0,yy,x1-x0,t,z-6,z+8,'#3a3a3a');box('glass',x0,yy+2,x1-x0,1.5,z+8,z+34,'#cfeaf5',{top:false});box('plain',x0,yy,x1-x0,t,z+34,z+46,wc)}}box('plain',cx-gap/2,yy,gap,t,z+32,z+46,wc)}
+      else box('plain',u.x,yy,u.w,t,z-6,z+46,wc)}
+    box('plain',u.x,u.y,t,u.h,z-6,z+46,wc);box('plain',u.x+u.w-t,u.y,t,u.h,z-6,z+46,wc);box('plain',u.x-2,u.y-2,u.w+4,u.h+4,z+46,z+49,piso?'#a9a093':'#c7ccd1');
+    const fl=hplane(lam({map:piso?dirtyFloor:tileFloor}),u.x+t,u.y+t,u.w-2*t,u.h-2*t,z+.4);fl.material.map.repeat.set((u.w-10)/(piso?40:20),(u.h-10)/(piso?40:20));
+    hplane(mat(piso?'#cfc6b4':'#f2f0ea',{side:THREE.DoubleSide}),u.x+t,u.y+t,u.w-2*t,u.h-2*t,z+45.6,true);
+    const sg=vplane(lam({map:signTexFor(u),emissive:0xffffff,emissiveMap:signTexFor(u),emissiveIntensity:.35}),cx,S2?u.y+u.h+.6:u.y-.6,Math.min(u.w-10,110),z+36,z+46,S2?'s':'n');
+    const by=u.backY,inw=u.inw;
+    if(!piso){fbox(u.counter.x,u.counter.y,u.counter.w,u.counter.h,z,z+16,{t:mat('#3a3a3a'),all:mat(u.type==='kebab'?'#8d6e63':u.type==='apuestas'?'#1a237e':u.type==='bar'?'#5d4037':'#e8f5e9')});
+      const cl=makePerson({shirt:u.type==='farmacia'?'#ffffff':u.type==='apuestas'?'#1a237e':'#222',skin:pick(SKINS),hair:'#2b1b10',pants:'#222'});poseP(cl,u.clerk.x,u.clerk.y,S2?Math.PI/2:-Math.PI/2);keep.add(cl);
+      if(u.type==='kebab'){const sp=cyl(4,22,'#8d5a2b',u.x+20,u.clerk.y,z+8);u.spit=sp;keep.add(sp);cyl(5,2,'#bbb',u.x+20,u.clerk.y,z+6);cyl(5,2,'#bbb',u.x+20,u.clerk.y,z+30);
+        {const mt=ctex(256,96,(g)=>{g.fillStyle='#1b1b1b';g.fillRect(0,0,256,96);g.fillStyle='#ffd23f';g.font='700 18px Rubik, sans-serif';g.fillText('DÜRÜM ....... 6,00',14,28);g.fillText('DÖNER BOX .... 7,50',14,52);g.fillText('LAHMACUN ..... 5,00',14,76)},false);vplane(lam({map:mt,emissive:0xffffff,emissiveMap:mt,emissiveIntensity:.6}),cx+10,by+inw*.4,60,z+26,z+40,S2?'s':'n')}
+        for(const dx of[-30,30]){fbox(cx+dx-6,S2?u.y+u.h-30:u.y+18,12,12,z,z+12,{all:mat('#444'),t:mat('#e0e0e0')})}}
+      if(u.type==='apuestas'){for(let k=0;k<3;k++){const mt=ctex(128,72,(g)=>{g.fillStyle='#0b1a2a';g.fillRect(0,0,128,72);g.fillStyle='#3ddc84';g.font='700 12px Rubik, sans-serif';g.fillText('BENIDORM 2-1 VILA',6,22);g.fillStyle='#ffd23f';g.fillText('CUOTA 1,85',6,44);g.fillStyle='#27c3ff';g.fillText('EN DIRECTO',6,64)},false);vplane(lam({map:mt,emissive:0xffffff,emissiveMap:mt,emissiveIntensity:.8}),u.x+25+k*30,by+inw*.4,26,z+24,z+38,S2?'s':'n')}
+        for(const dx of[-35,0,35])fbox(cx+dx-4,S2?u.y+u.h-26:u.y+16,8,8,z,z+22,{all:mat('#263238'),[S2?'n':'s']:lam({color:0x111111,emissive:0x1565c0})})}
+      if(u.type==='bar'){vplane(lam({map:ctexR(512,128,D.bottles,1,1)}),cx,by+inw*.4,u.w-20,z+20,z+38,S2?'s':'n');fbox(u.x+u.w-20,S2?u.y+u.h-30:u.y+14,12,10,z,z+28,{all:mat('#880e4f'),[S2?'n':'s']:lam({color:0x111111,emissive:0xff2e88})});
+        for(const dx of[-30,0,30])cyl(3,1.4,'#c62828',cx+dx,u.counter.y+(S2?18:-8),z+13)}
+      if(u.type==='farmacia'){for(const dx of[-40,-20,20,40])fbox(cx+dx-6,by+(S2?2:-10),12,8,z,z+34,{all:mat('#ffffff'),[S2?'s':'n']:lam({map:ctexR(256,128,D.bottles,1,1)})})}}
+    else{const S3=S2;// piso: literas, colchón, sofá, tele, basura
+      for(const b of u.beds){fbox(b.x,b.y,b.w,b.h,z,z+10,{all:mat('#5d4037'),t:mat('#9e9e9e')});fbox(b.x+1,b.y+1,b.w-2,b.h-2,z+10,z+12,{all:mat('#d7ccc8'),t:mat(pick(['#8d6e63','#546e7a','#7b1fa2','#c62828']))});
+        for(const[px,py]of[[b.x,b.y],[b.x+b.w-2,b.y],[b.x,b.y+b.h-2],[b.x+b.w-2,b.y+b.h-2]])fbox(px,py,2,2,z,z+32,{all:mat('#4e342e')});
+        fbox(b.x,b.y,b.w,b.h,z+24,z+26,{all:mat('#5d4037'),t:mat(pick(['#a1887f','#78909c','#9575cd']))});fbox(b.x+3,b.y+2,8,6,z+26,z+28,{all:mat('#eeeeee')})}
+      fbox(u.sofa.x,u.sofa.y,u.sofa.w,u.sofa.h,z,z+9,{all:mat('#6d4c41')});fbox(u.sofa.x,S3?u.sofa.y+u.sofa.h-3:u.sofa.y,u.sofa.w,3,z+9,z+17,{all:mat('#5d4037')});
+      fbox(u.sofa.x+8,S3?u.sofa.y-30:u.sofa.y+u.sofa.h+20,24,4,z,z+10,{all:mat('#3e2723')});fbox(u.sofa.x+10,S3?u.sofa.y-29:u.sofa.y+u.sofa.h+21,20,2,z+10,z+22,{all:lam({color:0x111111,emissive:0x1a3a5a})});
+      const junk=[];for(let k=0;k<26;k++){const jx=u.x+12+Math.random()*(u.w-24),jy=u.y+30+Math.random()*(u.h-60);junk.push([jx,jy])}
+      junk.forEach(([jx,jy],k)=>{const kind=k%4;if(kind===0)fbox(jx,jy,10,10,z+.5,z+1.6,{all:mat('#c8a46e'),t:mat('#d9b98a')});else if(kind===1){const c=cyl(.9,3,pick(['#c62828','#1565c0','#2e7d32','#f9a825']),jx,jy,z+.4);c.rotation.z=Math.PI/2}else if(kind===2)fbox(jx,jy,9,7,z+.4,z+2.4,{all:mat(pick(['#37474f','#7b1fa2','#283593','#bf360c']))});else{const bg=new THREE.Mesh(new THREE.SphereGeometry(4,8,6),mat('#111'));bg.position.set(jx,z+3.5,jy);bg.scale.y=.9;scene.add(bg)}});
+      fbox(u.x+u.w-40,S3?u.y+60:u.y+u.h-70,30,10,z,z+16,{all:mat('#9e9e9e'),t:mat('#bdbdbd')});for(let k=0;k<5;k++)cyl(2.4,.8,'#e0e0e0',u.x+u.w-34+k*5,(S3?u.y+65:u.y+u.h-65),z+16+k*.8);
+      const mates=[];for(let k=0;k<3;k++){const m=makePerson({shirt:pick(['#455a64','#6d4c41','#2e7d32','#ad1457','#1565c0']),skin:pick(SKINS),hair:pick(['#1a1210','#3b2416','#6b4423']),pants:'#333'});keep.add(m);mates.push(m)}
+      const b1=u.beds[1],b2=u.beds[2];mates[0].position.set(b1.x+20,z+14,b1.y+11);mates[0].rotation.set(0,0,Math.PI/2);mates[1].position.set(b2.x+20,z+28,b2.y+11);mates[1].rotation.set(0,Math.PI,Math.PI/2);
+      poseP(mates[2],u.sofa.x+20,u.sofa.y+u.sofa.h/2,S3?-Math.PI/2:Math.PI/2,{seated:true})}}
+  mergeStatic(scene.children.slice(before).filter(o=>!o.isSprite&&!o.isLight&&!keep.has(o)),keep)}
+const PARKED=[],TREES=[];
+function buildStreetLife(){const rnd=mulberry(4242);const cc=['#c62828','#1565c0','#eeeeee','#9e9e9e','#2e7d32','#f9a825','#4e342e','#212121','#6a1b9a','#00838f'];
+  const near=(x,y,m)=>DRIVE.some(r=>inR(r,x,y,m))||[...UDACOS,...SHOPS,PISO].some(u=>inR(u,x,y,10))||inR({x:430,y:740,w:230,h:100},x,y);
+  for(const r of DRIVE){if(r.lot||r.gas||r.apron)continue;const hor=r.w>r.h,len=hor?r.w:r.h,off=r.narrow?7:15;
+    for(let d=70;d<len-40;d+=hor?165:185){for(const side of[-1,1]){const x=hor?r.x+d:(side<0?r.x-off:r.x+r.w+off),y=hor?(side<0?r.y-off:r.y+r.h+off):r.y+d;
+      if(near(x,y,4)||hitsSolid(x,y,6))continue;const z=th(x,y),k=Math.floor(rnd()*10);
+      if(k<3){TREES.push([x,y]);solid(x-2,y-2,4,4)}
+      else if(k<5){box('plain',x-7,y-2.5,14,5,z+5,z+6.4,'#7a5233');box('plain',x-7,y+(side<0?-2.5:1.5),14,1,z+6.4,z+11,'#7a5233');box('plain',x-6,y-2,1,4,z,z+5,'#333');box('plain',x+5,y-2,1,4,z,z+5,'#333');solid(x-7,y-2.5,14,5)}
+      else if(k<7){['#2e7d32','#f9a825','#1565c0'].forEach((c,i)=>{box('plain',x-14+i*10,y-4,9,8,z,z+11,c,{topHex:shade(c,-30)})});solid(x-14,y-4,30,8)}
+      else if(k===7&&!r.narrow){box('glass',x-14,y-3,28,.6,z+2,z+22,'#cfe3ee',{top:false});box('plain',x-15,y-5,30,9,z+22,z+23.5,'#455a64');box('plain',x-14,y-3,1,1,z,z+22,'#455a64');box('plain',x+13,y-3,1,1,z,z+22,'#455a64');box('plain',x-10,y-1,20,3,z+5,z+6,'#78909c')}
+      else if(k===8){box('plain',x-.8,y-.8,1.6,1.6,z,z+9,'#333',{topHex:'#ffd23f'})}}}}
+  for(const b of BLUE)if(b.y>2000)for(let x=b.x+4;x<b.x+b.w-70;x+=124){if(rnd()<.35)continue;const y=b.y+b.h/2,z=th(x+35,y),c=cc[Math.floor(rnd()*cc.length)];
+    box('plain',x,y-14,68,28,z+4,z+16,c,{topHex:shade(c,-15)});box('plain',x+16,y-12,32,24,z+16,z+25,'#1d2330');box('plain',x+6,y-14.5,8,29,z,z+7,'#111');box('plain',x+52,y-14.5,8,29,z,z+7,'#111');PARKED.push({x,y:y-14,w:68,h:28});solid(x,y-14,68,28)}
+  for(const r of DRIVE){if(!r.big&&r.n!=='Av. de la Sierra')continue;for(const c of DRIVE){if(c===r||c.hor||c.lot||c.gas||c.apron)continue;if(c.x<r.x||c.x>r.x+r.w||c.y>r.y+r.h||c.y+c.h<r.y)continue;
+      for(const[x,y]of[[c.x-8,r.y-8],[c.x+c.w+8,r.y+r.h+8]]){const z=th(x,y);box('plain',x-1,y-1,2,2,z,z+34,'#37474f');box('plain',x-2.5,y-2.5,5,5,z+34,z+48,'#263238');box('plain',x-1.5,y-3,3,.5,z+44,z+47,'#e53935',{top:false});box('plain',x-1.5,y-3,3,.5,z+36,z+39,'#43a047',{top:false})}}}
+  const tr=new THREE.InstancedMesh(new THREE.CylinderGeometry(1.2,1.8,22,6),mat('#6d4c41'),TREES.length),cr=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(10,0),mat('#3f7d3a'),TREES.length);const M=new THREE.Matrix4();
+  TREES.forEach(([x,y],i)=>{const z=th(x,y);M.makeTranslation(x,z+11,y);tr.setMatrixAt(i,M);M.makeScale(1,1.1,1);M.setPosition(x,z+28,y);cr.setMatrixAt(i,M)});scene.add(tr,cr)}
 function ph2(t,rx){const c=t.clone();c.needsUpdate=true;c.wrapS=c.wrapT=THREE.RepeatWrapping;c.repeat.set(rx,1);return c}
 function buildOxya(){const before=scene.children.length;
   MATS.tile.map=ph('ktile');TS.tile=[10,10];
@@ -1140,14 +1272,19 @@ function build3D(){
   const BPAL=['#e8e1d4','#d9cfbe','#efe9df','#c7d0d8','#d8c4b0','#bfcac4','#e2d3b8','#cfc6d6','#d4b9a6','#b9c3cf'];
   for(const b of BUILDINGS){const rnd=mulberry(b.x*13+b.y*7);const b0=baseH(b.x,b.y,b.w,b.h);b.b0=b0;
     if(b.kind){const fac=b.kind==='makro'?'#3d4a5b':b.fac;box('nave',b.x,b.y,b.w,b.h,b0-8,b0+b.H,fac,{topHex:b.roof,grad:[.55,1],vb:b0});box('plain',b.x-1,b.y-1,b.w+2,b.h+2,b0+b.H,b0+b.H+3,shade(fac,-35));continue}
-    const tp=b.glass?'f2':['f1','f1','f4','f3','f4','f1'][Math.floor(rnd()*6)];const fac=b.glass?'#ffffff':BPAL[Math.floor(rnd()*BPAL.length)];const uo=Math.floor(rnd()*4)/4,roof=shade(fac,-60);
-    const shopH=b.H>70?25:0;box('plain',b.x,b.y,b.w,b.h,b0-10,b0,shade(fac,-50),{top:false});if(shopH)box('shop',b.x,b.y,b.w,b.h,b0,b0+shopH,'#ffffff',{top:false,uo:rnd()*6,grad:[.7,1],vb:b0});
+    const old=b.style==='old';const tp=old?'f5':b.glass?'f2':['f1','f1','f4','f3','f4','f1'][Math.floor(rnd()*6)];const fac=old?['#f4f1e8','#f1e6c8','#efd9c8','#f2e2dc','#e3ece4','#f6efe0','#e9e2f0'][Math.floor(rnd()*7)]:b.glass?'#ffffff':BPAL[Math.floor(rnd()*BPAL.length)];const uo=Math.floor(rnd()*4)/4,roof=old?'#b5654a':shade(fac,-60);
+    const shopH=(b.H>70||(old&&rnd()<.5))?25:0;box('plain',b.x,b.y,b.w,b.h,b0-10,b0,shade(fac,-50),{top:false});if(shopH)box('shop',b.x,b.y,b.w,b.h,b0,b0+shopH,'#ffffff',{top:false,uo:rnd()*6,grad:[.7,1],vb:b0});
     const tall=b.H>260&&b.w>120&&b.h>110;const H1=tall?b.H*.72:b.H;
     box(tp,b.x,b.y,b.w,b.h,b0+shopH,b0+H1,fac,{topHex:roof,uo,vb:b0+shopH,grad:[.5,1.05]});
     box('plain',b.x-1.5,b.y-1.5,b.w+3,b.h+3,b0+H1,b0+H1+3,shade(fac,-45));
     if(tall){const ix=b.w*.14,iy=b.h*.14;const tp2=rnd()<.5?'f2':tp;box(tp2,b.x+ix,b.y+iy,b.w-2*ix,b.h-2*iy,b0+H1+3,b0+b.H,tp2==='f2'?'#ffffff':fac,{topHex:roof,uo,vb:b0+H1+3,grad:[.85,1.1]});
       box('plain',b.x+ix+6,b.y+iy+6,b.w-2*ix-12,b.h-2*iy-12,b0+b.H,b0+b.H+14,'#2b2f38');box('plain',b.x+b.w/2-1,b.y+b.h/2-1,2,2,b0+b.H+14,b0+b.H+70,'#bfc5cc')}
-    for(const[dx,dy,w,h]of b.det)if(!tall)box('plain',b.x+dx,b.y+dy,w,h,b0+H1+3,b0+H1+11,'#8e939a');
+    for(const[dx,dy,w,h]of b.det)if(!tall)box('plain',b.x+dx,b.y+dy,w,h,b0+H1+3,b0+H1+11,old?'#d9d4c8':'#8e939a');
+    if(tp!=='f2'&&tp!=='f3'&&b.H<420){for(let z=b0+shopH+44;z<b0+H1-12;z+=50){for(const sd of[0,1]){const yy=sd?b.y-5:b.y+b.h;const bw=old?Math.min(b.w-10,30):b.w-8,bx=old?b.x+5+Math.floor(rnd()*Math.max(1,b.w-bw-10)):b.x+4;
+        box('plain',bx,yy,bw,5,z,z+1.6,old?'#e2dccd':'#ecebe6');box(old?'plain':'glass',bx,sd?yy:yy+4,bw,old?.8:.8,z+1.6,z+9,old?'#2b2b2b':'#cfe3ee',{top:false});
+        if(rnd()<.18){for(let k=0;k<3;k++)box('plain',bx+4+k*7,yy+2,4,.6,z+4,z+9,['#e74c3c','#3498db','#f1c40f','#ffffff'][k])}if(rnd()<.2)box('plain',bx+bw-10,yy+1,7,4,z+2,z+7,'#d5d5d5')}}}
+    if(old&&rnd()<.5)box('plain',b.x+b.w*.2,b.y+b.h*.2,b.w*.6,b.h*.6,b0+H1+3,b0+H1+12,'#c7714f',{topHex:'#b5654a'});
+    if(!old&&!tall&&rnd()<.35)box('plain',b.x+10,b.y+10,14,14,b0+H1+3,b0+H1+20,'#bfc4c8');
     if(b.pool&&!tall)box('plain',b.x+b.w*.25,b.y+b.h*.3,b.w*.4,b.h*.32,b0+H1+3,b0+H1+3.6,'#3fb6d8',{noSides:true})}
   buildOxya();
   // barandillas rojas y bolardos
@@ -1157,7 +1294,7 @@ function build3D(){
   box('glass',MAKRO_DOOR.x-30,MAKRO.y+MAKRO.h-1,60,2,mb,mb+38,'#9fd3e6',{top:false});
   plane(signTex(512,96,'#454a53',[{t:'TALLER · MOTOR',y:50,f:'400 52px Bungee, Impact, sans-serif',c:'#ffd23f'}]),150,28,TALLER.x+100,TALLER.y+TALLER.h+.6,tb+70,0);
   box('plain',TALLER.x+30,TALLER.y+TALLER.h-1,140,2,tb,tb+50,'#222',{top:false})}
-  buildUdacos();
+  buildUdacos();buildShops();buildStreetLife();
   // gasolineras
   for(const p of PUMPS){const z=th(p.x,p.y);box('plain',p.x-30,p.y-12,60,24,z-4,z+2,'#d8d6cf');box('plain',p.x-7,p.y-5,14,10,z+2,z+30,'#e53935',{topHex:'#fff'});box('plain',p.x-5,p.y+5,10,.5,z+16,z+26,'#1a1a1a',{top:false})}
   for(const r of DRIVE)if(r.gas){const cx=r.x+30,cy=r.y+60,cw=r.w-60,ch=90,z=Math.max(th(cx,cy),th(cx+cw,cy+ch));box('plain',cx,cy,cw,ch,z+72,z+78,'#f0f0f0',{topHex:'#ddd'});box('plain',cx,cy-1,cw,1,z+72,z+78,'#e53935');box('plain',cx,cy+ch,cw,1,z+72,z+78,'#e53935');
@@ -1368,13 +1505,15 @@ function render3D(dt){const P=S.player,C=S.car;
     if(c.state==='wait'){sp.material=BUB[cv2.bub]||BUB.g;sp.scale.set(8,8,1)}
     else if(c.state==='dash'){sp.material=LBL.simpa.material;sp.scale.copy(LBL.simpa.scale)}else if(c.state==='eat'){sp.material=LBL.eat.material;sp.scale.set(8,8,1)}}
   for(const e of enemies){alive.add(e);let m=ents.get(e);if(!m){if(e.kind==='rat'){m=new THREE.Group();const bd=new THREE.Mesh(new THREE.SphereGeometry(4,8,6),mat('#6d6159'));bd.scale.set(1.6,.8,1);bd.position.y=3;const tl=new THREE.Mesh(new THREE.CylinderGeometry(.4,.4,10,4),mat('#b88'));tl.rotation.z=Math.PI/2;tl.position.set(-10,2,0);m.add(bd,tl);scene.add(m)}
-      else{m=makePerson({shirt:'#3b3b3b',skin:'#e0ac69',hair:'#111',cap:'#1a1a1a',pants:'#1a1a1a'});const sp=new THREE.Sprite(LBL.rob.material);sp.scale.copy(LBL.rob.scale).multiplyScalar(.8);sp.position.y=42;m.add(sp);m.userData.lbl=sp;const lc=new THREE.Group();lc.position.set(6,14,6);m.add(lc);m.userData.loot=lc}ents.set(e,m)}
-    if(e.kind==='rat'){m.position.set(e.x,0,e.y);m.rotation.set(0,-(e.dir||0),e.state==='ko'?Math.PI:0);continue}
+      else{const lk=e.kind==='camello'?{shirt:'#5f6368',skin:pick(SKINS),hair:'#111',cap:'#111',pants:'#2b2b2b'}:e.kind==='sicario'?{shirt:'#15151a',skin:pick(SKINS),hair:'#111',pants:'#15151a'}:{shirt:'#3b3b3b',skin:'#e0ac69',hair:'#111',cap:'#1a1a1a',pants:'#1a1a1a'};m=makePerson(lk);m.userData.base=lk.shirt;if(e.kind==='sicario'){const gun=new THREE.Mesh(new THREE.BoxGeometry(7,1.6,1.4),mat('#111'));gun.position.set(6,18,6);m.add(gun)}const sp=new THREE.Sprite(LBL.rob.material);sp.scale.copy(LBL.rob.scale).multiplyScalar(.8);sp.position.y=42;m.add(sp);m.userData.lbl=sp;const lc=new THREE.Group();lc.position.set(6,14,6);m.add(lc);m.userData.loot=lc}ents.set(e,m)}
+    if(e.kind==='rat'){m.position.set(e.x,th(e.x,e.y)+floorH(e.x,e.y),e.y);m.rotation.set(0,-(e.dir||0),e.state==='ko'?Math.PI:0);continue}
     poseP(m,e.x,e.y,e.dir,{walk:e.state!=='ko'&&e.state!=='steal'&&!(e.stun>0),ko:e.state==='ko',ph:3});
-    m.userData.torso.material=e.flash>0?mat('#ff5252'):mat('#3b3b3b');
+    m.userData.torso.material=e.flash>0?mat('#ff5252'):mat(m.userData.base||'#3b3b3b');
     const l=m.userData.lbl;l.visible=e.state==='steal'||e.state==='ko'||e.stun>0;if(e.state==='ko'){l.material=LBL.ko.material}else l.material=LBL.rob.material;
     const lc=m.userData.loot;if(e.loot&&e.loot.crate&&!lc.children.length)lc.add(makeCrate(e.loot.crate,.7));if(!(e.loot&&e.loot.crate))lc.clear()}
   for(const[k,m]of ents)if(!alive.has(k)){scene.remove(m);ents.delete(k)}
+  {const al=new Set(PEDS);for(const p of PEDS){let m=PEDM.get(p);if(!m){m=makePerson(p.look);PEDM.set(p,m)}poseP(m,p.x,p.y,p.dir,{walk:true,ph:p.x})}for(const[k,m]of PEDM)if(!al.has(k)){scene.remove(m);PEDM.delete(k)}}
+  for(const u of SHOPS)if(u.spit)u.spit.rotation.y+=dt*1.2;
   // cajas en el suelo
   const gs=new Set(S.ground);for(const c of S.ground){if(!groundMeshes.has(c)){const m=makeCrate(c.t);m.position.set(c.x,(c.t==='butano'?10:6)+th(c.x,c.y)+floorH(c.x,c.y),c.y);m.rotation.y=(c.x*7)%3;scene.add(m);groundMeshes.set(c,m)}}
   for(const[k,m]of groundMeshes)if(!gs.has(k)){scene.remove(m);groundMeshes.delete(k)}
@@ -1413,28 +1552,28 @@ document.getElementById('stockToggle').onclick=()=>{stockOpen=!stockOpen;updateH
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function updateHUD(){const P=S.player,C=S.car;document.documentElement.style.setProperty('--topH',(document.getElementById('top').offsetHeight+14)+'px');
   document.getElementById('money').textContent=eur(S.money);
-  const h=Math.floor(hour()),m=Math.floor(S.gm%60);document.getElementById('clock').textContent=`Día ${dayN()} · ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  const h=Math.floor(hour()),m=Math.floor(S.gm%60);document.getElementById('clock').textContent=TR(`Día ${dayN()} · ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
   const st=Math.round(S.rep/20*2)/2;document.getElementById('rep').textContent='★'.repeat(Math.floor(st))+(st%1?'½':'')+'☆'.repeat(5-Math.ceil(st));
-  const op=document.getElementById('open');op.textContent=isOpen()?'ABIERTO':'CERRADO';op.className='chip '+(isOpen()?'o':'c');
-  document.getElementById('stockToggle').textContent=(stockOpen?'▾':'▸')+' STOCK DEL OXYA';
+  const op=document.getElementById('open');op.textContent=TR(isOpen()?'ABIERTO':'CERRADO');op.className='chip '+(isOpen()?'o':'c');
+  document.getElementById('stockToggle').textContent=(stockOpen?'▾':'▸')+' '+TR('STOCK DEL OXYA');
   const sEl=document.getElementById('stock');sEl.hidden=!stockOpen;
-  if(stockOpen){let html='';for(const s of STORES){const p=PRODUCTS[s.item],f=S.stock[s.id]/s.cap;html+=`<div class="srow"><b>${p.s}</b><div class="bar"><i style="width:${clamp(f,0,1)*100}%;background:${f<.15?'var(--bad)':f<.4?'var(--yel)':'var(--ok)'}"></i></div><span>${Math.floor(S.stock[s.id])}</span></div>`}
-    html+=`<div class="srow"><b>Pedidos</b><div></div><span>${queue.length+kitchen.list.length}</span></div>`;sEl.innerHTML=html}
-  const al=document.getElementById('alerts');let ah='';if(missing.size)ah+=`<div class="alert">Falta: ${[...missing].map(k=>PRODUCTS[k].s.toLowerCase()).join(', ')}</div>`;
-  if(enemies.some(e=>e.kind==='thief'&&e.state!=='ko'))ah+=`<div class="alert">¡Ladrón a la vista!</div>`;
-  if(C.fuel<8)ah+=`<div class="alert">Poca gasolina (${C.fuel.toFixed(1)} L)</div>`;al.innerHTML=ah;
+  if(stockOpen){let html='';for(const s of STORES){const p=PRODUCTS[s.item],f=S.stock[s.id]/s.cap;html+=`<div class="srow"><b>${TR(p.s)}</b><div class="bar"><i style="width:${clamp(f,0,1)*100}%;background:${f<.15?'var(--bad)':f<.4?'var(--yel)':'var(--ok)'}"></i></div><span>${Math.floor(S.stock[s.id])}</span></div>`}
+    html+=`<div class="srow"><b>${TR('Pedidos')}</b><div></div><span>${queue.length+kitchen.list.length}</span></div>`;sEl.innerHTML=html}
+  const al=document.getElementById('alerts');let ah='';if(missing.size)ah+=`<div class="alert">${TR('Falta: {0}'.replace('{0}','X')).replace('X',[...missing].map(k=>TR(PRODUCTS[k].s.toLowerCase())).join(', '))}</div>`;
+  if(enemies.some(e=>e.kind==='thief'&&e.state!=='ko'))ah+=`<div class="alert">${TR('¡Ladrón a la vista!')}</div>`;
+  if(C.fuel<8)ah+=`<div class="alert">${TR(`Poca gasolina (${C.fuel.toFixed(1)} L)`)}</div>`;al.innerHTML=ah;
   const left=C.ticket-S.gm;
-  let ch=`<div class="k"><b>G-Wagen 2017</b><span>${Math.round(C.hp)} %</span></div><div class="k"><b>Gasolina</b><span>${C.fuel.toFixed(1)}/${tankCap()} L</span></div><div class="hp"><i style="width:${C.fuel/tankCap()*100}%;background:${C.fuel<8?'var(--bad)':'var(--yel)'}"></i></div>`;
-  ch+=`<div class="k"><b>Velocidad</b><span>${Math.round(Math.abs(C.v)*.216)} km/h</span></div>`;
-  ch+=`<div class="k"><b>Zona azul</b><span>${left>0?Math.ceil(left)+' min':C.inBlue?(blueHours()?'¡sin tique!':'gratis ahora'):'—'}</span></div>`;
+  let ch=`<div class="k"><b>G-Wagen 2017</b><span>${Math.round(C.hp)} %</span></div><div class="k"><b>${TR('Gasolina')}</b><span>${C.fuel.toFixed(1)}/${tankCap()} L</span></div><div class="hp"><i style="width:${C.fuel/tankCap()*100}%;background:${C.fuel<8?'var(--bad)':'var(--yel)'}"></i></div>`;
+  ch+=`<div class="k"><b>${TR('Velocidad')}</b><span>${Math.round(Math.abs(C.v)*.216)} km/h</span></div>`;
+  ch+=`<div class="k"><b>${TR('Zona azul')}</b><span>${left>0?Math.ceil(left)+' min':C.inBlue?TR(blueHours()?'¡sin tique!':'gratis ahora'):'—'}</span></div>`;
   ch+=`<div class="slots">`;for(let i=0;i<slots();i++){const t=C.cargo[i];ch+=`<div class="slot" style="${t?`background:${PRODUCTS[t].col};border-style:solid`:''}">${t?PRODUCTS[t].L:''}</div>`}ch+=`</div>`;
   document.getElementById('carInfo').innerHTML=ch;
-  const w=WEAPONS[P.weapon];let me=`<div class="k"><b>Vida</b><span>${Math.round(P.hp)}</span></div><div class="hp"><i style="width:${P.hp}%;background:${P.hp<35?'var(--bad)':'var(--ok)'}"></i></div><div class="k"><b>Arma</b><span>${w.n}${w.ranged?` (${P.ammo})`:''}</span></div><div class="k"><b>Manos</b><span>${P.hands.length}/${handCap()}</span></div>`;
+  const w=WEAPONS[P.weapon];let me=`<div class="k"><b>${TR('Vida')}</b><span>${Math.round(P.hp)}</span></div><div class="hp"><i style="width:${P.hp}%;background:${P.hp<35?'var(--bad)':'var(--ok)'}"></i></div><div class="k"><b>${TR('Arma')}</b><span>${TR(w.n)}${w.ranged?` (${P.ammo})`:''}</span></div><div class="k"><b>${TR('Manos')}</b><span>${P.hands.length}/${handCap()}</span></div>`;
   if(P.hands.length){me+='<div class="slots">'+P.hands.map(t=>`<div class="slot" style="background:${PRODUCTS[t].col};border-style:solid">${PRODUCTS[t].L}</div>`).join('')+'</div>'}
   document.getElementById('me').innerHTML=me;
   document.getElementById('mob').textContent=`⛽${Math.round(C.fuel)}L · 🚙${C.cargo.length}/${slots()} · ✋${P.hands.length}/${handCap()} · ❤${Math.round(P.hp)}${P.inCar?` · ${Math.round(Math.abs(C.v)*.216)}km/h`:''}`;
-  const a=getAction();const pr=document.getElementById('prompt');let html='';if(a)html+=`<div><kbd>E</kbd>${esc(a.l)}</div>`;
-  if(P.inCar)html+=`<div><kbd>C</kbd>Bajar del coche · <kbd>V</kbd>Vista</div>`;else if(dist(P.x,P.y,C.x,C.y)<56)html+=`<div><kbd>C</kbd>Subir al G-Wagen</div>`;
+  const a=getAction();const pr=document.getElementById('prompt');let html='';if(a)html+=`<div><kbd>E</kbd>${esc(TR(a.l))}</div>`;
+  if(P.inCar)html+=`<div><kbd>C</kbd>${TR('Bajar del coche')} · <kbd>V</kbd>${TR('Vista')}</div>`;else if(dist(P.x,P.y,C.x,C.y)<56)html+=`<div><kbd>C</kbd>${TR('Subir al G-Wagen')}</div>`;
   if(pr._h!==html){pr.innerHTML=html;pr._h=html}
   const hurt=P.hurt>0;document.getElementById('c').style.filter=hurt?'saturate(1.6) hue-rotate(-12deg)':''}
 
@@ -1442,12 +1581,13 @@ function updateHUD(){const P=S.player,C=S.car;document.documentElement.style.set
 let last=performance.now(),tileT=0;
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   if(running&&!modalOpen){const sdt=dt*timeMul;
-    updatePlayer(dt);updateCar(dt);updateTraffic(dt);updateProjectiles(dt);
+    updatePlayer(dt);updateCar(dt);updateTraffic(dt);updateProjectiles(dt);updatePeds(dt);
     if(NET.mode==='guest'){guestTick(dt)}else{
     updateTime(dt);
     for(let k=0;k<timeMul;k++){updateCustomers(dt);updateKitchen(dt);updateEnemies(dt)}
     if(isOpen()){T.spawn-=sdt;if(T.spawn<=0){const h=hour();const peak=(h>=13&&h<16)?1.6:(h>=20&&h<23)?1.8:.75;T.spawn=(25-S.rep*.15)/peak*rr(.7,1.3);spawnGroup()}}
     T.thief-=sdt;if(T.thief<=0){T.thief=rr(110,220);if(hour()>9||hour()<2)spawnThief()}
+    nightNPCs();
     T.rat-=sdt;if(T.rat<=0){T.rat=rr(90,170);if(!enemies.some(e=>e.kind==='rat'))spawnRat()}
     for(const f of floaters)f.t-=dt;floaters=floaters.filter(f=>f.t>0);
     T.save-=dt;if(T.save<=0){T.save=20;save()}}
@@ -1457,6 +1597,21 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;
   requestAnimationFrame(frame)}
 addEventListener('visibilitychange',()=>{if(document.hidden&&running)save()});
 
+const INTRO={
+ es:{sub:'SIMULADOR EN PRIMERA PERSONA · BENIDORM',p:null,ul:null},
+ ro:{sub:'SIMULATOR LA PERSOANA ÎNTÂI · BENIDORM',p:'Ești responsabilul de aprovizionare la Oxya. Clienții intră, se așază și comandă, iar bucătăria consumă pâine, carne, sosuri, butan, cartofi, ulei și băuturi. Când se termină ceva, iei G-Wagen-ul, cobori panta până la Makro sau intri într-un Udaco și pui fiecare lucru la locul lui.',
+   ul:'<li><kbd>WASD</kbd> mergi · mouse privești (clic pe ecran) · <kbd>E</kbd> acțiune · <kbd>C</kbd> urci/cobori din mașină</li><li>La volan: <kbd>W</kbd>/<kbd>S</kbd> accelerezi și frânezi, <kbd>A</kbd>/<kbd>D</kbd> virezi, <kbd>V</kbd> vedere din cabină/exterior</li><li><kbd>F</kbd> sau clic stânga ataci · <kbd>Q</kbd> schimbi arma · <kbd>T</kbd> accelerezi timpul · <kbd>M</kbd> meniu</li><li>Pe mobil: joystick ca să mergi sau să conduci, trage cu degetul pe ecran ca să privești.</li><li>Zonă albastră 9–14 și 16–20: ia tichet de la parcometru sau primești amendă.</li>'},
+ en:{sub:'FIRST-PERSON SIMULATOR · BENIDORM',p:'You run the purchasing at the Oxya. Customers come in, sit down and order, and the kitchen gets through buns, meat, sauces, butane, fries, oil and drinks. When something runs out, take the G-Wagen down the hill to Makro or pop into a Udaco, and restock everything in its place.',
+   ul:'<li><kbd>WASD</kbd> walk · mouse to look (click the screen) · <kbd>E</kbd> action · <kbd>C</kbd> get in/out of the car</li><li>Driving: <kbd>W</kbd>/<kbd>S</kbd> accelerate and brake, <kbd>A</kbd>/<kbd>D</kbd> steer, <kbd>V</kbd> cabin/outside view</li><li><kbd>F</kbd> or left click to attack · <kbd>Q</kbd> switch weapon · <kbd>T</kbd> speed up time · <kbd>M</kbd> menu</li><li>On mobile: joystick to walk or drive, drag your finger on the screen to look.</li><li>Blue zone 9–14 and 16–20: get a ticket at the meter or you will be fined.</li>'}};
+function applyLang(){const P0=document.getElementById('iP'),U0=document.getElementById('iUL');if(INTRO.es.p===null){INTRO.es.p=P0.textContent;INTRO.es.ul=U0.innerHTML}
+  document.getElementById('iSub').textContent=INTRO[LANG].sub;P0.textContent=INTRO[LANG].p;U0.innerHTML=INTRO[LANG].ul;
+  for(const el of document.querySelectorAll('[data-t]'))el.textContent=TR(el.dataset.t);for(const el of document.querySelectorAll('[data-tp]'))el.placeholder=TR(el.dataset.tp);
+  const bp=document.getElementById('bPlay');bp.textContent=TR(bp.dataset.es||bp.textContent);document.documentElement.lang=LANG;
+  const lr=document.getElementById('langRow');lr.innerHTML='';for(const[k,n]of[['es','Español'],['ro','Română'],['en','English']]){const b=document.createElement('button');b.className='lang'+(LANG===k?' on':'');b.textContent=n;b.onclick=()=>{LANG=k;try{localStorage.setItem('oxya-lang',k)}catch(e){}applyLang()};lr.appendChild(b)}
+  const nt=document.getElementById('netNote');if(nt&&nt.dataset.es)nt.textContent=TR(nt.dataset.es)}
+function relabelWorld(){for(const s of STORES){if(s.label){scene.remove(s.label)}s.label=makeLabel(TR(s.n).toUpperCase(),'#ffffff','rgba(0,0,0,.6)');s.label.position.set(s.x+s.w/2,(s.k?8:0)+s.z+5,s.y+s.h/2);s.label.scale.multiplyScalar(.32);scene.add(s.label)}
+  for(const[k,txt0]of[['simpa','¡SIMPA!'],['rob','robando…'],['ko','K.O.']]){const nl=makeLabel(TR(txt0),k==='ko'?'#ffffff':'#ff5252');LBL[k].material=nl.material;LBL[k].scale.copy(nl.scale)}
+  if(LANG!=='es')for(const t of GTILES)if(t.done){t.m.material.map.dispose();t.m.material.map=null;t.m.material.color.set(0x7d7884);t.m.material.needsUpdate=true;t.done=false}}
 // ================= creador de personaje
 const SKIN_P=['#f1d4c0','#c68b59','#b67a4a','#a5693d','#93592f','#7f4a27','#6c3d20','#5a311a','#4a2815','#3b2011','#2c180d'];
 const HAIR_P=['#1a1210','#3b2416','#6b4423','#c9a063','#8a8a8a','#b23a2a'],SHIRT_P=['#141414','#ffd23f','#27c3ff','#ff2e88','#3ddc84','#f5f5f5','#7d3c98','#c0392b'];
@@ -1481,12 +1636,12 @@ function makeWheelchair(){const g=new THREE.Group();const fm=mat('#9aa3ad'),bm=m
 let myChair=null;
 // ================= online (sala en tiempo real con la capacidad "room")
 const NET={api:null,room:null,mode:'solo',code:'',name:'',acts:[],actId:0,ack:{},evs:[],evId:0,seenEv:-1,pend:new Map(),last:null,lastSeen:0,t:0,myPeer:null};
-const PK=Object.keys(PRODUCTS),SC=['in','order','wait','eat','out','dash','ko'],ESC=['go','steal','flee','fight','ko'];
+const PK=Object.keys(PRODUCTS),SC=['in','order','wait','eat','out','dash','ko'],ESC=['go','steal','flee','fight','ko','loiter','hunt'];const EK=['thief','rat','camello','sicario'];
 const GC=new Map(),GE=new Map(),GG=new Map();
 function sendAct(a){a.i=++NET.actId;NET.acts.push(a);if(NET.acts.length>24)NET.acts.shift()}
 function myPres(){const P=S.player,C=S.car,L=LOOK;return{lk:[L.sk,L.hc,L.sc,L.cap,L.wc],n:NET.name,x:Math.round(P.x),y:Math.round(P.y),f:Math.round(P.face*100)/100,ic:P.inCar?1:0,car:[Math.round(C.x),Math.round(C.y),Math.round(C.a*100)/100]}}
 function hostSnap(lim){const c=customers.slice(0,lim.c).map(c=>{const v=custView(c);return[c.id,Math.round(c.x),Math.round(c.y),SC.indexOf(c.state),Math.round((v.dir||0)*100)/100,c.si,c.ki,c.pi,v.bub]});
-  const e=enemies.slice(0,8).map(e=>[e.id,e.kind==='rat'?1:0,Math.round(e.x),Math.round(e.y),ESC.indexOf(e.state),Math.round((e.dir||0)*100)/100,e.stun>0?1:0,e.loot&&e.loot.crate?PK.indexOf(e.loot.crate):-1]);
+  const e=enemies.slice(0,8).map(e=>[e.id,Math.max(0,EK.indexOf(e.kind)),Math.round(e.x),Math.round(e.y),ESC.indexOf(e.state),Math.round((e.dir||0)*100)/100,e.stun>0?1:0,e.loot&&e.loot.crate?PK.indexOf(e.loot.crate):-1]);
   const g=S.ground.slice(-lim.g).map(g=>[g.id,Math.round(g.x),Math.round(g.y),PK.indexOf(g.t)]);
   return{t:Math.round(S.gm*10)/10,m:Math.round(S.money*100)/100,r:Math.round(S.rep),st:STORES.map(s=>Math.round(S.stock[s.id])),q:queue.length+kitchen.list.length,mi:[...missing].map(k=>PK.indexOf(k)),d:[S.day.served,S.day.lost],
     c,e,g,wt:[Math.round(waiter.x),Math.round(waiter.y),Math.round((waiter.dir||0)*100)/100,waiter.state==='idle'?0:1],ack:NET.ack,ev:lim.ev?NET.evs:[]}}
@@ -1520,7 +1675,7 @@ function applySnap(w){if(!w||typeof w!=='object')return;const n=v=>Number.isFini
     o.tx=n(x);o.ty=n(y);const st=SC[sc]||'in';if(!(o.state==='ko'&&st!=='ko'&&o.koHold>performance.now()))o.state=st;o.dir=n(dir);o.sd=sc>=1&&sc<=3;o.bub=typeof bub==='string'?bub:''}
   for(const k of[...GC.keys()])if(!seenC.has(k))GC.delete(k);customers=[...GC.values()];
   const seenE=new Set();for(const a of(w.e||[])){if(!Array.isArray(a))continue;const[id,kd,x,y,sc,dir,stn,li]=a;seenE.add(id);let o=GE.get(id);
-    if(!o){o={id,kind:kd?'rat':'thief',x:n(x),y:n(y),r:kd?6:10,hp:1,maxHp:1,flash:0};GE.set(id,o)}o.tx=n(x);o.ty=n(y);o.state=ESC[sc]||'go';o.dir=n(dir);o.stun=stn?1:0;o.loot=li>=0&&PK[li]?{crate:PK[li]}:null}
+    if(!o){o={id,kind:EK[kd]||'thief',x:n(x),y:n(y),r:kd===1?6:10,hp:1,maxHp:1,flash:0};GE.set(id,o)}o.tx=n(x);o.ty=n(y);o.state=ESC[sc]||'go';o.dir=n(dir);o.stun=stn?1:0;o.loot=li>=0&&PK[li]?{crate:PK[li]}:null}
   for(const k of[...GE.keys()])if(!seenE.has(k))GE.delete(k);enemies=[...GE.values()];
   const now=performance.now();for(const[k,t]of NET.pend)if(t<now)NET.pend.delete(k);
   const seenG=new Set();for(const a of(w.g||[])){if(!Array.isArray(a))continue;const[id,x,y,ti]=a;if(NET.pend.has(id)||!PK[ti])continue;seenG.add(id);let o=GG.get(id);if(!o){o={id,x:n(x),y:n(y),t:PK[ti]};GG.set(id,o)}o.x=n(x);o.y=n(y)}
@@ -1534,7 +1689,7 @@ function guestTick(dt){const k=Math.min(1,dt*9);for(const o of customers){if(o.t
   S.gm+=dt*2;for(const f of floaters)f.t-=dt;floaters=floaters.filter(f=>f.t>0)}
 function updateNetChip(){const el=document.getElementById('net');if(NET.mode==='solo'||!NET.room){el.hidden=true;return}
   const others=NET.room.peers().filter(p=>!p.sameTab&&p.kind==='viewer'&&p.presence&&typeof p.presence.x==='number').map(p=>String(p.presence.n||'Amigo').slice(0,16));
-  el.hidden=false;el.textContent=`ONLINE ${NET.code} · ${NET.mode==='host'?'anfitrión':'invitado'}${others.length?' · con '+others.join(', '):' · esperando amigo'}`}
+  el.hidden=false;el.textContent=`ONLINE ${NET.code} · ${TR(NET.mode==='host'?'anfitrión':'invitado')}${others.length?TR(' · con {0}').replace('{0}',others.join(', ')):TR(' · esperando amigo')}`}
 // fuera de Claude (GitHub) la sala va por PeerJS: el anfitrión abre la sala con el código y el amigo se conecta a él
 function peerApi(){return{join:(name,asHost)=>new Promise((res,rej)=>{const hostId='oxyaburger-sim-'+name.replace(/[^a-z0-9]/g,'');let done=false;
   const peer=asHost?new Peer(hostId):new Peer();const me={peer:'yo',sameTab:true,isMe:true,kind:'viewer',presence:{}};const others=new Map(),conns=new Set();let snap=[me];const upd=()=>{snap=[me,...others.values()]};
@@ -1550,7 +1705,7 @@ function leaveOnline(){const r=NET.room;NET.mode='solo';NET.room=null;GC.clear()
   if(r)r.leave().catch(()=>{});updateNetChip()}
 (async()=>{try{NET.api=window.claude&&window.claude.use?await window.claude.use('room'):null}catch(e){NET.api=null}
   const viaPeer=!NET.api&&!!window.Peer;if(viaPeer)NET.api=peerApi();
-  const nt=document.getElementById('netNote');if(nt)nt.textContent=viaPeer?'Crea una partida y pásale el código a tu amigo. Él abre este mismo enlace, pone el código y pulsa Unirse.':NET.api?'Crea una partida y pásale el código a tu amigo. Tu amigo necesita tener acceso a este juego (compártelo desde el menú Compartir).':'El modo online solo funciona abriendo el juego en claude.ai con la sesión iniciada. Aquí puedes jugar solo.';
+  const nt=document.getElementById('netNote');if(nt)nt.dataset.es=(viaPeer?'Crea una partida y pásale el código a tu amigo. Él abre este mismo enlace, pone el código y pulsa Unirse.':NET.api?'Crea una partida y pásale el código a tu amigo. Tu amigo necesita tener acceso a este juego (compártelo desde el menú Compartir).':'El modo online solo funciona abriendo el juego en claude.ai con la sesión iniciada. Aquí puedes jugar solo.');NET.via=viaPeer?'peer':NET.api?'claude':'none';if(nt)nt.textContent=TR(viaPeer?'Crea una partida y pásale el código a tu amigo. Él abre este mismo enlace, pone el código y pulsa Unirse.':NET.api?'Crea una partida y pásale el código a tu amigo. Tu amigo necesita tener acceso a este juego (compártelo desde el menú Compartir).':'El modo online solo funciona abriendo el juego en claude.ai con la sesión iniciada. Aquí puedes jugar solo.');
   for(const id of['bHost','bJoin'])document.getElementById(id).disabled=!NET.api})();
 
 // ================= arranque
@@ -1558,21 +1713,21 @@ function boot(data){let saved=null;try{saved=JSON.parse(localStorage.getItem(KEY
   const d=(data&&data.v===2)?data:saved;freshState();if(d&&d.v===2){try{loadData(d)}catch(e){freshState()}}
   build3D();buildNextTile();buildNextTile();
   const bp=document.getElementById('bPlay'),bn=document.getElementById('bNew');
-  if(d&&d.v===2){bp.textContent='CONTINUAR SOLO';bn.hidden=false;document.getElementById('introNote').textContent=`Partida guardada: día ${dayN()}, ${eur(S.money)}.`}
-  setupCreator();
-  const start=()=>{LOOK=lookN(LOOK);S.player.look=Object.assign({},LOOK);for(const k in WVIEW){viewG.remove(WVIEW[k]);delete WVIEW[k]}document.getElementById('intro').hidden=true;running=true;last=performance.now();updateHUD();drawMini();document.getElementById('lockhint').hidden=IS_TOUCH;
+  if(d&&d.v===2){bp.dataset.es='CONTINUAR SOLO';bp.textContent=TR('CONTINUAR SOLO');bn.hidden=false;document.getElementById('introNote').textContent=TR(`Partida guardada: día ${dayN()}, ${eur(S.money)}.`)}
+  setupCreator();{const bp0=document.getElementById('bPlay');bp0.dataset.es=bp0.dataset.es||'JUGAR SOLO'}applyLang();
+  const start=()=>{relabelWorld();LOOK=lookN(LOOK);S.player.look=Object.assign({},LOOK);for(const k in WVIEW){viewG.remove(WVIEW[k]);delete WVIEW[k]}document.getElementById('intro').hidden=true;running=true;last=performance.now();updateHUD();drawMini();document.getElementById('lockhint').hidden=IS_TOUCH;
     if(!d||d.v!==2)setTimeout(()=>toast('Empiezas a las 10:00 en la puerta del Oxya. Abre a las 12:00. El G-Wagen está aparcado delante, con tique de zona azul hasta las 13:00.','warn'),400)};
   bp.onclick=start;bn.onclick=()=>{newGame();start()};
   const nick=document.getElementById('nick'),jc=document.getElementById('joinCode'),nt=document.getElementById('netNote');
   try{nick.value=localStorage.getItem('oxya-nick')||''}catch(e){}
   const getName=()=>{const v=(nick.value||'').replace(/[^\p{L}\p{N} _.-]/gu,'').trim().slice(0,16)||'Jugador';try{localStorage.setItem('oxya-nick',v)}catch(e){}return v};
-  document.getElementById('bHost').onclick=async()=>{NET.name=getName();let code='',ok=false;nt.textContent='Creando partida…';
+  document.getElementById('bHost').onclick=async()=>{NET.name=getName();let code='',ok=false;nt.textContent=TR('Creando partida…');
     for(let i=0;i<3&&!ok;i++){code=String(Math.floor(1000+Math.random()*9000));ok=await joinOnline(code,true)}
-    if(!ok){nt.textContent='No se ha podido crear la sala. Revisa la conexión a internet y prueba otra vez.';return}start();toast(`Partida online creada. Código: ${code}. Pásaselo a tu amigo.`,'good')};
-  document.getElementById('bJoin').onclick=async()=>{NET.name=getName();const code=(jc.value||'').replace(/\D/g,'').slice(0,4);if(code.length!==4){nt.textContent='Escribe el código de 4 cifras que te ha pasado tu amigo.';return}
-    nt.textContent='Buscando la partida…';if(!await joinOnline(code,false)){nt.textContent='No se ha podido entrar en la sala.';return}
+    if(!ok){nt.textContent=TR('No se ha podido crear la sala. Revisa la conexión a internet y prueba otra vez.');return}start();toast(`Partida online creada. Código: ${code}. Pásaselo a tu amigo.`,'good')};
+  document.getElementById('bJoin').onclick=async()=>{NET.name=getName();const code=(jc.value||'').replace(/\D/g,'').slice(0,4);if(code.length!==4){nt.textContent=TR('Escribe el código de 4 cifras que te ha pasado tu amigo.');return}
+    nt.textContent=TR('Buscando la partida…');if(!await joinOnline(code,false)){nt.textContent=TR('No se ha podido entrar en la sala.');return}
     const t0=performance.now();while(performance.now()-t0<8000){if(NET.room.peers().some(p=>!p.sameTab&&p.presence&&p.presence.h&&p.presence.w))break;await new Promise(r=>setTimeout(r,250))}
-    const hp=NET.room.peers().find(p=>!p.sameTab&&p.presence&&p.presence.h&&p.presence.w);if(!hp){nt.textContent='No hay ninguna partida abierta con ese código.';leaveOnline();return}
+    const hp=NET.room.peers().find(p=>!p.sameTab&&p.presence&&p.presence.h&&p.presence.w);if(!hp){nt.textContent=TR('No hay ninguna partida abierta con ese código.');leaveOnline();return}
     const keep={weapons:S.player.weapons,weapon:S.player.weapon,ammo:S.player.ammo,up:S.player.up};const cup=S.car.up;freshState();Object.assign(S.player,keep,{x:540,y:796});Object.assign(S.car,{x:1000,y:841,up:cup});carDirty=true;
     customers=[];enemies=[];queue=[];waiterQ=[];kitchen.list=[];NET.lastSeen=performance.now();NET.last=hp.presence;applySnap(hp.presence.w);start();toast('Te has unido a la partida. El dinero y el stock del Oxya son compartidos; tu G-Wagen es el aparcado más adelante.','good')};
   if(data&&data.v===2)start();
@@ -1581,5 +1736,4 @@ function boot(data){let saved=null;try{saved=JSON.parse(localStorage.getItem(KEY
 const hot=window.claude&&window.claude.hot;
 if(window.THREE){if(hot&&typeof hot.ready==='function')hot.ready(boot);else boot(hot&&hot.data?hot.data:{})}
 </script>
-
 </body></html>
