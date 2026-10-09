@@ -6,7 +6,7 @@
 const $ = s => document.querySelector(s);
 const P = { fase: null, seed: null, rol: 'caminante', mapa: null, velasPuestas: 0, encima: false, flecha: null, llamadaT: 0, finVisto: false };
 const J = { x: 0, z: 2.2, yaw: 0, pitch: -0.05, roll: 0, yCam: OJOS, s: 0, hundido: 0, estado: 'ok', tEn: 0, firme: { x: 0, z: 2.2 },
-            velas: 5, tPartida: 0, bob: 0, muerteT: 0, envioT: 0, aquiT: 0, pasoT: 0, gluT: 0 };
+            velas: 8, lev: 0, tPartida: 0, bob: 0, muerteT: 0, envioT: 0, aquiT: 0, pasoT: 0, gluT: 0 };
 let rolElegido = 'caminante';
 
 /* ------------------------------------------------------------ arranque */
@@ -32,7 +32,14 @@ if (window.ResizeObserver) new ResizeObserver(tamano).observe($('#stage'));
 tamano();
 
 /* leyenda (con las notas del Cartógrafo) */
-$('#l-leyenda').innerHTML = TERR.map(t => `<li><i style="background:${t.c}"></i><div><b>${t.nm}${t.kind === 'muerte' ? ' — te traga' : t.kind === 'agua' ? ' — no se cruza' : ''}</b><span>${t.note}</span></div></li>`).join('');
+const EXTRA_LEYENDA = [
+  ['#d8d4c4', 'Peñasco, árbol muerto, menhir, cruz', 'Los hitos. Quien camina los ve con el farol y con los relámpagos: que te diga cuáles tiene cerca para saber dónde está.'],
+  ['#ffb070', 'Velas', 'Lo único que descubre el mapa (la casilla y las de alrededor) y lo único que te dice dónde ha estado cada uno.'],
+  ['#9fe0ff', 'Losas de las compuertas', 'Mientras alguien pisa una, el puente del río sube. Hay una a cada orilla.'],
+  ['#8a6a44', 'Tablón', 'Pesa: solo se tiende si dos lo levantan a la vez. Tapa la turbera de la senda.'],
+  ['#e0453a', 'Cruz roja', 'Ahí se hundió alguien.'],
+];
+$('#l-leyenda').innerHTML = TERR.map(t => `<li><i style="background:${t.c}"></i><div><b>${t.nm}${t.kind === 'muerte' ? ' — te traga' : t.kind === 'agua' ? ' — no se cruza' : ''}</b><span>${t.note}</span></div></li>`).join('') + EXTRA_LEYENDA.map(e => `<li><i style="background:${e[0]}"></i><div><b>${e[1]}</b><span>${e[2]}</span></div></li>`).join('');
 
 /* ------------------------------------------------------------ pantallas */
 function pantalla(id) {
@@ -99,6 +106,7 @@ function mio(E) { return (E.pl || []).find(p => p[0] === RED.yo); }
 
 RED.onEstado = (E) => {
   const yo = mio(E);
+  vozRepasar(E);
   if (E.ph === 'sala') {
     if (P.fase === 'juego' || P.fase === 'fin') terminarPartida();
     P.fase = 'sala';
@@ -112,9 +120,11 @@ RED.onEstado = (E) => {
     pintarMarcador(E);
     return;
   }
-  if (E.ph === 'fin') {
+  if (E.ph === 'fin' || E.ph === 'cerrado') {
     if (P.fase !== 'fin') {
       P.fase = 'fin';
+      const cerrado = E.ph === 'cerrado';
+      $('#f-titulo').innerHTML = cerrado ? 'El páramo se ha cerrado<small>Os habéis hundido demasiadas veces</small>' : 'Habéis llegado<small>Las puertas del castillo se abren</small>';
       $('#f-tiempo').textContent = reloj(E.el);
       $('#f-muertes').textContent = String(E.de);
       const host = RED.modo !== 'cliente';
@@ -122,7 +132,7 @@ RED.onEstado = (E) => {
       avisoRed('#e-fin', host ? '' : 'Esperando a que quien abrió la sala empiece otro páramo.');
       ocultarJuego();
       pantalla('#p-fin');
-      sonido.campana(523); setTimeout(() => sonido.campana(659), 220); setTimeout(() => sonido.campana(784), 440);
+      if (cerrado) sonido.muerte(); else { sonido.campana(523); setTimeout(() => sonido.campana(659), 220); setTimeout(() => sonido.campana(784), 440); }
     }
   }
 };
@@ -152,13 +162,13 @@ function reloj(ms) { const s = Math.max(0, Math.floor(ms / 1000)); return Math.f
 function pintarMarcador(E) {
   const cam = E.pl.filter(p => p[2] === 'caminante');
   const lleg = cam.filter(p => p[9]).length;
-  $('#marcador').innerHTML = `Castillo <b>${lleg}/${cam.length}</b> · Hundidos <b>${E.de}</b> · <b>${reloj(E.el)}</b>`;
+  $('#marcador').innerHTML = `Castillo <b>${lleg}/${cam.length}</b> · Hundidos <b>${E.de}/${E.lim}</b> · <b>${reloj(E.el)}</b>`;
 }
 
 /* ------------------------------------------------------------ empezar / terminar */
 function empezarPartida(E, yo) {
   P.fase = 'juego'; P.seed = E.seed; P.finVisto = false;
-  P.mapa = genMap(E.seed);
+  P.mapa = genMap(E.seed, E.gr === 1);
   P.rol = yo ? yo[2] : 'guia';
   P.velasPuestas = 0; P.encima = false; P.flecha = null;
   for (const p of ['#p-inicio', '#p-sala', '#p-fin']) $(p).hidden = true;
@@ -173,20 +183,23 @@ function empezarPartida(E, yo) {
   document.querySelector('.mandos').hidden = false;
   $('#botones-cam').hidden = !camina;
   $('#b-mapa').hidden = !(camina && RED.modo === 'solo');
+  GUIA.verCaminantes = RED.modo === 'solo';
+  $('#b-voz').hidden = RED.modo === 'solo';
+  $('#decir').hidden = true;
   for (const b of ['#b-seguir', '#b-objetivo', '#b-leyenda']) $(b).hidden = camina;
   $('#b-leyenda').hidden = camina && RED.modo !== 'solo';
   pintarObjetivo(); $('#b-seguir').classList.toggle('on', GUIA.seguir);
   if (camina) {
     mundoCrear(P.mapa);
     const yoI = E.pl.filter(p => p[2] === 'caminante').findIndex(p => p[0] === RED.yo);
-    Object.assign(J, { x: ((Math.max(0, yoI) % 3) - 1) * 0.9 - 1.2, z: 6.5, yaw: 0, pitch: -0.05, s: 0, estado: 'ok', tEn: 0, velas: 5, muerteT: 0 });
+    Object.assign(J, { x: ((Math.max(0, yoI) % 3) - 1) * 0.9 - 1.2, z: 6.5, yaw: 0, pitch: -0.05, s: 0, estado: 'ok', tEn: 0, velas: 8, lev: 0, muerteT: 0 });
     J.firme = { x: J.x, z: J.z };
     $('#n-velas').textContent = J.velas; $('#b-vela').disabled = false;
     const am = $('#ayuda-mov');
-    am.textContent = touchy ? 'Desliza a la izquierda para andar y a la derecha para mirar.' : 'WASD o flechas para andar · arrastra o haz clic para mirar · V vela · Q ¡Aquí!';
+    am.textContent = touchy ? 'Desliza a la izquierda para andar y a la derecha para mirar.' : 'WASD o flechas para andar · arrastra o haz clic para mirar · V vela · Q decir · R levantar';
     am.hidden = false; am.classList.remove('fuera');
     setTimeout(() => am.classList.add('fuera'), 7000);
-    llamada('Busca la senda', RED.modo === 'solo' ? 'Toca «Mapa» para ver lo descubierto' : (E.pl.some(p => p[2] === 'guia') ? 'Escucha a quien guía' : 'Nadie guía: ve con cuidado'));
+    llamada('Busca la senda', RED.modo === 'solo' ? 'Práctica: el mapa solo enseña lo que alumbran tus velas' : (E.pl.some(p => p[2] === 'guia') ? 'De noche todo parece brezo: escucha a quien guía' : 'Nadie guía: ve con cuidado'));
   } else {
     mundoQuitar();
     aviso('Guías. Las casillas se descubren alrededor de quien camina.');
@@ -197,6 +210,7 @@ function empezarPartida(E, yo) {
 function ocultarJuego() {
   $('#barra-arriba').hidden = true; $('#panel-guia').hidden = true; $('#botones-cam').hidden = true;
   $('#cmapa').hidden = true; $('#hundiendo').hidden = true; $('#negro').classList.remove('on');
+  $('#decir').hidden = true; $('#b-levantar').hidden = true; J.lev = 0;
   $('#stick').hidden = true; $('#flecha').classList.remove('on'); $('#llamada').classList.remove('on'); $('#ayuda-mov').hidden = true;
   $('#leyenda').hidden = true;
   sonido.ambiente(false);
@@ -205,6 +219,7 @@ function terminarPartida() { ocultarJuego(); mundoQuitar(); P.mapa = null; }
 
 /* lo que hay en el mundo según el estado: velas, marcas del guía, los demás */
 function sincronizar(E) {
+  M3.estado = { pu: E.pu || [], tb: E.tb || 0 };
   if (P.rol !== 'caminante' || !M3.scene) return;
   const cd = E.cd || [];
   for (let i = P.velasPuestas; i < cd.length; i++) ponerVela(cd[i][0], cd[i][1], cd[i][2]);
@@ -235,6 +250,11 @@ RED.onEvento = (ev) => {
     case 'sale': aviso(a + ' se ha ido'); break;
     case 'rol': aviso(a + (b === 'guia' ? ' ahora guía' : ' ahora camina')); break;
     case 'llamada':
+      if (b === 'veo') {
+        const txt = ev[5] || '';
+        if (a !== (mio(RED.EST) || [])[1]) { aviso(a + ': ' + txt); sonido.campana(880); }
+        break;
+      }
       if (b === 'aqui') {
         if (!camina || P.encima) { aviso(a + ': ¡Estoy aquí!'); const p = (RED.EST.pl || []).find(q => q[1] === a); if (p) GUIA.pings.push({ x: p[3], z: p[4], t: 2.5 }); sonido.campana(880); }
         else if (a !== mio(RED.EST)?.[1]) { aviso(a + ': ¡Estoy aquí!'); }
@@ -261,7 +281,14 @@ RED.onEvento = (ev) => {
       if (c !== RED.yo) { aviso(a + ' se ha hundido en ' + t); sonido.glu(); }
       break;
     }
-    case 'campo': aviso(a + ' ha llegado a un campamento'); break;
+    case 'campo':
+      aviso(a + ' ha llegado a un campamento' + (camina ? ': +3 velas' : ''));
+      if (camina) { J.velas += 3; $('#n-velas').textContent = J.velas; $('#b-vela').disabled = false; }
+      break;
+    case 'sube': if (camina) aviso('Una compuerta sube: hay paso por el río'); sonido.tono('sine', 180, 260, 0.6, 0.08); break;
+    case 'baja': if (camina) aviso('La compuerta baja'); sonido.tono('sine', 260, 150, 0.6, 0.08); break;
+    case 'tablon': aviso(a + ' y ' + b + ' han tendido el tablón'); sonido.campana(392); break;
+    case 'cerrado': break;
     case 'vela': if (!camina) sonido.campana(990); break;
   }
 };
@@ -336,12 +363,13 @@ addEventListener('keydown', e => {
   if (P.fase === 'juego' && P.rol === 'caminante') {
     if (e.code === 'KeyV') ponerMiVela();
     if (e.code === 'KeyQ') aqui();
+    if (e.code === 'KeyR' && !$('#b-levantar').hidden) J.lev = 1;
     if (e.code === 'KeyE' && !$('#b-tirar').hidden) $('#b-tirar').click();
     if (e.code === 'KeyM' && !$('#b-mapa').hidden) $('#b-mapa').click();
   }
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
 });
-addEventListener('keyup', e => { keys[e.code] = false; });
+addEventListener('keyup', e => { keys[e.code] = false; if (e.code === 'KeyR') J.lev = 0; });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
 
 const stage = $('#c3d'), stick = $('#stick'), knob = stick.firstElementChild;
@@ -374,6 +402,36 @@ document.addEventListener('mousemove', e => { if (bloqueado()) mirar(e.movementX
 
 $('#b-vela').addEventListener('click', ponerMiVela);
 $('#b-aqui').addEventListener('click', aqui);
+const DECIR = { que: '', donde: '', frase: '' };
+function pintarDecir() {
+  document.querySelectorAll('#decir [data-que]').forEach(b => b.classList.toggle('on', b.dataset.que === DECIR.que));
+  document.querySelectorAll('#decir [data-donde]').forEach(b => b.classList.toggle('on', b.dataset.donde === DECIR.donde));
+  document.querySelectorAll('#decir [data-frase]').forEach(b => b.classList.toggle('on', b.dataset.frase === DECIR.frase));
+  $('#decir-enviar').disabled = !(DECIR.frase || DECIR.que);
+}
+document.querySelectorAll('#decir [data-que]').forEach(b => b.addEventListener('click', () => { DECIR.que = DECIR.que === b.dataset.que ? '' : b.dataset.que; DECIR.frase = ''; pintarDecir(); }));
+document.querySelectorAll('#decir [data-donde]').forEach(b => b.addEventListener('click', () => { DECIR.donde = DECIR.donde === b.dataset.donde ? '' : b.dataset.donde; DECIR.frase = ''; pintarDecir(); }));
+document.querySelectorAll('#decir [data-frase]').forEach(b => b.addEventListener('click', () => { DECIR.frase = DECIR.frase === b.dataset.frase ? '' : b.dataset.frase; DECIR.que = DECIR.donde = ''; pintarDecir(); }));
+$('#decir-enviar').addEventListener('click', () => {
+  const txt = DECIR.frase || ('Veo ' + DECIR.que + (DECIR.donde ? ' ' + DECIR.donde : ''));
+  accion('llamada', { k: 'veo', t2: txt });
+  llamada(txt, 'Se lo has dicho a los demás');
+  DECIR.que = DECIR.donde = DECIR.frase = ''; pintarDecir();
+  $('#decir').hidden = true;
+});
+$('#decir-cerrar').addEventListener('click', () => { $('#decir').hidden = true; });
+const bLev = $('#b-levantar');
+bLev.addEventListener('pointerdown', e => { e.preventDefault(); J.lev = 1; try { bLev.setPointerCapture(e.pointerId); } catch (_) {} });
+for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) bLev.addEventListener(ev, () => { J.lev = 0; });
+bLev.addEventListener('contextmenu', e => e.preventDefault());
+$('#b-voz').addEventListener('click', async () => {
+  if (VOZ.on) { vozApagar(); $('#b-voz').textContent = 'Voz: no'; $('#b-voz').classList.remove('on'); return; }
+  $('#b-voz').textContent = 'Voz…';
+  const ok = await vozActivar();
+  $('#b-voz').textContent = ok ? 'Voz: sí' : 'Voz: no';
+  $('#b-voz').classList.toggle('on', ok);
+  if (!ok) aviso('No hay permiso para el micrófono');
+});
 $('#b-tirar').addEventListener('click', () => { const o = $('#b-tirar').dataset.o; if (o) { accion('tirar', { o }); sonido.campana(440); } });
 function ponerMiVela() {
   if (J.velas <= 0 || J.estado === 'muerto') return;
@@ -382,10 +440,8 @@ function ponerMiVela() {
   sonido.campana(990);
 }
 function aqui() {
-  if (J.aquiT > 0) return;
-  J.aquiT = 2;
-  accion('llamada', { k: 'aqui' });
-  llamada('¡Estoy aquí!', 'Les avisas a los guías');
+  if (RED.modo === 'solo') { llamada('Estás solo', 'En partida, aquí le cuentas al guía lo que ves'); return; }
+  $('#decir').hidden = !$('#decir').hidden;
 }
 
 /* ------------------------------------------------------------ caminante: cada frame */
@@ -406,39 +462,56 @@ function pasoCaminante(dt) {
   const li = Math.hypot(ix, iy); if (li > 1) { ix /= li; iy /= li; }
   if (P.encima) { ix = iy = 0; }
 
-  /* suelo que pisas */
-  const q = celdaDe(J.x, J.z), k = tipoEn(q.r, q.c), tp = k >= 0 ? TERR[k] : null;
+  /* suelo que pisas (y lo que han hecho los demás: compuertas, tablón) */
+  const ES = RED.EST, M = P.mapa;
+  const enPuente = (r, c) => { const k = M.puentes.findIndex(pu => pu.celdas.some(([pr, pc]) => pr === r && pc === c)); return k; };
+  const pasoAgua = (r, c) => { const k = enPuente(r, c); return k >= 0 && ES.pu && ES.pu[k] === 1; };
+  const tablonPuesto = (r, c) => M.tablon && ES.tb && M.tablon.r === r && M.tablon.c === c;
+  const q = celdaDe(J.x, J.z), k = tipoEn(q.r, q.c);
+  let tp = k >= 0 ? TERR[k] : null;
+  if (tp && tablonPuesto(q.r, q.c)) tp = TERR[T.brezo];
+  /* si la compuerta baja contigo encima, el agua te devuelve a la orilla */
+  if (k === T.agua && !pasoAgua(q.r, q.c)) { J.x = J.firme.x; J.z = J.firme.z; llamada('El agua te arrastra', 'a la orilla'); return; }
   if (tp && tp.kind === 'muerte') {
+    /* sin margen: en cuanto lo pisas de lleno, te atrapa */
     J.tEn += dt;
-    if (J.tEn > tp.aviso) J.s += dt / tp.hundir;
+    if (J.tEn > 0.22 && J.s < 0.5) { J.s = 0.5; sonido.glu(); }
+    if (J.s >= 0.5) J.s += dt * 0.5 / tp.hundir;
   } else {
     J.tEn = 0;
-    if (J.s < 0.5) J.s = Math.max(0, J.s - dt * 0.9);
-    if (J.s === 0) { J.firme.x = J.x; J.firme.z = J.z; }
+    if (J.s < 0.5) J.s = 0;
+    if (J.s === 0 && k !== T.agua) { J.firme.x = J.x; J.firme.z = J.z; }
   }
   const atrapado = J.s >= 0.5;
   J.estado = J.s > 0 ? 'hund' : 'ok';
-  const vel = 2.6 * (tp ? tp.lento : 1) * (atrapado ? 0 : Math.max(0.15, 1 - J.s * 1.3));
+  const vel = (J.lev ? 0 : 2.5) * (atrapado ? 0 : 1);
   const sy = Math.sin(J.yaw), cy = Math.cos(J.yaw);
   const mx = cy * ix - sy * (-iy), mz = -sy * ix - cy * (-iy);
   let nx = J.x + mx * vel * dt, nz = J.z + mz * vel * dt;
-  /* el agua no se cruza: te empuja fuera */
+  /* el agua no se cruza (salvo por una compuerta subida): te empuja fuera */
   for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
     const r = q.r + dr, c = q.c + dc;
-    if (tipoEn(r, c) !== T.agua) continue;
+    if (tipoEn(r, c) !== T.agua || pasoAgua(r, c)) continue;
     const p = centroDe(r, c), h = C / 2;
     const cx = Math.max(p.x - h, Math.min(p.x + h, nx)), cz = Math.max(p.z - h, Math.min(p.z + h, nz));
     const dx = nx - cx, dz = nz - cz, d = Math.hypot(dx, dz), RAD = 0.35;
     if (d < 1e-4) { nx = J.x; nz = J.z; }
     else if (d < RAD) { nx = cx + dx / d * RAD; nz = cz + dz / d * RAD; }
   }
+  /* peñascos, árboles, menhires: no se atraviesan */
+  for (const o of M3.solidos || []) {
+    const dx = nx - o.x, dz = nz - o.z, d = Math.hypot(dx, dz), R0 = o.r + 0.3;
+    if (d < R0 && d > 1e-4) { nx = o.x + dx / d * R0; nz = o.z + dz / d * R0; }
+  }
   J.x = Math.max(-BORDE_X, Math.min(BORDE_X, nx));
   J.z = Math.max(Z_MIN, Math.min(Z_MAX, nz));
 
+  const sobrePuenteAntes = k === T.agua;
   const andando = li > 0.1 && vel > 0.2;
-  if (andando) { J.bob += dt * vel * 2.7; J.pasoT -= dt * vel; if (J.pasoT <= 0) { J.pasoT = 1.25; sonido.paso(tp ? tp.id : 'hierba'); } }
+  if (andando) { J.bob += dt * vel * 2.7; J.pasoT -= dt * vel; if (J.pasoT <= 0) { J.pasoT = 1.25; sonido.paso(sobrePuenteAntes ? 'puente' : 'brezo'); } }
   const hondo = tp && tp.id === 'enredadera' ? 3.6 : 1.45;
-  J.yCam = sueloEn(J.x, J.z) + OJOS + (andando ? Math.sin(J.bob) * 0.04 : 0) - J.s * hondo;
+  const sobrePuente = k === T.agua && pasoAgua(q.r, q.c);
+  J.yCam = (sobrePuente ? 0.02 : sueloEn(J.x, J.z)) + OJOS + (andando ? Math.sin(J.bob) * 0.04 : 0) - J.s * hondo;
   J.roll = atrapado ? Math.sin(performance.now() / 300) * 0.05 : 0;
   J.hundido = J.s;
   if (J.s > 0.05) { J.gluT -= dt; if (J.gluT <= 0) { J.gluT = 0.5 + Math.random() * 0.6; sonido.glu(); } }
@@ -466,6 +539,11 @@ function pasoCaminante(dt) {
     if (p[0] === RED.yo || p[2] !== 'caminante' || p[8] !== 'hund') continue;
     if (Math.hypot(p[3] - J.x, p[4] - J.z) < 3) { cerca = p; break; }
   }
+  const bl = $('#b-levantar');
+  const cercaTablon = M.tablon && !ES.tb && J.s === 0 && (() => { const pd = centroDe(M.tablon.de[0], M.tablon.de[1]); return Math.hypot(J.x - pd.x, J.z - pd.z) < 3.2; })();
+  bl.hidden = !cercaTablon;
+  if (!cercaTablon) J.lev = 0;
+  bl.textContent = J.lev ? 'Levantando…' : 'Levantar tablón';
   const bt = $('#b-tirar');
   if (cerca && J.s === 0) { bt.hidden = false; bt.dataset.o = cerca[0]; bt.textContent = 'Tirar de ' + cerca[1]; }
   else { bt.hidden = true; bt.dataset.o = ''; }
@@ -478,7 +556,7 @@ function enviarPos(dt) {
   if (J.envioT > 0) return;
   J.envioT = 0.1;
   const st = J.estado === 'muerto' ? 2 : J.estado === 'hund' ? 1 : 0;
-  enviar({ t: 'p', v: [r2(J.x), r2(J.z), r2(J.yCam), r2(J.yaw), r2(J.s), st] });
+  enviar({ t: 'p', v: [r2(J.x), r2(J.z), r2(J.yCam), r2(J.yaw), r2(J.s), st, J.lev ? 1 : 0] });
 }
 
 function reaparecer(E) {

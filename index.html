@@ -122,6 +122,11 @@ input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 #leyenda li b{display:block;font-weight:600}
 #leyenda li span{color:var(--mute)}
 #leyenda h2{font:400 32px/1 var(--font-title);margin:0;text-align:center}
+#decir{position:fixed;left:0;right:0;bottom:0;z-index:7;background:rgba(9,11,8,.95);border-top:1px solid var(--line);padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;flex-direction:column;gap:6px;max-height:80vh;overflow-y:auto}
+.decir-t{margin:2px 0 0;font:600 13px/1 var(--font-ui);letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.decir-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:5px}
+.decir-g .btn{padding:9px 4px;font-size:15px;min-height:40px}
+.decir-g .btn.on{border-color:var(--gold);color:var(--gold);background:rgba(232,193,90,.12)}
 #fallo{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:24px;text-align:center;background:var(--ink);font-size:18px;line-height:1.4}
 @media (min-width:760px){.titulo{font-size:66px}}
 /* móvil tumbado: todo más bajo y a los lados, que se vea el mapa / el páramo */
@@ -157,7 +162,7 @@ input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 <section class="pantalla" id="p-inicio">
   <div class="caja">
     <h1 class="titulo">El Páramo<small>Hasta el castillo · en grupo</small></h1>
-    <p class="texto">Uno guía con el mapa, los demás caminan a oscuras. Solo hay una senda firme hasta el castillo; lo demás os traga.</p>
+    <p class="texto">De noche todo el páramo parece el mismo brezo. Quien guía tiene el mapa pero no sabe dónde estáis; quien camina sabe dónde está pero no qué pisa. Solo hay una senda firme hasta el castillo.</p>
     <label class="campo"><span>Tu nombre</span><input id="i-nombre" maxlength="14" autocomplete="off" placeholder="Nombre"></label>
     <div class="roles" role="group" aria-label="Qué quieres hacer">
       <button class="rol" data-rol="caminante" aria-pressed="true"><b>Caminar</b><small>A oscuras, con un farol</small></button>
@@ -190,7 +195,7 @@ input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 <!-- ===== fin ===== -->
 <section class="pantalla" id="p-fin" hidden>
   <div class="caja">
-    <h2 class="titulo">Habéis llegado<small>Las puertas del castillo se abren</small></h2>
+    <h2 class="titulo" id="f-titulo">Habéis llegado<small>Las puertas del castillo se abren</small></h2>
     <div class="cifras"><div><b id="f-tiempo">0:00</b><span>Tiempo</span></div><div><b id="f-muertes">0</b><span>Hundidos</span></div></div>
     <button class="btn main" id="b-otra">Otro páramo</button>
     <p class="estado-red" id="e-fin"></p>
@@ -205,6 +210,7 @@ input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
     <button class="chip" id="b-seguir" hidden>Seguir</button>
     <button class="chip" id="b-objetivo" hidden>A todos</button>
     <button class="chip" id="b-leyenda" hidden>Leyenda</button>
+    <button class="chip" id="b-voz" hidden>Voz: no</button>
     <button class="chip" id="b-sonido">Sonido</button>
     <button class="chip" id="b-menu">Salir</button>
   </div>
@@ -220,7 +226,8 @@ input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 <div class="abajo" id="botones-cam" hidden>
   <button class="redondo grande" id="b-tirar" hidden>Tirar</button>
   <button class="redondo" id="b-mapa" hidden>Mapa</button>
-  <button class="redondo" id="b-aqui">¡Aquí!</button>
+  <button class="redondo grande" id="b-levantar" hidden>Levantar</button>
+  <button class="redondo" id="b-aqui">Decir</button>
   <button class="redondo" id="b-vela"><b id="n-velas">5</b>Vela</button>
 </div>
 <div id="negro"><div><p id="negro-t">El páramo te ha tragado</p><small id="negro-s">Volvéis al último campamento</small></div></div>
@@ -254,7 +261,29 @@ input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 <div id="leyenda" hidden>
   <h2>Suelos del páramo</h2>
   <ul id="l-leyenda"></ul>
-  <div class="caja" style="margin:0 auto"><p class="texto flojo">Toca una casilla para marcarla. Mantén pulsado para lanzar una baliza de luz. Arrastra para moverte y pellizca para acercar.</p><button class="btn main" id="b-cerrar-leyenda">Volver al mapa</button></div>
+  <div class="caja" style="margin:0 auto"><p class="texto flojo">No ves a quien camina: solo sus velas. Que te cuente qué hitos tiene alrededor. Toca una casilla para marcarla (sale como bandera en su mundo), mantén pulsado para lanzar una baliza de luz. Arrastra para moverte y pellizca para acercar.</p><button class="btn main" id="b-cerrar-leyenda">Volver al mapa</button></div>
+</div>
+
+<div id="decir" hidden>
+  <p class="decir-t">Lo que ves</p>
+  <div class="decir-g" id="decir-que">
+    <button class="btn" data-que="un peñasco">Peñasco</button><button class="btn" data-que="un árbol muerto">Árbol muerto</button>
+    <button class="btn" data-que="un menhir">Menhir</button><button class="btn" data-que="una cruz de piedra">Cruz</button>
+    <button class="btn" data-que="el río">Río</button><button class="btn" data-que="un fuego">Fuego</button>
+    <button class="btn" data-que="una vela">Vela</button><button class="btn" data-que="una bandera">Bandera</button>
+    <button class="btn" data-que="la luz del castillo">Castillo</button><button class="btn" data-que="una losa de piedra">Losa</button>
+  </div>
+  <p class="decir-t">Dónde</p>
+  <div class="decir-g" id="decir-donde">
+    <button class="btn" data-donde="delante">Delante</button><button class="btn" data-donde="a la izquierda">Izquierda</button>
+    <button class="btn" data-donde="a la derecha">Derecha</button><button class="btn" data-donde="detrás">Detrás</button>
+    <button class="btn" data-donde="muy cerca">Muy cerca</button><button class="btn" data-donde="lejos">Lejos</button>
+  </div>
+  <div class="decir-g">
+    <button class="btn" data-frase="¿Por dónde sigo?">¿Por dónde?</button><button class="btn" data-frase="No veo nada">No veo nada</button>
+    <button class="btn" data-frase="Enciendo una vela">Enciendo vela</button><button class="btn" data-frase="Estoy en la losa">En la losa</button>
+  </div>
+  <div class="fila"><button class="btn main" id="decir-enviar" disabled>Decirlo</button><button class="btn" id="decir-cerrar">Cerrar</button></div>
 </div>
 
 <div id="fallo" hidden></div>

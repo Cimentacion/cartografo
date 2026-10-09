@@ -29,8 +29,8 @@ const r2 = v => Math.round(v * 100) / 100;
 let S = null;
 
 function hostNuevo() {
-  S = { ph: 'sala', seed: 0, mapa: null, t0: 0, tFin: 0, rev: null, mk: new Map(), cd: [], de: 0, camp: -1,
-        pl: new Map(), ev: [], seq: 0, nCol: 0 };
+  S = { ph: 'sala', seed: 0, mapa: null, t0: 0, tFin: 0, rev: null, mk: new Map(), cd: [], de: 0, lim: 3, camp: -1,
+        pu: [], tb: 0, mu: [], pl: new Map(), ev: [], seq: 0, nCol: 0 };
 }
 
 function hostEvento(k, a, b, c) {
@@ -43,7 +43,7 @@ function hostJugador(id, nm, rol) {
   let p = S.pl.get(id);
   if (!p) {
     p = { id, nm: String(nm || 'Alguien').slice(0, 14), rol: rol === 'guia' ? 'guia' : 'caminante',
-          x: 0, z: 0, y: 0, yaw: 0, s: 0, st: 'ok', cast: 0, col: COLORES[S.nCol++ % COLORES.length] };
+          x: 0, z: 0, y: 0, yaw: 0, s: 0, st: 'ok', cast: 0, lev: 0, voz: 0, col: COLORES[S.nCol++ % COLORES.length] };
     S.pl.set(id, p);
     hostEvento('entra', p.nm);
   }
@@ -51,15 +51,27 @@ function hostJugador(id, nm, rol) {
 }
 
 function hostEmpezar() {
+  const caminantes = [...S.pl.values()].filter(p => p.rol === 'caminante').length;
   S.seed = (Math.random() * 2147483647) | 0;
-  S.mapa = genMap(S.seed);
+  S.mapa = genMap(S.seed, caminantes >= 2);
   S.rev = new Uint8Array(MAP_W * MAP_L);
-  S.mk = new Map(); S.cd = []; S.de = 0; S.camp = -1; S.tFin = 0;
+  S.mk = new Map(); S.cd = []; S.de = 0; S.camp = -1; S.tFin = 0; S.mu = []; S.tb = 0;
+  S.lim = 2 + Math.max(1, caminantes);
+  S.pu = S.mapa.puentes.map(() => 0);
   S.t0 = Date.now();
   let k = 0;
-  for (const p of S.pl.values()) { p.s = 0; p.st = 'ok'; p.cast = 0; p.x = (k++ % 3 - 1) * 0.9 - 1.2; p.z = 6.5; }
+  for (const p of S.pl.values()) { p.s = 0; p.st = 'ok'; p.cast = 0; p.lev = 0; p.x = (k++ % 3 - 1) * 0.9 - 1.2; p.z = 6.5; }
   S.ph = 'juego';
   hostEvento('empieza', S.seed);
+}
+
+/* una vela descubre en el mapa del guía su casilla y las 8 de alrededor */
+function hostDescubrir(x, z, radio) {
+  const { r, c } = celdaDe(x, z);
+  for (let dr = -radio; dr <= radio; dr++) for (let dc = -radio; dc <= radio; dc++) {
+    const rr = r + dr, cc = c + dc;
+    if (rr >= 0 && rr < MAP_L && cc >= 0 && cc < MAP_W) S.rev[rr * MAP_W + cc] = 1;
+  }
 }
 
 function hostMsg(id, m) {
@@ -69,58 +81,67 @@ function hostMsg(id, m) {
   if (!p) return;
   if (m.t === 'p' && Array.isArray(m.v) && m.v.length >= 6 && m.v.every(n => typeof n === 'number' && isFinite(n))) {
     [p.x, p.z, p.y, p.yaw, p.s] = m.v; p.st = m.v[5] === 2 ? 'muerto' : m.v[5] === 1 ? 'hund' : 'ok';
+    p.lev = m.v[6] === 1 ? 1 : 0;
     return;
   }
   if (m.t !== 'acc') return;
   const a = m.a, N = MAP_W * MAP_L;
+  if (a === 'voz') { p.voz = m.v ? 1 : 0; return; }
   if (a === 'rol' && S.ph !== 'juego') { p.rol = m.v === 'guia' ? 'guia' : 'caminante'; return; }
   if (a === 'empezar' && id === RED.yo && S.ph !== 'juego') { hostEmpezar(); return; }
   if (a === 'otra' && id === RED.yo) { hostEmpezar(); return; }
   if (a === 'sala' && id === RED.yo) { S.ph = 'sala'; hostEvento('sala'); return; }
   if (S.ph !== 'juego') return;
-  if (a === 'rol') { p.rol = m.v === 'guia' ? 'guia' : 'caminante'; hostEvento('rol', p.nm, p.rol); return; }
   if (a === 'marca' && Number.isInteger(m.i) && m.i >= 0 && m.i < N) {
     const v = m.v | 0;
     if (v <= 0) S.mk.delete(m.i); else S.mk.set(m.i, Math.min(3, v));
     return;
   }
-  if (a === 'vela' && typeof m.x === 'number' && typeof m.z === 'number' && S.cd.length < 60) {
-    S.cd.push([r2(m.x), r2(m.z), p.col]); hostEvento('vela', p.nm); return;
+  if (a === 'vela' && typeof m.x === 'number' && typeof m.z === 'number' && isFinite(m.x) && isFinite(m.z) && S.cd.length < 80) {
+    S.cd.push([r2(m.x), r2(m.z), p.col, p.nm, Date.now() - S.t0]);
+    hostDescubrir(m.x, m.z, 1);
+    hostEvento('vela', p.nm);
+    return;
   }
-  if (a === 'llamada') { hostEvento('llamada', p.nm, String(m.k || '').slice(0, 12), String(m.o || '')); return; }
+  if (a === 'llamada') { hostEvento('llamada', p.nm, String(m.k || '').slice(0, 12), String(m.o || ''), ); if (m.t2) S.ev[S.ev.length - 1].push(String(m.t2).slice(0, 80)); return; }
   if (a === 'flecha' && typeof m.d === 'number') { hostEvento('flecha', p.nm, r2(m.d), String(m.o || '')); return; }
   if (a === 'baliza' && Number.isInteger(m.i) && m.i >= 0 && m.i < N) { hostEvento('baliza', p.nm, m.i); return; }
   if (a === 'tirar' && typeof m.o === 'string') { const o = S.pl.get(m.o); if (o) hostEvento('tirar', p.nm, o.id, o.nm); return; }
   if (a === 'muerto') {
     S.de++;
-    if (Number.isInteger(m.i) && m.i >= 0 && m.i < N) S.rev[m.i] = 1;
+    if (Number.isInteger(m.i) && m.i >= 0 && m.i < N) { S.rev[m.i] = 1; S.mu.push([m.i, p.nm]); }
     hostEvento('muerto', p.nm, String(m.tipo || ''), id);
+    if (S.de > S.lim) { S.ph = 'cerrado'; S.tFin = Date.now() - S.t0; hostEvento('cerrado'); }
     return;
   }
 }
 
-/* lo que el anfitrión calcula solo: qué se ve en el mapa, campamentos, si habéis llegado */
+/* lo que el anfitrión calcula solo: compuertas, tablón, campamentos y si habéis llegado */
 function hostCalcular() {
   if (S.ph !== 'juego' || !S.mapa) return;
   const M = S.mapa;
   let caminantes = 0, llegados = 0;
+  const vivos = [...S.pl.values()].filter(p => p.rol === 'caminante' && p.st !== 'muerto');
   for (const p of S.pl.values()) {
     if (p.rol !== 'caminante') continue;
     caminantes++;
     const { r, c } = celdaDe(p.x, p.z);
     if (p.st !== 'muerto') {
-      for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
-        const rr = r + dr, cc = c + dc;
-        if (rr >= 0 && rr < MAP_L && cc >= 0 && cc < MAP_W) S.rev[rr * MAP_W + cc] = 1;
-      }
-      for (const [dr, dc] of [[2, 0], [-2, 0], [0, 2], [0, -2]]) {
-        const rr = r + dr, cc = c + dc;
-        if (rr >= 0 && rr < MAP_L && cc >= 0 && cc < MAP_W) S.rev[rr * MAP_W + cc] = 1;
-      }
       M.campos.forEach((k, i) => { if (k.r === r && k.c === c && i > S.camp) { S.camp = i; hostEvento('campo', p.nm, i); } });
     }
     p.cast = r >= MAP_L ? 1 : 0;
     if (p.cast) llegados++;
+  }
+  /* compuertas: el puente sube mientras alguien pisa una de sus dos losas */
+  M.puentes.forEach((pu, k) => {
+    const abierto = vivos.some(p => { const q = celdaDe(p.x, p.z); return (q.r === pu.cerca[0] && q.c === pu.cerca[1]) || (q.r === pu.lejos[0] && q.c === pu.lejos[1]); }) ? 1 : 0;
+    if (abierto !== S.pu[k]) { S.pu[k] = abierto; hostEvento(abierto ? 'sube' : 'baja', k); }
+  });
+  /* tablón: hacen falta dos levantándolo a la vez */
+  if (M.tablon && !S.tb) {
+    const pd = centroDe(M.tablon.de[0], M.tablon.de[1]);
+    const juntos = vivos.filter(p => p.lev && Math.hypot(p.x - pd.x, p.z - pd.z) < 3.2);
+    if (juntos.length >= 2) { S.tb = 1; S.rev[M.tablon.r * MAP_W + M.tablon.c] = 1; hostEvento('tablon', juntos[0].nm, juntos[1].nm); }
   }
   if (caminantes > 0 && llegados === caminantes) {
     S.ph = 'fin'; S.tFin = Date.now() - S.t0;
@@ -130,13 +151,15 @@ function hostCalcular() {
 
 function hostFoto() {
   const pl = [];
-  for (const p of S.pl.values()) pl.push([p.id, p.nm, p.rol, r2(p.x), r2(p.z), r2(p.y), r2(p.yaw), r2(p.s), p.st, p.cast, p.col]);
+  for (const p of S.pl.values()) pl.push([p.id, p.nm, p.rol, r2(p.x), r2(p.z), r2(p.y), r2(p.yaw), r2(p.s), p.st, p.cast, p.col, idPeer(p.id), p.voz]);
   return {
-    t: 'st', ph: S.ph, seed: S.seed, el: S.ph === 'juego' ? Date.now() - S.t0 : S.tFin,
-    rev: S.rev ? Array.from(S.rev).join('') : '', mk: Array.from(S.mk.entries()), cd: S.cd, de: S.de, camp: S.camp,
-    pl, ev: S.ev, code: RED.code,
+    t: 'st', ph: S.ph, seed: S.seed, gr: S.mapa ? (S.mapa.grupo ? 1 : 0) : 0, el: S.ph === 'juego' ? Date.now() - S.t0 : S.tFin,
+    rev: S.rev ? Array.from(S.rev).join('') : '', mk: Array.from(S.mk.entries()), cd: S.cd, de: S.de, lim: S.lim, camp: S.camp,
+    pu: S.pu, tb: S.tb, mu: S.mu, pl, ev: S.ev, code: RED.code,
   };
 }
+/* id de PeerJS de cada jugador (para la voz): el anfitrión es la sala, los demás su propio id */
+function idPeer(id) { return id === 'h' ? PFX + RED.code : id === 'yo' ? '' : id; }
 
 let _hostT = null;
 function hostBucle() {
@@ -221,6 +244,7 @@ function crearSala(nm, rol) {
         c.on('close', fuera); c.on('error', fuera);
       });
       peer.on('disconnected', () => { if (!RED.cerrado) { try { peer.reconnect(); } catch (_) {} } });
+      peer.on('call', vozEntrante);
       peer.on('error', e => {
         const t = e && e.type;
         if (!hecho && t === 'unavailable-id' && intentos++ < 4) { try { peer.destroy(); } catch (_) {} probar(); return; }
@@ -259,6 +283,7 @@ function unirseSala(code, nm, rol) {
       c.on('close', caida); c.on('error', caida);
     };
     peer.on('open', () => { RED.yo = peer.id; llamar(); });
+    peer.on('call', vozEntrante);
     peer.on('error', e => {
       const t = e && e.type;
       if (!hecho) { hecho = true; clearTimeout(reintentoT); rej(t === 'peer-unavailable' ? 'No hay ninguna sala abierta con ese código.' : textoError(t)); }
@@ -275,6 +300,7 @@ function textoError(t) {
 }
 
 function salirRed() {
+  vozApagar(true);
   RED.cerrado = true;
   clearInterval(_hostT);
   for (const c of RED.conns.values()) { try { c.close(); } catch (_) {} }
@@ -284,4 +310,60 @@ function salirRed() {
   if (RED.peer) { try { RED.peer.destroy(); } catch (_) {} }
   RED.peer = null;
   RED.modo = null; RED.EST = null; RED.vistos = 0; S = null;
+}
+
+/* ------------------------------------------------------------------ voz
+   Cada uno que activa «Voz» llama a los demás que también la tienen
+   (todos con todos; el de id menor llama al mayor para no duplicar). */
+const VOZ = { on: false, stream: null, calls: new Map(), audios: new Map() };
+
+async function vozActivar() {
+  if (VOZ.on || !RED.peer) return true;
+  try {
+    VOZ.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+  } catch (_) { return false; }
+  VOZ.on = true;
+  accion('voz', { v: 1 });
+  return true;
+}
+function vozApagar(callado) {
+  if (!VOZ.on && !VOZ.calls.size) return;
+  VOZ.on = false;
+  for (const c of VOZ.calls.values()) { try { c.close(); } catch (_) {} }
+  VOZ.calls.clear();
+  for (const a of VOZ.audios.values()) { try { a.srcObject = null; a.remove(); } catch (_) {} }
+  VOZ.audios.clear();
+  if (VOZ.stream) { for (const t of VOZ.stream.getTracks()) t.stop(); }
+  VOZ.stream = null;
+  if (!callado) accion('voz', { v: 0 });
+}
+function vozEntrante(call) {
+  if (!VOZ.on || !VOZ.stream) { try { call.close(); } catch (_) {} return; }
+  call.answer(VOZ.stream);
+  vozEnganchar(call);
+}
+function vozEnganchar(call) {
+  const id = call.peer;
+  const viejo = VOZ.calls.get(id);
+  if (viejo && viejo !== call) { try { viejo.close(); } catch (_) {} }
+  VOZ.calls.set(id, call);
+  call.on('stream', st => {
+    let a = VOZ.audios.get(id);
+    if (!a) { a = document.createElement('audio'); a.autoplay = true; a.setAttribute('playsinline', ''); document.body.appendChild(a); VOZ.audios.set(id, a); }
+    a.srcObject = st;
+    const p = a.play(); if (p && p.catch) p.catch(() => {});
+  });
+  const fuera = () => { if (VOZ.calls.get(id) === call) { VOZ.calls.delete(id); const a = VOZ.audios.get(id); if (a) { a.srcObject = null; a.remove(); VOZ.audios.delete(id); } } };
+  call.on('close', fuera); call.on('error', fuera);
+}
+function vozRepasar(E) {
+  if (!VOZ.on || !RED.peer || !E || !Array.isArray(E.pl)) return;
+  const mio = RED.peer.id, quieren = new Set();
+  for (const p of E.pl) {
+    const pid = p[11];
+    if (!pid || pid === mio || p[12] !== 1) continue;
+    quieren.add(pid);
+    if (!VOZ.calls.has(pid) && mio < pid) vozEnganchar(RED.peer.call(pid, VOZ.stream));
+  }
+  for (const [pid, c] of VOZ.calls) if (!quieren.has(pid)) { try { c.close(); } catch (_) {} }
 }

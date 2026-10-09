@@ -10,7 +10,7 @@ const GUIA = {
   cv: null, g: null, dpr: 1, w: 0, h: 0,
   cs: 40, ox: 0, oy: 0, seguir: true, objetivo: '', sel: -1,
   ptrs: new Map(), toque: null, pinza: null, largoT: 0,
-  mapa: null, pings: [], centroY: 0.62,
+  mapa: null, pings: [], centroY: 0.62, verCaminantes: false,
 };
 
 function guiaIniciar(cv) {
@@ -134,11 +134,18 @@ const SIMB_MARCA = { 1: ['✓', '#6fe08a'], 2: ['✗', '#e0453a'], 3: ['?', '#f0
 function guiaDibujar(dt, E, yo) {
   const g = GUIA.g, cs = GUIA.cs, W = GUIA.w, H = GUIA.h, M = GUIA.mapa;
   if (!g || !M || !E) return;
-  /* seguir al caminante elegido (o al primero) */
+  /* seguir: al caminante (solo en práctica) o a la última vela que se ha encendido */
   const caminantes = E.pl.filter(p => p[2] === 'caminante');
-  if (GUIA.seguir && caminantes.length) {
-    const o = caminantes.find(p => p[0] === GUIA.objetivo) || caminantes[0];
-    const objetivoY = H * GUIA.centroY - o[4] / C * cs;
+  const velas = E.cd || [];
+  let fijo = null;
+  if (GUIA.verCaminantes && caminantes.length) { const o = caminantes.find(p => p[0] === GUIA.objetivo) || caminantes[0]; fijo = o[4]; }
+  else if (velas.length) {
+    const obj = caminantes.find(p => p[0] === GUIA.objetivo);
+    const v = obj ? [...velas].reverse().find(q => q[3] === obj[1]) : velas[velas.length - 1];
+    if (v) fijo = v[1];
+  } else fijo = 6.5;
+  if (GUIA.seguir && fijo !== null) {
+    const objetivoY = H * GUIA.centroY - fijo / C * cs;
     GUIA.oy += (objetivoY - GUIA.oy) * Math.min(1, dt * 4);
     const ox = (W - MAP_W * cs) / 2;
     GUIA.ox += (ox - GUIA.ox) * Math.min(1, dt * 4);
@@ -189,11 +196,66 @@ function guiaDibujar(dt, E, yo) {
     g.fillStyle = 'rgba(0,0,0,.6)'; g.beginPath(); g.arc(x + cs * 0.28, y - cs * 0.28, cs * 0.24, 0, 6.283); g.fill();
     g.fillStyle = s[1]; g.font = `700 ${Math.round(cs * 0.36)}px sans-serif`; g.fillText(s[0], x + cs * 0.28, y - cs * 0.26);
   }
-  /* velas */
-  for (const v of E.cd || []) {
-    const [x, y] = aMapa(v[0], v[1]);
-    g.fillStyle = '#ffb070'; g.beginPath(); g.arc(x, y, Math.max(2.5, cs * 0.07), 0, 6.283); g.fill();
+  /* compuertas: el agua de la senda y sus dos losas */
+  (M.puentes || []).forEach((pu, k) => {
+    const abierto = E.pu && E.pu[k] === 1;
+    for (const [r, c] of pu.celdas) {
+      const x = GUIA.ox + c * cs, y = GUIA.oy - (r + 1) * cs;
+      g.strokeStyle = abierto ? '#e8c15a' : 'rgba(232,193,90,.45)'; g.lineWidth = Math.max(1, cs * 0.06);
+      g.beginPath(); for (let i = 1; i < 5; i++) { g.moveTo(x + cs * 0.1, y + cs * i / 5); g.lineTo(x + cs * 0.9, y + cs * i / 5); } g.stroke();
+    }
+    for (const [r, c] of [pu.cerca, pu.lejos]) {
+      const x = GUIA.ox + (c + 0.5) * cs, y = GUIA.oy - (r + 0.5) * cs;
+      g.fillStyle = abierto ? '#9fe0ff' : '#7a8a90'; g.strokeStyle = '#000'; g.lineWidth = 2;
+      g.fillRect(x - cs * 0.22, y - cs * 0.22, cs * 0.44, cs * 0.44); g.strokeRect(x - cs * 0.22, y - cs * 0.22, cs * 0.44, cs * 0.44);
+    }
+  });
+  /* tablón */
+  if (M.tablon) {
+    const a = centroDe(M.tablon.de[0], M.tablon.de[1]), b = centroDe(M.tablon.r, M.tablon.c);
+    const [ax, ay] = aMapa(E.tb ? (a.x + b.x) / 2 + (b.x - a.x) * 0.25 : a.x + 1, E.tb ? (a.z + b.z) / 2 + (b.z - a.z) * 0.25 : a.z + 0.6);
+    const ang = Math.atan2(b.z - a.z, b.x - a.x) + (E.tb ? 0 : 0.5), L = cs * (E.tb ? 1.6 : 1.1);
+    g.strokeStyle = '#000'; g.lineWidth = cs * 0.24; g.beginPath(); g.moveTo(ax - Math.cos(ang) * L / 2, ay - Math.sin(ang) * L / 2); g.lineTo(ax + Math.cos(ang) * L / 2, ay + Math.sin(ang) * L / 2); g.stroke();
+    g.strokeStyle = '#8a6a44'; g.lineWidth = cs * 0.16; g.stroke();
   }
+  /* hitos: lo que el que camina puede ver y contarte */
+  for (const h of M.hitos || []) {
+    const [x, y] = aMapa(h.x, h.z), u = cs * 0.22;
+    g.fillStyle = '#d8d4c4'; g.strokeStyle = '#000'; g.lineWidth = 2;
+    g.beginPath();
+    if (h.k === 'penasco') { g.moveTo(x - u * 1.3, y + u * 0.8); g.lineTo(x - u * 0.7, y - u * 0.8); g.lineTo(x + u * 0.6, y - u); g.lineTo(x + u * 1.3, y + u * 0.8); g.closePath(); }
+    else if (h.k === 'menhir') { g.rect(x - u * 0.35, y - u * 1.2, u * 0.7, u * 2.2); }
+    else if (h.k === 'cruz') { g.rect(x - u * 0.18, y - u * 1.1, u * 0.36, u * 2.1); g.rect(x - u * 0.7, y - u * 0.6, u * 1.4, u * 0.34); }
+    else { g.moveTo(x, y + u); g.lineTo(x, y - u * 1.1); g.moveTo(x, y - u * 0.3); g.lineTo(x - u * 0.8, y - u); g.moveTo(x, y - u * 0.5); g.lineTo(x + u * 0.8, y - u * 1.2); }
+    if (h.k === 'arbol') { g.strokeStyle = '#000'; g.lineWidth = cs * 0.13; g.stroke(); g.strokeStyle = '#d8d4c4'; g.lineWidth = cs * 0.07; g.stroke(); }
+    else { g.fill(); g.stroke(); }
+  }
+  /* donde se hundió alguien */
+  g.font = `600 ${Math.round(Math.max(11 * GUIA.dpr, cs * 0.24))}px "Barlow Condensed", sans-serif`;
+  for (const [i, nm] of E.mu || []) {
+    const r = (i / MAP_W) | 0, c = i % MAP_W, x = GUIA.ox + (c + 0.5) * cs, y = GUIA.oy - (r + 0.5) * cs;
+    g.strokeStyle = '#e0453a'; g.lineWidth = 3 * GUIA.dpr;
+    g.beginPath(); g.moveTo(x - cs * 0.25, y - cs * 0.25); g.lineTo(x + cs * 0.25, y + cs * 0.25); g.moveTo(x + cs * 0.25, y - cs * 0.25); g.lineTo(x - cs * 0.25, y + cs * 0.25); g.stroke();
+    g.fillStyle = '#e0453a'; g.fillText(nm, x, y + cs * 0.4);
+  }
+  /* velas: lo único que dice dónde ha estado cada caminante */
+  const ultima = new Map();
+  velas.forEach((v, i) => ultima.set(v[3], i));
+  const ahora = E.el;
+  velas.forEach((v, i) => {
+    const [x, y] = aMapa(v[0], v[1]), esUltima = ultima.get(v[3]) === i;
+    if (esUltima) {
+      const f = ((performance.now() / 1000) % 1.4) / 1.4;
+      g.strokeStyle = v[2]; g.globalAlpha = 1 - f; g.lineWidth = 2 * GUIA.dpr;
+      g.beginPath(); g.arc(x, y, cs * (0.2 + f * 0.6), 0, 6.283); g.stroke(); g.globalAlpha = 1;
+    }
+    g.fillStyle = '#ffb070'; g.strokeStyle = v[2]; g.lineWidth = 2 * GUIA.dpr;
+    g.beginPath(); g.arc(x, y, Math.max(3, cs * 0.09), 0, 6.283); g.fill(); g.stroke();
+    if (esUltima) {
+      const hace = Math.max(0, Math.round((ahora - (v[4] || 0)) / 1000));
+      g.fillStyle = v[2]; g.fillText(v[3] + ' · hace ' + (hace < 60 ? hace + ' s' : Math.floor(hace / 60) + ' min'), x, y - cs * 0.42);
+    }
+  });
   /* seleccionada */
   if (GUIA.sel >= 0) {
     const r = (GUIA.sel / MAP_W) | 0, c = GUIA.sel % MAP_W;
@@ -201,7 +263,7 @@ function guiaDibujar(dt, E, yo) {
   }
   /* caminantes */
   const t = performance.now() / 1000;
-  for (const p of caminantes) {
+  for (const p of (GUIA.verCaminantes ? caminantes : [])) {
     const [x, y] = aMapa(p[3], p[4]), yaw = p[6], rr = Math.max(6 * GUIA.dpr, cs * 0.2);
     if (p[8] === 'hund') { g.strokeStyle = 'rgba(224,69,58,' + (0.5 + 0.5 * Math.sin(t * 9)) + ')'; g.lineWidth = 3 * GUIA.dpr; g.beginPath(); g.arc(x, y, rr * 2, 0, 6.283); g.stroke(); }
     const dx = -Math.sin(yaw), dy = -Math.cos(yaw);

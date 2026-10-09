@@ -26,9 +26,9 @@ const TERR = [
     note: 'Peñasco firme. Ancla segura.' },
   { id: 'agua',       nm: 'Agua',            c: '#2f6fb0', kind: 'agua',  lento: 1.0,
     note: 'Honda y fría: no se cruza.' },
-  { id: 'turbera',    nm: 'Turbera negra',   c: '#151310', kind: 'muerte', lento: 0.35, hundir: 2.4, aviso: 0,
+  { id: 'turbera',    nm: 'Turbera negra',   c: '#151310', kind: 'muerte', lento: 0.35, hundir: 2.6, aviso: 0,
     note: 'Te traga. Suele tener algodón cerca.' },
-  { id: 'enredadera', nm: 'Enredadera alta', c: '#24421f', kind: 'muerte', lento: 0.5, hundir: 1.0, aviso: 0.45,
+  { id: 'enredadera', nm: 'Enredadera alta', c: '#24421f', kind: 'muerte', lento: 0.5, hundir: 2.2, aviso: 0.45,
     note: 'Tapa un hoyo: lo que ves no te sostiene.' },
   { id: 'esfagno',    nm: 'Esfagno',         c: '#7ed957', kind: 'muerte', lento: 0.8, hundir: 3.0, aviso: 0.75,
     note: 'Verde brillante = lo más blando. Cuanto más bonito, más traidor.' },
@@ -51,7 +51,7 @@ function rng(seed) {
   };
 }
 
-function genMap(seed) {
+function genMap(seed, grupo) {
   const R = rng(seed);
   const W = MAP_W, L = MAP_L, N = W * L;
   const t = new Uint8Array(N).fill(255);
@@ -156,7 +156,46 @@ function genMap(seed) {
     }
   }
 
-  return { seed, W, L, t, senda, seq, campos, rios, salidaCastillo, I };
+  /* --- hitos: lo que el que camina ve y el guía tiene en el mapa (para saber dónde está) --- */
+  const hitos = [];
+  const KINDS = ['penasco', 'arbol', 'menhir', 'cruz'];
+  for (let rr = 1; rr < L - 1; rr++) {
+    if (rios.includes(rr) || R() > 0.58) continue;
+    const cc = (R() * W) | 0, p = centroDe(rr, cc);
+    hitos.push({ k: KINDS[(R() * KINDS.length) | 0], x: p.x + (R() - 0.5) * 2.2, z: p.z + (R() - 0.5) * 2.2, rot: R() * 6.283 });
+  }
+
+  /* --- en grupo: compuertas en los ríos y un tablón que se levanta entre dos --- */
+  const puentes = [];
+  let tablon = null;
+  if (grupo) {
+    const firme = (r, c) => { if (dentro(r, c) && t[I(r, c)] !== T.campamento) t[I(r, c)] = T.brezo; };
+    const espolon = (r, desde, lado) => {           // brazo firme desde la senda hasta la palanca
+      let hasta = desde + 2 * lado;
+      if (hasta < 0 || hasta >= W) { lado = -lado; hasta = desde + 2 * lado; }
+      for (let cc = desde; cc !== hasta + lado; cc += lado) firme(r, cc);
+      return [r, hasta];
+    };
+    for (const fr of rios) {
+      const celdas = [];
+      for (const [sr, sc] of seq) if (sr === fr) celdas.push([sr, sc]);
+      if (!celdas.length) continue;
+      for (const [sr, sc] of celdas) t[I(sr, sc)] = T.agua;
+      const cIn = celdas[0][1], cOut = celdas[celdas.length - 1][1];
+      const lado = R() < 0.5 ? -1 : 1;
+      puentes.push({ celdas, cerca: espolon(fr - 1, cIn, lado), lejos: espolon(fr + 1, cOut, -lado) });
+    }
+    for (let j = 1; j < seq.length; j++) {
+      const [r, c] = seq[j], [pr, pc] = seq[j - 1];
+      if (r < 12 || r > 15 || rios.includes(r) || rios.includes(pr) || t[I(r, c)] === T.campamento || t[I(pr, pc)] === T.campamento) continue;
+      if (rios.includes(r + 1) || rios.includes(r - 1)) continue;
+      t[I(r, c)] = T.turbera;
+      tablon = { r, c, de: [pr, pc] };
+      break;
+    }
+  }
+
+  return { seed, W, L, t, senda, seq, campos, rios, salidaCastillo, I, hitos, puentes, tablon, grupo: !!grupo };
 }
 
 /* coordenadas: fila r avanza hacia -z (el castillo está al norte), el mapa va centrado en x = 0 */

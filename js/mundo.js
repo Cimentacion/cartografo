@@ -58,9 +58,12 @@ const SUELOS = {
   algodon: (s) => baldosa(s, '#3a3820', (g, R, v) => { motas(g, R, v, 180, ['#4b4626', '#2c2a17', '#55522c'], 0.6, 1.8); motas(g, R, v, 26, ['#e8e4d0', '#cfcab4'], 1, 2); }),
   tojo: (s) => baldosa(s, '#2d3519', (g, R, v) => { trazos(g, R, v, 120, ['#1d2410', '#3a4520'], 4, 1); motas(g, R, v, 40, ['#c9a227', '#e0bb3c'], 0.8, 1.6); }),
   campamento: (s) => baldosa(s, '#4a3b2a', (g, R, v) => { motas(g, R, v, 140, ['#5a4934', '#3b2f22', '#6a5a44'], 0.6, 2); motas(g, R, v, 14, ['#22201c'], 1.5, 3); }),
+  brezo2: (s) => baldosa(s, '#33321d', (g, R, v) => { motas(g, R, v, 240, ['#45412a', '#28261a', '#4f3a46', '#3e3b22'], 0.6, 1.8); }),
+  brezo3: (s) => baldosa(s, '#363624', (g, R, v) => { motas(g, R, v, 220, ['#4b4626', '#2a2918', '#5a3f4a', '#4a4a2a'], 0.6, 2); trazos(g, R, v, 20, ['#2a2915'], 3, 1); }),
   borde: (s) => baldosa(s, '#0e0f10', (g, R, v) => { motas(g, R, v, 80, ['#1a1b1d', '#08090a'], 1, 3); }),
 };
-const ORDEN_ATLAS = TERR.map(t => t.id).concat(['borde']);   // 13 cuadros en un atlas de 4x4
+const ORDEN_ATLAS = TERR.map(t => t.id).concat(['brezo2', 'brezo3', 'borde']);   // 15 cuadros en un atlas de 4x4
+const NOCHE = [T.brezo, ORDEN_ATLAS.indexOf('brezo2'), ORDEN_ATLAS.indexOf('brezo3')];
 const SLOT_BORDE = ORDEN_ATLAS.length - 1;
 
 function hacerAtlas() {
@@ -119,7 +122,7 @@ function tipoEn(r, c) {
   if (r >= MAP_L && r < MAP_L + 7) return ((r + c) % 3 === 0) ? T.roca : T.hierba;
   return -1;
 }
-const BASE = { hierba: 0, brezo: 0.06, barro: -0.08, champas: -0.04, roca: 0.18, agua: -0.7, turbera: -0.14, enredadera: 0.02, esfagno: -0.02, algodon: 0.03, tojo: 0.06, campamento: 0 };
+const BASE = { hierba: 0, brezo: 0, barro: 0, champas: 0, roca: 0, agua: -0.7, turbera: 0, enredadera: 0, esfagno: 0, algodon: 0, tojo: 0, campamento: 0 };
 function baseCelda(r, c) { const k = tipoEn(r, c); return k < 0 ? -7 : BASE[TERR[k].id]; }
 function ruidoPunto(ix, iz) { const h = Math.sin(ix * 127.1 + iz * 311.7) * 43758.5453; return (h - Math.floor(h)) - 0.5; }
 /* altura en una esquina de la rejilla de 1 m: en las juntas, la media de los bloques que se tocan */
@@ -213,6 +216,8 @@ function mundoCrear(mapa) {
   hacerPlantas(sc, mapa);
   hacerCastillo(sc);
   hacerFuegos(sc, mapa);
+  hacerHitos(sc, mapa);
+  hacerPuentes(sc, mapa);
   hacerLluvia(sc);
 }
 
@@ -226,7 +231,8 @@ function hacerSuelo(sc, mapa) {
     for (let ix = x0; ix < x1; ix++) {
       const q = celdaDe(ix + 0.5 - MAP_W * C / 2, iz + 0.5);
       const k = tipoEn(q.r, q.c);
-      const slot = k < 0 ? SLOT_BORDE : k;
+      /* de noche todo es el mismo brezo oscuro: solo el agua y el campamento se distinguen */
+      const slot = k < 0 ? SLOT_BORDE : (k === T.agua || k === T.campamento) ? k : NOCHE[Math.abs((q.r * 7 + q.c * 13) ^ (q.r * q.c)) % 3];
       const su = (slot % 4) * 0.25, sv = 1 - ((slot / 4) | 0) * 0.25;
       const e = 0.002;
       const X = (i) => i - MAP_W * C / 2;
@@ -298,18 +304,18 @@ function hacerPlantas(sc, mapa) {
   };
   for (let r = -4; r < MAP_L + 7; r++) for (let c = 0; c < MAP_W; c++) {
     const k = tipoEn(r, c); if (k < 0) continue;
-    const id = TERR[k].id, R = rng(9000 + (r + 10) * 37 + c * 1013 + mapa.seed % 997);
-    if (id === 'hierba') poner(R, r, c, 'pasto', r < 0 || r >= MAP_L ? 5 : 10, 0.35, 0.6);
-    else if (id === 'brezo') poner(R, r, c, 'mata', 10, 0.35, 0.6);
-    else if (id === 'barro') poner(R, r, c, 'pasto', 2, 0.25, 0.4);
-    else if (id === 'champas') poner(R, r, c, 'champa', 9, 0.3, 0.5);
-    else if (id === 'roca') { poner(R, r, c, 'pasto', 2, 0.3, 0.45); for (let i = 0; i < 4; i++) { const p = centroDe(r, c), x = p.x + (R() - 0.5) * 3, z = p.z + (R() - 0.5) * 3, s = 0.25 + R() * 0.55; rocas.push([x, sueloEn(x, z) + s * 0.2, z, R() * 6, R(), s, s * 0.7]); } }
-    else if (id === 'agua') poner(R, r, c, 'junco', 5, 0.9, 1.4, true);
-    else if (id === 'turbera') poner(R, r, c, 'junco', 1, 0.6, 1.0);
-    else if (id === 'enredadera') poner(R, r, c, 'enred', 8, 1.5, 2.2);
-    else if (id === 'esfagno') poner(R, r, c, 'musgo', 16, 0.18, 0.3);
-    else if (id === 'algodon') { poner(R, r, c, 'mata', 5, 0.3, 0.5); poner(R, r, c, 'algodon', 7, 0.4, 0.6); }
-    else if (id === 'tojo') poner(R, r, c, 'tojo', 7, 0.55, 0.85);
+    const R = rng(9000 + (r + 10) * 37 + c * 1013 + mapa.seed % 997);
+    if (k === T.agua) { poner(R, r, c, 'junco', 5, 0.9, 1.4, true); continue; }
+    if (k === T.campamento) continue;
+    /* lo que crece no dice nada del suelo que hay debajo: se reparte igual en todo el páramo */
+    poner(R, r, c, 'mata', 6 + ((R() * 4) | 0), 0.35, 0.6);
+    poner(R, r, c, 'pasto', 2 + ((R() * 3) | 0), 0.3, 0.55);
+    const x = R();
+    if (x < 0.12) poner(R, r, c, 'tojo', 4, 0.55, 0.85);
+    else if (x < 0.24) poner(R, r, c, 'champa', 5, 0.3, 0.5);
+    else if (x < 0.33) poner(R, r, c, 'algodon', 4, 0.4, 0.6);
+    else if (x < 0.41) poner(R, r, c, 'enred', 3, 1.4, 2.1);
+    else if (x < 0.5) poner(R, r, c, 'musgo', 6, 0.15, 0.25);
   }
   const anchos = { mata: [1, 1], pasto: [0.9, 1], musgo: [0.7, 1], algodon: [0.5, 1], tojo: [1, 1], enred: [1.1, 1], junco: [0.4, 1], champa: [1, 1] };
   for (const k in L) {
@@ -317,6 +323,70 @@ function hacerPlantas(sc, mapa) {
     instancias(sc, tarjeta(anchos[k][0], anchos[k][1]), mat, L[k]);
   }
   instancias(sc, new THREE.DodecahedronGeometry(1, 0), new THREE.MeshLambertMaterial({ color: 0x55555a }), rocas);
+}
+
+/* hitos: peñascos, árboles muertos, menhires y cruces de piedra. Lo único que distingue un sitio de otro */
+function hacerHitos(sc, mapa) {
+  M3.solidos = [];
+  const piedra = new THREE.MeshLambertMaterial({ map: M3.tex.piedra, color: 0x8a8a90 });
+  const madera = new THREE.MeshLambertMaterial({ color: 0x3a2e24 });
+  for (const h of mapa.hitos) {
+    const g = new THREE.Group(), y = sueloEn(h.x, h.z);
+    if (h.k === 'penasco') {
+      const m = new THREE.Mesh(new THREE.DodecahedronGeometry(1, 0), piedra); m.scale.set(1.3, 1.0, 1.1); m.position.y = 0.55; m.rotation.set(0.3, h.rot, 0.2); g.add(m);
+      const m2 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.55, 0), piedra); m2.position.set(0.9, 0.25, 0.4); g.add(m2);
+      M3.solidos.push({ x: h.x, z: h.z, r: 1.3 });
+    } else if (h.k === 'arbol') {
+      const tronco = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.22, 3.4, 6), madera); tronco.position.y = 1.7; tronco.rotation.z = 0.08; g.add(tronco);
+      for (let i = 0; i < 4; i++) { const r = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.07, 1.6, 5), madera); const a = i * 1.7 + h.rot; r.position.set(Math.cos(a) * 0.45, 2.6 + i * 0.22, Math.sin(a) * 0.45); r.rotation.set(Math.sin(a) * 0.9, 0, -Math.cos(a) * 0.9); g.add(r); }
+      M3.solidos.push({ x: h.x, z: h.z, r: 0.35 });
+    } else if (h.k === 'menhir') {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(0.7, 3.0, 0.45), piedra); m.position.y = 1.4; m.rotation.set(0.06, h.rot, 0.09); g.add(m);
+      M3.solidos.push({ x: h.x, z: h.z, r: 0.5 });
+    } else {
+      const v = new THREE.Mesh(new THREE.BoxGeometry(0.22, 1.9, 0.22), piedra); v.position.y = 0.95; g.add(v);
+      const b = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.2, 0.22), piedra); b.position.y = 1.45; g.add(b);
+      g.rotation.z = 0.12;
+      M3.solidos.push({ x: h.x, z: h.z, r: 0.3 });
+    }
+    g.position.set(h.x, y, h.z); g.rotation.y = h.rot;
+    sc.add(g);
+  }
+}
+
+/* compuertas de los ríos (tablas que suben del agua) con su losa a cada orilla, y el tablón */
+function hacerPuentes(sc, mapa) {
+  M3.puentes = [];
+  const tabla = new THREE.MeshLambertMaterial({ color: 0x5a4632 });
+  const losaM = new THREE.MeshLambertMaterial({ map: M3.tex.piedra, color: 0x9a9a9a });
+  mapa.puentes.forEach((pu) => {
+    const g = new THREE.Group();
+    for (const [r, c] of pu.celdas) {
+      const p = centroDe(r, c);
+      for (let i = 0; i < 8; i++) { const m = new THREE.Mesh(new THREE.BoxGeometry(4.0, 0.08, 0.42), tabla); m.position.set(p.x, 0, p.z - 1.75 + i * 0.5); m.rotation.y = (i % 3 - 1) * 0.03; g.add(m); }
+    }
+    g.position.y = -1.3;
+    sc.add(g);
+    const losas = [];
+    for (const [r, c] of [pu.cerca, pu.lejos]) {
+      const p = centroDe(r, c), y = sueloEn(p.x, p.z);
+      const l = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.16, 2.4), losaM); l.position.set(p.x, y + 0.05, p.z); sc.add(l);
+      const poste = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.2, 0.16), new THREE.MeshLambertMaterial({ color: 0x2b241c })); poste.position.set(p.x + 1.1, y + 0.6, p.z - 1.1); sc.add(poste);
+      const brillo = new THREE.Sprite(new THREE.SpriteMaterial({ map: M3.tex.llama, color: 0x9fe0ff, fog: false, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 }));
+      brillo.scale.set(2.6, 2.6, 1); brillo.position.set(p.x, y + 0.3, p.z); sc.add(brillo);
+      losas.push({ l, brillo });
+    }
+    M3.puentes.push({ g, losas, y: -1.3 });
+  });
+  M3.tablon = null;
+  if (mapa.tablon) {
+    const a = centroDe(mapa.tablon.de[0], mapa.tablon.de[1]), b = centroDe(mapa.tablon.r, mapa.tablon.c);
+    const m = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.12, 4.8), tabla);
+    const yaw = Math.atan2(b.x - a.x, b.z - a.z);
+    m.position.set(a.x + 1.0, sueloEn(a.x, a.z) + 0.07, a.z + 0.6); m.rotation.set(0, yaw + 0.5, 0.05);
+    sc.add(m);
+    M3.tablon = { m, puesto: false, a, b, yaw };
+  }
 }
 
 function hacerCastillo(sc) {
@@ -456,6 +526,20 @@ function mundoFrame(dt, J) {
   M3.post.material.uniforms.flash.value = fl * 0.12;
   M3.post.material.uniforms.hundir.value = J.hundido;
   M3.post.material.uniforms.tiempo.value = t;
+
+  /* compuertas y tablón, según lo que diga la partida */
+  const ES = M3.estado || {};
+  (M3.puentes || []).forEach((pu, k) => {
+    const abierto = ES.pu && ES.pu[k] === 1;
+    pu.y += ((abierto ? -0.06 : -1.3) - pu.y) * Math.min(1, dt * 2.5);
+    pu.g.position.y = pu.y;
+    for (const l of pu.losas) l.brillo.material.opacity = abierto ? 0.55 + Math.sin(t * 6) * 0.15 : 0;
+  });
+  if (M3.tablon && ES.tb && !M3.tablon.puesto) {
+    const tb = M3.tablon; tb.puesto = true;
+    const mx = (tb.a.x + tb.b.x) / 2 + (tb.b.x - tb.a.x) * 0.25, mz = (tb.a.z + tb.b.z) / 2 + (tb.b.z - tb.a.z) * 0.25;
+    tb.m.position.set(mx, 0.1, mz); tb.m.rotation.set(0, tb.yaw, 0); tb.m.scale.z = 1.35;
+  }
 
   /* agua que corre */
   if (M3.agua) { M3.agua.material.map.offset.x = t * 0.05; M3.agua.material.map.offset.y = t * 0.02; }
