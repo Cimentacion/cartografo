@@ -218,7 +218,7 @@ const GEN = {
   w: ['¿Falta mucho?', 'Oye, que llevo un rato.'], ok: ['Gracias. Buenas noches.'], bad: ['Esto no está muy allá...', 'Está regular, la verdad.'],
   x: ['Paso. Me voy a otro sitio.'], no: ['Eso no es lo que he pedido.'], raw: ['¡Esto está crudo!', 'Oye, la carne está sin hacer.'],
   burnt: ['Está carbonizado.'], unw: ['¿Y me lo das así, sin envolver?'], flee: ['¡¡Tiros!!', '¡Ay, madre!', '¡Corre!'], dark: ['¿Se ha ido la luz?', 'Eh, que no se ve nada.'],
-  nofr: ['¿Y las patatas de la caja?'], gun: ['...'], g: ['Buenas noches.'], pre: ['Ponme'], post: [''],
+  nofr: ['¿Y las patatas de la caja?'], hm: ['Hoy sabe distinto. Está buenísimo.', '¿Has cambiado de proveedor? Mejor que nunca.'], gun: ['...'], g: ['Buenas noches.'], pre: ['Ponme'], post: [''],
 };
 const ANOM = {
   g: ['...', 'Buenas. Noches.'], o: ['Carne. Cruda. Sin pan.', 'Dame la carne. Sin hacer.', 'Tengo hambre. Cruda.'],
@@ -229,7 +229,7 @@ const MSG = {
   robgone: 'El atracador sale corriendo.', deliv: 'Reparto recibido: verdura y cartuchos.', nodeliv: 'El repartidor se ha cansado de llamar.',
   blackout: 'Se ha ido la luz. El cuadro está en el almacén.', power: 'Vuelve la luz.', binfull: 'Verdura cortada y a la cubeta.',
   gone: 'Lo de la puerta deja de arañar.', lost: 'Un cliente se ha ido sin cenar.', ko: 'Te has desmayado. Te despiertas en la cocina.',
-  last: 'Son las seis. Persiana abajo cuando salga el último.', killed: 'Eso no era un cliente.', wrongkill: '',
+  last: 'Son las seis. Persiana abajo cuando salga el último.', killed: 'Eso no era un cliente.', nowit: 'Nadie lo ha visto. Todavía.',
 };
 const RULES = [
   'Los clientes de verdad parpadean. Si no parpadea y tiene los ojos negros, no es un cliente.',
@@ -239,6 +239,7 @@ const RULES = [
   'Si se va la luz: el cuadro está en el almacén. No te quedes quieto a oscuras.',
   'Puerta de atrás: usa SIEMPRE la mirilla antes de abrir.',
   'A las 3:33 viene alguien. Siempre viene alguien.',
+  'Lo que pase cuando no mira nadie, se queda en la cocina. La mesa del almacén sirve para algo más que verdura.',
 ];
 
 /* ---------- utilidades ---------- */
@@ -282,24 +283,24 @@ const LX = {
     base: ['dürüm', 'pita', 'caja'], bart: ['un', 'una', 'una'], meat: ['pollo', 'ternera', 'mixto'], veg: ['lechuga', 'tomate', 'cebolla'], sauce: ['salsa blanca', 'picante'], drink: ['cola', 'agua', 'cerveza'],
     vAll: 'con todo', vNone: 'sin verdura', vNo: 'sin {0}', vOnly: 'solo con {0}', sPh: ['sin salsa', 'salsa blanca', 'picante', 'las dos salsas'],
     frPh: 'unas patatas', drPh: ['una cola', 'un agua', 'una cerveza'], and: ' y ', fries: 'patatas', wfries: 'con patatas',
-    nm: { gun: 'la escopeta', fr: 'las patatas', dr: ['la cola', 'el agua', 'la cerveza'], vg: ['la lechuga', 'los tomates', 'las cebollas'], kb: ['el dürüm', 'la pita', 'la caja'], none: 'nada' },
-    h: { nomeat: 'sin carne', raw: ' (cruda)', closed: 'cerrada', wrapped: 'en aluminio', bad: ' (malas)', uncut: ' sin cortar', gun: 'ESCOPETA' },
+    nm: { gun: 'la escopeta', fr: 'las patatas', dr: ['la cola', 'el agua', 'la cerveza'], vg: ['la lechuga', 'los tomates', 'las cebollas'], kb: ['el dürüm', 'la pita', 'la caja'], none: 'nada', body: 'el cuerpo', cone: 'la carne' },
+    h: { nomeat: 'sin carne', raw: ' (cruda)', closed: 'cerrada', wrapped: 'en aluminio', bad: ' (malas)', uncut: ' sin cortar', gun: 'ESCOPETA', body: 'CUERPO', cone: 'CARNE PARA EL ASADOR' },
     done: ['CRUDA', 'poco hecha', 'DORADA', 'pasada', 'QUEMADA'], fs: ['crudas', 'doradas', 'pasadas', 'quemadas'],
   },
   en: {
     base: ['dürüm', 'pita', 'kebab box'], bart: ['a', 'a', 'a'], meat: ['chicken', 'beef', 'mixed'], veg: ['lettuce', 'tomato', 'onion'], sauce: ['white sauce', 'hot sauce'], drink: ['cola', 'water', 'beer'],
     vAll: 'with everything', vNone: 'no salad', vNo: 'no {0}', vOnly: 'only {0}', sPh: ['no sauce', 'white sauce', 'hot sauce', 'both sauces'],
     frPh: 'some fries', drPh: ['a cola', 'a water', 'a beer'], and: ' and ', fries: 'fries', wfries: 'with fries',
-    nm: { gun: 'the shotgun', fr: 'the fries', dr: ['the cola', 'the water', 'the beer'], vg: ['the lettuce', 'the tomatoes', 'the onions'], kb: ['the dürüm', 'the pita', 'the box'], none: 'nothing' },
-    h: { nomeat: 'no meat', raw: ' (raw)', closed: 'closed', wrapped: 'wrapped', bad: ' (bad)', uncut: ', uncut', gun: 'SHOTGUN' },
+    nm: { gun: 'the shotgun', fr: 'the fries', dr: ['the cola', 'the water', 'the beer'], vg: ['the lettuce', 'the tomatoes', 'the onions'], kb: ['the dürüm', 'the pita', 'the box'], none: 'nothing', body: 'the body', cone: 'the meat' },
+    h: { nomeat: 'no meat', raw: ' (raw)', closed: 'closed', wrapped: 'wrapped', bad: ' (bad)', uncut: ', uncut', gun: 'SHOTGUN', body: 'BODY', cone: 'MEAT FOR THE SPIT' },
     done: ['RAW', 'underdone', 'GOLDEN', 'overdone', 'BURNT'], fs: ['raw', 'golden', 'overdone', 'burnt'],
   },
   ro: {
     base: ['dürüm', 'pita', 'cutie'], bart: ['un', 'o', 'o'], meat: ['pui', 'vită', 'mixt'], veg: ['salată', 'roșii', 'ceapă'], sauce: ['sos alb', 'sos iute'], drink: ['cola', 'apă', 'bere'],
     vAll: 'cu de toate', vNone: 'fără legume', vNo: 'fără {0}', vOnly: 'doar cu {0}', sPh: ['fără sos', 'sos alb', 'sos iute', 'ambele sosuri'],
     frPh: 'niște cartofi', drPh: ['o cola', 'o apă', 'o bere'], and: ' și ', fries: 'cartofi', wfries: 'cu cartofi',
-    nm: { gun: 'pușca', fr: 'cartofii', dr: ['cola', 'apa', 'berea'], vg: ['salata', 'roșiile', 'ceapa'], kb: ['dürümul', 'pita', 'cutia'], none: 'nimic' },
-    h: { nomeat: 'fără carne', raw: ' (crudă)', closed: 'închisă', wrapped: 'în folie', bad: ' (proști)', uncut: ' (de tăiat)', gun: 'PUȘCĂ' },
+    nm: { gun: 'pușca', fr: 'cartofii', dr: ['cola', 'apa', 'berea'], vg: ['salata', 'roșiile', 'ceapa'], kb: ['dürümul', 'pita', 'cutia'], none: 'nimic', body: 'trupul', cone: 'carnea' },
+    h: { nomeat: 'fără carne', raw: ' (crudă)', closed: 'închisă', wrapped: 'în folie', bad: ' (proști)', uncut: ' (de tăiat)', gun: 'PUȘCĂ', body: 'TRUP', cone: 'CARNE PENTRU ROTISOR' },
     done: ['CRUDĂ', 'puțin făcută', 'RUMENITĂ', 'trecută', 'ARSĂ'], fs: ['cruzi', 'aurii', 'trecuți', 'arși'],
   },
 };
@@ -315,7 +316,9 @@ const STR = {
     note_h: 'Turno de noche', note_sign: 'Suerte. Yo no vuelvo.', note_close: 'Dejar la nota', peep_close: 'Apartarse de la mirilla',
     peep1: '«Reparto. Traigo la verdura y los cartuchos de siempre.»', peep2: '«Abre. Soy el del reparto. Abre. Abre.»', peep0: 'El callejón está vacío.',
     end_t: 'Noche {0} terminada', e_sv: 'Clientes servidos', e_ls: 'Clientes perdidos', e_e: 'Caja de esta noche', e_tp: 'Propinas', e_cash: 'Total en la caja', next: 'Siguiente noche',
-    over1_t: 'Has disparado a un cliente', over1_p: 'Era una persona. Parpadeaba. La policía llega antes de que se enfríe la plancha, y el Kebab Poniente no vuelve a abrir.',
+    over1_t: 'Había testigos', over1_p: 'Has disparado a un cliente con gente delante. Parpadeaba. La policía llega antes de que se enfríe la plancha, y el Kebab Poniente no vuelve a abrir.',
+    over2_t: 'Han visto el cuerpo', over2_p: 'Un cliente entra, ve lo que hay en el suelo y sale gritando. La policía tarda cuatro minutos. El Kebab Poniente no vuelve a abrir.',
+    u_drag: 'Arrastrar el cuerpo', u_table_put: 'Subir el cuerpo a la mesa', u_table_cut: 'Despiezar ({0}/8)', u_table_idle: 'Mesa de despiece', u_table_busy: 'La mesa está ocupada', u_cone_mount: 'Montar la carne en el asador de {0}', u_drop_body: 'Soltar el cuerpo',
     over0_t: 'El local cierra', over0_p: 'Demasiada gente se ha ido sin cenar o con el estómago revuelto. Nadie vuelve a un kebab con esta fama.',
     over_s: 'Noches completas: {0} · {1} en la caja', again: 'Volver a la primera noche',
     t_night: 'Noche {0} · 23:00. Abre el Kebab Poniente.', tip: 'Propina +{0}', noammo_r: 'Sin cartuchos en la recámara. Recarga con R.', noammo_t: 'Sin cartuchos en la recámara. Recarga.', noammo0: 'No quedan cartuchos.',
@@ -346,7 +349,9 @@ const STR = {
     note_h: 'Night shift', note_sign: "Good luck. I'm not coming back.", note_close: 'Put the note down', peep_close: 'Step away from the peephole',
     peep1: '"Delivery. I\'ve got the usual vegetables and shells."', peep2: '"Open up. I\'m the delivery man. Open. Open."', peep0: 'The alley is empty.',
     end_t: 'Night {0} done', e_sv: 'Customers served', e_ls: 'Customers lost', e_e: "Tonight's takings", e_tp: 'Tips', e_cash: 'Total in the till', next: 'Next night',
-    over1_t: 'You shot a customer', over1_p: 'That was a person. They blinked. The police arrive before the griddle cools, and Kebab Poniente never opens again.',
+    over1_t: 'There were witnesses', over1_p: 'You shot a customer in front of people. They blinked. The police arrive before the griddle cools, and Kebab Poniente never opens again.',
+    over2_t: 'Someone saw the body', over2_p: 'A customer walks in, sees what is on the floor and runs out screaming. The police take four minutes. Kebab Poniente never opens again.',
+    u_drag: 'Drag the body', u_table_put: 'Lift the body onto the table', u_table_cut: 'Butcher it ({0}/8)', u_table_idle: 'Butchering table', u_table_busy: 'The table is taken', u_cone_mount: 'Mount the meat on the {0} spit', u_drop_body: 'Drop the body',
     over0_t: 'The shop closes down', over0_p: 'Too many people left hungry or with a bad stomach. Nobody comes back to a kebab shop with this reputation.',
     over_s: 'Full nights survived: {0} · {1} in the till', again: 'Back to the first night',
     t_night: 'Night {0} · 11 pm. Kebab Poniente is open.', tip: 'Tip +{0}', noammo_r: 'Both barrels empty. Press R to reload.', noammo_t: 'Both barrels empty. Reload.', noammo0: 'No shells left.',
@@ -377,7 +382,9 @@ const STR = {
     note_h: 'Tura de noapte', note_sign: 'Baftă. Eu nu mă mai întorc.', note_close: 'Lasă biletul', peep_close: 'Dă-te de la vizor',
     peep1: '„Livrare. Am adus legumele și cartușele, ca de obicei.”', peep2: '„Deschide. Sunt cel cu livrarea. Deschide. Deschide.”', peep0: 'Aleea e goală.',
     end_t: 'Noaptea {0} s-a terminat', e_sv: 'Clienți serviți', e_ls: 'Clienți pierduți', e_e: 'Încasări în noaptea asta', e_tp: 'Bacșișuri', e_cash: 'Total în casă', next: 'Noaptea următoare',
-    over1_t: 'Ai împușcat un client', over1_p: 'Era un om. Clipea. Poliția ajunge înainte să se răcească plita, iar Kebab Poniente nu se mai deschide niciodată.',
+    over1_t: 'Au fost martori', over1_p: 'Ai împușcat un client de față cu lumea. Clipea. Poliția ajunge înainte să se răcească plita, iar Kebab Poniente nu se mai deschide niciodată.',
+    over2_t: 'Cineva a văzut trupul', over2_p: 'Un client intră, vede ce e pe jos și iese țipând. Poliția ajunge în patru minute. Kebab Poniente nu se mai deschide niciodată.',
+    u_drag: 'Târăște trupul', u_table_put: 'Urcă trupul pe masă', u_table_cut: 'Tranșează ({0}/8)', u_table_idle: 'Masă de tranșat', u_table_busy: 'Masa e ocupată', u_cone_mount: 'Montează carnea pe rotisorul de {0}', u_drop_body: 'Lasă trupul jos',
     over0_t: 'Localul se închide', over0_p: 'Prea mulți au plecat nemâncați sau cu stomacul întors pe dos. Nimeni nu se mai întoarce la un kebab cu asemenea faimă.',
     over_s: 'Nopți întregi rezistate: {0} · {1} în casă', again: 'Înapoi la prima noapte',
     t_night: 'Noaptea {0} · 23:00. Kebab Poniente se deschide.', tip: 'Bacșiș +{0}', noammo_r: 'Ambele țevi sunt goale. Reîncarcă cu R.', noammo_t: 'Ambele țevi sunt goale. Reîncarcă.', noammo0: 'Nu mai sunt cartușe.',
@@ -412,18 +419,18 @@ const CTL = {
 };
 const RULESX = {
   es: RULES,
-  en: ["Real customers blink. If it doesn't blink and its eyes are black, it is not a customer.", "If it asks for the meat raw, don't give it. Shotgun.", 'Never shoot a real customer. Never.', 'Aiming is enough for a robber. Same for the one who leaves without paying.', "If the power goes out: the fuse box is in the storeroom. Don't stand still in the dark.", 'Back door: ALWAYS use the peephole before opening.', 'At 3:33 someone comes. Someone always comes.'],
-  ro: ['Clienții adevărați clipesc. Dacă nu clipește și are ochii negri, nu e client.', 'Dacă cere carnea crudă, nu i-o da. Pușca.', 'Nu trage niciodată într-un client adevărat. Niciodată.', 'Pe un hoț e de ajuns să-l ții în cătare. La fel și pe cel care pleacă fără să plătească.', 'Dacă se ia curentul: tabloul e în magazie. Nu sta pe loc pe întuneric.', 'Ușa din spate: uită-te ÎNTOTDEAUNA pe vizor înainte să deschizi.', 'La 3:33 vine cineva. Întotdeauna vine cineva.'],
+  en: ["Real customers blink. If it doesn't blink and its eyes are black, it is not a customer.", "If it asks for the meat raw, don't give it. Shotgun.", 'Never shoot a real customer. Never.', 'Aiming is enough for a robber. Same for the one who leaves without paying.', "If the power goes out: the fuse box is in the storeroom. Don't stand still in the dark.", 'Back door: ALWAYS use the peephole before opening.', 'At 3:33 someone comes. Someone always comes.', 'What happens when nobody is watching stays in the kitchen. The table in the storeroom is good for more than vegetables.'],
+  ro: ['Clienții adevărați clipesc. Dacă nu clipește și are ochii negri, nu e client.', 'Dacă cere carnea crudă, nu i-o da. Pușca.', 'Nu trage niciodată într-un client adevărat. Niciodată.', 'Pe un hoț e de ajuns să-l ții în cătare. La fel și pe cel care pleacă fără să plătească.', 'Dacă se ia curentul: tabloul e în magazie. Nu sta pe loc pe întuneric.', 'Ușa din spate: uită-te ÎNTOTDEAUNA pe vizor înainte să deschizi.', 'La 3:33 vine cineva. Întotdeauna vine cineva.', 'Ce se întâmplă când nu se uită nimeni rămâne în bucătărie. Masa din magazie e bună și la altceva decât legume.'],
 };
 const MSGX = {
   es: MSG,
-  en: { karma: 'Julián leaves fed. The neighbourhood hears about it. (+reputation)', sinpa: 'He left without paying.', robbed: 'They emptied the till.', robgone: 'The robber runs off.', deliv: 'Delivery received: vegetables and shells.', nodeliv: 'The delivery man got tired of knocking.', blackout: 'The power is out. The fuse box is in the storeroom.', power: 'The lights are back.', binfull: 'Vegetables chopped and in the tub.', gone: 'The thing at the door stops scratching.', lost: 'A customer left without dinner.', ko: 'You passed out. You wake up in the kitchen.', last: "It's six. Shutters down when the last one leaves.", killed: 'That was not a customer.' },
-  ro: { karma: 'Julián pleacă sătul. Află tot cartierul. (+reputație)', sinpa: 'A plecat fără să plătească.', robbed: 'Ți-au golit casa de marcat.', robgone: 'Hoțul o ia la fugă.', deliv: 'Livrare primită: legume și cartușe.', nodeliv: 'Livratorul s-a săturat să bată la ușă.', blackout: 'S-a luat curentul. Tabloul e în magazie.', power: 'A revenit curentul.', binfull: 'Legume tăiate și puse în tavă.', gone: 'Ce era la ușă nu mai zgârie.', lost: 'Un client a plecat nemâncat.', ko: 'Ai leșinat. Te trezești în bucătărie.', last: 'E șase. Tragi oblonul când pleacă ultimul.', killed: 'Ăla nu era client.' },
+  en: { karma: 'Julián leaves fed. The neighbourhood hears about it. (+reputation)', sinpa: 'He left without paying.', robbed: 'They emptied the till.', robgone: 'The robber runs off.', deliv: 'Delivery received: vegetables and shells.', nodeliv: 'The delivery man got tired of knocking.', blackout: 'The power is out. The fuse box is in the storeroom.', power: 'The lights are back.', binfull: 'Vegetables chopped and in the tub.', gone: 'The thing at the door stops scratching.', lost: 'A customer left without dinner.', ko: 'You passed out. You wake up in the kitchen.', last: "It's six. Shutters down when the last one leaves.", killed: 'That was not a customer.', nowit: 'Nobody saw it. Yet.' },
+  ro: { karma: 'Julián pleacă sătul. Află tot cartierul. (+reputație)', sinpa: 'A plecat fără să plătească.', robbed: 'Ți-au golit casa de marcat.', robgone: 'Hoțul o ia la fugă.', deliv: 'Livrare primită: legume și cartușe.', nodeliv: 'Livratorul s-a săturat să bată la ușă.', blackout: 'S-a luat curentul. Tabloul e în magazie.', power: 'A revenit curentul.', binfull: 'Legume tăiate și puse în tavă.', gone: 'Ce era la ușă nu mai zgârie.', lost: 'Un client a plecat nemâncat.', ko: 'Ai leșinat. Te trezești în bucătărie.', last: 'E șase. Tragi oblonul când pleacă ultimul.', killed: 'Ăla nu era client.', nowit: 'Nu a văzut nimeni. Încă.' },
 };
 const GENX = {
   es: GEN,
-  en: { w: ['Is it going to be long?', "Hey, I've been here a while."], ok: ['Thanks. Good night.'], bad: ["This isn't great...", "It's so-so, honestly."], x: ["Forget it. I'm going somewhere else."], no: ["That's not what I ordered."], raw: ['This is raw!', "Hey, the meat's not cooked."], burnt: ["It's charred."], unw: ['And you hand it to me like that, unwrapped?'], flee: ['Gunshots!!', 'Oh my God!', 'Run!'], dark: ['Did the lights go out?', "Hey, I can't see a thing."], nofr: ['Where are the fries in the box?'], gun: ['...'], g: ['Good evening.'], pre: ['Give me'], post: [''] },
-  ro: { w: ['Mai durează mult?', 'Auzi, stau de ceva vreme.'], ok: ['Mersi. Noapte bună.'], bad: ['Nu-i cine știe ce...', 'E așa și așa, sincer.'], x: ['Las-o. Mă duc în altă parte.'], no: ['Nu asta am cerut.'], raw: ['E crud!', 'Auzi, carnea nu-i făcută.'], burnt: ['E carbonizat.'], unw: ['Și mi-l dai așa, neîmpachetat?'], flee: ['Împușcături!!', 'Vai de mine!', 'Fugi!'], dark: ['S-a luat curentul?', 'Hei, nu se vede nimic.'], nofr: ['Și cartofii din cutie?'], gun: ['...'], g: ['Bună seara.'], pre: ['Dă-mi'], post: [''] },
+  en: { w: ['Is it going to be long?', "Hey, I've been here a while."], ok: ['Thanks. Good night.'], bad: ["This isn't great...", "It's so-so, honestly."], x: ["Forget it. I'm going somewhere else."], no: ["That's not what I ordered."], raw: ['This is raw!', "Hey, the meat's not cooked."], burnt: ["It's charred."], unw: ['And you hand it to me like that, unwrapped?'], flee: ['Gunshots!!', 'Oh my God!', 'Run!'], dark: ['Did the lights go out?', "Hey, I can't see a thing."], nofr: ['Where are the fries in the box?'], hm: ["Tastes different today. It's really good.", 'New supplier? Best one yet.'], gun: ['...'], g: ['Good evening.'], pre: ['Give me'], post: [''] },
+  ro: { w: ['Mai durează mult?', 'Auzi, stau de ceva vreme.'], ok: ['Mersi. Noapte bună.'], bad: ['Nu-i cine știe ce...', 'E așa și așa, sincer.'], x: ['Las-o. Mă duc în altă parte.'], no: ['Nu asta am cerut.'], raw: ['E crud!', 'Auzi, carnea nu-i făcută.'], burnt: ['E carbonizat.'], unw: ['Și mi-l dai așa, neîmpachetat?'], flee: ['Împușcături!!', 'Vai de mine!', 'Fugi!'], dark: ['S-a luat curentul?', 'Hei, nu se vede nimic.'], nofr: ['Și cartofii din cutie?'], hm: ['Azi are alt gust. E foarte bun.', 'Ai schimbat furnizorul? Mai bun ca oricând.'], gun: ['...'], g: ['Bună seara.'], pre: ['Dă-mi'], post: [''] },
 };
 const ANOMX = {
   es: ANOM,
@@ -534,6 +541,7 @@ function orderPhrase(ord) {
 }
 function itemName(h) {
   const N = LX[LANG].nm; if (!h) return N.none;
+  if (h.k === 'body') return N.body; if (h.k === 'cone') return N.cone;
   if (h.k === 'gun') return N.gun; if (h.k === 'fr') return N.fr; if (h.k === 'dr') return N.dr[h.t]; if (h.k === 'vg') return N.vg[h.t]; if (h.k === 'kb') return N.kb[h.b];
   return '?';
 }
@@ -549,6 +557,7 @@ function handDesc(h) {
   if (h.k === 'dr') return X.drink[h.t].toUpperCase();
   if (h.k === 'vg') return X.veg[h.t].toUpperCase() + Hh.uncut;
   if (h.k === 'gun') return Hh.gun;
+  if (h.k === 'body') return Hh.body; if (h.k === 'cone') return Hh.cone;
   return '';
 }
 function doneWord(d) { return LX[LANG].done[d < 0.35 ? 0 : d < 0.55 ? 1 : d <= 1.15 ? 2 : d <= 1.4 ? 3 : 4]; }
@@ -812,6 +821,17 @@ function itemMesh(h) {
     for (let i = 0; i < 9; i++) { const f = add(new THREE.BoxGeometry(0.012, 0.09, 0.012), fm, Math.cos(i * 2.4) * 0.03, 0.11, Math.sin(i * 2.4) * 0.03); f.rotation.set(Math.sin(i) * 0.3, 0, Math.cos(i * 1.7) * 0.3); }
     return g;
   }
+  if (h.k === 'body') {
+    const m = lam('bag', 0x8a8a92), rope = lam(null, 0xa89060);
+    add(new THREE.BoxGeometry(0.62, 0.2, 0.26), m, 0, 0.1, 0); add(new THREE.SphereGeometry(0.11, 6, 5), m, -0.37, 0.11, 0);
+    for (const x of [-0.2, 0.04, 0.25]) add(new THREE.BoxGeometry(0.02, 0.215, 0.275), rope, x, 0.1, 0);
+    return g;
+  }
+  if (h.k === 'cone') {
+    const c = add(new THREE.SphereGeometry(0.11, 7, 5), new THREE.MeshLambertMaterial({ map: TX.meat, color: 0xc85a52 }), 0, 0.1, 0); c.scale.set(1.3, 0.8, 1);
+    add(new THREE.CylinderGeometry(0.012, 0.012, 0.32, 5), lam(null, 0x70747a), 0, 0.14, 0);
+    return g;
+  }
   if (h.k === 'vg') {
     const m = lam(null, VEGC[h.t]);
     if (h.t === 0) add(new THREE.SphereGeometry(0.1, 7, 5), m, 0, 0.09, 0).scale.set(1, 0.85, 1);
@@ -984,6 +1004,11 @@ function buildWorld() {
   for (let i = 0; i < 5; i++) box(0.3, 0.26, 0.34, lam('wood', i % 2 ? 0xb89868 : 0x9a7a50), 3.5, 0.35 + (i % 3) * 0.55, -6.2 + i * 0.36, { ry: i * 0.2 });
   box(0.1, 0.52, 0.4, lam('fuse'), 0.56, 1.5, -5.3); D.fuseLever = box(0.05, 0.14, 0.05, lam(null, 0xb0201a), 0.63, 1.55, -5.3); D.fuseLed = box(0.02, 0.03, 0.03, bas(0x30ff50), 0.615, 1.7, -5.42);
   hit('fuse', 0.6, 1.5, -5.3, 0.22, 0.6, 0.5);
+  // mesa de despiece
+  box(0.75, 0.82, 0.85, M.steel2, 0.875, 0.41, -6.275, { col: true, occ: true }); box(0.79, 0.04, 0.89, M.steel, 0.875, 0.84, -6.275);
+  decal('st1', 0.875, 0.862, -6.275, -PI / 2, 0, 0.7, 0.7, 0.85); box(0.16, 0.012, 0.09, lam(null, 0xd0d4d8), 1.1, 0.87, -5.98); box(0.1, 0.02, 0.03, M.dark, 1.1, 0.875, -5.9);
+  D.bt = new THREE.Group(); D.bt.position.set(0.875, 0.865, -6.3); D.bt.rotation.y = PI / 2; scene.add(D.bt); D.btKey = '';
+  hit('butcher', 0.875, 1.0, -6.275, 0.8, 0.42, 0.9);
   D.bdoor = box(0.95, 2.08, 0.06, M.rust, 3.05, 1.04, -7.47); box(0.05, 0.05, 0.02, bas(0x020202), 3.05, 1.55, -7.43); box(0.04, 0.12, 0.05, M.steelD, 3.4, 1.0, -7.42);
   box(1.1, 2.2, 0.03, M.dark, 3.05, 1.1, -7.495);
   hit('peep', 3.05, 1.6, -7.44, 0.9, 0.9, 0.12); hit('bdoor', 3.05, 0.7, -7.44, 0.9, 0.9, 0.12);
@@ -1167,7 +1192,7 @@ function newWorld(n, prev) {
     v: NETV, hs: prev ? prev.hs : Date.now(), ph: 'play', why: 0, n, t: 0, cash: keep ? prev.cash : 0, rep: keep ? prev.rep : 60,
     s: { sv: 0, ls: 0, e: 0, tp: 0 }, pw: 1, fk: 0, sx: 0, sd: (Math.random() * 2e9) | 0, bo: 0, fl: 0,
     sp: [spitWire(), spitWire()], bin: [8, 8, 8], chop: { t: -1, n: 0 }, fry: { s: 0, t: 0, u: 0, q: 1 }, sh: [0, 0, 0], gr: 1, am: 2, shl: 6,
-    bd: { s: 0, t: 0, o: 0 }, cu: [], pl: {}, ev: prev ? prev.ev : [], es: prev ? prev.es : 0, id: prev ? prev.id : 1, used: [], nx: 4,
+    bd: { s: 0, t: 0, o: 0 }, bt: 0, cu: [], pl: {}, ev: prev ? prev.ev : [], es: prev ? prev.es : 0, id: prev ? prev.id : 1, used: [], nx: 4,
   };
   if (prev) for (const k in prev.pl) w.pl[k] = { h: 0, hp: 3, ko: 0 };
   return w;
@@ -1247,11 +1272,12 @@ function pay(c, ord, noTip) {
   const Ar = ARCH[c.a], price = orderPrice(ord), avg = ord.length ? c.sc / ord.length : 1;
   const amt = avg < 0.4 ? Math.round(price * 50) / 100 : price;
   let tip = 0; if (!noTip && avg > 0.75 && Ar.tip > 0) tip = Math.round(price * Ar.tip * avg * (0.4 + 0.6 * clamp(c.p, 0, 1)) * 2) / 2;
+  if (c.hm && !noTip && avg > 0.6) tip += 1;
   W.cash = r2(W.cash + amt + tip); W.s.e = r2(W.s.e + amt); W.s.tp = r2(W.s.tp + tip); W.s.sv++;
   ev('cash', c.x, c.z, r2(amt)); if (tip > 0) ev('tip', c.x, c.z, tip);
   let dr = avg > 0.85 ? 3 : avg > 0.6 ? 1 : avg > 0.4 ? -2 : -5; if (Ar.sp === 'influencer') dr *= 3;
   W.rep = clamp(W.rep + dr, 0, 100);
-  say(c, avg > 0.6 ? 'ok' : 'bad'); leave(c, avg > 0.6);
+  say(c, avg > 0.6 ? (c.hm ? 'hm' : 'ok') : 'bad'); leave(c, avg > 0.6);
 }
 function finishOrder(c, ord) {
   const Ar = ARCH[c.a];
@@ -1282,7 +1308,7 @@ function deliver(c, pid) {
     }
   }
   if (idx < 0) { say(c, 'no'); ev('bad', c.x, c.z); return; }
-  c.g[idx] = 1; c.sc = r2(c.sc + score); P.h = 0; ev('ok', c.x, c.z);
+  c.g[idx] = 1; c.sc = r2(c.sc + score); if (H.hm) c.hm = 1; P.h = 0; ev('ok', c.x, c.z);
   if (c.g.every(v => v)) finishOrder(c, ord); else if (line) say(c, line);
 }
 function nearestPlayer(x, z) {
@@ -1350,7 +1376,7 @@ function updCustomer(c, dt) {
       if (moveTo(c, wp[0], wp[1], sp, dt)) { c.wp++; if (c.wp >= 3) { c.rm = 1; if (c.st === S_RUN) { ev('msg', 0, 0, 'sinpa'); ev('bad', 0, 0); W.s.ls++; } } }
       break;
     }
-    case S_DEAD: if (c.t > 30) c.rm = 1; break;
+    case S_DEAD: if (c.t > 30 && !c.cr) c.rm = 1; break;
     case S_ROB: {
       const n = nearestPlayer(c.x, c.z); if (n) c.y = angLerp(c.y, Math.atan2(n.x - c.x, n.z - c.z), Math.min(1, dt * 5));
       if (gunAimAt(c.i)) { c.sc += dt; if (c.sc > 0.8) { say(c, 'robflee'); ev('msg', 0, 0, 'robgone'); flee(c); } }
@@ -1394,7 +1420,13 @@ function useLogic(pid, key, doIt) {
     if (H && H.k === 'gun') return R(T('u_gun_hang'), true, () => { P.h = 0; W.gr = 1; });
     return R(T(W.gr ? 'u_gun_busy' : 'u_gun_gone'), false);
   }
-  if (key === 'trash') { if (H && H.k !== 'gun') return R(T('u_trash', itemName(H)), true, () => { P.h = 0; }); return R(T('u_bin'), false); }
+  if (key === 'butcher') {
+    const B = W.bt;
+    if (H && H.k === 'body') { if (B) return R(T('u_table_busy'), false); return R(T('u_table_put'), true, () => { W.bt = { a: H.a, s: H.s, n: 0 }; P.h = 0; }); }
+    if (!H && B) return R(T('u_table_cut', B.n), true, () => { B.n++; if (B.n >= 8) { W.bt = 0; P.h = { k: 'cone' }; } });
+    return R(T(B ? 'u_hands' : 'u_table_idle'), false);
+  }
+  if (key === 'trash') { if (H && H.k !== 'gun' && H.k !== 'body') return R(T('u_trash', itemName(H)), true, () => { P.h = 0; }); return R(T('u_bin'), false); }
   if (key === 'fz') {
     const F = W.fry;
     if (F.s === 0) { if (F.u >= 4) return R(T('u_fry_full'), false); return R(T('u_fry_in'), true, () => { F.s = 1; F.t = 0; }); }
@@ -1426,13 +1458,14 @@ function useLogic(pid, key, doIt) {
     });
   }
   const kind = key.slice(0, 2);
+  if (kind === 'sp' && H && H.k === 'cone') return R(T('u_cone_mount', X.meat[n]), true, () => { const S = SV[n]; S.lv.fill(7); S.dn.fill(0.12); S.pend.fill(0); S.dirty = true; W.sp[n].h = 1; encodeSpit(n); P.h = 0; });
   if (kind === 'sp') return H ? R(T('u_hands'), false) : R(T('u_carve', X.meat[n]), true, null, 'cut');
   if (kind === 'tr') {
     const Tr = W.sp[n];
     if (!openKb) return R(T('u_tray_n', X.meat[n], Math.floor(Tr.u / 8)), false);
     if (Tr.u < 8) return R(T('u_tray_low', X.meat[n]), false);
     if (H.m[0] + H.m[1] >= 3) return R(T('u_tray_full'), false);
-    return R(T('u_tray_add', X.meat[n]) + (Tr.r > 0.4 ? T('u_raw') : ''), true, () => { const k = H.m[0] + H.m[1]; H.q = r2((H.q * k + Tr.q) / (k + 1)); H.r = r2(Math.max(H.r, Tr.r)); H.m[n]++; Tr.u -= 8; if (Tr.u <= 0) { Tr.u = 0; Tr.q = 1; Tr.r = 0; } });
+    return R(T('u_tray_add', X.meat[n]) + (Tr.r > 0.4 ? T('u_raw') : ''), true, () => { const k = H.m[0] + H.m[1]; H.q = r2((H.q * k + Tr.q) / (k + 1)); H.r = r2(Math.max(H.r, Tr.r)); H.m[n]++; if (Tr.h) H.hm = 1; Tr.u -= 8; if (Tr.u <= 0) { Tr.u = 0; Tr.q = 1; Tr.r = 0; Tr.h = 0; } });
   }
   if (kind === 'bn') {
     if (!openKb) return R(X.veg[n] + ': ' + W.bin[n], false);
@@ -1448,7 +1481,7 @@ function useLogic(pid, key, doIt) {
   if (kind === 'bs') { if (H) return R(T('u_busy', X.base[n]), false); return R(T('u_base' + n), true, () => { P.h = { k: 'kb', b: n, m: [0, 0], q: 1, r: 0, v: 0, s: 0, f: 0, w: 0 }; }); }
   if (kind === 'sh') {
     const cur = W.sh[n];
-    if (H && H.k !== 'gun' && !cur) return R(T('u_pass_put', itemName(H)), true, () => { W.sh[n] = H; P.h = 0; });
+    if (H && H.k !== 'gun' && H.k !== 'body' && !cur) return R(T('u_pass_put', itemName(H)), true, () => { W.sh[n] = H; P.h = 0; });
     if (!H && cur) return R(T('u_take', itemName(cur)), true, () => { P.h = cur; W.sh[n] = 0; });
     return R(T(cur ? 'u_pass_full' : 'u_pass'), false);
   }
@@ -1458,8 +1491,9 @@ function useLogic(pid, key, doIt) {
     const c = W.cu.find(q => q.i === n); if (!c || c.an === 2) return null;
     const nm = aName(c.a);
     if (c.an === 1) { if (H && H.k !== 'gun' && (c.st === S_STALK || c.st === S_GREET)) return R(T('u_give', itemName(H), nm), true, () => { say(c, 'no'); }); return R(nm, false); }
+    if (c.st === S_DEAD) return H ? R(T('u_drag'), false) : R(T('u_drag'), true, () => { P.h = { k: 'body', a: c.a, s: c.s, cr: c.cr | 0 }; c.rm = 1; });
     if (c.st !== S_WAIT) return R(nm + ' · ' + aRole(c.a), false);
-    if (!H || H.k === 'gun' || H.k === 'vg') return R(T('u_wait', nm), false);
+    if (!H || H.k === 'gun' || H.k === 'vg' || H.k === 'body' || H.k === 'cone') return R(T('u_wait', nm), false);
     return R(T('u_give', itemName(H), nm), true, () => deliver(c, pid));
   }
   return null;
@@ -1472,7 +1506,7 @@ function doCut(pid, i, cells) {
     const d = S.dn[c]; if (pid !== NET.myId) onSlice(i, c, d);
     S.lv[c]--; S.dn[c] = 0.12 + Math.min(d, 1) * 0.1; any = true;
     const q = d < 0.55 ? (d / 0.55) * 0.5 : d <= 1.15 ? 1 : d <= 1.4 ? 0.6 : 0.2, raw = d < 0.35 ? 1 : 0;
-    T.q = (T.q * T.u + q) / (T.u + 1); T.r = (T.r * T.u + raw) / (T.u + 1); T.u = Math.min(64, T.u + 1);
+    T.q = (T.q * T.u + q) / (T.u + 1); T.r = (T.r * T.u + raw) / (T.u + 1); T.u = Math.min(64, T.u + 1); if (T.h === undefined) T.h = 0; if (W.sp[i].h) T.h = 1;
   }
   if (any) { S.dirty = true; encodeSpit(i); if (pid !== NET.myId) ev('cut', SPX[i], SPZ, pid); }
 }
@@ -1501,10 +1535,11 @@ function doShoot(pid, o, d) {
     c.hp -= n;
     if (c.an === 1) { if (c.hp <= 0) { c.st = S_DIS; c.t = 0; c.sl = -1; c.qi = -1; ev('scream', c.x, c.z); ev('msg', 0, 0, 'killed'); } else if (c.st !== S_ATK) startAtk(c); continue; }
     if (ARCH[c.a].sp === 'robber') { if (c.hp <= 0) { c.st = S_DEAD; c.t = 0; c.sl = -1; ev('die', c.x, c.z); } else { say(c, 'robflee'); flee(c); } }
-    else { c.st = S_DEAD; c.t = 0; c.sl = -1; c.qi = -1; ev('die', c.x, c.z); human = true; }
+    else { c.st = S_DEAD; c.cr = 1; c.t = 0; c.sl = -1; c.qi = -1; ev('die', c.x, c.z); human = true; }
   }
   panic();
-  if (human) { W.ph = 'over'; W.why = 1; }
+  // Matar a un cliente solo acaba la partida si alguien lo ha visto (dentro del local o en la puerta).
+  if (human) { if (W.cu.some(o => !o.an && o.st !== S_DEAD && ARCH[o.a].sp !== 'robber' && o.z < 5.6)) { W.ph = 'over'; W.why = 1; } else ev('msg', 0, 0, 'nowit'); }
 }
 function applyAction(pid, a) {
   if (!W) return;
@@ -1515,6 +1550,7 @@ function applyAction(pid, a) {
   if (k === 'use') useLogic(pid, String(a[2]), true);
   else if (k === 'cut') doCut(pid, a[2], a[3]);
   else if (k === 'shoot') doShoot(pid, a[2], a[3]);
+  else if (k === 'dropbody') { const P = W.pl[pid], p = PP[pid]; if (P && P.h && P.h.k === 'body' && p) { W.cu.push({ i: W.id++, a: P.h.a, s: P.h.s, x: r2(p.x), z: r2(p.z), y: 0, st: S_DEAD, p: 0, g: [], l: '', ln: 0, sl: -1, qi: -1, an: 0, hp: 0, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, cr: P.h.cr | 0 }); P.h = 0; } }
   else if (k === 'reload') { const P = W.pl[pid]; if (P && P.h && P.h.k === 'gun' && W.am < 2 && W.shl > 0) { const n = Math.min(2 - W.am, W.shl); W.am += n; W.shl -= n; } }
 }
 
@@ -1588,11 +1624,17 @@ function simulate(dt) {
     const left = W.cu.some(c => !c.an && c.st <= S_WAIT);
     if (!left || W.t > NIGHT_LEN + 40) { W.cu = []; W.pw = 1; W.bd.s = 0; W.ph = 'end'; }
   }
+  // Un cuerpo a la vista en la zona de clientes (en el suelo o a cuestas) y alguien que entra: se acabó.
+  if (W.ph === 'play') {
+    let body = W.cu.some(c => c.st === S_DEAD && c.cr && c.z > 1.3);
+    if (!body) for (const pid in W.pl) { const h = W.pl[pid].h; if (h && h.k === 'body' && h.cr && PP[pid] && PP[pid].z > 1.3) body = true; }
+    if (body && W.cu.some(o => !o.an && o.st <= S_WAIT && o.wp >= 2 && o.z < 4.7 && ARCH[o.a].sp !== 'robber')) { W.ph = 'over'; W.why = 2; }
+  }
   if (W.rep <= 0 && W.ph === 'play') { W.ph = 'over'; W.why = 0; }
 }
 
 /* ================= RED: cooperativo por presencia ================= */
-const NETV = 3;   // versión del protocolo: todos tienen que jugar con la misma
+const NETV = 4;   // versión del protocolo: todos tienen que jugar con la misma
 const NET = { room: null, myId: 'solo', isHost: true, joined: false, acts: [], seq: 0, lastSeq: {}, lastHost: null, hostGone: 0, sendT: 0, others: [], remote: null, count: 1, evInit: false, code: '', badVer: false, lostSaid: false };
 
 /* Fuera de Claude (GitHub) la sala va por PeerJS, de navegador a navegador y sin cuentas.
@@ -1922,7 +1964,7 @@ function updatePlayer(dt) {
   if (IN.joy && IN.joy.fx !== undefined) { f -= IN.joy.fy; s += IN.joy.fx; }
   if (cut.on || ko || overlay) { f = 0; s = 0; }
   const L = Math.hypot(f, s); if (L > 1) { f /= L; s /= L; }
-  const sp = P && P.h && P.h.k === 'gun' ? 3.0 : 3.35, sy = Math.sin(me.yaw), cy = Math.cos(me.yaw);
+  const sp = P && P.h && P.h.k === 'gun' ? 3.0 : P && P.h && P.h.k === 'body' ? 1.9 : 3.35, sy = Math.sin(me.yaw), cy = Math.cos(me.yaw);
   const vx = (-sy * f + cy * s) * sp, vz = (-cy * f - sy * s) * sp;
   me.x += vx * dt; me.z += vz * dt; collide(me); collide(me);
   const mv = Math.min(1, Math.hypot(f, s));
@@ -1981,6 +2023,7 @@ function updateViewmodel(dt) {
       const arm = new THREE.Mesh(G(0.075, 0.075, 0.4), lam(null, 0xc8906a));
       if (h.k === 'gun') { it.scale.setScalar(1.15); vmItem.position.set(0.19, -0.2, -0.36); arm.position.set(0.02, -0.07, 0.3); }
       else if (h.k === 'kb') { it.scale.setScalar(1.25); it.rotation.x = 0.85; it.rotation.y = h.w && h.b === 0 ? 0.5 : 0; vmItem.position.set(0.04, -0.2, -0.44); arm.position.set(0.12, -0.1, 0.22); arm.rotation.y = 0.3; }
+      else if (h.k === 'body') { it.scale.setScalar(1.15); it.rotation.y = 0.35; vmItem.position.set(0.06, -0.4, -0.52); arm.position.set(0.22, 0.02, 0.2); }
       else { it.scale.setScalar(1.3); vmItem.position.set(0.2, -0.3, -0.45); arm.position.set(0.02, -0.06, 0.24); }
       vmItem.add(arm); vmKick = 1;
     }
@@ -2002,6 +2045,7 @@ function tryShoot(P) {
   act('shoot', o, d);
 }
 function useSound(key) {
+  if (key === 'butcher') { AU.play(W && W.bt ? 'chop' : 'grab'); return; }
   if (key === 'chop') { if (W && W.chop.t < 0) AU.play('grab'); return; }
   const k = key.slice(0, 2);
   AU.play(key === 'foil' ? 'foil' : k === 'sa' ? 'squirt' : key === 'chop' ? 'chop' : key === 'fz' ? 'fryin' : k === 'dr' ? 'pop' : key === 'gun' ? 'reload' : key === 'bdoor' ? 'door' : 'grab');
@@ -2020,6 +2064,7 @@ function updateInteract(dt) {
   if (IN.reload) { IN.reload = false; if (gun && reloadT <= 0 && W.am < 2 && W.shl > 0) { reloadT = 1.2; AU.play('reload'); act('reload'); } }
   let use = IN.use; if (IN.fire) { if (gun) tryShoot(P); else use = true; }
   IN.use = IN.fire = false;
+  if (use && !target && useCd <= 0 && P.h && P.h.k === 'body') { act('dropbody'); AU.play('die'); useCd = 0.5; }
   if (use && target && useCd <= 0) {
     if (!target.ok) { AU.play('bad'); useCd = 0.25; }
     else if (target.loc === 'cut') enterCut(+targetKey.slice(2));
@@ -2115,6 +2160,8 @@ function syncWorld(dt) {
   D.friesPile.visible = F.u > 0; D.friesPile.scale.y = 0.3 + F.u * 0.3; D.friesPile.material.color.setHex(F.q < 0.4 ? 0x5a3a1a : F.q < 0.8 ? 0xb8862a : 0xe2b83a);
   for (let i = 0; i < 3; i++) { const sk = W.sh[i] ? JSON.stringify(W.sh[i]) : ''; if (sk !== D.shelf[i].key) { D.shelf[i].key = sk; clearGroup(D.shelf[i].g); if (sk) D.shelf[i].g.add(itemMesh(W.sh[i])); } }
   D.rackGun.visible = !!W.gr;
+  const bk = W.bt ? W.bt.s + ':' + W.bt.n : '';
+  if (bk !== D.btKey) { D.btKey = bk; clearGroup(D.bt); if (W.bt) { const m = itemMesh({ k: 'body' }), k = 1 - W.bt.n / 9; m.scale.set(1.5 * k, 1.5 * (0.6 + 0.4 * k), 1.5 * (0.7 + 0.3 * k)); D.bt.add(m); } }
   const B = W.bd; D.bdoor.position.z = -7.47 + (B.s ? Math.max(0, Math.sin(B.t * 1.85 * PI)) * (B.s === 2 ? 0.02 : 0.008) : 0);
   const ok = clamp(B.o / 0.6, 0, 1); D.bdoor.rotation.y = -ok * 1.1; D.bdoor.position.x = 3.05 - ok * 0.2;
   D.figWin.visible = W.t > HOUR_LEN * 4.3 && W.t < HOUR_LEN * 4.9;
@@ -2154,6 +2201,7 @@ function updateHUD(dt) {
   const pr = $('prompt');
   if (cut.on) { pr.className = 'ok low'; pr.textContent = (cut.empty ? T('cut_empty') : T('cut_front', doneWord(cut.dn || 0))) + T(IN.dev === 'touch' ? 'cut_touch' : IN.dev === 'pad' ? 'cut_pad' : 'cut_kb'); }
   else if (target) { pr.className = target.ok ? 'ok' : 'no'; pr.textContent = (target.ok ? keyHint() : '') + target.t; }
+  else if (P && P.h && P.h.k === 'body' && W.ph === 'play' && !overlay) { pr.className = 'ok'; pr.textContent = keyHint() + T('u_drop_body'); }
   else { pr.className = ''; pr.textContent = ''; }
   $('cross').classList.toggle('on', !!(target && target.ok)); $('cross').classList.toggle('aim', !!me.aim);
   hudT -= dt; if (hudT > 0) return; hudT = 0.12;
@@ -2163,7 +2211,7 @@ function updateHUD(dt) {
   if (W && started) {
     if (ph !== prevPh || W.n !== prevN) {
       if (ph === 'end') { $('end-t').textContent = T('end_t', W.n); $('end-s').innerHTML = '<dt>' + T('e_sv') + '</dt><dd>' + W.s.sv + '</dd><dt>' + T('e_ls') + '</dt><dd>' + W.s.ls + '</dd><dt>' + T('e_e') + '</dt><dd>' + eur(W.s.e) + '</dd><dt>' + T('e_tp') + '</dt><dd>' + eur(W.s.tp) + '</dd><dt>' + T('e_cash') + '</dt><dd>' + eur(W.cash) + '</dd><dt>' + T('rep') + '</dt><dd>' + Math.round(W.rep) + ' / 100</dd>'; if (overlay !== 'end') setOverlay('end'); }
-      else if (ph === 'over') { $('over-t').textContent = T(W.why === 1 ? 'over1_t' : 'over0_t'); $('over-p').textContent = T(W.why === 1 ? 'over1_p' : 'over0_p'); $('over-s').textContent = T('over_s', W.n - 1, eur(W.cash)); if (overlay !== 'over') setOverlay('over'); }
+      else if (ph === 'over') { $('over-t').textContent = T('over' + (W.why | 0) + '_t'); $('over-p').textContent = T('over' + (W.why | 0) + '_p'); $('over-s').textContent = T('over_s', W.n - 1, eur(W.cash)); if (overlay !== 'over') setOverlay('over'); }
       else if (ph === 'play') { if (overlay === 'end' || overlay === 'over') setOverlay(null); if (W.n !== prevN || (prevPh !== 'play' && prevPh !== '')) { me.x = 1.6; me.z = -1.6; me.yaw = PI; me.pitch = 0; } if (W.n !== prevN || (prevPh !== 'play' && prevPh !== '') || !greeted) { greeted = true; toast(T('t_night', W.n), 'good'); } }
       prevPh = ph; prevN = W.n;
     }

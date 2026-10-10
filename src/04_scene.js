@@ -149,6 +149,17 @@ function itemMesh(h) {
     for (let i = 0; i < 9; i++) { const f = add(new THREE.BoxGeometry(0.012, 0.09, 0.012), fm, Math.cos(i * 2.4) * 0.03, 0.11, Math.sin(i * 2.4) * 0.03); f.rotation.set(Math.sin(i) * 0.3, 0, Math.cos(i * 1.7) * 0.3); }
     return g;
   }
+  if (h.k === 'body') {
+    const m = lam('bag', 0x8a8a92), rope = lam(null, 0xa89060);
+    add(new THREE.BoxGeometry(0.62, 0.2, 0.26), m, 0, 0.1, 0); add(new THREE.SphereGeometry(0.11, 6, 5), m, -0.37, 0.11, 0);
+    for (const x of [-0.2, 0.04, 0.25]) add(new THREE.BoxGeometry(0.02, 0.215, 0.275), rope, x, 0.1, 0);
+    return g;
+  }
+  if (h.k === 'cone') {
+    const c = add(new THREE.SphereGeometry(0.11, 7, 5), new THREE.MeshLambertMaterial({ map: TX.meat, color: 0xc85a52 }), 0, 0.1, 0); c.scale.set(1.3, 0.8, 1);
+    add(new THREE.CylinderGeometry(0.012, 0.012, 0.32, 5), lam(null, 0x70747a), 0, 0.14, 0);
+    return g;
+  }
   if (h.k === 'vg') {
     const m = lam(null, VEGC[h.t]);
     if (h.t === 0) add(new THREE.SphereGeometry(0.1, 7, 5), m, 0, 0.09, 0).scale.set(1, 0.85, 1);
@@ -321,6 +332,11 @@ function buildWorld() {
   for (let i = 0; i < 5; i++) box(0.3, 0.26, 0.34, lam('wood', i % 2 ? 0xb89868 : 0x9a7a50), 3.5, 0.35 + (i % 3) * 0.55, -6.2 + i * 0.36, { ry: i * 0.2 });
   box(0.1, 0.52, 0.4, lam('fuse'), 0.56, 1.5, -5.3); D.fuseLever = box(0.05, 0.14, 0.05, lam(null, 0xb0201a), 0.63, 1.55, -5.3); D.fuseLed = box(0.02, 0.03, 0.03, bas(0x30ff50), 0.615, 1.7, -5.42);
   hit('fuse', 0.6, 1.5, -5.3, 0.22, 0.6, 0.5);
+  // mesa de despiece
+  box(0.75, 0.82, 0.85, M.steel2, 0.875, 0.41, -6.275, { col: true, occ: true }); box(0.79, 0.04, 0.89, M.steel, 0.875, 0.84, -6.275);
+  decal('st1', 0.875, 0.862, -6.275, -PI / 2, 0, 0.7, 0.7, 0.85); box(0.16, 0.012, 0.09, lam(null, 0xd0d4d8), 1.1, 0.87, -5.98); box(0.1, 0.02, 0.03, M.dark, 1.1, 0.875, -5.9);
+  D.bt = new THREE.Group(); D.bt.position.set(0.875, 0.865, -6.3); D.bt.rotation.y = PI / 2; scene.add(D.bt); D.btKey = '';
+  hit('butcher', 0.875, 1.0, -6.275, 0.8, 0.42, 0.9);
   D.bdoor = box(0.95, 2.08, 0.06, M.rust, 3.05, 1.04, -7.47); box(0.05, 0.05, 0.02, bas(0x020202), 3.05, 1.55, -7.43); box(0.04, 0.12, 0.05, M.steelD, 3.4, 1.0, -7.42);
   box(1.1, 2.2, 0.03, M.dark, 3.05, 1.1, -7.495);
   hit('peep', 3.05, 1.6, -7.44, 0.9, 0.9, 0.12); hit('bdoor', 3.05, 0.7, -7.44, 0.9, 0.9, 0.12);

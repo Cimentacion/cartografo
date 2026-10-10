@@ -10,7 +10,7 @@ function newWorld(n, prev) {
     v: NETV, hs: prev ? prev.hs : Date.now(), ph: 'play', why: 0, n, t: 0, cash: keep ? prev.cash : 0, rep: keep ? prev.rep : 60,
     s: { sv: 0, ls: 0, e: 0, tp: 0 }, pw: 1, fk: 0, sx: 0, sd: (Math.random() * 2e9) | 0, bo: 0, fl: 0,
     sp: [spitWire(), spitWire()], bin: [8, 8, 8], chop: { t: -1, n: 0 }, fry: { s: 0, t: 0, u: 0, q: 1 }, sh: [0, 0, 0], gr: 1, am: 2, shl: 6,
-    bd: { s: 0, t: 0, o: 0 }, cu: [], pl: {}, ev: prev ? prev.ev : [], es: prev ? prev.es : 0, id: prev ? prev.id : 1, used: [], nx: 4,
+    bd: { s: 0, t: 0, o: 0 }, bt: 0, cu: [], pl: {}, ev: prev ? prev.ev : [], es: prev ? prev.es : 0, id: prev ? prev.id : 1, used: [], nx: 4,
   };
   if (prev) for (const k in prev.pl) w.pl[k] = { h: 0, hp: 3, ko: 0 };
   return w;
@@ -90,11 +90,12 @@ function pay(c, ord, noTip) {
   const Ar = ARCH[c.a], price = orderPrice(ord), avg = ord.length ? c.sc / ord.length : 1;
   const amt = avg < 0.4 ? Math.round(price * 50) / 100 : price;
   let tip = 0; if (!noTip && avg > 0.75 && Ar.tip > 0) tip = Math.round(price * Ar.tip * avg * (0.4 + 0.6 * clamp(c.p, 0, 1)) * 2) / 2;
+  if (c.hm && !noTip && avg > 0.6) tip += 1;
   W.cash = r2(W.cash + amt + tip); W.s.e = r2(W.s.e + amt); W.s.tp = r2(W.s.tp + tip); W.s.sv++;
   ev('cash', c.x, c.z, r2(amt)); if (tip > 0) ev('tip', c.x, c.z, tip);
   let dr = avg > 0.85 ? 3 : avg > 0.6 ? 1 : avg > 0.4 ? -2 : -5; if (Ar.sp === 'influencer') dr *= 3;
   W.rep = clamp(W.rep + dr, 0, 100);
-  say(c, avg > 0.6 ? 'ok' : 'bad'); leave(c, avg > 0.6);
+  say(c, avg > 0.6 ? (c.hm ? 'hm' : 'ok') : 'bad'); leave(c, avg > 0.6);
 }
 function finishOrder(c, ord) {
   const Ar = ARCH[c.a];
@@ -125,7 +126,7 @@ function deliver(c, pid) {
     }
   }
   if (idx < 0) { say(c, 'no'); ev('bad', c.x, c.z); return; }
-  c.g[idx] = 1; c.sc = r2(c.sc + score); P.h = 0; ev('ok', c.x, c.z);
+  c.g[idx] = 1; c.sc = r2(c.sc + score); if (H.hm) c.hm = 1; P.h = 0; ev('ok', c.x, c.z);
   if (c.g.every(v => v)) finishOrder(c, ord); else if (line) say(c, line);
 }
 function nearestPlayer(x, z) {
@@ -193,7 +194,7 @@ function updCustomer(c, dt) {
       if (moveTo(c, wp[0], wp[1], sp, dt)) { c.wp++; if (c.wp >= 3) { c.rm = 1; if (c.st === S_RUN) { ev('msg', 0, 0, 'sinpa'); ev('bad', 0, 0); W.s.ls++; } } }
       break;
     }
-    case S_DEAD: if (c.t > 30) c.rm = 1; break;
+    case S_DEAD: if (c.t > 30 && !c.cr) c.rm = 1; break;
     case S_ROB: {
       const n = nearestPlayer(c.x, c.z); if (n) c.y = angLerp(c.y, Math.atan2(n.x - c.x, n.z - c.z), Math.min(1, dt * 5));
       if (gunAimAt(c.i)) { c.sc += dt; if (c.sc > 0.8) { say(c, 'robflee'); ev('msg', 0, 0, 'robgone'); flee(c); } }
@@ -237,7 +238,13 @@ function useLogic(pid, key, doIt) {
     if (H && H.k === 'gun') return R(T('u_gun_hang'), true, () => { P.h = 0; W.gr = 1; });
     return R(T(W.gr ? 'u_gun_busy' : 'u_gun_gone'), false);
   }
-  if (key === 'trash') { if (H && H.k !== 'gun') return R(T('u_trash', itemName(H)), true, () => { P.h = 0; }); return R(T('u_bin'), false); }
+  if (key === 'butcher') {
+    const B = W.bt;
+    if (H && H.k === 'body') { if (B) return R(T('u_table_busy'), false); return R(T('u_table_put'), true, () => { W.bt = { a: H.a, s: H.s, n: 0 }; P.h = 0; }); }
+    if (!H && B) return R(T('u_table_cut', B.n), true, () => { B.n++; if (B.n >= 8) { W.bt = 0; P.h = { k: 'cone' }; } });
+    return R(T(B ? 'u_hands' : 'u_table_idle'), false);
+  }
+  if (key === 'trash') { if (H && H.k !== 'gun' && H.k !== 'body') return R(T('u_trash', itemName(H)), true, () => { P.h = 0; }); return R(T('u_bin'), false); }
   if (key === 'fz') {
     const F = W.fry;
     if (F.s === 0) { if (F.u >= 4) return R(T('u_fry_full'), false); return R(T('u_fry_in'), true, () => { F.s = 1; F.t = 0; }); }
@@ -269,13 +276,14 @@ function useLogic(pid, key, doIt) {
     });
   }
   const kind = key.slice(0, 2);
+  if (kind === 'sp' && H && H.k === 'cone') return R(T('u_cone_mount', X.meat[n]), true, () => { const S = SV[n]; S.lv.fill(7); S.dn.fill(0.12); S.pend.fill(0); S.dirty = true; W.sp[n].h = 1; encodeSpit(n); P.h = 0; });
   if (kind === 'sp') return H ? R(T('u_hands'), false) : R(T('u_carve', X.meat[n]), true, null, 'cut');
   if (kind === 'tr') {
     const Tr = W.sp[n];
     if (!openKb) return R(T('u_tray_n', X.meat[n], Math.floor(Tr.u / 8)), false);
     if (Tr.u < 8) return R(T('u_tray_low', X.meat[n]), false);
     if (H.m[0] + H.m[1] >= 3) return R(T('u_tray_full'), false);
-    return R(T('u_tray_add', X.meat[n]) + (Tr.r > 0.4 ? T('u_raw') : ''), true, () => { const k = H.m[0] + H.m[1]; H.q = r2((H.q * k + Tr.q) / (k + 1)); H.r = r2(Math.max(H.r, Tr.r)); H.m[n]++; Tr.u -= 8; if (Tr.u <= 0) { Tr.u = 0; Tr.q = 1; Tr.r = 0; } });
+    return R(T('u_tray_add', X.meat[n]) + (Tr.r > 0.4 ? T('u_raw') : ''), true, () => { const k = H.m[0] + H.m[1]; H.q = r2((H.q * k + Tr.q) / (k + 1)); H.r = r2(Math.max(H.r, Tr.r)); H.m[n]++; if (Tr.h) H.hm = 1; Tr.u -= 8; if (Tr.u <= 0) { Tr.u = 0; Tr.q = 1; Tr.r = 0; Tr.h = 0; } });
   }
   if (kind === 'bn') {
     if (!openKb) return R(X.veg[n] + ': ' + W.bin[n], false);
@@ -291,7 +299,7 @@ function useLogic(pid, key, doIt) {
   if (kind === 'bs') { if (H) return R(T('u_busy', X.base[n]), false); return R(T('u_base' + n), true, () => { P.h = { k: 'kb', b: n, m: [0, 0], q: 1, r: 0, v: 0, s: 0, f: 0, w: 0 }; }); }
   if (kind === 'sh') {
     const cur = W.sh[n];
-    if (H && H.k !== 'gun' && !cur) return R(T('u_pass_put', itemName(H)), true, () => { W.sh[n] = H; P.h = 0; });
+    if (H && H.k !== 'gun' && H.k !== 'body' && !cur) return R(T('u_pass_put', itemName(H)), true, () => { W.sh[n] = H; P.h = 0; });
     if (!H && cur) return R(T('u_take', itemName(cur)), true, () => { P.h = cur; W.sh[n] = 0; });
     return R(T(cur ? 'u_pass_full' : 'u_pass'), false);
   }
@@ -301,8 +309,9 @@ function useLogic(pid, key, doIt) {
     const c = W.cu.find(q => q.i === n); if (!c || c.an === 2) return null;
     const nm = aName(c.a);
     if (c.an === 1) { if (H && H.k !== 'gun' && (c.st === S_STALK || c.st === S_GREET)) return R(T('u_give', itemName(H), nm), true, () => { say(c, 'no'); }); return R(nm, false); }
+    if (c.st === S_DEAD) return H ? R(T('u_drag'), false) : R(T('u_drag'), true, () => { P.h = { k: 'body', a: c.a, s: c.s, cr: c.cr | 0 }; c.rm = 1; });
     if (c.st !== S_WAIT) return R(nm + ' · ' + aRole(c.a), false);
-    if (!H || H.k === 'gun' || H.k === 'vg') return R(T('u_wait', nm), false);
+    if (!H || H.k === 'gun' || H.k === 'vg' || H.k === 'body' || H.k === 'cone') return R(T('u_wait', nm), false);
     return R(T('u_give', itemName(H), nm), true, () => deliver(c, pid));
   }
   return null;
@@ -315,7 +324,7 @@ function doCut(pid, i, cells) {
     const d = S.dn[c]; if (pid !== NET.myId) onSlice(i, c, d);
     S.lv[c]--; S.dn[c] = 0.12 + Math.min(d, 1) * 0.1; any = true;
     const q = d < 0.55 ? (d / 0.55) * 0.5 : d <= 1.15 ? 1 : d <= 1.4 ? 0.6 : 0.2, raw = d < 0.35 ? 1 : 0;
-    T.q = (T.q * T.u + q) / (T.u + 1); T.r = (T.r * T.u + raw) / (T.u + 1); T.u = Math.min(64, T.u + 1);
+    T.q = (T.q * T.u + q) / (T.u + 1); T.r = (T.r * T.u + raw) / (T.u + 1); T.u = Math.min(64, T.u + 1); if (T.h === undefined) T.h = 0; if (W.sp[i].h) T.h = 1;
   }
   if (any) { S.dirty = true; encodeSpit(i); if (pid !== NET.myId) ev('cut', SPX[i], SPZ, pid); }
 }
@@ -344,10 +353,11 @@ function doShoot(pid, o, d) {
     c.hp -= n;
     if (c.an === 1) { if (c.hp <= 0) { c.st = S_DIS; c.t = 0; c.sl = -1; c.qi = -1; ev('scream', c.x, c.z); ev('msg', 0, 0, 'killed'); } else if (c.st !== S_ATK) startAtk(c); continue; }
     if (ARCH[c.a].sp === 'robber') { if (c.hp <= 0) { c.st = S_DEAD; c.t = 0; c.sl = -1; ev('die', c.x, c.z); } else { say(c, 'robflee'); flee(c); } }
-    else { c.st = S_DEAD; c.t = 0; c.sl = -1; c.qi = -1; ev('die', c.x, c.z); human = true; }
+    else { c.st = S_DEAD; c.cr = 1; c.t = 0; c.sl = -1; c.qi = -1; ev('die', c.x, c.z); human = true; }
   }
   panic();
-  if (human) { W.ph = 'over'; W.why = 1; }
+  // Matar a un cliente solo acaba la partida si alguien lo ha visto (dentro del local o en la puerta).
+  if (human) { if (W.cu.some(o => !o.an && o.st !== S_DEAD && ARCH[o.a].sp !== 'robber' && o.z < 5.6)) { W.ph = 'over'; W.why = 1; } else ev('msg', 0, 0, 'nowit'); }
 }
 function applyAction(pid, a) {
   if (!W) return;
@@ -358,6 +368,7 @@ function applyAction(pid, a) {
   if (k === 'use') useLogic(pid, String(a[2]), true);
   else if (k === 'cut') doCut(pid, a[2], a[3]);
   else if (k === 'shoot') doShoot(pid, a[2], a[3]);
+  else if (k === 'dropbody') { const P = W.pl[pid], p = PP[pid]; if (P && P.h && P.h.k === 'body' && p) { W.cu.push({ i: W.id++, a: P.h.a, s: P.h.s, x: r2(p.x), z: r2(p.z), y: 0, st: S_DEAD, p: 0, g: [], l: '', ln: 0, sl: -1, qi: -1, an: 0, hp: 0, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, cr: P.h.cr | 0 }); P.h = 0; } }
   else if (k === 'reload') { const P = W.pl[pid]; if (P && P.h && P.h.k === 'gun' && W.am < 2 && W.shl > 0) { const n = Math.min(2 - W.am, W.shl); W.am += n; W.shl -= n; } }
 }
 
@@ -431,11 +442,17 @@ function simulate(dt) {
     const left = W.cu.some(c => !c.an && c.st <= S_WAIT);
     if (!left || W.t > NIGHT_LEN + 40) { W.cu = []; W.pw = 1; W.bd.s = 0; W.ph = 'end'; }
   }
+  // Un cuerpo a la vista en la zona de clientes (en el suelo o a cuestas) y alguien que entra: se acabó.
+  if (W.ph === 'play') {
+    let body = W.cu.some(c => c.st === S_DEAD && c.cr && c.z > 1.3);
+    if (!body) for (const pid in W.pl) { const h = W.pl[pid].h; if (h && h.k === 'body' && h.cr && PP[pid] && PP[pid].z > 1.3) body = true; }
+    if (body && W.cu.some(o => !o.an && o.st <= S_WAIT && o.wp >= 2 && o.z < 4.7 && ARCH[o.a].sp !== 'robber')) { W.ph = 'over'; W.why = 2; }
+  }
   if (W.rep <= 0 && W.ph === 'play') { W.ph = 'over'; W.why = 0; }
 }
 
 /* ================= RED: cooperativo por presencia ================= */
-const NETV = 3;   // versión del protocolo: todos tienen que jugar con la misma
+const NETV = 4;   // versión del protocolo: todos tienen que jugar con la misma
 const NET = { room: null, myId: 'solo', isHost: true, joined: false, acts: [], seq: 0, lastSeq: {}, lastHost: null, hostGone: 0, sendT: 0, others: [], remote: null, count: 1, evInit: false, code: '', badVer: false, lostSaid: false };
 
 /* Fuera de Claude (GitHub) la sala va por PeerJS, de navegador a navegador y sin cuentas.

@@ -211,7 +211,7 @@ function updatePlayer(dt) {
   if (IN.joy && IN.joy.fx !== undefined) { f -= IN.joy.fy; s += IN.joy.fx; }
   if (cut.on || ko || overlay) { f = 0; s = 0; }
   const L = Math.hypot(f, s); if (L > 1) { f /= L; s /= L; }
-  const sp = P && P.h && P.h.k === 'gun' ? 3.0 : 3.35, sy = Math.sin(me.yaw), cy = Math.cos(me.yaw);
+  const sp = P && P.h && P.h.k === 'gun' ? 3.0 : P && P.h && P.h.k === 'body' ? 1.9 : 3.35, sy = Math.sin(me.yaw), cy = Math.cos(me.yaw);
   const vx = (-sy * f + cy * s) * sp, vz = (-cy * f - sy * s) * sp;
   me.x += vx * dt; me.z += vz * dt; collide(me); collide(me);
   const mv = Math.min(1, Math.hypot(f, s));
@@ -270,6 +270,7 @@ function updateViewmodel(dt) {
       const arm = new THREE.Mesh(G(0.075, 0.075, 0.4), lam(null, 0xc8906a));
       if (h.k === 'gun') { it.scale.setScalar(1.15); vmItem.position.set(0.19, -0.2, -0.36); arm.position.set(0.02, -0.07, 0.3); }
       else if (h.k === 'kb') { it.scale.setScalar(1.25); it.rotation.x = 0.85; it.rotation.y = h.w && h.b === 0 ? 0.5 : 0; vmItem.position.set(0.04, -0.2, -0.44); arm.position.set(0.12, -0.1, 0.22); arm.rotation.y = 0.3; }
+      else if (h.k === 'body') { it.scale.setScalar(1.15); it.rotation.y = 0.35; vmItem.position.set(0.06, -0.4, -0.52); arm.position.set(0.22, 0.02, 0.2); }
       else { it.scale.setScalar(1.3); vmItem.position.set(0.2, -0.3, -0.45); arm.position.set(0.02, -0.06, 0.24); }
       vmItem.add(arm); vmKick = 1;
     }
@@ -291,6 +292,7 @@ function tryShoot(P) {
   act('shoot', o, d);
 }
 function useSound(key) {
+  if (key === 'butcher') { AU.play(W && W.bt ? 'chop' : 'grab'); return; }
   if (key === 'chop') { if (W && W.chop.t < 0) AU.play('grab'); return; }
   const k = key.slice(0, 2);
   AU.play(key === 'foil' ? 'foil' : k === 'sa' ? 'squirt' : key === 'chop' ? 'chop' : key === 'fz' ? 'fryin' : k === 'dr' ? 'pop' : key === 'gun' ? 'reload' : key === 'bdoor' ? 'door' : 'grab');
@@ -309,6 +311,7 @@ function updateInteract(dt) {
   if (IN.reload) { IN.reload = false; if (gun && reloadT <= 0 && W.am < 2 && W.shl > 0) { reloadT = 1.2; AU.play('reload'); act('reload'); } }
   let use = IN.use; if (IN.fire) { if (gun) tryShoot(P); else use = true; }
   IN.use = IN.fire = false;
+  if (use && !target && useCd <= 0 && P.h && P.h.k === 'body') { act('dropbody'); AU.play('die'); useCd = 0.5; }
   if (use && target && useCd <= 0) {
     if (!target.ok) { AU.play('bad'); useCd = 0.25; }
     else if (target.loc === 'cut') enterCut(+targetKey.slice(2));
@@ -404,6 +407,8 @@ function syncWorld(dt) {
   D.friesPile.visible = F.u > 0; D.friesPile.scale.y = 0.3 + F.u * 0.3; D.friesPile.material.color.setHex(F.q < 0.4 ? 0x5a3a1a : F.q < 0.8 ? 0xb8862a : 0xe2b83a);
   for (let i = 0; i < 3; i++) { const sk = W.sh[i] ? JSON.stringify(W.sh[i]) : ''; if (sk !== D.shelf[i].key) { D.shelf[i].key = sk; clearGroup(D.shelf[i].g); if (sk) D.shelf[i].g.add(itemMesh(W.sh[i])); } }
   D.rackGun.visible = !!W.gr;
+  const bk = W.bt ? W.bt.s + ':' + W.bt.n : '';
+  if (bk !== D.btKey) { D.btKey = bk; clearGroup(D.bt); if (W.bt) { const m = itemMesh({ k: 'body' }), k = 1 - W.bt.n / 9; m.scale.set(1.5 * k, 1.5 * (0.6 + 0.4 * k), 1.5 * (0.7 + 0.3 * k)); D.bt.add(m); } }
   const B = W.bd; D.bdoor.position.z = -7.47 + (B.s ? Math.max(0, Math.sin(B.t * 1.85 * PI)) * (B.s === 2 ? 0.02 : 0.008) : 0);
   const ok = clamp(B.o / 0.6, 0, 1); D.bdoor.rotation.y = -ok * 1.1; D.bdoor.position.x = 3.05 - ok * 0.2;
   D.figWin.visible = W.t > HOUR_LEN * 4.3 && W.t < HOUR_LEN * 4.9;
@@ -443,6 +448,7 @@ function updateHUD(dt) {
   const pr = $('prompt');
   if (cut.on) { pr.className = 'ok low'; pr.textContent = (cut.empty ? T('cut_empty') : T('cut_front', doneWord(cut.dn || 0))) + T(IN.dev === 'touch' ? 'cut_touch' : IN.dev === 'pad' ? 'cut_pad' : 'cut_kb'); }
   else if (target) { pr.className = target.ok ? 'ok' : 'no'; pr.textContent = (target.ok ? keyHint() : '') + target.t; }
+  else if (P && P.h && P.h.k === 'body' && W.ph === 'play' && !overlay) { pr.className = 'ok'; pr.textContent = keyHint() + T('u_drop_body'); }
   else { pr.className = ''; pr.textContent = ''; }
   $('cross').classList.toggle('on', !!(target && target.ok)); $('cross').classList.toggle('aim', !!me.aim);
   hudT -= dt; if (hudT > 0) return; hudT = 0.12;
@@ -452,7 +458,7 @@ function updateHUD(dt) {
   if (W && started) {
     if (ph !== prevPh || W.n !== prevN) {
       if (ph === 'end') { $('end-t').textContent = T('end_t', W.n); $('end-s').innerHTML = '<dt>' + T('e_sv') + '</dt><dd>' + W.s.sv + '</dd><dt>' + T('e_ls') + '</dt><dd>' + W.s.ls + '</dd><dt>' + T('e_e') + '</dt><dd>' + eur(W.s.e) + '</dd><dt>' + T('e_tp') + '</dt><dd>' + eur(W.s.tp) + '</dd><dt>' + T('e_cash') + '</dt><dd>' + eur(W.cash) + '</dd><dt>' + T('rep') + '</dt><dd>' + Math.round(W.rep) + ' / 100</dd>'; if (overlay !== 'end') setOverlay('end'); }
-      else if (ph === 'over') { $('over-t').textContent = T(W.why === 1 ? 'over1_t' : 'over0_t'); $('over-p').textContent = T(W.why === 1 ? 'over1_p' : 'over0_p'); $('over-s').textContent = T('over_s', W.n - 1, eur(W.cash)); if (overlay !== 'over') setOverlay('over'); }
+      else if (ph === 'over') { $('over-t').textContent = T('over' + (W.why | 0) + '_t'); $('over-p').textContent = T('over' + (W.why | 0) + '_p'); $('over-s').textContent = T('over_s', W.n - 1, eur(W.cash)); if (overlay !== 'over') setOverlay('over'); }
       else if (ph === 'play') { if (overlay === 'end' || overlay === 'over') setOverlay(null); if (W.n !== prevN || (prevPh !== 'play' && prevPh !== '')) { me.x = 1.6; me.z = -1.6; me.yaw = PI; me.pitch = 0; } if (W.n !== prevN || (prevPh !== 'play' && prevPh !== '') || !greeted) { greeted = true; toast(T('t_night', W.n), 'good'); } }
       prevPh = ph; prevN = W.n;
     }

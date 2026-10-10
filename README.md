@@ -38,6 +38,7 @@ Dentro de Claude, publicado como artefacto con la capacidad `room` (`dist/kebab-
 3. Verdura, salsas, papel de aluminio y a la mano del cliente. Patatas en la freidora, bebidas en la nevera.
 4. La verdura se acaba: se trae del almacén y se pica en la tabla.
 5. Junto a la freidora hay una nota del cocinero anterior con las reglas del turno de noche. Conviene leerla.
+6. Disparar a un cliente delante de testigos acaba la partida. Si no lo ha visto nadie, el cuerpo se puede arrastrar a la mesa del almacén, despiezarlo y montar la carne en un asador, antes de que entre el siguiente cliente y lo vea.
 
 ## Estructura
 

@@ -8,24 +8,24 @@ const LX = {
     base: ['dürüm', 'pita', 'caja'], bart: ['un', 'una', 'una'], meat: ['pollo', 'ternera', 'mixto'], veg: ['lechuga', 'tomate', 'cebolla'], sauce: ['salsa blanca', 'picante'], drink: ['cola', 'agua', 'cerveza'],
     vAll: 'con todo', vNone: 'sin verdura', vNo: 'sin {0}', vOnly: 'solo con {0}', sPh: ['sin salsa', 'salsa blanca', 'picante', 'las dos salsas'],
     frPh: 'unas patatas', drPh: ['una cola', 'un agua', 'una cerveza'], and: ' y ', fries: 'patatas', wfries: 'con patatas',
-    nm: { gun: 'la escopeta', fr: 'las patatas', dr: ['la cola', 'el agua', 'la cerveza'], vg: ['la lechuga', 'los tomates', 'las cebollas'], kb: ['el dürüm', 'la pita', 'la caja'], none: 'nada' },
-    h: { nomeat: 'sin carne', raw: ' (cruda)', closed: 'cerrada', wrapped: 'en aluminio', bad: ' (malas)', uncut: ' sin cortar', gun: 'ESCOPETA' },
+    nm: { gun: 'la escopeta', fr: 'las patatas', dr: ['la cola', 'el agua', 'la cerveza'], vg: ['la lechuga', 'los tomates', 'las cebollas'], kb: ['el dürüm', 'la pita', 'la caja'], none: 'nada', body: 'el cuerpo', cone: 'la carne' },
+    h: { nomeat: 'sin carne', raw: ' (cruda)', closed: 'cerrada', wrapped: 'en aluminio', bad: ' (malas)', uncut: ' sin cortar', gun: 'ESCOPETA', body: 'CUERPO', cone: 'CARNE PARA EL ASADOR' },
     done: ['CRUDA', 'poco hecha', 'DORADA', 'pasada', 'QUEMADA'], fs: ['crudas', 'doradas', 'pasadas', 'quemadas'],
   },
   en: {
     base: ['dürüm', 'pita', 'kebab box'], bart: ['a', 'a', 'a'], meat: ['chicken', 'beef', 'mixed'], veg: ['lettuce', 'tomato', 'onion'], sauce: ['white sauce', 'hot sauce'], drink: ['cola', 'water', 'beer'],
     vAll: 'with everything', vNone: 'no salad', vNo: 'no {0}', vOnly: 'only {0}', sPh: ['no sauce', 'white sauce', 'hot sauce', 'both sauces'],
     frPh: 'some fries', drPh: ['a cola', 'a water', 'a beer'], and: ' and ', fries: 'fries', wfries: 'with fries',
-    nm: { gun: 'the shotgun', fr: 'the fries', dr: ['the cola', 'the water', 'the beer'], vg: ['the lettuce', 'the tomatoes', 'the onions'], kb: ['the dürüm', 'the pita', 'the box'], none: 'nothing' },
-    h: { nomeat: 'no meat', raw: ' (raw)', closed: 'closed', wrapped: 'wrapped', bad: ' (bad)', uncut: ', uncut', gun: 'SHOTGUN' },
+    nm: { gun: 'the shotgun', fr: 'the fries', dr: ['the cola', 'the water', 'the beer'], vg: ['the lettuce', 'the tomatoes', 'the onions'], kb: ['the dürüm', 'the pita', 'the box'], none: 'nothing', body: 'the body', cone: 'the meat' },
+    h: { nomeat: 'no meat', raw: ' (raw)', closed: 'closed', wrapped: 'wrapped', bad: ' (bad)', uncut: ', uncut', gun: 'SHOTGUN', body: 'BODY', cone: 'MEAT FOR THE SPIT' },
     done: ['RAW', 'underdone', 'GOLDEN', 'overdone', 'BURNT'], fs: ['raw', 'golden', 'overdone', 'burnt'],
   },
   ro: {
     base: ['dürüm', 'pita', 'cutie'], bart: ['un', 'o', 'o'], meat: ['pui', 'vită', 'mixt'], veg: ['salată', 'roșii', 'ceapă'], sauce: ['sos alb', 'sos iute'], drink: ['cola', 'apă', 'bere'],
     vAll: 'cu de toate', vNone: 'fără legume', vNo: 'fără {0}', vOnly: 'doar cu {0}', sPh: ['fără sos', 'sos alb', 'sos iute', 'ambele sosuri'],
     frPh: 'niște cartofi', drPh: ['o cola', 'o apă', 'o bere'], and: ' și ', fries: 'cartofi', wfries: 'cu cartofi',
-    nm: { gun: 'pușca', fr: 'cartofii', dr: ['cola', 'apa', 'berea'], vg: ['salata', 'roșiile', 'ceapa'], kb: ['dürümul', 'pita', 'cutia'], none: 'nimic' },
-    h: { nomeat: 'fără carne', raw: ' (crudă)', closed: 'închisă', wrapped: 'în folie', bad: ' (proști)', uncut: ' (de tăiat)', gun: 'PUȘCĂ' },
+    nm: { gun: 'pușca', fr: 'cartofii', dr: ['cola', 'apa', 'berea'], vg: ['salata', 'roșiile', 'ceapa'], kb: ['dürümul', 'pita', 'cutia'], none: 'nimic', body: 'trupul', cone: 'carnea' },
+    h: { nomeat: 'fără carne', raw: ' (crudă)', closed: 'închisă', wrapped: 'în folie', bad: ' (proști)', uncut: ' (de tăiat)', gun: 'PUȘCĂ', body: 'TRUP', cone: 'CARNE PENTRU ROTISOR' },
     done: ['CRUDĂ', 'puțin făcută', 'RUMENITĂ', 'trecută', 'ARSĂ'], fs: ['cruzi', 'aurii', 'trecuți', 'arși'],
   },
 };
@@ -41,7 +41,9 @@ const STR = {
     note_h: 'Turno de noche', note_sign: 'Suerte. Yo no vuelvo.', note_close: 'Dejar la nota', peep_close: 'Apartarse de la mirilla',
     peep1: '«Reparto. Traigo la verdura y los cartuchos de siempre.»', peep2: '«Abre. Soy el del reparto. Abre. Abre.»', peep0: 'El callejón está vacío.',
     end_t: 'Noche {0} terminada', e_sv: 'Clientes servidos', e_ls: 'Clientes perdidos', e_e: 'Caja de esta noche', e_tp: 'Propinas', e_cash: 'Total en la caja', next: 'Siguiente noche',
-    over1_t: 'Has disparado a un cliente', over1_p: 'Era una persona. Parpadeaba. La policía llega antes de que se enfríe la plancha, y el Kebab Poniente no vuelve a abrir.',
+    over1_t: 'Había testigos', over1_p: 'Has disparado a un cliente con gente delante. Parpadeaba. La policía llega antes de que se enfríe la plancha, y el Kebab Poniente no vuelve a abrir.',
+    over2_t: 'Han visto el cuerpo', over2_p: 'Un cliente entra, ve lo que hay en el suelo y sale gritando. La policía tarda cuatro minutos. El Kebab Poniente no vuelve a abrir.',
+    u_drag: 'Arrastrar el cuerpo', u_table_put: 'Subir el cuerpo a la mesa', u_table_cut: 'Despiezar ({0}/8)', u_table_idle: 'Mesa de despiece', u_table_busy: 'La mesa está ocupada', u_cone_mount: 'Montar la carne en el asador de {0}', u_drop_body: 'Soltar el cuerpo',
     over0_t: 'El local cierra', over0_p: 'Demasiada gente se ha ido sin cenar o con el estómago revuelto. Nadie vuelve a un kebab con esta fama.',
     over_s: 'Noches completas: {0} · {1} en la caja', again: 'Volver a la primera noche',
     t_night: 'Noche {0} · 23:00. Abre el Kebab Poniente.', tip: 'Propina +{0}', noammo_r: 'Sin cartuchos en la recámara. Recarga con R.', noammo_t: 'Sin cartuchos en la recámara. Recarga.', noammo0: 'No quedan cartuchos.',
@@ -72,7 +74,9 @@ const STR = {
     note_h: 'Night shift', note_sign: "Good luck. I'm not coming back.", note_close: 'Put the note down', peep_close: 'Step away from the peephole',
     peep1: '"Delivery. I\'ve got the usual vegetables and shells."', peep2: '"Open up. I\'m the delivery man. Open. Open."', peep0: 'The alley is empty.',
     end_t: 'Night {0} done', e_sv: 'Customers served', e_ls: 'Customers lost', e_e: "Tonight's takings", e_tp: 'Tips', e_cash: 'Total in the till', next: 'Next night',
-    over1_t: 'You shot a customer', over1_p: 'That was a person. They blinked. The police arrive before the griddle cools, and Kebab Poniente never opens again.',
+    over1_t: 'There were witnesses', over1_p: 'You shot a customer in front of people. They blinked. The police arrive before the griddle cools, and Kebab Poniente never opens again.',
+    over2_t: 'Someone saw the body', over2_p: 'A customer walks in, sees what is on the floor and runs out screaming. The police take four minutes. Kebab Poniente never opens again.',
+    u_drag: 'Drag the body', u_table_put: 'Lift the body onto the table', u_table_cut: 'Butcher it ({0}/8)', u_table_idle: 'Butchering table', u_table_busy: 'The table is taken', u_cone_mount: 'Mount the meat on the {0} spit', u_drop_body: 'Drop the body',
     over0_t: 'The shop closes down', over0_p: 'Too many people left hungry or with a bad stomach. Nobody comes back to a kebab shop with this reputation.',
     over_s: 'Full nights survived: {0} · {1} in the till', again: 'Back to the first night',
     t_night: 'Night {0} · 11 pm. Kebab Poniente is open.', tip: 'Tip +{0}', noammo_r: 'Both barrels empty. Press R to reload.', noammo_t: 'Both barrels empty. Reload.', noammo0: 'No shells left.',
@@ -103,7 +107,9 @@ const STR = {
     note_h: 'Tura de noapte', note_sign: 'Baftă. Eu nu mă mai întorc.', note_close: 'Lasă biletul', peep_close: 'Dă-te de la vizor',
     peep1: '„Livrare. Am adus legumele și cartușele, ca de obicei.”', peep2: '„Deschide. Sunt cel cu livrarea. Deschide. Deschide.”', peep0: 'Aleea e goală.',
     end_t: 'Noaptea {0} s-a terminat', e_sv: 'Clienți serviți', e_ls: 'Clienți pierduți', e_e: 'Încasări în noaptea asta', e_tp: 'Bacșișuri', e_cash: 'Total în casă', next: 'Noaptea următoare',
-    over1_t: 'Ai împușcat un client', over1_p: 'Era un om. Clipea. Poliția ajunge înainte să se răcească plita, iar Kebab Poniente nu se mai deschide niciodată.',
+    over1_t: 'Au fost martori', over1_p: 'Ai împușcat un client de față cu lumea. Clipea. Poliția ajunge înainte să se răcească plita, iar Kebab Poniente nu se mai deschide niciodată.',
+    over2_t: 'Cineva a văzut trupul', over2_p: 'Un client intră, vede ce e pe jos și iese țipând. Poliția ajunge în patru minute. Kebab Poniente nu se mai deschide niciodată.',
+    u_drag: 'Târăște trupul', u_table_put: 'Urcă trupul pe masă', u_table_cut: 'Tranșează ({0}/8)', u_table_idle: 'Masă de tranșat', u_table_busy: 'Masa e ocupată', u_cone_mount: 'Montează carnea pe rotisorul de {0}', u_drop_body: 'Lasă trupul jos',
     over0_t: 'Localul se închide', over0_p: 'Prea mulți au plecat nemâncați sau cu stomacul întors pe dos. Nimeni nu se mai întoarce la un kebab cu asemenea faimă.',
     over_s: 'Nopți întregi rezistate: {0} · {1} în casă', again: 'Înapoi la prima noapte',
     t_night: 'Noaptea {0} · 23:00. Kebab Poniente se deschide.', tip: 'Bacșiș +{0}', noammo_r: 'Ambele țevi sunt goale. Reîncarcă cu R.', noammo_t: 'Ambele țevi sunt goale. Reîncarcă.', noammo0: 'Nu mai sunt cartușe.',
@@ -138,18 +144,18 @@ const CTL = {
 };
 const RULESX = {
   es: RULES,
-  en: ["Real customers blink. If it doesn't blink and its eyes are black, it is not a customer.", "If it asks for the meat raw, don't give it. Shotgun.", 'Never shoot a real customer. Never.', 'Aiming is enough for a robber. Same for the one who leaves without paying.', "If the power goes out: the fuse box is in the storeroom. Don't stand still in the dark.", 'Back door: ALWAYS use the peephole before opening.', 'At 3:33 someone comes. Someone always comes.'],
-  ro: ['Clienții adevărați clipesc. Dacă nu clipește și are ochii negri, nu e client.', 'Dacă cere carnea crudă, nu i-o da. Pușca.', 'Nu trage niciodată într-un client adevărat. Niciodată.', 'Pe un hoț e de ajuns să-l ții în cătare. La fel și pe cel care pleacă fără să plătească.', 'Dacă se ia curentul: tabloul e în magazie. Nu sta pe loc pe întuneric.', 'Ușa din spate: uită-te ÎNTOTDEAUNA pe vizor înainte să deschizi.', 'La 3:33 vine cineva. Întotdeauna vine cineva.'],
+  en: ["Real customers blink. If it doesn't blink and its eyes are black, it is not a customer.", "If it asks for the meat raw, don't give it. Shotgun.", 'Never shoot a real customer. Never.', 'Aiming is enough for a robber. Same for the one who leaves without paying.', "If the power goes out: the fuse box is in the storeroom. Don't stand still in the dark.", 'Back door: ALWAYS use the peephole before opening.', 'At 3:33 someone comes. Someone always comes.', 'What happens when nobody is watching stays in the kitchen. The table in the storeroom is good for more than vegetables.'],
+  ro: ['Clienții adevărați clipesc. Dacă nu clipește și are ochii negri, nu e client.', 'Dacă cere carnea crudă, nu i-o da. Pușca.', 'Nu trage niciodată într-un client adevărat. Niciodată.', 'Pe un hoț e de ajuns să-l ții în cătare. La fel și pe cel care pleacă fără să plătească.', 'Dacă se ia curentul: tabloul e în magazie. Nu sta pe loc pe întuneric.', 'Ușa din spate: uită-te ÎNTOTDEAUNA pe vizor înainte să deschizi.', 'La 3:33 vine cineva. Întotdeauna vine cineva.', 'Ce se întâmplă când nu se uită nimeni rămâne în bucătărie. Masa din magazie e bună și la altceva decât legume.'],
 };
 const MSGX = {
   es: MSG,
-  en: { karma: 'Julián leaves fed. The neighbourhood hears about it. (+reputation)', sinpa: 'He left without paying.', robbed: 'They emptied the till.', robgone: 'The robber runs off.', deliv: 'Delivery received: vegetables and shells.', nodeliv: 'The delivery man got tired of knocking.', blackout: 'The power is out. The fuse box is in the storeroom.', power: 'The lights are back.', binfull: 'Vegetables chopped and in the tub.', gone: 'The thing at the door stops scratching.', lost: 'A customer left without dinner.', ko: 'You passed out. You wake up in the kitchen.', last: "It's six. Shutters down when the last one leaves.", killed: 'That was not a customer.' },
-  ro: { karma: 'Julián pleacă sătul. Află tot cartierul. (+reputație)', sinpa: 'A plecat fără să plătească.', robbed: 'Ți-au golit casa de marcat.', robgone: 'Hoțul o ia la fugă.', deliv: 'Livrare primită: legume și cartușe.', nodeliv: 'Livratorul s-a săturat să bată la ușă.', blackout: 'S-a luat curentul. Tabloul e în magazie.', power: 'A revenit curentul.', binfull: 'Legume tăiate și puse în tavă.', gone: 'Ce era la ușă nu mai zgârie.', lost: 'Un client a plecat nemâncat.', ko: 'Ai leșinat. Te trezești în bucătărie.', last: 'E șase. Tragi oblonul când pleacă ultimul.', killed: 'Ăla nu era client.' },
+  en: { karma: 'Julián leaves fed. The neighbourhood hears about it. (+reputation)', sinpa: 'He left without paying.', robbed: 'They emptied the till.', robgone: 'The robber runs off.', deliv: 'Delivery received: vegetables and shells.', nodeliv: 'The delivery man got tired of knocking.', blackout: 'The power is out. The fuse box is in the storeroom.', power: 'The lights are back.', binfull: 'Vegetables chopped and in the tub.', gone: 'The thing at the door stops scratching.', lost: 'A customer left without dinner.', ko: 'You passed out. You wake up in the kitchen.', last: "It's six. Shutters down when the last one leaves.", killed: 'That was not a customer.', nowit: 'Nobody saw it. Yet.' },
+  ro: { karma: 'Julián pleacă sătul. Află tot cartierul. (+reputație)', sinpa: 'A plecat fără să plătească.', robbed: 'Ți-au golit casa de marcat.', robgone: 'Hoțul o ia la fugă.', deliv: 'Livrare primită: legume și cartușe.', nodeliv: 'Livratorul s-a săturat să bată la ușă.', blackout: 'S-a luat curentul. Tabloul e în magazie.', power: 'A revenit curentul.', binfull: 'Legume tăiate și puse în tavă.', gone: 'Ce era la ușă nu mai zgârie.', lost: 'Un client a plecat nemâncat.', ko: 'Ai leșinat. Te trezești în bucătărie.', last: 'E șase. Tragi oblonul când pleacă ultimul.', killed: 'Ăla nu era client.', nowit: 'Nu a văzut nimeni. Încă.' },
 };
 const GENX = {
   es: GEN,
-  en: { w: ['Is it going to be long?', "Hey, I've been here a while."], ok: ['Thanks. Good night.'], bad: ["This isn't great...", "It's so-so, honestly."], x: ["Forget it. I'm going somewhere else."], no: ["That's not what I ordered."], raw: ['This is raw!', "Hey, the meat's not cooked."], burnt: ["It's charred."], unw: ['And you hand it to me like that, unwrapped?'], flee: ['Gunshots!!', 'Oh my God!', 'Run!'], dark: ['Did the lights go out?', "Hey, I can't see a thing."], nofr: ['Where are the fries in the box?'], gun: ['...'], g: ['Good evening.'], pre: ['Give me'], post: [''] },
-  ro: { w: ['Mai durează mult?', 'Auzi, stau de ceva vreme.'], ok: ['Mersi. Noapte bună.'], bad: ['Nu-i cine știe ce...', 'E așa și așa, sincer.'], x: ['Las-o. Mă duc în altă parte.'], no: ['Nu asta am cerut.'], raw: ['E crud!', 'Auzi, carnea nu-i făcută.'], burnt: ['E carbonizat.'], unw: ['Și mi-l dai așa, neîmpachetat?'], flee: ['Împușcături!!', 'Vai de mine!', 'Fugi!'], dark: ['S-a luat curentul?', 'Hei, nu se vede nimic.'], nofr: ['Și cartofii din cutie?'], gun: ['...'], g: ['Bună seara.'], pre: ['Dă-mi'], post: [''] },
+  en: { w: ['Is it going to be long?', "Hey, I've been here a while."], ok: ['Thanks. Good night.'], bad: ["This isn't great...", "It's so-so, honestly."], x: ["Forget it. I'm going somewhere else."], no: ["That's not what I ordered."], raw: ['This is raw!', "Hey, the meat's not cooked."], burnt: ["It's charred."], unw: ['And you hand it to me like that, unwrapped?'], flee: ['Gunshots!!', 'Oh my God!', 'Run!'], dark: ['Did the lights go out?', "Hey, I can't see a thing."], nofr: ['Where are the fries in the box?'], hm: ["Tastes different today. It's really good.", 'New supplier? Best one yet.'], gun: ['...'], g: ['Good evening.'], pre: ['Give me'], post: [''] },
+  ro: { w: ['Mai durează mult?', 'Auzi, stau de ceva vreme.'], ok: ['Mersi. Noapte bună.'], bad: ['Nu-i cine știe ce...', 'E așa și așa, sincer.'], x: ['Las-o. Mă duc în altă parte.'], no: ['Nu asta am cerut.'], raw: ['E crud!', 'Auzi, carnea nu-i făcută.'], burnt: ['E carbonizat.'], unw: ['Și mi-l dai așa, neîmpachetat?'], flee: ['Împușcături!!', 'Vai de mine!', 'Fugi!'], dark: ['S-a luat curentul?', 'Hei, nu se vede nimic.'], nofr: ['Și cartofii din cutie?'], hm: ['Azi are alt gust. E foarte bun.', 'Ai schimbat furnizorul? Mai bun ca oricând.'], gun: ['...'], g: ['Bună seara.'], pre: ['Dă-mi'], post: [''] },
 };
 const ANOMX = {
   es: ANOM,
@@ -260,6 +266,7 @@ function orderPhrase(ord) {
 }
 function itemName(h) {
   const N = LX[LANG].nm; if (!h) return N.none;
+  if (h.k === 'body') return N.body; if (h.k === 'cone') return N.cone;
   if (h.k === 'gun') return N.gun; if (h.k === 'fr') return N.fr; if (h.k === 'dr') return N.dr[h.t]; if (h.k === 'vg') return N.vg[h.t]; if (h.k === 'kb') return N.kb[h.b];
   return '?';
 }
@@ -275,6 +282,7 @@ function handDesc(h) {
   if (h.k === 'dr') return X.drink[h.t].toUpperCase();
   if (h.k === 'vg') return X.veg[h.t].toUpperCase() + Hh.uncut;
   if (h.k === 'gun') return Hh.gun;
+  if (h.k === 'body') return Hh.body; if (h.k === 'cone') return Hh.cone;
   return '';
 }
 function doneWord(d) { return LX[LANG].done[d < 0.35 ? 0 : d < 0.55 ? 1 : d <= 1.15 ? 2 : d <= 1.4 ? 3 : 4]; }
