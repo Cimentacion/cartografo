@@ -41,10 +41,15 @@ def main():
     os.makedirs(os.path.join(ROOT, 'dist'), exist_ok=True)
     with open(os.path.join(ROOT, 'dist', 'kebab-poniente.artifact.html'), 'w', encoding='utf-8') as f:
         f.write(body)
+    cdn = '<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>'
+    if cdn not in body:
+        sys.exit('No encuentro la etiqueta de three.js en page.html')
+    # La página suelta usa las librerías del repositorio; el artefacto de Claude solo puede cargar three.js desde cdnjs.
+    local = body.replace(cdn, '<script src="lib/three.min.js"></script>\n<script src="lib/peerjs.min.js"></script>')
     page = ('<!doctype html>\n<html lang="es">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n'
             '<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>\n'
-            '</head>\n<body>\n' + body + '</body>\n</html>\n')
+            '</head>\n<body>\n' + local + '</body>\n</html>\n')
     with open(os.path.join(ROOT, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(page)
     print('index.html %d KB · dist/kebab-poniente.artifact.html %d KB' % (len(page) // 1024, len(body) // 1024))

@@ -7,7 +7,7 @@ function spitWire() { return { c: '7'.repeat(NCELL), d: 'l'.repeat(NCELL), u: 16
 function newWorld(n, prev) {
   const keep = prev && n > 1;
   const w = {
-    hs: prev ? prev.hs : Date.now(), ph: 'play', why: 0, n, t: 0, cash: keep ? prev.cash : 0, rep: keep ? prev.rep : 60,
+    v: NETV, hs: prev ? prev.hs : Date.now(), ph: 'play', why: 0, n, t: 0, cash: keep ? prev.cash : 0, rep: keep ? prev.rep : 60,
     s: { sv: 0, ls: 0, e: 0, tp: 0 }, pw: 1, fk: 0, sx: 0, sd: (Math.random() * 2e9) | 0, bo: 0, fl: 0,
     sp: [spitWire(), spitWire()], bin: [8, 8, 8], chop: { t: -1, n: 0 }, fry: { s: 0, t: 0, u: 0, q: 1 }, sh: [0, 0, 0], gr: 1, am: 2, shl: 6,
     bd: { s: 0, t: 0, o: 0 }, cu: [], pl: {}, ev: prev ? prev.ev : [], es: prev ? prev.es : 0, id: prev ? prev.id : 1, used: [], nx: 4,
@@ -435,7 +435,50 @@ function simulate(dt) {
 }
 
 /* ================= RED: cooperativo por presencia ================= */
-const NET = { room: null, myId: 'solo', isHost: true, joined: false, acts: [], seq: 0, lastSeq: {}, lastHost: null, hostGone: 0, sendT: 0, others: [], remote: null, count: 1, evInit: false };
+const NETV = 3;   // versión del protocolo: todos tienen que jugar con la misma
+const NET = { room: null, myId: 'solo', isHost: true, joined: false, acts: [], seq: 0, lastSeq: {}, lastHost: null, hostGone: 0, sendT: 0, others: [], remote: null, count: 1, evInit: false, code: '', badVer: false, lostSaid: false };
+
+/* Fuera de Claude (GitHub) la sala va por PeerJS, de navegador a navegador y sin cuentas.
+   Quien crea la sala hace de centro: recibe la presencia de cada uno y la reparte al resto. */
+function p2pAvailable() { return !(window.claude && window.claude.use) && typeof window.Peer === 'function' && !!window.RTCPeerConnection; }
+function p2pOpen(code, asHub) {
+  return new Promise((res, rej) => {
+    const hubId = 'kebab-poniente-cimentacion-' + code, opts = window.KP_PEER_OPTS || undefined; let done = false;
+    const peer = asHub ? new Peer(hubId, opts) : new Peer(opts);
+    const me = { peer: '', isMe: true, sameTab: true, kind: 'viewer', presence: {} };
+    const others = new Map(), conns = new Map(); let snap = [];
+    const upd = () => { snap = me.peer ? [me].concat(Array.from(others.values())) : []; };
+    const prune = () => { const now = Date.now(); let ch = false; for (const [id, o] of others) if (now - o.t > 5000) { others.delete(id); ch = true; if (asHub) sendAll({ t: 'x', id }); else if (id === hubId) { R.lost = true; others.clear(); break; } } if (ch) upd(); };
+    const sendAll = (msg, except) => { for (const [id, c] of conns) if (id !== except && c.open) { try { c.send(msg); } catch (e) { } } };
+    const R = {
+      code, hub: asHub, lost: false, peers: () => { prune(); return snap; },
+      presence: async patch => { const p = Object.assign({}, me.presence); for (const k in patch) { if (patch[k] === null) delete p[k]; else p[k] = patch[k]; } me.presence = p; sendAll({ t: 'p', id: me.peer, p }); },
+      leave: () => { try { peer.destroy(); } catch (e) { } },
+    };
+    const wire = c => {
+      c.on('open', () => {
+        conns.set(c.peer, c);
+        try { c.send({ t: 'p', id: me.peer, p: me.presence }); } catch (e) { }
+        if (asHub) for (const [id, o] of others) if (id !== c.peer) { try { c.send({ t: 'p', id, p: o.presence }); } catch (e) { } }
+        if (!asHub && !done) { done = true; res(R); }
+      });
+      c.on('data', d => {
+        if (!d || typeof d !== 'object') return;
+        if (d.t === 'p' && d.p && typeof d.p === 'object') {
+          const id = asHub ? c.peer : String(d.id || c.peer); if (id === me.peer) return;
+          others.set(id, { peer: id, isMe: false, sameTab: false, kind: 'viewer', presence: d.p, t: Date.now() }); upd();
+          if (asHub) sendAll({ t: 'p', id, p: d.p }, c.peer);
+        } else if (d.t === 'x' && !asHub) { others.delete(String(d.id)); upd(); }
+      });
+      const bye = () => { if (!conns.has(c.peer)) return; conns.delete(c.peer); if (asHub) { others.delete(c.peer); sendAll({ t: 'x', id: c.peer }); } else { others.clear(); R.lost = true; } upd(); };
+      c.on('close', bye); c.on('error', bye);
+    };
+    peer.on('open', id => { me.peer = id; upd(); if (asHub) { peer.on('connection', wire); done = true; res(R); } else wire(peer.connect(hubId, { reliable: true })); });
+    peer.on('disconnected', () => { try { if (!peer.destroyed) peer.reconnect(); } catch (e) { } });
+    peer.on('error', e => { if (!done) { done = true; try { peer.destroy(); } catch (x) { } rej(e); } });
+    setTimeout(() => { if (!done) { done = true; try { peer.destroy(); } catch (x) { } rej(new Error('timeout')); } }, 14000);
+  });
+}
 async function netInit() {
   try { if (!window.claude || !window.claude.use) return; const room = await window.claude.use('room'); if (room) NET.room = room; } catch (e) { /* sin sala: partida en solitario */ }
 }
@@ -446,8 +489,9 @@ function act() {
 }
 function wireW() {
   let s = JSON.stringify(W, (k, v) => typeof v === 'number' && !Number.isInteger(v) ? Math.round(v * 100) / 100 : v);
-  if (s.length > 3500) { const o = JSON.parse(s); o.ev = o.ev.slice(-3); o.used = []; return o; }
-  return JSON.parse(s);
+  const o = JSON.parse(s); o.hb = NET.hb = (NET.hb | 0) + 1;   // latido: la presencia del anfitrión siempre cambia
+  if (s.length > 3500) { o.ev = o.ev.slice(-3); o.used = []; }
+  return o;
 }
 function adoptWorld() {
   NET.isHost = true; NET.lastHost = null;
@@ -468,17 +512,20 @@ function netUpdate(dt, me) {
   }
   const others = peers.filter(p => !(p.isMe && p.sameTab) && p.kind === 'viewer' && p.presence);
   NET.others = others; NET.count = others.filter(p => p.presence.p).length + 1;
-  const hosts = others.filter(p => p.presence.w && p.presence.w.ph).sort((a, b) => (a.presence.w.hs - b.presence.w.hs) || (a.peer < b.peer ? -1 : 1));
-  const hp = hosts[0] || null; NET.remote = hp;
+  if (room.lost && !NET.lostSaid) { NET.lostSaid = true; toast(T('p2p_lost'), 'bad'); }
+  const hosts = others.filter(p => p.presence.w && p.presence.w.ph && (p.presence.w.v === NETV || !(NET.badVer = true))).sort((a, b) => (a.presence.w.hs - b.presence.w.hs) || (a.peer < b.peer ? -1 : 1));
+  let hp = hosts[0] || null, stale = null;
+  if (hp && !NET.isHost) { if (hp.presence !== NET.lastHost) NET.hostT = 0; else { NET.hostT = (NET.hostT || 0) + dt; if (NET.hostT > 4) { stale = hp.peer; hp = null; } } }
+  NET.remote = hp;
   if (NET.isHost && hp && (!W || !NET.joined || hp.presence.w.hs < W.hs || (hp.presence.w.hs === W.hs && hp.peer < NET.myId))) { NET.isHost = false; NET.lastHost = null; NET.evInit = false; }
   if (!NET.isHost) {
     if (hp) {
       NET.hostGone = 0;
-      if (hp.presence !== NET.lastHost) { NET.lastHost = hp.presence; try { const nw = JSON.parse(JSON.stringify(hp.presence.w)); if (nw && Array.isArray(nw.cu) && Array.isArray(nw.sp) && nw.pl && nw.fry && nw.bd && Array.isArray(nw.ev)) { nw.cu = nw.cu.filter(c => c && (c.an === 2 || ARCH[c.a])); W = nw; } } catch (e) { } }
+      if (hp.presence !== NET.lastHost) { NET.lastHost = hp.presence; try { const nw = JSON.parse(JSON.stringify(hp.presence.w)); if (nw && nw.v !== NETV) NET.badVer = true; else if (nw && Array.isArray(nw.cu) && Array.isArray(nw.sp) && nw.pl && nw.fry && nw.bd && Array.isArray(nw.ev)) { nw.cu = nw.cu.filter(c => c && (c.an === 2 || ARCH[c.a])); if (!W || W.hs !== nw.hs) NET.acts = []; W = nw; } } catch (e) { } }
     } else {
       NET.hostGone += dt;
       if (NET.hostGone > 3.5) {
-        const ids = others.filter(p => p.presence.p).map(p => p.peer);
+        const ids = others.filter(p => p.presence.p && p.peer !== stale).map(p => p.peer);
         if (!NET.joined || !W) { W = null; NET.isHost = true; }
         else if (ids.every(id => NET.myId < id)) adoptWorld();
         NET.hostGone = 0;
@@ -492,15 +539,15 @@ function netUpdate(dt, me) {
       if (!p.presence.p) continue;
       live[p.peer] = 1; ensurePlayer(p.peer);
       const a = p.presence.a;
-      if (NET.lastSeq[p.peer] === undefined) { let mx = 0; if (Array.isArray(a)) for (const x of a) mx = Math.max(mx, x[0] | 0); NET.lastSeq[p.peer] = Math.max(0, mx - 1); }
-      if (Array.isArray(a)) for (const x of a) if (x[0] > NET.lastSeq[p.peer]) { NET.lastSeq[p.peer] = x[0]; try { applyAction(p.peer, JSON.parse(JSON.stringify(x))); } catch (e) { console.error(e); } }
+      if (NET.lastSeq[p.peer] === undefined) NET.lastSeq[p.peer] = 0;
+      if (Array.isArray(a) && p.presence.ah === W.hs) for (const x of a) if (x[0] > NET.lastSeq[p.peer]) { NET.lastSeq[p.peer] = x[0]; try { applyAction(p.peer, JSON.parse(JSON.stringify(x))); } catch (e) { console.error(e); } }
     }
     for (const pid in W.pl) if (!live[pid]) { if (W.pl[pid].h && W.pl[pid].h.k === 'gun') W.gr = 1; delete W.pl[pid]; delete PP[pid]; }
   }
   NET.sendT -= dt;
   if (NET.sendT <= 0) {
     NET.sendT = NET.joined ? 0.1 : 1;
-    const pr = { p: NET.joined ? [r2(me.x), r2(me.z), r2(me.yaw), r2(me.pitch), me.aim | 0] : null, a: NET.isHost ? null : NET.acts, w: NET.isHost && W && NET.joined ? wireW() : null };
+    const pr = { p: NET.joined ? [r2(me.x), r2(me.z), r2(me.yaw), r2(me.pitch), me.aim | 0] : null, a: NET.isHost ? null : NET.acts, ah: W ? W.hs : 0, w: NET.isHost && W && NET.joined ? wireW() : null };
     try { const q = room.presence(pr); if (q && q.catch) q.catch(() => { }); } catch (e) { }
   }
 }

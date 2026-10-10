@@ -56,6 +56,12 @@ const STR = {
     u_has: 'Ya lleva {0}', u_out: 'No queda {0}. Hay que cortar más.', u_add: 'Añadir {0}', u_pour: 'Echar {0}', u_busy: '{0} (manos ocupadas)',
     u_base0: 'Coger una tortilla de dürüm', u_base1: 'Coger un pan de pita', u_base2: 'Coger una caja', u_pass_put: 'Dejar {0} en el pase', u_take: 'Coger {0}', u_pass_full: 'Pase (ocupado)', u_pass: 'Pase: deja aquí algo para tu compañero',
     u_drink: 'Coger {0}', u_veg: 'Coger {0} para cortar', u_give: 'Dar {0} a {1}', u_wait: '{0} espera su pedido',
+    p2p_h: 'Jugar online con un amigo', p2p_create: 'Crear sala', p2p_join: 'Unirse', p2p_code: 'Código', p2p_copy: 'Copiar enlace', p2p_copied: 'Enlace copiado',
+    p2p_note: 'Uno crea la sala y le pasa al otro el código de 4 cifras o el enlace. No hacen falta cuentas.', p2p_wait: 'Conectando…',
+    p2p_ready: 'Sala {0} abierta. Pásale a tu amigo el código o este enlace:', p2p_joined: 'Dentro de la sala {0}.',
+    p2p_fail: 'No se ha podido entrar. Comprueba el código y que quien creó la sala la tenga abierta.', p2p_failhost: 'No se ha podido crear la sala. Prueba otra vez.', p2p_badcode: 'El código son 4 cifras.',
+    p2p_lost: 'Se ha perdido la conexión con la sala. Sigues tú solo.', p2p_alone: 'Todavía no ha entrado nadie más. Puedes abrir ya: quien llegue después entra a ayudar.',
+    p2p_version: 'Tu amigo tiene otra versión del juego. Abrid los dos el mismo enlace.', room_code: 'Sala {0}',
   },
   en: {
     sub: 'Night shift · Benidorm · 11 pm to 6 am', start: 'Open up', join: 'Join the shift', full: 'Full screen',
@@ -81,6 +87,12 @@ const STR = {
     u_has: 'Already has {0}', u_out: 'Out of {0}. Chop some more.', u_add: 'Add {0}', u_pour: 'Add {0}', u_busy: '{0} (hands full)',
     u_base0: 'Take a dürüm wrap', u_base1: 'Take a pita bread', u_base2: 'Take a box', u_pass_put: 'Leave {0} on the pass', u_take: 'Take {0}', u_pass_full: 'Pass (taken)', u_pass: 'Pass: leave something here for your partner',
     u_drink: 'Take {0}', u_veg: 'Take {0} to chop', u_give: 'Give {0} to {1}', u_wait: '{0} is waiting for the order',
+    p2p_h: 'Play online with a friend', p2p_create: 'Create room', p2p_join: 'Join', p2p_code: 'Code', p2p_copy: 'Copy link', p2p_copied: 'Link copied',
+    p2p_note: 'One of you creates the room and gives the other the 4-digit code or the link. No accounts needed.', p2p_wait: 'Connecting…',
+    p2p_ready: 'Room {0} is open. Give your friend the code or this link:', p2p_joined: 'You are in room {0}.',
+    p2p_fail: "Couldn't get in. Check the code and that whoever created the room still has it open.", p2p_failhost: "Couldn't create the room. Try again.", p2p_badcode: 'The code is 4 digits.',
+    p2p_lost: 'Connection to the room was lost. You carry on alone.', p2p_alone: 'Nobody else has joined yet. You can open up now: whoever arrives later joins in.',
+    p2p_version: 'Your friend has a different version of the game. Both of you open the same link.', room_code: 'Room {0}',
   },
   ro: {
     sub: 'Tura de noapte · Benidorm · 23:00 – 06:00', start: 'Deschide localul', join: 'Intră să ajuți', full: 'Ecran complet',
@@ -106,6 +118,12 @@ const STR = {
     u_has: 'Are deja {0}', u_out: 'S-a terminat: {0}. Trebuie tăiat.', u_add: 'Adaugă {0}', u_pour: 'Pune {0}', u_busy: '{0} (ai mâinile ocupate)',
     u_base0: 'Ia o lipie de dürüm', u_base1: 'Ia o pita', u_base2: 'Ia o cutie', u_pass_put: 'Lasă {0} pe blat', u_take: 'Ia {0}', u_pass_full: 'Blat (ocupat)', u_pass: 'Blat: lasă aici ceva pentru coleg',
     u_drink: 'Ia {0}', u_veg: 'Ia {0} de tăiat', u_give: '{1}: dă-i {0}', u_wait: '{0} își așteaptă comanda',
+    p2p_h: 'Joacă online cu un prieten', p2p_create: 'Creează o cameră', p2p_join: 'Intră', p2p_code: 'Cod', p2p_copy: 'Copiază linkul', p2p_copied: 'Link copiat',
+    p2p_note: 'Unul creează camera și îi dă celuilalt codul din 4 cifre sau linkul. Nu e nevoie de conturi.', p2p_wait: 'Se conectează…',
+    p2p_ready: 'Camera {0} e deschisă. Dă-i prietenului codul sau linkul acesta:', p2p_joined: 'Ești în camera {0}.',
+    p2p_fail: 'Nu s-a putut intra. Verifică codul și dacă cel care a creat camera o mai are deschisă.', p2p_failhost: 'Camera nu s-a putut crea. Mai încearcă o dată.', p2p_badcode: 'Codul are 4 cifre.',
+    p2p_lost: 'S-a pierdut legătura cu camera. Continui singur.', p2p_alone: 'Încă n-a intrat nimeni. Poți deschide deja: cine vine mai târziu intră să ajute.',
+    p2p_version: 'Prietenul tău are altă versiune a jocului. Deschideți amândoi același link.', room_code: 'Camera {0}',
   },
 };
 const JOB = {

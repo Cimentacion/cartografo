@@ -22,7 +22,7 @@ async function boot() {
   vm = new THREE.Group(); camera.add(vm); vmItem = new THREE.Group(); vm.add(vmItem);
   knife = new THREE.Group(); knife.add(new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.06, 0.005), lam(null, 0xe4e8ec, { emissive: 0x3a3d40 }))); const ke = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.008, 0.007), bas(0xffffff)); ke.position.y = -0.03; knife.add(ke); const ka = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.09, 0.5), lam(null, 0xc8906a)); ka.position.set(0.36, -0.03, 0.27); ka.rotation.x = 0.25; knife.add(ka); const kh = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.034, 0.022), lam(null, 0x15161a)); kh.position.x = 0.275; knife.add(kh); knife.visible = false; scene.add(knife);
   resize(); window.addEventListener('resize', resize);
-  bindInput(); netInit(); setOverlay('menu'); setLang(LANG);
+  bindInput(); netInit(); setOverlay('menu'); setLang(LANG); p2pInit();
   lastT = performance.now(); requestAnimationFrame(frame);
 }
 function resize() {
@@ -35,6 +35,7 @@ function bindInput() {
   const cv = $('gl'), st = $('stage');
   const KEYS = { KeyW: 1, KeyA: 1, KeyS: 1, KeyD: 1, ArrowUp: 1, ArrowDown: 1, ArrowLeft: 1, ArrowRight: 1, Space: 1, KeyE: 1, KeyR: 1, KeyF: 1 };
   window.addEventListener('keydown', e => {
+    if (e.target && e.target.tagName === 'INPUT') return;
     if (KEYS[e.code]) e.preventDefault();
     if (e.repeat) return; IN.dev = 'kb'; IN.keys[e.code] = true; AU.init();
     if (e.code === 'KeyE' || e.code === 'Enter') IN.use = true;
@@ -95,6 +96,15 @@ function bindInput() {
   $('btn-full').addEventListener('click', () => { try { const p = $('stage').requestFullscreen(); if (p && p.catch) p.catch(() => { }); } catch (e) { } });
   for (const b of document.querySelectorAll('[data-close]')) b.addEventListener('click', () => setOverlay(null));
   for (const b of document.querySelectorAll('[data-lang]')) b.addEventListener('click', () => setLang(b.dataset.lang));
+  // sala online por código (solo fuera de Claude)
+  $('p2p-create').addEventListener('click', () => p2pGo(true));
+  $('p2p-join').addEventListener('click', () => p2pGo(false));
+  $('p2p-code').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); p2pGo(false); } });
+  $('p2p-copy').addEventListener('click', () => {
+    const inp = $('p2p-link'), done = () => { $('p2p-copy').textContent = T('p2p_copied'); };
+    const sel = () => { inp.focus(); inp.select(); };
+    try { navigator.clipboard.writeText(inp.value).then(done, sel); } catch (e) { sel(); }
+  });
 }
 function pollPad(dt) {
   const gp = navigator.getGamepads ? navigator.getGamepads() : []; let p = null; for (const g of gp) if (g && g.connected) { p = g; break; }
@@ -125,6 +135,31 @@ function startGame() {
   setOverlay(null);
   if (IN.dev === 'kb' && !IN.noLock) { try { const p = $('gl').requestPointerLock(); if (p && p.catch) p.catch(() => { IN.noLock = true; }); } catch (e) { IN.noLock = true; } }
 }
+let p2pMsg = null, p2pBusy = false;
+function p2pSay(key, a) { p2pMsg = key ? [key, a] : null; $('p2p-msg').textContent = key ? T(key, a) : ''; }
+async function p2pGo(asHub) {
+  if (p2pBusy || NET.room || !p2pAvailable()) return;
+  let code = ($('p2p-code').value || '').replace(/\D/g, '').slice(0, 4);
+  if (!asHub && code.length !== 4) { p2pSay('p2p_badcode'); return; }
+  p2pBusy = true; $('p2p-create').disabled = $('p2p-join').disabled = true; p2pSay('p2p_wait'); AU.init();
+  let room = null;
+  for (let i = 0; i < (asHub ? 3 : 1) && !room; i++) {
+    if (asHub) code = String(Math.floor(1000 + Math.random() * 9000));
+    try { room = await p2pOpen(code, asHub); } catch (e) { room = null; }
+  }
+  p2pBusy = false;
+  if (!room) { $('p2p-create').disabled = $('p2p-join').disabled = false; p2pSay(asHub ? 'p2p_failhost' : 'p2p_fail'); return; }
+  NET.room = room; NET.code = code; $('p2p-code').value = code; $('p2p-code').readOnly = true;
+  if (asHub) { $('p2p-link').value = location.href.split('#')[0] + '#' + code; $('p2p-linkrow').hidden = false; p2pSay('p2p_ready', code); }
+  else p2pSay('p2p_joined', code);
+  try { history.replaceState(null, '', '#' + code); } catch (e) { }
+}
+function p2pInit() {
+  if (!p2pAvailable()) return;
+  $('p2p').hidden = false;
+  const m = /^#(\d{4})$/.exec(location.hash || '');
+  if (m) { $('p2p-code').value = m[1]; p2pGo(false); }
+}
 function openRules() { $('note-list').innerHTML = RULESX[LANG].map(r => '<li>' + r + '</li>').join(''); setOverlay('note'); }
 function setLang(l) {
   if (LANGS.indexOf(l) < 0) l = 'es';
@@ -135,6 +170,7 @@ function setLang(l) {
   $('job-list').innerHTML = JOB[l].map(x => '<li>' + x + '</li>').join('');
   $('ctl-list').innerHTML = CTL[l].map(r => '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>').join('');
   if (overlay === 'note') $('note-list').innerHTML = RULESX[l].map(r => '<li>' + r + '</li>').join('');
+  $('p2p-code').placeholder = T('p2p_code'); if (p2pMsg) $('p2p-msg').textContent = T(p2pMsg[0], p2pMsg[1]);
   prevPh = ''; hudT = 0; if (!noGL) updateMenu();
 }
 function openPeep() {
@@ -426,7 +462,7 @@ function updateHUD(dt) {
   if (overlay === 'menu') updateMenu();
   $('clock').textContent = clockStr(W.t); $('night').textContent = T('night', W.n); $('cash').textContent = eur(W.cash);
   $('rep-f').style.width = Math.round(W.rep) + '%'; $('rep-f').classList.toggle('low', W.rep < 30);
-  $('coop').textContent = NET.count > 1 ? T('coop', NET.count) : '';
+  $('coop').textContent = (NET.code ? T('room_code', NET.code) + (NET.count > 1 ? ' · ' : '') : '') + (NET.count > 1 ? T('coop', NET.count) : '');
   let th = ''; for (const c of W.cu) if (!c.an && c.st === S_WAIT) th += ticketHTML(c); $('tickets').innerHTML = th;
   const h = P ? P.h : 0; let hd = handDesc(h); if (h && h.k === 'gun') hd += '  ' + '●'.repeat(W.am) + '○'.repeat(2 - W.am) + '  +' + W.shl;
   $('hand').textContent = hd; $('hp').textContent = P ? '♥'.repeat(P.hp) + '♡'.repeat(Math.max(0, 3 - P.hp)) : '';
@@ -436,7 +472,13 @@ function updateHUD(dt) {
 function updateMenu() {
   const m = $('menu-msg'), b = $('btn-start');
   if (NET.remote && !NET.isHost && W) { m.textContent = T('running', W.n, clockStr(W.t)); b.textContent = T('join'); }
-  else { m.textContent = NET.room ? (NET.others.length ? T('room_others', NET.others.length) : T('room_ready')) : T('solo'); b.textContent = T('start'); }
+  else {
+    b.textContent = T('start');
+    if (NET.badVer) m.textContent = T('p2p_version');
+    else if (!NET.room) m.textContent = p2pAvailable() ? '' : T('solo');
+    else if (NET.others.length) m.textContent = T('room_others', NET.others.length);
+    else m.textContent = T(NET.code ? 'p2p_alone' : 'room_ready');
+  }
 }
 
 /* ---------- bucle ---------- */

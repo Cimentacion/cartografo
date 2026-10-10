@@ -6,10 +6,20 @@ Disponible en **español, inglés y rumano** (se elige en el menú).
 
 ## Jugar
 
-- Abre `index.html` en un navegador. Es un único archivo: las texturas van incrustadas y solo se descarga three.js y las fuentes.
-- O activa GitHub Pages sobre la rama principal y entra en la URL del repositorio.
+https://raw.githack.com/Cimentacion/cartografo/kebab-poniente/index.html
 
-Aquí se juega en solitario. El cooperativo usa la sala en tiempo real de los artefactos de Claude: para jugar de dos, publica `dist/kebab-poniente.artifact.html` como artefacto con la capacidad `room` y comparte el enlace.
+También vale abrir `index.html` en un navegador: las texturas van incrustadas y las librerías están en `lib/`.
+
+## Jugar online con un amigo
+
+1. Los dos abrís el mismo enlace.
+2. Uno pulsa **Crear sala** y le pasa al otro el código de 4 cifras, o el enlace que aparece debajo (lleva el código detrás de `#`).
+3. El otro escribe el código y pulsa **Unirse** (con el enlace entra solo).
+4. Quien pulse **Abrir el local** empieza el turno; el resto entra a ayudar. Se puede entrar con la partida ya empezada.
+
+La conexión va de navegador a navegador con PeerJS, sin cuentas ni servidor propio. Quien crea la sala hace de centro: si cierra la pestaña, los demás siguen cada uno por su cuenta. En algunas redes muy cerradas (ciertas wifis de empresa o datos móviles) puede no conectar.
+
+Dentro de Claude, publicado como artefacto con la capacidad `room` (`dist/kebab-poniente.artifact.html`), el cooperativo usa la sala del propio artefacto y no hacen falta códigos.
 
 ## Controles
 
@@ -33,6 +43,7 @@ Aquí se juega en solitario. El cooperativo usa la sala en tiempo real de los ar
 
 ```
 index.html                  juego completo, generado
+lib/                        three.js r128 y PeerJS 1.5.4
 dist/                       versión para publicar como artefacto de Claude, generada
 src/page.html               HTML y CSS
 src/02_data.js              clientes, pedidos y textos en español
@@ -60,7 +71,7 @@ En `src/02b_i18n.js`: añade el código a `LANGS` y una entrada en `LX`, `STR`, 
 ## Créditos
 
 - Texturas: *SBS - Horror Texture Pack 256x256*, de Screaming Brain Studios, CC0 1.0.
-- three.js r128 (MIT), cargado desde cdnjs.
+- three.js r128 (MIT) y PeerJS 1.5.4 (MIT), incluidos en `lib/`.
 - Fuentes Anton e IBM Plex Mono (SIL Open Font License), desde Google Fonts.
 
 ---
@@ -69,10 +80,10 @@ En `src/02b_i18n.js`: añade el código a `LANGS` y una entrada en `LX`, `STR`, 
 
 First-person PS2-style horror game: you run a kebab shop in Benidorm through the night, 11 pm to 6 am. Carve the meat, build the orders, serve 28 different customers and decide when to take the shotgun off the wall. Playable in Spanish, English and Romanian; pick the language in the menu.
 
-Open `index.html` to play solo. Co-op needs the real-time room of Claude artifacts: publish `dist/kebab-poniente.artifact.html` as an artifact with the `room` capability. To rebuild: `pip install pillow && python3 tools/build.py`.
+Play at the link above or open `index.html`. To play online with a friend, both open the same link: one presses **Create room** and shares the 4-digit code or the link shown; the other types the code and presses **Join**. Whoever opens the shop first hosts the shift. To rebuild: `pip install pillow && python3 tools/build.py`.
 
 ## Română
 
 Joc horror la persoana întâi, în stil PS2: ții un kebab în Benidorm toată noaptea, de la 23:00 la 06:00. Tai carnea, pregătești comenzile, servești 28 de clienți diferiți și hotărăști când iei pușca de pe perete. Se poate juca în spaniolă, engleză și română; limba se alege din meniu.
 
-Deschide `index.html` ca să joci singur. Modul în doi folosește camera în timp real a artefactelor Claude: publică `dist/kebab-poniente.artifact.html` ca artefact cu capabilitatea `room`. Pentru build: `pip install pillow && python3 tools/build.py`.
+Joacă de la linkul de mai sus sau deschide `index.html`. Ca să jucați online în doi, deschideți amândoi același link: unul apasă **Creează o cameră** și îi dă celuilalt codul din 4 cifre sau linkul afișat; celălalt scrie codul și apasă **Intră**. Cine deschide primul localul pornește tura. Pentru build: `pip install pillow && python3 tools/build.py`.

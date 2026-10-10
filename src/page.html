@@ -111,6 +111,14 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 .langs button:first-child{border-left-width:1px}
 .langs button[aria-pressed="true"]{background:var(--ink);color:#0b0c0e;border-color:var(--ink)}
 #tbs button{font-size:14px}
+#p2p{border-top:1px dashed rgba(236,229,208,.25);padding-top:14px;margin-bottom:22px}
+#p2p h2{font-family:var(--f-sign);font-weight:400;font-size:17px;letter-spacing:.08em;text-transform:uppercase;color:var(--sodium);margin:0 0 6px}
+#p2p .status{margin:0 0 10px}
+#p2p #p2p-msg{margin:10px 0;color:var(--neon-2);min-height:1.4em}
+#p2p input{font-family:var(--f-mono);font-size:16px;color:var(--ink);background:rgba(8,9,12,.7);border:1px solid rgba(236,229,208,.4);padding:8px 10px;min-width:0;-webkit-user-select:text;user-select:text}
+#p2p-code{width:6.5em;letter-spacing:.3em;text-align:center}
+#p2p-link{flex:1 1 220px;font-size:13px}
+button.ghost:disabled{opacity:.4;cursor:default}
 .paper{background:var(--paper);color:var(--paper-ink);padding:22px 22px 18px;max-width:470px;margin:auto;transform:rotate(-1.2deg);box-shadow:0 10px 0 rgba(0,0,0,.4)}
 .paper h2{font-family:var(--f-sign);font-weight:400;font-size:24px;letter-spacing:.05em;margin:0 0 10px;color:var(--blood);text-transform:uppercase}
 .paper ol{margin:0 0 12px;padding-left:22px;line-height:1.5;font-size:14px}
@@ -167,6 +175,17 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
     <p class="sub" data-t="sub">Turno de noche · Benidorm · de 23:00 a 06:00</p>
     <div class="row"><button class="big" id="btn-start" type="button">Abrir el local</button><button class="ghost" id="btn-full" type="button" data-t="full">Pantalla completa</button><span class="langs" role="group" aria-label="Idioma · Language · Limbă"><button class="ghost" type="button" data-lang="es" aria-pressed="true">Español</button><button class="ghost" type="button" data-lang="en" aria-pressed="false">English</button><button class="ghost" type="button" data-lang="ro" aria-pressed="false">Română</button></span></div>
     <p class="status" id="menu-msg" data-t="loading">Cargando el local…</p>
+    <div id="p2p" hidden>
+      <h2 data-t="p2p_h">Jugar online con un amigo</h2>
+      <p class="status" data-t="p2p_note">Uno crea la sala y le pasa al otro el código de 4 cifras o el enlace. No hacen falta cuentas.</p>
+      <div class="row">
+        <button class="ghost" id="p2p-create" type="button" data-t="p2p_create">Crear sala</button>
+        <input id="p2p-code" type="text" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="Código" aria-label="Código de sala">
+        <button class="ghost" id="p2p-join" type="button" data-t="p2p_join">Unirse</button>
+      </div>
+      <p class="status" id="p2p-msg" role="status"></p>
+      <div class="row" id="p2p-linkrow" hidden><input id="p2p-link" type="text" readonly aria-label="Enlace de la sala"><button class="ghost" id="p2p-copy" type="button" data-t="p2p_copy">Copiar enlace</button></div>
+    </div>
     <div class="cols">
       <div>
         <h2 data-t="job_h">El trabajo</h2>
