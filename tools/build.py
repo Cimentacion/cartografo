@@ -4,8 +4,8 @@
     python3 tools/build.py
 
 Genera:
-  index.html                          página completa, lista para GitHub Pages o para abrir con doble clic
-  dist/kebab-poniente.artifact.html   el mismo juego sin <html>/<head>, para publicarlo como artefacto de Claude
+  index.html + js/                    página para GitHub (o para abrir con doble clic), en archivos pequeños
+  dist/kebab-poniente.artifact.html   el mismo juego en un solo archivo, para publicarlo como artefacto de Claude
 
 Necesita Pillow (pip install pillow).
 """
@@ -18,7 +18,7 @@ SRC, TEX = os.path.join(ROOT, 'src'), os.path.join(ROOT, 'assets', 'textures')
 ALPHA = {'st1', 'st2', 'st3', 'st4', 'st5', 'drip1', 'drip2', 'drip3', 'grime1', 'grime2'}
 
 
-def textures():
+def texture_uris():
     data = {}
     for path in sorted(glob.glob(os.path.join(TEX, '*.png'))):
         name = os.path.splitext(os.path.basename(path))[0]
@@ -30,29 +30,57 @@ def textures():
             im.convert('RGB').save(buf, 'JPEG', quality=80)
             mime = 'image/jpeg'
         data[name] = 'data:%s;base64,%s' % (mime, base64.b64encode(buf.getvalue()).decode())
-    return 'const TEXDATA=' + json.dumps(data) + ';\n'
+    return data
 
 
 def main():
-    js = textures() + ''.join(open(f, encoding='utf-8').read() + '\n' for f in sorted(glob.glob(os.path.join(SRC, '0*.js'))))
-    if '</script' in js:
+    tex = texture_uris()
+    code = ''.join(open(f, encoding='utf-8').read() + '\n' for f in sorted(glob.glob(os.path.join(SRC, '0*.js'))))
+    if '</script' in code:
         sys.exit('El código contiene </script y rompería la página.')
-    body = open(os.path.join(SRC, 'page.html'), encoding='utf-8').read().replace('/*__GAME__*/', js).replace('__BUILD__', time.strftime('%Y-%m-%d %H:%M', time.gmtime()) + ' UTC')
-    os.makedirs(os.path.join(ROOT, 'dist'), exist_ok=True)
-    with open(os.path.join(ROOT, 'dist', 'kebab-poniente.artifact.html'), 'w', encoding='utf-8') as f:
-        f.write(body)
+    stamp = time.strftime('%Y-%m-%d %H:%M', time.gmtime()) + ' UTC'
+    shell = open(os.path.join(SRC, 'page.html'), encoding='utf-8').read().replace('__BUILD__', stamp)
     cdn = '<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>'
-    if cdn not in body:
-        sys.exit('No encuentro la etiqueta de three.js en page.html')
-    # La página suelta usa las librerías del repositorio; el artefacto de Claude solo puede cargar three.js desde cdnjs.
-    local = body.replace(cdn, '<script src="lib/three.min.js"></script>\n<script src="lib/peerjs.min.js"></script>')
+    inline = '<script>\n/*__GAME__*/\n</script>'
+    if cdn not in shell or inline not in shell:
+        sys.exit('No encuentro las etiquetas de script en page.html')
+
+    # 1) Artefacto de Claude: todo en un archivo, three.js desde cdnjs (lo único que deja cargar).
+    os.makedirs(os.path.join(ROOT, 'dist'), exist_ok=True)
+    one = shell.replace('/*__GAME__*/', 'const TEXDATA=' + json.dumps(tex) + ';\n' + code)
+    with open(os.path.join(ROOT, 'dist', 'kebab-poniente.artifact.html'), 'w', encoding='utf-8') as f:
+        f.write(one)
+
+    # 2) Página suelta (GitHub): HTML pequeño y el resto en archivos de menos de 400 KB,
+    #    con las librerías del repositorio. Las texturas van como JS para que también
+    #    funcione abriendo index.html con doble clic.
+    jsdir = os.path.join(ROOT, 'js')
+    os.makedirs(jsdir, exist_ok=True)
+    for old in glob.glob(os.path.join(jsdir, '*.js')):
+        os.remove(old)
+    chunks, cur, size = [], {}, 0
+    for k, v in tex.items():
+        if cur and size + len(v) > 380000:
+            chunks.append(cur); cur, size = {}, 0
+        cur[k] = v; size += len(v)
+    if cur:
+        chunks.append(cur)
+    tags = ['<script src="lib/three.min.js"></script>', '<script src="lib/peerjs.min.js"></script>']
+    for n, ch in enumerate(chunks, 1):
+        with open(os.path.join(jsdir, 'tex-%d.js' % n), 'w', encoding='utf-8') as f:
+            f.write('window.TEXDATA=Object.assign(window.TEXDATA||{},' + json.dumps(ch) + ');\n')
+        tags.append('<script src="js/tex-%d.js"></script>' % n)
+    with open(os.path.join(jsdir, 'game.js'), 'w', encoding='utf-8') as f:
+        f.write(code)
+    tags.append('<script src="js/game.js"></script>')
+    local = shell.replace(cdn + '\n', '').replace(inline, '\n'.join(tags))
     page = ('<!doctype html>\n<html lang="es">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n'
             '<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>\n'
             '</head>\n<body>\n' + local + '</body>\n</html>\n')
     with open(os.path.join(ROOT, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(page)
-    print('index.html %d KB · dist/kebab-poniente.artifact.html %d KB' % (len(page) // 1024, len(body) // 1024))
+    print('index.html %d KB · js/game.js %d KB · %d trozos de texturas · artefacto %d KB' % (len(page) // 1024, len(code) // 1024, len(chunks), len(one) // 1024))
 
 
 if __name__ == '__main__':

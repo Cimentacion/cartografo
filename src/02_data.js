@@ -1,4 +1,3 @@
-'use strict';
 /* ================= DATOS ================= */
 const HOUR_LEN = 54, NIGHT_LEN = HOUR_LEN * 7;      // 23:00 -> 06:00
 const BASES = [{ n: 'dürüm', art: 'un', price: 6 }, { n: 'pita', art: 'una', price: 5 }, { n: 'caja', art: 'una', price: 7.5 }];

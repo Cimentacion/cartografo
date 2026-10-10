@@ -8,7 +8,7 @@ Disponible en **español, inglés y rumano** (se elige en el menú).
 
 https://raw.githack.com/Cimentacion/cartografo/kebab-poniente/index.html
 
-También vale abrir `index.html` en un navegador: las texturas van incrustadas y las librerías están en `lib/`.
+También vale descargar el repositorio y abrir `index.html` en un navegador: no necesita servidor.
 
 ## Jugar online con un amigo
 
@@ -42,7 +42,8 @@ Dentro de Claude, publicado como artefacto con la capacidad `room` (`dist/kebab-
 ## Estructura
 
 ```
-index.html                  juego completo, generado
+index.html                  página del juego, generada
+js/                         código y texturas en archivos pequeños, generados
 lib/                        three.js r128 y PeerJS 1.5.4
 dist/                       versión para publicar como artefacto de Claude, generada
 src/page.html               HTML y CSS
