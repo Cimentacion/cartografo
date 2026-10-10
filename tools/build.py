@@ -74,10 +74,18 @@ def main():
         f.write(code)
     tags.append('<script src="js/game.js"></script>')
     local = shell.replace(cdn + '\n', '').replace(inline, '\n'.join(tags))
+    # Título, fuentes y estilos van en <head>; las fuentes se cargan sin bloquear la página
+    # (si Google Fonts tarda o no llega, el juego arranca igual con la fuente de reserva).
+    cut = local.index('<div id="stage">')
+    head, body = local[:cut], local[cut:]
+    font = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;600&display=swap">'
+    if font not in head:
+        sys.exit('No encuentro el enlace de fuentes en page.html')
+    head = head.replace(font, font.replace('>', ' media="print" onload="this.media=\'all\'">'))
     page = ('<!doctype html>\n<html lang="es">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n'
             '<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>\n'
-            '</head>\n<body>\n' + local + '</body>\n</html>\n')
+            + head + '</head>\n<body>\n' + body + '</body>\n</html>\n')
     with open(os.path.join(ROOT, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(page)
     print('index.html %d KB · js/game.js %d KB · %d trozos de texturas · artefacto %d KB' % (len(page) // 1024, len(code) // 1024, len(chunks), len(one) // 1024))
