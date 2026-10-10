@@ -68,6 +68,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-mono);font-size:1
 #prompt{position:absolute;left:50%;top:calc(50% + 26px);transform:translateX(-50%);max-width:min(560px,86vw);text-align:center;font-size:14px;padding:4px 10px;line-height:1.3}
 #prompt.ok{background:var(--panel);color:var(--ink);border-left:3px solid var(--neon-2)}
 #prompt.no{background:rgba(8,9,12,.6);color:var(--dim)}
+#diag{position:absolute;left:0;right:0;bottom:0;z-index:50;background:var(--blood);color:#fff;font-size:13px;line-height:1.35;padding:8px 16px;-webkit-user-select:text;user-select:text;word-break:break-word}
+.ver{color:var(--dim);font-size:11px;letter-spacing:.08em;margin:18px 0 0}
 #prompt.low{top:auto;bottom:96px}
 #prompt:empty{display:none}
 #subs{position:absolute;left:50%;bottom:52px;transform:translateX(-50%);width:max-content;max-width:min(640px,calc(100% - 32px));text-align:center;font-size:14px;line-height:1.35;background:var(--panel);padding:5px 11px}
@@ -149,6 +151,19 @@ button.ghost:disabled{opacity:.4;cursor:default}
 </style>
 
 <div id="stage">
+  <div id="diag" hidden></div>
+  <script>
+  // Si algo falla al cargar, que se lea en pantalla en vez de quedarse en negro.
+  window.__kpErr = [];
+  window.__kpSay = function (m) { if (window.__kpErr.indexOf(m) >= 0 || window.__kpErr.length > 3) return; window.__kpErr.push(m); var d = document.getElementById('diag'); if (d) { d.hidden = false; d.textContent = 'Error · ' + window.__kpErr.join(' · '); } };
+  window.addEventListener('error', function (e) {
+    var t = e.target;
+    if (t && t.tagName === 'SCRIPT' && t.src) window.__kpSay('no carga ' + t.src.split('/').slice(-2).join('/'));
+    else if (e.message) window.__kpSay(e.message + (e.filename ? ' (' + String(e.filename).split('/').pop() + ':' + e.lineno + ')' : ''));
+  }, true);
+  window.addEventListener('unhandledrejection', function (e) { window.__kpSay(String(e.reason && e.reason.message || e.reason)); });
+  (function () { var ce = console.error; console.error = function () { try { var a = String(arguments[0]); if (a.indexOf('THREE.') >= 0) window.__kpSay(a.slice(0, 160)); } catch (x) { } return ce.apply(console, arguments); }; })();
+  </script>
   <canvas id="gl" tabindex="0" aria-label="Kebab Poniente, juego en primera persona"></canvas>
   <div id="fx"></div><div id="hurt"></div><div id="flash"></div><div id="bubs"></div>
 
@@ -204,6 +219,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
         <dl class="keys" id="ctl-list"></dl>
       </div>
     </div>
+    <p class="ver">Kebab Poniente · 2026-10-10 16:20 UTC</p>
   </div></section>
 
   <section id="note" class="ov" hidden><div class="paper">
@@ -1966,7 +1982,7 @@ async function boot() {
   try {
     await loadTextures();
     renderer = new THREE.WebGLRenderer({ canvas: $('gl'), antialias: false, powerPreference: 'high-performance' });
-  } catch (e) { $('menu-msg').textContent = T('nowebgl'); noGL = true; $('btn-start').disabled = true; return; }
+  } catch (e) { $('menu-msg').textContent = T('nowebgl'); noGL = true; $('btn-start').disabled = true; if (window.__kpSay) window.__kpSay(String(e && e.message || e)); return; }
   renderer.setPixelRatio(1);
   camera = new THREE.PerspectiveCamera(66, 16 / 9, 0.05, 60); camera.rotation.order = 'YXZ';
   buildWorld(); scene.add(camera); raycaster = new THREE.Raycaster();

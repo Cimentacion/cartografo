@@ -9,7 +9,7 @@ Genera:
 
 Necesita Pillow (pip install pillow).
 """
-import base64, glob, io, json, os, sys
+import base64, glob, io, json, os, sys, time
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -37,7 +37,7 @@ def main():
     js = textures() + ''.join(open(f, encoding='utf-8').read() + '\n' for f in sorted(glob.glob(os.path.join(SRC, '0*.js'))))
     if '</script' in js:
         sys.exit('El código contiene </script y rompería la página.')
-    body = open(os.path.join(SRC, 'page.html'), encoding='utf-8').read().replace('/*__GAME__*/', js)
+    body = open(os.path.join(SRC, 'page.html'), encoding='utf-8').read().replace('/*__GAME__*/', js).replace('__BUILD__', time.strftime('%Y-%m-%d %H:%M', time.gmtime()) + ' UTC')
     os.makedirs(os.path.join(ROOT, 'dist'), exist_ok=True)
     with open(os.path.join(ROOT, 'dist', 'kebab-poniente.artifact.html'), 'w', encoding='utf-8') as f:
         f.write(body)
