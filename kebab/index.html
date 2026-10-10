@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+</head>
+<body>
+<title>Kebab Poniente</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Composición: un único escenario a pantalla completa. El 3D es la página; el HUD flota encima
+   como rótulos de un local de comida rápida: neón para el nombre, papel térmico para las comandas. */
+:root{
+  --bg:#06070a; --ink:#ece5d0; --dim:#9a927c; --neon:#ff4a38; --neon-2:#6dffa0; --sodium:#f2a23a;
+  --paper:#eee6c9; --paper-ink:#1f1b14; --blood:#b3161c; --panel:rgba(8,9,12,.82);
+  --f-sign:'Anton',Impact,'Arial Narrow Bold',sans-serif; --f-mono:'IBM Plex Mono','Courier New',monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-mono);font-size:14px;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;overscroll-behavior:none}
+#stage{position:relative;width:100%;height:100%;overflow:hidden;background:var(--bg)}
+#gl{display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;outline:none}
+#fx{position:absolute;inset:0;pointer-events:none;background:
+  radial-gradient(ellipse at center,rgba(0,0,0,0) 48%,rgba(0,0,0,.62) 100%),
+  repeating-linear-gradient(to bottom,rgba(0,0,0,.16) 0 1px,rgba(0,0,0,0) 1px 3px);mix-blend-mode:multiply}
+#hurt,#flash{position:absolute;inset:0;pointer-events:none;opacity:0}
+#hurt{background:radial-gradient(ellipse at center,rgba(179,22,28,.15) 20%,rgba(179,22,28,.95) 100%)}
+#flash{background:#ffe9b0}
+#flash.on{animation:fl .14s ease-out}
+@keyframes fl{0%{opacity:.5}100%{opacity:0}}
+#bubs{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.bub{position:absolute;transform:translate(-50%,-100%);max-width:min(300px,62vw);background:var(--panel);border:1px solid rgba(236,229,208,.25);padding:6px 9px 7px;font-size:13px;line-height:1.3;color:var(--ink);text-align:left}
+.bub b{display:block;color:var(--sodium);font-weight:400;font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+.bub.an{border-color:var(--blood);color:#ffb7ae;letter-spacing:.06em}
+.bub.an b{color:var(--neon)}
+
+#hud{position:absolute;inset:0;pointer-events:none}
+#hud.dim{opacity:.25}
+#top{position:absolute;left:16px;top:12px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+#clock{font-family:var(--f-sign);font-size:clamp(30px,6vw,46px);line-height:1;color:var(--neon);letter-spacing:.04em;text-shadow:0 0 10px rgba(255,74,56,.65);font-variant-numeric:tabular-nums}
+#clock.witch{color:#fff;text-shadow:0 0 14px #fff}
+#night{font-size:12px;letter-spacing:.2em;color:var(--dim)}
+#cash{font-size:19px;color:var(--neon-2);text-shadow:0 0 8px rgba(109,255,160,.4);font-variant-numeric:tabular-nums}
+#rep{width:132px;height:7px;background:rgba(236,229,208,.14);border:1px solid rgba(236,229,208,.28)}
+#rep-f{display:block;height:100%;background:var(--sodium);width:60%}
+#rep-f.low{background:var(--neon)}
+.lbl{font-size:10px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase}
+#coop{font-size:11px;color:var(--dim);letter-spacing:.1em}
+#tickets{position:absolute;right:16px;top:12px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;max-height:72%;overflow:hidden}
+.tk{width:min(214px,46vw);background:var(--paper);color:var(--paper-ink);padding:7px 9px 0;font-size:12px;line-height:1.28;box-shadow:0 3px 0 rgba(0,0,0,.4);
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 5px),95% 100%,90% calc(100% - 5px),85% 100%,80% calc(100% - 5px),75% 100%,70% calc(100% - 5px),65% 100%,60% calc(100% - 5px),55% 100%,50% calc(100% - 5px),45% 100%,40% calc(100% - 5px),35% 100%,30% calc(100% - 5px),25% 100%,20% calc(100% - 5px),15% 100%,10% calc(100% - 5px),5% 100%,0 calc(100% - 5px))}
+.tk.hot{background:#f3c9b8}
+.tk-h{display:flex;justify-content:space-between;gap:8px;align-items:baseline;border-bottom:1px dashed rgba(31,27,20,.5);padding-bottom:3px;margin-bottom:4px}
+.tk-h b{font-family:var(--f-sign);font-weight:400;font-size:15px;letter-spacing:.03em;text-transform:uppercase;white-space:nowrap}
+.tk-h i{font-style:normal;font-size:10px;opacity:.7;text-align:right;min-width:0}
+.tk-i{padding:2px 0 3px 15px;position:relative}
+.tk-i::before{content:'';position:absolute;left:1px;top:5px;width:8px;height:8px;border:1px solid var(--paper-ink)}
+.tk-i.done{opacity:.42;text-decoration:line-through}
+.tk-i.done::before{background:var(--paper-ink)}
+.tk-i u{text-decoration:none;text-transform:uppercase;font-weight:700}
+.tk-p{height:5px;margin:5px -9px 0;background:rgba(31,27,20,.18)}
+.tk-p span{display:block;height:100%;background:var(--paper-ink)}
+.tk.hot .tk-p span{background:var(--blood)}
+#cross{position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;background:rgba(236,229,208,.6);border-radius:50%}
+#cross.on{background:var(--neon-2);box-shadow:0 0 0 3px rgba(109,255,160,.25)}
+#cross.aim{background:var(--neon);box-shadow:0 0 0 5px rgba(255,74,56,.35)}
+#prompt{position:absolute;left:50%;top:calc(50% + 26px);transform:translateX(-50%);max-width:min(560px,86vw);text-align:center;font-size:14px;padding:4px 10px;line-height:1.3}
+#prompt.ok{background:var(--panel);color:var(--ink);border-left:3px solid var(--neon-2)}
+#prompt.no{background:rgba(8,9,12,.6);color:var(--dim)}
+#diag{position:absolute;left:0;right:0;bottom:0;z-index:50;background:var(--blood);color:#fff;font-size:13px;line-height:1.35;padding:8px 16px;-webkit-user-select:text;user-select:text;word-break:break-word}
+.ver{color:var(--dim);font-size:11px;letter-spacing:.08em;margin:18px 0 0}
+#prompt.low{top:auto;bottom:96px}
+#prompt:empty{display:none}
+#subs{position:absolute;left:50%;bottom:52px;transform:translateX(-50%);width:max-content;max-width:min(640px,calc(100% - 32px));text-align:center;font-size:14px;line-height:1.35;background:var(--panel);padding:5px 11px}
+#subs:empty{display:none}
+#subs b{color:var(--sodium);font-weight:400}
+#subs.an{color:#ffb7ae}#subs.an b{color:var(--neon)}
+#toasts{position:absolute;left:16px;bottom:96px;display:flex;flex-direction:column;gap:5px;align-items:flex-start;max-width:min(380px,70vw)}
+.toast{background:var(--panel);padding:4px 9px;font-size:13px;border-left:3px solid var(--dim);animation:tin .2s ease-out}
+.toast.good{border-color:var(--neon-2);color:var(--neon-2)}
+.toast.bad{border-color:var(--neon);color:#ffb7ae}
+@keyframes tin{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+#bottom{position:absolute;left:16px;right:16px;bottom:14px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+#hp{color:var(--neon);font-size:20px;letter-spacing:.12em}
+#hand{font-size:13px;color:var(--ink);background:var(--panel);padding:4px 9px;text-align:right;max-width:70%}
+#hand:empty{display:none}
+#ko{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(60,4,6,.6);font-family:var(--f-sign);font-size:clamp(26px,6vw,44px);letter-spacing:.06em;color:#ffd5cf;text-align:center;padding:0 16px}
+
+#touch{position:absolute;inset:0;pointer-events:none}
+#joy{position:absolute;left:22px;bottom:88px;width:104px;height:104px;border-radius:50%;border:2px solid rgba(236,229,208,.28);background:rgba(236,229,208,.05)}
+#joy-knob{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgba(236,229,208,.3)}
+#tbs{position:absolute;right:16px;bottom:88px;display:flex;flex-direction:row;align-items:flex-end;gap:10px;pointer-events:auto}
+#tbs button{font-family:var(--f-sign);font-size:15px;letter-spacing:.06em;color:var(--ink);background:rgba(8,9,12,.6);border:2px solid rgba(236,229,208,.4);border-radius:50%;width:66px;height:66px;padding:0}
+#tbs #tb-use{width:82px;height:82px;border-color:var(--neon-2);color:var(--neon-2)}
+#tbs #tb-fire{border-color:var(--neon);color:var(--neon)}
+
+.ov{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(4,5,7,.8);padding-block:24px;padding-inline:16px;display:flex;touch-action:pan-y}
+.ov>.in{margin:auto;width:100%;max-width:760px;min-width:0}
+.sign{font-family:var(--f-sign);font-weight:400;font-size:clamp(40px,10vw,84px);line-height:.92;letter-spacing:.02em;margin:0;color:var(--neon);text-shadow:0 0 6px rgba(255,74,56,.9),0 0 26px rgba(255,74,56,.55);text-wrap:balance;text-transform:uppercase}
+.sign em{font-style:normal;color:var(--neon-2);text-shadow:0 0 6px rgba(109,255,160,.9),0 0 22px rgba(109,255,160,.5);font-size:.42em;vertical-align:top;margin-left:.2em;animation:buzz 5s infinite}
+@keyframes buzz{0%,91%,95%,100%{opacity:1}92%,94%{opacity:.25}93%{opacity:.8}}
+.sub{margin:8px 0 16px;color:var(--dim);letter-spacing:.14em;font-size:13px;text-transform:uppercase}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px 28px;margin-bottom:20px}
+.cols>div{min-width:0}
+.cols h2{font-family:var(--f-sign);font-weight:400;font-size:17px;letter-spacing:.08em;text-transform:uppercase;color:var(--sodium);margin:0 0 8px}
+.cols ol,.cols ul{margin:0;padding-left:19px;line-height:1.5;color:var(--ink)}
+.cols li{margin-bottom:3px}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:0;line-height:1.45}
+.keys dt{color:var(--neon-2);white-space:nowrap}
+.keys dd{margin:0;color:var(--ink)}
+.status{color:var(--dim);margin:12px 0 20px;line-height:1.45;max-width:62ch}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button.big{font-family:var(--f-sign);font-size:22px;letter-spacing:.06em;text-transform:uppercase;color:#0b0c0e;background:var(--neon-2);border:0;padding:11px 26px 10px;cursor:pointer;box-shadow:0 0 22px rgba(109,255,160,.35)}
+button.big:hover{background:#9bffbd}
+button.big:disabled{opacity:.4;cursor:default}
+button.ghost{font-family:var(--f-mono);font-size:13px;color:var(--ink);background:transparent;border:1px solid rgba(236,229,208,.4);padding:9px 14px;cursor:pointer}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.langs{display:inline-flex;flex-wrap:wrap;gap:0;margin-left:auto}
+.langs button{border-left-width:0;padding:9px 12px}
+.langs button:first-child{border-left-width:1px}
+.langs button[aria-pressed="true"]{background:var(--ink);color:#0b0c0e;border-color:var(--ink)}
+#tbs button{font-size:14px}
+#p2p{border-top:1px dashed rgba(236,229,208,.25);padding-top:14px;margin-bottom:22px}
+#p2p h2{font-family:var(--f-sign);font-weight:400;font-size:17px;letter-spacing:.08em;text-transform:uppercase;color:var(--sodium);margin:0 0 6px}
+#p2p .status{margin:0 0 10px}
+#p2p #p2p-msg{margin:10px 0;color:var(--neon-2);min-height:1.4em}
+#p2p input{font-family:var(--f-mono);font-size:16px;color:var(--ink);background:rgba(8,9,12,.7);border:1px solid rgba(236,229,208,.4);padding:8px 10px;min-width:0;-webkit-user-select:text;user-select:text}
+#p2p-code{width:6.5em;letter-spacing:.3em;text-align:center}
+#p2p-link{flex:1 1 220px;font-size:13px}
+button.ghost:disabled{opacity:.4;cursor:default}
+.paper{background:var(--paper);color:var(--paper-ink);padding:22px 22px 18px;max-width:470px;margin:auto;transform:rotate(-1.2deg);box-shadow:0 10px 0 rgba(0,0,0,.4)}
+.paper h2{font-family:var(--f-sign);font-weight:400;font-size:24px;letter-spacing:.05em;margin:0 0 10px;color:var(--blood);text-transform:uppercase}
+.paper ol{margin:0 0 12px;padding-left:22px;line-height:1.5;font-size:14px}
+.paper li{margin-bottom:6px}
+.paper p{margin:0 0 14px;font-size:13px;opacity:.8}
+.paper button.ghost{color:var(--paper-ink);border-color:rgba(31,27,20,.5)}
+.peepbox{text-align:center;margin:auto}
+#peep-cv{width:min(62vmin,340px);height:min(62vmin,340px);border-radius:50%;border:10px solid #17130f;image-rendering:pixelated;display:block;margin:0 auto 14px;background:#000}
+#peep-txt{color:var(--ink);font-size:15px;margin:0 0 14px;min-height:1.4em}
+.card h2{font-family:var(--f-sign);font-weight:400;font-size:clamp(30px,8vw,56px);letter-spacing:.04em;margin:0 0 12px;text-transform:uppercase;color:var(--sodium);text-wrap:balance}
+#over .card h2{color:var(--neon)}
+.card p{line-height:1.5;max-width:58ch;margin:0 0 14px}
+.card dl{display:grid;grid-template-columns:1fr auto;gap:5px 24px;max-width:340px;margin:0 0 20px;font-variant-numeric:tabular-nums}
+.card dt{color:var(--dim)}.card dd{margin:0;text-align:right}
+[data-dev="touch"] .only-kb,[data-dev="pad"] .only-kb{display:none}
+[data-dev="touch"] #toasts{bottom:auto;top:150px}
+@media (max-height:460px){.tk{font-size:11px;width:min(196px,40vw)}#tickets{max-height:50%}#clock{font-size:30px}[data-dev="touch"] #toasts{top:128px}}
+@media (max-width:560px){#tickets .tk-h i{display:none}.tk{font-size:11px}#prompt{font-size:13px}}
+@media (prefers-reduced-motion:reduce){.sign em,.toast,#flash.on{animation:none}}
+</style>
+
+<div id="stage">
+  <div id="diag" hidden></div>
+  <script>
+  // Si algo falla al cargar, que se lea en pantalla en vez de quedarse en negro.
+  window.__kpErr = [];
+  window.__kpSay = function (m) { if (window.__kpErr.indexOf(m) >= 0 || window.__kpErr.length > 3) return; window.__kpErr.push(m); var d = document.getElementById('diag'); if (d) { d.hidden = false; d.textContent = 'Error · ' + window.__kpErr.join(' · '); } };
+  window.addEventListener('error', function (e) {
+    var t = e.target;
+    if (t && t.tagName === 'SCRIPT' && t.src) window.__kpSay('no carga ' + t.src.split('/').slice(-2).join('/'));
+    else if (e.message) window.__kpSay(e.message + (e.filename ? ' (' + String(e.filename).split('/').pop() + ':' + e.lineno + ')' : ''));
+  }, true);
+  window.addEventListener('unhandledrejection', function (e) { window.__kpSay(String(e.reason && e.reason.message || e.reason)); });
+  (function () { var ce = console.error; console.error = function () { try { var a = String(arguments[0]); if (a.indexOf('THREE.') >= 0) window.__kpSay(a.slice(0, 160)); } catch (x) { } return ce.apply(console, arguments); }; })();
+  </script>
+  <canvas id="gl" tabindex="0" aria-label="Kebab Poniente, juego en primera persona"></canvas>
+  <div id="fx"></div><div id="hurt"></div><div id="flash"></div><div id="bubs"></div>
+
+  <div id="hud" hidden>
+    <div id="top">
+      <span id="clock">23:00</span><span id="night">NOCHE 1</span>
+      <span id="cash">0,00 €</span>
+      <span class="lbl" data-t="rep">Reputación</span><div id="rep"><span id="rep-f"></span></div>
+      <span id="coop"></span>
+    </div>
+    <div id="tickets"></div>
+    <div id="cross"></div>
+    <div id="prompt"></div>
+    <div id="subs"></div>
+    <div id="toasts"></div>
+    <div id="bottom"><span id="hp"></span><span id="hand"></span></div>
+    <div id="ko" hidden data-t="ko">Te has desmayado</div>
+  </div>
+
+  <div id="touch" hidden>
+    <div id="joy"><div id="joy-knob"></div></div>
+    <div id="tbs">
+      <button id="tb-back" type="button" hidden data-t="tb_back">Salir</button>
+      <button id="tb-rel" type="button" hidden data-t="tb_rel">Recarga</button>
+      <button id="tb-fire" type="button" hidden data-t="tb_fire">Fuego</button>
+      <button id="tb-use" type="button" data-t="tb_use">Usar</button>
+    </div>
+  </div>
+
+  <section id="menu" class="ov"><div class="in">
+    <h1 class="sign">Kebab Poniente<em>24H</em></h1>
+    <p class="sub" data-t="sub">Turno de noche · Benidorm · de 23:00 a 06:00</p>
+    <div class="row"><button class="big" id="btn-start" type="button">Abrir el local</button><button class="ghost" id="btn-full" type="button" data-t="full">Pantalla completa</button><span class="langs" role="group" aria-label="Idioma · Language · Limbă"><button class="ghost" type="button" data-lang="es" aria-pressed="true">Español</button><button class="ghost" type="button" data-lang="en" aria-pressed="false">English</button><button class="ghost" type="button" data-lang="ro" aria-pressed="false">Română</button></span></div>
+    <p class="status" id="menu-msg" data-t="loading">Cargando el local…</p>
+    <div id="p2p" hidden>
+      <h2 data-t="p2p_h">Jugar online con un amigo</h2>
+      <p class="status" data-t="p2p_note">Uno crea la sala y le pasa al otro el código de 4 cifras o el enlace. No hacen falta cuentas.</p>
+      <div class="row">
+        <button class="ghost" id="p2p-create" type="button" data-t="p2p_create">Crear sala</button>
+        <input id="p2p-code" type="text" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="Código" aria-label="Código de sala">
+        <button class="ghost" id="p2p-join" type="button" data-t="p2p_join">Unirse</button>
+      </div>
+      <p class="status" id="p2p-msg" role="status"></p>
+      <div class="row" id="p2p-linkrow" hidden><input id="p2p-link" type="text" readonly aria-label="Enlace de la sala"><button class="ghost" id="p2p-copy" type="button" data-t="p2p_copy">Copiar enlace</button></div>
+    </div>
+    <div class="cols">
+      <div>
+        <h2 data-t="job_h">El trabajo</h2>
+        <ol id="job-list"></ol>
+      </div>
+      <div>
+        <h2 data-t="ctl_h">Controles</h2>
+        <dl class="keys" id="ctl-list"></dl>
+      </div>
+    </div>
+    <p class="ver">Kebab Poniente · 2026-10-10 16:29 UTC</p>
+  </div></section>
+
+  <section id="note" class="ov" hidden><div class="paper">
+    <h2 data-t="note_h">Turno de noche</h2>
+    <ol id="note-list"></ol>
+    <p data-t="note_sign">Suerte. Yo no vuelvo.</p>
+    <button class="ghost" type="button" data-close data-t="note_close">Dejar la nota</button>
+  </div></section>
+
+  <section id="peep" class="ov" hidden><div class="peepbox">
+    <canvas id="peep-cv" width="200" height="200"></canvas>
+    <p id="peep-txt"></p>
+    <button class="ghost" type="button" data-close data-t="peep_close">Apartarse de la mirilla</button>
+  </div></section>
+
+  <section id="end" class="ov" hidden><div class="in card">
+    <h2 id="end-t">Noche terminada</h2>
+    <dl id="end-s"></dl>
+    <button class="big" id="btn-next" type="button" data-t="next">Siguiente noche</button>
+  </div></section>
+
+  <section id="over" class="ov" hidden><div class="in card">
+    <h2 id="over-t">El local cierra</h2>
+    <p id="over-p"></p>
+    <p id="over-s" class="status"></p>
+    <button class="big" id="btn-again" type="button" data-t="again">Volver a la primera noche</button>
+  </div></section>
+</div>
+
+<script src="lib/three.min.js"></script>
+<script src="lib/peerjs.min.js"></script>
+<script src="js/tex-1.js"></script>
+<script src="js/tex-2.js"></script>
+<script src="js/tex-3.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
