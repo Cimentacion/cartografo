@@ -525,10 +525,11 @@ function tick(dt) {
   view.placeCar(G.carD, G.t, G.shake * 0.15);
   updateChunks(G.carD, false);
   const car = view.car;
-  // la cámara NO copia los giros bruscos del coche: sigue la dirección de la carretera muy suave
-  // y con el horizonte siempre recto, para que el giroscopio no se "descoloque" en las curvas
-  if (G.camYaw == null) G.camYaw = car.rotation.y;
-  G.camYaw = lerpAng(G.camYaw, car.rotation.y, 1 - Math.exp(-dt * 1.4));
+  // horizonte siempre recto (no copia la cuesta ni el traqueteo del coche)
+  // la cámara gira CON el coche (mirando un poco por delante en la curva), sin retraso
+  const yawAhead = -G.road.yawAt(G.carD + 6);
+  if (G.camYaw == null) G.camYaw = yawAhead;
+  G.camYaw = lerpAng(G.camYaw, yawAhead, 1 - Math.exp(-dt * 6));
   EA.set(0, G.camYaw, 0, 'YXZ');
   QCAR.setFromEuler(EA);
   if (BOT) botAim();
