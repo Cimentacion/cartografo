@@ -748,6 +748,7 @@ $('btnDiag').onclick = async () => {
     let t = `Fuente usada: ${look.src}${look.force === 'dedo' ? ' (has elegido DEDO)' : ''}\n`;
     t += `devicemotion: ${D.motion} eventos (${D.motionNull} vacíos) · último giro: ${D.last || '-'}\n`;
     t += `deviceorientation: ${D.ori} · absoluta: ${D.abs} · vacíos: ${D.oriNull}\n`;
+    t += `Mira: lados ${(look.yaw * 57.3).toFixed(0)}° · arriba/abajo ${(look.pitch * 57.3).toFixed(0)}°\n`;
     t += `Ejes del giro: ${D.map || 'aprendiendo… gira el móvil'}\n`;
     t += `Sensor Gyroscope: ${D.sensor} lecturas${D.sensorErr ? ' · ' + D.sensorErr : ''}${D.perm ? ' · permiso: ' + D.perm : ''}\n`;
     t += `Conexión segura: ${window.isSecureContext ? 'sí' : 'NO'} · pantalla: ${look.screenAngle()}° · ejes: ${look.axes} · g: ${look.grav.x.toFixed(1)} ${look.grav.y.toFixed(1)} ${look.grav.z.toFixed(1)}\n`;

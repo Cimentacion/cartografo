@@ -28,7 +28,7 @@ export class Look {
     // No depende de brújula ni de "alpha", así que funciona en casi todos los Android.
     // Respaldo: deviceorientation / deviceorientationabsolute si no hay rotationRate.
     this.src = 'ninguno'; this.rateSeen = 0; this.lastRateT = 0;
-    this.grav = { x: 0, y: 0, z: 0, n: 0 }; this.axes = ''; this.map = 0;
+    this.grav = { x: 0, y: 0, z: 0, n: 0 }; this.axes = ''; this.map = 0; this.mapOk = false; this.up2 = { x: 1, y: 0, ok: false };
     this.absP = 0; this.refAbsP = 0; this.invX = false; this.invY = false;
     this.gYaw = 0; this.gPitch = 0;
     this.force = null; // 'dedo' = el jugador ha elegido apuntar con el dedo
@@ -59,6 +59,7 @@ export class Look {
         this.diag.sensor++;
         // el sensor nativo es el más fiable: si llega, manda él
         if (this.src !== 'sensor' && this.diag.sensor > 5) { this.src = 'ninguno'; this.rateSeen = 0; }
+        this.mapOk = true;
         this.integrate(g.x, g.y, g.z, 'sensor');
       });
       g.addEventListener('error', ev => { this.diag.sensorErr = (ev.error && (ev.error.name + ' ' + ev.error.message)) || 'error'; });
@@ -113,9 +114,15 @@ export class Look {
     if (M.n > 25) {
       let best = 0;
       for (let m = 1; m < 8; m++) if (M.err[m] < M.err[best]) best = m;
-      if (best !== this.map && M.err[best] < M.err[this.map] * 0.7) { this.map = best; }
+      if (!this.mapOk && best !== this.map && M.err[best] < M.err[this.map] * 0.7) this.map = best;
+      // cuando está clarísimo, se queda fijo para toda la partida
+      if (!this.mapOk && M.n > 80) {
+        let second = Infinity;
+        for (let m = 0; m < 8; m++) if (m !== best && M.err[m] < second) second = M.err[m];
+        if (M.err[best] < second * 0.35) { this.map = best; this.mapOk = true; }
+      }
     }
-    this.diag.map = ['spec°', 'spec rad', 'spec° -', 'spec rad -', 'xyz°', 'xyz rad', 'xyz° -', 'xyz rad -'][this.map] + ' (' + M.n + ')';
+    this.diag.map = ['spec°', 'spec rad', 'spec° -', 'spec rad -', 'xyz°', 'xyz rad', 'xyz° -', 'xyz rad -'][this.map] + (this.mapOk ? ' ✓ fijo' : ' (' + M.n + ')');
   }
   // bx = giro alrededor del eje X del móvil, gy = alrededor del eje Y (rad/s)
   integrate(bx, gy, az, name) {
@@ -125,18 +132,22 @@ export class Look {
     this.lastRateT = now;
     let yawR, pitR;
     // la gravedad se gira con el propio giroscopio entre lecturas del acelerómetro (sin retraso)
-    if (this.grav.n > 3) {
+    if (this.grav.n > 3 && this.mapOk) {
       const g0 = this.grav, wx = bx, wy = gy, wz = az;
       const cx = wy * g0.z - wz * g0.y, cy = wz * g0.x - wx * g0.z, cz = wx * g0.y - wy * g0.x;
       g0.x -= cx * dt; g0.y -= cy * dt; g0.z -= cz * dt;
     }
     const G = this.grav, gl = Math.hypot(G.x, G.y, G.z), gp = Math.hypot(G.x, G.y);
     this.axes = 'gravedad';
-    if (G.n > 3 && gl > 4 && gp > 1.5) {
+    if (G.n > 3 && gl > 4 && (gp > 4.5 || this.up2.ok)) {
+      if (gp > 4.5) this.up2.ok = true;
       // Ejes de la propia pantalla: "arriba de la pantalla" (según la gravedad) y "derecha de la pantalla".
       // Izquierda/derecha = giro alrededor del arriba de la pantalla; arriba/abajo = alrededor de la derecha.
       // Así inclinar el móvil hacia abajo o girar la muñeca nunca se cuela como izquierda/derecha.
-      const ux = G.x / gp, uy = G.y / gp;
+      // con el móvil muy inclinado (mirando muy arriba/abajo) la gravedad ya no dice bien dónde está
+      // el "arriba de la pantalla": usamos el último que era fiable
+      if (gp > 4.5) { this.up2.x = G.x / gp; this.up2.y = G.y / gp; }
+      const ux = this.up2.x, uy = this.up2.y;
       yawR = bx * ux + gy * uy;
       pitR = bx * uy - gy * ux;
     } else switch (this.axes = 'pantalla', this.screenAngle()) {
@@ -148,7 +159,7 @@ export class Look {
     this.gYaw += yawR * dt;
     this.gPitch += pitR * dt;
     // el cabeceo se corrige poco a poco con la gravedad: así no se queda mirando arriba ni abajo
-    if (this.axes === 'gravedad') this.gPitch += ((this.absP - this.refAbsP) - this.gPitch) * 0.04;
+    if (this.axes === 'gravedad') this.gPitch += ((this.absP - this.refAbsP) - this.gPitch) * 0.2;
     this.rateSeen++;
     if (this.rateSeen > 5 && this.src === 'ninguno') {
       this.src = name;
