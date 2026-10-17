@@ -530,7 +530,7 @@ export function sign() {
   return g;
 }
 export function drawSign(g, x) {
-  const key = x.l + '|' + x.v + '|' + x.w;
+  const key = x.l + '|' + x.v + '|' + x.w + '|' + x.zd;
   if (g.userData.key === key) return;
   g.userData.key = key;
   const { g: c, t } = g.userData.T;
@@ -548,12 +548,18 @@ export function drawSign(g, x) {
   c.font = `bold ${fs}px sans-serif`;
   while (c.measureText(x.l).width > 228 && fs > 18) { fs -= 2; c.font = `bold ${fs}px sans-serif`; }
   c.fillText(x.l, 128, 72);
-  if (x.s) { c.fillStyle = '#ffe14a'; c.font = 'bold 20px sans-serif'; c.fillText(x.s, 128, 102); }
+  if (x.s) { c.fillStyle = '#ffe14a'; c.font = 'bold 17px sans-serif'; c.fillText(x.s, 128, 96); }
+  if (x.zd) {
+    // número de dificultad de la zona
+    const z = x.zd, col = z <= 2 ? '#7dff8a' : z <= 4 ? '#ffe14a' : z <= 6 ? '#ff8a3d' : '#ff3a5a';
+    c.fillStyle = col; c.font = 'bold 15px sans-serif';
+    c.fillText('DIFICULTAD ' + z, 128, x.s ? 113 : 104);
+  }
   c.fillStyle = 'rgba(0,0,0,.35)';
-  c.fillRect(20, 116, 216, 30);
+  c.fillRect(20, 120, 216, 30);
   c.fillStyle = '#ffffff';
   c.font = 'bold 22px sans-serif';
-  c.fillText(win ? '¡RUTA ELEGIDA!' : '◎ ' + x.v + ' disparos', 128, 139);
+  c.fillText(win ? '¡RUTA ELEGIDA!' : '◎ ' + x.v + ' disparos', 128, 143);
   t.needsUpdate = true;
 }
 
@@ -647,5 +653,98 @@ export function fpGun(model, rar = 0, cfg = null) {
   flash.visible = false;
   g.userData.muzzle = muzzle;
   g.userData.flash = flash;
+  return g;
+}
+
+// ---------- Detroit: muro de chatarra que cruza la carretera ----------
+export function wall() {
+  const g = new THREE.Group();
+  const rust = tmat('rust', 0xb07050), corr = tmat('corr', 0x8a8a8a);
+  box(g, 12.6, 2.2, 1.4, corr, 0, 1.1, 0, 'body');
+  for (let i = 0; i < 6; i++) {
+    const x = -5.2 + i * 2.1;
+    box(g, 1.9, 1.0 + (i % 3) * 0.35, 1.5, i % 2 ? rust : tmat('wood', 0xa08060), x, 2.6 + (i % 3) * 0.17, (i % 2 ? 0.1 : -0.1), 'body');
+  }
+  // coches viejos y neumáticos apilados
+  for (const sx of [-4, 3.6]) {
+    const c = box(g, 3.6, 1.1, 1.8, sx < 0 ? 0x5a6a7a : 0x7a3a2a, sx, 3.8, 0, 'body');
+    c.rotation.z = sx < 0 ? 0.12 : -0.08;
+  }
+  for (let i = 0; i < 5; i++) {
+    const t = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.18, 6, 10), mat(0x141414));
+    t.position.set(-5 + i * 2.5, 0.35, -0.85); t.rotation.x = Math.PI / 2; t.userData.part = 'body'; g.add(t);
+  }
+  // pintada amenazante
+  box(g, 4, 0.6, 0.05, glow(0xffe14a), 0, 1.3, -0.73);
+  return g;
+}
+
+// ---------- tren (viene de frente por las vías) ----------
+export function train() {
+  const g = new THREE.Group();
+  const col = 0x2a4a8a, dk = 0x1a1a1a;
+  // locomotora: el morro mira hacia -Z (hacia el coche)
+  box(g, 2.9, 3.0, 11, col, 0, 2.1, 5.6, 'body');
+  box(g, 2.7, 1.2, 1.8, 0xe8c020, 0, 1.4, 0.1, 'body');
+  box(g, 2.6, 1.1, 0.06, GLASS, 0, 2.8, -0.02, 'body');
+  box(g, 3.0, 0.4, 11.4, 0xe8c020, 0, 0.9, 5.6, 'body');
+  box(g, 3.1, 0.2, 11.6, dk, 0, 3.7, 5.6, 'body');
+  for (const sx of [-0.9, 0.9]) box(g, 0.4, 0.3, 0.06, glow(0xfff6c0), sx, 1.9, -0.05, 'body');
+  box(g, 0.5, 0.35, 0.06, glow(0xff3020), 0, 3.3, -0.05, 'body');
+  // quitapiedras
+  const cc = box(g, 2.8, 0.6, 0.6, 0x8a8a8a, 0, 0.45, -0.2, 'body');
+  cc.rotation.x = 0.5;
+  // vagones
+  for (let k = 0; k < 2; k++) {
+    const z0 = 12 + k * 10.5;
+    box(g, 2.8, 2.7, 9.8, k ? 0x8a3a2a : 0x6a6a6a, 0, 2.0, z0 + 4.9, 'body');
+    box(g, 2.9, 0.15, 10, dk, 0, 3.4, z0 + 4.9, 'body');
+  }
+  for (let z = 1.5; z < 33; z += 3.2) for (const sx of [-1.15, 1.15]) wheel(g, sx, 0.5, z, 0.45, 0.2, 'body');
+  return g;
+}
+
+// ---------- roca que cae del acantilado ----------
+let ROCKG = null;
+export function rock() {
+  if (!ROCKG) {
+    ROCKG = new THREE.IcosahedronGeometry(1, 0);
+    const p = ROCKG.attributes.position;
+    for (let i = 0; i < p.count; i++) { const k = 0.8 + ((i * 7919) % 13) / 30; p.setXYZ(i, p.getX(i) * k, p.getY(i) * k * 0.85, p.getZ(i) * k); }
+    ROCKG.computeVertexNormals();
+  }
+  const g = new THREE.Group();
+  const m = new THREE.Mesh(ROCKG, tmat('rock', 0xb8a080));
+  m.scale.setScalar(1.1); m.userData.part = 'body';
+  g.add(m);
+  proxy(g, 1.5, 0, 0, 0);
+  return g;
+}
+
+// ---------- chica de la esquina: ofrece un trago que cura pero envenena ----------
+const LADY = [
+  { shirt: 0xff3a8a, skin: 0x8f5a32, hair: 0x111111, hs: 'largo' }, { shirt: 0xb040ff, skin: 0xeec1a0, hair: 0xe0c060, hs: 'largo' },
+  { shirt: 0x30d0c0, skin: 0x5e3720, hair: 0x2a1a10, hs: 'afro' }, { shirt: 0xff8a20, skin: 0xd9a476, hair: 0xc03030, hs: 'mono' },
+];
+export function lady(k = 0) {
+  const L = LADY[k % LADY.length];
+  const g = new THREE.Group();
+  const p = person({ shirt: L.shirt, pants: L.shirt, skin: L.skin, hair: L.hair, hairStyle: L.hs, part: 'lady' });
+  g.add(p);
+  // vestido largo hasta la rodilla y bolso
+  box(p.userData.rig.body, 0.56, 0.5, 0.36, L.shirt, 0, 0.7, 0, 'lady');
+  box(p.userData.rig.torso, 0.22, 0.18, 0.08, 0x111111, -0.34, 0.15, 0.05, 'lady');
+  // brazo derecho estirado con la botella (es lo que hay que disparar)
+  const arm = p.userData.rig.armR;
+  arm.rotation.x = 1.25;
+  const bt = new THREE.Group();
+  bt.position.set(0, 0.1, -0.62);
+  arm.add(bt);
+  box(bt, 0.14, 0.32, 0.14, glow(0x7dff3a, 0.9), 0, 0.12, 0, 'drink');
+  box(bt, 0.06, 0.12, 0.06, 0x2a6a1a, 0, 0.33, 0, 'drink');
+  const halo = new THREE.Mesh(sgeo(0.4), glow(0x9aff40, 0.22));
+  halo.position.y = 0.15; bt.add(halo);
+  proxy(bt, 0.45, 0, 0.15, 0, 'drink');
+  g.userData.p = p; g.userData.drink = bt;
   return g;
 }

@@ -13,6 +13,11 @@ const BASE = {
   rifle:    { name: 'Rifle', model: 'rifle', mag: 8, dmg: 4, rate: 2, auto: false, reload: 1.6, pellets: 1, spread: 0 },
   magnum:   { name: 'Magnum', model: 'revolver', mag: 3, dmg: 6, rate: 1.6, auto: false, reload: 1.5, pellets: 1, spread: 0 },
   lanza:    { name: 'Lanzagranadas', model: 'launcher', mag: 2, dmg: 8, rate: 1.2, auto: false, reload: 2.2, pellets: 1, spread: 0, boom: 4.5 },
+  // raras: solo salen en zonas difíciles (o con mucha suerte)
+  minigun:  { name: 'Minigun', model: 'mg', mag: 60, dmg: 1, rate: 16, auto: true, reload: 2.6, pellets: 1, spread: 0.022, rare: true },
+  plasma:   { name: 'Rifle de plasma', model: 'rifle', mag: 10, dmg: 5, rate: 2.6, auto: false, reload: 1.5, pellets: 1, spread: 0, pierce: true, rare: true },
+  doble:    { name: 'Escopeta doble', model: 'shotgun', mag: 2, dmg: 2, rate: 3, auto: false, reload: 1.3, pellets: 9, spread: 0.06, rare: true },
+  cohetes:  { name: 'Lanzacohetes', model: 'launcher', mag: 4, dmg: 12, rate: 1.4, auto: false, reload: 2.4, pellets: 1, spread: 0, boom: 6, rare: true },
 };
 
 export const RARITY = [
@@ -26,11 +31,14 @@ export function defaultWeapon() {
   return Object.assign({ id: 'pistola', rar: 0, inf: true }, BASE.pistola);
 }
 
-// tier sube con el tiempo de partida (0..3): mejores rarezas
-export function rollWeapon(r, tier) {
-  const id = pick(r, ['pesada', 'revolver', 'subfusil', 'ametra', 'ametra', 'escopeta', 'rifle', 'magnum', 'lanza', 'pesada']);
+// tier sube con el tiempo de partida (0..3), zd = dificultad de la zona, luck = mejora Suerte
+export function rollWeapon(r, tier, zd = 1, luck = 0) {
+  const pool = ['pesada', 'revolver', 'subfusil', 'ametra', 'ametra', 'escopeta', 'rifle', 'magnum', 'lanza', 'pesada'];
+  // en zonas difíciles aparecen armas raras
+  const rareP = Math.max(0, (zd - 3) * 0.12) + luck * 0.05;
+  const id = r() < rareP ? pick(r, ['minigun', 'plasma', 'doble', 'cohetes']) : pick(r, pool);
   const b = BASE[id];
-  const x = r() + tier * 0.12;
+  const x = r() + tier * 0.12 + (zd - 1) * 0.06 + luck * 0.05;
   const rar = x > 1.05 ? 3 : x > 0.85 ? 2 : x > 0.55 ? 1 : 0;
   const w = Object.assign({ id, rar }, b);
   // variación aleatoria + mejora por rareza
@@ -52,6 +60,7 @@ export function weaponLines(w) {
     ['RECARGA', w.reload + 's'],
   ];
   if (w.boom) L.push(['EXPLOSIVA', 'SÍ']);
+  if (w.pierce) L.push(['PERFORA', 'SÍ']);
   return L;
 }
 

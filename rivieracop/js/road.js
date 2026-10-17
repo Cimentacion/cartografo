@@ -8,18 +8,18 @@ export const START_TUN = 120, SECTION = 720, APPROACH = 90, TUN = 150;
 const CELL = 20;
 
 export class Road {
-  constructor(seed) {
+  constructor(seed, bio0 = 0, zd0 = 1) {
     this.seed = seed >>> 0;
     this.x = [0]; this.y = [70]; this.z = [0]; this.yaw = [0];
-    this.kind = [1]; this.bio = [0];
+    this.kind = [1]; this.bio = [0]; this.zd = [1];
     this.grid = new Map();
     this._addGrid(0);
     this.queue = []; this.tunnels = []; this.forks = [];
     this.planEnd = 0;
     this.cur = { yaw: 0, slope: 0 };
     this.baseYaw = 0; this.lastHair = 0;
-    this._q({ type: 'tunnel', len: START_TUN, fork: -1, bio: 0 });
-    this._queueSection(0);
+    this._q({ type: 'tunnel', len: START_TUN, fork: -1, bio: 0, zd: 1 });
+    this._queueSection(bio0, zd0);
   }
   get len() { return this.x.length - 1; }
 
@@ -30,18 +30,19 @@ export class Road {
     if (b.type === 'tunnel') this.tunnels.push({ start: b.start, end: b.start + b.len, fork: b.fork });
     return b;
   }
-  _queueSection(bio) {
+  // zd = dificultad de la zona (el número que sale en el cartel)
+  _queueSection(bio, zd) {
     const k = this.forks.length;
-    this._q({ type: 'section', len: SECTION, bio, sub: null });
-    this._q({ type: 'approach', len: APPROACH, bio });
-    const tn = this._q({ type: 'tunnel', len: TUN, fork: k, bio });
-    this.forks.push({ k, gantry: tn.start - 40, tStart: tn.start, tEnd: tn.start + TUN, choice: null, from: bio });
+    this._q({ type: 'section', len: SECTION, bio, zd, sub: null });
+    this._q({ type: 'approach', len: APPROACH, bio, zd });
+    const tn = this._q({ type: 'tunnel', len: TUN, fork: k, bio, zd });
+    this.forks.push({ k, gantry: tn.start - 40, tStart: tn.start, tEnd: tn.start + TUN, choice: null, from: bio, zd: null, secStart: this.planEnd - TUN - APPROACH - SECTION });
     this._q({ type: 'wait', len: 0, fork: k });
   }
-  setChoice(k, bio) {
+  setChoice(k, bio, zd = 1) {
     const f = this.forks[k];
     if (!f || f.choice != null) return;
-    f.choice = bio;
+    f.choice = bio; f.zd = zd;
   }
 
   extend(target) {
@@ -53,7 +54,7 @@ export class Road {
         const f = this.forks[b.fork];
         if (f.choice == null) break;
         this.queue.shift();
-        this._queueSection(f.choice);
+        this._queueSection(f.choice, f.zd || 1);
         continue;
       }
       if (b.pos >= b.len) { this.queue.shift(); continue; }
@@ -71,7 +72,11 @@ export class Road {
       k = s.kmax * Math.sin(Math.PI * (s.pos + 0.5) / s.len);
       s.pos++;
       slopeT = s.slope;
-      if (BIOMES[BIOME_KEYS[b.bio]].slope < 0 && this.y[this.len] < 16) slopeT = 0;
+      const BB = BIOMES[BIOME_KEYS[b.bio]];
+      if (BB.cliff) {
+        // acantilados: primero se sube por la ladera y luego se va cayendo en picado hacia el mar
+        slopeT = b.pos < b.len * 0.28 ? (this.y[this.len] < 85 ? 0.07 : 0) : (this.y[this.len] > 12 ? -0.085 : 0);
+      } else if (BB.slope < 0 && this.y[this.len] < 16) slopeT = 0;
     } else if (b.type === 'tunnel') {
       if (b.kmax == null) { const r = rng(hash(this.seed, b.fork + 7, 99)); b.kmax = (r() - 0.5) * 0.008; }
       k = b.kmax * Math.sin(Math.PI * (b.pos + 0.5) / b.len);
@@ -86,6 +91,7 @@ export class Road {
     this.yaw.push(yaw);
     this.kind.push(b.type === 'tunnel' ? 1 : b.type === 'approach' ? 2 : 0);
     this.bio.push(b.bio);
+    this.zd.push(b.zd || 1);
     this._addGrid(i + 1);
   }
 
@@ -190,6 +196,7 @@ export class Road {
   }
   kindAt(d) { const i = clamp(Math.floor(d), 0, this.len); return this.kind[i]; }
   bioAt(d) { const i = clamp(Math.floor(d), 0, this.len); return this.bio[i]; }
+  zdAt(d) { const i = clamp(Math.floor(d), 0, this.len); return this.zd[i] || 1; }
   inTunnel(d) { for (const t of this.tunnels) if (d >= t.start - 4 && d <= t.end + 4) return true; return false; }
 }
 const TMP = { x: 0, y: 0, z: 0, yaw: 0 };

@@ -1,15 +1,24 @@
 // Progresión entre partidas (estilo Vampire Survivors): monedas, mejoras del personaje y nivel de cada arma
 const KEY = 'rc_prog';
 
+// g = cuánto sube el precio por nivel
 export const UPGRADES = [
-  { id: 'vida', name: 'Vida máxima', desc: '+1 corazón al empezar', max: 3, base: 400 },
-  { id: 'def', name: 'Defensa', desc: 'Cada golpe te quita un cuarto de corazón menos', max: 4, base: 350 },
-  { id: 'atk', name: 'Ataque', desc: '+12% de daño con todas las armas', max: 6, base: 250 },
-  { id: 'ammo', name: 'Munición', desc: '+15% de balas por cargador', max: 5, base: 200 },
-  { id: 'rec', name: 'Recarga rápida', desc: '-8% de tiempo de recarga', max: 5, base: 200 },
-  { id: 'aim', name: 'Puntería', desc: 'Ayuda para apuntar más generosa', max: 3, base: 300 },
-  { id: 'shield', name: 'Escudo', desc: 'Botón que te hace invulnerable unos segundos. Cada nivel dura más y carga antes', max: 5, base: 600 },
-  { id: 'bullet', name: 'Tiempo bala', desc: 'Ralentiza a todos los enemigos (también para tu compañero). Cada nivel dura más', max: 5, base: 800 },
+  { id: 'vida', name: 'Vida máxima', desc: '+2 de vida máxima (empiezas con 10, hasta 30)', max: 10, base: 300, g: 1.38 },
+  { id: 'def', name: 'Defensa', desc: '-6% de daño recibido por nivel', max: 10, base: 280, g: 1.38 },
+  { id: 'atk', name: 'Ataque', desc: '+12% de daño con todas las armas', max: 15, base: 200, g: 1.3 },
+  { id: 'ammo', name: 'Munición', desc: '+15% de balas por cargador', max: 8, base: 180, g: 1.4 },
+  { id: 'rec', name: 'Recarga rápida', desc: '-7% de tiempo de recarga', max: 8, base: 180, g: 1.4 },
+  { id: 'cad', name: 'Cadencia', desc: '+6% de disparos por segundo', max: 8, base: 220, g: 1.4 },
+  { id: 'crit', name: 'Crítico', desc: '+4% de probabilidad de hacer daño doble', max: 8, base: 260, g: 1.4 },
+  { id: 'aim', name: 'Puntería', desc: 'Ayuda para apuntar más generosa', max: 5, base: 260, g: 1.6 },
+  { id: 'regen', name: 'Regeneración', desc: 'Recuperas medio punto de vida cada pocos segundos', max: 6, base: 500, g: 1.5 },
+  { id: 'botiq', name: 'Sanitario', desc: 'Los botiquines curan +1 y revives con más vida', max: 5, base: 300, g: 1.5 },
+  { id: 'antid', name: 'Antídoto', desc: '-15% de veneno por nivel', max: 5, base: 250, g: 1.5 },
+  { id: 'choque', name: 'Parachoques', desc: 'Si os estampáis, el coche arranca antes (-15%)', max: 5, base: 300, g: 1.5 },
+  { id: 'suerte', name: 'Suerte', desc: 'Armas más raras y mejores de los terroristas', max: 5, base: 400, g: 1.55 },
+  { id: 'codicia', name: 'Codicia', desc: '+10% de monedas al acabar la partida', max: 10, base: 300, g: 1.4 },
+  { id: 'shield', name: 'Escudo', desc: 'Botón que te hace invulnerable unos segundos. Cada nivel dura más y carga antes', max: 8, base: 600, g: 1.5 },
+  { id: 'bullet', name: 'Tiempo bala', desc: 'Ralentiza a todos los enemigos (también a tus compañeros). Cada nivel dura más', max: 8, base: 800, g: 1.5 },
 ];
 
 // velocidad inicial: más rápido = más puntos
@@ -31,16 +40,22 @@ export function loadProg() {
   return p;
 }
 export function saveProg(p) { try { localStorage.setItem(KEY, JSON.stringify(p)); } catch (e) { } }
-export const upgCost = (u, lv) => Math.round(u.base * Math.pow(1.75, lv) / 50) * 50;
+export const upgCost = (u, lv) => Math.round(u.base * Math.pow(u.g || 1.5, lv) / 50) * 50;
 
 // lo que necesita saber el anfitrión de cada jugador
+export const META_KEYS = ['vida', 'def', 'regen', 'botiq', 'antid', 'choque', 'suerte'];
 export function metaOf(p) {
-  return { vida: p.upg.vida | 0, def: p.upg.def | 0 };
+  const m = {};
+  for (const k of META_KEYS) m[k] = p.upg[k] | 0;
+  return m;
 }
-export const shieldDur = lv => 2.5 + lv * 0.6;
-export const shieldCd = lv => Math.max(14, 34 - lv * 4);
-export const bulletDur = lv => 3 + lv * 0.7;
-export const bulletCd = lv => Math.max(22, 48 - lv * 5);
+export const BASE_HP = 10;
+export const maxHpOf = vida => BASE_HP + 2 * Math.max(0, Math.min(10, vida | 0));
+export const shieldDur = lv => 2.5 + lv * 0.55;
+export const shieldCd = lv => Math.max(12, 34 - lv * 3);
+export const bulletDur = lv => 3 + lv * 0.6;
+export const bulletCd = lv => Math.max(20, 48 - lv * 3.6);
+export const ABMAX = 8;
 
 // ---------- niveles de arma (se guardan por tipo de arma) ----------
 export const WMAX = 10;
@@ -67,10 +82,11 @@ export function effective(def, lv, upg) {
   e.lv = lv;
   e.dmg = def.dmg * (1 + 0.12 * L) * (1 + 0.12 * (upg.atk | 0));
   e.mag = Math.max(1, Math.round(def.mag * (1 + 0.1 * L) * (1 + 0.15 * (upg.ammo | 0))));
-  e.reload = def.reload * Math.max(0.45, 1 - 0.05 * L) * Math.max(0.55, 1 - 0.08 * (upg.rec | 0));
-  e.rate = def.rate * (1 + 0.05 * L);
+  e.reload = def.reload * Math.max(0.45, 1 - 0.05 * L) * Math.max(0.45, 1 - 0.07 * (upg.rec | 0));
+  e.rate = def.rate * (1 + 0.05 * L) * (1 + 0.06 * (upg.cad | 0));
   e.spread = (def.spread || 0) * Math.max(0.3, 1 - 0.1 * L);
-  e.assist = 1 + 0.35 * (upg.aim | 0);
+  e.assist = 1 + 0.3 * (upg.aim | 0);
+  e.critP = 0.04 * (upg.crit | 0);
   e.perks = [];
   if (lv >= 5) {
     if (def.pellets > 1) { e.pellets = def.pellets + 3; e.perks.push('+3 perdigones'); }
@@ -78,6 +94,6 @@ export function effective(def, lv, upg) {
     else if (def.auto) { e.rate *= 1.25; e.perks.push('ráfaga +25%'); }
     else { e.pierce = true; e.perks.push('perforante'); }
   }
-  if (lv >= 8) { e.crit = true; e.perks.push('críticos x2'); }
+  if (lv >= 8) { e.critP += 0.15; e.perks.push('críticos x2'); }
   return e;
 }

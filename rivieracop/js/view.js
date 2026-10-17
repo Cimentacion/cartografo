@@ -4,6 +4,7 @@ import * as M from './models.js';
 import { ST } from './defs.js';
 import { LANE_ME } from './road.js';
 import { SEATS } from './sim.js';
+import { LAYER_ENEMY, LAYER_KEEP } from './toon.js';
 
 const V1 = new THREE.Vector3(), V2 = new THREE.Vector3();
 
@@ -159,7 +160,13 @@ const OUTFIT = [
 const CIV = [0xf0c040, 0x40a0f0, 0xf06080, 0x60d080, 0xffffff, 0xff8030, 0xa070f0, 0x30c0c0];
 const SKIN = [0xd9a476, 0xb27a4e, 0xf0c8a0, 0x7a5030];
 // enemigos más grandes: más fáciles de ver y de acertar en el móvil
-const SCALE = { gunman: 1.35, civilian: 1.3, sniper: 1.45, moto: 1.2, drone: 1.8, chicken: 1.4, grenade: 1.7, rocket: 1.5, medkit: 1.3, barrel: 1.2, jeep: 1.1 };
+const SCALE = { gunman: 1.35, civilian: 1.3, sniper: 1.5, moto: 1.2, drone: 1.8, chicken: 1.4, grenade: 1.7, rocket: 1.5, medkit: 1.3, barrel: 1.2, jeep: 1.1, lady: 1.3, rock: 1.3 };
+// capa de la máscara: enemigos con contorno rojo / cosas importantes que no se desaturan
+const MASK = {
+  gunman: LAYER_ENEMY, sniper: LAYER_ENEMY, moto: LAYER_ENEMY, ecar: LAYER_ENEMY, heli: LAYER_ENEMY, drone: LAYER_ENEMY, jeep: LAYER_ENEMY,
+  grenade: LAYER_ENEMY, rocket: LAYER_ENEMY, rock: LAYER_ENEMY, wall: LAYER_ENEMY, train: LAYER_ENEMY,
+  sign: LAYER_KEEP, weapon: LAYER_KEEP, medkit: LAYER_KEEP, amb: LAYER_KEEP, truck: LAYER_KEEP, barrel: LAYER_KEEP, lady: LAYER_KEEP, civilian: LAYER_KEEP, chicken: LAYER_KEEP,
+};
 const CARC = [0x2a6ad0, 0xe8e8e8, 0xd0a020, 0x30a050, 0x8a2a8a, 0xd06020];
 
 export class View {
@@ -246,8 +253,19 @@ export class View {
       case 'barrel': g = M.barrel(); break;
       case 'grenade': g = M.grenade(); break;
       case 'rocket': g = M.rocket(); break;
+      case 'rock': g = M.rock(); break;
+      case 'wall': g = M.wall(); break;
+      case 'train': g = M.train(); break;
+      case 'lady': g = M.lady(x.sk || 0); break;
       default: g = new THREE.Group();
     }
+    const L = MASK[e.type];
+    if (L) g.traverse(m => {
+      if (!m.isMesh || m.userData.part === 'cover') return;
+      const mt = m.material;
+      if (!mt || mt.visible === false || mt.transparent) return;
+      m.layers.enable(L);
+    });
     const sc = SCALE[e.type];
     if (sc) g.scale.setScalar(sc);
     g.userData.eid = e.id;
@@ -368,7 +386,8 @@ const ANIM = {
     personAnim(o, e, dt, ctx, V);
     const lz = o.userData.laser;
     const s = e.sh && e.sh[0];
-    if (s && s.on && e.st === ST.ALIVE) {
+    // el láser se ve siempre que esté vivo (así se le localiza), más intenso cuando va a disparar
+    if (s && e.st === ST.ALIVE) {
       lz.visible = true;
       o.updateMatrixWorld(true);
       o.userData.shooters[0].getWorldPosition(V1);
@@ -377,7 +396,7 @@ const ANIM = {
       lz.position.copy(V1).lerp(V2, 0.5);
       lz.lookAt(V2);
       o.userData.lm.scale.y = len;
-      o.userData.lm.material = M.glow(0xff2020, Math.round((0.25 + s.r * 0.6) * 10) / 10);
+      o.userData.lm.material = M.glow(0xff2020, s.on ? Math.round((0.35 + s.r * 0.6) * 10) / 10 : 0.2);
     } else lz.visible = false;
   },
   moto(o, e, dt, ctx) {
@@ -423,6 +442,22 @@ const ANIM = {
     if (e.x && e.x.w) M.drawWeaponCard(o, e.x.w, e.x.pr || [0, 0], e.x.nd || 5, (e.x.pr || [0]).length);
   },
   sign(o, e) { if (e.x) M.drawSign(o, e.x); },
+  lady(o, e, dt, ctx) {
+    const ud = o.userData, rig = ud.p.userData.rig;
+    if (e.st === ST.DEAD) {
+      rig.body.rotation.x = Math.min(1.5, (ud.dt || 0) * 3.5);
+      ud.drink.visible = false;
+      return;
+    }
+    rig.torso.rotation.z = Math.sin(ctx.t * 2 + e.id) * 0.06;
+    rig.armL.rotation.set(0.2, -0.5, Math.sin(ctx.t * 3 + e.id) * 0.3);
+    ud.drink.visible = !(e.x && e.x.used);
+    ud.drink.rotation.y += dt * 2;
+  },
+  train(o, e, dt, ctx, V) {
+    if (Math.random() < dt * 6) { o.getWorldPosition(V1); V1.y += 4; V.fx.smoke(V1, true); }
+  },
+  rock(o, e, dt) { o.rotation.x = e.ry; o.rotation.z = e.ry * 0.7; },
   rocket(o, e, dt, ctx, V) { o.lookAt(V.aimT); o.rotateY(Math.PI); o.userData.flame.scale.z = 0.7 + Math.random() * 0.6; },
   grenade(o, e, dt) { o.rotation.x = e.ry * 2; },
 };

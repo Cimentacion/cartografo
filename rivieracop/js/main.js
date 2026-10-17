@@ -2,15 +2,15 @@
 import * as THREE from 'three';
 import { Road, LANE_ME } from './road.js';
 import { buildChunk, makeMats, CH } from './scenery.js';
-import { Sim, SEAT_LAT, SEATS } from './sim.js';
+import { Sim, SEATS, isRear } from './sim.js';
 import { View, Fx } from './view.js';
 import { Hud } from './hud.js';
 import { Look } from './input.js';
 import { SFX } from './audio.js';
 import { Net, makeCode, NETV } from './net.js';
-import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME } from './defs.js';
+import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME, BOSS } from './defs.js';
 import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES } from './weapons.js';
-import { loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd } from './progress.js';
+import { loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf } from './progress.js';
 import { fpGun } from './models.js';
 import { Outline, toon } from './toon.js';
 import { loadChar, saveChar, sanitize, defaultChar, SKINS, HAIRS, HAIR_COLORS, BEARDS, SHIRTS, SHIRT_COLORS, PANTS_COLORS } from './character.js';
@@ -132,8 +132,8 @@ class Mirror {
         ry: lerpAng(p[5], r[5], al), hp: r[6], st: r[7], sh, x: r[9] || {},
       });
     }
-    const players = b.p.map(q => ({ hp: q[0], score: q[1], alive: !!q[2], inv: q[3], ly: q[4], lp: q[5], gone: !!q[6], maxHp: q[7] || 12, shield: !!q[8] }));
-    return { carD, ents, players, cd: b.cd, sp: b.sp, sl: b.sl, mu: b.mu };
+    const players = b.p.map(q => ({ hp: q[0], score: q[1], alive: !!q[2], inv: q[3], ly: q[4], lp: q[5], gone: !!q[6], maxHp: q[7] || 10, shield: !!q[8], poison: !!q[9] }));
+    return { carD, ents, players, cd: b.cd, sp: b.sp, sl: b.sl, mu: b.mu, sn: b.sn };
   }
 }
 
@@ -265,7 +265,7 @@ function fire() {
     fx.impact(h.point, h.part === 'cover');
     if (h.part === 'cover') continue;
     anyHit = true;
-    const crit = E.crit && Math.random() < 0.15;
+    const crit = Math.random() < (E.critP || 0);
     add(h, E.dmg * (crit ? 2 : 1));
     if (crit) view.pop([h.point.x, h.point.y + 0.6, h.point.z], '¡CRÍTICO!', '#ff5ad0');
     // perforante: la bala sigue y puede dar a un segundo enemigo
@@ -319,6 +319,7 @@ function handleEvent(ev) {
       else if (ev.f === 'feathers') { fx.feathers(p); SFX.cluck(); }
       else if (ev.f === 'heal') fx.heal(p);
       else if (ev.f === 'cluck') SFX.cluck();
+      else if (ev.f === 'rock') { fx.sparks(p, 12, fx.m.dust); fx.dust(p); fx.dust(p); SFX.boom(dist + 10); }
       break;
     }
     case 'eshot': {
@@ -341,7 +342,13 @@ function handleEvent(ev) {
     case 'pop': view.pop(ev.w, ev.txt, ev.c || PCOL[ev.p]); break;
     case 'banner': showBanner(ev.txt, ev.sub, ev.c); break;
     case 'weapon': if (ev.p === li) giveWeapon(ev.w); break;
-    case 'fork': if (G.mode === 'guest') G.road.setChoice(ev.kk, ev.b); break;
+    case 'fork': if (G.mode === 'guest') G.road.setChoice(ev.kk, ev.b, ev.zd || 1); break;
+    case 'crash':
+      G.shake = 1.4; flash('hurt'); SFX.boom(2); SFX.hurt();
+      try { navigator.vibrate && navigator.vibrate([200, 80, 200]); } catch (e) { }
+      break;
+    case 'pz': if (ev.p === li) flash('poison'); break;
+    case 'regen': break;
     case 'pf':
       if (ev.p !== li) {
         G.partnerFlash = 0.06;
@@ -369,7 +376,7 @@ net.onmsg = (m, from) => {
     const S = G.sim, P = S && S.players[from];
     switch (m.t) {
       case 'hello': if (m.v !== NETV) lobbyMsg('Alguien tiene otra versión: recargad todos la página'); if (m.c) G.peerChars[from] = sanitize(m.c, from); if (m.m) G.peerMetas[from] = m.m; break;
-      case 'ab': if (S && G.running && (m.k === 'shield' || m.k === 'bullet')) S.useAbility(from, m.k, clamp(m.lv | 0, 1, 5)); break;
+      case 'ab': if (S && G.running && (m.k === 'shield' || m.k === 'bullet')) S.useAbility(from, m.k, clamp(m.lv | 0, 1, ABMAX)); break;
       case 'char': G.peerChars[from] = sanitize(m.c, from); break;
       case 'l': if (P) { P.ly = m.y; P.lp = m.p; } break;
       case 'h': if (S && G.running) for (const h of m.h) S.hit(from, h[0], h[1], h[2]); break;
@@ -433,15 +440,16 @@ function hostStart() {
 function begin(seed, n, li, mode) {
   SFX.unlock();
   G.mode = mode; G.n = n; G.li = li; G.seed = seed >>> 0;
-  G.road = new Road(G.seed);
+  const qb = BIOME_KEYS.indexOf(Q.get('zona') || ''); // TODO-TESTEO: empezar en una zona concreta
+  G.road = new Road(G.seed, qb > 0 && mode === 'solo' ? qb : 0, +Q.get('zd') || 1);
   G.road.extend(520);
   G.sim = mode === 'guest' ? null : new Sim(G.road, n, G.seed, { speed: G.speedIdx, metas: [0, 1, 2, 3].map(i => (i === 0 ? metaOf(PROG) : G.peerMetas[i] || {})) });
   if (G.sim) for (const i of (mode === 'host' ? G.goneAtStart || [] : [])) if (G.sim.players[i]) { G.sim.players[i].gone = true; G.sim.players[i].alive = false; }
   if (G.sim && Q.get('god')) G.sim.god = true; // TODO-TESTEO
   G.mir = mode === 'guest' ? new Mirror() : null;
-  G.evq = []; G.acc = 0; G.over = false; G.running = true; G.carD = 8; G.shake = 0; G.lastBio = -1; G.camYaw = null;
+  G.evq = []; G.acc = 0; G.over = false; G.running = true; G.carD = 8; G.shake = 0; G.lastBio = -1; G.lastZd = -1; G.camYaw = null;
   G.ents = []; G.players = [];
-  for (let i = 0; i < n; i++) G.players.push({ hp: 12, maxHp: 12, score: 0, alive: true, inv: 0, ly: 0, lp: 0 });
+  for (let i = 0; i < n; i++) G.players.push({ hp: 10, maxHp: 10, score: 0, alive: true, inv: 0, ly: 0, lp: 0 });
   AB.shield.cd = 0; AB.bullet.cd = 0;
   clearChunks();
   if (!view) view = new View(scene, G.road, fx);
@@ -474,8 +482,8 @@ function gameOver(ev) {
     const n = ev.sc.length;
     let h = `<div class="ostats">TIEMPO <b>${Math.floor(ev.t / 60)}:${String(ev.t % 60).padStart(2, '0')}</b> · DISTANCIA <b>${(ev.dist / 1000).toFixed(1)} km</b> · GALLINAS <b>${ev.ck}</b></div>`;
     for (let i = 0; i < n; i++) h += `<div class="orow" style="color:${PCOL[i]}">${n > 1 ? PNAME[i] : 'PUNTOS'} <b>${String(ev.sc[i]).padStart(7, '0')}</b> · ${ev.kl[i]} bajas</div>`;
-    if (ev.rt && ev.rt.length) h += `<div class="oroute">Ruta: TÚNEL → ${ev.rt.join(' → ')}</div>`;
-    const mine = ev.sc[G.li] || 0, coins = Math.floor(mine / 10);
+    h += '<canvas id="routeMap" width="560" height="240"></canvas>';
+    const mine = ev.sc[G.li] || 0, coins = Math.floor(mine / 10 * (1 + 0.1 * (PROG.upg.codicia | 0)));
     PROG.coins += coins; saveProg(PROG);
     h += `<div class="ocoin">+${coins} MONEDAS · tienes ${PROG.coins}</div>`;
     const best = Math.max(...ev.sc);
@@ -483,9 +491,58 @@ function gameOver(ev) {
     if (best > rec) { localStorage.setItem('rc_best', best); h += '<div class="orec">¡NUEVO RÉCORD!</div>'; }
     else h += `<div class="oroute">Récord: ${rec}</div>`;
     $('overStats').innerHTML = h;
+    try { drawRouteMap($('routeMap'), ev.dist); } catch (e) { console.warn(e); }
     $('btnAgain').hidden = G.mode === 'guest';
     $('overWait').hidden = G.mode !== 'guest';
   }, 1600);
+}
+// mapa del recorrido: la carretera vista desde arriba, coloreada por zonas, con su dificultad
+function drawRouteMap(cv, dist) {
+  const R = G.road, g = cv.getContext('2d'), W = cv.width, H = cv.height;
+  const n = Math.max(2, Math.min(R.len, Math.floor(dist)));
+  let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
+  for (let i = 0; i <= n; i += 2) { x0 = Math.min(x0, R.x[i]); x1 = Math.max(x1, R.x[i]); z0 = Math.min(z0, R.z[i]); z1 = Math.max(z1, R.z[i]); }
+  const pad = 34, sc = Math.min((W - pad * 2) / Math.max(1, x1 - x0), (H - pad * 2) / Math.max(1, z1 - z0));
+  const ox = (W - (x1 - x0) * sc) / 2, oz = (H - (z1 - z0) * sc) / 2;
+  const P = i => [ox + (R.x[i] - x0) * sc, oz + (R.z[i] - z0) * sc];
+  g.fillStyle = '#0c0a18'; g.fillRect(0, 0, W, H);
+  g.strokeStyle = 'rgba(255,255,255,.06)'; g.lineWidth = 1;
+  for (let k = 0; k < W; k += 20) { g.beginPath(); g.moveTo(k, 0); g.lineTo(k, H); g.stroke(); }
+  for (let k = 0; k < H; k += 20) { g.beginPath(); g.moveTo(0, k); g.lineTo(W, k); g.stroke(); }
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  g.strokeStyle = '#000'; g.lineWidth = 9; g.beginPath();
+  for (let i = 0; i <= n; i += 2) { const [x, y] = P(i); i ? g.lineTo(x, y) : g.moveTo(x, y); }
+  g.stroke();
+  // tramos por zona (los túneles en gris)
+  let i = 0;
+  while (i < n) {
+    const tun = R.kind[i] === 1, b = R.bio[i];
+    let j = i;
+    while (j < n && R.bio[j] === b && (R.kind[j] === 1) === tun) j++;
+    g.strokeStyle = tun ? '#555' : BIOMES[BIOME_KEYS[b]].color; g.lineWidth = 5;
+    g.beginPath();
+    for (let k = i; k <= j; k += 2) { const [x, y] = P(Math.min(k, n)); k === i ? g.moveTo(x, y) : g.lineTo(x, y); }
+    g.stroke();
+    i = j;
+  }
+  // etiqueta de cada zona: nombre + dificultad
+  g.font = '9px "Press Start 2P", monospace'; g.textAlign = 'center';
+  const labels = [{ d: 160, b: 0, z: 1 }];
+  for (const f of R.forks) if (f.choice != null && f.tEnd + 40 < n) labels.push({ d: f.tEnd + 40, b: f.choice, z: f.zd || 1 });
+  for (const L of labels) {
+    if (L.d > n) continue;
+    const [x, y] = P(L.d), B = BIOMES[BIOME_KEYS[L.b]];
+    const t = B.name + ' · ' + L.z;
+    const w = g.measureText(t).width + 10;
+    const ly = y - 14 < 12 ? y + 22 : y - 12;
+    g.fillStyle = 'rgba(0,0,0,.75)'; g.fillRect(x - w / 2, ly - 10, w, 14);
+    g.fillStyle = B.color; g.fillText(t, x, ly + 1);
+  }
+  const [sx, sy] = P(0), [ex, ey] = P(n);
+  g.fillStyle = '#7dff8a'; g.beginPath(); g.arc(sx, sy, 6, 0, 7); g.fill();
+  g.strokeStyle = '#ff3a3a'; g.lineWidth = 4;
+  g.beginPath(); g.moveTo(ex - 7, ey - 7); g.lineTo(ex + 7, ey + 7); g.moveTo(ex + 7, ey - 7); g.lineTo(ex - 7, ey + 7); g.stroke();
+  g.fillStyle = '#fff'; g.textAlign = 'left'; g.fillText('VUESTRO RECORRIDO', 10, 16);
 }
 function toMenu(msg) {
   G.running = false; G.over = false; look.enabled = false; look.fire = false;
@@ -513,25 +570,24 @@ function showBanner(txt, sub, col) {
   bannerT = 2.6;
   SFX.banner();
 }
-function flash(k) { const f = $(k === 'hurt' ? 'hurtfx' : 'healfx'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on'); }
+function flash(k) { const f = $(k === 'hurt' ? 'hurtfx' : k === 'poison' ? 'poisfx' : 'healfx'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on'); }
 function lobbyMsg(t) { $('lobbyMsg').textContent = t; }
 const UIC = {};
 function setHTML(id, h) { if (UIC[id] !== h) { UIC[id] = h; $(id).innerHTML = h; } }
-function heartsHTML(hp, maxHp) {
-  let h = '';
-  for (let k = 0; k < Math.ceil(maxHp / 4); k++) {
-    const f = Math.max(0, Math.min(4, hp - k * 4));
-    h += `<i class="ht" style="--f:${f * 25}%"></i>`;
-  }
-  return h;
+// barra de vida por segmentos (1 segmento = 1 punto de vida)
+function hpHTML(hp, maxHp, pois) {
+  const pct = Math.max(0, Math.min(100, hp / maxHp * 100));
+  const v = Math.max(0, hp);
+  return `<div class="hp${pois ? ' pois' : ''}"><i class="ht" style="--f:100%"></i><div class="hpb" style="--seg:${100 / maxHp}%"><b style="width:${pct.toFixed(1)}%"></b></div><span>${v % 1 ? v.toFixed(1) : v}</span></div>`;
 }
 function uiPlayers() {
   for (let i = 0; i < G.n; i++) {
     const P = G.players[i];
     if (!P) continue;
     const tag = i === G.li && G.n > 1 ? ' TÚ' : '';
-    const st = P.gone ? ' OFF' : !P.alive ? ' KO' : P.shield ? ' ◆' : '';
-    setHTML('p' + i, `<div class="pn" style="color:${PCOL[i]}">${G.n > 1 ? PNAME[i] : '1P'}${tag}<span class="pst">${st}</span></div><div class="hearts">${heartsHTML(P.hp, P.maxHp || 12)}</div><div class="sc">${String(P.score).padStart(7, '0')}</div>`);
+    const st = P.gone ? ' OFF' : !P.alive ? ' KO' : P.shield ? ' ◆' : P.poison ? ' ☠' : '';
+    const seat = isRear(i, G.n) ? ' ⇩' : '';
+    setHTML('p' + i, `<div class="pn" style="color:${PCOL[i]}">${G.n > 1 ? PNAME[i] : '1P'}${tag}${seat}<span class="pst">${st}</span></div>${hpHTML(P.hp, P.maxHp || 10, P.poison)}<div class="sc">${String(P.score).padStart(7, '0')}</div>`);
   }
 }
 function uiWeapon(force) {
@@ -557,11 +613,27 @@ function uiWcard() {
   setHTML('wcard', h);
 }
 function uiRoute() {
-  const b = G.road.bioAt(G.carD);
-  if (b === G.lastBio) return;
-  G.lastBio = b;
+  const b = G.road.bioAt(G.carD), z = G.road.zdAt(G.carD);
+  if (b === G.lastBio && z === G.lastZd) return;
+  G.lastBio = b; G.lastZd = z;
   const B = BIOMES[BIOME_KEYS[b]];
-  $('route').innerHTML = `<span style="color:${B.color}">${B.name}</span>${B.pts > 1 ? ` <small>PUNTOS x${B.pts}</small>` : ''}`;
+  $('route').innerHTML = `<span style="color:${B.color}">${B.name}</span> <small class="zd">DIF ${z}</small>`;
+}
+// barra de vida del jefe más cercano (terrorista, helicóptero, muro, tren)
+function uiBoss() {
+  let best = null, bd = 1e9;
+  for (const e of G.ents) {
+    if (!BOSS[e.type] || e.st !== ST.ALIVE || (e.x && e.x.dv)) continue;
+    const hm = e.hm || (e.x && e.x.hm);
+    if (!hm || e.hp <= 0) continue;
+    const d = Math.abs(e.d - G.carD);
+    if (d < bd && d < 220) { bd = d; best = e; }
+  }
+  if (!best) { $('boss').hidden = true; return; }
+  $('boss').hidden = false;
+  const hm = best.hm || best.x.hm;
+  setHTML('bossN', BOSS[best.type]);
+  $('bossB').style.width = Math.max(0, Math.min(100, best.hp / hm * 100)).toFixed(1) + '%';
 }
 
 function gyroStatus() {
@@ -622,7 +694,7 @@ function tick(dt) {
   // --- estado del mundo ---
   if (G.mode === 'guest') {
     const s = G.mir.sample();
-    if (s) { G.carD = s.carD; G.ents = s.ents; G.players = s.players; G.cd = s.cd; G.speed = s.sp; G.slow = !!s.sl; G.mult = s.mu || 1; }
+    if (s) { G.carD = s.carD; G.ents = s.ents; G.players = s.players; G.cd = s.cd; G.speed = s.sp; G.slow = !!s.sl; G.mult = s.mu || 1; G.stun = !!s.sn; }
     G.road.extend(G.carD + 340);
     const rt = G.mir.rt;
     while (G.evq.length && G.evq[0].st <= rt) handleEvent(G.evq.shift());
@@ -642,7 +714,8 @@ function tick(dt) {
       if (G.snapT <= 0) { G.snapT = 0.05; net.send(S.snapshot()); }
     }
     G.carD = S.carD; G.ents = S.ents; G.speed = S.speed; G.slow = S.slowT > 0; G.mult = S.ptsMult();
-    G.players = S.players.map(P => Object.assign({}, P, { shield: P.shieldT > 0 }));
+    G.players = S.players.map(P => Object.assign({}, P, { shield: P.shieldT > 0, poison: P.poison > 0 }));
+    G.stun = S.stunT > 0;
     G.cd = S.phase === 'count' ? S.countT : -1;
   }
   // --- cuenta atrás ---
@@ -659,13 +732,15 @@ function tick(dt) {
   const yawAhead = -G.road.yawAt(G.carD + 6);
   if (G.camYaw == null) G.camYaw = yawAhead;
   G.camYaw = lerpAng(G.camYaw, yawAhead, 1 - Math.exp(-dt * 6));
-  EA.set(0, G.camYaw, 0, 'YXZ');
+  // J3-J4 van detrás mirando hacia atrás
+  EA.set(0, G.camYaw + (isRear(li, G.n) ? Math.PI : 0), 0, 'YXZ');
   QCAR.setFromEuler(EA);
   if (BOT) botAim();
   EA.set(look.pitch, look.yaw, 0, 'YXZ');
   QLOOK.setFromEuler(EA);
   camera.quaternion.copy(QCAR).multiply(QLOOK);
-  camera.position.set(SEATS[li][0], 2.3, SEATS[li][1]);
+  // la cámara un poco hacia fuera del coche: el compañero de al lado tapa menos
+  camera.position.set(SEATS[li][0] * 1.3, 2.3, SEATS[li][1]);
   car.localToWorld(camera.position);
   if (G.shake > 0) camera.position.add(V1.set((Math.random() - 0.5) * G.shake * 0.3, (Math.random() - 0.5) * G.shake * 0.3, 0));
   camera.updateMatrixWorld(true);
@@ -675,9 +750,7 @@ function tick(dt) {
     const P = G.players[i], av = view.av[i];
     if (!P) continue;
     av.visible = !P.gone;
-    // los de la fila de delante se ven agachados para no tapar la vista de los de atrás
-    av.position.y = SEATS[i][1] < SEATS[li][1] - 0.5 ? 0.62 : 1.4;
-    av.userData.yaw.rotation.set(P.alive ? 0 : 0.7, P.ly || 0, 0);
+    av.userData.yaw.rotation.set(P.alive ? 0 : 0.7, (P.ly || 0) + (isRear(i, G.n) ? Math.PI : 0), 0);
     av.userData.rig.armR.rotation.x = P.lp || 0;
     av.userData.rig.armL.rotation.set(P.lp || 0, -0.5, 0);
   }
@@ -730,8 +803,9 @@ function tick(dt) {
   sun.target.position.copy(camera.position);
   sea.position.set(camera.position.x, 0, camera.position.z);
   // --- interfaz ---
-  uiPlayers(); uiWeapon(); uiRoute(); uiWcard(); uiAbilities(dt);
+  uiPlayers(); uiWeapon(); uiRoute(); uiWcard(); uiAbilities(dt); uiBoss();
   setHTML('mult', `x${(G.mult || 1).toFixed(1)} · ${Math.round((G.speed || 0) * 3.6)} km/h`);
+  document.body.classList.toggle('poisoned', !!(me && me.poison && me.alive));
   document.body.classList.toggle('slowmo', !!G.slow);
   document.body.classList.toggle('shielded', !!(me && me.shield));
   $('dead').hidden = !(me && !me.alive && !G.over);
@@ -745,10 +819,10 @@ function tick(dt) {
 let botT = 0, botTarget = null;
 function botAim() {
   botT -= 1 / 60;
-  const camPos = V3.set(SEATS[G.li][0], 2.3, SEATS[G.li][1]);
+  const camPos = V3.set(SEATS[G.li][0] * 1.3, 2.3, SEATS[G.li][1]);
   view.car.localToWorld(camPos);
   let best = null, bs = -1e9;
-  for (const t of view.tele) if (t.tgt === G.li) {
+  for (const t of view.tele) if (t.tgt === G.li && !(G.ents.some(e => (e.type === 'wall' || e.type === 'train') && e.st === 0 && !(e.x && e.x.dv)))) {
     const s = 100 + t.r * 100;
     if (s <= bs) continue;
     const o = view.objs.get(t.id);
@@ -769,8 +843,8 @@ function botAim() {
     if (ty === 'gunman' || ty === 'sniper') p.y += 1.2;
     if (ty === 'truck') p.y += 2;
     const d = p.distanceTo(camPos);
-    if (d > 90) continue;
-    const s = (ty === 'sign' || ty === 'weapon' || ty === 'medkit' ? 60 : 30) - d * 0.3;
+    if (d > (ty === 'wall' || ty === 'train' ? 170 : 90)) continue;
+    const s = (ty === 'wall' || ty === 'train' || ty === 'rock' ? 90 : ty === 'sign' || ty === 'weapon' || ty === 'medkit' ? 60 : 30) - d * 0.3;
     if (s > bs) { bs = s; best = p; }
   }
   if (best) {
@@ -994,7 +1068,7 @@ function paintShop() {
     const lv = PROG.upg[u.id] | 0, cost = upgCost(u, lv);
     const d = document.createElement('div'); d.className = 'upg';
     let pips = ''; for (let i = 0; i < u.max; i++) pips += `<i class="${i < lv ? 'on' : ''}"></i>`;
-    d.innerHTML = `<b>${u.name.toUpperCase()}</b><p>${u.desc}</p><div class="lvpips">${pips}</div>`;
+    d.innerHTML = `<b>${u.name.toUpperCase()} <em>${lv}/${u.max}</em></b><p>${u.desc}</p><div class="lvpips">${pips}</div>`;
     const b = document.createElement('button');
     b.textContent = lv >= u.max ? 'MÁXIMO' : (lv ? 'SUBIR' : 'COMPRAR') + ' · ' + cost;
     b.disabled = lv >= u.max || PROG.coins < cost;
