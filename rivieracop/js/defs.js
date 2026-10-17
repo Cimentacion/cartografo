@@ -77,6 +77,6 @@ export const TI = Object.fromEntries(TYPES.map((t, i) => [t, i]));
 // Estados de entidad
 export const ST = { ALIVE: 0, DEAD: 1, HIDDEN: 2, SURRENDER: 3 };
 
-export const PCOL = ['#3fa9ff', '#ff4f5e'];
-export const PCOLN = [0x2f7fe0, 0xe03040];
-export const PNAME = ['J1', 'J2'];
+export const PCOL = ['#3fa9ff', '#ff4f5e', '#5dff7a', '#ffd23f'];
+export const PCOLN = [0x2f7fe0, 0xe03040, 0x30c050, 0xe0b020];
+export const PNAME = ['J1', 'J2', 'J3', 'J4'];

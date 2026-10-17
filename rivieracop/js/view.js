@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import * as M from './models.js';
 import { ST } from './defs.js';
 import { LANE_ME } from './road.js';
-import { SEAT_LAT } from './sim.js';
+import { SEATS } from './sim.js';
 
 const V1 = new THREE.Vector3(), V2 = new THREE.Vector3();
 
@@ -168,16 +168,16 @@ export class View {
     this.objs = new Map(); this.hit = []; this.tele = []; this.pops = [];
     this.car = M.convertible();
     scene.add(this.car);
-    this.av = [M.seatedPlayer(0), M.seatedPlayer(1)];
-    this.av.forEach((a, i) => { a.position.set((SEAT_LAT[i] - LANE_ME) * 1.4, 1.4, 0.95); this.car.add(a); a.visible = false; });
+    this.av = [0, 1, 2, 3].map(i => M.seatedPlayer(i));
+    this.av.forEach((a, i) => { a.position.set(SEATS[i][0], 1.4, SEATS[i][1]); this.car.add(a); a.visible = false; });
     this.ambDist = 1e9; this.heliDist = 1e9;
     this.carPos = new THREE.Vector3();
     this.aimT = new THREE.Vector3();
   }
   setAvatars(chars) {
     this.av.forEach(a => this.car.remove(a));
-    this.av = [M.seatedPlayer(0, chars[0]), M.seatedPlayer(1, chars[1])];
-    this.av.forEach((a, i) => { a.position.set((SEAT_LAT[i] - LANE_ME) * 1.4, 1.4, 0.95); this.car.add(a); a.visible = false; });
+    this.av = [0, 1, 2, 3].map(i => M.seatedPlayer(i, chars[i]));
+    this.av.forEach((a, i) => { a.position.set(SEATS[i][0], 1.4, SEATS[i][1]); this.car.add(a); a.visible = false; });
   }
   clear() {
     for (const o of this.objs.values()) this.scene.remove(o);
@@ -310,7 +310,7 @@ export class View {
     return nd.getWorldPosition(out);
   }
   seatWorld(p, out) {
-    out.set((SEAT_LAT[p] - LANE_ME) * 1.4, 2.2, 0.95);
+    out.set(SEATS[p][0], 2.2, SEATS[p][1]);
     return this.car.localToWorld(out);
   }
   pop(w, txt, col) {

@@ -168,37 +168,40 @@ export function person(o = {}) {
 }
 
 // ---------- coche de los jugadores (descapotable) ----------
+// descapotable alargado (limusina) para hasta 4 jugadores: 2 filas de pie + conductor delante
 export function convertible() {
   const g = new THREE.Group();
-  const red = 0xc8102e, dark = 0x1a1a1a;
-  box(g, 1.96, 0.5, 4.5, red, 0, 0.6, 0);
-  box(g, 1.9, 0.16, 1.45, red, 0, 0.92, -1.45);
-  box(g, 1.96, 0.2, 1.1, red, 0, 0.94, 1.65);
-  box(g, 1.98, 0.16, 0.3, 0xd8d8d8, 0, 0.42, -2.3);
-  box(g, 1.98, 0.16, 0.3, 0xd8d8d8, 0, 0.42, 2.3);
-  for (const s of [-1, 1]) {
-    box(g, 0.08, 0.2, 2.9, red, s * 0.95, 0.94, 0.05);
-    box(g, 0.34, 0.14, 0.05, glow(0xfff6c8), s * 0.62, 0.66, -2.26);
-    box(g, 0.36, 0.14, 0.05, glow(0xff2020), s * 0.62, 0.7, 2.26);
-    box(g, 0.05, 0.5, 0.06, dark, s * 0.86, 1.2, -0.62);
+  const red = 0xc8102e, dark = 0x1a1a1a, L = 6.2;
+  box(g, 1.96, 0.5, L, red, 0, 0.6, 0);
+  box(g, 1.9, 0.16, 1.4, red, 0, 0.92, -2.4);
+  box(g, 1.96, 0.2, 0.9, red, 0, 0.94, 2.65);
+  box(g, 1.98, 0.16, 0.3, 0xd8d8d8, 0, 0.42, -L / 2 - 0.05);
+  box(g, 1.98, 0.16, 0.3, 0xd8d8d8, 0, 0.42, L / 2 + 0.05);
+  for (const sd of [-1, 1]) {
+    box(g, 0.08, 0.2, 4.6, red, sd * 0.95, 0.94, 0.4);
+    box(g, 0.1, 0.06, 4.6, 0xd8d8d8, sd * 0.97, 0.78, 0.4);
+    box(g, 0.34, 0.14, 0.05, glow(0xfff6c8), sd * 0.62, 0.66, -L / 2 - 0.01);
+    box(g, 0.36, 0.14, 0.05, glow(0xff2020), sd * 0.62, 0.7, L / 2 + 0.01);
+    box(g, 0.05, 0.5, 0.06, dark, sd * 0.86, 1.2, -1.62);
   }
-  const ws = box(g, 1.76, 0.48, 0.04, GLASS, 0, 1.2, -0.6);
+  const ws = box(g, 1.76, 0.48, 0.04, GLASS, 0, 1.2, -1.6);
   ws.rotation.x = -0.32;
-  box(g, 1.8, 0.06, 0.08, dark, 0, 1.43, -0.52);
-  // asientos
-  for (const s of [-1, 1]) {
-    box(g, 0.62, 0.18, 0.6, 0x3a2414, s * 0.45, 0.86, 0);
-    box(g, 0.62, 0.62, 0.16, 0x3a2414, s * 0.45, 1.16, 0.3);
-    box(g, 0.62, 0.18, 0.55, 0x3a2414, s * 0.45, 0.96, 0.85);
+  box(g, 1.8, 0.06, 0.08, dark, 0, 1.43, -1.52);
+  // asiento del conductor y dos filas para los jugadores
+  box(g, 0.7, 0.18, 0.6, 0x3a2414, 0, 0.86, -1.0);
+  box(g, 0.7, 0.55, 0.16, 0x3a2414, 0, 1.12, -0.7);
+  for (const z of [0.25, 1.5]) for (const sd of [-1, 1]) {
+    box(g, 0.62, 0.18, 0.6, 0x3a2414, sd * 0.5, 0.86, z);
+    box(g, 0.62, 0.5, 0.16, 0x3a2414, sd * 0.5, 1.1, z + 0.32);
   }
-  box(g, 0.08, 0.3, 0.08, dark, 0, 1.1, -0.42);
+  box(g, 0.08, 0.3, 0.08, dark, 0, 1.1, -1.42);
   const sw = new THREE.Mesh(cgeo(0.2, 0.04, 10), mat(dark));
   sw.rotation.x = Math.PI / 2 - 0.4;
-  sw.position.set(0, 1.25, -0.38);
+  sw.position.set(0, 1.25, -1.38);
   g.add(sw);
-  for (const sx of [-0.95, 0.95]) for (const sz of [-1.45, 1.45]) wheel(g, sx, 0.36, sz);
+  for (const sx of [-0.95, 0.95]) for (const sz of [-2.1, 2.1]) wheel(g, sx, 0.36, sz);
   const drv = person({ shirt: 0xf2f2f2, pants: 0x1a2a44, glasses: true, hair: 0x101010 });
-  drv.position.set(0, 0.02, -0.15);
+  drv.position.set(0, 0.02, -1.15);
   drv.userData.rig.armR.rotation.x = -0.6;
   drv.userData.rig.armL.rotation.x = -0.6;
   g.add(drv);
@@ -211,7 +214,7 @@ export function seatedPlayer(i, cfg) {
   const g = new THREE.Group();
   const yaw = new THREE.Group();
   g.add(yaw);
-  const o = cfg ? personOpts(cfg) : { shirt: i === 0 ? 0x2f6fd0 : 0xd03040, pants: 0x222222, hair: i === 0 ? 0x3a2a1a : 0x111111, glasses: i === 1 };
+  const o = cfg ? personOpts(cfg) : { shirt: [0x2f6fd0, 0xd03040, 0x30a050, 0xd0a020][i], pants: 0x222222, hair: i === 0 ? 0x3a2a1a : 0x111111, glasses: i === 1 };
   const p = person(Object.assign({ gun: 'pistol' }, o));
   p.position.y = -0.92;
   yaw.add(p);

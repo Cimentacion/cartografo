@@ -7,8 +7,10 @@ import { rng, hash, clamp, lerp, pick, r2 } from './util.js';
 import { SPEEDS, shieldDur, bulletDur } from './progress.js';
 
 export const SPEED = 14;
-export const SEAT_LAT = [LANE_ME - 0.45, LANE_ME + 0.45];
-export const SEAT_H = 1.75, SEAT_D = -0.7;
+// asientos en el coche: [x lateral, z hacia atrás] (local del coche); 0-1 fila de atrás, 2-3 fila del medio
+export const SEATS = [[-0.63, 1.5], [0.63, 1.5], [-0.63, 0.25], [0.63, 0.25]];
+export const SEAT_LAT = SEATS.map(s => LANE_ME + s[0]);
+export const SEAT_H = 1.75, SEAT_D = -0.8;
 const VEH = new Set(['ecar', 'truck', 'amb', 'jeep', 'civcar']);
 const HOSTILE = new Set(['gunman', 'sniper', 'moto', 'ecar', 'heli', 'drone', 'jeep', 'grenade', 'rocket']);
 const OFFH = { gunman: 1.5, sniper: 1.5, moto: 1.6, ecar: 1.6, heli: -0.4, drone: 0, jeep: 2.6 };
@@ -82,7 +84,7 @@ export class Sim {
     this.road.extend(this.carD + 340);
     this.diff = Math.min(5, 1 + this.runT / 180);
     for (const p of this.players) { if (p.inv > 0) p.inv -= dt; if (p.shieldT > 0) p.shieldT -= dt; }
-    this.charging = [0, 0];
+    this.charging = [0, 0, 0, 0];
     if (this.phase === 'run') { this.director(wd); this.forks(); }
     for (const e of this.ents) {
       e.age += wd;
@@ -222,7 +224,7 @@ export class Sim {
   director(dt) {
     const rt = this.runT;
     this.waveT -= dt;
-    const cap = Math.floor(1 + this.diff * 0.9) + (this.n > 1 ? 1 : 0);
+    const cap = Math.floor(1 + this.diff * 0.9) + (this.n - 1);
     if (this.waveT <= 0) {
       if (this.hostileCount() < cap) this.spawnWave();
       this.waveT = Math.max(2.6, 7 - this.diff * 0.8) * (this.voting ? 1.6 : 1) * (0.8 + this.r() * 0.5);
@@ -591,7 +593,7 @@ function proj(e, dt, S) {
   const x = e.x, s = e.sh[0];
   const u = clamp(e.age / x.T, 0, 1);
   const tgtLat = x.tgt >= 0 ? SEAT_LAT[x.tgt] : LANE_ME;
-  e.d = lerp(x.d0, S.carD + SEAT_D - 1.2, u);
+  e.d = lerp(x.d0, S.carD - (x.tgt >= 0 ? SEATS[x.tgt][1] : 0.8) - 1.2, u);
   e.lat = lerp(x.l0, tgtLat, u);
   e.h = lerp(x.h0, SEAT_H, u) + x.ar * 4 * u * (1 - u);
   e.ry += dt * 8;

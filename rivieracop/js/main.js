@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { Road, LANE_ME } from './road.js';
 import { buildChunk, makeMats, CH } from './scenery.js';
-import { Sim, SEAT_LAT } from './sim.js';
+import { Sim, SEAT_LAT, SEATS } from './sim.js';
 import { View, Fx } from './view.js';
 import { Hud } from './hud.js';
 import { Look } from './input.js';
@@ -363,43 +363,71 @@ function handleEvent(ev) {
 }
 
 // ---------------- red ----------------
-net.onmsg = m => {
+G.peerChars = {}; G.peerMetas = {};
+net.onmsg = (m, from) => {
   if (G.mode === 'host') {
-    const S = G.sim;
+    const S = G.sim, P = S && S.players[from];
     switch (m.t) {
-      case 'hello': if (m.v !== NETV) lobbyMsg('Tu amigo tiene otra versión: recargad los dos la página'); if (m.c) G.peerChar = sanitize(m.c, 1); if (m.m) G.peerMeta = m.m; break;
-      case 'ab': if (S && G.running && (m.k === 'shield' || m.k === 'bullet')) S.useAbility(1, m.k, clamp(m.lv | 0, 1, 5)); break;
-      case 'char': G.peerChar = sanitize(m.c, 1); break;
-      case 'l': if (S && S.players[1]) { S.players[1].ly = m.y; S.players[1].lp = m.p; } break;
-      case 'h': if (S && G.running) for (const h of m.h) S.hit(1, h[0], h[1], h[2]); break;
-      case 'b': if (S && G.running) S.boomWorld(1, m.x, m.y, m.z, m.r, m.dmg); break;
-      case 'f': if (S && G.running) S.emit('pf', { p: 1 }); break;
+      case 'hello': if (m.v !== NETV) lobbyMsg('Alguien tiene otra versión: recargad todos la página'); if (m.c) G.peerChars[from] = sanitize(m.c, from); if (m.m) G.peerMetas[from] = m.m; break;
+      case 'ab': if (S && G.running && (m.k === 'shield' || m.k === 'bullet')) S.useAbility(from, m.k, clamp(m.lv | 0, 1, 5)); break;
+      case 'char': G.peerChars[from] = sanitize(m.c, from); break;
+      case 'l': if (P) { P.ly = m.y; P.lp = m.p; } break;
+      case 'h': if (S && G.running) for (const h of m.h) S.hit(from, h[0], h[1], h[2]); break;
+      case 'b': if (S && G.running) S.boomWorld(from, m.x, m.y, m.z, m.r, m.dmg); break;
+      case 'f': if (S && G.running) S.emit('pf', { p: from }); break;
     }
   } else {
     switch (m.t) {
-      case 'start': G.speedIdx = m.sp | 0; G.chars = [sanitize(m.chars && m.chars[0], 0), sanitize(m.chars && m.chars[1], 1)]; begin(m.seed, m.n, 1, 'guest'); break;
+      case 'start': {
+        G.speedIdx = m.sp | 0;
+        G.chars = [0, 1, 2, 3].map(i => sanitize(m.chars && m.chars[i], i));
+        G.goneAtStart = m.gone || [];
+        begin(m.seed, m.n, net.myIdx || 1, 'guest');
+        break;
+      }
       case 's': if (G.mir) G.mir.push(m); break;
       case 'ev': for (const e of m.e) { if (IMMEDIATE.has(e.k)) handleEvent(e); else G.evq.push(e); } break;
-      case 'full': lobbyMsg('La sala ya está llena'); break;
+      case 'busy': lobbyMsg('La partida ya ha empezado: entrarás en la siguiente (cuando el anfitrión pulse OTRA VEZ)'); break;
+      case 'full': lobbyMsg('La sala ya está llena (máximo 4 jugadores)'); break;
       case 'menu': toMenu('El anfitrión ha salido al menú'); break;
     }
   }
 };
-net.onjoin = () => {
-  lobbyMsg('¡Tu amigo se ha unido! Pulsa EMPEZAR (vía ' + net.via + ')');
+function lobbyPlayers() {
+  const idx = [...net.links.values()].map(L => L.idx).sort();
+  return 'Jugadores: ' + (1 + idx.length) + '/4 (' + ['J1'].concat(idx.map(i => 'J' + (i + 1))).join(', ') + ')';
+}
+net.onjoin = idx => {
+  if (G.running) { net.sendTo(idx, { t: 'busy' }); return; }
+  lobbyMsg('¡Ha entrado J' + (idx + 1) + '! ' + lobbyPlayers() + ' · Pulsa EMPEZAR cuando estéis todos');
   $('btnStart').disabled = false;
-  if (G.running && G.sim) { /* se unió a mitad: no se admite */ }
 };
-net.onclose = () => {
+net.onwelcome = i => { lobbyMsg('¡Conectado como J' + (i + 1) + '! Esperando a que el anfitrión empiece…'); };
+net.onclose = idx => {
   if (G.mode === 'host') {
-    if (G.sim && G.running && G.sim.players[1]) {
-      const P = G.sim.players[1];
+    if (G.sim && G.running && G.sim.players[idx]) {
+      const P = G.sim.players[idx];
       P.gone = true; P.alive = false;
-      G.sim.emit('banner', { txt: 'J2 SE HA DESCONECTADO', sub: 'Sigues en solitario', c: '#ff8040' });
+      G.sim.emit('banner', { txt: 'J' + (idx + 1) + ' SE HA DESCONECTADO', sub: '', c: '#ff8040' });
       G.sim.checkOver();
-    } else { lobbyMsg('Tu amigo se ha desconectado'); $('btnStart').disabled = true; }
+    } else {
+      lobbyMsg('J' + (idx + 1) + ' se ha ido. ' + lobbyPlayers());
+      $('btnStart').disabled = !net.open;
+    }
   } else if (G.mode === 'guest') toMenu('Se ha perdido la conexión con el anfitrión');
 };
+// el anfitrión arranca con los que haya en la sala (huecos = jugadores que no están)
+function hostStart() {
+  const seed = (Math.random() * 4294967296) >>> 0;
+  const idx = [...net.links.values()].map(L => L.idx);
+  const n = 1 + Math.max(0, ...idx);
+  const gone = [];
+  for (let i = 1; i < n; i++) if (!idx.includes(i)) gone.push(i);
+  G.chars = [0, 1, 2, 3].map(i => (i === 0 ? MYCHAR : G.peerChars[i] || defaultChar(i)));
+  G.goneAtStart = gone;
+  net.send({ t: 'start', seed, n, chars: G.chars, sp: G.speedIdx, gone });
+  begin(seed, n, 0, 'host');
+}
 
 // ---------------- partida ----------------
 function begin(seed, n, li, mode) {
@@ -407,7 +435,8 @@ function begin(seed, n, li, mode) {
   G.mode = mode; G.n = n; G.li = li; G.seed = seed >>> 0;
   G.road = new Road(G.seed);
   G.road.extend(520);
-  G.sim = mode === 'guest' ? null : new Sim(G.road, n, G.seed, { speed: G.speedIdx, metas: [metaOf(PROG), G.peerMeta || {}] });
+  G.sim = mode === 'guest' ? null : new Sim(G.road, n, G.seed, { speed: G.speedIdx, metas: [0, 1, 2, 3].map(i => (i === 0 ? metaOf(PROG) : G.peerMetas[i] || {})) });
+  if (G.sim) for (const i of (mode === 'host' ? G.goneAtStart || [] : [])) if (G.sim.players[i]) { G.sim.players[i].gone = true; G.sim.players[i].alive = false; }
   if (G.sim && Q.get('god')) G.sim.god = true; // TODO-TESTEO
   G.mir = mode === 'guest' ? new Mirror() : null;
   G.evq = []; G.acc = 0; G.over = false; G.running = true; G.carD = 8; G.shake = 0; G.lastBio = -1; G.camYaw = null;
@@ -417,8 +446,8 @@ function begin(seed, n, li, mode) {
   clearChunks();
   if (!view) view = new View(scene, G.road, fx);
   view.clear(); view.road = G.road;
-  if (mode === 'solo') G.chars = [MYCHAR, defaultChar(1)];
-  view.setAvatars(G.chars || [MYCHAR, defaultChar(1)]);
+  if (mode === 'solo') G.chars = [MYCHAR, defaultChar(1), defaultChar(2), defaultChar(3)];
+  view.setAvatars(G.chars || [MYCHAR, defaultChar(1), defaultChar(2), defaultChar(3)]);
   view.av.forEach((a, i) => (a.visible = n > 1 && i !== li));
   hud.myCol = PCOL[li];
   W.def = defaultWeapon(); recalcWeapon(); W.ammo = W.e.mag; W.rl = 0; W.cd = 0;
@@ -427,7 +456,8 @@ function begin(seed, n, li, mode) {
   updateChunks(G.carD, true);
   for (const s of document.querySelectorAll('.screen')) s.hidden = true;
   $('hudwrap').hidden = false;
-  $('p1').hidden = n < 2;
+  for (let i = 1; i < 4; i++) $('p' + i).hidden = i >= n;
+  document.body.classList.toggle('many', n > 2);
   $('count').hidden = false;
   look.enabled = true;
   look.calibrate();
@@ -635,7 +665,7 @@ function tick(dt) {
   EA.set(look.pitch, look.yaw, 0, 'YXZ');
   QLOOK.setFromEuler(EA);
   camera.quaternion.copy(QCAR).multiply(QLOOK);
-  camera.position.set((SEAT_LAT[li] - LANE_ME) * 1.4, 2.3, 0.95);
+  camera.position.set(SEATS[li][0], 2.3, SEATS[li][1]);
   car.localToWorld(camera.position);
   if (G.shake > 0) camera.position.add(V1.set((Math.random() - 0.5) * G.shake * 0.3, (Math.random() - 0.5) * G.shake * 0.3, 0));
   camera.updateMatrixWorld(true);
@@ -645,6 +675,8 @@ function tick(dt) {
     const P = G.players[i], av = view.av[i];
     if (!P) continue;
     av.visible = !P.gone;
+    // los de la fila de delante se ven agachados para no tapar la vista de los de atrás
+    av.position.y = SEATS[i][1] < SEATS[li][1] - 0.5 ? 0.62 : 1.4;
     av.userData.yaw.rotation.set(P.alive ? 0 : 0.7, P.ly || 0, 0);
     av.userData.rig.armR.rotation.x = P.lp || 0;
     av.userData.rig.armL.rotation.set(P.lp || 0, -0.5, 0);
@@ -713,7 +745,7 @@ function tick(dt) {
 let botT = 0, botTarget = null;
 function botAim() {
   botT -= 1 / 60;
-  const camPos = V3.set((SEAT_LAT[G.li] - LANE_ME) * 1.4, 2.3, 0.95);
+  const camPos = V3.set(SEATS[G.li][0], 2.3, SEATS[G.li][1]);
   view.car.localToWorld(camPos);
   let best = null, bs = -1e9;
   for (const t of view.tele) if (t.tgt === G.li) {
@@ -775,7 +807,7 @@ $('btnHost').onclick = async () => {
   try {
     await net.host(code);
     $('lobbyCode').textContent = code;
-    lobbyMsg('Pásale este código a tu amigo y espera a que se una');
+    lobbyMsg('Pásales este código a tus amigos (hasta 3 más) y espera a que se unan');
   } catch (e) { lobbyMsg('Error: ' + (e.message || e.type || e)); }
 };
 $('btnJoin').onclick = () => {
@@ -801,18 +833,12 @@ $('btnGo').onclick = async () => {
     lobbyMsg('¡Conectado! Esperando a que el anfitrión empiece…');
   } catch (e) { lobbyMsg('Error: ' + (e.message || e.type || e)); }
 };
-$('btnStart').onclick = () => {
-  if (!net.open) return;
-  const seed = (Math.random() * 4294967296) >>> 0;
-  G.chars = [MYCHAR, G.peerChar || defaultChar(1)];
-  net.send({ t: 'start', seed, n: 2, chars: G.chars, sp: G.speedIdx });
-  begin(seed, 2, 0, 'host');
-};
+$('btnStart').onclick = () => { if (net.open) hostStart(); };
 $('btnBack').onclick = () => toMenu('');
 $('btnAgain').onclick = () => {
   const seed = (Math.random() * 4294967296) >>> 0;
   if (G.mode === 'host') {
-    if (net.open) { G.chars = [MYCHAR, G.peerChar || defaultChar(1)]; net.send({ t: 'start', seed, n: 2, chars: G.chars, sp: G.speedIdx }); begin(seed, 2, 0, 'host'); }
+    if (net.open) hostStart();
     else begin(seed, 1, 0, 'solo');
   } else begin(seed, 1, 0, 'solo');
 };
@@ -933,7 +959,7 @@ function edChanged() {
   MYCHAR = sanitize(MYCHAR, 0);
   saveChar(MYCHAR); edPaint(); edRebuild();
   if (net.open && G.mode === 'guest') net.send({ t: 'char', c: MYCHAR });
-  if (!G.running) { view.setAvatars([MYCHAR, defaultChar(1)]); view.av.forEach(a => (a.visible = true)); }
+  if (!G.running) { view.setAvatars([MYCHAR, defaultChar(1), defaultChar(2), defaultChar(3)]); view.av.forEach((a, i) => (a.visible = i < 2)); }
 }
 $('edGlasses').onclick = () => { MYCHAR.glasses = !MYCHAR.glasses; edChanged(); };
 $('edChair').onclick = () => { MYCHAR.chair = !MYCHAR.chair; edChanged(); };
@@ -1016,8 +1042,8 @@ function startDemo() {
   G.road.extend(700);
   if (!view) view = new View(scene, G.road, fx);
   view.clear(); view.road = G.road;
-  view.setAvatars([MYCHAR, defaultChar(1)]);
-  view.av.forEach(a => (a.visible = true));
+  view.setAvatars([MYCHAR, defaultChar(1), defaultChar(2), defaultChar(3)]);
+  view.av.forEach((a, i) => (a.visible = true));
   if (fpg) fpg.visible = false;
   let dd = 120;
   view.placeCar(dd, 0, 0);
