@@ -3,11 +3,12 @@
 import * as THREE from 'three';
 import { RARITY, weaponLines } from './weapons.js';
 import { PCOL } from './defs.js';
+import { toon, tex } from './toon.js';
 
 const MC = new Map();
 export function mat(c) {
   let m = MC.get(c);
-  if (!m) { m = new THREE.MeshLambertMaterial({ color: c, flatShading: true }); MC.set(c, m); }
+  if (!m) { m = toon({ color: c }); MC.set(c, m); }
   return m;
 }
 const GLC = new Map();
@@ -17,7 +18,14 @@ export function glow(c, opacity = 1) {
   if (!m) { m = new THREE.MeshBasicMaterial({ color: c, transparent: opacity < 1, opacity }); GLC.set(k, m); }
   return m;
 }
-const GLASS = new THREE.MeshLambertMaterial({ color: 0xa8dcff, transparent: true, opacity: 0.45 });
+const GLASS = toon({ color: 0xa8dcff, transparent: true, opacity: 0.45 });
+const TM = new Map();
+// material con textura (madera, óxido...) teñido de un color
+export function tmat(name, c = 0xffffff) {
+  const k = name + c;
+  if (!TM.has(k)) TM.set(k, toon({ color: c, map: tex(name) }));
+  return TM.get(k);
+}
 export const HIDE = new THREE.MeshBasicMaterial({ visible: false });
 const GC = new Map();
 function bgeo(w, h, d) {
@@ -186,10 +194,10 @@ export function seatedPlayer(i) {
 export function cover(kind, part = 'cover') {
   const g = new THREE.Group();
   if (kind === 0) {
-    box(g, 1.1, 1.0, 1.0, 0x9a6a3a, 0, 0.5, 0, part);
-    box(g, 0.8, 0.5, 0.8, 0x8a5a2a, 0.15, 1.25, 0.05, part);
+    box(g, 1.1, 1.0, 1.0, tmat('wood'), 0, 0.5, 0, part);
+    box(g, 0.8, 0.5, 0.8, tmat('wood', 0xd8c8b0), 0.15, 1.25, 0.05, part);
   } else if (kind === 1) {
-    box(g, 1.6, 0.9, 0.9, 0x3a4a6a, 0, 0.45, 0, part);
+    box(g, 1.6, 0.9, 0.9, tmat('steel', 0x6a86b8), 0, 0.45, 0, part);
     box(g, 1.62, 0.12, 0.92, 0x2a3a5a, 0, 0.92, 0, part);
   } else {
     const b = new THREE.Mesh(cgeo(0.36, 1.0, 8), mat(0x2a6a2a));
@@ -347,7 +355,7 @@ export function truck() {
   const bar = 0xa0a0a0;
   for (let z = -4.4; z <= 4.4; z += 0.8) for (const x of [-1.15, 1.15]) box(cage, 0.06, 2.6, 0.06, bar, x, 1.3, z, 'cage');
   for (const y of [0.05, 1.3, 2.6]) for (const x of [-1.15, 1.15]) box(cage, 0.06, 0.06, 8.9, bar, x, y, 0, 'cage');
-  box(cage, 2.3, 0.06, 8.9, 0x8a6a3a, 0, 0.02, 0, 'cage');
+  box(cage, 2.3, 0.06, 8.9, tmat('wood'), 0, 0.02, 0, 'cage');
   box(cage, 2.36, 0.1, 8.9, bar, 0, 2.62, 0, 'cage');
   const cks = [];
   for (let i = 0; i < 14; i++) cks.push(chickenMesh(cage, -0.8 + (i % 3) * 0.8, 0.05 + (i % 2) * 1.3, -3.8 + Math.floor(i / 3) * 1.8, 1, 'cage'));

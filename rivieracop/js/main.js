@@ -11,6 +11,7 @@ import { Net, makeCode, NETV } from './net.js';
 import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME } from './defs.js';
 import { defaultWeapon, RARITY, weaponLines } from './weapons.js';
 import { fpGun } from './models.js';
+import { Outline, toon } from './toon.js';
 import { clamp, lerp, lerpAng, VP, vw, vh } from './util.js';
 
 const Q = new URLSearchParams(location.search);
@@ -24,6 +25,9 @@ const canvas = $('gl');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.get('hq') ? 2 : 1.25));
 renderer.setSize(vw(), vh());
+const outline = new Outline(renderer);
+outline.enabled = !Q.get('nooutline'); // TODO-TESTEO
+outline.setSize(vw(), vh());
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(72, vw() / vh(), 0.08, 260);
 scene.add(camera);
@@ -33,7 +37,7 @@ const sun = new THREE.DirectionalLight(0xffffff, 1.6);
 scene.add(sun); scene.add(sun.target);
 scene.fog = new THREE.Fog(0x8fd3ff, 70, 200);
 scene.background = new THREE.Color(0x8fd3ff);
-const seaMat = new THREE.MeshLambertMaterial({ color: 0x1d7ec8 });
+const seaMat = toon({ color: 0x1d7ec8 });
 const sea = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000).rotateX(-Math.PI / 2), seaMat);
 scene.add(sea);
 const MATS = makeMats();
@@ -51,6 +55,7 @@ function applyView() {
   document.body.classList.toggle('rotP', VP.rot === 90);
   document.body.classList.toggle('rotN', VP.rot === -90);
   renderer.setSize(vw(), vh());
+  outline.setSize(vw(), vh());
   camera.aspect = vw() / vh();
   camera.updateProjectionMatrix();
   hud.resize();
@@ -483,7 +488,7 @@ function frame(now) {
   if ((G.gs = (G.gs || 0) - dt) <= 0) { G.gs = 0.4; gyroStatus(); updRot(); }
   if (G.running) tick(dt);
   fx.update(dt);
-  if (NR === 1 || (++G.fr % NR) === 0) renderer.render(scene, camera);
+  if (NR === 1 || (++G.fr % NR) === 0) outline.render(scene, camera);
   if (G.running && view) {
     const me = G.players[G.li];
     hud.draw(camera, view, G.li, G.t, dt, { dead: !me || !me.alive || G.over });

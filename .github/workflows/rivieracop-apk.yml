@@ -18,7 +18,7 @@ jobs:
       - name: Copiar el juego dentro de la app
         run: |
           mkdir -p android-rivieracop/app/src/main/assets/game
-          cp -r rivieracop/index.html rivieracop/js rivieracop/lib android-rivieracop/app/src/main/assets/game/
+          cp -r rivieracop/index.html rivieracop/js rivieracop/lib rivieracop/tex android-rivieracop/app/src/main/assets/game/
       - name: Compilar
         working-directory: android-rivieracop
         run: gradle assembleRelease --no-daemon --stacktrace

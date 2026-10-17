@@ -4,44 +4,59 @@ import { mergeGeometries } from '../lib/BufferGeometryUtils.js';
 import { rng, hash, pick } from './util.js';
 import { BIOMES, BIOME_KEYS } from './defs.js';
 import { HALF, WALK } from './road.js';
+import { toon, tex } from './toon.js';
 
 export const CH = 40;
 
 export function makeMats() {
+  // fachada: enlucido (textura) + 2x2 ventanas por "planta"
   const mk = night => {
     const c = document.createElement('canvas');
-    c.width = c.height = 64;
+    c.width = c.height = 128;
     const g = c.getContext('2d');
-    g.fillStyle = night ? '#2c2c34' : '#ffffff';
-    g.fillRect(0, 0, 64, 64);
-    for (let wx = 0; wx < 2; wx++) for (let wy = 0; wy < 2; wy++) {
-      const x = 6 + wx * 32, y = 6 + wy * 32;
-      if (night) {
-        const on = (wx + wy * 3) % 4 !== 1;
-        g.fillStyle = on ? (wx ? '#fff1b8' : '#ffd27a') : '#141418';
-        g.fillRect(x, y, 20, 22);
-      } else {
-        g.fillStyle = '#58646e'; g.fillRect(x - 1, y - 1, 22, 24);
-        g.fillStyle = '#7d9bb0'; g.fillRect(x + 1, y + 1, 18, 20);
-        g.fillStyle = '#a9c4d6'; g.fillRect(x + 1, y + 1, 7, 20);
-      }
-    }
     const t = new THREE.CanvasTexture(c);
+    const draw = img => {
+      g.fillStyle = night ? '#2c2c34' : '#ffffff';
+      g.fillRect(0, 0, 128, 128);
+      if (img && !night) g.drawImage(img, 0, 0, 128, 128);
+      for (let wx = 0; wx < 2; wx++) for (let wy = 0; wy < 2; wy++) {
+        const x = 12 + wx * 64, y = 12 + wy * 64;
+        if (night) {
+          const on = (wx + wy * 3) % 4 !== 1;
+          g.fillStyle = on ? (wx ? '#fff1b8' : '#ffd27a') : '#141418';
+          g.fillRect(x, y, 40, 44);
+        } else {
+          g.fillStyle = '#3c4650'; g.fillRect(x - 3, y - 3, 46, 50);
+          g.fillStyle = '#6f8ea5'; g.fillRect(x, y, 40, 44);
+          g.fillStyle = '#a9c8dc'; g.fillRect(x, y, 14, 44);
+          g.fillStyle = '#e8e2d6'; g.fillRect(x - 5, y + 44, 50, 5);
+        }
+      }
+      t.needsUpdate = true;
+    };
+    draw(null);
+    if (!night) { const im = new Image(); im.onload = () => draw(im); im.src = 'tex/plaster.jpg'; }
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    t.magFilter = THREE.NearestFilter;
     t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 4;
     return t;
   };
+  const T = (name, o = {}) => toon(Object.assign({ vertexColors: true, map: tex(name) }, o));
   return {
-    L: new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }),
-    W: new THREE.MeshLambertMaterial({ vertexColors: true, map: mk(false) }),
+    L: toon({ vertexColors: true, side: THREE.DoubleSide }),
+    W: toon({ vertexColors: true, map: mk(false) }),
     G: new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }),
     N: new THREE.MeshBasicMaterial({ vertexColors: true, map: mk(true) }),
+    A: T('asphalt'), P: T('pave'), C: T('conc', { side: THREE.DoubleSide }), K: T('rock', { side: THREE.DoubleSide }),
+    Q: T('corr'), U: T('rust'), S: T('steel'), T: T('tile', { side: THREE.DoubleSide }), D: T('wood'), B: T('brick'),
+    F: T('graff'), M: T('mural'),
   };
 }
+const LIST_KEYS = ['L', 'W', 'G', 'N', 'A', 'P', 'C', 'K', 'Q', 'U', 'S', 'T', 'D', 'B', 'F', 'M'];
+const LIGHT = (hex, k) => { _c.setHex(hex); _c.lerp(_w.setHex(0xffffff), k); return _c.getHex(); };
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(1, 1, 1);
-const _p = new THREE.Vector3(), _e = new THREE.Euler(), _c = new THREE.Color();
+const _p = new THREE.Vector3(), _e = new THREE.Euler(), _c = new THREE.Color(), _w = new THREE.Color();
 const SHADE = [0.82, 0.82, 1, 0.5, 0.92, 0.92];
 
 function colorize(g, col, shade) {
@@ -66,7 +81,15 @@ function frame(road, d, lat, h, rot = 0) {
 // caja: w = lateral, h = alto, d = a lo largo de la carretera. o: {x,y,z,ry,rx,rz,win,shade}
 function addBox(list, w, h, d, col, m, o = {}) {
   const g = new THREE.BoxGeometry(w, h, d);
-  if (o.win) {
+  if (o.uvs) {
+    // textura a escala real: o.uvs = metros por repetición
+    const uv = g.attributes.uv, k = o.uvs;
+    const dims = [[d, h], [d, h], [w, d], [w, d], [w, h], [w, h]];
+    for (let f = 0; f < 6; f++) for (let v = 0; v < 4; v++) {
+      const i = f * 4 + v;
+      uv.setXY(i, uv.getX(i) * dims[f][0] / k, uv.getY(i) * dims[f][1] / k);
+    }
+  } else if (o.win) {
     const uv = g.attributes.uv;
     const dims = [[d, h], [d, h], null, null, [w, h], [w, h]];
     for (let f = 0; f < 6; f++) for (let v = 0; v < 4; v++) {
@@ -94,7 +117,7 @@ function addCyl(list, rt, rb, h, seg, col, m, o = {}) {
 }
 
 // Tira a lo largo de la carretera entre dos perfiles fa(i), fb(i) -> [lat, h]
-function strip(list, road, i0, i1, fa, fb, col) {
+function strip(list, road, i0, i1, fa, fb, col, uvk) {
   const n = i1 - i0 + 1;
   if (n < 2) return;
   const pos = new Float32Array(n * 6);
@@ -110,13 +133,30 @@ function strip(list, road, i0, i1, fa, fb, col) {
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(n * 4), 2));
+  const uvs = new Float32Array(n * 4);
+  if (uvk) {
+    // u = ancho (lateral o altura) / escala, v = metros de carretera / escala
+    for (let k = 0; k < n; k++) {
+      const i = i0 + k, [la, ha] = fa(i), [lb, hb] = fb(i);
+      uvs.set([(la + ha) / uvk, i / uvk, (lb + hb) / uvk, i / uvk], k * 4);
+    }
+  }
+  g.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
   g.setIndex(idx);
   g.computeVertexNormals();
   colorize(g, col, false);
   list.push(g);
 }
 const C = (lat, h) => () => [lat, h];
+// cartel/grafiti plano pegado a una pared lateral (mirando hacia la carretera)
+function decal(list, w, h, m, side, o = {}) {
+  const g = new THREE.PlaneGeometry(w, h);
+  colorize(g, 0xffffff, false);
+  g.rotateY(side < 0 ? Math.PI / 2 : -Math.PI / 2);
+  g.translate(o.x || 0, o.y || 0, o.z || 0);
+  g.applyMatrix4(m);
+  list.push(g);
+}
 
 function shoulderOf(B, side) {
   if (B.deco === 'monaco' || B.deco === 'cornisa') return side < 0 ? 0 : 14;
@@ -126,7 +166,8 @@ function shoulderOf(B, side) {
 export function buildChunk(road, c, M) {
   const d0 = c * CH, d1 = d0 + CH;
   if (road.len < d1 + 1) return null;
-  const R = { L: [], W: [], G: [], N: [] };
+  const R = {};
+  for (const k of LIST_KEYS) R[k] = [];
   const r = rng(hash(road.seed, c, 77));
   let s = d0;
   while (s < d1) {
@@ -150,7 +191,7 @@ export function buildChunk(road, c, M) {
     }
   }
   const grp = new THREE.Group();
-  for (const k of ['L', 'W', 'G', 'N']) {
+  for (const k of LIST_KEYS) {
     if (!R[k].length) continue;
     const g = mergeGeometries(R[k], false);
     for (const x of R[k]) x.dispose();
@@ -163,28 +204,36 @@ export function buildChunk(road, c, M) {
 
 function facade(R, road, d) {
   const y = road.y[Math.floor(d)] || 0, depthDown = y + 3;
-  for (const sd of [-1, 1]) addBox(R.L, 28, 24 + depthDown, 3, 0xbdb6a6, frame(road, d, sd * 21.2, (24 - depthDown) / 2));
-  addBox(R.L, 14.4, 15.2, 3, 0xbdb6a6, frame(road, d, 0, 6.9 + 7.6));
+  for (const sd of [-1, 1]) addBox(R.C, 28, 24 + depthDown, 3, 0xe4ddd0, frame(road, d, sd * 21.2, (24 - depthDown) / 2), { uvs: 4 });
+  addBox(R.C, 14.4, 15.2, 3, 0xe4ddd0, frame(road, d, 0, 6.9 + 7.6), { uvs: 4 });
   addBox(R.L, 15.4, 0.7, 3.2, 0x2c2c2c, frame(road, d, 0, 7.2));
   for (let k = -3; k <= 3; k++) addBox(R.G, 1, 0.4, 0.1, k % 2 ? 0xffd400 : 0x111111, frame(road, d, k * 2, 7.25), { z: -1.65 });
 }
 
 function tunnelRun(R, road, B, i0, i1) {
-  strip(R.L, road, i0, i1, C(-HALF, 0), C(HALF, 0), 0x45464b);
+  strip(R.A, road, i0, i1, C(-HALF, 0), C(HALF, 0), 0x9a9aa0, 4);
   for (const sd of [-1, 1]) {
     strip(R.L, road, i0, i1, C(sd * (HALF - 0.4), 0.02), C(sd * (HALF - 0.25), 0.02), 0xffffff);
-    strip(R.L, road, i0, i1, C(sd * HALF, 0.25), C(sd * 7.2, 0.25), 0x8d8a82);
+    strip(R.P, road, i0, i1, C(sd * HALF, 0.25), C(sd * 7.2, 0.25), 0xb8b2a6, 2);
     strip(R.L, road, i0, i1, C(sd * HALF, 0), C(sd * HALF, 0.25), 0x77736c);
-    strip(R.L, road, i0, i1, C(sd * 7.2, 0.25), C(sd * 7.2, 1.6), 0xe0d6be);
-    strip(R.L, road, i0, i1, C(sd * 7.2, 1.6), C(sd * 7.2, 6.3), 0x5d5f63);
-    strip(R.L, road, i0, i1, C(sd * 7.2, 6.3), C(0, 7.4), 0x3a3b3f);
+    strip(R.T, road, i0, i1, C(sd * 7.2, 0.25), C(sd * 7.2, 1.6), 0xf2ead6, 1.4);
+    strip(R.K, road, i0, i1, C(sd * 7.2, 1.6), C(sd * 7.2, 6.3), 0xa8aaae, 4);
+    strip(R.K, road, i0, i1, C(sd * 7.2, 6.3), C(0, 7.4), 0x6a6b70, 4);
+  }
+  // grafitis en las paredes del túnel
+  const rr = rng(hash(road.seed, i0, 991));
+  for (let i = i0 + 6; i < i1 - 6; i += 9) {
+    if (rr() < 0.18) {
+      const sd = rr() < 0.5 ? -1 : 1, mural = rr() < 0.3;
+      decal(mural ? R.M : R.F, mural ? 4 : 6, mural ? 4 : 3, frame(road, i, sd * 7.12, mural ? 3.6 : 3.2), sd);
+    }
   }
   for (let i = i0; i < i1; i++) {
     if (i % 12 === 0) for (const sd of [-1, 1]) addBox(R.G, 0.5, 0.16, 1.4, 0xffc870, frame(road, i, sd * 2.6, 6.95));
     if (i % 16 === 0) {
       const y = road.y[i], down = y + 3;
-      addBox(R.L, 52, 22, 16.5, 0x7b6f5c, frame(road, i, 0, 7.6 + 11), { shade: true });
-      for (const sd of [-1, 1]) addBox(R.L, 18, 7.6 + down, 16.5, 0x7b6f5c, frame(road, i, sd * 16.4, (7.6 - down) / 2));
+      addBox(R.K, 52, 22, 16.5, 0xb09a7e, frame(road, i, 0, 7.6 + 11), { shade: true, uvs: 6 });
+      for (const sd of [-1, 1]) addBox(R.K, 18, 7.6 + down, 16.5, 0xb09a7e, frame(road, i, sd * 16.4, (7.6 - down) / 2), { uvs: 6 });
     }
   }
   // líneas discontinuas
@@ -201,16 +250,16 @@ function dashes(R, road, i0, i1, col) {
 }
 
 function outsideRun(R, road, B, i0, i1, r) {
-  strip(R.L, road, i0, i1, C(-HALF, 0), C(HALF, 0), B.asphalt);
+  strip(R.A, road, i0, i1, C(-HALF, 0), C(HALF, 0), LIGHT(B.asphalt, 0.45), 4);
   dashes(R, road, i0, i1, B.line);
   for (const sd of [-1, 1]) {
     strip(R.L, road, i0, i1, C(sd * (HALF - 0.45), 0.02), C(sd * (HALF - 0.3), 0.02), 0xf2f2f2);
-    strip(R.L, road, i0, i1, C(sd * HALF, 0.18), C(sd * WALK, 0.18), B.walk);
+    strip(R.P, road, i0, i1, C(sd * HALF, 0.18), C(sd * WALK, 0.18), B.walk, 2);
     strip(R.L, road, i0, i1, C(sd * HALF, 0), C(sd * HALF, 0.18), 0x8a857c);
     const sh = shoulderOf(B, sd);
-    if (sh > 0) strip(R.L, road, i0, i1, C(sd * WALK, 0.18), C(sd * (WALK + sh), 0.18), B.skirt);
+    if (sh > 0) strip(R.K, road, i0, i1, C(sd * WALK, 0.18), C(sd * (WALK + sh), 0.18), LIGHT(B.skirt, 0.2), 5);
     const e = WALK + sh;
-    strip(R.L, road, i0, i1, C(sd * e, 0.18), i => [sd * (e + Math.max(3, (road.y[i] + 2) * 0.55)), -(road.y[i] + 2)], B.skirt);
+    strip(R.K, road, i0, i1, C(sd * e, 0.18), i => [sd * (e + Math.max(3, (road.y[i] + 2) * 0.55)), -(road.y[i] + 2)], LIGHT(B.skirt, 0.2), 6);
   }
   DECO[B.deco](R, road, B, i0, i1, r);
 }
@@ -277,7 +326,7 @@ function rocks(R, road, d, sd, r) {
   const lat = sd * (WALK + 2 + r() * 4);
   if (!ok(road, d, lat, 4)) return;
   const h = 6 + r() * 16, y = road.y[Math.floor(d)];
-  addBox(R.L, 4 + r() * 4, h + y + 2, 5 + r() * 5, pick(r, [0x8a7a62, 0x7a6c58, 0x9a8a70]), frame(road, d, lat, (h - y - 2) / 2, r()), { rx: (r() - 0.5) * 0.2 });
+  addBox(R.K, 4 + r() * 4, h + y + 2, 5 + r() * 5, pick(r, [0xc2ab8c, 0xb09c80, 0xd0bc9c]), frame(road, d, lat, (h - y - 2) / 2, r()), { rx: (r() - 0.5) * 0.2, uvs: 5 });
 }
 function pine(R, road, d, lat, r) {
   if (!ok(road, d, lat, 2)) return;
@@ -304,7 +353,7 @@ const DECO = {
       const lat = -(WALK + 3 + r() * 9);
       if (!ok(road, d, lat, 4)) return;
       const n = 1 + Math.floor(r() * 3), m = frame(road, d, lat, 0.18, r() < 0.5 ? 0 : Math.PI / 2);
-      for (let k = 0; k < n; k++) addBox(R.L, 2.5, 2.6, 6, pick(r, [0xc0392b, 0x2980b9, 0x27ae60, 0xe67e22, 0x8e44ad, 0xf1c40f]), m, { y: 1.3 + k * 2.62, shade: true });
+      for (let k = 0; k < n; k++) addBox(R.Q, 2.5, 2.6, 6, pick(r, [0xe0503b, 0x3a96d9, 0x37c070, 0xf08a32, 0xa05ac0, 0xf5d030]), m, { y: 1.3 + k * 2.62, shade: true, uvs: 2.6 });
     });
     each(i0, i1, r, 50, 80, d => {
       const lat = -(WALK + 10);
@@ -320,7 +369,7 @@ const DECO = {
       const w = 14 + r() * 10, dep = 12, lat = WALK + 1.5 + dep / 2;
       if (ok(road, d, lat, w * 0.6)) {
         const y = road.y[Math.floor(d)], down = y + 2, top = 7 + r() * 4, m = frame(road, d, lat, 0);
-        addBox(R.W, dep, top + down, w, pick(r, B.build), m, { y: (top - down) / 2, win: true });
+        addBox(R.Q, dep, top + down, w, LIGHT(pick(r, B.build), 0.3), m, { y: (top - down) / 2, uvs: 3 });
         addBox(R.L, dep + 0.4, 1.2, w + 0.4, 0x777777, m, { y: top + 0.3 });
       }
       d += w + 2;
@@ -336,7 +385,7 @@ const DECO = {
     each(i0, i1, r, 18, 24, d => lamp(R, road, d, r() < 0.5 ? -1 : 1));
   },
   autopista(R, road, B, i0, i1, r) {
-    for (const sd of [-1, 1]) for (let i = i0; i < i1; i += 4) addBox(R.L, 0.5, 0.9, 4.02, 0xb8b8b0, frame(road, i + 2, sd * 6.6, 0.45));
+    for (const sd of [-1, 1]) for (let i = i0; i < i1; i += 4) addBox(R.C, 0.5, 0.9, 4.02, 0xe8e8e0, frame(road, i + 2, sd * 6.6, 0.45), { uvs: 2 });
     each(i0, i1, r, 28, 36, d => lamp(R, road, d, r() < 0.5 ? -1 : 1, true));
     each(i0, i1, r, 60, 90, d => {
       const sd = r() < 0.5 ? -1 : 1, lat = sd * 16;
@@ -359,7 +408,9 @@ const DECO = {
         const w = 16 + r() * 12, dep = 12 + r() * 6, lat = sd * (WALK + 2 + dep / 2);
         if (r() < 0.75 && ok(road, d, lat, w * 0.6)) {
           const y = road.y[Math.floor(d)], down = y + 2, top = 6 + r() * 8, m = frame(road, d, lat, 0);
-          addBox(R.W, dep, top + down, w, pick(r, B.build), m, { y: (top - down) / 2, win: true });
+          if (r() < 0.5) addBox(R.W, dep, top + down, w, pick(r, B.build), m, { y: (top - down) / 2, win: true });
+          else addBox(r() < 0.5 ? R.U : R.Q, dep, top + down, w, LIGHT(pick(r, B.build), 0.4), m, { y: (top - down) / 2, uvs: 3.5 });
+          if (r() < 0.35) decal(R.F, Math.min(9, w * 0.6), 4, m, sd, { x: -sd * (dep / 2 + 0.05), y: 2.4 });
           addBox(R.L, dep + 0.5, 1.4, w + 0.5, 0x3a3a3a, m, { y: top + 0.7, rz: 0.08 });
           if (r() < 0.5) {
             const ch = 14 + r() * 12;
@@ -368,7 +419,7 @@ const DECO = {
           }
         } else if (ok(road, d, sd * (WALK + 6), 5)) {
           const m = frame(road, d, sd * (WALK + 6), 0.18);
-          addCyl(R.L, 3.5, 3.5, 7, 10, 0xd8d8d0, m, { y: 3.5 });
+          addCyl(R.S, 3.5, 3.5, 7, 10, 0xffffff, m, { y: 3.5 });
           addCyl(R.L, 3.6, 3.6, 0.5, 10, 0x8a8a80, m, { y: 7.1 });
         }
         d += w + 3;
