@@ -28,11 +28,14 @@ export class Look {
     // Respaldo: deviceorientation / deviceorientationabsolute si no hay rotationRate.
     this.src = 'ninguno'; this.rateSeen = 0; this.lastRateT = 0;
     this.gYaw = 0; this.gPitch = 0;
+    this.force = null; // 'dedo' = el jugador ha elegido apuntar con el dedo
+    this.diag = { motion: 0, motionNull: 0, ori: 0, oriNull: 0, abs: 0, sensor: 0, sensorErr: '', perm: '', last: '' };
     window.addEventListener('devicemotion', e => this.onMotion(e), true);
     window.addEventListener('deviceorientation', e => this.onOri(e, 'rel'), true);
     window.addEventListener('deviceorientationabsolute', e => this.onOri(e, 'abs'), true);
   }
   async requestGyro() {
+    this.startSensor();
     try {
       if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') await DeviceMotionEvent.requestPermission();
     } catch (e) { }
@@ -44,16 +47,40 @@ export class Look {
     const a = screen.orientation && typeof screen.orientation.angle === 'number' ? screen.orientation.angle : (window.orientation || 0);
     return ((a % 360) + 360) % 360;
   }
+  // API de sensores genérica de Chrome (Gyroscope): otra vía por si devicemotion no llega
+  startSensor() {
+    if (this.sensor || typeof window.Gyroscope !== 'function') { if (!this.sensor) this.diag.sensorErr = 'no existe'; return; }
+    try {
+      const g = new window.Gyroscope({ frequency: 60 });
+      g.addEventListener('reading', () => {
+        this.diag.sensor++;
+        if (this.src !== 'ninguno' && this.src !== 'sensor') return;
+        this.integrate(g.x, g.y, 'sensor');
+      });
+      g.addEventListener('error', ev => { this.diag.sensorErr = (ev.error && (ev.error.name + ' ' + ev.error.message)) || 'error'; });
+      g.start();
+      this.sensor = g;
+    } catch (e) { this.diag.sensorErr = e.name + ' ' + e.message; }
+    try {
+      if (navigator.permissions) navigator.permissions.query({ name: 'gyroscope' }).then(r => { this.diag.perm = r.state; }).catch(() => { });
+    } catch (e) { }
+  }
   onMotion(e) {
     const r = e.rotationRate;
-    if (!r || r.alpha == null || r.beta == null || r.gamma == null) return;
+    this.diag.motion++;
+    if (!r || r.alpha == null || r.beta == null || r.gamma == null) { this.diag.motionNull++; return; }
+    this.diag.last = `${r.alpha.toFixed(1)} ${r.beta.toFixed(1)} ${r.gamma.toFixed(1)}`;
     if (r.alpha === 0 && r.beta === 0 && r.gamma === 0 && this.rateSeen === 0) return;
+    if (this.src === 'sensor') return;
+    // grados/seg -> rad/seg
+    this.integrate(r.beta * D2R, r.gamma * D2R, 'giroscopio');
+  }
+  // bx = giro alrededor del eje X del móvil, gy = alrededor del eje Y (rad/s)
+  integrate(bx, gy, name) {
     const now = performance.now();
-    let dt = e.interval ? e.interval / (e.interval > 1 ? 1000 : 1) : 0.016;
+    let dt = 0.016;
     if (this.lastRateT) dt = Math.min(0.1, (now - this.lastRateT) / 1000);
     this.lastRateT = now;
-    // grados/seg -> rad/seg, y ejes según cómo esté girada la pantalla
-    const bx = r.beta * D2R, gy = r.gamma * D2R;
     let yawR, pitR;
     switch (this.screenAngle()) {
       case 90: yawR = bx; pitR = -gy; break;
@@ -64,14 +91,15 @@ export class Look {
     this.gYaw += yawR * dt;
     this.gPitch += pitR * dt;
     this.rateSeen++;
-    if (this.rateSeen > 5 && this.src !== 'giroscopio') {
-      this.src = 'giroscopio';
-      this.gyro = this.isTouch;
+    if (this.rateSeen > 5 && this.src === 'ninguno') {
+      this.src = name;
+      this.gyro = this.force !== 'dedo';
       this.calibrate();
     }
   }
   onOri(e, kind) {
-    if (e.beta == null || e.gamma == null) return;
+    this.diag[kind === 'abs' ? 'abs' : 'ori']++;
+    if (e.beta == null || e.gamma == null) { this.diag.oriNull++; return; }
     const orient = this.screenAngle() * D2R;
     EU.set(e.beta * D2R, (e.alpha || 0) * D2R, -e.gamma * D2R, 'YXZ');
     QQ.setFromEuler(EU);
@@ -81,12 +109,13 @@ export class Look {
     this.raw = { y: E2.y, p: E2.x };
     this.gyroSeen++;
     // solo si no llega la velocidad de giro
-    if (this.gyroSeen > 10 && this.rateSeen === 0 && this.src === 'ninguno' && this.isTouch) {
+    if (this.gyroSeen > 10 && this.rateSeen === 0 && this.src === 'ninguno') {
       this.src = kind === 'abs' ? 'brújula' : 'orientación';
-      this.gyro = true;
+      this.gyro = this.force !== 'dedo';
       this.calibrate();
     }
   }
+  setForce(f) { this.force = f; this.gyro = f !== 'dedo' && this.src !== 'ninguno'; this.calibrate(); }
   calibrate() {
     if (this.raw) this.ref = { y: this.raw.y, p: this.raw.p };
     this.gYaw = 0; this.gPitch = 0;
@@ -95,7 +124,7 @@ export class Look {
   }
   update(dt) {
     if (this.gyro) {
-      if (this.src === 'giroscopio') {
+      if (this.src === 'giroscopio' || this.src === 'sensor') {
         this.gPitch = clamp(this.gPitch, -1.1 / this.gain, 1.2 / this.gain);
         this.tYaw = angWrap(this.gYaw * this.gain);
         this.tPitch = this.gPitch * this.gain;

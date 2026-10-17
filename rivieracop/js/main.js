@@ -444,7 +444,8 @@ function uiRoute() {
 function gyroStatus() {
   let t;
   if (!look.isTouch) t = 'PC: mueve el ratón para apuntar, clic para disparar, R recarga';
-  else if (look.src === 'giroscopio') t = 'Giroscopio: OK ✓';
+  else if (look.force === 'dedo') t = 'Apuntas arrastrando el dedo · botón FUEGO para disparar';
+  else if (look.src === 'giroscopio' || look.src === 'sensor') t = 'Giroscopio: OK ✓';
   else if (look.src !== 'ninguno') t = 'Giroscopio: usando ' + look.src + ' (puede ir peor)';
   else t = 'Giroscopio: no detectado — se apunta arrastrando el dedo';
   if (UIC.gyro !== t) { UIC.gyro = t; $('gyroSt').textContent = t; $('gyroSt2').textContent = t; }
@@ -696,6 +697,45 @@ $('btnFire').addEventListener('pointerup', () => { look.fire = false; });
 $('btnFire').addEventListener('pointercancel', () => { look.fire = false; });
 look.onReload = startReload;
 look.onCal = () => look.calibrate();
+
+// modo de apuntar elegido por el jugador
+function setCtl(m) {
+  localStorage.setItem('rc_ctl', m);
+  look.setForce(m === 'dedo' ? 'dedo' : null);
+  document.querySelectorAll('#ctl button').forEach(b => b.classList.toggle('sel', b.dataset.m === m));
+}
+document.querySelectorAll('#ctl button').forEach(b => (b.onclick = () => { look.requestGyro(); setCtl(b.dataset.m); }));
+setCtl(localStorage.getItem('rc_ctl') || 'gyro');
+let diagOn = false;
+$('btnDiag').onclick = async () => {
+  for (const s of document.querySelectorAll('.screen')) s.hidden = true;
+  $('diag').hidden = false; diagOn = true;
+  await look.requestGyro();
+  look.calibrate();
+  const tickD = () => {
+    if (!diagOn) return;
+    requestAnimationFrame(tickD);
+    const pad = $('diagPad'), w = pad.clientWidth, h = pad.clientHeight;
+    const y = look.gyro ? look.yaw : (look.src !== 'ninguno' ? (look.src === 'giroscopio' || look.src === 'sensor' ? look.gYaw * look.gain : 0) : 0);
+    const p = look.gyro ? look.pitch : (look.gPitch || 0) * look.gain;
+    $('diagDot').style.left = clamp(w / 2 - Math.sin(y) * w / 2, 9, w - 9) + 'px';
+    $('diagDot').style.top = clamp(h / 2 - p * h / 2, 9, h - 9) + 'px';
+    const D = look.diag, ua = navigator.userAgent;
+    const wv = /; wv\)/.test(ua) || /FBAN|FBAV|Instagram|Claude/i.test(ua);
+    let t = `Fuente usada: ${look.src}${look.force === 'dedo' ? ' (has elegido DEDO)' : ''}\n`;
+    t += `devicemotion: ${D.motion} eventos (${D.motionNull} vacíos) · último giro: ${D.last || '-'}\n`;
+    t += `deviceorientation: ${D.ori} · absoluta: ${D.abs} · vacíos: ${D.oriNull}\n`;
+    t += `Sensor Gyroscope: ${D.sensor} lecturas${D.sensorErr ? ' · ' + D.sensorErr : ''}${D.perm ? ' · permiso: ' + D.perm : ''}\n`;
+    t += `Conexión segura: ${window.isSecureContext ? 'sí' : 'NO'} · pantalla: ${look.screenAngle()}°\n`;
+    if (wv) t += '\n⚠ Parece que lo has abierto dentro de otra app. Ábrelo en Chrome (⋮ → Abrir en Chrome).';
+    if (D.motion === 0 && D.ori === 0 && D.sensor === 0) t += '\n⚠ No llega nada del sensor. En Chrome: ⋮ → Configuración → Configuración de sitios → Sensores de movimiento → Permitir, y recarga.';
+    else if (D.motion > 0 && D.motionNull === D.motion && D.sensor === 0) t += '\n⚠ Llegan eventos pero vacíos: el navegador está bloqueando los sensores (mira Sensores de movimiento en la configuración de Chrome).';
+    $('diagTxt').textContent = t;
+  };
+  tickD();
+};
+$('btnDiagCal').onclick = () => look.calibrate();
+$('btnDiagClose').onclick = () => { diagOn = false; $('diag').hidden = true; $('menu').hidden = false; };
 
 const SENS = [1, 1.5, 2, 2.6];
 function setSens(i) {
