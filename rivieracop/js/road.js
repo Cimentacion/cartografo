@@ -4,7 +4,7 @@ import { rng, hash, clamp } from './util.js';
 import { BIOMES, BIOME_KEYS } from './defs.js';
 
 export const LANE_ME = 3, LANE_OT = -3, HALF = 6, WALK = 8.5;
-export const START_TUN = 150, SECTION = 1050, APPROACH = 90, TUN = 150;
+export const START_TUN = 120, SECTION = 720, APPROACH = 90, TUN = 150;
 const CELL = 20;
 
 export class Road {

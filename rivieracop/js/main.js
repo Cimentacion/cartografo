@@ -170,12 +170,12 @@ function castOne(origin, dir, assist) {
   if (!assist) return null;
   // ayuda a apuntar: anillo de rayos a ~1.3º
   const up = V3.set(0, 1, 0).applyQuaternion(camera.quaternion);
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2;
-    QA.setFromAxisAngle(up, Math.cos(a) * 0.023);
+  for (let i = 0; i < 24; i++) {
+    const a = (i / 8) * Math.PI * 2, rr = i < 8 ? 0.025 : i < 16 ? 0.045 : 0.07;
+    QA.setFromAxisAngle(up, Math.cos(a) * rr);
     V2.copy(dir).applyQuaternion(QA);
     const right = V1.crossVectors(dir, up).normalize();
-    QB.setFromAxisAngle(right, Math.sin(a) * 0.023);
+    QB.setFromAxisAngle(right, Math.sin(a) * rr);
     V2.applyQuaternion(QB);
     ray.set(origin, V2);
     r = ray.intersectObjects(view.hit, true);
@@ -441,6 +441,15 @@ function uiRoute() {
   $('route').innerHTML = `<span style="color:${B.color}">${B.name}</span>${B.pts > 1 ? ` <small>PUNTOS x${B.pts}</small>` : ''}`;
 }
 
+function gyroStatus() {
+  let t;
+  if (!look.isTouch) t = 'PC: mueve el ratón para apuntar, clic para disparar, R recarga';
+  else if (look.src === 'giroscopio') t = 'Giroscopio: OK ✓';
+  else if (look.src !== 'ninguno') t = 'Giroscopio: usando ' + look.src + ' (puede ir peor)';
+  else t = 'Giroscopio: no detectado — se apunta arrastrando el dedo';
+  if (UIC.gyro !== t) { UIC.gyro = t; $('gyroSt').textContent = t; $('gyroSt2').textContent = t; }
+}
+
 // ---------------- bucle ----------------
 const QCAR = new THREE.Quaternion(), QLOOK = new THREE.Quaternion(), QINV = new THREE.Quaternion();
 let last = performance.now();
@@ -450,6 +459,7 @@ function frame(now) {
   last = now;
   G.t += dt;
   look.update(dt);
+  if ((G.gs = (G.gs || 0) - dt) <= 0) { G.gs = 0.5; gyroStatus(); }
   if (G.running) tick(dt);
   fx.update(dt);
   if (NR === 1 || (++G.fr % NR) === 0) renderer.render(scene, camera);
@@ -568,6 +578,7 @@ function tick(dt) {
   bannerT -= dt;
   SFX.loops(view.ambDist, view.heliDist, G.speed);
   $('rotate').hidden = !(look.isTouch && innerHeight > innerWidth);
+  $('btnFire').hidden = look.gyro || !look.isTouch;
 }
 
 // TODO-TESTEO: bot que apunta solo al objetivo más urgente

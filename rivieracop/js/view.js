@@ -95,6 +95,8 @@ const OUTFIT = [
 ];
 const CIV = [0xf0c040, 0x40a0f0, 0xf06080, 0x60d080, 0xffffff, 0xff8030, 0xa070f0, 0x30c0c0];
 const SKIN = [0xd9a476, 0xb27a4e, 0xf0c8a0, 0x7a5030];
+// enemigos más grandes: más fáciles de ver y de acertar en el móvil
+const SCALE = { gunman: 1.35, civilian: 1.3, sniper: 1.45, moto: 1.2, drone: 1.8, chicken: 1.4, grenade: 1.7, rocket: 1.5, medkit: 1.3, barrel: 1.2, jeep: 1.1 };
 const CARC = [0x2a6ad0, 0xe8e8e8, 0xd0a020, 0x30a050, 0x8a2a8a, 0xd06020];
 
 export class View {
@@ -178,6 +180,8 @@ export class View {
       case 'rocket': g = M.rocket(); break;
       default: g = new THREE.Group();
     }
+    const sc = SCALE[e.type];
+    if (sc) g.scale.setScalar(sc);
     g.userData.eid = e.id;
     g.userData.type = e.type;
     this.scene.add(g);

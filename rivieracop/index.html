@@ -139,7 +139,7 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
     <button id="btnReload" class="ui">RECARGAR</button>
     <button id="btnFire" class="ui" hidden>FUEGO</button>
     <div id="banner"><b></b><span></span></div>
-    <div id="count" hidden><div id="countN">3</div><p>Sujeta el móvil en horizontal apuntando al frente</p><p>Gira el móvil para apuntar · Toca la pantalla para disparar</p></div>
+    <div id="count" hidden><div id="countN">3</div><p>Sujeta el móvil en horizontal apuntando al frente</p><p>Gira el móvil para apuntar · Toca la pantalla para disparar</p><p id="gyroSt2"></p></div>
     <div id="dead" hidden>ESTÁS FUERA<small>Tu compañero puede revivirte con un botiquín</small></div>
   </div>
 
@@ -153,6 +153,7 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
         <button id="btnJoin" class="big alt2">UNIRSE</button>
       </div>
       <div class="row"><span class="lbl">SENSIBILIDAD GIROSCOPIO</span><span id="sens"><button>1</button> <button>1.5</button> <button>2</button> <button>2.6</button></span></div>
+      <div id="gyroSt" class="lbl"></div>
       <div id="best"></div>
       <div id="menuMsg"></div>
       <div class="help">

@@ -5,7 +5,7 @@ import { rollWeapon } from './weapons.js';
 import { LANE_ME, LANE_OT, WALK } from './road.js';
 import { rng, hash, clamp, lerp, pick, r2 } from './util.js';
 
-export const SPEED = 20;
+export const SPEED = 14;
 export const SEAT_LAT = [LANE_ME - 0.45, LANE_ME + 0.45];
 export const SEAT_H = 1.75, SEAT_D = -0.7;
 const VEH = new Set(['ecar', 'truck', 'amb', 'jeep', 'civcar']);
@@ -37,7 +37,7 @@ export class Sim {
   rel(e) { return e.d - this.carD; }
   alivePlayers() { const a = []; this.players.forEach((p, i) => { if (p.alive && !p.gone) a.push(i); }); return a; }
   pickTgt() { const a = this.alivePlayers(); return a.length ? a[Math.floor(this.r() * a.length)] : -1; }
-  fireScale() { return (this.bonus.slow ? 1.3 : 1) / (1 + (this.diff - 1) * 0.16); }
+  fireScale() { return 1.5 * (this.bonus.slow ? 1.3 : 1) / (1 + (this.diff - 1) * 0.14); }
   shooter(base, kind = 'shot', delay = 0) {
     const fm = base * this.fireScale();
     return { alive: true, fireMax: fm, fireT: fm + delay, tgt: this.pickTgt(), on: false, r: 0, kind };
@@ -66,8 +66,9 @@ export class Sim {
     }
     this.carD += this.speed * dt;
     this.road.extend(this.carD + 340);
-    this.diff = Math.min(6, 1 + this.runT / 110);
+    this.diff = Math.min(5, 1 + this.runT / 180);
     for (const p of this.players) if (p.inv > 0) p.inv -= dt;
+    this.charging = [0, 0];
     if (this.phase === 'run') { this.director(dt); this.forks(); }
     for (const e of this.ents) {
       e.age += dt;
@@ -89,6 +90,9 @@ export class Sim {
         s.tgt = this.pickTgt();
         if (s.tgt < 0) { s.on = false; continue; }
       }
+      // como mucho 2 enemigos cargando el disparo a la vez contra el mismo jugador
+      if (this.charging[s.tgt] >= 2) { s.on = false; continue; }
+      this.charging[s.tgt]++;
       s.on = true;
       s.fireT -= dt;
       s.r = clamp(1 - s.fireT / s.fireMax, 0, 1);
@@ -112,9 +116,9 @@ export class Sim {
   hurt(pi) {
     const P = this.players[pi];
     if (!P.alive || P.inv > 0 || this.god) return; // god: TODO-TESTEO
-    P.hp--; P.inv = 1.6;
+    P.hp--; P.inv = 2.2;
     this.emit('hurt', { p: pi, hp: P.hp });
-    for (const e of this.ents) for (const s of e.sh) if (s.tgt === pi && s.kind !== 'impact') s.fireT = Math.max(s.fireT, 1.3);
+    for (const e of this.ents) for (const s of e.sh) if (s.tgt === pi && s.kind !== 'impact') s.fireT = Math.max(s.fireT, 1.8);
     if (P.hp <= 0) {
       P.alive = false;
       const multi = this.alivePlayers().length > 0;
@@ -129,7 +133,7 @@ export class Sim {
     }
   }
   projectile(type, from, tgt) {
-    const T = type === 'grenade' ? 1.9 : 1.6;
+    const T = type === 'grenade' ? 2.8 : 2.4;
     const e = this.add(type, { d: from.d, lat: from.lat, h: from.h + (OFFH[from.type] ?? 1.4), hp: 1 });
     e.x = { d0: e.d, l0: e.lat, h0: e.h, T, tgt, ar: type === 'grenade' ? 3.2 : 0.6 };
     e.sh = [{ alive: true, fireMax: T, fireT: T, tgt, on: true, r: 0, kind: 'impact' }];
@@ -195,10 +199,10 @@ export class Sim {
   director(dt) {
     const rt = this.runT;
     this.waveT -= dt;
-    const cap = Math.floor(1.5 + this.diff * 1.1) + (this.n > 1 ? 1 : 0);
+    const cap = Math.floor(1 + this.diff * 0.9) + (this.n > 1 ? 1 : 0);
     if (this.waveT <= 0) {
       if (this.hostileCount() < cap) this.spawnWave();
-      this.waveT = Math.max(1.6, 5.4 - this.diff * 0.6) * (this.voting ? 1.6 : 1) * (0.8 + this.r() * 0.5);
+      this.waveT = Math.max(2.6, 7 - this.diff * 0.8) * (this.voting ? 1.6 : 1) * (0.8 + this.r() * 0.5);
     }
     this.civT -= dt;
     if (this.civT <= 0) {
