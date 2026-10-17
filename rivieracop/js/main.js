@@ -29,7 +29,7 @@ const outline = new Outline(renderer);
 outline.enabled = !Q.get('nooutline'); // TODO-TESTEO
 outline.setSize(vw(), vh());
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(72, vw() / vh(), 0.08, 260);
+const camera = new THREE.PerspectiveCamera(72, vw() / vh(), 0.2, 260);
 scene.add(camera);
 const hemi = new THREE.HemisphereLight(0xffffff, 0x777766, 1.1);
 scene.add(hemi);
@@ -780,6 +780,13 @@ $('btnInvY').onclick = () => { localStorage.setItem('rc_invy', look.invY ? '0' :
 setInv();
 $('btnDiagClose').onclick = () => { diagOn = false; $('diag').hidden = true; $('menu').hidden = false; };
 
+function setOutline(on) {
+  outline.enabled = on && !Q.get('nooutline');
+  try { localStorage.setItem('rc_outline', on ? '1' : '0'); } catch (e) { }
+  $('btnOutline').textContent = 'CONTORNO: ' + (on ? 'SÍ' : 'NO');
+}
+$('btnOutline').onclick = () => setOutline(!outline.enabled);
+setOutline((localStorage.getItem('rc_outline') ?? '1') === '1');
 const SENS = [1, 1.5, 2, 2.6];
 function setSens(i) {
   look.gain = SENS[i];

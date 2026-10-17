@@ -38,7 +38,8 @@ export class Outline {
     this.rt = new THREE.WebGLRenderTarget(2, 2, { depthBuffer: true });
     this.rt.texture.colorSpace = THREE.SRGBColorSpace;
     this.rt.depthTexture = new THREE.DepthTexture(2, 2);
-    this.rt.depthTexture.type = THREE.UnsignedIntType;
+    // profundidad en coma flotante: con 16/24 bits los móviles pintaban rayas en paredes y suelo
+    this.rt.depthTexture.type = THREE.FloatType;
     this.mat = new THREE.ShaderMaterial({
       uniforms: {
         tColor: { value: this.rt.texture }, tDepth: { value: this.rt.depthTexture },
@@ -61,7 +62,7 @@ export class Outline {
           float wu = 1.0 / lin(texture2D(tDepth, vUv + vec2(0.0, px.y)).r);
           float wd = 1.0 / lin(texture2D(tDepth, vUv + vec2(0.0, -px.y)).r);
           float e = (abs(wl + wr - 2.0 * w) + abs(wu + wd - 2.0 * w)) / w;
-          float edge = smoothstep(0.02, 0.06, e) * (1.0 - smoothstep(90.0, 170.0, d));
+          float edge = smoothstep(0.05, 0.12, e) * (1.0 - smoothstep(35.0, 80.0, d));
           gl_FragColor = vec4(mix(c, ink, edge * 0.9), 1.0);
           #include <colorspace_fragment>
         }`,
