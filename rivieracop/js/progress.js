@@ -48,6 +48,12 @@ export const UPGRADES = [
   { id: 'veter', cat: 'arma', name: 'Veterano', desc: '+15% de experiencia para tus armas', max: 6, base: 1200, g: 1.5 },
   { id: 'tactica', cat: 'arma', name: 'Recarga táctica', desc: '+5% de que la recarga sea instantánea', max: 6, base: 1500, g: 1.5 },
   { id: 'cargador', cat: 'arma', name: 'Cargador ampliado', desc: '+10% de balas en las armas que coges', max: 5, base: 1200, g: 1.5 },
+  // ---- el coche ----
+  { id: 'pinchos', cat: 'coche', name: 'Espolones', desc: 'Pinchos delante: os quedáis menos rato parados al estamparos y, a nivel 3, atravesáis muros y barricadas', max: 3, base: 5000, g: 2 },
+  { id: 'torreta', cat: 'coche', name: 'Torreta automática', desc: 'Una ametralladora en el capó dispara sola a lo que tengáis delante. Cada nivel dispara más y pega más', max: 5, base: 6000, g: 1.7 },
+  { id: 'canon', cat: 'coche', name: 'Cañón del coche', desc: 'Botón: te subes al cañón del coche unos segundos (disparos explosivos sin recargar). Cada nivel dura más', max: 5, base: 7000, g: 1.7 },
+  { id: 'ruedas', cat: 'coche', name: 'Ruedas todoterreno', desc: 'El barro os frena menos', max: 4, base: 2500, g: 1.6 },
+  { id: 'parabrisas', cat: 'coche', name: 'Parabrisas reforzado', desc: 'Los que se suben al coche pegan un 15% más despacio', max: 4, base: 2500, g: 1.6 },
   // ---- poderes (botones) y sus mejoras ----
   { id: 'shield', cat: 'poder', name: 'Escudo', desc: 'Botón que te hace invulnerable unos segundos. Cada nivel dura más y carga antes', max: 8, base: 3000, g: 1.6 },
   { id: 'bullet', cat: 'poder', name: 'Tiempo bala', desc: 'Ralentiza a todos los enemigos (también a tus compañeros). Cada nivel dura más', max: 8, base: 4000, g: 1.6 },
@@ -56,7 +62,7 @@ export const UPGRADES = [
   { id: 'bala2', cat: 'poder', name: 'Bala lenta', desc: '+8% de duración del tiempo bala', max: 5, base: 2000, g: 1.6 },
   { id: 'gren2', cat: 'poder', name: 'Granada gorda', desc: '+12% de radio y daño de tus granadas', max: 5, base: 2000, g: 1.6 },
 ];
-export const UCAT = [['pj', 'PERSONAJE'], ['arma', 'ARMAS'], ['poder', 'PODERES']];
+export const UCAT = [['pj', 'PERSONAJE'], ['arma', 'ARMAS'], ['coche', 'COCHE'], ['poder', 'PODERES']];
 
 // velocidad inicial: más rápido = más puntos
 export const SPEEDS = [
@@ -81,7 +87,7 @@ export const upgCost = (u, lv) => Math.round(u.base * Math.pow(u.g || 1.5, lv) /
 
 // lo que necesita saber el anfitrión de cada jugador
 export const META_KEYS = ['vida', 'def', 'regen', 'botiq', 'antid', 'remedio', 'choque', 'chapa', 'esquiva', 'invul', 'antiexp', 'aliento',
-  'vampiro', 'calma', 'revivir', 'ambu', 'civil', 'botin', 'suerte', 'rapina'];
+  'vampiro', 'calma', 'revivir', 'ambu', 'civil', 'botin', 'suerte', 'rapina', 'pinchos', 'torreta', 'ruedas', 'parabrisas'];
 export function metaOf(p) {
   const m = {};
   for (const k of META_KEYS) m[k] = p.upg[k] | 0;
@@ -94,6 +100,8 @@ export const shieldCd = (lv, l2 = 0) => Math.max(10, 34 - lv * 3) * (1 - 0.08 * 
 export const bulletDur = (lv, l2 = 0) => (3 + lv * 0.6) * (1 + 0.08 * l2);
 export const bulletCd = lv => Math.max(20, 48 - lv * 3.6);
 export const ABMAX = 8;
+export const canonDur = lv => 6 + lv * 1.5;
+export const canonCd = lv => Math.max(28, 52 - lv * 4);
 
 // ---------- niveles de arma (se guardan por tipo de arma) ----------
 export const WMAX = 10;

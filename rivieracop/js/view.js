@@ -161,13 +161,14 @@ const CIV = [0xf0c040, 0x40a0f0, 0xf06080, 0x60d080, 0xffffff, 0xff8030, 0xa070f
 const SKIN = [0xd9a476, 0xb27a4e, 0xf0c8a0, 0x7a5030];
 // enemigos más grandes: más fáciles de ver y de acertar en el móvil
 const SCALE = { gunman: 1.35, civilian: 1.3, sniper: 1.5, moto: 1.2, drone: 1.8, chicken: 1.4, grenade: 1.7, rocket: 1.5, medkit: 1.3, barrel: 1.2, jeep: 1.1, lady: 1.3, rock: 1.3,
-  sign: 1.45, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1 };
+  sign: 1.45, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2 };
 // cosas que no paran las balas
 const NOHIT = new Set(['tlight', 'preview']);
 // capa de la máscara: enemigos con contorno rojo / cosas importantes que no se desaturan
 const MASK = {
   gunman: LAYER_ENEMY, sniper: LAYER_ENEMY, moto: LAYER_ENEMY, ecar: LAYER_ENEMY, heli: LAYER_ENEMY, drone: LAYER_ENEMY, jeep: LAYER_ENEMY,
   grenade: LAYER_ENEMY, rocket: LAYER_ENEMY, rock: LAYER_ENEMY, wall: LAYER_ENEMY, train: LAYER_ENEMY,
+  quad: LAYER_ENEMY, pickup: LAYER_ENEMY, van: LAYER_ENEMY, bus: LAYER_ENEMY, canoe: LAYER_ENEMY,
   jumper: LAYER_ENEMY, tank: LAYER_ENEMY, rig: LAYER_ENEMY, rioter: LAYER_ENEMY, thrown: LAYER_ENEMY, chef: LAYER_ENEMY, boat: LAYER_ENEMY, mtrain: LAYER_ENEMY,
   preview: LAYER_KEEP, tlight: LAYER_KEEP, fuel: LAYER_KEEP, float: LAYER_KEEP,
   sign: LAYER_KEEP, weapon: LAYER_KEEP, medkit: LAYER_KEEP, amb: LAYER_KEEP, truck: LAYER_KEEP, barrel: LAYER_KEEP, lady: LAYER_KEEP, civilian: LAYER_KEEP, chicken: LAYER_KEEP,
@@ -185,6 +186,12 @@ export class View {
     this.ambDist = 1e9; this.heliDist = 1e9;
     this.carPos = new THREE.Vector3();
     this.aimT = new THREE.Vector3();
+  }
+  // mejoras del coche que se ven: espolones y torreta
+  setCarParts(pk, tu) {
+    const u = this.car.userData;
+    u.spikes.visible = pk > 0;
+    u.turret.visible = tu > 0;
   }
   setAvatars(chars) {
     this.av.forEach(a => this.car.remove(a));
@@ -272,6 +279,11 @@ export class View {
       case 'mtrain': g = M.mtrain(e.lat < 0 ? -1 : 1); break;
       case 'preview': g = M.preview(x.o || []); break;
       case 'float': g = M.float(x.c || 0); break;
+      case 'quad': g = M.quad(); break;
+      case 'pickup': g = M.pickup(); break;
+      case 'van': g = M.van(); break;
+      case 'bus': g = M.bus(); break;
+      case 'canoe': g = M.canoe(); break;
       case 'train': g = M.train(); break;
       case 'lady': g = M.lady(x.sk || 0); break;
       default: g = new THREE.Group();
@@ -330,7 +342,7 @@ export class View {
   aim(o, e) {
     const ud = o.userData;
     ud.aimers.forEach((pv, i) => {
-      if (e.type === 'ecar' && e.x && e.x.gd && e.x.gd[i]) { pv.rotation.set(0.9, 0, 0.5); return; }
+      if ((e.type === 'ecar' || e.type === 'bus') && e.x && e.x.gd && e.x.gd[i]) { pv.rotation.set(0.9, 0, 0.5); return; }
       if (e.type === 'mtrain' && e.x && e.x.wh && !(e.x.wh[i] > 0)) { pv.visible = false; return; }
       if (e.st === ST.DEAD) { pv.rotation.set(1.0, 0, 0.4); return; }
       pv.lookAt(this.aimT);
@@ -529,10 +541,16 @@ const ANIM = {
     L[2].material = g ? M.glow(0x30ff50) : M.mat(0x103a10);
   },
   mtrain(o, e, dt, ctx, V) {
-    const wh = (e.x && e.x.wh) || [];
-    o.userData.wag.forEach((w, i) => {
+    // vagón reventado: desaparece la caseta de madera y queda solo el chasis con restos
+    const wh = (e.x && e.x.wh) || [], ud = o.userData;
+    ud.houses.forEach((h, i) => {
       const dead = !(wh[i] > 0);
-      if (dead && Math.random() < dt * 6) { w.children[0].getWorldPosition(V1); V1.y += 2.5; V.fx.smoke(V1, true); }
+      if (dead && h.visible) {
+        h.visible = false; ud.debris[i].visible = true;
+        h.children[0].getWorldPosition(V1); V.fx.boom(V1, 1.1);
+        for (let k = 0; k < 10; k++) V.fx.part(V1, V.fx.rnd(9).clone().setY(4 + Math.random() * 5), 1.4, 0.35 + Math.random() * 0.3, V.fx.m.debris, 14, 0);
+      }
+      if (dead && Math.random() < dt * 3) { ud.debris[i].children[0].getWorldPosition(V1); V1.y += 1; V.fx.smoke(V1, true); }
     });
   },
   float(o, e, dt, ctx) {

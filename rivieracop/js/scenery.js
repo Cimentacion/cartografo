@@ -296,7 +296,44 @@ function dashes(R, road, i0, i1, col) {
   }
 }
 
+// zona del río: aquí no hay carretera, todo el suelo es agua (el coche va como anfibio)
+function riverRun(R, road, B, i0, i1, r) {
+  strip(R.L, road, i0, i1, C(-75, -0.02), C(75, -0.02), 0x2a7fa0);
+  // reflejos y corriente
+  each(i0, i1, r, 2, 5, d => {
+    const lat = (r() - 0.5) * 110;
+    addBox(R.G, 0.6 + r() * 3.5, 0.02, 0.15 + r() * 0.4, r() < 0.5 ? 0x8ad4f0 : 0x5ab0d8, frame(road, d, lat, 0));
+  });
+  // orillas con árboles a lo lejos
+  for (const sd of [-1, 1]) strip(R.K, road, i0, i1, C(sd * 75, -0.02), C(sd * 100, 4), 0x6a8a4a, 8);
+  each(i0, i1, r, 7, 12, d => {
+    const sd = r() < 0.5 ? -1 : 1, lat = sd * (80 + r() * 15), s2 = 1 + r();
+    const m = frame(road, d, lat, 2.5);
+    addCyl(R.L, 0.25 * s2, 0.35 * s2, 3 * s2, 5, 0x6b4a2a, m, { y: 1.5 * s2 });
+    addCyl(R.L, 0, 2.4 * s2, 5 * s2, 6, 0x3a7a3a, m, { y: 4.8 * s2 });
+  });
+  // troncos flotando, boyas y algún embarcadero
+  each(i0, i1, r, 14, 26, d => {
+    const lat = (r() < 0.5 ? -1 : 1) * (6 + r() * 20);
+    addCyl(R.L, 0.3, 0.3, 3.5, 6, 0x6a4a2a, frame(road, d, lat, 0.12, r() * 3), { rz: Math.PI / 2 });
+  });
+  each(i0, i1, r, 22, 34, d => {
+    for (const sd of [-1, 1]) {
+      const m = frame(road, d, sd * 6.4, 0);
+      addCyl(R.L, 0.35, 0.45, 0.8, 8, (Math.floor(d / 22) + (sd > 0 ? 1 : 0)) % 2 ? 0xe03020 : 0xf2f2f2, m, { y: 0.3 });
+      addCyl(R.L, 0.05, 0.05, 0.8, 4, 0x2a2a2a, m, { y: 1.0 });
+    }
+  });
+  each(i0, i1, r, 90, 140, d => {
+    const sd = r() < 0.5 ? -1 : 1, lat = sd * 40;
+    const m = frame(road, d, lat, 0.2);
+    addBox(R.D, 30, 0.3, 3, 0x7a5a3a, m, { uvs: 2 });
+    for (const x of [-12, -4, 4, 12]) addBox(R.D, 0.3, 2, 0.3, 0x5a4028, m, { x, y: -0.8 });
+  });
+}
+
 function outsideRun(R, road, B, i0, i1, r) {
+  if (B.deco === 'rio') { riverRun(R, road, B, i0, i1, r); return; }
   strip(R.A, road, i0, i1, C(-HALF, 0), C(HALF, 0), LIGHT(B.asphalt, 0.08), 4);
   dashes(R, road, i0, i1, B.line);
   for (const sd of [-1, 1]) {

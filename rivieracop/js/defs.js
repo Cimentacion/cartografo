@@ -156,7 +156,9 @@ export const BIOMES = {
     hemi: [0xffffff, 0x5a7a60, 1.1], sun: [0xfff4e0, 1.6], night: false,
     slope: 0, hmin: 7, hmax: 8, hair: 0,
     build: [0xd8c8a8, 0xc0a888], roof: 0x8a4a2a,
-    w: { drone: 1.2, gunman: 0.6 }, pts: 1.3, deco: 'rio', lv: 2,
+    // en el río todo el suelo es agua: aquí solo hay barcos, canoas y lo que vuela
+    w: { drone: 1.6, heli: 1.5, gunman: 0, moto: 0, ecar: 0, sniper: 0, barrels: 0, jumper: 0, grenadier: 0, quad: 0, pickup: 0, van: 0, bus: 0, truck: 0, civcar: 0 },
+    pts: 1.3, deco: 'rio', lv: 2,
   },
   semaforos: {
     name: 'CIUDAD DE SEMÁFOROS', color: '#ff8a3d',
@@ -190,9 +192,10 @@ export const BONUSES = [
 
 export const TYPES = ['gunman', 'civilian', 'moto', 'ecar', 'heli', 'drone', 'truck', 'chicken', 'civcar',
   'amb', 'medkit', 'jeep', 'weapon', 'sign', 'barrel', 'grenade', 'rocket', 'sniper', 'wall', 'train', 'rock', 'lady',
-  'jumper', 'tank', 'rig', 'rioter', 'thrown', 'fuel', 'chef', 'boat', 'tlight', 'mtrain', 'preview', 'float'];
+  'jumper', 'tank', 'rig', 'rioter', 'thrown', 'fuel', 'chef', 'boat', 'tlight', 'mtrain', 'preview', 'float',
+  'quad', 'pickup', 'van', 'bus', 'canoe'];
 // jefes: llevan barra de vida en pantalla
-export const BOSS = { jeep: 'TERRORISTA', heli: 'HELICÓPTERO', wall: 'MURO', train: 'TREN', tank: 'TANQUE', rig: 'CAMIÓN', chef: 'EL CHEF DEL BUFFET', mtrain: 'TREN MILITAR' };
+export const BOSS = { bus: 'AUTOBÚS', jeep: 'TERRORISTA', heli: 'HELICÓPTERO', wall: 'MURO', train: 'TREN', tank: 'TANQUE', rig: 'CAMIÓN', chef: 'EL CHEF DEL BUFFET', mtrain: 'TREN MILITAR' };
 export const TI = Object.fromEntries(TYPES.map((t, i) => [t, i]));
 
 // Estados de entidad

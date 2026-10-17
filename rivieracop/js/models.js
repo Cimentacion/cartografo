@@ -206,6 +206,20 @@ export function convertible() {
   drv.userData.rig.armL.rotation.x = -0.6;
   g.add(drv);
   g.userData.driver = drv;
+  // mejoras del coche (se enseñan si alguien las tiene): espolones y torreta en el capó
+  const spikes = new THREE.Group(); spikes.visible = false; g.add(spikes);
+  box(spikes, 2.1, 0.22, 0.25, 0x6a6a6a, 0, 0.55, -L / 2 - 0.2);
+  for (let k = -3; k <= 3; k++) {
+    const c = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.6, 5), mat(0xd8d8d8));
+    c.rotation.x = -Math.PI / 2; c.position.set(k * 0.32, 0.55, -L / 2 - 0.6); spikes.add(c);
+  }
+  const tur = new THREE.Group(); tur.visible = false; tur.position.set(0, 1.0, -2.3); g.add(tur);
+  box(tur, 0.5, 0.25, 0.5, 0x2a2a2a, 0, 0.12, 0);
+  const tp = new THREE.Group(); tp.position.y = 0.35; tur.add(tp);
+  box(tp, 0.36, 0.26, 0.5, 0x3a3a3a, 0, 0, 0);
+  box(tp, 0.08, 0.08, 0.8, 0x111111, 0.08, 0.02, -0.55); box(tp, 0.08, 0.08, 0.8, 0x111111, -0.08, 0.02, -0.55);
+  const tm = new THREE.Object3D(); tm.position.set(0, 0.02, -1.0); tp.add(tm);
+  g.userData.spikes = spikes; g.userData.turret = tur; g.userData.turretP = tp; g.userData.turretM = tm;
   return g;
 }
 
@@ -640,6 +654,11 @@ export function fpGun(model, rar = 0, cfg = null) {
     case 'launcher':
       { const t = new THREE.Mesh(cgeo(0.06, 0.5, 8), mat(0x3a4a2a)); t.rotation.x = Math.PI / 2; t.position.set(0, 0.01, -0.2); g.add(t); }
       box(g, 0.05, 0.1, 0.06, blk, 0, -0.08, 0.0); box(g, 0.08, 0.03, 0.06, acc, 0, 0.07, -0.15); L = 0.45; break;
+    case 'cannon':
+      // cañón del coche: dos cañones gordos con escudo
+      for (const x of [-0.07, 0.07]) { const t = new THREE.Mesh(cgeo(0.045, 0.7, 8), mat(0x2a2a2a)); t.rotation.x = Math.PI / 2; t.position.set(x, 0.02, -0.35); g.add(t); }
+      box(g, 0.32, 0.2, 0.06, 0x4a5a3a, 0, 0.06, -0.08); box(g, 0.2, 0.14, 0.3, 0x3a3a3a, 0, -0.02, 0.02);
+      box(g, 0.05, 0.12, 0.05, 0x1a1a1a, 0.12, -0.08, 0.1); box(g, 0.05, 0.12, 0.05, 0x1a1a1a, -0.12, -0.08, 0.1); L = 0.72; break;
     case 'ray':
       // pistola de rayos retro: cuerpo redondeado, anillos y punta brillante
       { const t = new THREE.Mesh(cgeo(0.045, 0.2, 10), mat(0xd0d4dc)); t.rotation.x = Math.PI / 2; t.position.set(0, 0.02, -0.09); g.add(t); }
@@ -952,28 +971,35 @@ export function tlight() {
   return g;
 }
 
-// ---------- tren militar en paralelo: locomotora + 4 vagones con tiradores ----------
+// ---------- tren militar en paralelo: locomotora + 4 vagones (chasis + caseta de madera con un tirador) ----------
+// Pocas piezas por vagón: en el móvil, varios trenes con cientos de mallas lo colgaban
 export function mtrain(side) {
   const g = new THREE.Group();
-  const ol = 0x4a5a32, dk = 0x1a1a14;
-  box(g, 3.0, 3.4, 12, tmat('steel', 0x5a6a3a), 0, 2.4, 6, 'w0');
+  const ol = tmat('steel', 0x5a6a3a), dk = 0x1a1a14, wood = tmat('wood', 0xa07848);
+  box(g, 3.0, 3.4, 12, ol, 0, 2.4, 6, 'w0');
   box(g, 2.8, 1.2, 1.2, 0x2a2a2a, 0, 3.0, 0.3, 'w0');
-  const sh = [], aim = [], wag = [];
+  box(g, 3.0, 0.9, 11, dk, 0, 0.45, 6, 'w0');
+  const sh = [], aim = [], houses = [], debris = [];
   for (let i = 0; i < 4; i++) {
-    const z0 = 12.5 + i * 9.5, part = 'w' + i;
-    const w = new THREE.Group(); g.add(w); wag.push(w);
-    box(w, 2.9, 2.9, 9, tmat('corr', [ol, 0x5a5a4a, 0x6a6040, ol][i]), 0, 2.2, z0 + 4.5, part);
-    box(w, 3.0, 0.2, 9.2, dk, 0, 3.75, z0 + 4.5, part);
-    // puerta abierta hacia la carretera con un tirador
-    box(w, 0.06, 1.6, 2.4, 0x101010, -side * 1.47, 2.2, z0 + 4.5);
-    const pv = new THREE.Group(); pv.position.set(-side * 1.2, 1.9, z0 + 4.5); w.add(pv);
+    const z0 = 12.5 + i * 9.5, zc = z0 + 4.5, part = 'w' + i;
+    // chasis: plataforma y bogies (se queda aunque reviente)
+    box(g, 2.9, 0.35, 9, 0x3a3a34, 0, 1.0, zc, part);
+    box(g, 2.6, 0.75, 7.6, dk, 0, 0.4, zc, part);
+    // caseta de madera con techo y puerta abierta hacia la carretera
+    const h = new THREE.Group(); g.add(h); houses.push(h);
+    box(h, 2.8, 2.5, 8.6, wood, 0, 2.45, zc, part);
+    box(h, 3.1, 0.25, 9.0, 0x5a3a20, 0, 3.8, zc, part);
+    box(h, 0.06, 1.7, 2.2, 0x0a0806, -side * 1.42, 2.2, zc);
+    const pv = new THREE.Group(); pv.position.set(-side * 1.15, 1.95, zc); h.add(pv);
     const p = person({ shirt: 0x4a5a2a, pants: 0x3a4a2a, cap: 0x3a4a2a, gun: 'rifle', part });
-    p.position.y = -0.92; p.userData.rig.body.children.slice(0, 4).forEach(m => (m.visible = false));
+    p.position.y = -0.92; p.userData.rig.body.children.slice(0, 4).forEach(m => m.removeFromParent());
     pv.add(p); sh.push(p.userData.rig.muzzle); aim.push(pv);
-    for (const z of [z0 + 1.5, z0 + 7.5]) for (const sx of [-1.15, 1.15]) wheel(w, sx, 0.5, z, 0.45, 0.2, part);
+    // restos que se ven cuando el vagón está roto
+    const db = new THREE.Group(); g.add(db); db.visible = false; debris.push(db);
+    box(db, 0.25, 0.9, 7, 0x2a1a10, 1.1, 1.5, zc); box(db, 0.25, 0.6, 5, 0x2a1a10, -1.1, 1.4, zc + 1);
+    box(db, 1.2, 0.3, 1.0, 0x3a2a18, 0.3, 1.3, zc - 2.5);
   }
-  for (const z of [2, 5, 9]) for (const sx of [-1.15, 1.15]) wheel(g, sx, 0.5, z, 0.45, 0.2, 'w0');
-  g.userData.shooters = sh; g.userData.aimers = aim; g.userData.wag = wag;
+  g.userData.shooters = sh; g.userData.aimers = aim; g.userData.houses = houses; g.userData.debris = debris;
   return g;
 }
 
@@ -1026,5 +1052,84 @@ export function float(c = 0) {
     p.position.set(x, 1.48, z); g.add(p); dancers.push(p);
   });
   g.userData.dancers = dancers;
+  return g;
+}
+
+// ---------- vehículos enemigos nuevos ----------
+function rider(parent, x, y, z, o = {}) {
+  const pv = new THREE.Group(); pv.position.set(x, y, z); parent.add(pv);
+  const p = person(Object.assign({ shirt: 0x3a2a2a, pants: 0x1a1a1a, gun: 'pistol', mask: 0x101010 }, o));
+  p.position.y = -0.92; p.userData.rig.body.children.slice(0, 4).forEach(m => m.removeFromParent());
+  pv.add(p);
+  return { pv, p };
+}
+export function quad() {
+  const g = new THREE.Group();
+  box(g, 1.2, 0.45, 1.8, 0x8a2a2a, 0, 0.7, 0, 'body');
+  box(g, 0.9, 0.2, 0.6, 0x1a1a1a, 0, 0.98, 0.2, 'body');
+  box(g, 1.0, 0.06, 0.06, 0x888888, 0, 1.15, -0.6, 'body');
+  for (const sx of [-0.65, 0.65]) for (const z of [-0.65, 0.65]) wheel(g, sx, 0.35, z, 0.35, 0.3, 'body');
+  const a = rider(g, 0, 1.0, 0.1, { shirt: 0x5a3a1a });
+  g.userData.shooters = [a.p.userData.rig.muzzle]; g.userData.aimers = [a.pv];
+  return g;
+}
+export function pickup() {
+  const g = new THREE.Group();
+  const col = 0xd8c8a0;
+  box(g, 2.0, 0.7, 5, col, 0, 0.75, 0, 'body');
+  box(g, 1.9, 0.8, 1.8, col, 0, 1.45, -0.8, 'body');
+  box(g, 1.8, 0.5, 0.05, GLASS, 0, 1.55, -1.72, 'body');
+  for (const sx of [-1, 1]) box(g, 0.08, 0.5, 2.0, col, sx * 0.96, 1.35, 1.4, 'body');
+  for (const sx of [-0.95, 0.95]) for (const z of [-1.6, 1.6]) wheel(g, sx, 0.42, z, 0.42, 0.3, 'body');
+  // ametralladora montada en la caja
+  box(g, 0.15, 0.6, 0.15, 0x2a2a2a, 0, 1.4, 1.5, 'body');
+  const a = rider(g, 0, 1.9, 1.9, { gun: 'mg', shirt: 0x4a4a2a, bandana: true, mask: null });
+  const b = rider(g, -0.45, 1.75, -0.8, { shirt: 0x2a2a2a });
+  g.userData.shooters = [a.p.userData.rig.muzzle, b.p.userData.rig.muzzle]; g.userData.aimers = [a.pv, b.pv];
+  return g;
+}
+export function van() {
+  const g = new THREE.Group();
+  const col = 0x1a1a22;
+  box(g, 2.2, 2.3, 5.4, tmat('steel', 0x2a2a34), 0, 1.5, 0, 'body');
+  box(g, 2.0, 0.6, 0.05, GLASS, 0, 2.0, -2.72, 'body');
+  box(g, 2.22, 0.3, 5.42, 0xc0a020, 0, 1.0, 0, 'body');
+  for (const sx of [-1, 1]) wheel(g, sx * 1.0, 0.45, -1.7, 0.45, 0.3, 'body'), wheel(g, sx * 1.0, 0.45, 1.7, 0.45, 0.3, 'body');
+  // puertas traseras abiertas y dos tiradores mirando atrás
+  for (const sx of [-1, 1]) { const d = box(g, 0.06, 1.9, 1.05, col, sx * 1.55, 1.5, 3.1, 'body'); d.rotation.y = sx * 0.2; }
+  box(g, 2.0, 1.9, 0.05, 0x050505, 0, 1.5, 2.66);
+  const sh = [], aim = [];
+  for (const x of [-0.5, 0.5]) {
+    const a = rider(g, x, 1.4, 2.2, { shirt: 0x1a1a1a, gun: 'mg', cap: 0x111111, mask: null, glasses: true });
+    a.pv.rotation.y = Math.PI; sh.push(a.p.userData.rig.muzzle); aim.push(a.pv);
+  }
+  g.userData.shooters = sh; g.userData.aimers = aim;
+  return g;
+}
+export function bus() {
+  const g = new THREE.Group();
+  box(g, 2.6, 2.9, 11, 0xf0c020, 0, 1.9, 0, 'body');
+  box(g, 2.62, 0.25, 11.02, 0x1a1a1a, 0, 1.4, 0, 'body');
+  box(g, 2.4, 1.0, 0.05, GLASS, 0, 2.4, -5.52, 'body');
+  for (const sx of [-1.15, 1.15]) for (const z of [-3.6, 3.6]) wheel(g, sx, 0.5, z, 0.5, 0.35, 'body');
+  // ventanillas del lado del coche, cada una con un tirador
+  const sh = [], aim = [];
+  [-3.3, -1.1, 1.1, 3.3].forEach((z, i) => {
+    box(g, 0.05, 0.9, 1.6, 0x0a0a0a, 1.31, 2.6, z);
+    const a = rider(g, 1.45, 2.3, z, { part: 'g' + i, gun: 'mg', shirt: [0x3a2a4a, 0x2a3a2a, 0x4a2a2a, 0x2a2a3a][i], mask: 0x101010 });
+    sh.push(a.p.userData.rig.muzzle); aim.push(a.pv);
+  });
+  g.userData.shooters = sh; g.userData.aimers = aim;
+  return g;
+}
+export function canoe() {
+  const g = new THREE.Group();
+  box(g, 0.9, 0.4, 4.2, 0xc04a20, 0, 0.2, 0, 'body');
+  const b1 = box(g, 0.6, 0.4, 0.8, 0xc04a20, 0, 0.2, -2.3, 'body'); b1.rotation.y = Math.PI / 4;
+  box(g, 0.7, 0.05, 3.6, 0x3a2a1a, 0, 0.42, 0);
+  const a = rider(g, 0, 0.9, 0.4, { shirt: 0x2a5a3a, gun: 'rifle', mask: null, cap: 0x2a3a2a });
+  // remo
+  box(g, 0.06, 0.06, 2.2, 0x6a4a2a, 0.5, 0.7, 1.4, 'body');
+  g.userData.shooters = [a.p.userData.rig.muzzle]; g.userData.aimers = [a.pv];
   return g;
 }

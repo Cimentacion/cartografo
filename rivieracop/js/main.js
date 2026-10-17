@@ -10,7 +10,7 @@ import { SFX } from './audio.js';
 import { Net, makeCode, NETV } from './net.js';
 import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME, BOSS } from './defs.js';
 import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES } from './weapons.js';
-import { UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf } from './progress.js';
+import { UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd } from './progress.js';
 import { fpGun } from './models.js';
 import { Outline, toon } from './toon.js';
 import { loadChar, saveChar, sanitize, defaultChar, SKINS, HAIRS, HAIR_COLORS, BEARDS, SHIRTS, SHIRT_COLORS, PANTS_COLORS } from './character.js';
@@ -88,6 +88,7 @@ const G = {
   partnerFlash: 0, gone: false, fr: 0,
 };
 window.__G = G; // TODO-TESTEO
+setTimeout(() => { window.__R = renderer; }); // TODO-TESTEO
 setTimeout(() => { window.__look = look; }); // TODO-TESTEO
 let MYCHAR = loadChar();
 const PROG = loadProg();
@@ -133,7 +134,7 @@ class Mirror {
       });
     }
     const players = b.p.map(q => ({ hp: q[0], score: q[1], alive: !!q[2], inv: q[3], ly: q[4], lp: q[5], gone: !!q[6], maxHp: q[7] || 10, shield: !!q[8], poison: !!q[9] }));
-    return { carD, ents, players, cd: b.cd, sp: b.sp, sl: b.sl, mu: b.mu, sn: b.sn };
+    return { carD, ents, players, cd: b.cd, sp: b.sp, sl: b.sl, mu: b.mu, sn: b.sn, cu: b.cu };
   }
 }
 
@@ -168,7 +169,7 @@ function setFpGun() {
   if (fpg) camera.remove(fpg);
   fpg = fpGun(W.def.model, W.def.rar, G.chars ? G.chars[G.li] : MYCHAR);
   fpg.position.set(0.13, -0.19, -0.5);
-  fpg.scale.setScalar(0.8);
+  fpg.scale.setScalar(W.def.model === 'cannon' ? 0.55 : 0.8);
   camera.add(fpg);
 }
 // arma efectiva: la base + el nivel guardado de ese tipo de arma + las mejoras compradas
@@ -177,6 +178,8 @@ function recalcWeapon() {
   W.e = effective(W.def, W.lv, PROG.upg);
 }
 function giveWeapon(def) {
+  // subido al cañón: el arma nueva te espera para cuando bajes
+  if (CAN.t > 0 && CAN.saved) { CAN.saved = { def, ammo: 999 }; SFX.pickup(); return; }
   W.def = def; recalcWeapon(); W.ammo = W.e.mag; W.rl = 0; W.cd = 0.2;
   setFpGun(); SFX.pickup(); uiWeapon(true);
 }
@@ -321,7 +324,29 @@ function fire() {
   }
   if (W.ammo === 0) setTimeout(() => { if (W.ammo === 0) startReload(); }, 350);
 }
-const VEHT = new Set(['moto', 'ecar', 'heli', 'jeep', 'tank', 'rig', 'boat', 'mtrain', 'train', 'wall', 'drone']);
+const VEHT = new Set(['moto', 'ecar', 'heli', 'jeep', 'tank', 'rig', 'boat', 'mtrain', 'train', 'wall', 'drone', 'quad', 'pickup', 'van', 'bus', 'canoe']);
+
+// ---------------- cañón del coche (poder) ----------------
+const CANNON = { id: 'canon', name: 'Cañón del coche', model: 'cannon', mag: 999, dmg: 4, rate: 7, auto: true, reload: 0.1, pellets: 1, spread: 0.012, boom: 2.8, rar: 3 };
+const CAN = { t: 0, cd: 0, max: 1, saved: null };
+function useCannon() {
+  const lv = PROG.upg.canon | 0;
+  if (!lv || CAN.t > 0 || CAN.cd > 0 || !G.running || G.over || G.cd > 0) return;
+  const me = G.players[G.li];
+  if (!me || !me.alive) return;
+  CAN.t = canonDur(lv); CAN.cd = canonCd(lv); CAN.max = CAN.cd;
+  CAN.saved = { def: W.def, ammo: W.ammo };
+  W.def = CANNON; recalcWeapon(); W.ammo = 999; W.rl = 0;
+  setFpGun(); uiWeapon(true);
+  showBanner('¡AL CAÑÓN!', 'Disparos explosivos sin recargar', '#ffb020');
+  SFX.tone(120, 300, 0.4, 'sawtooth', 0.3);
+}
+function endCannon() {
+  if (!CAN.saved) return;
+  W.def = CAN.saved.def; recalcWeapon(); W.ammo = Math.min(CAN.saved.ammo, W.e.mag); W.rl = 0;
+  CAN.saved = null; CAN.t = 0;
+  setFpGun(); uiWeapon(true);
+}
 
 // ---------------- granada (poder) ----------------
 const GR = { n: 0, list: [] };
@@ -400,7 +425,16 @@ function handleEvent(ev) {
     case 'banner': showBanner(ev.txt, ev.sub, ev.c); break;
     case 'weapon': if (ev.p === li) giveWeapon(ev.w); break;
     case 'fork': if (G.mode === 'guest') G.road.setChoice(ev.kk, ev.b, ev.zd || 1); break;
+    case 'turret': {
+      const u = view.car.userData;
+      const a = u.turretM.getWorldPosition(V1), b = V2.set(ev.w[0], ev.w[1], ev.w[2]);
+      u.turretP.lookAt(b); u.turretP.rotateY(Math.PI);
+      fx.tracer(a, b, 0xffd060, 0.06, 0.025); fx.muzzle(a, V3.copy(b).sub(a), 0.9); fx.impact(b, false);
+      SFX.eshot(5);
+      break;
+    }
     case 'crash':
+      if (ev.soft) { G.shake = 0.6; SFX.boom(4); break; }
       G.shake = 1.4; flash('hurt'); SFX.boom(2); SFX.hurt();
       try { navigator.vibrate && navigator.vibrate([200, 80, 200]); } catch (e) { }
       break;
@@ -510,6 +544,7 @@ function begin(seed, n, li, mode) {
   for (let i = 0; i < n; i++) G.players.push({ hp: 10, maxHp: 10, score: 0, alive: true, inv: 0, ly: 0, lp: 0 });
   AB.shield.cd = 0; AB.bullet.cd = 0;
   GR.n = PROG.upg.gren | 0; for (const g of GR.list) scene.remove(g.m); GR.list.length = 0;
+  CAN.t = 0; CAN.cd = 0; CAN.saved = null;
   outline.red = (PROG.upg.aura | 0) > 0;
   $('btnHide').hidden = n < 2;
   clearChunks();
@@ -723,6 +758,14 @@ function useAbility(k) {
   else G.sim.useAbility(G.li, k, lv, l2);
 }
 function uiAbilities(dt) {
+  const cb = $('btnCannon'), cl = PROG.upg.canon | 0;
+  cb.hidden = !cl;
+  if (cl) {
+    const pct = CAN.t > 0 ? 100 : CAN.cd > 0 ? Math.round((1 - CAN.cd / (CAN.max || 1)) * 100) : 100;
+    cb.style.setProperty('--p', pct + '%');
+    cb.classList.toggle('ready', CAN.t <= 0 && CAN.cd <= 0);
+    cb.classList.toggle('act', CAN.t > 0);
+  }
   const gb = $('btnGrenade');
   gb.hidden = !(PROG.upg.gren | 0);
   setHTML('grenN', String(GR.n));
@@ -763,7 +806,7 @@ function tick(dt) {
   // --- estado del mundo ---
   if (G.mode === 'guest') {
     const s = G.mir.sample();
-    if (s) { G.carD = s.carD; G.ents = s.ents; G.players = s.players; G.cd = s.cd; G.speed = s.sp; G.slow = !!s.sl; G.mult = s.mu || 1; G.stun = !!s.sn; }
+    if (s) { G.carD = s.carD; G.ents = s.ents; G.players = s.players; G.cd = s.cd; G.speed = s.sp; G.slow = !!s.sl; G.mult = s.mu || 1; G.stun = !!s.sn; G.cu = s.cu; }
     G.road.extend(G.carD + 340);
     const rt = G.mir.rt;
     while (G.evq.length && G.evq[0].st <= rt) handleEvent(G.evq.shift());
@@ -774,9 +817,10 @@ function tick(dt) {
     S.players[li].ly = look.yaw; S.players[li].lp = look.pitch;
     G.acc += dt * TS;
     let n = 0;
-    while (G.acc >= 1 / 60 && n++ < 8) { S.step(1 / 60); G.acc -= 1 / 60; }
+    // red de seguridad: un fallo en un enemigo no debe congelar la partida
+    while (G.acc >= 1 / 60 && n++ < 8) { try { S.step(1 / 60); } catch (err) { if (!G.errOnce) { G.errOnce = 1; console.error(err); } } G.acc -= 1 / 60; }
     const evs = S.events.splice(0);
-    for (const e of evs) handleEvent(e);
+    for (const e of evs) { try { handleEvent(e); } catch (err) { console.error(err); } }
     if (G.mode === 'host' && net.open) {
       if (evs.length) net.send({ t: 'ev', e: evs });
       G.snapT -= dt;
@@ -809,7 +853,7 @@ function tick(dt) {
   QLOOK.setFromEuler(EA);
   camera.quaternion.copy(QCAR).multiply(QLOOK);
   // la cámara un poco hacia fuera del coche: el compañero de al lado tapa menos
-  camera.position.set(SEATS[li][0] * 1.3, 2.3, SEATS[li][1]);
+  camera.position.set(SEATS[li][0] * 1.3, 2.3 + (CAN.t > 0 ? 0.75 : 0), SEATS[li][1]);
   car.localToWorld(camera.position);
   if (G.shake > 0) camera.position.add(V1.set((Math.random() - 0.5) * G.shake * 0.3, (Math.random() - 0.5) * G.shake * 0.3, 0));
   camera.updateMatrixWorld(true);
@@ -822,6 +866,19 @@ function tick(dt) {
     av.userData.yaw.rotation.set(P.alive ? 0 : 0.7, (P.ly || 0) + (isRear(i, G.n) ? Math.PI : 0), 0);
     av.userData.rig.armR.rotation.x = P.lp || 0;
     av.userData.rig.armL.rotation.set(P.lp || 0, -0.5, 0);
+  }
+  // --- mejoras del coche y cañón ---
+  const cu = G.mode === 'guest' ? (G.cu || [0, 0]) : [G.sim.maxMeta('pinchos'), G.sim.maxMeta('torreta')];
+  view.setCarParts(cu[0], cu[1]);
+  if (CAN.t > 0) { CAN.t -= dt; if (CAN.t <= 0) { endCannon(); showBanner('BAJAS DEL CAÑÓN', '', '#ffb020'); } }
+  else if (CAN.cd > 0) CAN.cd = Math.max(0, CAN.cd - dt);
+  // estela del coche en el río
+  if (BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]].deco === 'rio' && G.road.kindAt(G.carD) === 0 && G.speed > 1) {
+    for (let k = 0; k < 2; k++) if (Math.random() < dt * 25) {
+      const sd = Math.random() < 0.5 ? -1 : 1;
+      V1.set(sd * 1.1, 0.15, 2.8 + Math.random()); car.localToWorld(V1);
+      fx.part(V1, V2.set((Math.random() - 0.5) * 2, 1.5 + Math.random() * 1.5, (Math.random() - 0.5) * 2).clone(), 0.6, 0.18, fx.m.feather, 6, 1);
+    }
   }
   // --- entidades ---
   view.sync(G.ents, { li, t: G.t, dt });
@@ -842,7 +899,8 @@ function tick(dt) {
   if (fpg) {
     fpg.visible = !!(me && me.alive);
     const rlk = W.rl > 0 ? Math.sin(Math.min(1, 1 - W.rl / W.e.reload) * Math.PI) : 0;
-    fpg.position.set(0.13, -0.19 - rlk * 0.18, -0.5 + W.recoil * 0.06);
+    const big = W.def.model === 'cannon';
+    fpg.position.set(big ? 0.16 : 0.13, (big ? -0.34 : -0.19) - rlk * 0.18, (big ? -0.62 : -0.5) + W.recoil * 0.06);
     fpg.rotation.set(W.recoil * 0.25 - rlk * 0.6, 0.18, rlk * 0.4);
     fpg.userData.flash.visible = W.flash > 0;
   }
@@ -1174,9 +1232,10 @@ $('btnShop').onclick = () => {
 $('shopBack').onclick = () => { $('shop').hidden = true; $('menu').hidden = false; };
 $('btnShield').addEventListener('pointerdown', e => { e.stopPropagation(); useAbility('shield'); });
 $('btnGrenade').addEventListener('pointerdown', e => { e.stopPropagation(); throwGrenade(); });
+$('btnCannon').addEventListener('pointerdown', e => { e.stopPropagation(); useCannon(); });
 $('btnHide').addEventListener('pointerdown', e => { e.stopPropagation(); G.hideMates = !G.hideMates; $('btnHide').classList.toggle('on', !!G.hideMates); });
 $('btnBullet').addEventListener('pointerdown', e => { e.stopPropagation(); useAbility('bullet'); });
-window.addEventListener('keydown', e => { if (e.code === 'KeyQ') useAbility('shield'); if (e.code === 'KeyE') useAbility('bullet'); if (e.code === 'KeyG') throwGrenade(); });
+window.addEventListener('keydown', e => { if (e.code === 'KeyQ') useAbility('shield'); if (e.code === 'KeyE') useAbility('bullet'); if (e.code === 'KeyG') throwGrenade(); if (e.code === 'KeyF') useCannon(); });
 
 const SENS = [1, 1.5, 2, 2.6];
 function setSens(i) {
