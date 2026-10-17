@@ -4,7 +4,7 @@ import * as THREE from 'three';
 let GRAD = null;
 export function toonGrad() {
   if (!GRAD) {
-    const d = new Uint8Array([105, 105, 105, 255, 185, 185, 185, 255, 255, 255, 255, 255]);
+    const d = new Uint8Array([150, 150, 150, 255, 210, 210, 210, 255, 255, 255, 255, 255]);
     GRAD = new THREE.DataTexture(d, 3, 1, THREE.RGBAFormat);
     GRAD.minFilter = GRAD.magFilter = THREE.NearestFilter;
     GRAD.generateMipmaps = false;
@@ -21,7 +21,7 @@ const LOADER = new THREE.TextureLoader();
 const TEX = {};
 export function tex(name) {
   if (!TEX[name]) {
-    const t = LOADER.load('tex/' + name + '.jpg');
+    const t = LOADER.load('tex/' + name + '.jpg?v=3');
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
     t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = 4;
@@ -53,13 +53,15 @@ export class Outline {
         void main(){
           vec3 c = texture2D(tColor, vUv).rgb;
           vec2 px = 1.0 / res;
+          // 1/z es lineal en pantalla sobre una superficie plana: su segunda derivada solo salta en los bordes reales
           float d = lin(texture2D(tDepth, vUv).r);
-          float dl = lin(texture2D(tDepth, vUv + vec2(-px.x, 0.0)).r);
-          float dr = lin(texture2D(tDepth, vUv + vec2(px.x, 0.0)).r);
-          float du = lin(texture2D(tDepth, vUv + vec2(0.0, px.y)).r);
-          float dd = lin(texture2D(tDepth, vUv + vec2(0.0, -px.y)).r);
-          float e = max(max(abs(dl - d), abs(dr - d)), max(abs(du - d), abs(dd - d))) / d;
-          float edge = smoothstep(0.035, 0.09, e) * (1.0 - smoothstep(110.0, 190.0, d));
+          float w = 1.0 / d;
+          float wl = 1.0 / lin(texture2D(tDepth, vUv + vec2(-px.x, 0.0)).r);
+          float wr = 1.0 / lin(texture2D(tDepth, vUv + vec2(px.x, 0.0)).r);
+          float wu = 1.0 / lin(texture2D(tDepth, vUv + vec2(0.0, px.y)).r);
+          float wd = 1.0 / lin(texture2D(tDepth, vUv + vec2(0.0, -px.y)).r);
+          float e = (abs(wl + wr - 2.0 * w) + abs(wu + wd - 2.0 * w)) / w;
+          float edge = smoothstep(0.02, 0.06, e) * (1.0 - smoothstep(90.0, 170.0, d));
           gl_FragColor = vec4(mix(c, ink, edge * 0.9), 1.0);
           #include <colorspace_fragment>
         }`,

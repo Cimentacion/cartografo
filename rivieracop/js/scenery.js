@@ -35,13 +35,13 @@ export function makeMats() {
       t.needsUpdate = true;
     };
     draw(null);
-    if (!night) { const im = new Image(); im.onload = () => draw(im); im.src = 'tex/plaster.jpg'; }
+    if (!night) { const im = new Image(); im.onload = () => draw(im); im.src = 'tex/plaster.jpg?v=3'; }
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
     t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = 4;
     return t;
   };
-  const T = (name, o = {}) => toon(Object.assign({ vertexColors: true, map: tex(name) }, o));
+  const T = (name, o = {}) => toon(Object.assign({ vertexColors: true, map: tex(name), side: THREE.DoubleSide }, o));
   return {
     L: toon({ vertexColors: true, side: THREE.DoubleSide }),
     W: toon({ vertexColors: true, map: mk(false) }),
@@ -211,13 +211,13 @@ function facade(R, road, d) {
 }
 
 function tunnelRun(R, road, B, i0, i1) {
-  strip(R.A, road, i0, i1, C(-HALF, 0), C(HALF, 0), 0x9a9aa0, 4);
+  strip(R.A, road, i0, i1, C(-HALF, 0), C(HALF, 0), 0x55575c, 4);
   for (const sd of [-1, 1]) {
     strip(R.L, road, i0, i1, C(sd * (HALF - 0.4), 0.02), C(sd * (HALF - 0.25), 0.02), 0xffffff);
     strip(R.P, road, i0, i1, C(sd * HALF, 0.25), C(sd * 7.2, 0.25), 0xb8b2a6, 2);
     strip(R.L, road, i0, i1, C(sd * HALF, 0), C(sd * HALF, 0.25), 0x77736c);
     strip(R.T, road, i0, i1, C(sd * 7.2, 0.25), C(sd * 7.2, 1.6), 0xf2ead6, 1.4);
-    strip(R.K, road, i0, i1, C(sd * 7.2, 1.6), C(sd * 7.2, 6.3), 0xa8aaae, 4);
+    strip(R.K, road, i0, i1, C(sd * 7.2, 1.6), C(sd * 7.2, 6.3), 0xb8b4aa, 4);
     strip(R.K, road, i0, i1, C(sd * 7.2, 6.3), C(0, 7.4), 0x6a6b70, 4);
   }
   // grafitis en las paredes del túnel
@@ -250,7 +250,7 @@ function dashes(R, road, i0, i1, col) {
 }
 
 function outsideRun(R, road, B, i0, i1, r) {
-  strip(R.A, road, i0, i1, C(-HALF, 0), C(HALF, 0), LIGHT(B.asphalt, 0.45), 4);
+  strip(R.A, road, i0, i1, C(-HALF, 0), C(HALF, 0), LIGHT(B.asphalt, 0.08), 4);
   dashes(R, road, i0, i1, B.line);
   for (const sd of [-1, 1]) {
     strip(R.L, road, i0, i1, C(sd * (HALF - 0.45), 0.02), C(sd * (HALF - 0.3), 0.02), 0xf2f2f2);

@@ -592,9 +592,9 @@ function tick(dt) {
   ENV.sky.lerp(TC.setHex(B.sky), k);
   ENV.sea.lerp(TC.setHex(B.sea), k);
   ENV.hs.lerp(TC.setHex(B.hemi[0]), k); ENV.hg.lerp(TC.setHex(B.hemi[1]), k);
-  ENV.hi = lerp(ENV.hi, B.hemi[2] * (inTun ? 0.45 : 1), k * 2);
+  ENV.hi = lerp(ENV.hi, B.hemi[2] * (inTun ? 0.75 : 1), k * 2);
   ENV.sc.lerp(TC.setHex(B.sun[0]), k);
-  ENV.si = lerp(ENV.si, B.sun[1] * (inTun ? 0.15 : 1), k * 2);
+  ENV.si = lerp(ENV.si, B.sun[1] * (inTun ? 0.45 : 1), k * 2);
   ENV.fn = lerp(ENV.fn, B.fogNear, k); ENV.ff = lerp(ENV.ff, B.fogFar, k);
   scene.background.copy(ENV.sky); scene.fog.color.copy(ENV.sky);
   scene.fog.near = ENV.fn; scene.fog.far = ENV.ff;
