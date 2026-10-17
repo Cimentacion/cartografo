@@ -103,10 +103,10 @@ export class Road {
     if (rem < 40) return { len: rem, pos: 0, kmax: 0, slope };
     const roll = r();
     let len, A;
-    const hair = B.hair > 0 && roll < B.hair;
-    if (hair) { len = Math.round(85 + r() * 30); A = 2.7 + r() * 0.4; }
-    else if (roll < 0.7) { len = Math.round(45 + r() * 80); A = 0.3 + r() * 1.0; }
-    else { len = Math.round(30 + r() * 60); A = 0; }
+    // curvas largas y suaves (sin horquillas): la cámara va con el coche y las curvas cerradas marean
+    const hair = false;
+    if (roll < 0.65) { len = Math.round(120 + r() * 110); A = 0.15 + r() * 0.4; }
+    else { len = Math.round(50 + r() * 80); A = 0; }
     len = Math.min(len, rem);
     if (rem - len < 40) len = rem;
     const yaw = this.cur.yaw;
