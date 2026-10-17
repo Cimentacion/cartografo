@@ -1,11 +1,14 @@
 name: Compilar APK Riviera Cop
 on:
   push:
-    branches: [riviera-cop, main]
+    branches: [riviera-cop]
     paths: ['rivieracop/**', 'android-rivieracop/**', '.github/workflows/rivieracop-apk.yml']
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: rivieracop-apk
+  cancel-in-progress: false
 jobs:
   apk:
     runs-on: ubuntu-latest
