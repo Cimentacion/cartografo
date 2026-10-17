@@ -1,5 +1,13 @@
-// Online de navegador a navegador con PeerJS (sin servidor propio). Quien crea la sala hace de anfitrión.
+// Online de navegador a navegador, sin servidor propio.
+// Se intentan TRES vías a la vez y se queda con la primera que conecta:
+//   1) PeerJS (su servidor público a veces se cae)
+//   2) Trystero sobre Nostr (muchos relés públicos)
+//   3) Trystero sobre trackers de WebTorrent
+// Quien crea la sala hace de anfitrión.
+import { joinNostr, joinTorrent } from '../lib/trystero.js';
+
 const PREFIX = 'rivieracop-cimentacion-';
+const APP = 'rivieracop-cimentacion-v1';
 export const NETV = 1;
 
 function peerOpts() {
@@ -17,6 +25,8 @@ function peerOpts() {
   if (u.get('peerhost')) { o.host = u.get('peerhost'); o.port = +u.get('peerport') || 9000; o.path = '/'; o.secure = false; }
   return o;
 }
+const NO_TRYSTERO = new URLSearchParams(location.search).get('notr') === '1'; // TODO-TESTEO
+const NO_PEERJS = new URLSearchParams(location.search).get('nopj') === '1';   // TODO-TESTEO
 
 export function makeCode() {
   const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -27,56 +37,118 @@ export function makeCode() {
 
 export class Net {
   constructor() {
-    this.peer = null; this.conn = null;
+    this.peer = null; this.rooms = []; this.link = null;
     this.onmsg = null; this.onclose = null; this.onjoin = null;
-    this.isHost = false;
+    this.isHost = false; this.via = '';
   }
+  get open() { return !!this.link; }
+
+  // --- vías de Trystero (nostr + torrent) ---
+  startRooms(code, onPeer) {
+    if (NO_TRYSTERO) return;
+    for (const [name, join] of [['nostr', joinNostr], ['torrent', joinTorrent]]) {
+      try {
+        const cfg = { appId: APP };
+        const trk = new URLSearchParams(location.search).get('trk'); // TODO-TESTEO: tracker local
+        if (trk) { if (name !== 'torrent') continue; cfg.relayUrls = [trk]; }
+        const room = join(cfg, code);
+        const [send, get] = room.makeAction('m');
+        const R = { name, room, send };
+        get((data, id) => {
+          if (!data || typeof data !== 'object') return;
+          // el anfitrión se queda con la vía por la que le llega el primer "hola" del invitado
+          if (this.isHost && !this.link && data.t === 'hello' && this.adoptRoom(R, id)) { this.send({ t: 'welcome' }); this.onjoin && this.onjoin(); }
+          if (this.link && this.link.kind === name && this.link.id === id) this.recv(data);
+        });
+        room.onPeerJoin(id => onPeer(R, id));
+        room.onPeerLeave(id => { if (this.link && this.link.kind === name && this.link.id === id) this.lost(); });
+        this.rooms.push(R);
+      } catch (e) { console.warn('trystero', name, e); }
+    }
+  }
+  adoptRoom(R, id) {
+    if (this.link) return false;
+    this.link = { kind: R.name, id, send: o => { try { R.send(o, id); } catch (e) { } } };
+    this.via = R.name;
+    return true;
+  }
+  // --- vía PeerJS ---
+  adoptConn(c) {
+    if (this.link) { try { c.close(); } catch (e) { } return false; }
+    this.link = { kind: 'peerjs', id: c.peer, send: o => { try { if (c.open) c.send(o); } catch (e) { } }, c };
+    this.via = 'peerjs';
+    c.on('data', d => { if (this.link && this.link.c === c && d && typeof d === 'object') this.recv(d); });
+    const bye = () => { if (this.link && this.link.c === c) this.lost(); };
+    c.on('close', bye); c.on('error', bye);
+    return true;
+  }
+  recv(d) {
+    if (d.t === 'welcome') { this.welcomed = true; return; }
+    if (this.onmsg) this.onmsg(d);
+  }
+  // el invitado repite "hola" por su vía hasta que el anfitrión contesta
+  greet() {
+    this.welcomed = false;
+    let n = 0;
+    const tick = () => { if (!this.link || this.welcomed || n++ > 20) return; this.send({ t: 'hello', v: NETV }); setTimeout(tick, 700); };
+    tick();
+  }
+  lost() { this.link = null; this.onclose && this.onclose(); }
+
   host(code) {
     this.isHost = true;
-    return new Promise((res, rej) => {
+    // Trystero: el anfitrión acepta al primero que entre
+    this.startRooms(code, () => { });
+    return new Promise(res => {
       let done = false;
-      const p = new Peer(PREFIX + code, peerOpts());
-      this.peer = p;
-      p.on('open', () => { done = true; res(); });
-      p.on('connection', c => {
-        if (this.conn && this.conn.open) { c.on('open', () => { c.send({ t: 'full' }); setTimeout(() => c.close(), 300); }); return; }
-        this.wire(c, () => this.onjoin && this.onjoin());
-      });
-      p.on('disconnected', () => { try { if (!p.destroyed) p.reconnect(); } catch (e) { } });
-      p.on('error', e => {
-        if (!done) { done = true; try { p.destroy(); } catch (x) { } rej(e.type === 'unavailable-id' ? new Error('Ese código está ocupado') : e); }
-      });
-      setTimeout(() => { if (!done) { done = true; try { p.destroy(); } catch (x) { } rej(new Error('No se pudo conectar al servidor de salas')); } }, 15000);
+      const ok = () => { if (!done) { done = true; res(); } };
+      if (this.rooms.length) setTimeout(ok, 300);
+      if (NO_PEERJS || typeof Peer !== 'function') { ok(); return; }
+      try {
+        const p = new Peer(PREFIX + code, peerOpts());
+        this.peer = p;
+        p.on('open', ok);
+        p.on('connection', c => {
+          c.on('data', d => {
+            if (!this.link && d && d.t === 'hello' && this.adoptConn(c)) { this.send({ t: 'welcome' }); this.onjoin && this.onjoin(); this.recv(d); }
+          });
+        });
+        p.on('disconnected', () => { try { if (!p.destroyed) p.reconnect(); } catch (e) { } });
+        p.on('error', e => console.warn('peerjs', e && e.type));
+      } catch (e) { console.warn('peerjs', e); }
+      setTimeout(ok, 4000);
     });
   }
+
   join(code) {
     this.isHost = false;
     return new Promise((res, rej) => {
       let done = false;
-      const p = new Peer(peerOpts());
-      this.peer = p;
-      p.on('open', () => {
-        const c = p.connect(PREFIX + code, { reliable: true, serialization: 'json' });
-        this.wire(c, () => { if (!done) { done = true; res(); } });
-      });
-      p.on('error', e => {
-        if (!done) { done = true; try { p.destroy(); } catch (x) { } rej(e.type === 'peer-unavailable' ? new Error('No existe esa sala') : e); }
-      });
-      setTimeout(() => { if (!done) { done = true; try { p.destroy(); } catch (x) { } rej(new Error('Tiempo de espera agotado')); } }, 16000);
+      const win = () => { if (!done) { done = true; this.greet(); res(); } };
+      this.startRooms(code, (R, id) => { if (this.adoptRoom(R, id)) win(); });
+      if (!NO_PEERJS && typeof Peer === 'function') {
+        try {
+          const p = new Peer(peerOpts());
+          this.peer = p;
+          p.on('open', () => {
+            const c = p.connect(PREFIX + code, { reliable: true, serialization: 'json' });
+            c.on('open', () => { if (this.adoptConn(c)) win(); });
+          });
+          p.on('error', e => console.warn('peerjs', e && e.type));
+        } catch (e) { console.warn('peerjs', e); }
+      }
+      setTimeout(() => { if (!done) { done = true; this.close(); rej(new Error('No se encuentra la sala (¿código bien escrito? ¿tu amigo sigue en la sala?)')); } }, 30000);
     });
   }
-  wire(c, onOpen) {
-    c.on('open', () => { this.conn = c; onOpen && onOpen(); });
-    c.on('data', d => { if (d && typeof d === 'object' && this.onmsg) this.onmsg(d); });
-    const bye = () => { if (this.conn === c) { this.conn = null; this.onclose && this.onclose(); } };
-    c.on('close', bye);
-    c.on('error', bye);
-  }
-  get open() { return !!(this.conn && this.conn.open); }
-  send(o) { if (this.conn && this.conn.open) { try { this.conn.send(o); } catch (e) { } } }
+
+  send(o) { if (this.link) this.link.send(o); }
   close() {
-    try { if (this.conn) this.conn.close(); } catch (e) { }
+    const L = this.link;
+    this.link = null;
+    try { if (L && L.c) L.c.close(); } catch (e) { }
+    for (const R of this.rooms) { try { R.room.leave(); } catch (e) { } }
+    this.rooms = [];
     try { if (this.peer) this.peer.destroy(); } catch (e) { }
-    this.conn = null; this.peer = null;
+    this.peer = null;
   }
 }

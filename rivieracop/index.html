@@ -92,9 +92,9 @@ body.ctl-joy #wep{right:auto;left:50%;transform:translateX(-50%);bottom:max(8px,
 @keyframes fl{0%{opacity:1}100%{opacity:0}}
 
 /* ---------- pantallas ---------- */
-.screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;
+.screen{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:flex-start;padding:16px;
   background:linear-gradient(180deg,rgba(11,13,20,.15),rgba(11,13,20,.75) 70%);overflow:auto}
-.card{width:min(560px,100%);text-align:center}
+.card{width:min(560px,100%);text-align:center;margin:auto}
 h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter-spacing:.02em;
   background:linear-gradient(180deg,#fff 0%,#ffe14a 45%,#ff7a1a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 4px 0 #6a1020) drop-shadow(0 0 20px rgba(0,0,0,.6))}

@@ -329,7 +329,7 @@ net.onmsg = m => {
   }
 };
 net.onjoin = () => {
-  lobbyMsg('¡Tu amigo se ha unido! Pulsa EMPEZAR');
+  lobbyMsg('¡Tu amigo se ha unido! Pulsa EMPEZAR (vía ' + net.via + ')');
   $('btnStart').disabled = false;
   if (G.running && G.sim) { /* se unió a mitad: no se admite */ }
 };
