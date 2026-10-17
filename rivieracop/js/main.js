@@ -352,7 +352,7 @@ function begin(seed, n, li, mode) {
   G.sim = mode === 'guest' ? null : new Sim(G.road, n, G.seed);
   if (G.sim && Q.get('god')) G.sim.god = true; // TODO-TESTEO
   G.mir = mode === 'guest' ? new Mirror() : null;
-  G.evq = []; G.acc = 0; G.over = false; G.running = true; G.carD = 8; G.shake = 0; G.lastBio = -1;
+  G.evq = []; G.acc = 0; G.over = false; G.running = true; G.carD = 8; G.shake = 0; G.lastBio = -1; G.camYaw = null;
   G.ents = []; G.players = [];
   for (let i = 0; i < n; i++) G.players.push({ hp: 3, score: 0, alive: true, inv: 0, ly: 0, lp: 0 });
   clearChunks();
@@ -524,7 +524,11 @@ function tick(dt) {
   view.placeCar(G.carD, G.t, G.shake * 0.15);
   updateChunks(G.carD, false);
   const car = view.car;
-  EA.set(car.rotation.x * 0.5, car.rotation.y, 0, 'YXZ');
+  // la cámara NO copia los giros bruscos del coche: sigue la dirección de la carretera muy suave
+  // y con el horizonte siempre recto, para que el giroscopio no se "descoloque" en las curvas
+  if (G.camYaw == null) G.camYaw = car.rotation.y;
+  G.camYaw = lerpAng(G.camYaw, car.rotation.y, 1 - Math.exp(-dt * 1.4));
+  EA.set(0, G.camYaw, 0, 'YXZ');
   QCAR.setFromEuler(EA);
   if (BOT) botAim();
   EA.set(look.pitch, look.yaw, 0, 'YXZ');
