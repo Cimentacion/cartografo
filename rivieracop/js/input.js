@@ -28,7 +28,7 @@ export class Look {
     // No depende de brújula ni de "alpha", así que funciona en casi todos los Android.
     // Respaldo: deviceorientation / deviceorientationabsolute si no hay rotationRate.
     this.src = 'ninguno'; this.rateSeen = 0; this.lastRateT = 0;
-    this.grav = { x: 0, y: 0, z: 0, n: 0 }; this.axes = '';
+    this.grav = { x: 0, y: 0, z: 0, n: 0 }; this.axes = ''; this.map = 0;
     this.absP = 0; this.refAbsP = 0; this.invX = false; this.invY = false;
     this.gYaw = 0; this.gPitch = 0;
     this.force = null; // 'dedo' = el jugador ha elegido apuntar con el dedo
@@ -57,7 +57,8 @@ export class Look {
       const g = new window.Gyroscope({ frequency: 60 });
       g.addEventListener('reading', () => {
         this.diag.sensor++;
-        if (this.src !== 'ninguno' && this.src !== 'sensor') return;
+        // el sensor nativo es el más fiable: si llega, manda él
+        if (this.src !== 'sensor' && this.diag.sensor > 5) { this.src = 'ninguno'; this.rateSeen = 0; }
         this.integrate(g.x, g.y, g.z, 'sensor');
       });
       g.addEventListener('error', ev => { this.diag.sensorErr = (ev.error && (ev.error.name + ' ' + ev.error.message)) || 'error'; });
@@ -76,15 +77,45 @@ export class Look {
     // gravedad: dice qué eje del móvil apunta hacia arriba, sea cual sea la postura
     const a = e.accelerationIncludingGravity;
     if (a && a.x != null && a.y != null && a.z != null && (a.x || a.y || a.z)) {
+      this.learnMap(r, a.x * (IOS ? -1 : 1), a.y * (IOS ? -1 : 1), a.z * (IOS ? -1 : 1));
       const sg = IOS ? -1 : 1, G = this.grav, k = G.n ? 0.12 : 1;
       G.x += (a.x * sg - G.x) * k; G.y += (a.y * sg - G.y) * k; G.z += (a.z * sg - G.z) * k; G.n++;
       const gl = Math.hypot(G.x, G.y, G.z);
       if (gl > 4) this.absP = Math.asin(clamp(-G.z / gl, -1, 1));
     }
     if (r.alpha === 0 && r.beta === 0 && r.gamma === 0 && this.rateSeen === 0) return;
-    if (this.src === 'sensor') return;
-    // grados/seg -> rad/seg
-    this.integrate(r.beta * D2R, r.gamma * D2R, r.alpha * D2R, 'giroscopio');
+    if (this.src === 'sensor' || this.diag.sensor > 5) return;
+    const w = this.omega(r, this.map);
+    this.integrate(w[0], w[1], w[2], 'giroscopio');
+  }
+  // Cada navegador/móvil nombra los ejes de rotationRate a su manera. Probamos 8 combinaciones
+  // y nos quedamos con la que mejor explica cómo cambia la gravedad al girar el móvil.
+  omega(r, m) {
+    const u = (m & 1) ? 1 : D2R, sg = (m & 2) ? -1 : 1;
+    return (m & 4) ? [r.alpha * u * sg, r.beta * u * sg, r.gamma * u * sg] : [r.beta * u * sg, r.gamma * u * sg, r.alpha * u * sg];
+  }
+  learnMap(r, ax, ay, az) {
+    const M = this.mm || (this.mm = { gx: ax, gy: ay, gz: az, t: performance.now(), err: new Float64Array(8), n: 0 });
+    const now = performance.now(), dt = Math.min(0.1, (now - M.t) / 1000);
+    M.t = now;
+    const px = M.gx, py = M.gy, pz = M.gz;
+    M.gx += (ax - M.gx) * 0.5; M.gy += (ay - M.gy) * 0.5; M.gz += (az - M.gz) * 0.5;
+    const dx = M.gx - px, dy = M.gy - py, dz = M.gz - pz;
+    const big = Math.max(Math.abs(r.alpha), Math.abs(r.beta), Math.abs(r.gamma));
+    if (dt <= 0 || big < 0.5) return;
+    for (let m = 0; m < 8; m++) {
+      const [wx, wy, wz] = this.omega(r, m);
+      // dg/dt = -w × g
+      const ex = dx + (wy * pz - wz * py) * dt, ey = dy + (wz * px - wx * pz) * dt, ez = dz + (wx * py - wy * px) * dt;
+      M.err[m] = M.err[m] * 0.997 + ex * ex + ey * ey + ez * ez;
+    }
+    M.n++;
+    if (M.n > 25) {
+      let best = 0;
+      for (let m = 1; m < 8; m++) if (M.err[m] < M.err[best]) best = m;
+      if (best !== this.map && M.err[best] < M.err[this.map] * 0.7) { this.map = best; }
+    }
+    this.diag.map = ['spec°', 'spec rad', 'spec° -', 'spec rad -', 'xyz°', 'xyz rad', 'xyz° -', 'xyz rad -'][this.map] + ' (' + M.n + ')';
   }
   // bx = giro alrededor del eje X del móvil, gy = alrededor del eje Y (rad/s)
   integrate(bx, gy, az, name) {
