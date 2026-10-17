@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d14">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Riviera Cop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Russo+One&family=Chakra+Petch:wght@500;700&display=swap" media="print" onload="this.media='all'">
+<style>
+:root{
+  --ink:#f5f1e6; --dim:#a7a9b4; --bg:#0b0d14; --panel:rgba(8,10,18,.72); --gold:#ffe14a; --red:#ff3a3a;
+  --p1:#3fa9ff; --p2:#ff4f5e;
+  --f-title:'Russo One',Impact,'Arial Black',sans-serif; --f-ui:'Chakra Petch',system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--f-ui);overflow:hidden;
+  touch-action:none;-webkit-user-select:none;user-select:none;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+#game{position:fixed;inset:0}
+#gl,#hud{position:absolute;inset:0;width:100%;height:100%;display:block}
+#hud{pointer-events:none}
+button{font-family:var(--f-title);cursor:pointer;border:0;color:#111;touch-action:manipulation}
+
+/* ---------- HUD ---------- */
+#hudwrap{position:absolute;inset:0;pointer-events:none}
+.pbox{position:absolute;top:max(8px,env(safe-area-inset-top));padding:6px 10px 7px;background:var(--panel);border-radius:6px;min-width:120px;
+  border-bottom:3px solid currentColor}
+#p0{left:max(8px,env(safe-area-inset-left));color:var(--p1)}
+#p1{right:max(8px,env(safe-area-inset-right));color:var(--p2);text-align:right}
+.pn{font:700 12px var(--f-ui);letter-spacing:.08em}
+.hearts{font-size:20px;line-height:1;letter-spacing:2px}
+.hearts i{font-style:normal}
+.hearts .h{color:#ff2d4a;text-shadow:0 0 6px rgba(255,40,70,.6)}
+.hearts .e{color:#3a3a46}
+.sc{font:20px var(--f-title);color:var(--ink);letter-spacing:.06em}
+#topc{position:absolute;top:max(8px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;gap:6px;align-items:center;pointer-events:auto}
+#route{font:15px var(--f-title);background:var(--panel);padding:6px 12px;border-radius:6px;letter-spacing:.06em;white-space:nowrap}
+#route small{font:700 11px var(--f-ui);color:var(--gold)}
+.mini{font:12px var(--f-title);background:var(--panel);color:var(--ink);padding:8px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.15)}
+#wep{position:absolute;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));background:var(--panel);
+  padding:7px 12px 9px;border-radius:6px;text-align:right;min-width:150px}
+.wn{font:15px var(--f-title);letter-spacing:.04em}
+.pips{display:flex;gap:3px;justify-content:flex-end;flex-wrap:wrap;max-width:230px;margin-top:4px}
+.pips i{display:block;width:7px;height:16px;border-radius:2px 2px 1px 1px;background:var(--gold);box-shadow:inset -2px 0 rgba(0,0,0,.25)}
+.pips i.x{background:#2b2d36}
+.pips .num{font:18px var(--f-title)}
+.rlbar{height:5px;background:#2b2d36;margin-top:5px;border-radius:3px;overflow:hidden}
+.rlbar div{height:100%;background:var(--gold)}
+.rlmsg{font:13px var(--f-title);color:var(--red);margin-top:3px;animation:blink .5s steps(2) infinite}
+@keyframes blink{50%{opacity:.25}}
+#btnReload{position:absolute;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));width:96px;height:96px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#ffe98a,#e8b400 70%);font-size:13px;box-shadow:0 4px 0 #8a6a00,0 0 0 3px rgba(0,0,0,.4);pointer-events:auto}
+#btnReload:active{transform:translateY(3px);box-shadow:0 1px 0 #8a6a00}
+#btnFire{position:absolute;right:max(14px,env(safe-area-inset-right));bottom:96px;width:100px;height:100px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#ff8a8a,#d81e1e 70%);color:#fff;font-size:15px;box-shadow:0 4px 0 #7a0a0a;pointer-events:auto}
+#wcard{position:absolute;right:max(10px,env(safe-area-inset-right));top:96px;width:170px;background:rgba(8,10,18,.85);border-radius:6px;overflow:hidden;font:600 12px var(--f-ui)}
+.wct{font:13px var(--f-title);color:#111;padding:5px 8px}
+.wcr{font:700 10px var(--f-ui);letter-spacing:.12em;color:var(--dim);padding:3px 8px 2px}
+.wcl{display:flex;justify-content:space-between;padding:1px 8px}
+.wcl span{color:var(--dim)} .wcl b{font-family:var(--f-title);font-weight:400}
+.wcs{font:11px var(--f-title);color:var(--gold);padding:4px 8px;animation:blink .7s steps(2) infinite}
+.wcb{height:6px;background:#2b2d36;margin:0 8px 5px;border-radius:3px;overflow:hidden}
+.wcb i{display:block;height:100%}
+#banner{position:absolute;left:0;right:0;top:20%;text-align:center;opacity:0;pointer-events:none}
+#banner.on{animation:ban 2.6s ease-out forwards}
+#banner b{display:block;font:clamp(26px,6vw,52px) var(--f-title);letter-spacing:.04em;text-shadow:0 3px 0 rgba(0,0,0,.6),0 0 18px rgba(0,0,0,.4);font-style:italic}
+#banner span{display:inline-block;margin-top:4px;font:700 clamp(13px,2.4vw,18px) var(--f-ui);background:rgba(0,0,0,.55);padding:3px 10px;border-radius:4px}
+@keyframes ban{0%{opacity:0;transform:scale(1.6)}8%{opacity:1;transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:translateY(-12px)}}
+#count{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;text-align:center}
+#countN{font:clamp(70px,18vw,150px) var(--f-title);color:var(--gold);text-shadow:0 5px 0 rgba(0,0,0,.6)}
+#count p{font:700 16px var(--f-ui);background:rgba(0,0,0,.55);padding:6px 14px;border-radius:5px;margin:4px}
+#dead{position:absolute;left:50%;top:58%;transform:translateX(-50%);font:18px var(--f-title);background:rgba(120,0,0,.7);padding:8px 16px;border-radius:6px;text-align:center}
+#dead small{display:block;font:700 12px var(--f-ui)}
+#hurtfx,#healfx{position:absolute;inset:0;pointer-events:none;opacity:0}
+#hurtfx{background:radial-gradient(ellipse at center,rgba(255,0,0,0) 35%,rgba(220,0,0,.85) 100%)}
+#healfx{background:radial-gradient(ellipse at center,rgba(0,255,100,0) 35%,rgba(40,255,120,.6) 100%)}
+#hurtfx.on,#healfx.on{animation:fl .5s ease-out}
+@keyframes fl{0%{opacity:1}100%{opacity:0}}
+
+/* ---------- pantallas ---------- */
+.screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;
+  background:linear-gradient(180deg,rgba(11,13,20,.15),rgba(11,13,20,.75) 70%);overflow:auto}
+.card{width:min(560px,100%);text-align:center}
+h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter-spacing:.02em;
+  background:linear-gradient(180deg,#fff 0%,#ffe14a 45%,#ff7a1a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 4px 0 #6a1020) drop-shadow(0 0 20px rgba(0,0,0,.6))}
+.sub{font:700 14px var(--f-ui);letter-spacing:.3em;color:#fff;text-shadow:0 2px 4px #000;margin:6px 0 14px}
+.btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.big{font-size:18px;padding:14px 22px;border-radius:8px;background:var(--gold);box-shadow:0 4px 0 #8a6a00;min-width:150px}
+.big.alt{background:#4fc3ff;box-shadow:0 4px 0 #1a5a8a}
+.big.alt2{background:#ff6a6a;box-shadow:0 4px 0 #8a1a1a}
+.big:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.4)}
+.big:disabled{opacity:.4}
+.row{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:12px;flex-wrap:wrap}
+.lbl{font:700 12px var(--f-ui);letter-spacing:.1em;color:var(--dim)}
+#sens button{font:13px var(--f-title);padding:7px 11px;border-radius:5px;background:#2a2d38;color:var(--ink)}
+#sens button.sel{background:var(--gold);color:#111}
+.help{font:500 13px/1.45 var(--f-ui);color:#d8d8e0;background:rgba(0,0,0,.5);border-radius:8px;padding:10px 14px;margin-top:12px;text-align:left}
+.help b{color:var(--gold)}
+#menuMsg{color:#ff8a6a;font-weight:700;min-height:1em;margin-top:8px}
+#best{color:var(--gold);font:14px var(--f-title);margin-top:6px}
+#lobbyCode{font:clamp(50px,13vw,90px) var(--f-title);letter-spacing:.15em;color:var(--gold);text-shadow:0 4px 0 rgba(0,0,0,.6)}
+#lobbyMsg{font:700 15px var(--f-ui);margin:8px 0 14px;background:rgba(0,0,0,.5);padding:8px;border-radius:6px}
+#codeIn{font:34px var(--f-title);width:170px;text-align:center;text-transform:uppercase;letter-spacing:.2em;padding:8px;border-radius:8px;border:3px solid var(--gold);background:#111;color:var(--gold)}
+#over .card{background:rgba(0,0,0,.6);padding:18px;border-radius:12px}
+#over h2{font:clamp(34px,8vw,60px) var(--f-title);color:var(--red);margin:0 0 8px;font-style:italic;text-shadow:0 4px 0 rgba(0,0,0,.6)}
+.ostats{font:700 14px var(--f-ui);color:var(--dim);margin-bottom:8px}
+.ostats b,.orow b{color:var(--ink);font-family:var(--f-title)}
+.orow{font:20px var(--f-title);margin:4px 0}
+.oroute{font:600 13px var(--f-ui);color:var(--dim);margin-top:6px}
+.orec{font:22px var(--f-title);color:var(--gold);margin-top:8px;animation:blink .6s steps(2) infinite}
+#rotate{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;font:20px var(--f-title);text-align:center;padding:20px;z-index:20}
+#rotate .ph{width:60px;height:100px;border:5px solid var(--gold);border-radius:12px;animation:rot 1.6s ease-in-out infinite;margin-bottom:20px}
+@keyframes rot{0%,20%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+#err{position:absolute;left:0;right:0;bottom:0;background:#a00;color:#fff;font:12px monospace;padding:6px;z-index:30;pointer-events:none}
+</style>
+<script type="importmap">{ "imports": { "three": "./lib/three.module.js" } }</script>
+<script src="lib/peerjs.min.js"></script>
+</head>
+<body>
+<div id="game">
+  <canvas id="gl"></canvas>
+  <canvas id="hud"></canvas>
+  <div id="hurtfx"></div><div id="healfx"></div>
+
+  <div id="hudwrap" hidden>
+    <div id="p0" class="pbox"></div>
+    <div id="p1" class="pbox"></div>
+    <div id="topc" class="ui">
+      <button id="btnQuit" class="mini" aria-label="Salir">✕</button>
+      <div id="route"></div>
+      <button id="btnCal" class="mini">⊕ CENTRAR</button>
+    </div>
+    <div id="wep"></div>
+    <div id="wcard" hidden></div>
+    <button id="btnReload" class="ui">RECARGAR</button>
+    <button id="btnFire" class="ui" hidden>FUEGO</button>
+    <div id="banner"><b></b><span></span></div>
+    <div id="count" hidden><div id="countN">3</div><p>Sujeta el móvil en horizontal apuntando al frente</p><p>Gira el móvil para apuntar · Toca la pantalla para disparar</p></div>
+    <div id="dead" hidden>ESTÁS FUERA<small>Tu compañero puede revivirte con un botiquín</small></div>
+  </div>
+
+  <div id="menu" class="screen">
+    <div class="card">
+      <h1>RIVIERA COP</h1>
+      <div class="sub">ROGUELIKE · SOBRE RUEDAS</div>
+      <div class="btns">
+        <button id="btnSolo" class="big">JUGAR SOLO</button>
+        <button id="btnHost" class="big alt">CREAR SALA</button>
+        <button id="btnJoin" class="big alt2">UNIRSE</button>
+      </div>
+      <div class="row"><span class="lbl">SENSIBILIDAD GIROSCOPIO</span><span id="sens"><button>1</button> <button>1.5</button> <button>2</button> <button>2.6</button></span></div>
+      <div id="best"></div>
+      <div id="menuMsg"></div>
+      <div class="help">
+        <b>Cómo se juega:</b> vais los dos en el descapotable, al mismo ritmo. <b>Gira el móvil</b> para mirar y apuntar (puedes darte la vuelta), <b>toca la pantalla</b> para disparar y pulsa <b>RECARGAR</b> (o toca con el cargador vacío).<br>
+        Cuando alguien te va a disparar sale un <b>círculo que se cierra</b>; si está fuera de pantalla, una <b>flecha</b> te dice hacia dónde girar. Tienes <b>3 vidas</b>.<br>
+        Cada minuto hay un <b>desvío</b>: dispara al cartel de la ruta que quieras. Cada ~3 min sale un <b>terrorista</b> que suelta un arma: el primero que le dé, se la queda. Revienta <b>ambulancias</b> para sacar botiquines y dispara a los <b>camiones de gallinas</b>. No dispares a los civiles.
+      </div>
+    </div>
+  </div>
+
+  <div id="lobby" class="screen" hidden>
+    <div class="card">
+      <div class="lbl">CÓDIGO DE SALA</div>
+      <div id="lobbyCode">····</div>
+      <div id="joinRow" class="row" hidden><input id="codeIn" maxlength="4" autocomplete="off" spellcheck="false" placeholder="ABCD"><button id="btnGo" class="big">ENTRAR</button></div>
+      <div id="lobbyMsg"></div>
+      <div class="btns"><button id="btnStart" class="big" disabled>EMPEZAR</button><button id="btnBack" class="big alt2">VOLVER</button></div>
+    </div>
+  </div>
+
+  <div id="over" class="screen" hidden>
+    <div class="card">
+      <h2>FIN DE LA PARTIDA</h2>
+      <div id="overStats"></div>
+      <div class="btns" style="margin-top:14px"><button id="btnAgain" class="big">OTRA PARTIDA</button><button id="btnMenu" class="big alt2">MENÚ</button></div>
+      <div id="overWait" class="lbl" style="margin-top:10px" hidden>Esperando a que el anfitrión empiece otra…</div>
+    </div>
+  </div>
+
+  <div id="rotate" hidden><div class="ph"></div>Pon el móvil en horizontal</div>
+  <div id="err" hidden></div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

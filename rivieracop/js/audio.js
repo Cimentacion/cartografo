@@ -1,0 +1,116 @@
+// Sonido sintetizado con WebAudio (sin archivos)
+let ac = null, master = null, noise = null;
+let siren = null, heliN = null, engine = null;
+
+function ensure() {
+  if (ac) return true;
+  try {
+    ac = new (window.AudioContext || window.webkitAudioContext)();
+    master = ac.createGain(); master.gain.value = 0.7; master.connect(ac.destination);
+    const len = ac.sampleRate;
+    noise = ac.createBuffer(1, len, ac.sampleRate);
+    const d = noise.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    return true;
+  } catch (e) { return false; }
+}
+function nsrc() { const s = ac.createBufferSource(); s.buffer = noise; s.loop = true; return s; }
+function env(g, t, a, peak, dec) {
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(peak, t + a);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + a + dec);
+}
+
+export const SFX = {
+  unlock() { if (!ensure()) return; if (ac.state === 'suspended') ac.resume(); },
+  shot(model) {
+    if (!ac) return;
+    const t = ac.currentTime;
+    const big = model === 'shotgun' || model === 'revolver' || model === 'rifle' || model === 'launcher';
+    const n = nsrc(), f = ac.createBiquadFilter(), g = ac.createGain();
+    f.type = 'bandpass'; f.frequency.value = big ? 900 : 1600; f.Q.value = 0.8;
+    n.connect(f); f.connect(g); g.connect(master);
+    env(g, t, 0.002, big ? 0.9 : 0.6, big ? 0.22 : 0.11);
+    n.start(t, Math.random()); n.stop(t + 0.4);
+    const o = ac.createOscillator(), g2 = ac.createGain();
+    o.type = 'square'; o.frequency.setValueAtTime(big ? 140 : 220, t); o.frequency.exponentialRampToValueAtTime(50, t + 0.1);
+    o.connect(g2); g2.connect(master);
+    env(g2, t, 0.002, 0.3, 0.09);
+    o.start(t); o.stop(t + 0.15);
+  },
+  eshot(dist = 20) {
+    if (!ac) return;
+    const t = ac.currentTime, v = Math.max(0.08, Math.min(0.5, 8 / (dist + 4)));
+    const n = nsrc(), f = ac.createBiquadFilter(), g = ac.createGain();
+    f.type = 'lowpass'; f.frequency.value = 1200;
+    n.connect(f); f.connect(g); g.connect(master);
+    env(g, t, 0.002, v, 0.14);
+    n.start(t, Math.random()); n.stop(t + 0.3);
+  },
+  boom(dist = 20) {
+    if (!ac) return;
+    const t = ac.currentTime, v = Math.max(0.15, Math.min(1, 25 / (dist + 10)));
+    const n = nsrc(), f = ac.createBiquadFilter(), g = ac.createGain();
+    f.type = 'lowpass'; f.frequency.setValueAtTime(900, t); f.frequency.exponentialRampToValueAtTime(80, t + 0.9);
+    n.connect(f); f.connect(g); g.connect(master);
+    env(g, t, 0.005, v, 0.9);
+    n.start(t, Math.random()); n.stop(t + 1.1);
+  },
+  cluck() {
+    if (!ac) return;
+    const t = ac.currentTime;
+    for (let i = 0; i < 2; i++) {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'square';
+      const s = t + i * 0.11;
+      o.frequency.setValueAtTime(700 + Math.random() * 200, s); o.frequency.exponentialRampToValueAtTime(1300, s + 0.05);
+      o.connect(g); g.connect(master);
+      env(g, s, 0.005, 0.12, 0.07);
+      o.start(s); o.stop(s + 0.1);
+    }
+  },
+  tone(f0, f1, dur, type = 'square', v = 0.2, delay = 0) {
+    if (!ac) return;
+    const t = ac.currentTime + delay;
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    o.connect(g); g.connect(master);
+    env(g, t, 0.005, v, dur);
+    o.start(t); o.stop(t + dur + 0.05);
+  },
+  hurt() { this.tone(300, 80, 0.35, 'sawtooth', 0.35); },
+  empty() { this.tone(1800, 1600, 0.03, 'square', 0.08); },
+  reload() { this.tone(500, 700, 0.05, 'square', 0.12); this.tone(800, 600, 0.05, 'square', 0.12, 0.12); },
+  pickup() { [523, 659, 784, 1046].forEach((f, i) => this.tone(f, f, 0.1, 'square', 0.15, i * 0.07)); },
+  heal() { [660, 880].forEach((f, i) => this.tone(f, f * 1.01, 0.12, 'triangle', 0.25, i * 0.09)); },
+  banner() { this.tone(880, 880, 0.08, 'square', 0.1); this.tone(1320, 1320, 0.1, 'square', 0.1, 0.09); },
+  vote() { this.tone(1200, 1500, 0.04, 'triangle', 0.08); },
+  // sonidos continuos: sirena de ambulancia, helicóptero y motor
+  loops(ambDist, heliDist, speed) {
+    if (!ac) return;
+    const t = ac.currentTime;
+    if (!siren) {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'triangle'; o.frequency.value = 700; o.connect(g); g.connect(master); g.gain.value = 0; o.start();
+      siren = { o, g };
+      const n = nsrc(), f = ac.createBiquadFilter(), g2 = ac.createGain(), lfo = ac.createOscillator(), lg = ac.createGain();
+      f.type = 'lowpass'; f.frequency.value = 400;
+      lfo.frequency.value = 13; lfo.connect(lg); lg.gain.value = 0.5;
+      const am = ac.createGain(); am.gain.value = 0.5; lg.connect(am.gain);
+      n.connect(f); f.connect(am); am.connect(g2); g2.connect(master); g2.gain.value = 0; n.start(); lfo.start();
+      heliN = { g: g2 };
+      const e = ac.createOscillator(), ef = ac.createBiquadFilter(), eg = ac.createGain();
+      e.type = 'sawtooth'; e.frequency.value = 55; ef.type = 'lowpass'; ef.frequency.value = 300;
+      e.connect(ef); ef.connect(eg); eg.connect(master); eg.gain.value = 0; e.start();
+      engine = { o: e, g: eg };
+    }
+    const sv = ambDist < 120 ? Math.min(0.12, 6 / (ambDist + 20)) : 0;
+    siren.g.gain.setTargetAtTime(sv, t, 0.1);
+    siren.o.frequency.setTargetAtTime(Math.floor(t * 2.2) % 2 ? 950 : 700, t, 0.02);
+    const hv = heliDist < 200 ? Math.min(0.5, 25 / (heliDist + 20)) : 0;
+    heliN.g.gain.setTargetAtTime(hv, t, 0.2);
+    engine.g.gain.setTargetAtTime(speed > 1 ? 0.035 : 0.015, t, 0.3);
+    engine.o.frequency.setTargetAtTime(45 + speed * 2, t, 0.3);
+  },
+  mute(m) { if (master) master.gain.value = m ? 0 : 0.7; },
+};
