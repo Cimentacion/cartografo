@@ -78,7 +78,7 @@ export class Look {
     const a = e.accelerationIncludingGravity;
     if (a && a.x != null && a.y != null && a.z != null && (a.x || a.y || a.z)) {
       this.learnMap(r, a.x * (IOS ? -1 : 1), a.y * (IOS ? -1 : 1), a.z * (IOS ? -1 : 1));
-      const sg = IOS ? -1 : 1, G = this.grav, k = G.n ? 0.12 : 1;
+      const sg = IOS ? -1 : 1, G = this.grav, k = G.n ? 0.06 : 1;
       G.x += (a.x * sg - G.x) * k; G.y += (a.y * sg - G.y) * k; G.z += (a.z * sg - G.z) * k; G.n++;
       const gl = Math.hypot(G.x, G.y, G.z);
       if (gl > 4) this.absP = Math.asin(clamp(-G.z / gl, -1, 1));
@@ -124,13 +124,20 @@ export class Look {
     if (this.lastRateT) dt = Math.min(0.1, (now - this.lastRateT) / 1000);
     this.lastRateT = now;
     let yawR, pitR;
+    // la gravedad se gira con el propio giroscopio entre lecturas del acelerómetro (sin retraso)
+    if (this.grav.n > 3) {
+      const g0 = this.grav, wx = bx, wy = gy, wz = az;
+      const cx = wy * g0.z - wz * g0.y, cy = wz * g0.x - wx * g0.z, cz = wx * g0.y - wy * g0.x;
+      g0.x -= cx * dt; g0.y -= cy * dt; g0.z -= cz * dt;
+    }
     const G = this.grav, gl = Math.hypot(G.x, G.y, G.z), gp = Math.hypot(G.x, G.y);
     this.axes = 'gravedad';
     if (G.n > 3 && gl > 4 && gp > 1.5) {
-      // giro horizontal = giro alrededor de la vertical real (gravedad)
-      yawR = (bx * G.x + gy * G.y + az * G.z) / gl;
-      // cabeceo = giro alrededor del eje "derecha" de la pantalla = arriba × Z
+      // Ejes de la propia pantalla: "arriba de la pantalla" (según la gravedad) y "derecha de la pantalla".
+      // Izquierda/derecha = giro alrededor del arriba de la pantalla; arriba/abajo = alrededor de la derecha.
+      // Así inclinar el móvil hacia abajo o girar la muñeca nunca se cuela como izquierda/derecha.
       const ux = G.x / gp, uy = G.y / gp;
+      yawR = bx * ux + gy * uy;
       pitR = bx * uy - gy * ux;
     } else switch (this.axes = 'pantalla', this.screenAngle()) {
       case 90: yawR = bx; pitR = -gy; break;
