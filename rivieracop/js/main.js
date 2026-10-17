@@ -371,7 +371,7 @@ function begin(seed, n, li, mode) {
   $('count').hidden = false;
   look.enabled = true;
   look.calibrate();
-  $('btnFire').hidden = look.gyro || !look.isTouch;
+  $('btnFire').hidden = !look.isTouch || (!look.force && look.gyro);
   uiWeapon(true);
 }
 function gameOver(ev) {
@@ -463,6 +463,7 @@ function uiRoute() {
 function gyroStatus() {
   let t;
   if (!look.isTouch) t = 'PC: mueve el ratón para apuntar, clic para disparar, R recarga';
+  else if (look.force === 'joy') t = 'Joystick: mando izquierdo para apuntar · FUEGO para disparar';
   else if (look.force === 'dedo') t = 'Apuntas arrastrando el dedo · botón FUEGO para disparar';
   else if (look.src === 'giroscopio' || look.src === 'sensor') t = 'Giroscopio: OK ✓';
   else if (look.src !== 'ninguno') t = 'Giroscopio: usando ' + look.src + ' (puede ir peor)';
@@ -562,6 +563,7 @@ function tick(dt) {
     else if (!G.prevFire) { if (W.ammo <= 0) startReload(); else fire(); }
   }
   G.prevFire = look.fire;
+  look.slow = hud.hot ? 0.4 : 1;
   W.recoil = Math.max(0, W.recoil - dt * 9);
   W.flash -= dt;
   if (fpg) {
@@ -603,7 +605,7 @@ function tick(dt) {
   bannerT -= dt;
   SFX.loops(view.ambDist, view.heliDist, G.speed);
   $('rotate').hidden = !(look.isTouch && innerHeight > innerWidth && !VP.rot);
-  $('btnFire').hidden = look.gyro || !look.isTouch;
+  $('btnFire').hidden = !look.isTouch || (!look.force && look.gyro);
 }
 
 // TODO-TESTEO: bot que apunta solo al objetivo más urgente
@@ -725,11 +727,13 @@ look.onCal = () => look.calibrate();
 // modo de apuntar elegido por el jugador
 function setCtl(m) {
   localStorage.setItem('rc_ctl', m);
-  look.setForce(m === 'dedo' ? 'dedo' : null);
+  look.setForce(m === 'dedo' ? 'dedo' : m === 'joy' ? 'joy' : null);
+  document.body.classList.toggle('ctl-joy', m === 'joy');
   document.querySelectorAll('#ctl button').forEach(b => b.classList.toggle('sel', b.dataset.m === m));
 }
 document.querySelectorAll('#ctl button').forEach(b => (b.onclick = () => { look.requestGyro(); setCtl(b.dataset.m); }));
-setCtl(localStorage.getItem('rc_ctl') || 'gyro');
+setCtl(localStorage.getItem('rc_ctl') || 'joy');
+look.attachJoy($('joyZone'), $('joy'), $('joyK'));
 let diagOn = false;
 $('btnDiag').onclick = async () => {
   for (const s of document.querySelectorAll('.screen')) s.hidden = true;

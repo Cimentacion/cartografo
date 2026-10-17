@@ -33,7 +33,8 @@ export class Look {
     this.grav = { x: 0, y: 0, z: 0, n: 0 }; this.axes = ''; this.map = 0; this.mapOk = false; this.up2 = { x: 1, y: 0, ok: false };
     this.absP = 0; this.refAbsP = 0; this.invX = false; this.invY = false;
     this.gYaw = 0; this.gPitch = 0;
-    this.force = null; // 'dedo' = el jugador ha elegido apuntar con el dedo
+    this.force = null; // 'joy' = joystick en pantalla, 'dedo' = arrastrar, null = giroscopio
+    this.joy = { id: null, sx: 0, sy: 0, x: 0, y: 0 }; this.slow = 1;
     this.diag = { motion: 0, motionNull: 0, ori: 0, oriNull: 0, abs: 0, sensor: 0, sensorErr: '', perm: '', last: '' };
     window.addEventListener('devicemotion', e => this.onMotion(e), true);
     window.addEventListener('deviceorientation', e => this.onOri(e, 'rel'), true);
@@ -167,7 +168,7 @@ export class Look {
     this.rateSeen++;
     if (this.rateSeen > 5 && this.src === 'ninguno') {
       this.src = name;
-      this.gyro = this.force !== 'dedo';
+      this.gyro = !this.force;
       this.calibrate();
     }
   }
@@ -185,11 +186,11 @@ export class Look {
     // solo si no llega la velocidad de giro
     if (this.gyroSeen > 10 && this.rateSeen === 0 && this.src === 'ninguno') {
       this.src = kind === 'abs' ? 'brújula' : 'orientación';
-      this.gyro = this.force !== 'dedo';
+      this.gyro = !this.force;
       this.calibrate();
     }
   }
-  setForce(f) { this.force = f; this.gyro = f !== 'dedo' && this.src !== 'ninguno'; this.calibrate(); }
+  setForce(f) { this.force = f; this.gyro = !f && this.src !== 'ninguno'; this.calibrate(); }
   calibrate() {
     if (this.raw) this.ref = { y: this.raw.y, p: this.raw.p };
     this.gYaw = 0; this.gPitch = 0; this.refAbsP = this.absP;
@@ -207,10 +208,43 @@ export class Look {
         this.tPitch = clamp((this.raw.p - this.ref.p) * this.gain, PMIN, PMAX);
       }
     }
+    // joystick: la inclinación del mando es la velocidad de giro (más lento si la mira está sobre un enemigo)
+    if (this.force === 'joy') {
+      const J = this.joy, m = Math.hypot(J.x, J.y);
+      if (m > 0.1) {
+        const c = Math.pow((m - 0.1) / 0.9, 1.6) / m;
+        this.tYaw -= J.x * c * 2.2 * this.slow * dt;
+        this.tPitch -= J.y * c * 1.4 * this.slow * dt;
+      }
+    }
     this.tPitch = clamp(this.tPitch, PMIN, PMAX);
     const k = 1 - Math.exp(-dt * (this.gyro ? 30 : 40));
     this.yaw += angWrap(this.tYaw - this.yaw) * k;
     this.pitch += (this.tPitch - this.pitch) * k;
+  }
+  // joystick virtual: se centra donde pones el dedo dentro de su zona
+  attachJoy(zone, base, knob) {
+    const R = 60, J = this.joy;
+    const place = () => { knob.style.transform = `translate(${J.x * R}px,${J.y * R}px)`; };
+    zone.addEventListener('pointerdown', e => {
+      e.stopPropagation(); e.preventDefault();
+      if (J.id != null) return;
+      J.id = e.pointerId; J.sx = e.clientX; J.sy = e.clientY; J.x = J.y = 0;
+      try { zone.setPointerCapture(e.pointerId); } catch (x) { }
+      base.classList.add('on'); place();
+    });
+    zone.addEventListener('pointermove', e => {
+      if (e.pointerId !== J.id) return;
+      let dx = e.clientX - J.sx, dy = e.clientY - J.sy;
+      if (VP.rot === 90) [dx, dy] = [dy, -dx]; else if (VP.rot === -90) [dx, dy] = [-dy, dx];
+      let x = dx / R, y = dy / R;
+      const m = Math.hypot(x, y);
+      if (m > 1) { x /= m; y /= m; }
+      J.x = x; J.y = y; place();
+    });
+    const up = e => { if (e.pointerId !== J.id) return; J.id = null; J.x = J.y = 0; place(); base.classList.remove('on'); };
+    zone.addEventListener('pointerup', up);
+    zone.addEventListener('pointercancel', up);
   }
   // los botones de la interfaz no disparan
   attach(el) {
@@ -222,6 +256,7 @@ export class Look {
         if (e.button === 0) this.fire = true;
         return;
       }
+      if (this.force === 'joy') return;
       if (this.gyro) { this.fireTouches.add(e.pointerId); this.fire = true; }
       else if (this.dragId == null) { this.dragId = e.pointerId; this.lx = e.clientX; this.ly = e.clientY; }
     });
