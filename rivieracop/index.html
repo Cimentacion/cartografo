@@ -188,6 +188,14 @@ body.many .sc{font-size:10px;margin-top:4px}
 #btnBullet{--c:#c48cff;right:max(10px,env(safe-area-inset-right));bottom:258px}
 body.ctl-joy #btnShield{bottom:146px;right:max(12px,env(safe-area-inset-right))}
 body.ctl-joy #btnBullet{bottom:198px;right:max(12px,env(safe-area-inset-right))}
+#btnGrenade{--c:#7dff5a;right:max(10px,env(safe-area-inset-right));bottom:310px}
+body.ctl-joy #btnGrenade{bottom:250px;right:max(12px,env(safe-area-inset-right))}
+#btnGrenade span{position:relative}
+#grenN{position:absolute;right:-4px;bottom:-4px;font:8px var(--f-px);color:#fff;background:#000;padding:2px 3px;border:1px solid #7dff5a}
+#btnHide.on{background:#ffe14a;color:#111}
+#shopTabs{display:flex;gap:6px;margin:4px 0 10px;flex-wrap:wrap}
+#shopTabs button{font:9px var(--f-px);padding:8px 10px;background:#2a2d38;color:#fff;box-shadow:3px 3px 0 #000}
+#shopTabs button.sel{background:#ffe14a;color:#111}
 #btnShield,#btnBullet{font-size:6px!important}
 /* barra de vida */
 .hp{display:flex;align-items:center;gap:5px}
@@ -260,6 +268,7 @@ body.shielded #shieldfx{opacity:1}
       <div id="route"></div>
       <div id="mult"></div>
       <button id="btnCal" class="mini">⊕ CENTRAR</button>
+      <button id="btnHide" class="mini" hidden aria-label="Ocultar compañeros">👥</button>
     </div>
     <div id="boss" hidden><div id="bossN"></div><div id="bossBar"><div id="bossB"></div></div></div>
     <div id="wep"></div>
@@ -268,6 +277,7 @@ body.shielded #shieldfx{opacity:1}
     <button id="btnReload" class="ui">RECARGAR</button>
     <button id="btnFire" class="ui" hidden>FUEGO</button>
     <button id="btnShield" class="ui ability" hidden aria-label="Escudo"><span><svg viewBox="0 0 16 16" width="20" height="20" shape-rendering="crispEdges"><path fill="#5ae0ff" d="M3 2h10v1h1v6h-1v2h-1v1h-1v1h-1v1H9v1H7v-1H6v-1H5v-1H4v-1H3V9H2V3h1z"/><path fill="#0c0a18" d="M7 4h2v2h2v2H9v3H7V8H5V6h2z"/></svg></span></button>
+    <button id="btnGrenade" class="ui ability" hidden aria-label="Granada"><span><svg viewBox="0 0 16 16" width="18" height="18" shape-rendering="crispEdges"><path fill="#7dff5a" d="M6 4h4v1h1v1h1v6h-1v1h-1v1H6v-1H5v-1H4V6h1V5h1z"/><path fill="#c0c0c0" d="M7 1h3v1h1v2H9V3H7z"/><path fill="#0c0a18" d="M7 7h2v4H7z"/></svg><b id="grenN">0</b></span></button>
     <button id="btnBullet" class="ui ability" hidden aria-label="Tiempo bala"><span><svg viewBox="0 0 16 16" width="20" height="20" shape-rendering="crispEdges"><path fill="#c48cff" d="M3 1h10v2h-1v2h-1v1h-1v1H9v2h1v1h1v1h1v2h1v2H3v-2h1v-2h1v-1h1V9h1V7H6V6H5V5H4V3H3z"/><path fill="#0c0a18" d="M6 3h4v1H9v1H7V4H6zm1 9h2v1h1v1H6v-1h1z"/></svg></span></button>
     <div id="slowfx"></div><div id="shieldfx"></div>
     <div id="banner"><b></b><span></span></div>
@@ -294,7 +304,7 @@ body.shielded #shieldfx{opacity:1}
       <div id="menuMsg"></div>
       <div class="help">
         <b>Cómo se juega:</b> vais hasta 4 en el descapotable, al mismo ritmo (J1 y J2 delante, J3 y J4 detrás cubriendo la retaguardia). Con el <b>joystick izquierdo</b> giras la mirada y apuntas (puedes mirar a los lados y atrás), con <b>FUEGO</b> disparas y con <b>RECARGAR</b> recargas (o disparando con el cargador vacío). También puedes elegir apuntar con el giroscopio o arrastrando el dedo.<br>
-        Cuando alguien te va a disparar sale un <b>círculo que se cierra</b>; si está fuera de pantalla, una <b>flecha</b> te dice hacia dónde girar. Empiezas con <b>10 de vida</b> (hasta 30 con mejoras); los enemigos quitan 1, 2 o 3 según la zona.<br>
+        Cuando alguien te va a disparar sale un <b>círculo que se cierra</b>; si está fuera de pantalla, una <b>flecha</b> te dice hacia dónde girar. Empiezas con <b>3 de vida</b> (hasta 100 con mejoras); los enemigos quitan 1, 2 o 3 según la zona.<br>
         Cada minuto hay un <b>desvío</b>: dispara al cartel de la ruta que quieras. El número es la <b>dificultad</b>: más difícil, más puntos y mejores armas. Cada ~3 min sale un <b>terrorista</b> que suelta un arma: el primero que le dé, se la queda. Revienta <b>ambulancias</b> para sacar botiquines y dispara a los <b>camiones de gallinas</b>. No dispares a los civiles.
       </div>
     </div>
@@ -322,6 +332,7 @@ body.shielded #shieldfx{opacity:1}
     <div class="card shop">
       <h2>MEJORAS</h2>
       <div class="coins" id="shopCoins"></div>
+      <div id="shopTabs"></div>
       <div class="ulist" id="shopList"></div>
       <div class="lbl" style="margin-top:12px">NIVEL DE TUS ARMAS (suben al usarlas y se guardan para la próxima vez que las cojas)</div>
       <div class="wlist" id="shopW"></div>

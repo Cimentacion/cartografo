@@ -52,12 +52,12 @@ export class Outline {
       uniforms: {
         tColor: { value: this.rt.texture }, tDepth: { value: this.rt.depthTexture }, tMask: { value: this.mrt.texture },
         res: { value: new THREE.Vector2(2, 2) }, near: { value: 0.1 }, far: { value: 260 },
-        ink: { value: new THREE.Color(0x14101a) }, inkOn: { value: 1 }, red: { value: new THREE.Color(0xff1a14) }, ow: { value: 2.0 },
+        ink: { value: new THREE.Color(0x14101a) }, inkOn: { value: 1 }, red: { value: new THREE.Color(0xff1a14) }, ow: { value: 2.0 }, redOn: { value: 0 },
       },
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
       fragmentShader: `
         uniform sampler2D tColor; uniform sampler2D tDepth; uniform sampler2D tMask; uniform vec2 res; uniform float near; uniform float far;
-        uniform vec3 ink; uniform float inkOn; uniform vec3 red; uniform float ow;
+        uniform vec3 ink; uniform float inkOn; uniform vec3 red; uniform float ow; uniform float redOn;
         varying vec2 vUv;
         float lin(float d){ float z = d * 2.0 - 1.0; return (2.0 * near * far) / (far + near - z * (far - near)); }
         void main(){
@@ -67,12 +67,16 @@ export class Outline {
           float d = lin(raw);
           // 1/z es lineal en pantalla sobre una superficie plana: su segunda derivada solo salta en los bordes reales
           float w = 1.0 / d;
-          float wl = 1.0 / lin(texture2D(tDepth, vUv + vec2(-px.x, 0.0)).r);
-          float wr = 1.0 / lin(texture2D(tDepth, vUv + vec2(px.x, 0.0)).r);
-          float wu = 1.0 / lin(texture2D(tDepth, vUv + vec2(0.0, px.y)).r);
-          float wd = 1.0 / lin(texture2D(tDepth, vUv + vec2(0.0, -px.y)).r);
-          float e = (abs(wl + wr - 2.0 * w) + abs(wu + wd - 2.0 * w)) / w;
-          float edge = smoothstep(0.05, 0.12, e) * (1.0 - smoothstep(35.0, 80.0, d)) * inkOn;
+          float dl = lin(texture2D(tDepth, vUv + vec2(-px.x, 0.0)).r);
+          float dr = lin(texture2D(tDepth, vUv + vec2(px.x, 0.0)).r);
+          float du = lin(texture2D(tDepth, vUv + vec2(0.0, px.y)).r);
+          float dd = lin(texture2D(tDepth, vUv + vec2(0.0, -px.y)).r);
+          float e = (abs(1.0 / dl + 1.0 / dr - 2.0 * w) + abs(1.0 / du + 1.0 / dd - 2.0 * w)) / w;
+          // solo siluetas: además del cambio de pendiente tiene que haber un salto real de profundidad
+          // (así no salen rayas en pegatinas, pasos de cebra, suelos en ángulo rasante, etc.)
+          float jump = max(max(abs(dl - d), abs(dr - d)), max(abs(du - d), abs(dd - d)));
+          float sil = smoothstep(0.25 + d * 0.03, 0.6 + d * 0.06, jump);
+          float edge = smoothstep(0.06, 0.14, e) * sil * (1.0 - smoothstep(30.0, 60.0, d)) * inkOn;
           vec4 mk = texture2D(tMask, vUv);
           // contorno rojo: píxel fuera del enemigo con un vecino dentro
           vec2 o = px * ow;
@@ -85,7 +89,7 @@ export class Outline {
           n = max(n, texture2D(tMask, vUv - o * 0.7).r);
           n = max(n, texture2D(tMask, vUv + vec2(o.x, -o.y) * 0.7).r);
           n = max(n, texture2D(tMask, vUv + vec2(-o.x, o.y) * 0.7).r);
-          float redE = n * (1.0 - mk.r);
+          float redE = n * (1.0 - mk.r) * redOn;
           // fondo lejano con menos color (el cielo y lo marcado se respeta)
           float sky = step(0.99999, raw);
           float keep = max(mk.r, mk.g);
@@ -119,6 +123,7 @@ export class Outline {
     U.near.value = camera.near;
     U.far.value = camera.far;
     U.inkOn.value = this.enabled ? 1 : 0;
+    U.redOn.value = this.red ? 1 : 0;
     R.setRenderTarget(this.rt);
     R.render(scene, camera);
     // máscara: enemigos en rojo, lo importante en verde, contra la profundidad ya pintada

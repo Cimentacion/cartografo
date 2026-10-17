@@ -27,16 +27,22 @@ export class Road {
     b.start = this.planEnd; b.pos = 0;
     this.planEnd += b.len || 0;
     this.queue.push(b);
-    if (b.type === 'tunnel') this.tunnels.push({ start: b.start, end: b.start + b.len, fork: b.fork });
+    if (b.type === 'tunnel' || b.type === 'interior') this.tunnels.push({ start: b.start, end: b.start + b.len, fork: b.fork, interior: b.type === 'interior' });
     return b;
   }
   // zd = dificultad de la zona (el número que sale en el cartel)
   _queueSection(bio, zd) {
     const k = this.forks.length;
-    this._q({ type: 'section', len: SECTION, bio, zd, sub: null });
+    const secStart = this.planEnd;
+    if (BIOMES[BIOME_KEYS[bio]].deco === 'chino') {
+      // barrio chino: a mitad de camino se entra en un restaurante
+      this._q({ type: 'section', len: 300, bio, zd, sub: null });
+      this._q({ type: 'interior', len: 100, bio, zd, fork: -2 });
+      this._q({ type: 'section', len: SECTION - 400, bio, zd, sub: null });
+    } else this._q({ type: 'section', len: SECTION, bio, zd, sub: null });
     this._q({ type: 'approach', len: APPROACH, bio, zd });
     const tn = this._q({ type: 'tunnel', len: TUN, fork: k, bio, zd });
-    this.forks.push({ k, gantry: tn.start - 40, tStart: tn.start, tEnd: tn.start + TUN, choice: null, from: bio, zd: null, secStart: this.planEnd - TUN - APPROACH - SECTION });
+    this.forks.push({ k, gantry: tn.start - 40, tStart: tn.start, tEnd: tn.start + TUN, choice: null, from: bio, zd: null, secStart, bio });
     this._q({ type: 'wait', len: 0, fork: k });
   }
   setChoice(k, bio, zd = 1) {
@@ -77,7 +83,7 @@ export class Road {
         // acantilados: primero se sube por la ladera y luego se va cayendo en picado hacia el mar
         slopeT = b.pos < b.len * 0.28 ? (this.y[this.len] < 85 ? 0.07 : 0) : (this.y[this.len] > 12 ? -0.085 : 0);
       } else if (BB.slope < 0 && this.y[this.len] < 16) slopeT = 0;
-    } else if (b.type === 'tunnel') {
+    } else if (b.type === 'tunnel' || b.type === 'interior') {
       if (b.kmax == null) { const r = rng(hash(this.seed, b.fork + 7, 99)); b.kmax = (r() - 0.5) * 0.008; }
       k = b.kmax * Math.sin(Math.PI * (b.pos + 0.5) / b.len);
     }
@@ -89,7 +95,7 @@ export class Road {
     this.z.push(this.z[i] - Math.cos(yaw));
     this.y.push(Math.max(6, this.y[i] + c.slope));
     this.yaw.push(yaw);
-    this.kind.push(b.type === 'tunnel' ? 1 : b.type === 'approach' ? 2 : 0);
+    this.kind.push(b.type === 'tunnel' ? 1 : b.type === 'approach' ? 2 : b.type === 'interior' ? 3 : 0);
     this.bio.push(b.bio);
     this.zd.push(b.zd || 1);
     this._addGrid(i + 1);
@@ -196,6 +202,27 @@ export class Road {
   }
   kindAt(d) { const i = clamp(Math.floor(d), 0, this.len); return this.kind[i]; }
   bioAt(d) { const i = clamp(Math.floor(d), 0, this.len); return this.bio[i]; }
+  // en qué tramo estamos y cuánto llevamos (0..1) de la zona
+  zoneAt(d) {
+    for (let i = this.forks.length - 1; i >= 0; i--) {
+      const f = this.forks[i];
+      if (d >= f.secStart) return { f, k: i, prog: (d - f.secStart) / SECTION };
+    }
+    return { f: null, k: -1, prog: 0 };
+  }
+  // charcos de barro (iguales en todos los móviles)
+  mudAt(d) {
+    const i = clamp(Math.floor(d), 0, this.len);
+    if (this.kind[i] !== 0 || BIOMES[BIOME_KEYS[this.bio[i]]].deco !== 'barro') return false;
+    const c = Math.floor(d / 34);
+    return hash(this.seed, c, 55) % 5 < 2 && d - c * 34 < 15;
+  }
+  // semáforos de la zona de semáforos
+  lights(f) {
+    const L = [];
+    for (let x = f.secStart + 90; x < f.gantry - 200; x += 150) L.push(x);
+    return L;
+  }
   zdAt(d) { const i = clamp(Math.floor(d), 0, this.len); return this.zd[i] || 1; }
   inTunnel(d) { for (const t of this.tunnels) if (d >= t.start - 4 && d <= t.end + 4) return true; return false; }
 }

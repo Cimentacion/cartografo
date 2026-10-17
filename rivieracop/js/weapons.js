@@ -17,6 +17,8 @@ const BASE = {
   minigun:  { name: 'Minigun', model: 'mg', mag: 60, dmg: 1, rate: 16, auto: true, reload: 2.6, pellets: 1, spread: 0.022, rare: true },
   plasma:   { name: 'Rifle de plasma', model: 'rifle', mag: 10, dmg: 5, rate: 2.6, auto: false, reload: 1.5, pellets: 1, spread: 0, pierce: true, rare: true },
   doble:    { name: 'Escopeta doble', model: 'shotgun', mag: 2, dmg: 2, rate: 3, auto: false, reload: 1.3, pellets: 9, spread: 0.06, rare: true },
+  // pistola de rayos: láser explosivo con un solo cargador; cuando se gasta, vuelves a la pistola
+  rayo:     { name: 'Pistola de rayos', model: 'ray', mag: 16, dmg: 6, rate: 3, auto: false, reload: 0.1, pellets: 1, spread: 0, boom: 3.2, once: true, rare: true },
   cohetes:  { name: 'Lanzacohetes', model: 'launcher', mag: 4, dmg: 12, rate: 1.4, auto: false, reload: 2.4, pellets: 1, spread: 0, boom: 6, rare: true },
 };
 
@@ -36,14 +38,14 @@ export function rollWeapon(r, tier, zd = 1, luck = 0) {
   const pool = ['pesada', 'revolver', 'subfusil', 'ametra', 'ametra', 'escopeta', 'rifle', 'magnum', 'lanza', 'pesada'];
   // en zonas difíciles aparecen armas raras
   const rareP = Math.max(0, (zd - 3) * 0.12) + luck * 0.05;
-  const id = r() < rareP ? pick(r, ['minigun', 'plasma', 'doble', 'cohetes']) : pick(r, pool);
+  const id = r() < 0.07 + luck * 0.01 ? 'rayo' : r() < rareP ? pick(r, ['minigun', 'plasma', 'doble', 'cohetes', 'rayo']) : pick(r, pool);
   const b = BASE[id];
   const x = r() + tier * 0.12 + (zd - 1) * 0.06 + luck * 0.05;
   const rar = x > 1.05 ? 3 : x > 0.85 ? 2 : x > 0.55 ? 1 : 0;
   const w = Object.assign({ id, rar }, b);
   // variación aleatoria + mejora por rareza
   const jit = () => 0.85 + r() * 0.35;
-  w.mag = Math.max(1, Math.round(b.mag * jit() * (1 + 0.25 * rar)));
+  w.mag = b.once ? b.mag + rar * 4 : Math.max(1, Math.round(b.mag * jit() * (1 + 0.25 * rar)));
   w.dmg = Math.max(1, Math.round(b.dmg * (0.9 + r() * 0.3)) + (rar >= 2 ? 1 : 0) + (rar >= 3 ? 1 : 0));
   w.rate = Math.round(b.rate * (1 + 0.1 * rar) * (0.9 + r() * 0.2) * 10) / 10;
   w.reload = Math.round(b.reload * (1 - 0.1 * rar) * (0.9 + r() * 0.2) * 10) / 10;
@@ -61,6 +63,7 @@ export function weaponLines(w) {
   ];
   if (w.boom) L.push(['EXPLOSIVA', 'SÍ']);
   if (w.pierce) L.push(['PERFORA', 'SÍ']);
+  if (w.once) L.push(['RECARGA', 'NO (se gasta)']);
   return L;
 }
 
