@@ -4,7 +4,9 @@
 //   2) Trystero sobre Nostr (muchos relés públicos)
 //   3) Trystero sobre trackers de WebTorrent
 // Quien crea la sala hace de anfitrión.
-import { joinNostr, joinTorrent } from '../lib/trystero.js';
+// Trystero se carga aparte: si falla en algún navegador, el juego sigue funcionando con PeerJS
+let TR = null;
+const trReady = import('../lib/trystero.js').then(m => { TR = m; }).catch(e => console.warn('trystero no carga', e));
 
 const PREFIX = 'rivieracop-cimentacion-';
 const APP = 'rivieracop-cimentacion-v1';
@@ -46,7 +48,8 @@ export class Net {
   // --- vías de Trystero (nostr + torrent) ---
   startRooms(code, onPeer) {
     if (NO_TRYSTERO) return;
-    for (const [name, join] of [['nostr', joinNostr], ['torrent', joinTorrent]]) {
+    if (!TR) { trReady.then(() => { if (TR && this.peer !== undefined && !this.closed) this.startRooms(code, onPeer); }); return; }
+    for (const [name, join] of [['nostr', TR.joinNostr], ['torrent', TR.joinTorrent]]) {
       try {
         const cfg = { appId: APP };
         const trk = new URLSearchParams(location.search).get('trk'); // TODO-TESTEO: tracker local
@@ -96,7 +99,7 @@ export class Net {
   lost() { this.link = null; this.onclose && this.onclose(); }
 
   host(code) {
-    this.isHost = true;
+    this.isHost = true; this.closed = false;
     // Trystero: el anfitrión acepta al primero que entre
     this.startRooms(code, () => { });
     return new Promise(res => {
@@ -121,7 +124,7 @@ export class Net {
   }
 
   join(code) {
-    this.isHost = false;
+    this.isHost = false; this.closed = false;
     return new Promise((res, rej) => {
       let done = false;
       const win = () => { if (!done) { done = true; this.greet(); res(); } };
@@ -143,6 +146,7 @@ export class Net {
 
   send(o) { if (this.link) this.link.send(o); }
   close() {
+    this.closed = true;
     const L = this.link;
     this.link = null;
     try { if (L && L.c) L.c.close(); } catch (e) { }
