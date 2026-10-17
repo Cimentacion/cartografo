@@ -54,3 +54,5 @@ export function weaponLines(w) {
   if (w.boom) L.push(['EXPLOSIVA', 'SÍ']);
   return L;
 }
+
+export const WEAPON_NAMES = Object.fromEntries(Object.entries(BASE).map(([k, v]) => [k, v.name]));

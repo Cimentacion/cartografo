@@ -4,6 +4,7 @@ import { TI, ST, BIOMES, BIOME_KEYS, BONUSES, PNAME } from './defs.js';
 import { rollWeapon } from './weapons.js';
 import { LANE_ME, LANE_OT, WALK } from './road.js';
 import { rng, hash, clamp, lerp, pick, r2 } from './util.js';
+import { SPEEDS, shieldDur, bulletDur } from './progress.js';
 
 export const SPEED = 14;
 export const SEAT_LAT = [LANE_ME - 0.45, LANE_ME + 0.45];
@@ -14,13 +15,21 @@ const OFFH = { gunman: 1.5, sniper: 1.5, moto: 1.6, ecar: 1.6, heli: -0.4, drone
 const PTS = { gunman: 100, sniper: 200, moto: 150, ecar: 300, heli: 1000, drone: 150, jeep: 1500, grenade: 60, rocket: 80, chicken: 50, amb: 200, barrel: 50 };
 
 export class Sim {
-  constructor(road, n, seed) {
+  constructor(road, n, seed, opts = {}) {
     this.road = road; this.n = n; this.seed = seed >>> 0;
     this.r = rng(this.seed ^ 0x5a5a1234);
     this.t = 0; this.runT = 0; this.phase = 'count'; this.countT = 3.5;
     this.carD = 8; this.speed = 0;
     this.players = [];
-    for (let i = 0; i < n; i++) this.players.push({ hp: 3, alive: true, score: 0, inv: 0, ly: 0, lp: 0, kills: 0, gone: false });
+    // vida en cuartos de corazón: 4 = un corazón
+    const metas = opts.metas || [];
+    for (let i = 0; i < n; i++) {
+      const m = metas[i] || {};
+      const maxHp = (3 + clamp(m.vida | 0, 0, 3)) * 4;
+      this.players.push({ hp: maxHp, maxHp, def: clamp(m.def | 0, 0, 4), shieldT: 0, alive: true, score: 0, inv: 0, ly: 0, lp: 0, kills: 0, gone: false });
+    }
+    const sp = SPEEDS[clamp(opts.speed | 0, 0, SPEEDS.length - 1)];
+    this.v0 = sp.v; this.spMult = sp.mult; this.slowT = 0;
     this.ents = []; this.map = new Map(); this.nid = 1; this.events = [];
     this.waveT = 3; this.civT = 5; this.ambT = 75; this.terrT = 150; this.lastAmb = -99;
     this.forkDone = -1; this.signsFor = -1; this.voting = false;
@@ -42,7 +51,7 @@ export class Sim {
     const fm = base * this.fireScale();
     return { alive: true, fireMax: fm, fireT: fm + delay, tgt: this.pickTgt(), on: false, r: 0, kind };
   }
-  ptsMult() { return BIOMES[BIOME_KEYS[this.road.bioAt(this.carD)]].pts * (this.bonus.pts ? 1.5 : 1); }
+  ptsMult() { return BIOMES[BIOME_KEYS[this.road.bioAt(this.carD)]].pts * (this.bonus.pts ? 1.5 : 1) * this.spMult * Math.max(1, this.speed / this.v0); }
   wMult(k) { return (BIOMES[BIOME_KEYS[this.road.bioAt(this.carD + 60)]].w[k] ?? 1) * (k === 'truck' && this.bonus.chick ? 3 : 1); }
   hostileCount() { let n = 0; for (const e of this.ents) if ((e.st === ST.ALIVE || e.st === ST.HIDDEN) && e.sh.some(s => s.alive)) n++; return n; }
   has(type) { return this.ents.some(e => e.type === type && e.st !== ST.DEAD); }
@@ -62,20 +71,25 @@ export class Sim {
       if (this.countT <= 0) { this.phase = 'run'; this.emit('go'); }
     } else {
       this.runT += dt;
-      this.speed = Math.min(SPEED, this.speed + 10 * dt);
+      // la velocidad sube con la distancia (hasta casi el doble)
+      const tgt = this.v0 * Math.min(1.9, 1 + 0.12 * (this.carD / 1000));
+      this.speed = Math.min(tgt, this.speed + 6 * dt);
     }
-    this.carD += this.speed * dt;
+    // tiempo bala: el mundo va al 35% (los jugadores disparan a velocidad normal)
+    const wd = this.slowT > 0 ? dt * 0.35 : dt;
+    if (this.slowT > 0) this.slowT -= dt;
+    this.carD += this.speed * wd;
     this.road.extend(this.carD + 340);
     this.diff = Math.min(5, 1 + this.runT / 180);
-    for (const p of this.players) if (p.inv > 0) p.inv -= dt;
+    for (const p of this.players) { if (p.inv > 0) p.inv -= dt; if (p.shieldT > 0) p.shieldT -= dt; }
     this.charging = [0, 0];
-    if (this.phase === 'run') { this.director(dt); this.forks(); }
+    if (this.phase === 'run') { this.director(wd); this.forks(); }
     for (const e of this.ents) {
-      e.age += dt;
-      if (e.st === ST.DEAD) e.deadT += dt;
+      e.age += wd;
+      if (e.st === ST.DEAD) e.deadT += wd;
       const u = U[e.type];
-      if (u) u(e, dt, this);
-      if (e.type !== 'grenade' && e.type !== 'rocket') e.d += e.vd * dt;
+      if (u) u(e, wd, this);
+      if (e.type !== 'grenade' && e.type !== 'rocket') e.d += e.vd * wd;
     }
     if (this.ents.some(e => e.rm)) {
       this.ents = this.ents.filter(e => { if (e.rm) this.map.delete(e.id); return !e.rm; });
@@ -113,10 +127,19 @@ export class Sim {
       if (hit) this.hurt(s.tgt);
     } else this.projectile(s.kind, e, s.tgt);
   }
-  hurt(pi) {
+  // daño del enemigo: sube con el tiempo de partida (en cuartos de corazón)
+  enemyDmg(extra = 0) { return Math.min(8, 4 + Math.floor(this.runT / 120)) + extra; }
+  useAbility(pi, k, lv) {
+    const P = this.players[pi];
+    if (!P || !P.alive) return;
+    if (k === 'shield') { P.shieldT = shieldDur(lv); this.emit('ability', { p: pi, a: 'shield', dur: P.shieldT }); }
+    if (k === 'bullet') { this.slowT = Math.max(this.slowT, bulletDur(lv)); this.emit('ability', { p: pi, a: 'bullet', dur: this.slowT }); }
+  }
+  hurt(pi, extra = 0) {
     const P = this.players[pi];
     if (!P.alive || P.inv > 0 || this.god) return; // god: TODO-TESTEO
-    P.hp--; P.inv = 2.2;
+    if (P.shieldT > 0) { this.emit('block', { p: pi }); return; }
+    P.hp -= Math.max(1, this.enemyDmg(extra) - P.def); P.inv = 2.2;
     this.emit('hurt', { p: pi, hp: P.hp });
     for (const e of this.ents) for (const s of e.sh) if (s.tgt === pi && s.kind !== 'impact') s.fireT = Math.max(s.fireT, 1.8);
     if (P.hp <= 0) {
@@ -213,7 +236,7 @@ export class Sim {
       else if (k === 'civcar' && this.laneFree(-30, 200)) this.spawnCivCar();
       else if (k === 'civ') this.spawnCivilians();
     }
-    const needy = this.players.some(p => !p.gone && p.hp <= 1);
+    const needy = this.players.some(p => !p.gone && p.hp <= 4);
     if (needy && this.ambT > 22 && this.runT - this.lastAmb > 40 && !this.has('amb') && !this.has('medkit')) this.ambT = 22;
     this.ambT -= dt;
     if (this.ambT <= 0) {
@@ -259,23 +282,26 @@ export class Sim {
       case 'barrels': this.spawnBarrels(); break;
     }
   }
+  // a más velocidad, los enemigos aparecen más lejos para que dé tiempo a reaccionar
+  spk() { return Math.max(1, (this.speed || this.v0) / 11); }
   sideLat(d, side) { return side * (this.road.kindAt(d) === 1 ? 6.6 : WALK - 0.9); }
   spawnGunmen(n, withCover, gren) {
     const r = this.r;
-    const base = this.carD + 58 + r() * 25;
+    const kk = this.spk();
+    const base = this.carD + (58 + r() * 25) * kk;
     const side0 = r() < 0.5 ? -1 : 1;
     for (let i = 0; i < n; i++) {
       const d = base + i * (5 + r() * 6);
       const side = i % 2 ? -side0 : side0;
       const e = this.add('gunman', { d, lat: this.sideLat(d, side), h: 0.18, hp: 2 + (this.diff > 3 ? 1 : 0), st: ST.HIDDEN });
-      e.x = { cv: withCover ? Math.floor(r() * 3) : -1, gr: gren ? 1 : 0, pop: 30 + r() * 38, sk: Math.floor(r() * 6) };
+      e.x = { cv: withCover ? Math.floor(r() * 3) : -1, gr: gren ? 1 : 0, pop: (30 + r() * 38) * kk, sk: Math.floor(r() * 6) };
       e.sh = [gren ? this.shooter(3.6, 'grenade', 0.3) : this.shooter(3.0 + r() * 0.8, 'shot', i * 0.5)];
     }
     if (r() < 0.3) this.spawnCivilians(1, base + 6);
   }
   spawnSniper() {
     const r = this.r, side = r() < 0.5 ? -1 : 1;
-    const d = this.carD + 120 + r() * 30;
+    const d = this.carD + (120 + r() * 30) * this.spk();
     const e = this.add('sniper', { d, lat: side * (13 + r() * 2), h: 7 + r() * 4, hp: 2 });
     e.sh = [this.shooter(3.6, 'shot')];
   }
@@ -293,32 +319,32 @@ export class Sim {
   spawnMoto(i) {
     const r = this.r;
     const lane = pick(r, [LANE_OT - 0.5, -1, LANE_OT + 1, 5.4]);
-    const e = this.add('moto', { d: this.carD - 30 - i * 8, lat: lane, h: 0, hp: 3, vd: SPEED + 9 });
+    const e = this.add('moto', { d: this.carD - 30 - i * 8, lat: lane, h: 0, hp: 3, vd: this.speed + 9 });
     e.x = { ph: 0, hd: 1 + r() * 9, ht: 7 + r() * 4, ln: lane };
     e.sh = [this.shooter(2.9 + r() * 0.6, 'shot', 0.6)];
   }
   spawnECar() {
     const r = this.r;
-    const e = this.add('ecar', { d: this.carD - 32, lat: LANE_OT, h: 0, hp: 14 + Math.floor(this.diff * 2), vd: SPEED + 10 });
+    const e = this.add('ecar', { d: this.carD - 32, lat: LANE_OT, h: 0, hp: 14 + Math.floor(this.diff * 2), vd: this.speed + 10 });
     e.x = { ph: 0, hd: -1 + r() * 6, ht: 10 + r() * 4, g: [2, 2], gd: [0, 0] };
     e.sh = [this.shooter(3.0, 'shot', 0.5), this.shooter(3.4, 'shot', 1.6)];
   }
   spawnDrone(i) {
     const r = this.r;
-    const e = this.add('drone', { d: this.carD + 70 + i * 6, lat: (r() - 0.5) * 12, h: 9, hp: 2, vd: SPEED });
+    const e = this.add('drone', { d: this.carD + 70 + i * 6, lat: (r() - 0.5) * 12, h: 9, hp: 2, vd: this.speed });
     e.x = { rd: 8 + r() * 10, lt: (r() - 0.5) * 10, ph: r() * 6, life: 20 + r() * 6 };
     e.sh = [this.shooter(3.0 + r() * 0.8, 'shot', 1 + i * 0.7)];
   }
   spawnHeli() {
     const r = this.r, side = r() < 0.5 ? -1 : 1;
-    const e = this.add('heli', { d: this.carD + 160, lat: side * 20, h: 34, hp: 26 + Math.floor(this.diff * 6), vd: SPEED });
+    const e = this.add('heli', { d: this.carD + 160, lat: side * 20, h: 34, hp: 26 + Math.floor(this.diff * 6), vd: this.speed });
     e.x = { side, life: 38 };
     e.sh = [this.shooter(2.8, 'shot', 2), this.shooter(5.5, 'rocket', 3)];
     this.emit('banner', { txt: '¡HELICÓPTERO!', sub: '', c: '#ffb020' });
   }
   spawnBarrels() {
     const r = this.r, side = r() < 0.5 ? -1 : 1;
-    const d = this.carD + 65 + r() * 15;
+    const d = this.carD + (65 + r() * 15) * this.spk();
     for (let i = 0; i < 2; i++) this.add('barrel', { d: d + i * 1.1, lat: this.sideLat(d, side) + (i ? 0.5 : -0.3), h: 0.18, hp: 1 });
     const n = 2 + (r() < 0.5 ? 1 : 0);
     for (let i = 0; i < n; i++) {
@@ -329,7 +355,7 @@ export class Sim {
     }
   }
   spawnTruck() {
-    const e = this.add('truck', { d: this.carD + 80, lat: LANE_OT, h: 0, hp: 999, vd: SPEED - 6.5 });
+    const e = this.add('truck', { d: this.carD + 80, lat: LANE_OT, h: 0, hp: 999, vd: this.speed * 0.55 });
     e.x = { ch: 0 };
   }
   spawnCivCar() {
@@ -337,12 +363,12 @@ export class Sim {
     e.x = { c: Math.floor(this.r() * 6), pc: 0 };
   }
   spawnAmb() {
-    const e = this.add('amb', { d: this.carD - 40, lat: LANE_OT, h: 0, hp: 22, vd: SPEED + 8 });
+    const e = this.add('amb', { d: this.carD - 40, lat: LANE_OT, h: 0, hp: 22, vd: this.speed + 8 });
     e.x = { ph: 0, hd: 5, ht: 16 };
     this.emit('banner', { txt: '¡AMBULANCIA!', sub: 'Revienta la ambulancia para sacar vida', c: '#40ff80' });
   }
   spawnJeep() {
-    const e = this.add('jeep', { d: this.carD - 40, lat: LANE_OT, h: 0, hp: 18 + Math.floor(this.diff * 4), vd: SPEED + 9 });
+    const e = this.add('jeep', { d: this.carD - 40, lat: LANE_OT, h: 0, hp: 18 + Math.floor(this.diff * 4), vd: this.speed + 9 });
     e.x = { ph: 0, hd: 2.5, ht: 45 };
     e.sh = [this.shooter(2.0, 'shot', 0.8), this.shooter(6, 'grenade', 3)];
     this.emit('banner', { txt: '¡TERRORISTA!', sub: 'Mátalo y soltará un arma', c: '#ff3030' });
@@ -392,7 +418,8 @@ export class Sim {
     return {
       t: 's', st: r2(this.t), d: r2(this.carD), sp: r2(this.speed), cd: this.phase === 'count' ? r2(this.countT) : -1,
       e: this.ents.map(ser),
-      p: this.players.map(P => [P.hp, P.score, P.alive ? 1 : 0, P.inv > 0 ? 1 : 0, r2(P.ly), r2(P.lp), P.gone ? 1 : 0]),
+      p: this.players.map(P => [P.hp, P.score, P.alive ? 1 : 0, P.inv > 0 ? 1 : 0, r2(P.ly), r2(P.lp), P.gone ? 1 : 0, P.maxHp, P.shieldT > 0 ? 1 : 0]),
+      sl: this.slowT > 0 ? 1 : 0, mu: r2(this.ptsMult()),
     };
   }
 }
@@ -572,7 +599,7 @@ function proj(e, dt, S) {
   if (u >= 1) {
     e.rm = true;
     S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, e.h), s: 0.6 });
-    if (x.tgt >= 0) S.hurt(x.tgt);
+    if (x.tgt >= 0) S.hurt(x.tgt, 2);
   }
 }
 
@@ -642,12 +669,12 @@ const HIT = {
     const dead = S.players.findIndex(P => !P.alive && !P.gone);
     if (dead >= 0) {
       const P = S.players[dead];
-      P.alive = true; P.hp = 1; P.inv = 2;
+      P.alive = true; P.hp = 4; P.inv = 2;
       S.emit('heal', { p: dead, hp: 1, rev: 1, by: p });
       S.emit('banner', { txt: `¡${PNAME[dead]} REVIVE!`, sub: '', c: '#40ff80' });
     } else {
       const P = S.players[p];
-      if (P.hp < 3) { P.hp++; S.emit('heal', { p, hp: P.hp }); S.addPts(p, 0, e, '+1 VIDA', '#40ff80'); }
+      if (P.hp < P.maxHp) { P.hp = Math.min(P.maxHp, P.hp + 4); S.emit('heal', { p, hp: P.hp }); S.addPts(p, 0, e, '+1 VIDA', '#40ff80'); }
       else S.addPts(p, 500, e, '+500', '#40ff80');
     }
     S.emit('fx', { f: 'heal', w: S.wpos(e.d, e.lat, e.h) });

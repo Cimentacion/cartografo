@@ -7,12 +7,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <title>Riviera Cop</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Russo+One&family=Chakra+Petch:wght@500;700&display=swap" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Russo+One&family=Chakra+Petch:wght@500;700&family=Press+Start+2P&display=swap" media="print" onload="this.media='all'">
 <style>
 :root{
   --ink:#f5f1e6; --dim:#a7a9b4; --bg:#0b0d14; --panel:rgba(8,10,18,.72); --gold:#ffe14a; --red:#ff3a3a;
   --p1:#3fa9ff; --p2:#ff4f5e;
-  --f-title:'Russo One',Impact,'Arial Black',sans-serif; --f-ui:'Chakra Petch',system-ui,sans-serif;
+  --f-title:'Russo One',Impact,'Arial Black',sans-serif; --f-ui:'Chakra Petch',system-ui,sans-serif; --f-px:'Press Start 2P','Courier New',monospace;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -144,6 +144,64 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
 .sw button.sel{border-color:var(--gold);transform:scale(1.15)}
 .ch button{font:12px var(--f-title);padding:6px 9px;border-radius:5px;background:#2a2d38;color:var(--ink)}
 .ch button.sel{background:var(--gold);color:#111}
+/* ======== HUD retro (recreativa de los 90) ======== */
+#hudwrap::after{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(0,0,0,.10) 0 1px,rgba(0,0,0,0) 1px 3px)}
+.pbox{background:#0c0a18;border:3px solid currentColor;border-radius:0;box-shadow:0 0 0 2px #000,5px 5px 0 rgba(0,0,0,.55);padding:7px 10px 8px;min-width:140px}
+.pn{font:9px var(--f-px);letter-spacing:.05em;margin-bottom:5px}
+.pst{color:#fff}
+.hearts{display:flex;gap:4px;line-height:0}
+#p1 .hearts{justify-content:flex-end}
+.ht{display:block;width:18px;height:16px;background:linear-gradient(90deg,#ff2d4a var(--f),#2b2238 var(--f));
+  -webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 8' shape-rendering='crispEdges'><path d='M1 0h2v1h1v1h1V1h1V0h2v1h1v3H8v1H7v1H6v1H5v1H4V7H3V6H2V5H1V4H0V1h1z'/></svg>") center/contain no-repeat;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 8' shape-rendering='crispEdges'><path d='M1 0h2v1h1v1h1V1h1V0h2v1h1v3H8v1H7v1H6v1H5v1H4V7H3V6H2V5H1V4H0V1h1z'/></svg>") center/contain no-repeat;filter:drop-shadow(0 0 3px rgba(255,45,74,.5))}
+.sc{font:15px var(--f-px);color:#ffe14a;text-shadow:2px 2px 0 #b3361c,4px 4px 0 #000;margin-top:7px;letter-spacing:.02em}
+#route{font:10px var(--f-px);background:#0c0a18;border:2px solid #fff;border-radius:0;box-shadow:3px 3px 0 #000;padding:8px 10px}
+#route small{font:8px var(--f-px)}
+#mult{font:8px var(--f-px);color:#7dffd2;background:#0c0a18;border:2px solid #7dffd2;padding:6px 7px;box-shadow:3px 3px 0 #000;white-space:nowrap}
+.mini{font:9px var(--f-px);border-radius:0;border:2px solid rgba(255,255,255,.6);box-shadow:3px 3px 0 #000;background:#0c0a18}
+#wep{background:#0c0a18;border:3px solid #ffe14a;border-radius:0;box-shadow:0 0 0 2px #000,5px 5px 0 rgba(0,0,0,.55)}
+.wn{font:10px var(--f-px);text-shadow:2px 2px 0 #000}
+.wlv{font:8px var(--f-px);color:#7dff8a;display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:5px}
+.xpb{display:inline-block;width:70px;height:6px;background:#2b2238;border:1px solid #7dff8a}
+.xpb i{display:block;height:100%;background:#7dff8a}
+.pips i{border-radius:0;width:6px;height:14px;box-shadow:inset -2px -2px 0 rgba(0,0,0,.3)}
+.rlmsg{font:9px var(--f-px)}
+#btnReload,#btnFire,#btnShield,#btnBullet{font-family:var(--f-px)!important;font-size:9px!important;letter-spacing:0}
+#btnFire{font-size:12px!important}
+#banner b{font:clamp(18px,4.2vw,34px) var(--f-px);font-style:normal;text-transform:uppercase;text-shadow:3px 3px 0 #000,-1px -1px 0 #000,6px 6px 0 rgba(0,0,0,.4);letter-spacing:.02em}
+#banner span{font:9px/1.6 var(--f-px);background:#0c0a18;border:2px solid currentColor;border-radius:0}
+#countN{font-family:var(--f-px);font-size:clamp(50px,13vw,110px);text-shadow:6px 6px 0 #b3361c,10px 10px 0 #000}
+.ability{position:absolute;width:64px;height:64px;border-radius:50%;pointer-events:auto;color:#fff;border:0;
+  background:conic-gradient(var(--c) var(--p,100%),#20202c 0);box-shadow:0 0 0 3px #000,4px 4px 0 rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.3}
+.ability span{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;background:#0c0a18}
+.ability.ready{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 3px #000,0 0 16px var(--c)}}
+#btnShield{--c:#5ae0ff;right:max(150px,calc(env(safe-area-inset-right) + 140px));bottom:132px}
+#btnBullet{--c:#c48cff;right:max(228px,calc(env(safe-area-inset-right) + 218px));bottom:132px}
+#slowfx,#shieldfx{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .25s}
+#slowfx{background:radial-gradient(ellipse at center,rgba(120,60,255,0) 40%,rgba(120,60,255,.45) 100%)}
+#shieldfx{box-shadow:inset 0 0 0 6px rgba(90,224,255,.8),inset 0 0 60px rgba(90,224,255,.6)}
+body.slowmo #slowfx{opacity:1}
+body.shielded #shieldfx{opacity:1}
+.ocoin{font:12px var(--f-px);color:#ffe14a;margin:10px 0 4px;text-shadow:2px 2px 0 #000}
+/* tienda */
+.shop{width:min(900px,100%);background:rgba(6,8,14,.88);padding:14px;border:3px solid #ffe14a;box-shadow:0 0 0 2px #000,6px 6px 0 rgba(0,0,0,.5);text-align:left}
+.shop h2{font:16px var(--f-px);color:#ffe14a;margin:0 0 4px;text-shadow:2px 2px 0 #b3361c}
+.coins{font:11px var(--f-px);color:#fff;margin-bottom:10px}
+.ulist{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.upg{background:#141226;border:2px solid #3a3456;padding:8px;display:flex;flex-direction:column;gap:5px}
+.upg b{font:9px var(--f-px);color:#fff}
+.upg p{margin:0;font:600 12px/1.3 var(--f-ui);color:#b8b4d0}
+.lvpips{display:flex;gap:3px}
+.lvpips i{width:14px;height:8px;background:#2b2238}
+.lvpips i.on{background:#7dff8a}
+.upg button{align-self:flex-start;font:9px var(--f-px);padding:7px 9px;background:#ffe14a;color:#111;box-shadow:3px 3px 0 #000}
+.upg button:disabled{background:#3a3a44;color:#888}
+.wlist{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.wl{font:8px var(--f-px);background:#141226;border:2px solid #3a3456;padding:6px 8px;color:#ddd}
+.wl em{font-style:normal;color:#7dff8a}
+#spd button{font:13px var(--f-title);padding:7px 10px;border-radius:5px;background:#2a2d38;color:var(--ink)}
+#spd button.sel{background:var(--gold);color:#111}
+.big.alt4{background:#7dff8a;box-shadow:0 4px 0 #2a7a3a}
 #err{position:absolute;left:0;right:0;bottom:0;background:#a00;color:#fff;font:12px monospace;padding:6px;z-index:30;pointer-events:none}
 </style>
 <script type="importmap">{ "imports": { "three": "./lib/three.module.js" } }</script>
@@ -161,6 +219,7 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
     <div id="topc" class="ui">
       <button id="btnQuit" class="mini" aria-label="Salir">✕</button>
       <div id="route"></div>
+      <div id="mult"></div>
       <button id="btnCal" class="mini">⊕ CENTRAR</button>
     </div>
     <div id="wep"></div>
@@ -168,6 +227,9 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
     <div id="joyZone" class="ui"><div id="joy"><i id="joyK"></i></div></div>
     <button id="btnReload" class="ui">RECARGAR</button>
     <button id="btnFire" class="ui" hidden>FUEGO</button>
+    <button id="btnShield" class="ui ability" hidden><span>ESCU<br>DO</span></button>
+    <button id="btnBullet" class="ui ability" hidden><span>TIEMPO<br>BALA</span></button>
+    <div id="slowfx"></div><div id="shieldfx"></div>
     <div id="banner"><b></b><span></span></div>
     <div id="count" hidden><div id="countN">3</div><p>Pon el móvil en horizontal</p><p id="gyroSt2"></p></div>
     <div id="dead" hidden>ESTÁS FUERA<small>Tu compañero puede revivirte con un botiquín</small></div>
@@ -182,8 +244,10 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
         <button id="btnHost" class="big alt">CREAR SALA</button>
         <button id="btnJoin" class="big alt2">UNIRSE</button>
         <button id="btnChar" class="big alt3">PERSONAJE</button>
+        <button id="btnShop" class="big alt4">MEJORAS</button>
       </div>
       <div class="row"><span class="lbl">SENSIBILIDAD GIROSCOPIO</span><span id="sens"><button>1</button> <button>1.5</button> <button>2</button> <button>2.6</button></span></div>
+      <div class="row"><span class="lbl">VELOCIDAD INICIAL</span><span id="spd"></span></div>
       <div class="row"><span class="lbl">APUNTAR CON</span><span id="ctl"><button data-m="joy">JOYSTICK</button> <button data-m="gyro">GIROSCOPIO</button> <button data-m="dedo">DEDO</button></span> <button id="btnDiag" class="mini">PROBAR GIROSCOPIO</button> <button id="btnOutline" class="mini">CONTORNO: SÍ</button></div>
       <div id="gyroSt" class="lbl"></div>
       <div id="best"></div>
@@ -211,6 +275,17 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
         <div class="erow"><span>Extras</span><div class="ch"><button id="edGlasses">Gafas</button> <button id="edChair">Silla de ruedas</button></div></div>
         <div class="btns" style="justify-content:flex-start;margin-top:8px"><button id="edOk" class="big">LISTO</button></div>
       </div>
+    </div>
+  </div>
+
+  <div id="shop" class="screen" hidden>
+    <div class="card shop">
+      <h2>MEJORAS</h2>
+      <div class="coins" id="shopCoins"></div>
+      <div class="ulist" id="shopList"></div>
+      <div class="lbl" style="margin-top:12px">NIVEL DE TUS ARMAS (suben al usarlas y se guardan para la próxima vez que las cojas)</div>
+      <div class="wlist" id="shopW"></div>
+      <div class="btns" style="justify-content:flex-start;margin-top:12px"><button id="shopBack" class="big">VOLVER</button></div>
     </div>
   </div>
 

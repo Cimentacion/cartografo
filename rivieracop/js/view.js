@@ -14,11 +14,23 @@ export class Fx {
     this.list = []; this.free = []; this.balls = []; this.lines = [];
     this.geo = new THREE.BoxGeometry(1, 1, 1);
     this.ball = new THREE.SphereGeometry(1, 10, 8);
+    this.cyl = new THREE.CylinderGeometry(1, 1, 1, 5, 1, true);
+    this.star = (() => {
+      const g = new THREE.BufferGeometry();
+      const v = [];
+      for (let i = 0; i < 8; i++) {
+        const a0 = (i / 8) * Math.PI * 2, a1 = ((i + 1) / 8) * Math.PI * 2, r0 = i % 2 ? 0.35 : 1, r1 = (i + 1) % 2 ? 0.35 : 1;
+        v.push(0, 0, 0, Math.cos(a0) * r0, Math.sin(a0) * r0, 0, Math.cos(a1) * r1, Math.sin(a1) * r1, 0);
+      }
+      g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+      return g;
+    })();
     this.m = {
       fire: M.glow(0xff9a2a), hot: M.glow(0xffe070), spark: M.glow(0xfff2a0),
       smoke: new THREE.MeshLambertMaterial({ color: 0x5a5a5a, transparent: true, opacity: 0.75 }),
       dsmoke: new THREE.MeshLambertMaterial({ color: 0x222222, transparent: true, opacity: 0.8 }),
       debris: M.mat(0x2a2a2a), feather: M.mat(0xf6f6f0), heal: M.glow(0x50ff90), dust: M.mat(0xb0a890),
+      shell: M.mat(0xd8a830), shellR: M.mat(0xc02a20),
     };
   }
   part(pos, vel, life, size, m, grav = 0, grow = 0) {
@@ -57,7 +69,15 @@ export class Fx {
     for (let i = this.lines.length - 1; i >= 0; i--) {
       const l = this.lines[i];
       l.t -= dt;
-      if (l.t <= 0) { this.scene.remove(l.m); l.m.geometry.dispose(); this.lines.splice(i, 1); }
+      if (l.t <= 0) {
+        this.scene.remove(l.m);
+        l.m.traverse(o => { if (o.material && o.material.userData.tmp) o.material.dispose(); });
+        this.lines.splice(i, 1);
+        continue;
+      }
+      const a = l.t / (l.max || 1);
+      l.m.traverse(o => { if (o.material && o.material.userData.tmp) o.material.opacity = o.material.userData.o0 * a; });
+      if (l.grow) l.m.scale.multiplyScalar(1 + l.grow * dt * 10);
     }
   }
   rnd(s) { return V2.set((Math.random() - 0.5) * s, (Math.random() - 0.5) * s, (Math.random() - 0.5) * s); }
@@ -77,12 +97,55 @@ export class Fx {
   smoke(pos, dark) { this.part(pos, V2.set((Math.random() - 0.5), 2 + Math.random() * 2, (Math.random() - 0.5)).clone(), 1.3, 0.6 + Math.random() * 0.4, dark ? this.m.dsmoke : this.m.smoke, -0.5, 2.5); }
   feathers(pos) { for (let i = 0; i < 14; i++) this.part(pos, this.rnd(5).clone().setY(1 + Math.random() * 3), 1.4 + Math.random(), 0.12, this.m.feather, 2.5, 0); }
   heal(pos) { for (let i = 0; i < 16; i++) this.part(pos, this.rnd(5).clone(), 0.7, 0.16, this.m.heal, -3, 0); }
-  tracer(a, b, col = 0xfff2a0, t = 0.06) {
-    const g = new THREE.BufferGeometry().setFromPoints([a.clone(), b.clone()]);
-    const m = new THREE.Line(g, col === 0xfff2a0 ? TR1 : col === 0xff5040 ? TR2 : new THREE.LineBasicMaterial({ color: col }));
+  // trazada de bala: un cilindro fino brillante (las líneas de WebGL siempre miden 1 píxel)
+  tracer(a, b, col = 0xfff2a0, t = 0.06, w = 0.018) {
+    const len = a.distanceTo(b);
+    if (len < 0.1) return;
+    const m = new THREE.Mesh(this.cyl, addMat(col, 0.9));
+    m.position.copy(a).lerp(b, 0.5);
+    m.scale.set(w, len, w);
+    m.quaternion.setFromUnitVectors(UP, V1.copy(b).sub(a).normalize());
     this.scene.add(m);
-    this.lines.push({ m, t });
+    this.lines.push({ m, t, max: t });
   }
+  // fogonazo: estrella de 3 planos cruzados, aditiva
+  muzzle(pos, dir, s = 1) {
+    const g = new THREE.Group();
+    g.position.copy(pos);
+    g.quaternion.setFromUnitVectors(FWD, V1.copy(dir).normalize());
+    for (let i = 0; i < 3; i++) {
+      const p = new THREE.Mesh(this.star, addMat(i ? 0xffc040 : 0xfff6c0, 1));
+      p.rotation.z = i * Math.PI / 3 + Math.random();
+      p.scale.setScalar((0.22 + Math.random() * 0.1) * s);
+      g.add(p);
+    }
+    const c = new THREE.Mesh(this.ball, addMat(0xffe080, 0.9));
+    c.scale.setScalar(0.07 * s);
+    g.add(c);
+    this.scene.add(g);
+    this.lines.push({ m: g, t: 0.05, max: 0.05, grp: true });
+  }
+  // casquillo que sale despedido hacia la derecha
+  shell(pos, right, big) {
+    const v = V2.copy(right).multiplyScalar(2.2 + Math.random()).add(V1.set((Math.random() - 0.5) * 0.6, 1.6 + Math.random(), (Math.random() - 0.5) * 0.6)).clone();
+    this.part(pos, v, 0.8, big ? 0.06 : 0.035, big ? this.m.shellR : this.m.shell, 9, 0);
+  }
+  // impacto: chispas aditivas + destello + polvo
+  impact(p, cover) {
+    const f = new THREE.Mesh(this.ball, addMat(cover ? 0xffd9a0 : 0xffffff, 0.95));
+    f.position.copy(p); f.scale.setScalar(0.18);
+    this.scene.add(f);
+    this.lines.push({ m: f, t: 0.07, max: 0.07, grow: 2.5 });
+    for (let i = 0; i < 7; i++) this.part(p, this.rnd(8).clone(), 0.2 + Math.random() * 0.15, 0.05 + Math.random() * 0.05, this.m.spark, 9, 0);
+    if (cover) this.dust(p);
+  }
+
+}
+const UP = new THREE.Vector3(0, 1, 0), FWD = new THREE.Vector3(0, 0, 1);
+function addMat(c, o) {
+  const m = new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+  m.userData.tmp = true; m.userData.o0 = o;
+  return m;
 }
 const TR1 = new THREE.LineBasicMaterial({ color: 0xfff2a0 });
 const TR2 = new THREE.LineBasicMaterial({ color: 0xff5040 });
