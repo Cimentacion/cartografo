@@ -7,6 +7,8 @@ const Q0 = new THREE.Quaternion();
 const Q1 = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5));
 const EU = new THREE.Euler(), QQ = new THREE.Quaternion(), E2 = new THREE.Euler();
 const D2R = Math.PI / 180;
+// límite de mirar abajo / arriba (radianes): ~32° abajo y ~35° arriba
+const PMIN = -0.56, PMAX = 0.62;
 const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
 
 export class Look {
@@ -156,6 +158,8 @@ export class Look {
       case 180: yawR = -gy; pitR = -bx; break;
       default: yawR = gy; pitR = bx;
     }
+    // Si el movimiento es sobre todo de arriba/abajo, no se cuenta nada de giro lateral (ni el temblor)
+    if (Math.abs(pitR) > 1.8 * Math.abs(yawR) || Math.abs(yawR) < 0.04) yawR = 0;
     this.gYaw += yawR * dt;
     this.gPitch += pitR * dt;
     // el cabeceo se corrige poco a poco con la gravedad: así no se queda mirando arriba ni abajo
@@ -195,15 +199,15 @@ export class Look {
   update(dt) {
     if (this.gyro) {
       if (this.src === 'giroscopio' || this.src === 'sensor') {
-        this.gPitch = clamp(this.gPitch, -1.1 / this.gain, 1.2 / this.gain);
+        this.gPitch = clamp(this.gPitch, PMIN / this.gain, PMAX / this.gain);
         this.tYaw = angWrap(this.gYaw * this.gain) * (this.invX ? -1 : 1);
         this.tPitch = this.gPitch * this.gain * (this.invY ? -1 : 1);
       } else if (this.raw && this.ref) {
         this.tYaw = angWrap(this.raw.y - this.ref.y) * this.gain;
-        this.tPitch = clamp((this.raw.p - this.ref.p) * this.gain, -1.1, 1.2);
+        this.tPitch = clamp((this.raw.p - this.ref.p) * this.gain, PMIN, PMAX);
       }
     }
-    this.tPitch = clamp(this.tPitch, -1.1, 1.2);
+    this.tPitch = clamp(this.tPitch, PMIN, PMAX);
     const k = 1 - Math.exp(-dt * (this.gyro ? 30 : 40));
     this.yaw += angWrap(this.tYaw - this.yaw) * k;
     this.pitch += (this.tPitch - this.pitch) * k;
