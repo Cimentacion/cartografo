@@ -7,6 +7,7 @@ const Q0 = new THREE.Quaternion();
 const Q1 = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5));
 const EU = new THREE.Euler(), QQ = new THREE.Quaternion(), E2 = new THREE.Euler();
 const D2R = Math.PI / 180;
+const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
 
 export class Look {
   constructor() {
@@ -27,6 +28,7 @@ export class Look {
     // No depende de brújula ni de "alpha", así que funciona en casi todos los Android.
     // Respaldo: deviceorientation / deviceorientationabsolute si no hay rotationRate.
     this.src = 'ninguno'; this.rateSeen = 0; this.lastRateT = 0;
+    this.grav = { x: 0, y: 0, z: 0, n: 0 }; this.axes = '';
     this.gYaw = 0; this.gPitch = 0;
     this.force = null; // 'dedo' = el jugador ha elegido apuntar con el dedo
     this.diag = { motion: 0, motionNull: 0, ori: 0, oriNull: 0, abs: 0, sensor: 0, sensorErr: '', perm: '', last: '' };
@@ -55,7 +57,7 @@ export class Look {
       g.addEventListener('reading', () => {
         this.diag.sensor++;
         if (this.src !== 'ninguno' && this.src !== 'sensor') return;
-        this.integrate(g.x, g.y, 'sensor');
+        this.integrate(g.x, g.y, g.z, 'sensor');
       });
       g.addEventListener('error', ev => { this.diag.sensorErr = (ev.error && (ev.error.name + ' ' + ev.error.message)) || 'error'; });
       g.start();
@@ -71,18 +73,32 @@ export class Look {
     if (!r || r.alpha == null || r.beta == null || r.gamma == null) { this.diag.motionNull++; return; }
     this.diag.last = `${r.alpha.toFixed(1)} ${r.beta.toFixed(1)} ${r.gamma.toFixed(1)}`;
     if (r.alpha === 0 && r.beta === 0 && r.gamma === 0 && this.rateSeen === 0) return;
+    // gravedad: dice qué eje del móvil apunta hacia arriba, sea cual sea la postura
+    const a = e.accelerationIncludingGravity;
+    if (a && a.x != null && a.y != null && a.z != null && (a.x || a.y || a.z)) {
+      const sg = IOS ? -1 : 1, G = this.grav, k = G.n ? 0.12 : 1;
+      G.x += (a.x * sg - G.x) * k; G.y += (a.y * sg - G.y) * k; G.z += (a.z * sg - G.z) * k; G.n++;
+    }
     if (this.src === 'sensor') return;
     // grados/seg -> rad/seg
-    this.integrate(r.beta * D2R, r.gamma * D2R, 'giroscopio');
+    this.integrate(r.beta * D2R, r.gamma * D2R, r.alpha * D2R, 'giroscopio');
   }
   // bx = giro alrededor del eje X del móvil, gy = alrededor del eje Y (rad/s)
-  integrate(bx, gy, name) {
+  integrate(bx, gy, az, name) {
     const now = performance.now();
     let dt = 0.016;
     if (this.lastRateT) dt = Math.min(0.1, (now - this.lastRateT) / 1000);
     this.lastRateT = now;
     let yawR, pitR;
-    switch (this.screenAngle()) {
+    const G = this.grav, gl = Math.hypot(G.x, G.y, G.z), gp = Math.hypot(G.x, G.y);
+    this.axes = 'gravedad';
+    if (G.n > 3 && gl > 4 && gp > 1.5) {
+      // giro horizontal = giro alrededor de la vertical real (gravedad)
+      yawR = (bx * G.x + gy * G.y + az * G.z) / gl;
+      // cabeceo = giro alrededor del eje "derecha" de la pantalla = arriba × Z
+      const ux = G.x / gp, uy = G.y / gp;
+      pitR = bx * uy - gy * ux;
+    } else switch (this.axes = 'pantalla', this.screenAngle()) {
       case 90: yawR = bx; pitR = -gy; break;
       case 270: yawR = -bx; pitR = gy; break;
       case 180: yawR = -gy; pitR = -bx; break;
