@@ -111,6 +111,11 @@ export class View {
     this.carPos = new THREE.Vector3();
     this.aimT = new THREE.Vector3();
   }
+  setAvatars(chars) {
+    this.av.forEach(a => this.car.remove(a));
+    this.av = [M.seatedPlayer(0, chars[0]), M.seatedPlayer(1, chars[1])];
+    this.av.forEach((a, i) => { a.position.set((SEAT_LAT[i] - LANE_ME) * 1.4, 1.4, 0.95); this.car.add(a); a.visible = false; });
+  }
   clear() {
     for (const o of this.objs.values()) this.scene.remove(o);
     this.objs.clear(); this.hit.length = 0; this.tele.length = 0; this.pops.length = 0;

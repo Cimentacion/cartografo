@@ -132,6 +132,18 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
 #diagPad:before{content:'';position:absolute;left:50%;top:0;bottom:0;border-left:1px dashed #444}
 #diagDot{position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px;border-radius:50%;background:var(--gold)}
 #diagTxt{font:12px/1.4 monospace;text-align:left;white-space:pre-wrap;color:#ddd;margin:6px 0 10px}
+.big.alt3{background:#b98cff;box-shadow:0 4px 0 #5a3a8a}
+.ed{display:flex;gap:14px;width:min(900px,100%);text-align:left;background:rgba(6,8,14,.82);padding:14px;border-radius:12px;flex-wrap:wrap}
+.edl{display:flex;flex-direction:column;align-items:center;gap:6px}
+#edCanvas{width:200px;height:233px;border-radius:10px;background:#1a1d28}
+.edr{flex:1;min-width:260px}
+.erow{display:flex;gap:8px;align-items:center;margin:5px 0}
+.erow>span{width:78px;flex:none;font:700 12px var(--f-ui);color:var(--dim)}
+.sw,.ch{display:flex;gap:5px;flex-wrap:wrap}
+.sw button{width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,255,255,.15);padding:0}
+.sw button.sel{border-color:var(--gold);transform:scale(1.15)}
+.ch button{font:12px var(--f-title);padding:6px 9px;border-radius:5px;background:#2a2d38;color:var(--ink)}
+.ch button.sel{background:var(--gold);color:#111}
 #err{position:absolute;left:0;right:0;bottom:0;background:#a00;color:#fff;font:12px monospace;padding:6px;z-index:30;pointer-events:none}
 </style>
 <script type="importmap">{ "imports": { "three": "./lib/three.module.js" } }</script>
@@ -169,6 +181,7 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
         <button id="btnSolo" class="big">JUGAR SOLO</button>
         <button id="btnHost" class="big alt">CREAR SALA</button>
         <button id="btnJoin" class="big alt2">UNIRSE</button>
+        <button id="btnChar" class="big alt3">PERSONAJE</button>
       </div>
       <div class="row"><span class="lbl">SENSIBILIDAD GIROSCOPIO</span><span id="sens"><button>1</button> <button>1.5</button> <button>2</button> <button>2.6</button></span></div>
       <div class="row"><span class="lbl">APUNTAR CON</span><span id="ctl"><button data-m="joy">JOYSTICK</button> <button data-m="gyro">GIROSCOPIO</button> <button data-m="dedo">DEDO</button></span> <button id="btnDiag" class="mini">PROBAR GIROSCOPIO</button> <button id="btnOutline" class="mini">CONTORNO: SÍ</button></div>
@@ -179,6 +192,24 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
         <b>Cómo se juega:</b> vais los dos en el descapotable, al mismo ritmo. Con el <b>joystick izquierdo</b> giras la mirada y apuntas (puedes mirar a los lados y atrás), con <b>FUEGO</b> disparas y con <b>RECARGAR</b> recargas (o disparando con el cargador vacío). También puedes elegir apuntar con el giroscopio o arrastrando el dedo.<br>
         Cuando alguien te va a disparar sale un <b>círculo que se cierra</b>; si está fuera de pantalla, una <b>flecha</b> te dice hacia dónde girar. Tienes <b>3 vidas</b>.<br>
         Cada minuto hay un <b>desvío</b>: dispara al cartel de la ruta que quieras. Cada ~3 min sale un <b>terrorista</b> que suelta un arma: el primero que le dé, se la queda. Revienta <b>ambulancias</b> para sacar botiquines y dispara a los <b>camiones de gallinas</b>. No dispares a los civiles.
+      </div>
+    </div>
+  </div>
+
+  <div id="editor" class="screen" hidden>
+    <div class="card ed">
+      <div class="edl"><canvas id="edCanvas" width="240" height="280"></canvas><div class="lbl">Así te verá tu compañero</div></div>
+      <div class="edr">
+        <div class="lbl">TU PERSONAJE</div>
+        <div class="erow"><span>Piel</span><div id="edSkin" class="sw"></div></div>
+        <div class="erow"><span>Pelo</span><div id="edHair" class="ch"></div></div>
+        <div class="erow"><span>Color pelo</span><div id="edHairCol" class="sw"></div></div>
+        <div class="erow"><span>Barba</span><div id="edBeard" class="ch"></div></div>
+        <div class="erow"><span>Camiseta</span><div id="edShirt" class="ch"></div></div>
+        <div class="erow" id="edShirtColRow"><span>Color</span><div id="edShirtCol" class="sw"></div></div>
+        <div class="erow"><span>Pantalón</span><div id="edPants" class="sw"></div></div>
+        <div class="erow"><span>Extras</span><div class="ch"><button id="edGlasses">Gafas</button> <button id="edChair">Silla de ruedas</button></div></div>
+        <div class="btns" style="justify-content:flex-start;margin-top:8px"><button id="edOk" class="big">LISTO</button></div>
       </div>
     </div>
   </div>

@@ -12,6 +12,8 @@ import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME } from './defs.js';
 import { defaultWeapon, RARITY, weaponLines } from './weapons.js';
 import { fpGun } from './models.js';
 import { Outline, toon } from './toon.js';
+import { loadChar, saveChar, sanitize, defaultChar, SKINS, HAIRS, HAIR_COLORS, BEARDS, SHIRTS, SHIRT_COLORS, PANTS_COLORS } from './character.js';
+import { seatedPlayer } from './models.js';
 import { clamp, lerp, lerpAng, VP, vw, vh } from './util.js';
 
 const Q = new URLSearchParams(location.search);
@@ -86,6 +88,7 @@ const G = {
 };
 window.__G = G; // TODO-TESTEO
 setTimeout(() => { window.__look = look; }); // TODO-TESTEO
+let MYCHAR = loadChar();
 const W = { def: defaultWeapon(), ammo: 6, rl: 0, cd: 0, recoil: 0, flash: 0 };
 const net = new Net();
 
@@ -159,7 +162,7 @@ function clearChunks() {
 // ---------------- arma local ----------------
 function setFpGun() {
   if (fpg) camera.remove(fpg);
-  fpg = fpGun(W.def.model, W.def.rar);
+  fpg = fpGun(W.def.model, W.def.rar, G.chars ? G.chars[G.li] : MYCHAR);
   fpg.position.set(0.13, -0.19, -0.5);
   fpg.scale.setScalar(0.8);
   camera.add(fpg);
@@ -317,7 +320,8 @@ net.onmsg = m => {
   if (G.mode === 'host') {
     const S = G.sim;
     switch (m.t) {
-      case 'hello': if (m.v !== NETV) lobbyMsg('Tu amigo tiene otra versión: recargad los dos la página'); break;
+      case 'hello': if (m.v !== NETV) lobbyMsg('Tu amigo tiene otra versión: recargad los dos la página'); if (m.c) G.peerChar = sanitize(m.c, 1); break;
+      case 'char': G.peerChar = sanitize(m.c, 1); break;
       case 'l': if (S && S.players[1]) { S.players[1].ly = m.y; S.players[1].lp = m.p; } break;
       case 'h': if (S && G.running) for (const h of m.h) S.hit(1, h[0], h[1], h[2]); break;
       case 'b': if (S && G.running) S.boomWorld(1, m.x, m.y, m.z, m.r, m.dmg); break;
@@ -325,7 +329,7 @@ net.onmsg = m => {
     }
   } else {
     switch (m.t) {
-      case 'start': begin(m.seed, m.n, 1, 'guest'); break;
+      case 'start': G.chars = [sanitize(m.chars && m.chars[0], 0), sanitize(m.chars && m.chars[1], 1)]; begin(m.seed, m.n, 1, 'guest'); break;
       case 's': if (G.mir) G.mir.push(m); break;
       case 'ev': for (const e of m.e) { if (IMMEDIATE.has(e.k)) handleEvent(e); else G.evq.push(e); } break;
       case 'full': lobbyMsg('La sala ya está llena'); break;
@@ -364,6 +368,8 @@ function begin(seed, n, li, mode) {
   clearChunks();
   if (!view) view = new View(scene, G.road, fx);
   view.clear(); view.road = G.road;
+  if (mode === 'solo') G.chars = [MYCHAR, defaultChar(1)];
+  view.setAvatars(G.chars || [MYCHAR, defaultChar(1)]);
   view.av.forEach((a, i) => (a.visible = n > 1 && i !== li));
   hud.myCol = PCOL[li];
   W.def = defaultWeapon(); W.ammo = W.def.mag; W.rl = 0; W.cd = 0;
@@ -522,10 +528,9 @@ function tick(dt) {
     G.cd = S.phase === 'count' ? S.countT : -1;
   }
   // --- cuenta atrás ---
-  if (G.cd > 0) {
-    $('count').hidden = false;
-    setHTML('countN', String(Math.ceil(G.cd)));
-  }
+  // la cuenta atrás se ve solo mientras quede tiempo (el invitado la recibe con retraso)
+  $('count').hidden = !(G.cd > 0);
+  if (G.cd > 0) setHTML('countN', String(Math.ceil(G.cd)));
   // --- coche, cámara ---
   G.shake = Math.max(0, G.shake - dt);
   view.placeCar(G.carD, G.t, G.shake * 0.15);
@@ -699,7 +704,7 @@ $('btnGo').onclick = async () => {
   G.mode = 'guest';
   try {
     await net.join(code);
-    net.send({ t: 'hello', v: NETV });
+    net.send({ t: 'hello', v: NETV, c: MYCHAR });
     $('joinRow').hidden = true;
     $('lobbyCode').textContent = code;
     lobbyMsg('¡Conectado! Esperando a que el anfitrión empiece…');
@@ -708,14 +713,15 @@ $('btnGo').onclick = async () => {
 $('btnStart').onclick = () => {
   if (!net.open) return;
   const seed = (Math.random() * 4294967296) >>> 0;
-  net.send({ t: 'start', seed, n: 2 });
+  G.chars = [MYCHAR, G.peerChar || defaultChar(1)];
+  net.send({ t: 'start', seed, n: 2, chars: G.chars });
   begin(seed, 2, 0, 'host');
 };
 $('btnBack').onclick = () => toMenu('');
 $('btnAgain').onclick = () => {
   const seed = (Math.random() * 4294967296) >>> 0;
   if (G.mode === 'host') {
-    if (net.open) { net.send({ t: 'start', seed, n: 2 }); begin(seed, 2, 0, 'host'); }
+    if (net.open) { G.chars = [MYCHAR, G.peerChar || defaultChar(1)]; net.send({ t: 'start', seed, n: 2, chars: G.chars }); begin(seed, 2, 0, 'host'); }
     else begin(seed, 1, 0, 'solo');
   } else begin(seed, 1, 0, 'solo');
 };
@@ -787,6 +793,68 @@ function setOutline(on) {
 }
 $('btnOutline').onclick = () => setOutline(!outline.enabled);
 setOutline((localStorage.getItem('rc_outline') ?? '1') === '1');
+// ---------------- editor de personaje ----------------
+let edR = null, edScene, edCam, edModel = null, edOn = false;
+function edRebuild() {
+  if (!edR) {
+    edR = new THREE.WebGLRenderer({ canvas: $('edCanvas'), antialias: true, alpha: true });
+    edR.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+    edR.setSize(200, 233, false);
+    edScene = new THREE.Scene();
+    edScene.add(new THREE.HemisphereLight(0xffffff, 0x556677, 1.4));
+    const dl = new THREE.DirectionalLight(0xffffff, 1.8); dl.position.set(2, 3, -3); edScene.add(dl);
+    edCam = new THREE.PerspectiveCamera(32, 200 / 233, 0.1, 20);
+    edCam.position.set(0, 0.6, -3.2); edCam.lookAt(0, 0.3, 0);
+  }
+  if (edModel) edScene.remove(edModel);
+  edModel = seatedPlayer(0, MYCHAR);
+  edModel.userData.rig.armR.rotation.x = -0.3;
+  edScene.add(edModel);
+}
+function edPaint() {
+  const c = MYCHAR;
+  const sw = (id, cols, key) => {
+    const el = $(id); el.innerHTML = '';
+    cols.forEach((col, i) => {
+      const b = document.createElement('button');
+      b.style.background = '#' + col.toString(16).padStart(6, '0');
+      b.className = c[key] === i ? 'sel' : '';
+      b.setAttribute('aria-label', key + ' ' + i);
+      b.onclick = () => { c[key] = i; edChanged(); };
+      el.appendChild(b);
+    });
+  };
+  const ch = (id, opts, key) => {
+    const el = $(id); el.innerHTML = '';
+    opts.forEach(([v, label]) => {
+      const b = document.createElement('button');
+      b.textContent = label; b.className = c[key] === v ? 'sel' : '';
+      b.onclick = () => { c[key] = v; edChanged(); };
+      el.appendChild(b);
+    });
+  };
+  sw('edSkin', SKINS, 'skin'); ch('edHair', HAIRS, 'hair'); sw('edHairCol', HAIR_COLORS, 'hairCol');
+  ch('edBeard', BEARDS, 'beard'); ch('edShirt', SHIRTS, 'shirt'); sw('edShirtCol', SHIRT_COLORS, 'shirtCol'); sw('edPants', PANTS_COLORS, 'pants');
+  $('edShirtColRow').hidden = c.shirt !== 'lisa';
+  $('edGlasses').className = c.glasses ? 'sel' : ''; $('edChair').className = c.chair ? 'sel' : '';
+}
+function edChanged() {
+  MYCHAR = sanitize(MYCHAR, 0);
+  saveChar(MYCHAR); edPaint(); edRebuild();
+  if (net.open && G.mode === 'guest') net.send({ t: 'char', c: MYCHAR });
+  if (!G.running) { view.setAvatars([MYCHAR, defaultChar(1)]); view.av.forEach(a => (a.visible = true)); }
+}
+$('edGlasses').onclick = () => { MYCHAR.glasses = !MYCHAR.glasses; edChanged(); };
+$('edChair').onclick = () => { MYCHAR.chair = !MYCHAR.chair; edChanged(); };
+$('btnChar').onclick = () => {
+  for (const s of document.querySelectorAll('.screen')) s.hidden = true;
+  $('editor').hidden = false; edOn = true;
+  edPaint(); edRebuild();
+  const spin = () => { if (!edOn) return; requestAnimationFrame(spin); edModel.rotation.y = Math.sin(performance.now() / 1400) * 0.9; edR.render(edScene, edCam); };
+  spin();
+};
+$('edOk').onclick = () => { edOn = false; $('editor').hidden = true; $('menu').hidden = false; };
+
 const SENS = [1, 1.5, 2, 2.6];
 function setSens(i) {
   look.gain = SENS[i];
@@ -807,6 +875,7 @@ function startDemo() {
   G.road.extend(700);
   if (!view) view = new View(scene, G.road, fx);
   view.clear(); view.road = G.road;
+  view.setAvatars([MYCHAR, defaultChar(1)]);
   view.av.forEach(a => (a.visible = true));
   if (fpg) fpg.visible = false;
   let dd = 120;

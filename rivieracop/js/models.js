@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { RARITY, weaponLines } from './weapons.js';
 import { PCOL } from './defs.js';
 import { toon, tex } from './toon.js';
+import { personOpts, sleeveColor, SKINS } from './character.js';
 
 const MC = new Map();
 export function mat(c) {
@@ -100,7 +101,36 @@ export function person(o = {}) {
   box(torso, 0.54 * (o.big ? 1.15 : 1), 0.64, 0.32, sh, 0, 0.32, 0, bp);
   if (o.vest) box(torso, 0.58, 0.4, 0.36, o.vest, 0, 0.36, 0, bp);
   box(torso, 0.27, 0.3, 0.28, sk, 0, 0.83, 0, hp);
-  box(torso, 0.29, 0.1, 0.3, o.hair ?? 0x2a1a10, 0, 1.0, 0.01, hp);
+  const hc = o.hair ?? 0x2a1a10;
+  switch (o.hairStyle || 'corto') {
+    case 'calvo': break;
+    case 'rapado': box(torso, 0.28, 0.03, 0.29, hc, 0, 0.985, 0.005, hp); break;
+    case 'afro': box(torso, 0.42, 0.3, 0.42, hc, 0, 1.03, 0.03, hp); break;
+    case 'rastas':
+      box(torso, 0.3, 0.08, 0.31, hc, 0, 1.0, 0.01, hp);
+      for (const [x, z] of [[-0.15, 0.06], [-0.15, 0.15], [-0.05, 0.16], [0.05, 0.16], [0.15, 0.15], [0.15, 0.06]]) box(torso, 0.055, 0.34, 0.055, hc, x, 0.82, z, hp);
+      break;
+    case 'trenzas':
+      box(torso, 0.29, 0.08, 0.3, hc, 0, 1.0, 0.01, hp);
+      for (const x of [-0.09, 0.09]) box(torso, 0.07, 0.42, 0.07, hc, x, 0.74, 0.17, hp);
+      break;
+    case 'cresta': box(torso, 0.06, 0.16, 0.3, hc, 0, 1.06, 0.01, hp); break;
+    case 'largo':
+      box(torso, 0.3, 0.09, 0.31, hc, 0, 1.0, 0.01, hp);
+      box(torso, 0.31, 0.42, 0.08, hc, 0, 0.8, 0.16, hp);
+      break;
+    case 'mono':
+      box(torso, 0.29, 0.08, 0.3, hc, 0, 1.0, 0.01, hp);
+      box(torso, 0.14, 0.14, 0.14, hc, 0, 1.08, 0.1, hp);
+      break;
+    case 'gorra':
+      box(torso, 0.3, 0.1, 0.31, hc, 0, 1.02, 0, hp); box(torso, 0.26, 0.04, 0.18, hc, 0, 0.98, -0.2, hp);
+      break;
+    default: box(torso, 0.29, 0.1, 0.3, hc, 0, 1.0, 0.01, hp);
+  }
+  if (o.beard === 'barba') { box(torso, 0.28, 0.13, 0.06, hc, 0, 0.73, -0.13, hp); box(torso, 0.04, 0.16, 0.24, hc, -0.14, 0.78, -0.03, hp); box(torso, 0.04, 0.16, 0.24, hc, 0.14, 0.78, -0.03, hp); }
+  if (o.beard === 'perilla') box(torso, 0.1, 0.09, 0.05, hc, 0, 0.71, -0.14, hp);
+  if (o.beard === 'bigote') box(torso, 0.16, 0.035, 0.04, hc, 0, 0.785, -0.15, hp);
   if (o.glasses) box(torso, 0.29, 0.06, 0.04, 0x050505, 0, 0.86, -0.15, hp);
   if (o.bandana) { box(torso, 0.3, 0.1, 0.31, 0xc01818, 0, 0.94, 0, hp); box(torso, 0.29, 0.12, 0.05, 0xc01818, 0, 0.74, -0.15, hp); }
   if (o.mask) box(torso, 0.3, 0.32, 0.3, o.mask, 0, 0.84, 0, hp);
@@ -109,7 +139,7 @@ export function person(o = {}) {
     const a = new THREE.Group();
     a.position.set(side * 0.34, 0.56, 0);
     torso.add(a);
-    box(a, 0.13, 0.13, 0.55, sh, 0, 0, -0.25, bp);
+    box(a, 0.13, 0.13, 0.55, o.sleeve ?? sh, 0, 0, -0.25, bp);
     box(a, 0.12, 0.12, 0.12, sk, 0, 0, -0.56, bp);
     return a;
   };
@@ -177,17 +207,37 @@ export function convertible() {
 }
 
 // Compañero sentado atrás: torso que gira con su mirada
-export function seatedPlayer(i) {
+export function seatedPlayer(i, cfg) {
   const g = new THREE.Group();
   const yaw = new THREE.Group();
   g.add(yaw);
-  const p = person({ shirt: i === 0 ? 0x2f6fd0 : 0xd03040, pants: 0x222222, gun: 'pistol', hair: i === 0 ? 0x3a2a1a : 0x111111, glasses: i === 1 });
+  const o = cfg ? personOpts(cfg) : { shirt: i === 0 ? 0x2f6fd0 : 0xd03040, pants: 0x222222, hair: i === 0 ? 0x3a2a1a : 0x111111, glasses: i === 1 };
+  const p = person(Object.assign({ gun: 'pistol' }, o));
   p.position.y = -0.92;
   yaw.add(p);
   p.userData.rig.body.children.slice(0, 4).forEach(m => (m.visible = false));
+  if (o.chair) { const wc = wheelchair(); wc.position.y = 0.25; g.add(wc); }
   g.userData.yaw = yaw;
   g.userData.rig = p.userData.rig;
   return g;
+}
+// silla de ruedas (va sujeta en la parte de atrás del descapotable)
+export function wheelchair() {
+  const c = new THREE.Group();
+  const fr = 0x9aa4ae, dk = 0x1a1a1a;
+  box(c, 0.5, 0.05, 0.44, 0x2a3a5a, 0, -0.3, 0.02);
+  box(c, 0.5, 0.42, 0.05, 0x2a3a5a, 0, -0.08, 0.24);
+  for (const x of [-0.27, 0.27]) {
+    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.33, 0.04, 16), mat(dk));
+    w.rotation.z = Math.PI / 2; w.position.set(x * 1.18, -0.42, 0.08); c.add(w);
+    const r = new THREE.Mesh(new THREE.CylinderGeometry(0.27, 0.27, 0.05, 16), mat(fr));
+    r.rotation.z = Math.PI / 2; r.position.set(x * 1.18, -0.42, 0.08); c.add(r);
+    box(c, 0.03, 0.03, 0.5, fr, x, -0.3, 0.02);
+    box(c, 0.03, 0.55, 0.03, fr, x, -0.05, 0.27);
+    box(c, 0.03, 0.03, 0.12, dk, x, 0.2, 0.32);
+    box(c, 0.03, 0.3, 0.03, fr, x, -0.45, -0.2);
+  }
+  return c;
 }
 
 // ---------- coberturas ----------
@@ -556,7 +606,7 @@ export function drawWeaponCard(g, w, prog, need, n) {
 }
 
 // ---------- armas en primera persona ----------
-export function fpGun(model, rar = 0) {
+export function fpGun(model, rar = 0, cfg = null) {
   const g = new THREE.Group();
   const acc = [0x6a6a6a, 0x3a7fc0, 0x8a4ac0, 0xd8a020][rar] ?? 0x6a6a6a;
   const blk = 0x1c1c1e, gr = 0x2c2c30;
@@ -586,8 +636,8 @@ export function fpGun(model, rar = 0) {
       box(g, 0.042, 0.015, 0.16, acc, 0, 0.045, -0.08); L = 0.18;
   }
   // mano y manga para que se lea como arma empuñada
-  box(g, 0.075, 0.08, 0.08, 0xd9a476, 0, -0.085, 0.02);
-  box(g, 0.1, 0.1, 0.22, 0x2f4f8f, 0.01, -0.1, 0.16);
+  box(g, 0.075, 0.08, 0.08, cfg ? SKINS[cfg.skin] ?? 0xd9a476 : 0xd9a476, 0, -0.085, 0.02);
+  box(g, 0.1, 0.1, 0.22, cfg ? sleeveColor(cfg) : 0x2f4f8f, 0.01, -0.1, 0.16);
   muzzle.position.set(0, 0.01, -L);
   g.add(muzzle);
   const flash = box(g, 0.12, 0.12, 0.12, glow(0xffd860), 0, 0.01, -L - 0.05);
