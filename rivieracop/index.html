@@ -20,6 +20,8 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
   touch-action:none;-webkit-user-select:none;user-select:none;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
 #game{position:fixed;inset:0}
+body.rotP #game{inset:auto;top:0;left:100vw;width:100vh;height:100vw;transform-origin:0 0;transform:rotate(90deg)}
+body.rotN #game{inset:auto;top:100vh;left:0;width:100vh;height:100vw;transform-origin:0 0;transform:rotate(-90deg)}
 #gl,#hud{position:absolute;inset:0;width:100%;height:100%;display:block}
 #hud{pointer-events:none}
 button{font-family:var(--f-title);cursor:pointer;border:0;color:#111;touch-action:manipulation}
@@ -195,6 +197,7 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
       <div class="lbl">PRUEBA DEL GIROSCOPIO · gira el móvil: el punto amarillo se tiene que mover</div>
       <div id="diagPad"><i id="diagDot"></i></div>
       <pre id="diagTxt"></pre>
+      <div class="btns" style="margin-bottom:8px"><button id="btnInvX" class="mini"></button><button id="btnInvY" class="mini"></button></div>
       <div class="btns"><button id="btnDiagCal" class="big alt">CENTRAR</button><button id="btnDiagClose" class="big alt2">CERRAR</button></div>
     </div>
   </div>

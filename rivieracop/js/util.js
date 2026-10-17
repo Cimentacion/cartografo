@@ -31,3 +31,9 @@ export function hash(...n) {
 }
 export const pick = (r, arr) => arr[Math.floor(r() * arr.length) % arr.length];
 export const r2 = v => Math.round(v * 100) / 100;
+
+// Pantalla "virtual": si el móvil tiene la rotación bloqueada en vertical pero lo sostienes en horizontal,
+// el juego se gira solo (VP.rot = 90 / -90) y el ancho/alto lógicos se intercambian.
+export const VP = { rot: 0 };
+export const vw = () => (VP.rot ? innerHeight : innerWidth);
+export const vh = () => (VP.rot ? innerWidth : innerHeight);

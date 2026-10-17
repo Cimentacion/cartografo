@@ -1,5 +1,6 @@
 // Capa 2D encima del 3D: mira, avisos de "te van a disparar" y flechas para girar el móvil
 import * as THREE from 'three';
+import { vw, vh } from './util.js';
 
 const V = new THREE.Vector3(), P = new THREE.Vector3();
 
@@ -19,11 +20,11 @@ export class Hud {
   }
   resize() {
     this.dpr = Math.min(window.devicePixelRatio || 1, 2);
-    this.c.width = Math.round(innerWidth * this.dpr);
-    this.c.height = Math.round(innerHeight * this.dpr);
+    this.c.width = Math.round(vw() * this.dpr);
+    this.c.height = Math.round(vh() * this.dpr);
   }
   draw(cam, view, li, t, dt, o) {
-    const g = this.g, W = innerWidth, H = innerHeight;
+    const g = this.g, W = vw(), H = vh();
     g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     g.clearRect(0, 0, W, H);
     if (!cam) return;

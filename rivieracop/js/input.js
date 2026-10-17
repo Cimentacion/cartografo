@@ -1,6 +1,6 @@
 // Control: giroscopio (principal), arrastrar con el dedo si el móvil no tiene giroscopio, y ratón en PC
 import * as THREE from 'three';
-import { angWrap, clamp } from './util.js';
+import { angWrap, clamp, VP } from './util.js';
 
 const ZEE = new THREE.Vector3(0, 0, 1);
 const Q0 = new THREE.Quaternion();
@@ -29,6 +29,7 @@ export class Look {
     // Respaldo: deviceorientation / deviceorientationabsolute si no hay rotationRate.
     this.src = 'ninguno'; this.rateSeen = 0; this.lastRateT = 0;
     this.grav = { x: 0, y: 0, z: 0, n: 0 }; this.axes = '';
+    this.absP = 0; this.refAbsP = 0; this.invX = false; this.invY = false;
     this.gYaw = 0; this.gPitch = 0;
     this.force = null; // 'dedo' = el jugador ha elegido apuntar con el dedo
     this.diag = { motion: 0, motionNull: 0, ori: 0, oriNull: 0, abs: 0, sensor: 0, sensorErr: '', perm: '', last: '' };
@@ -72,13 +73,15 @@ export class Look {
     this.diag.motion++;
     if (!r || r.alpha == null || r.beta == null || r.gamma == null) { this.diag.motionNull++; return; }
     this.diag.last = `${r.alpha.toFixed(1)} ${r.beta.toFixed(1)} ${r.gamma.toFixed(1)}`;
-    if (r.alpha === 0 && r.beta === 0 && r.gamma === 0 && this.rateSeen === 0) return;
     // gravedad: dice qué eje del móvil apunta hacia arriba, sea cual sea la postura
     const a = e.accelerationIncludingGravity;
     if (a && a.x != null && a.y != null && a.z != null && (a.x || a.y || a.z)) {
       const sg = IOS ? -1 : 1, G = this.grav, k = G.n ? 0.12 : 1;
       G.x += (a.x * sg - G.x) * k; G.y += (a.y * sg - G.y) * k; G.z += (a.z * sg - G.z) * k; G.n++;
+      const gl = Math.hypot(G.x, G.y, G.z);
+      if (gl > 4) this.absP = Math.asin(clamp(-G.z / gl, -1, 1));
     }
+    if (r.alpha === 0 && r.beta === 0 && r.gamma === 0 && this.rateSeen === 0) return;
     if (this.src === 'sensor') return;
     // grados/seg -> rad/seg
     this.integrate(r.beta * D2R, r.gamma * D2R, r.alpha * D2R, 'giroscopio');
@@ -106,6 +109,8 @@ export class Look {
     }
     this.gYaw += yawR * dt;
     this.gPitch += pitR * dt;
+    // el cabeceo se corrige poco a poco con la gravedad: así no se queda mirando arriba ni abajo
+    if (this.axes === 'gravedad') this.gPitch += ((this.absP - this.refAbsP) - this.gPitch) * 0.04;
     this.rateSeen++;
     if (this.rateSeen > 5 && this.src === 'ninguno') {
       this.src = name;
@@ -134,7 +139,7 @@ export class Look {
   setForce(f) { this.force = f; this.gyro = f !== 'dedo' && this.src !== 'ninguno'; this.calibrate(); }
   calibrate() {
     if (this.raw) this.ref = { y: this.raw.y, p: this.raw.p };
-    this.gYaw = 0; this.gPitch = 0;
+    this.gYaw = 0; this.gPitch = 0; this.refAbsP = this.absP;
     this.tYaw = this.tPitch = 0;
     this.yaw = this.pitch = 0;
   }
@@ -142,8 +147,8 @@ export class Look {
     if (this.gyro) {
       if (this.src === 'giroscopio' || this.src === 'sensor') {
         this.gPitch = clamp(this.gPitch, -1.1 / this.gain, 1.2 / this.gain);
-        this.tYaw = angWrap(this.gYaw * this.gain);
-        this.tPitch = this.gPitch * this.gain;
+        this.tYaw = angWrap(this.gYaw * this.gain) * (this.invX ? -1 : 1);
+        this.tPitch = this.gPitch * this.gain * (this.invY ? -1 : 1);
       } else if (this.raw && this.ref) {
         this.tYaw = angWrap(this.raw.y - this.ref.y) * this.gain;
         this.tPitch = clamp((this.raw.p - this.ref.p) * this.gain, -1.1, 1.2);
@@ -175,7 +180,9 @@ export class Look {
       }
       if (e.pointerId === this.dragId) {
         const s = 0.0055 * (this.gain / 1.5);
-        this.tYaw -= (e.clientX - this.lx) * s; this.tPitch -= (e.clientY - this.ly) * s;
+        let dx = e.clientX - this.lx, dy = e.clientY - this.ly;
+        if (VP.rot === 90) [dx, dy] = [dy, -dx]; else if (VP.rot === -90) [dx, dy] = [-dy, dx];
+        this.tYaw -= dx * s; this.tPitch -= dy * s;
         this.lx = e.clientX; this.ly = e.clientY;
       }
     });

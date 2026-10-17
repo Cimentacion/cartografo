@@ -11,7 +11,7 @@ import { Net, makeCode, NETV } from './net.js';
 import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME } from './defs.js';
 import { defaultWeapon, RARITY, weaponLines } from './weapons.js';
 import { fpGun } from './models.js';
-import { clamp, lerp, lerpAng } from './util.js';
+import { clamp, lerp, lerpAng, VP, vw, vh } from './util.js';
 
 const Q = new URLSearchParams(location.search);
 const BOT = Q.get('bot') === '1';          // TODO-TESTEO: apunta y dispara solo
@@ -23,9 +23,9 @@ const $ = id => document.getElementById(id);
 const canvas = $('gl');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.get('hq') ? 2 : 1.25));
-renderer.setSize(innerWidth, innerHeight);
+renderer.setSize(vw(), vh());
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.08, 260);
+const camera = new THREE.PerspectiveCamera(72, vw() / vh(), 0.08, 260);
 scene.add(camera);
 const hemi = new THREE.HemisphereLight(0xffffff, 0x777766, 1.1);
 scene.add(hemi);
@@ -47,12 +47,30 @@ let fpg = null;
 const ENV = { sky: new THREE.Color(0x8fd3ff), hs: new THREE.Color(), hg: new THREE.Color(), hi: 1, sc: new THREE.Color(), si: 1, fn: 70, ff: 200, sea: new THREE.Color() };
 const TC = new THREE.Color();
 
-addEventListener('resize', () => {
-  renderer.setSize(innerWidth, innerHeight);
-  camera.aspect = innerWidth / innerHeight;
+function applyView() {
+  document.body.classList.toggle('rotP', VP.rot === 90);
+  document.body.classList.toggle('rotN', VP.rot === -90);
+  renderer.setSize(vw(), vh());
+  camera.aspect = vw() / vh();
   camera.updateProjectionMatrix();
   hud.resize();
-});
+}
+addEventListener('resize', applyView);
+// Si la pantalla está en vertical (rotación bloqueada) pero el móvil está en horizontal, giramos el juego nosotros
+let rotCand = 0, rotN = 0;
+function updRot() {
+  const Gv = look.grav;
+  let want = VP.rot;
+  if (innerWidth >= innerHeight) want = 0;
+  else if (Gv.n > 0) {
+    const ax = Math.abs(Gv.x), ay = Math.abs(Gv.y);
+    if (ax > 5.5 && ax > ay * 1.3) want = Gv.x > 0 ? 90 : -90;
+    else if (ay > 6 && ay > ax * 1.3) want = 0;
+  }
+  if (want === VP.rot) { rotN = 0; return; }
+  if (want !== rotCand) { rotCand = want; rotN = 0; }
+  if (++rotN >= (G.running ? 3 : 1)) { VP.rot = want; rotN = 0; applyView(); }
+}
 
 // ---------------- estado ----------------
 const G = {
@@ -460,7 +478,7 @@ function frame(now) {
   last = now;
   G.t += dt;
   look.update(dt);
-  if ((G.gs = (G.gs || 0) - dt) <= 0) { G.gs = 0.5; gyroStatus(); }
+  if ((G.gs = (G.gs || 0) - dt) <= 0) { G.gs = 0.4; gyroStatus(); updRot(); }
   if (G.running) tick(dt);
   fx.update(dt);
   if (NR === 1 || (++G.fr % NR) === 0) renderer.render(scene, camera);
@@ -578,7 +596,7 @@ function tick(dt) {
   $('dead').hidden = !(me && !me.alive && !G.over);
   bannerT -= dt;
   SFX.loops(view.ambDist, view.heliDist, G.speed);
-  $('rotate').hidden = !(look.isTouch && innerHeight > innerWidth);
+  $('rotate').hidden = !(look.isTouch && innerHeight > innerWidth && !VP.rot);
   $('btnFire').hidden = look.gyro || !look.isTouch;
 }
 
@@ -629,7 +647,7 @@ function goFull() {
   try {
     const el = document.documentElement;
     const p = el.requestFullscreen ? el.requestFullscreen({ navigationUI: 'hide' }) : null;
-    if (p && p.then) p.then(() => { try { screen.orientation.lock('landscape').catch(() => { }); } catch (e) { } }).catch(() => { });
+    if (p && p.then) p.then(() => { try { screen.orientation.lock('landscape-primary').catch(() => { }); } catch (e) { } }).catch(() => { });
   } catch (e) { }
 }
 async function prep() { SFX.unlock(); goFull(); await look.requestGyro(); }
@@ -735,6 +753,14 @@ $('btnDiag').onclick = async () => {
   tickD();
 };
 $('btnDiagCal').onclick = () => look.calibrate();
+function setInv() {
+  look.invX = localStorage.getItem('rc_invx') === '1'; look.invY = localStorage.getItem('rc_invy') === '1';
+  $('btnInvX').textContent = 'INVERTIR LADOS: ' + (look.invX ? 'SÍ' : 'NO');
+  $('btnInvY').textContent = 'INVERTIR ARRIBA/ABAJO: ' + (look.invY ? 'SÍ' : 'NO');
+}
+$('btnInvX').onclick = () => { localStorage.setItem('rc_invx', look.invX ? '0' : '1'); setInv(); };
+$('btnInvY').onclick = () => { localStorage.setItem('rc_invy', look.invY ? '0' : '1'); setInv(); };
+setInv();
 $('btnDiagClose').onclick = () => { diagOn = false; $('diag').hidden = true; $('menu').hidden = false; };
 
 const SENS = [1, 1.5, 2, 2.6];
