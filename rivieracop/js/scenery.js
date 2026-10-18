@@ -59,13 +59,18 @@ const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vect
 const _p = new THREE.Vector3(), _e = new THREE.Euler(), _c = new THREE.Color(), _w = new THREE.Color();
 const SHADE = [0.82, 0.82, 1, 0.5, 0.92, 0.92];
 
-function colorize(g, col, shade) {
+function colorize(g, col, shade, grad = false) {
   const n = g.attributes.position.count;
   const a = new Float32Array(n * 3);
   _c.setHex(col);
   const perFace = shade && n === 24;
+  // degradado vertical: la base más oscura (oclusión) y la parte de arriba más clara
+  let y0 = 0, y1 = 0;
+  const P = g.attributes.position;
+  if (grad) { y0 = 1e9; y1 = -1e9; for (let i = 0; i < n; i++) { const y = P.getY(i); if (y < y0) y0 = y; if (y > y1) y1 = y; } }
   for (let i = 0; i < n; i++) {
-    const k = perFace ? SHADE[Math.floor(i / 4)] : 1;
+    let k = perFace ? SHADE[Math.floor(i / 4)] : 1;
+    if (grad && y1 - y0 > 0.05) k *= 0.74 + 0.36 * ((P.getY(i) - y0) / (y1 - y0));
     a[i * 3] = _c.r * k; a[i * 3 + 1] = _c.g * k; a[i * 3 + 2] = _c.b * k;
   }
   g.setAttribute('color', new THREE.BufferAttribute(a, 3));
@@ -98,7 +103,7 @@ function addBox(list, w, h, d, col, m, o = {}) {
       uv.setXY(i, uv.getX(i) * dims[f][0] / 3.4, uv.getY(i) * dims[f][1] / 3.1);
     }
   }
-  colorize(g, col, o.shade !== false);
+  colorize(g, col, o.shade !== false, true);
   if (o.rx) g.rotateX(o.rx);
   if (o.rz) g.rotateZ(o.rz);
   if (o.ry) g.rotateY(o.ry);
@@ -108,7 +113,7 @@ function addBox(list, w, h, d, col, m, o = {}) {
 }
 function addCyl(list, rt, rb, h, seg, col, m, o = {}) {
   const g = new THREE.CylinderGeometry(rt, rb, h, seg);
-  colorize(g, col, false);
+  colorize(g, col, false, true);
   if (o.rx) g.rotateX(o.rx);
   if (o.rz) g.rotateZ(o.rz);
   g.translate(o.x || 0, o.y || 0, o.z || 0);
@@ -210,7 +215,7 @@ export function buildChunk(road, c, M) {
 }
 
 function facade(R, road, d) {
-  const y = road.y[Math.floor(d)] || 0, depthDown = y + 3;
+  const y = road.gy[Math.floor(d)] || 0, depthDown = y + 3;
   for (const sd of [-1, 1]) addBox(R.C, 28, 24 + depthDown, 3, 0xe4ddd0, frame(road, d, sd * 21.2, (24 - depthDown) / 2), { uvs: 4 });
   addBox(R.C, 14.4, 15.2, 3, 0xe4ddd0, frame(road, d, 0, 6.9 + 7.6), { uvs: 4 });
   addBox(R.L, 15.4, 0.7, 3.2, 0x2c2c2c, frame(road, d, 0, 7.2));
@@ -219,7 +224,7 @@ function facade(R, road, d) {
 
 // barrio chino: dentro del restaurante
 function restFacade(R, road, d) {
-  const y = road.y[Math.floor(d)] || 0, down = y + 3;
+  const y = road.gy[Math.floor(d)] || 0, down = y + 3;
   for (const sd of [-1, 1]) addBox(R.L, 28, 14 + down, 3, 0x8a1414, frame(road, d, sd * 21.2, (14 - down) / 2));
   addBox(R.L, 14.4, 6, 3, 0x8a1414, frame(road, d, 0, 10));
   addBox(R.L, 32, 0.6, 5, 0x1a5a3a, frame(road, d, 0, 13.2));
@@ -278,7 +283,7 @@ function tunnelRun(R, road, B, i0, i1) {
   for (let i = i0; i < i1; i++) {
     if (i % 12 === 0) for (const sd of [-1, 1]) addBox(R.G, 0.5, 0.16, 1.4, 0xffc870, frame(road, i, sd * 2.6, 6.95));
     if (i % 16 === 0) {
-      const y = road.y[i], down = y + 3;
+      const y = road.gy[i], down = y + 3;
       addBox(R.K, 52, 22, 16.5, 0xb09a7e, frame(road, i, 0, 7.6 + 11), { shade: true, uvs: 6 });
       for (const sd of [-1, 1]) addBox(R.K, 18, 7.6 + down, 16.5, 0xb09a7e, frame(road, i, sd * 16.4, (7.6 - down) / 2), { uvs: 6 });
     }
@@ -373,7 +378,7 @@ function outsideRun(R, road, B, i0, i1, r) {
     const sh = shoulderOf(B, sd);
     if (sh > 0) strip(R.K, road, i0, i1, C(sd * WALK, 0.18), C(sd * (WALK + sh), 0.18), LIGHT(B.skirt, 0.2), 5);
     const e = WALK + sh;
-    if (B.deco !== 'llanura') strip(R.K, road, i0, i1, C(sd * e, 0.18), i => [sd * (e + Math.max(3, (road.y[i] + 2) * 0.55)), -(road.y[i] + 2)], LIGHT(B.skirt, 0.2), 6);
+    if (B.deco !== 'llanura') strip(R.K, road, i0, i1, C(sd * e, 0.18), i => [sd * (e + Math.max(3, (road.gy[i] + 2) * 0.55)), -(road.gy[i] + 2)], LIGHT(B.skirt, 0.2), 6);
   }
   DECO[B.deco](R, road, B, i0, i1, r);
   if (CITY.has(B.deco)) {
@@ -423,11 +428,38 @@ function building(R, road, B, d, sd, r, night) {
   const w = 9 + r() * 7, dep = 8 + r() * 6, top = 7 + r() * (night ? 22 : 16);
   const lat = sd * (WALK + 1.2 + dep / 2);
   if (!ok(road, d, lat, Math.max(w, dep) * 0.6, true)) return w;
-  const y = road.y[Math.floor(d)], down = y + 2;
+  const y = road.gy[Math.floor(d)], down = y + 2;
   const col = pick(r, B.build);
   const m = frame(road, d, lat, 0);
   const fx = -sd * (dep / 2);
   addBox(night ? R.N : R.W, dep, top + down, w, col, m, { y: (top - down) / 2, win: true });
+  // que no sean cajas: pilastras, impostas, ático retranqueado, torreón, tejado a cuatro aguas o soportales
+  const rel2 = LIGHT(col, 0.22);
+  for (let z = -w / 2 + 0.3; z <= w / 2 - 0.2; z += Math.max(2.2, w / 4)) addBox(R.L, 0.22, top - 0.2, 0.32, rel2, m, { x: fx - 0.1 * sd, y: top / 2 - 0.1, z });
+  if (r() < 0.6) for (let f2 = 1; f2 < top / 3.1; f2++) addBox(R.L, 0.18, 0.18, w + 0.1, rel2, m, { x: fx - 0.08 * sd, y: f2 * 3.1 - 0.05 });
+  const sh = r();
+  let rtop = top;
+  if (sh < 0.3 && !night) {
+    // tejado a cuatro aguas
+    for (const sx of [-1, 1]) addBox(R.L, dep / 2 + 0.7, 0.25, w + 0.6, B.roof, m, { x: sx * (dep / 4 + 0.1), y: top + 1.0, rz: sx * 0.5 });
+    for (const z of [-w / 2, w / 2]) addBox(R.L, dep * 0.9, 1.2, 0.12, LIGHT(col, 0.1), m, { y: top + 0.6, z });
+  } else if (sh < 0.6) {
+    // ático retranqueado
+    const h2 = 3 + r() * 5;
+    addBox(night ? R.N : R.W, dep * 0.65, h2, w * 0.7, LIGHT(col, 0.12), m, { y: top + h2 / 2, x: sd * dep * 0.12, win: true });
+    addBox(R.L, dep * 0.65 + 0.4, 0.4, w * 0.7 + 0.4, B.roof, m, { y: top + h2 + 0.2, x: sd * dep * 0.12 });
+    rtop = top + h2;
+  } else if (sh < 0.8) {
+    // torreón en una esquina
+    const h2 = 4 + r() * 8, zc = (r() < 0.5 ? -1 : 1) * (w / 2 - 1.6);
+    addBox(night ? R.N : R.W, 3.2, top + h2 + down, 3.2, LIGHT(col, 0.08), m, { y: (top + h2 - down) / 2, x: -sd * (dep / 2 - 1.6), z: zc, win: true });
+    for (const sx of [-1, 1]) addBox(R.L, 2.2, 0.2, 3.6, B.roof, m, { x: -sd * (dep / 2 - 1.6) + sx * 0.8, y: top + h2 + 0.6, z: zc, rz: sx * 0.7 });
+  }
+  // soportales: columnas delante y voladizo
+  if (r() < 0.3 && !night) {
+    addBox(R.L, 1.1, 0.35, w, LIGHT(col, 0.18), m, { x: fx - 0.55 * sd, y: 3.2 });
+    for (let z = -w / 2 + 0.6; z <= w / 2 - 0.4; z += 2.6) addBox(R.L, 0.28, 3.0, 0.28, 0xe8e2d6, m, { x: fx - 0.95 * sd, y: 1.68, z });
+  }
   addBox(R.L, dep + 0.6, 0.6, w + 0.6, B.roof, m, { y: top + 0.3 });
   // planta baja: escaparate oscuro con un rótulo de color encima
   addBox(R.L, 0.12, 2.6, w * 0.86, night ? 0x141418 : 0x2a3440, m, { x: fx - 0.06, y: 1.5 });
@@ -460,7 +492,7 @@ function backRows(R, road, B, i0, i1, r, sides, night) {
     each(i0, i1, r, 13, 22, d => {
       const dep = 10 + r() * 8, w = 10 + r() * 8, lat = sd * (WALK + 31 + r() * 10);
       if (!ok(road, d, lat, Math.max(w, dep) * 0.6)) return;
-      const y = road.y[Math.floor(d)], down = y + 2, top = 18 + r() * 30, m = frame(road, d, lat, 0);
+      const y = road.gy[Math.floor(d)], down = y + 2, top = 18 + r() * 30, m = frame(road, d, lat, 0);
       addBox(night ? R.N : R.W, dep, top + down, w, pick(r, B.build), m, { y: (top - down) / 2, win: true });
       addBox(R.L, dep + 0.4, 0.5, w + 0.4, B.roof, m, { y: top + 0.25 });
       if (r() < 0.5) addBox(R.L, 2.4, 3, 2.4, 0x8a8a8a, m, { y: top + 1.5, x: (r() - 0.5) * dep * 0.4 });
@@ -470,7 +502,7 @@ function backRows(R, road, B, i0, i1, r, sides, night) {
     each(i0, i1, r, 24, 42, d => {
       const lat = sd * (75 + r() * 35), w = 14 + r() * 12;
       if (!ok(road, d, lat, w * 0.6)) return;
-      const y = road.y[Math.floor(d)], down = y + 2, top = 40 + r() * 60;
+      const y = road.gy[Math.floor(d)], down = y + 2, top = 40 + r() * 60;
       const m = frame(road, d, lat, 0);
       addBox(night ? R.N : R.W, w, top + down, w, LIGHT(pick(r, B.build), 0.15), m, { y: (top - down) / 2, win: true });
       if (r() < 0.5) addBox(R.L, w * 0.6, 6, w * 0.6, LIGHT(pick(r, B.build), 0.25), m, { y: top + 3 });
@@ -510,7 +542,7 @@ function guardrail(R, road, i0, i1, sd, col = 0xd9dde0) {
 function rocks(R, road, d, sd, r) {
   const lat = sd * (WALK + 2 + r() * 4);
   if (!ok(road, d, lat, 4)) return;
-  const h = 6 + r() * 16, y = road.y[Math.floor(d)];
+  const h = 6 + r() * 16, y = road.gy[Math.floor(d)];
   addBox(R.K, 4 + r() * 4, h + y + 2, 5 + r() * 5, pick(r, [0xc2ab8c, 0xb09c80, 0xd0bc9c]), frame(road, d, lat, (h - y - 2) / 2, r()), { rx: (r() - 0.5) * 0.2, uvs: 5 });
 }
 function pine(R, road, d, lat, r) {
@@ -553,7 +585,7 @@ const DECO = {
     while (d < i1) {
       const w = 14 + r() * 10, dep = 12, lat = WALK + 1.5 + dep / 2;
       if (ok(road, d, lat, w * 0.6)) {
-        const y = road.y[Math.floor(d)], down = y + 2, top = 7 + r() * 4, m = frame(road, d, lat, 0);
+        const y = road.gy[Math.floor(d)], down = y + 2, top = 7 + r() * 4, m = frame(road, d, lat, 0);
         addBox(R.Q, dep, top + down, w, LIGHT(pick(r, B.build), 0.3), m, { y: (top - down) / 2, uvs: 3 });
         addBox(R.L, dep + 0.4, 1.2, w + 0.4, 0x777777, m, { y: top + 0.3 });
       }
@@ -592,7 +624,7 @@ const DECO = {
       while (d < i1) {
         const w = 16 + r() * 12, dep = 12 + r() * 6, lat = sd * (WALK + 2 + dep / 2);
         if (r() < 0.75 && ok(road, d, lat, w * 0.6)) {
-          const y = road.y[Math.floor(d)], down = y + 2, top = 6 + r() * 8, m = frame(road, d, lat, 0);
+          const y = road.gy[Math.floor(d)], down = y + 2, top = 6 + r() * 8, m = frame(road, d, lat, 0);
           if (r() < 0.5) addBox(R.W, dep, top + down, w, pick(r, B.build), m, { y: (top - down) / 2, win: true });
           else addBox(r() < 0.5 ? R.U : R.Q, dep, top + down, w, LIGHT(pick(r, B.build), 0.4), m, { y: (top - down) / 2, uvs: 3.5 });
           if (r() < 0.35) decal(R.F, Math.min(9, w * 0.6), 4, m, sd, { x: -sd * (dep / 2 + 0.05), y: 2.4 });
@@ -629,7 +661,7 @@ const DECO = {
       while (d < i1) {
         const w = 10 + r() * 8, dep = 10 + r() * 5, lat = sd * (WALK + 1.2 + dep / 2);
         if (r() < 0.8 && ok(road, d, lat, Math.max(w, dep) * 0.6)) {
-          const y = road.y[Math.floor(d)], down = y + 2, top = 6 + r() * 10, m = frame(road, d, lat, 0);
+          const y = road.gy[Math.floor(d)], down = y + 2, top = 6 + r() * 10, m = frame(road, d, lat, 0);
           addBox(R.B, dep, top + down, w, LIGHT(pick(r, B.build), 0.25), m, { y: (top - down) / 2, uvs: 3 });
           // ventanas tapiadas con tablones
           for (let fl = 1; fl < top / 3.2; fl++) for (const k of [-1, 1]) addBox(R.D, 0.12, 1.4, 1.6, 0x6a5040, m, { x: -sd * (dep / 2 + 0.05), y: fl * 3.2 - 1, z: k * w * 0.25 });
@@ -683,14 +715,14 @@ const DECO = {
     each(i0, i1, r, 40, 70, d => {
       const sd = r() < 0.5 ? -1 : 1, lat = sd * (36 + r() * 22);
       if (!ok(road, d, lat, 10)) return;
-      const h = 10 + r() * 18, y = road.y[Math.floor(d)];
+      const h = 10 + r() * 18, y = road.gy[Math.floor(d)];
       addBox(R.K, 14 + r() * 14, h + y + 2, 16 + r() * 14, pick(r, [0xd88a5a, 0xc87a4a, 0xe0a068]), frame(road, d, lat, (h - y - 2) / 2, r()), { uvs: 7 });
     });
     // casitas de adobe
     each(i0, i1, r, 70, 120, d => {
       const sd = r() < 0.5 ? -1 : 1, lat = sd * (WALK + 5);
       if (!ok(road, d, lat, 5)) return;
-      const y = road.y[Math.floor(d)], m = frame(road, d, lat, 0);
+      const y = road.gy[Math.floor(d)], m = frame(road, d, lat, 0);
       addBox(R.C, 6, 4 + y + 2, 7, 0xe0b888, m, { y: (4 - y - 2) / 2, uvs: 3 });
       addBox(R.D, 0.1, 2, 1.1, 0x5a3a20, m, { x: -sd * 3.02, y: 1 });
     });
@@ -700,7 +732,7 @@ const DECO = {
     each(i0, i1, r, 12, 18, d => palm(R, road, d, -7.7, r));
     // sombrillas y toallas en la arena
     each(i0, i1, r, 5, 9, d => {
-      const y = road.y[Math.floor(d)], run = Math.max(3, (y + 2) * 0.55), f = 0.15 + r() * 0.6;
+      const y = road.gy[Math.floor(d)], run = Math.max(3, (y + 2) * 0.55), f = 0.15 + r() * 0.6;
       const lat = -(WALK + f * run);
       if (!ok(road, d, lat, 1.5)) return;
       const h = 0.18 - f * (y + 2.18);
@@ -712,7 +744,7 @@ const DECO = {
     });
     // torre de socorrista
     each(i0, i1, r, 90, 140, d => {
-      const y = road.y[Math.floor(d)], run = Math.max(3, (y + 2) * 0.55);
+      const y = road.gy[Math.floor(d)], run = Math.max(3, (y + 2) * 0.55);
       const lat = -(WALK + run * 0.5);
       if (!ok(road, d, lat, 2)) return;
       const m = frame(road, d, lat, 0.18 - (y + 2.18) * 0.5);
@@ -753,7 +785,7 @@ const DECO = {
     while (d < i1) {
       const w = 14 + r() * 10, dep = 12, lat = WALK + 1.5 + dep / 2;
       if (ok(road, d, lat, w * 0.6)) {
-        const y = road.y[Math.floor(d)], down = y + 2, top = 7 + r() * 5, m = frame(road, d, lat, 0);
+        const y = road.gy[Math.floor(d)], down = y + 2, top = 7 + r() * 5, m = frame(road, d, lat, 0);
         addBox(r() < 0.5 ? R.B : R.Q, dep, top + down, w, LIGHT(pick(r, B.build), 0.3), m, { y: (top - down) / 2, uvs: 3 });
         addBox(R.L, dep + 0.4, 1, w + 0.4, 0x3a3a3a, m, { y: top + 0.3 });
         if (r() < 0.4) decal(R.F, Math.min(8, w * 0.5), 3.5, m, 1, { x: -(dep / 2 + 0.05), y: 2.2 });
@@ -767,7 +799,7 @@ const DECO = {
     each(i0, i1, r, 5, 9, d => {
       const lat = WALK + 3 + r() * 3;
       if (!ok(road, d, lat, 4)) return;
-      const h = 18 + r() * 26, y = road.y[Math.floor(d)];
+      const h = 18 + r() * 26, y = road.gy[Math.floor(d)];
       addBox(R.K, 5 + r() * 5, h + y + 2, 6 + r() * 5, pick(r, [0xb8a68c, 0xa8967c, 0xc8b69a]), frame(road, d, lat, (h - y - 2) / 2, r() * 0.4), { rx: (r() - 0.5) * 0.15, uvs: 6 });
     });
     each(i0, i1, r, 14, 24, d => pine(R, road, d, -7.6, r));
@@ -775,7 +807,7 @@ const DECO = {
     each(i0, i1, r, 160, 240, d => {
       const lat = -(WALK + 30);
       if (!ok(road, d, lat, 6)) return;
-      const y = road.y[Math.floor(d)], m = frame(road, d, lat, -y);
+      const y = road.gy[Math.floor(d)], m = frame(road, d, lat, -y);
       addBox(R.K, 12, 10, 12, 0x9a8a72, m, { y: 5, uvs: 5 });
       addCyl(R.L, 1.2, 1.6, 14, 10, 0xffffff, m, { y: 17 });
       for (let k = 0; k < 3; k++) addCyl(R.L, 1.25 + k * 0.1, 1.3 + k * 0.1, 1.2, 10, 0xd02020, m, { y: 12 + k * 4 });
@@ -859,7 +891,7 @@ const DECO = {
     each(i0, i1, r, 50, 80, d => {
       const sd = r() < 0.5 ? -1 : 1, lat = sd * (WALK + 16);
       if (!ok(road, d, lat, 8)) return;
-      const y = road.y[Math.floor(d)], m = frame(road, d, lat, 0);
+      const y = road.gy[Math.floor(d)], m = frame(road, d, lat, 0);
       addBox(R.Q, 8, 4 + y + 2, 16, 0x6a7050, m, { y: (4 - y - 2) / 2, uvs: 3 });
       addBox(R.L, 8.6, 0.5, 16.6, 0x3a4030, m, { y: 4.2 });
     });
@@ -925,7 +957,7 @@ const DECO = {
       while (d < i1) {
         const w = 8 + r() * 6, dep = 9 + r() * 4, lat = sd * (WALK + 1.2 + dep / 2);
         if (ok(road, d, lat, Math.max(w, dep) * 0.6)) {
-          const y = road.y[Math.floor(d)], down = y + 2, top = 8 + r() * 12, m = frame(road, d, lat, 0);
+          const y = road.gy[Math.floor(d)], down = y + 2, top = 8 + r() * 12, m = frame(road, d, lat, 0);
           addBox(R.N, dep, top + down, w, pick(r, B.build), m, { y: (top - down) / 2, win: true });
           // tejado de pagoda con aleros
           addBox(R.L, dep + 2.2, 0.35, w + 2.2, 0x1a5a3a, m, { y: top + 0.2 });
@@ -949,10 +981,10 @@ const DECO = {
   rio(R, road, B, i0, i1, r) {
     guardrail(R, road, i0, i1, -1, 0x6a8aa0);
     // orilla de enfrente con árboles
-    strip(R.K, road, i0, i1, i => [-48, -road.y[i] + 0.8], i => [-95, -road.y[i] + 1.5], 0x6a8a4a, 8);
+    strip(R.K, road, i0, i1, i => [-48, -road.gy[i] + 0.8], i => [-95, -road.gy[i] + 1.5], 0x6a8a4a, 8);
     each(i0, i1, r, 8, 14, d => {
       const lat = -(52 + r() * 30);
-      const y = road.y[Math.floor(d)];
+      const y = road.gy[Math.floor(d)];
       const m = frame(road, d, lat, -y + 0.8);
       const s2 = 1 + r();
       addCyl(R.L, 0.2 * s2, 0.3 * s2, 2.5 * s2, 5, 0x6b4a2a, m, { y: 1.2 * s2 });
@@ -962,7 +994,7 @@ const DECO = {
     each(i0, i1, r, 50, 90, d => {
       const lat = -(WALK + 6);
       if (!ok(road, d, lat, 3)) return;
-      const y = road.y[Math.floor(d)], m = frame(road, d, lat, -y + 0.6);
+      const y = road.gy[Math.floor(d)], m = frame(road, d, lat, -y + 0.6);
       addBox(R.D, 8, 0.25, 3, 0x7a5a3a, m, { uvs: 2 });
       for (const x of [-3.5, 0, 3.5]) addBox(R.D, 0.25, y + 1, 0.25, 0x5a4028, m, { x, y: -(y + 1) / 2 + 0.6 });
     });
@@ -1030,7 +1062,7 @@ const DECO = {
       while (d < i1) {
         const w = 9 + r() * 8, dep = 8 + r() * 6, lat = sd * (WALK + 1.5 + dep / 2);
         if (r() < 0.7 && ok(road, d, lat, Math.max(w, dep) * 0.6)) {
-          const y = road.y[Math.floor(d)], down = y + 2, m = frame(road, d, lat, 0);
+          const y = road.gy[Math.floor(d)], down = y + 2, m = frame(road, d, lat, 0);
           const top = 3 + r() * 7;
           addBox(R.C, dep, top + down, w, pick(r, B.build), m, { y: (top - down) / 2, uvs: 3 });
           // trozos rotos por encima
@@ -1093,7 +1125,7 @@ const DECO = {
       for (let d = i0; d < i1; d += 10) {
         const lat = sd * (WALK + 4.5);
         if (!ok(road, d + 5, lat, 4) || r() < 0.08) continue;
-        const y = road.y[Math.floor(d)], down = y + 2, m = frame(road, d + 5, lat, 0);
+        const y = road.gy[Math.floor(d)], down = y + 2, m = frame(road, d + 5, lat, 0);
         addBox(R.C, 6, 8 + down, 9.4, pick(r, B.build), m, { y: (8 - down) / 2, uvs: 3 });
         for (let q = 0; q < 2; q++) addBox(R.L, 0.14, 1.6, 1.4, 0x0c0c0e, m, { x: -sd * 3.02, y: 2 + q * 3.4, z: (r() - 0.5) * 6 });
         // paredes rotas por detrás
@@ -1117,9 +1149,67 @@ const DECO = {
     for (const sd of [-1, 1]) each(i0, i1, r, 18, 30, d => {
       const lat = sd * (WALK + 22 + r() * 10);
       if (!ok(road, d, lat, 6)) return;
-      const y = road.y[Math.floor(d)], down = y + 2, top = 10 + r() * 20, m = frame(road, d, lat, 0);
+      const y = road.gy[Math.floor(d)], down = y + 2, top = 10 + r() * 20, m = frame(road, d, lat, 0);
       addBox(R.C, 10, top + down, 10, pick(r, B.build), m, { y: (top - down) / 2, uvs: 4 });
       addBox(R.C, 4, 4 + r() * 6, 3, pick(r, B.build), m, { x: (r() - 0.5) * 5, y: top + 2, rz: (r() - 0.5) * 0.5, uvs: 3 });
+    });
+  },
+  // ---------- cuesta abajo y curvas del barranco ----------
+  bajada(R, road, B, i0, i1, r) {
+    guardrail(R, road, i0, i1, -1, 0xe0e0e0); guardrail(R, road, i0, i1, 1, 0xe0e0e0);
+    for (const sd of [-1, 1]) {
+      each(i0, i1, r, 5, 9, d => pine(R, road, d, sd * (WALK + 1.5 + r() * 12), r));
+      // agujas de roca
+      each(i0, i1, r, 25, 45, d => {
+        const lat = sd * (WALK + 16 + r() * 20);
+        if (!ok(road, d, lat, 4)) return;
+        const y = road.gy[Math.floor(d)], h = 12 + r() * 25;
+        addBox(R.K, 4 + r() * 4, h + y, 4 + r() * 4, pick(r, [0xa89a80, 0x98886e]), frame(road, d, lat, (h - y) / 2, r()), { uvs: 5 });
+      });
+    }
+    // señales de pendiente y flechas de curva
+    each(i0, i1, r, 80, 120, d => {
+      const lat = 7.9;
+      if (!ok(road, d, lat, 1)) return;
+      const m = frame(road, d, lat, 0.18, Math.PI);
+      addBox(R.L, 0.1, 2.4, 0.1, 0x8a8a8a, m, { y: 1.2 });
+      addBox(R.G, 0.1, 1.0, 1.0, 0xffffff, m, { y: 2.6 }); addBox(R.G, 0.12, 0.8, 0.8, 0xd02020, m, { y: 2.6 });
+      addBox(R.G, 0.14, 0.5, 0.5, 0xffffff, m, { y: 2.6 });
+    });
+    // valle a lo lejos
+    each(i0, i1, r, 70, 120, d => {
+      const sd = r() < 0.5 ? -1 : 1, lat = sd * (140 + r() * 80);
+      addBox(R.K, 70 + r() * 50, 40 + r() * 50, 50 + r() * 50, pick(r, [0x7a8a6a, 0x8a9a7a]), frame(road, d, lat, -10), { uvs: 20 });
+    });
+  },
+  curva(R, road, B, i0, i1, r) {
+    guardrail(R, road, i0, i1, -1, 0xe8e8e0);
+    // casas de tejado a dos aguas sobre pilares, solo a la derecha (el terreno cae)
+    let d = i0 + r() * 6;
+    while (d < i1) {
+      const w = 7 + r() * 4, dep = 6 + r() * 2, lat = WALK + 2 + dep / 2;
+      if (ok(road, d, lat, Math.max(w, dep) * 0.6, true)) {
+        const gy = road.gy[Math.floor(d)], m = frame(road, d, lat, 0), fl = 1.2, hh = 3.4;
+        const col = pick(r, B.build);
+        for (const x of [-dep / 2 + 0.4, dep / 2 - 0.4]) for (const z of [-w / 2 + 0.5, w / 2 - 0.5]) addBox(R.C, 0.5, gy + 2 + fl, 0.5, 0xb0a898, m, { x, z, y: (fl - gy - 2) / 2, uvs: 3 });
+        addBox(R.D, dep + 0.6, 0.3, w + 0.6, 0x7a5a3a, m, { y: fl, uvs: 2 });
+        addBox(R.W, dep, hh, w, col, m, { y: fl + hh / 2 + 0.15, win: true });
+        // tejado a dos aguas
+        for (const sx of [-1, 1]) addBox(R.L, dep / 2 + 0.9, 0.22, w + 0.8, B.roof, m, { x: sx * (dep / 4 + 0.15), y: fl + hh + 0.95, rz: sx * 0.55 });
+        for (const z of [-w / 2 - 0.05, w / 2 + 0.05]) addBox(R.L, dep * 0.95, 1.3, 0.1, LIGHT(col, 0.2), m, { y: fl + hh + 0.6, z });
+        addBox(R.L, 0.6, 1.8, 0.6, 0x8a4a3a, m, { x: dep * 0.2, y: fl + hh + 1.6, z: w * 0.25 });
+        // escalera de acceso desde la acera
+        for (let k = 0; k < 3; k++) addBox(R.C, 1.0, 0.2, 0.6, 0xb8b0a0, m, { x: -dep / 2 - 0.7, y: 0.25 + k * 0.32, z: -w / 2 + 1.4 + k * 0.5 });
+      }
+      d += w + 3 + r() * 4;
+    }
+    each(i0, i1, r, 9, 16, d => pine(R, road, d, -(WALK + 1.5 + r() * 6), r));
+    each(i0, i1, r, 34, 44, d => lamp(R, road, d, 1));
+    // flechas de curva peligrosa en el quitamiedos
+    each(i0, i1, r, 18, 26, d => {
+      if (!ok(road, d, -7.9, 1)) return;
+      const m = frame(road, d, -7.9, 0.18);
+      addBox(R.G, 0.1, 0.7, 1.2, 0xffd400, m, { y: 1.3 }); addBox(R.G, 0.12, 0.3, 0.6, 0x111111, m, { y: 1.3 });
     });
   },
 };

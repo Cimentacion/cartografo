@@ -29,6 +29,17 @@ export class Hud {
     g.clearRect(0, 0, W, H);
     if (!cam) return;
     const cx = W / 2, cy = H / 2;
+    // líneas de velocidad (cuesta abajo, turbo)
+    if (o.wind > 0) {
+      g.lineCap = 'round';
+      for (let i = 0; i < 26 * o.wind; i++) {
+        const a = Math.random() * Math.PI * 2, r0 = (0.35 + Math.random() * 0.4) * Math.max(W, H) * 0.5, len = 30 + Math.random() * 90 * o.wind;
+        const x0 = cx + Math.cos(a) * r0, y0 = cy + Math.sin(a) * r0 * 0.75;
+        g.strokeStyle = `rgba(255,255,255,${0.12 + Math.random() * 0.25 * o.wind})`;
+        g.lineWidth = 1 + Math.random() * 2;
+        g.beginPath(); g.moveTo(x0, y0); g.lineTo(x0 + Math.cos(a) * len, y0 + Math.sin(a) * len * 0.75); g.stroke();
+      }
+    }
     // --- amenazas sobre mí ---
     let edgeL = 0, edgeR = 0, edgeB = 0;
     for (const k of view.tele) {

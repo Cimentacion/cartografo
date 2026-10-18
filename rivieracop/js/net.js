@@ -10,7 +10,7 @@ const trReady = import('../lib/trystero.js').then(m => { TR = m; }).catch(e => c
 
 const PREFIX = 'rivieracop-cimentacion-';
 const APP = 'rivieracop-cimentacion-v1';
-export const NETV = 5;
+export const NETV = 6;
 
 function peerOpts() {
   const u = new URLSearchParams(location.search);

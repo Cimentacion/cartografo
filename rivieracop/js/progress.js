@@ -71,6 +71,11 @@ export const UPGRADES = [
   { id: 'turbo2', cat: 'poder', name: 'Turbo largo', desc: '+1 s de turbo por nivel', max: 4, base: 1500, g: 1.6 },
   { id: 'regul', cat: 'poder', name: 'Regulador de velocidad', desc: 'Una palanca a la derecha para ir más despacio en las zonas peligrosas', max: 1, base: 4000, g: 1 },
   { id: 'reviv', cat: 'poder', name: 'Reanimar', desc: 'Botón: revives a un compañero caído una vez por partida', max: 1, base: 6000, g: 1 },
+  { id: 'furia', cat: 'poder', name: 'Furia', desc: 'Botón: unos segundos disparando al doble de ritmo y sin gastar balas', max: 3, base: 4000, g: 1.7 },
+  { id: 'emp', cat: 'poder', name: 'Pulso EMP', desc: 'Botón: tumba drones, cazas y torretas, y el resto tarda en volver a disparar', max: 3, base: 5000, g: 1.7 },
+  { id: 'aereo', cat: 'poder', name: 'Ataque aéreo', desc: 'Botón: una fila de explosiones barre la carretera de delante', max: 3, base: 6000, g: 1.7 },
+  { id: 'cura', cat: 'poder', name: 'Botiquín de equipo', desc: 'Botón: cura a todo el grupo y quita el veneno', max: 3, base: 5000, g: 1.7 },
+  { id: 'iman', cat: 'poder', name: 'Imán', desc: 'Botón: recoges al vuelo los botiquines y el arma que haya en pantalla', max: 3, base: 3500, g: 1.7 },
   { id: 'escudo2', cat: 'poder', name: 'Escudo rápido', desc: '-8% de espera del escudo', max: 5, base: 2000, g: 1.6 },
   { id: 'bala2', cat: 'poder', name: 'Bala lenta', desc: '+8% de duración del tiempo bala', max: 5, base: 2000, g: 1.6 },
   { id: 'gren2', cat: 'poder', name: 'Granada gorda', desc: '+12% de radio y daño de tus granadas', max: 5, base: 2000, g: 1.6 },
@@ -115,6 +120,14 @@ export const bulletCd = lv => Math.max(20, 48 - lv * 3.6);
 export const ABMAX = 8;
 export const canonDur = lv => 6 + lv * 1.5;
 export const turboDur = (lv, l2 = 0) => 3 + lv * 0.8 + l2;
+// poderes de apoyo: espera entre usos según el nivel
+export const POWERS = {
+  furia: { cd: lv => 50 - lv * 6, dur: lv => 4 + lv * 1.5, col: '#ff5a3a', name: 'FURIA' },
+  emp: { cd: lv => 60 - lv * 7, col: '#5ad0ff', name: 'PULSO EMP' },
+  aereo: { cd: lv => 75 - lv * 8, col: '#ffb020', name: 'ATAQUE AÉREO' },
+  cura: { cd: lv => 70 - lv * 8, col: '#40ff80', name: 'BOTIQUÍN DE EQUIPO' },
+  iman: { cd: lv => 40 - lv * 5, col: '#ffe14a', name: 'IMÁN' },
+};
 export const turboCd = lv => Math.max(22, 45 - lv * 4);
 export const canonCd = lv => Math.max(28, 52 - lv * 4);
 

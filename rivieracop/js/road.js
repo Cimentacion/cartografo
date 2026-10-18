@@ -12,6 +12,8 @@ export class Road {
     this.seed = seed >>> 0;
     this.x = [0]; this.y = [70]; this.z = [0]; this.yaw = [0];
     this.kind = [1]; this.bio = [0]; this.zd = [1];
+    // nivel del mar (baja si la carretera baja mucho) y altura de la carretera sobre él
+    this.sea = [0]; this.gy = [70];
     this.grid = new Map();
     this._addGrid(0);
     this.queue = []; this.tunnels = []; this.forks = [];
@@ -80,7 +82,8 @@ export class Road {
       s.pos++;
       slopeT = s.slope;
       const BB = BIOMES[BIOME_KEYS[b.bio]];
-      if (BB.cliff) {
+      if (BB.descent) slopeT = BB.slope;
+      else if (BB.cliff) {
         // acantilados: primero se sube por la ladera y luego se va cayendo en picado hacia el mar
         slopeT = b.pos < b.len * 0.28 ? (this.y[this.len] < 85 ? 0.07 : 0) : (this.y[this.len] > 12 ? -0.085 : 0);
       } else if (BB.slope < 0 && this.y[this.len] < 16) slopeT = 0;
@@ -90,11 +93,16 @@ export class Road {
     }
     c.slope += clamp(slopeT - c.slope, -0.0015, 0.0015);
     const i = this.len;
+    // suelo mínimo: las bajadas largas pueden ir por debajo del nivel del mar (el mar baja con ellas)
+    const fl = BIOMES[BIOME_KEYS[b.bio]].floor ?? 6;
     c.yaw += k;
     const yaw = c.yaw;
     this.x.push(this.x[i] + Math.sin(yaw));
     this.z.push(this.z[i] - Math.cos(yaw));
-    this.y.push(Math.max(6, this.y[i] + c.slope));
+    const ny = Math.max(Math.min(fl, this.y[i]), this.y[i] + c.slope);
+    this.y.push(ny);
+    this.sea.push(Math.min(this.sea[i], ny - 30));
+    this.gy.push(ny - this.sea[i + 1]);
     this.yaw.push(yaw);
     this.kind.push(b.type === 'tunnel' ? 1 : b.type === 'approach' ? 2 : b.type === 'interior' ? 3 : 0);
     this.bio.push(b.bio);
@@ -114,6 +122,17 @@ export class Road {
       slope = clamp((ty - y) / 140, -0.035, 0.035);
     }
     if (rem < 40) return { len: rem, pos: 0, kmax: 0, slope };
+    // bajada en curva: curvas pronunciadas encadenadas
+    if (B.curvy) {
+      let len = Math.min(rem, Math.round(130 + r() * 50));
+      if (rem - len < 40) len = rem;
+      const dir = this.lastHair ? -this.lastHair : (r() < 0.5 ? -1 : 1);
+      for (const [a, dd] of [[0.7 + r() * 0.25, dir], [0.7, -dir], [0.4, dir], [0.4, -dir]]) {
+        const kmax = (a * Math.PI) / (2 * len) * dd;
+        if (this._clear(len, kmax)) { this.lastHair = dd; return { len, pos: 0, kmax, slope }; }
+      }
+      return { len, pos: 0, kmax: 0, slope };
+    }
     const roll = r();
     let len, A;
     // curvas largas y suaves (sin horquillas): la cámara va con el coche y las curvas cerradas marean
@@ -241,6 +260,7 @@ export class Road {
     for (let x = f.secStart + 90; x < f.gantry - 200; x += 150) L.push(x);
     return L;
   }
+  seaAt(d) { const i = clamp(Math.floor(d), 0, this.len); return this.sea[i]; }
   zdAt(d) { const i = clamp(Math.floor(d), 0, this.len); return this.zd[i] || 1; }
   inTunnel(d) { for (const t of this.tunnels) if (d >= t.start - 4 && d <= t.end + 4) return true; return false; }
 }

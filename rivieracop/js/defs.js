@@ -2,7 +2,7 @@
 
 export const BIOME_KEYS = ['monaco', 'puerto', 'casino', 'autopista', 'industrial', 'cornisa', 'detroit', 'desierto', 'costa', 'trenes', 'acantilados', 'orgullo',
   'militar', 'manifa', 'barro', 'chino', 'rio', 'semaforos', 'trenmil',
-  'bosque', 'guerra', 'llanura', 'ruinas', 'submarino'];
+  'bosque', 'guerra', 'llanura', 'ruinas', 'submarino', 'bajada', 'curva'];
 // zonas de ciudad: más edificios detrás, rascacielos y pasarelas elevadas
 export const CITY = new Set(['monaco', 'casino', 'detroit', 'manifa', 'semaforos', 'orgullo', 'chino']);
 
@@ -228,6 +228,27 @@ export const BIOMES = {
     build: [0x3a6a6a], roof: 0x2a4a4a,
     w: { gunman: 0, moto: 0, ecar: 0, drone: 0, heli: 0, sniper: 0, barrels: 0, jumper: 0, grenadier: 0, quad: 0, pickup: 0, van: 0, bus: 0, truck: 0, civcar: 0 }, pts: 1.6, deco: 'submarino', lv: 4,
   },
+  bajada: {
+    name: 'LA GRAN BAJADA', color: '#ff5a3a',
+    sky: 0x8ac8ff, fogNear: 120, fogFar: 320, sea: 0x3a6a3a,
+    asphalt: 0x4a4c50, walk: 0x9a9488, skirt: 0x7a6a50, line: 0xffffff,
+    hemi: [0xffffff, 0x6a7a50, 1.1], sun: [0xfff0d8, 1.7], night: false,
+    // cuesta abajo de verdad: 10% de pendiente durante el triple de distancia, y el coche corre más
+    slope: -0.1, descent: true, floor: -1e9, vf: 1.35, len: 2160,
+    hmin: 0, hmax: 0, hair: 0,
+    build: [0xd8c8a8], roof: 0x9a4a2a,
+    w: { moto: 2.6, gunman: 0.5, ecar: 1.2, quad: 1.4, drone: 1.0 }, pts: 1.8, deco: 'bajada', lv: 4,
+  },
+  curva: {
+    name: 'CURVAS DEL BARRANCO', color: '#ffb84a',
+    sky: 0xa8c8e0, fogNear: 70, fogFar: 230, sea: 0x3a5a4a,
+    asphalt: 0x505256, walk: 0xa8a090, skirt: 0x6a5a44, line: 0xffd400,
+    hemi: [0xffffff, 0x6a6a50, 1.05], sun: [0xfff0d8, 1.55], night: false,
+    slope: -0.06, descent: true, floor: -1e9, curvy: true, len: 900,
+    hmin: 0, hmax: 0, hair: 0,
+    build: [0xf0e0c8, 0xe8d0b0, 0xd8c8b8], roof: 0x8a3a24,
+    w: { gunman: 0.7, moto: 1.2, sniper: 0.6 }, pts: 1.9, deco: 'curva', lv: 5,
+  },
 };
 
 // Bonus extra que puede llevar cada cartel de ruta
@@ -244,9 +265,9 @@ export const TYPES = ['gunman', 'civilian', 'moto', 'ecar', 'heli', 'drone', 'tr
   'amb', 'medkit', 'jeep', 'weapon', 'sign', 'barrel', 'grenade', 'rocket', 'sniper', 'wall', 'train', 'rock', 'lady',
   'jumper', 'tank', 'rig', 'rioter', 'thrown', 'fuel', 'chef', 'boat', 'tlight', 'mtrain', 'preview', 'float',
   'quad', 'pickup', 'van', 'bus', 'canoe',
-  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'whale'];
+  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'whale', 'turret', 'gunship'];
 // jefes: llevan barra de vida en pantalla
-export const BOSS = { bear: 'OSO GRIZZLY', blimp: 'DIRIGIBLE', bus: 'AUTOBÚS', jeep: 'TERRORISTA', heli: 'HELICÓPTERO', wall: 'MURO', train: 'TREN', tank: 'TANQUE', rig: 'CAMIÓN', chef: 'EL CHEF DEL BUFFET', mtrain: 'TREN MILITAR' };
+export const BOSS = { gunship: 'EL CAÑONERO', bear: 'OSO GRIZZLY', blimp: 'DIRIGIBLE', bus: 'AUTOBÚS', jeep: 'TERRORISTA', heli: 'HELICÓPTERO', wall: 'MURO', train: 'TREN', tank: 'TANQUE', rig: 'CAMIÓN', chef: 'EL CHEF DEL BUFFET', mtrain: 'TREN MILITAR' };
 export const TI = Object.fromEntries(TYPES.map((t, i) => [t, i]));
 
 // Estados de entidad

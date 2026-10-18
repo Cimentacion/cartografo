@@ -3,13 +3,13 @@
 import * as THREE from 'three';
 import { RARITY, weaponLines } from './weapons.js';
 import { PCOL } from './defs.js';
-import { toon, tex } from './toon.js';
+import { toon, tex, toonGrad2 } from './toon.js';
 import { personOpts, sleeveColor, SKINS } from './character.js';
 
 const MC = new Map();
 export function mat(c) {
   let m = MC.get(c);
-  if (!m) { m = toon({ color: c }); MC.set(c, m); }
+  if (!m) { m = toonGrad2({ color: c }); MC.set(c, m); }
   return m;
 }
 const GLC = new Map();
@@ -24,7 +24,7 @@ const TM = new Map();
 // material con textura (madera, óxido...) teñido de un color
 export function tmat(name, c = 0xffffff) {
   const k = name + c;
-  if (!TM.has(k)) TM.set(k, toon({ color: c, map: tex(name) }));
+  if (!TM.has(k)) TM.set(k, toonGrad2({ color: c, map: tex(name) }));
   return TM.get(k);
 }
 export const HIDE = new THREE.MeshBasicMaterial({ visible: false });
@@ -632,7 +632,7 @@ export function drawWeaponCard(g, w, prog, need, n) {
 }
 
 // ---------- armas en primera persona ----------
-export function fpGun(model, rar = 0, cfg = null) {
+export function fpGun(model, rar = 0, cfg = null, lv = 1) {
   const g = new THREE.Group();
   const acc = [0x6a6a6a, 0x3a7fc0, 0x8a4ac0, 0xd8a020][rar] ?? 0x6a6a6a;
   const blk = 0x1c1c1e, gr = 0x2c2c30;
@@ -671,6 +671,26 @@ export function fpGun(model, rar = 0, cfg = null) {
     default:
       box(g, 0.04, 0.06, 0.2, gr, 0, 0.01, -0.08); box(g, 0.04, 0.11, 0.05, blk, 0, -0.07, 0.0);
       box(g, 0.042, 0.015, 0.16, acc, 0, 0.045, -0.08); L = 0.18;
+  }
+  // el arma se va currando al subir de nivel: mira, bocacha, láser, cargador largo y acabados dorados
+  const longGun = ['rifle', 'mg', 'smg', 'shotgun'].includes(model);
+  if (lv >= 3 && model !== 'cannon') {
+    if (longGun) {
+      const sc = new THREE.Mesh(cgeo(0.03, 0.2, 8), mat(0x1a1a1a)); sc.rotation.x = Math.PI / 2; sc.position.set(0, 0.085, -L * 0.45); g.add(sc);
+      box(g, 0.05, 0.05, 0.02, glow(0x6ad0ff, 0.8), 0, 0.085, -L * 0.45 - 0.11);
+      box(g, 0.02, 0.04, 0.02, 0x1a1a1a, 0, 0.055, -L * 0.45);
+    } else { box(g, 0.035, 0.035, 0.05, 0x1a1a1a, 0, 0.075, -0.06); box(g, 0.025, 0.025, 0.01, glow(0xff2020, 0.9), 0, 0.075, -0.088); }
+  }
+  if (lv >= 5 && model !== 'cannon') {
+    const mb = new THREE.Mesh(cgeo(0.032, 0.09, 8), mat(0x2a2a2a)); mb.rotation.x = Math.PI / 2; mb.position.set(0, 0.01, -L - 0.04); g.add(mb);
+    box(g, 0.03, 0.03, 0.08, 0x1a1a1a, 0, -0.035, -L * 0.6);
+    box(g, 0.012, 0.012, 0.012, glow(0xff2020), 0, -0.035, -L * 0.6 - 0.045);
+    box(g, 0.04, 0.12, 0.05, longGun ? 0x2a2a2a : 0x1a1a1a, 0, -0.17, longGun ? -0.12 : 0.0);
+    L += 0.08;
+  }
+  if (lv >= 8 && model !== 'cannon') {
+    for (const sx of [-1, 1]) box(g, 0.005, 0.012, L * 0.7, glow(0xffc531), sx * 0.028, 0.0, -L * 0.42);
+    box(g, 0.045, 0.006, L * 0.5, glow(0x5affff, 0.9), 0, 0.045, -L * 0.4);
   }
   // mano y manga para que se lea como arma empuñada
   box(g, 0.075, 0.08, 0.08, cfg ? SKINS[cfg.skin] ?? 0xd9a476 : 0xd9a476, 0, -0.085, 0.02);
@@ -899,6 +919,7 @@ export function thrown(v) {
   if (v === 1) { const m = new THREE.Mesh(sgeo(0.32), mat(0xf4ecd8)); m.userData.part = 'body'; g.add(m); box(g, 0.2, 0.12, 0.2, 0xe0c890, 0, 0.26, 0, 'body'); }
   else if (v === 2) { box(g, 0.08, 0.5, 0.36, 0xd8dce0, 0, 0.1, 0, 'body'); box(g, 0.08, 0.3, 0.1, 0x3a2a1a, 0, -0.3, 0.1, 'body'); }
   else if (v === 3) box(g, 0.4, 0.22, 0.2, 0xb04a2a, 0, 0, 0, 'body');
+  else if (v === 4) { const c = new THREE.Mesh(cgeo(0.16, 0.5, 8), mat(0x6a6a6a)); c.userData.part = 'body'; g.add(c); box(g, 0.34, 0.06, 0.34, 0xd8d8d8, 0, 0.27, 0, 'body'); }
   else { box(g, 0.16, 0.42, 0.16, 0x2a7a3a, 0, 0, 0, 'body'); box(g, 0.08, 0.16, 0.08, 0xff8a20, 0, 0.28, 0, 'body'); }
   proxy(g, 0.6, 0, 0, 0);
   return g;
@@ -1032,11 +1053,11 @@ export function preview(opts) {
     c.fillText('DIF ' + z, 984, y + rowH * 0.15);
   });
   T.t.needsUpdate = true;
-  const pl = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 2.7), new THREE.MeshBasicMaterial({ map: T.t }));
-  pl.position.set(0, 4.3, -0.08); pl.rotation.y = Math.PI;
+  const pl = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 2.0), new THREE.MeshBasicMaterial({ map: T.t }));
+  pl.position.set(0, 3.6, -0.08); pl.rotation.y = Math.PI;
   g.add(pl);
-  box(g, 4.8, 2.9, 0.1, 0xd8d8d8, 0, 4.3, 0);
-  for (const x of [-1.9, 1.9]) box(g, 0.16, 4.3, 0.16, 0x8a8f96, x, 2.15, 0.08);
+  box(g, 3.6, 2.2, 0.1, 0xd8d8d8, 0, 3.6, 0);
+  for (const x of [-1.4, 1.4]) box(g, 0.14, 3.6, 0.14, 0x8a8f96, x, 1.8, 0.08);
   return g;
 }
 
@@ -1280,5 +1301,47 @@ export function whale() {
   box(tail, 8, 0.4, 2.5, c, 0, 0, 1.2);
   for (const sx of [-1, 1]) { const f = box(g, 4, 0.3, 1.6, c, sx * 4, -1.5, -3); f.rotation.z = sx * 0.4; }
   g.userData.tail = tail;
+  return g;
+}
+
+// ---------- torreta sobre pilar ----------
+export function turret(h = 5) {
+  const g = new THREE.Group();
+  box(g, 0.7, h, 0.7, tmat('conc', 0xb8b0a0), 0, -h / 2, 0, 'cover');
+  box(g, 1.6, 0.25, 1.6, 0x5a5a5a, 0, 0.12, 0, 'cover');
+  const pv = new THREE.Group(); pv.position.y = 0.7; g.add(pv);
+  box(pv, 1.0, 0.7, 1.1, 0x4a5a3a, 0, 0, 0, 'body');
+  box(pv, 1.2, 0.5, 0.15, 0x3a4a2a, 0, 0.05, -0.6, 'body');
+  for (const x of [-0.18, 0.18]) { const b = new THREE.Mesh(cgeo(0.06, 1.0, 6), mat(0x1a1a1a)); b.rotation.x = Math.PI / 2; b.position.set(x, 0.05, -1.1); b.userData.part = 'body'; pv.add(b); }
+  const mz = new THREE.Object3D(); mz.position.set(0, 0.05, -1.65); pv.add(mz);
+  g.userData.shooters = [mz]; g.userData.aimers = [pv];
+  return g;
+}
+// ---------- helicóptero cañonero con un tirador de gatling en la puerta ----------
+export function gunship() {
+  const g = new THREE.Group();
+  const col = 0x2a2a30;
+  box(g, 2.8, 2.6, 7, col, 0, 0, 0, 'body');
+  box(g, 2.6, 1.6, 2.0, GLASS, 0, 0.3, -3.6, 'body');
+  box(g, 0.6, 0.7, 7, col, 0, 0.5, 6.6, 'body');
+  box(g, 0.15, 2.2, 1.4, col, 0, 1.6, 9.8, 'body');
+  box(g, 3, 0.6, 0.6, 0x111111, 0, -1.6, 0, 'body');
+  for (const z of [-2, 2]) box(g, 3.4, 0.12, 0.12, 0x222222, 0, -1.9, z, 'body');
+  box(g, 2.2, 0.08, 1.2, 0xff7a10, 0, -0.6, -2.6);
+  // hueco de la puerta abierta (lado que da al coche) y el tirador con la gatling
+  box(g, 0.05, 1.9, 2.6, 0x0a0a0a, 1.42, 0.1, 0.4);
+  const pv = new THREE.Group(); pv.position.set(1.2, 0.5, 0.4); g.add(pv);
+  const p = person({ shirt: 0x3a3a2a, pants: 0x2a2a1a, bandana: true, part: 'gunner', big: true });
+  p.position.y = -0.92; p.userData.rig.body.children.slice(0, 4).forEach(m => m.removeFromParent());
+  p.rotation.y = -Math.PI / 2; pv.add(p);
+  const gat = new THREE.Group(); gat.position.set(0.5, 0.3, 0); pv.add(gat);
+  for (let k = 0; k < 6; k++) { const b = new THREE.Mesh(cgeo(0.05, 1.3, 5), mat(0x1a1a1a)); b.rotation.z = Math.PI / 2; b.position.set(0.7, Math.cos(k) * 0.12, Math.sin(k) * 0.12); b.userData.part = 'body'; gat.add(b); }
+  box(gat, 0.4, 0.4, 0.4, 0x2a2a2a, 0, 0, 0, 'body');
+  const mz = new THREE.Object3D(); mz.position.set(1.4, 0, 0); gat.add(mz);
+  const rotor = new THREE.Group(); rotor.position.y = 1.6; g.add(rotor);
+  box(rotor, 14, 0.12, 0.6, 0x111111, 0, 0, 0); box(rotor, 0.6, 0.12, 14, 0x111111, 0, 0, 0);
+  const tr = new THREE.Group(); tr.position.set(0.4, 1.6, 9.8); g.add(tr);
+  box(tr, 0.1, 2.6, 0.3, 0x111111, 0, 0, 0);
+  g.userData.shooters = [mz, mz]; g.userData.aimers = [pv]; g.userData.rotor = rotor; g.userData.tr = tr; g.userData.gat = gat;
   return g;
 }

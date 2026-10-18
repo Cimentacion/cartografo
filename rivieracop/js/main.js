@@ -10,7 +10,7 @@ import { SFX } from './audio.js';
 import { Net, makeCode, NETV } from './net.js';
 import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME, BOSS } from './defs.js';
 import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES } from './weapons.js';
-import { UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd, turboDur, turboCd } from './progress.js';
+import { UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd, turboDur, turboCd, POWERS } from './progress.js';
 import { fpGun } from './models.js';
 import { Outline, toon } from './toon.js';
 import { loadChar, saveChar, sanitize, defaultChar, SKINS, HAIRS, HAIR_COLORS, BEARDS, SHIRTS, SHIRT_COLORS, PANTS_COLORS } from './character.js';
@@ -26,7 +26,10 @@ const $ = id => document.getElementById(id);
 // ---------------- 3D ----------------
 const canvas = $('gl');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.get('hq') ? 2 : 1.25));
+// calidad: resolución interna (BAJA 1x, MEDIA 1.5x, ALTA 2x) y oclusión ambiental
+const QUAL = [['BAJA', 1], ['MEDIA', 1.5], ['ALTA', 2]];
+let qIdx = Math.max(0, Math.min(2, +(localStorage.getItem('rc_q') ?? 1)));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.get('hq') ? 2 : QUAL[qIdx][1]));
 renderer.setSize(vw(), vh());
 const outline = new Outline(renderer);
 outline.enabled = !Q.get('nooutline'); // TODO-TESTEO
@@ -134,7 +137,7 @@ class Mirror {
       });
     }
     const players = b.p.map(q => ({ hp: q[0], score: q[1], alive: !!q[2], inv: q[3], ly: q[4], lp: q[5], gone: !!q[6], maxHp: q[7] || 10, shield: !!q[8], poison: !!q[9] }));
-    return { carD, ents, players, cd: b.cd, sp: b.sp, sl: b.sl, mu: b.mu, sn: b.sn, cu: b.cu, tb: b.tb };
+    return { carD, ents, players, cd: b.cd, sp: b.sp, sl: b.sl, mu: b.mu, sn: b.sn, cu: b.cu, tb: b.tb, sm: b.sm };
   }
 }
 
@@ -168,7 +171,7 @@ function clearChunks() {
 // ---------------- arma local ----------------
 function setFpGun() {
   if (fpg) camera.remove(fpg);
-  fpg = fpGun(W.def.model, W.def.rar, G.chars ? G.chars[G.li] : MYCHAR);
+  fpg = fpGun(W.def.model, W.def.rar, G.chars ? G.chars[G.li] : MYCHAR, W.lv || 1);
   fpg.position.set(0.13, -0.19, -0.5);
   fpg.scale.setScalar(W.def.model === 'cannon' ? 0.55 : 0.8);
   camera.add(fpg);
@@ -191,6 +194,8 @@ function weaponXp(n) {
     recalcWeapon();
     saveProg(PROG); W.xpDirty = false;
     showBanner(W.def.name.toUpperCase() + ' NIVEL ' + up, W.e.perks.length && up >= 5 ? 'Nuevo: ' + W.e.perks.join(', ') : 'Más daño, recarga y puntería', '#7dff8a');
+    // a ciertos niveles el arma cambia de aspecto (mira, bocacha, láser, dorados)
+    if (up === 3 || up === 5 || up === 8) setFpGun();
     SFX.pickup();
   }
 }
@@ -241,8 +246,9 @@ function fire() {
   if (me && !me.alive) return;
   if (W.ammo <= 0) { SFX.empty(); startReload(); return; }
   const E = W.e;
-  if (!(Math.random() < (E.saveP || 0))) W.ammo--;
-  W.cd = 1 / E.rate; W.recoil = 1; W.flash = 0.06;
+  const fur = PW.furiaT > 0;
+  if (!fur && !(Math.random() < (E.saveP || 0))) W.ammo--;
+  W.cd = 1 / (E.rate * (fur ? 2 : 1)); W.recoil = 1; W.flash = 0.06;
   SFX.shot(W.def.model === 'ray' ? 'launcher' : W.def.model);
   const origin = camera.getWorldPosition(new THREE.Vector3());
   const base = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
@@ -418,7 +424,7 @@ function handleEvent(ev) {
       if (!ev.hit) b.add(V3.set((Math.random() - 0.5) * 3, Math.random() * 1.5, (Math.random() - 0.5) * 3));
       const sht = G.ents.find(x => x.id === ev.id);
       const elec = sht && sht.type === 'jelly';
-      fx.tracer(a, b, elec ? 0x8ae0ff : 0xff4a30, elec ? 0.14 : 0.09, elec ? 0.06 : 0.035);
+      fx.tracer(a, b, elec ? 0x8ae0ff : ev.g ? 0xffa030 : 0xff4a30, elec ? 0.14 : 0.09, elec ? 0.06 : ev.g ? 0.06 : 0.035);
       SFX.eshot(a.distanceTo(camera.position));
       break;
     }
@@ -448,6 +454,15 @@ function handleEvent(ev) {
       try { navigator.vibrate && navigator.vibrate([200, 80, 200]); } catch (e) { }
       break;
     case 'pz': if (ev.p === li) flash('poison'); break;
+    case 'smoke': G.smokeT = ev.dur || 4; SFX.tone(300, 80, 0.6, 'sawtooth', 0.2); break;
+    case 'power': {
+      const D = POWERS[ev.a];
+      showBanner(D.name, ev.p !== li && G.n > 1 ? PNAME[ev.p] : '', D.col);
+      if (ev.a === 'emp') { flash('heal'); SFX.tone(1200, 60, 0.7, 'square', 0.3); }
+      else if (ev.a === 'aereo') { SFX.tone(800, 200, 1, 'sawtooth', 0.3); G.shake = 0.8; }
+      else SFX.heal();
+      break;
+    }
     case 'melee': if (ev.p === li) { G.shake = Math.max(G.shake, 0.3); SFX.tone(160, 80, 0.12, 'square', 0.25); } break;
     case 'regen': break;
     case 'pf':
@@ -480,6 +495,7 @@ net.onmsg = (m, from) => {
       case 'hello': if (m.v !== NETV) lobbyMsg('Alguien tiene otra versión: recargad todos la página'); if (m.c) G.peerChars[from] = sanitize(m.c, from); if (m.m) G.peerMetas[from] = m.m; break;
       case 'ab': if (S && G.running && (m.k === 'shield' || m.k === 'bullet' || m.k === 'turbo')) S.useAbility(from, m.k, clamp(m.lv | 0, 1, ABMAX), clamp(m.l2 | 0, 0, 5)); break;
       case 'rv': if (S && G.running) S.revive(from); break;
+      case 'pw': if (S && G.running && POWERS[m.k] && m.k !== 'furia') S.power(from, m.k, clamp(m.lv | 0, 1, 3)); break;
       case 'sf': if (P) P.spdF = clamp(+m.v || 1, 0.3, 1); break;
       case 'char': G.peerChars[from] = sanitize(m.c, from); break;
       case 'l': if (P) { P.ly = m.y; P.lp = m.p; } break;
@@ -557,7 +573,7 @@ function begin(seed, n, li, mode) {
   AB.shield.cd = 0; AB.bullet.cd = 0;
   GR.n = PROG.upg.gren | 0; for (const g of GR.list) scene.remove(g.m); GR.list.length = 0;
   CAN.t = 0; CAN.cd = 0; CAN.saved = null;
-  TB.cd = 0; TB.rv = 0; W.contraT = 0;
+  TB.cd = 0; TB.rv = 0; W.contraT = 0; PW.furiaT = 0; PW.cd = {}; G.smokeT = 0; G.zoomT = 1; G.zoom = 1; G.lay = 0;
   $('regulIn').value = 100; G.spdF = 1;
   outline.red = (PROG.upg.aura | 0) > 0;
   $('btnHide').hidden = n < 2;
@@ -576,6 +592,7 @@ function begin(seed, n, li, mode) {
   $('hudwrap').hidden = false;
   for (let i = 1; i < 4; i++) $('p' + i).hidden = i >= n;
   document.body.classList.toggle('many', n > 2);
+  document.body.classList.toggle('n2', n === 2);
   $('count').hidden = false;
   look.enabled = true;
   look.calibrate();
@@ -768,6 +785,51 @@ function gyroStatus() {
   if (UIC.gyro !== t) { UIC.gyro = t; $('gyroSt').textContent = t; $('gyroSt2').textContent = t; }
 }
 
+// ---------------- poderes de apoyo: furia, EMP, ataque aéreo, botiquín de equipo, imán ----------------
+const PW = { furiaT: 0, cd: {}, max: {} };
+function usePower(k) {
+  const lv = PROG.upg[k] | 0, D = POWERS[k];
+  if (!lv || (PW.cd[k] || 0) > 0 || !G.running || G.over || G.cd > 0) return;
+  const me = G.players[G.li];
+  if (!me || !me.alive) return;
+  PW.cd[k] = PW.max[k] = D.cd(lv);
+  if (k === 'furia') { PW.furiaT = D.dur(lv); W.ammo = Math.max(W.ammo, 1); W.rl = 0; showBanner('¡FURIA!', 'Doble ritmo y sin gastar balas', D.col); SFX.tone(150, 600, 0.4, 'sawtooth', 0.3); return; }
+  if (G.mode === 'guest') net.send({ t: 'pw', k, lv });
+  else G.sim.power(G.li, k, lv);
+}
+// coloca los botones de poderes que tengas en columnas, sin pisarse
+const ABTN = ['btnShield', 'btnBullet', 'btnGrenade', 'btnCannon', 'btnTurbo', 'btnRevive', 'btnP_furia', 'btnP_emp', 'btnP_aereo', 'btnP_cura', 'btnP_iman'];
+// colocación elegida por el jugador en el editor de interfaz (centro en fracción de pantalla)
+let HUDL = {};
+try { HUDL = JSON.parse(localStorage.getItem('rc_hud') || '{}') || {}; } catch (e) { HUDL = {}; }
+const saveHUDL = () => { try { localStorage.setItem('rc_hud', JSON.stringify(HUDL)); } catch (e) { } };
+function placeSaved(el, id) {
+  const L = HUDL[id];
+  if (!L || L.x == null) { el.style.left = el.style.top = ''; return false; }
+  el.style.right = 'auto'; el.style.bottom = 'auto';
+  el.style.left = Math.round(L.x * vw() - el.offsetWidth / 2) + 'px';
+  el.style.top = Math.round(L.y * vh() - el.offsetHeight / 2) + 'px';
+  return true;
+}
+function layoutAbilities() {
+  for (const id of ['btnFire', 'btnReload', 'regul']) placeSaved($(id), id);
+  const joy = document.body.classList.contains('ctl-joy');
+  const base = joy ? 146 : 206, step = 52;
+  // si está la palanca de velocidad arriba a la derecha, los botones no suben hasta ella
+  const rg = $('regul'), topLim = !rg.hidden ? rg.getBoundingClientRect().height + rg.offsetTop + 10 : 64;
+  const rows = Math.max(2, Math.floor((vh() - base - topLim) / step));
+  let n = 0;
+  for (const id of ABTN) {
+    const b = $(id);
+    b.classList.toggle('hudoff', !!(HUDL[id] && HUDL[id].off));
+    if (b.hidden || b.classList.contains('hudoff')) continue;
+    if (placeSaved(b, id)) continue;
+    const col = Math.floor(n / rows), row = n % rows;
+    b.style.right = `calc(max(10px, env(safe-area-inset-right)) + ${col * 54}px)`;
+    b.style.bottom = base + row * step + 'px';
+    n++;
+  }
+}
 // ---------------- turbo, reanimar y regulador de velocidad ----------------
 const TB = { cd: 0, max: 1, rv: 0 };
 function useTurbo() {
@@ -805,6 +867,16 @@ function useAbility(k) {
   else G.sim.useAbility(G.li, k, lv, l2);
 }
 function uiAbilities(dt) {
+  if (PW.furiaT > 0) PW.furiaT -= dt;
+  for (const k of Object.keys(POWERS)) {
+    const b = $('btnP_' + k), lv = PROG.upg[k] | 0;
+    b.hidden = !lv;
+    if (!lv) continue;
+    if (PW.cd[k] > 0) PW.cd[k] = Math.max(0, PW.cd[k] - dt);
+    b.style.setProperty('--p', (PW.cd[k] > 0 ? Math.round((1 - PW.cd[k] / PW.max[k]) * 100) : 100) + '%');
+    b.classList.toggle('ready', !(PW.cd[k] > 0));
+  }
+  if ((G.lay = (G.lay || 0) - dt) <= 0) { G.lay = 0.5; layoutAbilities(); }
   const tb = $('btnTurbo'), tl = PROG.upg.turbo | 0;
   tb.hidden = !tl;
   if (tl) {
@@ -855,7 +927,7 @@ function frame(now) {
   if (NR === 1 || (++G.fr % NR) === 0) outline.render(scene, camera);
   if (G.running && view) {
     const me = G.players[G.li];
-    hud.draw(camera, view, G.li, G.t, dt, { dead: !me || !me.alive || G.over });
+    hud.draw(camera, view, G.li, G.t, dt, { dead: !me || !me.alive || G.over, wind: G.wind || 0 });
   }
 }
 function tick(dt) {
@@ -863,7 +935,7 @@ function tick(dt) {
   // --- estado del mundo ---
   if (G.mode === 'guest') {
     const s = G.mir.sample();
-    if (s) { G.carD = s.carD; G.ents = s.ents; G.players = s.players; G.cd = s.cd; G.speed = s.sp; G.slow = !!s.sl; G.mult = s.mu || 1; G.stun = !!s.sn; G.cu = s.cu; G.turbo = !!s.tb; }
+    if (s) { G.carD = s.carD; G.ents = s.ents; G.players = s.players; G.cd = s.cd; G.speed = s.sp; G.slow = !!s.sl; G.mult = s.mu || 1; G.stun = !!s.sn; G.cu = s.cu; G.turbo = !!s.tb; G.smoked = !!s.sm; }
     G.road.extend(G.carD + 340);
     const rt = G.mir.rt;
     while (G.evq.length && G.evq[0].st <= rt) handleEvent(G.evq.shift());
@@ -887,6 +959,7 @@ function tick(dt) {
     G.players = S.players.map(P => Object.assign({}, P, { shield: P.shieldT > 0, poison: P.poison > 0 }));
     G.stun = S.stunT > 0 || S.hold;
     G.turbo = S.turboT > 0 && !S.hold && S.stunT <= 0;
+    G.smoked = S.smokeT > 0;
     G.cd = S.phase === 'count' ? S.countT : -1;
   }
   // --- cuenta atrás ---
@@ -955,16 +1028,31 @@ function tick(dt) {
     else if (!G.prevFire) { if (W.ammo <= 0) startReload(); else fire(); }
   }
   G.prevFire = look.fire;
-  look.slow = hud.hot ? 0.4 / (1 + 0.35 * (PROG.upg.halcon | 0)) : 1;
+  look.slow = (hud.hot ? 0.4 / (1 + 0.35 * (PROG.upg.halcon | 0)) : 1) / (G.zoom || 1);
   updGrenades(dt);
   W.recoil = Math.max(0, W.recoil - dt * 9);
   if (W.contraT > 0) W.contraT -= dt;
-  // turbo: campo de visión más abierto
-  const fov = 72 + (G.turbo ? 10 : 0);
-  if (Math.abs(camera.fov - fov) > 0.1) { camera.fov += (fov - camera.fov) * Math.min(1, dt * 4); camera.updateProjectionMatrix(); }
+  // turbo y cuesta abajo: campo de visión más abierto; rifles: zoom con pellizco
+  const deco0 = BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]].deco;
+  const fast = G.turbo || (deco0 === 'bajada' && G.road.kindAt(G.carD) === 0);
+  const rifle = W.def.model === 'rifle';
+  if (!rifle) G.zoomT = 1;
+  G.zoom = lerp(G.zoom || 1, G.zoomT || 1, Math.min(1, dt * 10));
+  const fov = (72 + (G.turbo ? 10 : 0) + (fast && !G.turbo ? 7 : 0)) / G.zoom;
+  if (Math.abs(camera.fov - fov) > 0.05) { camera.fov += (fov - camera.fov) * Math.min(1, dt * 6); camera.updateProjectionMatrix(); }
+  $('scope').hidden = !(rifle && G.zoom > 1.3);
+  G.wind = fast ? Math.min(1, (G.speed || 0) / 16) : 0;
+  // viento: polvo y hojas pasando a toda velocidad
+  if (G.wind > 0 && Math.random() < dt * 40 * G.wind) {
+    V1.set((Math.random() - 0.5) * 14, Math.random() * 4, -25 - Math.random() * 15); car.localToWorld(V1);
+    V2.set(0, 0, 40 + Math.random() * 20).applyQuaternion(car.quaternion);
+    fx.part(V1, V2.clone(), 0.9, 0.05 + Math.random() * 0.06, fx.m.dust, 0, 0);
+  }
+  if (G.smokeT > 0) G.smokeT -= dt;
+  document.body.classList.toggle('smoked', G.smokeT > 0 || !!G.smoked);
   W.flash -= dt;
   if (fpg) {
-    fpg.visible = !!(me && me.alive);
+    fpg.visible = !!(me && me.alive) && !(W.def.model === 'rifle' && G.zoom > 1.3);
     const rlk = W.rl > 0 ? Math.sin(Math.min(1, 1 - W.rl / W.e.reload) * Math.PI) : 0;
     const big = W.def.model === 'cannon';
     fpg.position.set(big ? 0.16 : 0.13, (big ? -0.34 : -0.19) - rlk * 0.18, (big ? -0.62 : -0.5) + W.recoil * 0.06);
@@ -996,7 +1084,7 @@ function tick(dt) {
   sun.color.copy(ENV.sc); sun.intensity = ENV.si;
   sun.position.copy(camera.position).add(V1.set(40, 80, 25));
   sun.target.position.copy(camera.position);
-  sea.position.set(camera.position.x, 0, camera.position.z);
+  sea.position.set(camera.position.x, G.road.seaAt(G.carD), camera.position.z);
   // --- interfaz ---
   uiPlayers(); uiWeapon(); uiRoute(); uiWcard(); uiAbilities(dt); uiBoss();
   setHTML('mult', `x${(G.mult || 1).toFixed(1)} · ${Math.round((G.speed || 0) * 3.6)} km/h`);
@@ -1178,6 +1266,16 @@ function setOutline(on) {
   $('btnOutline').textContent = 'CONTORNO: ' + (on ? 'SÍ' : 'NO');
 }
 $('btnOutline').onclick = () => setOutline(!outline.enabled);
+function setQuality(i) {
+  qIdx = i;
+  try { localStorage.setItem('rc_q', i); } catch (e) { }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, QUAL[i][1]));
+  outline.mat.uniforms.aoOn.value = i > 0 ? 1 : 0;
+  applyView();
+  $('btnQuality').textContent = 'CALIDAD: ' + QUAL[i][0];
+}
+$('btnQuality').onclick = () => setQuality((qIdx + 1) % QUAL.length);
+setQuality(qIdx);
 setOutline((localStorage.getItem('rc_outline') ?? '1') === '1');
 // ---------------- editor de personaje ----------------
 let edR = null, edScene, edCam, edModel = null, edOn = false;
@@ -1297,10 +1395,71 @@ $('btnShop').onclick = () => {
   $('shop').hidden = false; paintShop();
 };
 $('shopBack').onclick = () => { $('shop').hidden = true; $('menu').hidden = false; };
+// ---------------- editor de interfaz ----------------
+const HUD_ITEMS = [
+  ['btnFire', 'FUEGO', 96, '#ff4040'], ['btnReload', 'RECARGAR', 76, '#ffd23f'], ['regul', 'VELOCIDAD', 0, '#7dffd2', 'regul'],
+  ['btnShield', 'ESCUDO', 46, '#5ae0ff', 'shield'], ['btnBullet', 'T. BALA', 46, '#c48cff', 'bullet'], ['btnGrenade', 'GRANADA', 46, '#7dff5a', 'gren'],
+  ['btnCannon', 'CAÑÓN', 46, '#ffb020', 'canon'], ['btnTurbo', 'TURBO', 46, '#ff8a3d', 'turbo'], ['btnRevive', 'REANIMAR', 46, '#40ff80', 'reviv'],
+  ['btnP_furia', 'FURIA', 46, '#ff5a3a', 'furia'], ['btnP_emp', 'EMP', 46, '#5ad0ff', 'emp'], ['btnP_aereo', 'AÉREO', 46, '#ffb020', 'aereo'],
+  ['btnP_cura', '+VIDA', 46, '#40ff80', 'cura'], ['btnP_iman', 'IMÁN', 46, '#ffe14a', 'iman'],
+];
+function openHudEd() {
+  for (const sc of document.querySelectorAll('.screen')) sc.hidden = true;
+  $('hudEd').hidden = false;
+  const A = $('hudEdArea'); A.innerHTML = '';
+  const W0 = A.clientWidth || innerWidth, H0 = A.clientHeight || innerHeight;
+  let auto = 0;
+  for (const [id, label, size, col, need] of HUD_ITEMS) {
+    if (need && !(PROG.upg[need] | 0)) continue;
+    const L = HUDL[id] || (HUDL[id] = {});
+    if (L.x == null) {
+      // posición inicial aproximada a la automática
+      if (id === 'btnFire') { L.x = 0.9; L.y = 0.78; } else if (id === 'btnReload') { L.x = 0.74; L.y = 0.85; } else if (id === 'regul') { L.x = 0.96; L.y = 0.2; }
+      else { L.x = 0.95 - Math.floor(auto / 3) * 0.07; L.y = 0.6 - (auto % 3) * 0.13; auto++; }
+      L.def = 1;
+    }
+    const el = document.createElement('div');
+    el.className = 'hudItem' + (id === 'regul' ? ' rect' : '') + (L.off ? ' off' : '');
+    const w = id === 'regul' ? 40 : size, h = id === 'regul' ? 130 : size;
+    el.style.width = w + 'px'; el.style.height = h + 'px'; el.style.setProperty('--c', col);
+    el.style.left = (L.x * W0 - w / 2) + 'px'; el.style.top = (L.y * H0 - h / 2) + 'px';
+    el.innerHTML = `<span>${label}</span>`;
+    if (need && id !== 'regul') {
+      const t = document.createElement('button');
+      t.textContent = L.off ? 'MOSTRAR' : 'OCULTAR';
+      t.onpointerdown = ev => { ev.stopPropagation(); L.off = !L.off; el.classList.toggle('off', !!L.off); t.textContent = L.off ? 'MOSTRAR' : 'OCULTAR'; saveHUDL(); };
+      el.appendChild(t);
+    }
+    let drag = null;
+    el.onpointerdown = ev => { drag = { x: ev.clientX - el.offsetLeft, y: ev.clientY - el.offsetTop }; el.setPointerCapture(ev.pointerId); };
+    el.onpointermove = ev => {
+      if (!drag) return;
+      const x = Math.max(0, Math.min(W0 - w, ev.clientX - drag.x)), y = Math.max(0, Math.min(H0 - h, ev.clientY - drag.y));
+      el.style.left = x + 'px'; el.style.top = y + 'px';
+      L.x = (x + w / 2) / W0; L.y = (y + h / 2) / H0; delete L.def;
+    };
+    el.onpointerup = () => { drag = null; saveHUDL(); };
+    A.appendChild(el);
+  }
+  // lo que no se ha movido sigue colocándose solo
+  for (const k in HUDL) if (HUDL[k].def) { delete HUDL[k].x; delete HUDL[k].y; delete HUDL[k].def; }
+}
+$('btnHudEd').onclick = openHudEd;
+$('hudEdOk').onclick = () => { saveHUDL(); $('hudEd').hidden = true; $('menu').hidden = false; };
+$('hudEdReset').onclick = () => { HUDL = {}; saveHUDL(); openHudEd(); };
 $('btnShield').addEventListener('pointerdown', e => { e.stopPropagation(); useAbility('shield'); });
 $('btnGrenade').addEventListener('pointerdown', e => { e.stopPropagation(); throwGrenade(); });
 $('btnCannon').addEventListener('pointerdown', e => { e.stopPropagation(); useCannon(); });
 $('btnTurbo').addEventListener('pointerdown', e => { e.stopPropagation(); useTurbo(); });
+for (const k of Object.keys(POWERS)) $('btnP_' + k).addEventListener('pointerdown', e => { e.stopPropagation(); usePower(k); });
+// zoom de los rifles: pellizcar con dos dedos (o la rueda del ratón)
+const PZ = { d0: 0, z0: 1 };
+const freeT = e => [...e.touches].filter(t => !(t.target && t.target.closest && t.target.closest('.ui')));
+const tdist = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+addEventListener('touchstart', e => { const T = freeT(e); if (T.length >= 2) { PZ.d0 = tdist(T[0], T[1]); PZ.z0 = G.zoomT || 1; } }, { passive: true });
+addEventListener('touchmove', e => { const T = freeT(e); if (T.length >= 2 && PZ.d0 > 0) G.zoomT = clamp(PZ.z0 * tdist(T[0], T[1]) / PZ.d0, 1, 3); }, { passive: true });
+addEventListener('touchend', e => { if (freeT(e).length < 2) PZ.d0 = 0; }, { passive: true });
+addEventListener('wheel', e => { if (G.running) G.zoomT = clamp((G.zoomT || 1) * (e.deltaY < 0 ? 1.15 : 0.87), 1, 3); }, { passive: true });
 $('btnRevive').addEventListener('pointerdown', e => { e.stopPropagation(); useRevive(); });
 $('regulIn').addEventListener('input', e => setSpeedF(+e.target.value / 100));
 for (const ev of ['pointerdown', 'pointermove', 'touchstart', 'touchmove']) $('regul').addEventListener(ev, e => e.stopPropagation(), { passive: true });

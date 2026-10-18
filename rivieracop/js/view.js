@@ -168,6 +168,7 @@ const NOHIT = new Set(['tlight', 'preview', 'whale']);
 const MASK = {
   gunman: LAYER_ENEMY, sniper: LAYER_ENEMY, moto: LAYER_ENEMY, ecar: LAYER_ENEMY, heli: LAYER_ENEMY, drone: LAYER_ENEMY, jeep: LAYER_ENEMY,
   grenade: LAYER_ENEMY, rocket: LAYER_ENEMY, rock: LAYER_ENEMY, wall: LAYER_ENEMY, train: LAYER_ENEMY,
+  turret: LAYER_ENEMY, gunship: LAYER_ENEMY,
   beast: LAYER_ENEMY, bear: LAYER_ENEMY, mine: LAYER_ENEMY, jet: LAYER_ENEMY, blimp: LAYER_ENEMY, rammer: LAYER_ENEMY, junk: LAYER_ENEMY, jelly: LAYER_ENEMY,
   quad: LAYER_ENEMY, pickup: LAYER_ENEMY, van: LAYER_ENEMY, bus: LAYER_ENEMY, canoe: LAYER_ENEMY,
   jumper: LAYER_ENEMY, tank: LAYER_ENEMY, rig: LAYER_ENEMY, rioter: LAYER_ENEMY, thrown: LAYER_ENEMY, chef: LAYER_ENEMY, boat: LAYER_ENEMY, mtrain: LAYER_ENEMY,
@@ -239,11 +240,13 @@ export class View {
       case 'gunman': {
         g = new THREE.Group();
         const o = x.sol ? { shirt: 0x4a5a2a, pants: 0x3a4a2a, cap: 0x3a4a2a, vest: 0x5a6a3a } : Object.assign({}, OUTFIT[(x.sk || 0) % OUTFIT.length]);
-        if (x.gr) { o.vest = 0xd06a10; o.gun = null; } else o.gun = 'pistol';
+        if (x.gr) { o.vest = 0xd06a10; o.gun = null; } else if (x.rk) { o.gun = null; o.vest = 0x5a5a3a; } else o.gun = 'pistol';
         o.skin = SKIN[(x.sk || 0) % SKIN.length];
         const p = M.person(o);
         g.add(p);
         if (x.gr) M.box(p.userData.rig.armR, 0.2, 0.24, 0.2, 0x2a4a1a, 0, 0, -0.65, 'body');
+        // lanzacohetes al hombro
+        if (x.rk) { M.box(p.userData.rig.armR, 0.22, 0.22, 1.3, 0x3a4a2a, -0.05, 0.12, -0.4, 'gun'); M.box(p.userData.rig.armR, 0.26, 0.26, 0.2, 0x1a1a1a, -0.05, 0.12, -1.05, 'gun'); }
         if (x.cv >= 0) { const c = M.cover(x.cv); c.position.z = -0.85; g.add(c); }
         // escudo antidisturbios (la cabeza queda por encima)
         if (x.shd > 0) {
@@ -316,6 +319,8 @@ export class View {
       case 'junk': g = M.junk(x.v || 0); break;
       case 'jelly': g = M.jelly(); break;
       case 'whale': g = M.whale(); break;
+      case 'turret': g = M.turret(e.h); break;
+      case 'gunship': g = M.gunship(); break;
       case 'train': g = M.train(); break;
       case 'lady': g = M.lady(x.sk || 0); break;
       default: g = new THREE.Group();
@@ -468,6 +473,14 @@ const ANIM = {
   },
   whale(o, e, dt, ctx) { o.userData.tail.rotation.x = Math.sin(ctx.t * 0.8 + e.id) * 0.35; o.rotation.z = Math.sin(ctx.t * 0.3) * 0.05; },
   jet(o, e) { if (e.st === ST.DEAD) o.rotation.z += 0.1; },
+  gunship(o, e, dt, ctx, V) {
+    const ud = o.userData;
+    ud.rotor.rotation.y += dt * 26; ud.tr.rotation.x += dt * 30;
+    const s = e.sh && e.sh[0];
+    if (s && s.on) ud.gat.rotation.x += dt * (6 + s.r * 30);
+    o.rotation.z = Math.sin(ctx.t * 0.6) * 0.06;
+    if (e.st === ST.DEAD && Math.random() < dt * 20) { o.getWorldPosition(V1); V.fx.smoke(V1, true); V.fx.part(V1, V2.set(0, 2, 0), 0.4, 0.9, V.fx.m.fire, 0, 1); }
+  },
   civilian: personAnim,
   sniper(o, e, dt, ctx, V) {
     personAnim(o, e, dt, ctx, V);
