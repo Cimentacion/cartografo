@@ -13,7 +13,7 @@ const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
 
 export class Look {
   constructor() {
-    this.yaw = 0; this.pitch = 0;
+    this.yaw = 0; this.pitch = 0; this.flip = 0; // flip: media vuelta (botón de mirar atrás)
     this.tYaw = 0; this.tPitch = 0;
     this.gain = 1.5;
     this.gyro = false; this.gyroSeen = 0;
@@ -219,7 +219,9 @@ export class Look {
     }
     this.tPitch = clamp(this.tPitch, PMIN, PMAX);
     const k = 1 - Math.exp(-dt * (this.gyro ? 30 : 40));
-    this.yaw += angWrap(this.tYaw - this.yaw) * k;
+    // la media vuelta gira rápido pero se ve el giro (no es un corte)
+    this.yaw += angWrap(this.tYaw + this.flip - this.yaw) * (this.flip !== this.flipPrev ? Math.min(1, dt * 12) : k);
+    if (Math.abs(angWrap(this.tYaw + this.flip - this.yaw)) < 0.05) this.flipPrev = this.flip;
     this.pitch += (this.tPitch - this.pitch) * k;
   }
   // joystick virtual: se centra donde pones el dedo dentro de su zona

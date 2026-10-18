@@ -714,7 +714,7 @@ function begin(seed, n, li, mode) {
   AB.shield.cd = 0; AB.bullet.cd = 0;
   GR.n = PROG.upg.gren | 0; for (const g of GR.list) scene.remove(g.m); GR.list.length = 0;
   CAN.t = 0; CAN.cd = 0; CAN.saved = null;
-  G.potUsed = false; TB.cd = 0; TB.rv = 0; W.contraT = 0; PW.furiaT = 0; PW.fuerzaT = 0; LENS.on = false; PW.cd = {}; G.smokeT = 0; G.zoomT = 1; G.zoom = 1; G.lay = 0;
+  look.flip = 0; $('btnFlip').classList.remove('on'); G.potUsed = false; TB.cd = 0; TB.rv = 0; W.contraT = 0; PW.furiaT = 0; PW.fuerzaT = 0; LENS.on = false; PW.cd = {}; G.smokeT = 0; G.zoomT = 1; G.zoom = 1; G.lay = 0;
   $('regulIn').value = 100; G.spdF = 1;
   outline.red = (PROG.upg.aura | 0) > 0;
   $('btnHide').hidden = n < 2;
@@ -992,7 +992,7 @@ function placeSaved(el, id) {
   return true;
 }
 function layoutAbilities() {
-  for (const id of ['btnFire', 'btnReload', 'regul']) placeSaved($(id), id);
+  for (const id of ['btnFire', 'btnReload', 'regul', 'btnFlip']) placeSaved($(id), id);
   const joy = document.body.classList.contains('ctl-joy');
   const base = joy ? 146 : 206, step = 52;
   // si está la palanca de velocidad arriba a la derecha, los botones no suben hasta ella
@@ -1740,6 +1740,8 @@ $('btnNext').onclick = () => { G.story = G.nextStory; $('btnAgain').onclick(); }
 $('btnMenu').onclick = () => toMenu('');
 $('btnQuit').onclick = () => { if (confirm('¿Salir de la partida?')) toMenu(''); };
 $('btnReload').addEventListener('pointerdown', e => { e.stopPropagation(); startReload(); });
+$('btnFlip').addEventListener('pointerdown', e => { e.stopPropagation(); look.flip = look.flip ? 0 : Math.PI; $('btnFlip').classList.toggle('on', !!look.flip); SFX.tone(500, 300, 0.08, 'square', 0.1); });
+window.addEventListener('keydown', e => { if (e.code === 'KeyV') $('btnFlip').dispatchEvent(new PointerEvent('pointerdown')); });
 $('btnCal').addEventListener('pointerdown', e => { e.stopPropagation(); look.calibrate(); showBanner('CENTRADO', '', '#ffffff'); });
 $('btnFire').addEventListener('pointerdown', e => { e.stopPropagation(); look.fire = true; });
 $('btnFire').addEventListener('pointerup', () => { look.fire = false; });
@@ -2041,7 +2043,7 @@ $('btnShop').onclick = () => {
 $('shopBack').onclick = () => { $('shop').hidden = true; $('menu').hidden = false; updMenuCard(); };
 // ---------------- editor de interfaz ----------------
 const HUD_ITEMS = [
-  ['btnFire', 'FUEGO', 96, '#ff4040'], ['btnReload', 'RECARGAR', 76, '#ffd23f'], ['regul', 'VELOCIDAD', 0, '#7dffd2', 'regul'],
+  ['btnFire', 'FUEGO', 96, '#ff4040'], ['btnFlip', '180°', 58, '#ffffff'], ['btnReload', 'RECARGAR', 76, '#ffd23f'], ['regul', 'VELOCIDAD', 0, '#7dffd2', 'regul'],
   ['btnShield', 'ESCUDO', 46, '#5ae0ff', 'shield'], ['btnBullet', 'T. BALA', 46, '#c48cff', 'bullet'], ['btnGrenade', 'GRANADA', 46, '#7dff5a', 'gren'],
   ['btnCannon', 'CAÑÓN', 46, '#ffb020', 'canon'], ['btnTurbo', 'TURBO', 46, '#ff8a3d', 'turbo'], ['btnRevive', 'REANIMAR', 46, '#40ff80', 'reviv'],
   ['btnP_furia', 'FURIA', 46, '#ff5a3a', 'furia'], ['btnP_emp', 'EMP', 46, '#5ad0ff', 'emp'], ['btnP_aereo', 'AÉREO', 46, '#ffb020', 'aereo'],

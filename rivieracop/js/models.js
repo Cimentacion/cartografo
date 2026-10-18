@@ -267,21 +267,26 @@ export function convertible(kind = 'cabrio', col = 0xc8102e) {
     for (const z of [0.25, 1.5]) { box(g, 1.7, 0.18, 0.6, 0xe8e0d0, 0, 0.86, z); box(g, 1.7, 0.5, 0.16, 0xe8e0d0, 0, 1.1, z + 0.32); }
     for (const sx of [-0.97, 0.97]) for (const sz of [-2.3, 2.3]) { wheel(g, sx, 0.36, sz); box(g, 0.3, 0.2, 0.2, 0xf2f2f2, sx * 1.01, 0.36, sz); }
   } else if (kind === 'furgo') {
-    // furgoneta: cabina con techo; atrás sin techo, puerta lateral corrida y puertas traseras abiertas
+    // furgoneta techada: dos jugadores en los asientos de delante (ventanillas bajadas) y dos atrás con las puertas abiertas
     L = 5.8; seatY = 0.25; drvY = 0.3; front = -2.9;
+    const roofY = 2.95;
     box(g, 2.1, 0.7, L, col, 0, 0.75, 0);
-    box(g, 2.1, 1.3, 1.6, col, 0, 1.75, -2.0);
-    box(g, 1.96, 0.6, 0.05, GLASS, 0, 1.85, -2.81);
-    box(g, 2.12, 0.08, 1.6, 0xf2f2f2, 0, 2.42, -2.0);
+    box(g, 2.12, 0.18, L, 0x2a2a2a, 0, 0.4, 0);
+    box(g, 2.1, 0.1, L - 0.4, col, 0, roofY, -0.2);                  // techo
+    box(g, 2.12, 0.06, L - 0.4, 0xf2f2f2, 0, roofY + 0.07, -0.2);
+    box(g, 2.1, 0.6, 0.5, col, 0, 1.35, -2.65);                       // salpicadero bajo
+    box(g, 1.9, 0.15, 0.6, 0x2a2a2a, 0, 1.7, -2.55);
+    box(g, 1.94, 1.2, 0.03, GLASS, 0, 2.3, -2.82);                     // parabrisas grande
+    for (const sd of [-1, 1]) box(g, 0.1, 1.3, 0.1, col, sd * 0.98, 2.3, -2.84);
     for (const sd of [-1, 1]) {
-      box(g, 0.06, 0.55, 0.9, GLASS, sd * 1.05, 1.9, -2.1);
-      box(g, 0.08, 1.0, 1.6, col, sd * 1.03, 1.6, 2.1);          // laterales traseros (la parte de delante va abierta)
-      const rd = box(g, 0.06, 1.3, 1.0, col, sd * 1.5, 1.45, 3.15); rd.rotation.y = sd * 1.1; // puertas traseras abiertas
+      box(g, 0.08, 0.55, L - 0.3, col, sd * 1.03, 1.35, -0.1);          // lateral bajo
+      for (const z of [-2.6, -0.95, 0.9, 2.6]) box(g, 0.1, roofY - 1.6, 0.14, col, sd * 1.03, (roofY + 1.6) / 2, z); // montantes
+      box(g, 0.08, 0.35, 1.6, col, sd * 1.03, roofY - 0.2, 1.8);        // franja alta atrás
+      const rd = box(g, 0.06, 1.9, 1.0, col, sd * 1.5, 1.75, 3.15); rd.rotation.y = sd * 1.1; // puertas traseras abiertas
       box(g, 0.34, 0.14, 0.05, glow(0xfff6c8), sd * 0.7, 0.85, -L / 2 - 0.01);
       box(g, 0.2, 0.3, 0.05, glow(0xff2020), sd * 0.9, 1.0, L / 2 + 0.01);
-      box(g, 0.06, 0.06, 1.4, 0x888888, sd * 1.06, 1.15, 0.6);     // carril de la puerta corredera
+      box(g, 0.05, 0.25, 0.1, 0x1a1a1a, sd * 1.12, 2.0, -2.3);          // retrovisor
     }
-    box(g, 2.12, 0.18, L, 0x2a2a2a, 0, 0.4, 0);
     box(g, 1.9, 0.08, 4.0, 0x4a4a4a, 0, 1.12, 0.9);
     seats(1.1);
     for (const sx of [-1.0, 1.0]) for (const sz of [-1.9, 1.9]) wheel(g, sx, 0.42, sz, 0.42, 0.3);
@@ -361,7 +366,7 @@ export function convertible(kind = 'cabrio', col = 0xc8102e) {
     const c = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.6, 5), mat(0xd8d8d8));
     c.rotation.x = -Math.PI / 2; c.position.set(k * 0.32, 0.55, -L / 2 - 0.6); spikes.add(c);
   }
-  const tur = new THREE.Group(); tur.visible = false; tur.position.set(0, 1.0 + seatY + (kind === 'furgo' ? 1.5 : 0), kind === 'furgo' ? -2.0 : -2.3); g.add(tur);
+  const tur = new THREE.Group(); tur.visible = false; tur.position.set(0, kind === 'furgo' ? 3.0 : 1.0 + seatY, kind === 'furgo' ? -1.6 : -2.3); g.add(tur);
   box(tur, 0.5, 0.25, 0.5, 0x2a2a2a, 0, 0.12, 0);
   const tp = new THREE.Group(); tp.position.y = 0.35; tur.add(tp);
   box(tp, 0.36, 0.26, 0.5, 0x3a3a3a, 0, 0, 0);
