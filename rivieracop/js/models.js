@@ -900,6 +900,20 @@ export function fpGun(model, rar = 0, cfg = null, lv = 1) {
       { const gp = box(g, 0.045, 0.1, 0.06, wood, 0, -0.07, 0.07); gp.rotation.x = 0.45; }
       box(g, 0.002, 0.025, 0.24, acc, 0.026, -0.012, -0.24);
       L = 0.66; break;
+    case 'gl':
+      // lanzagranadas de tambor (tipo revólver gigante): cañón corto y grueso, tambor de 6, empuñadura delantera y culata
+      cyl(0.04, 0.26, 0x2a2c30, 0, 0.03, -0.27, 14); cyl(0.046, 0.04, dark, 0, 0.03, -0.4, 14); hole(0.032, 0, 0.03, -0.421);
+      box(g, 0.1, 0.03, 0.26, 0x3a3c42, 0, 0.082, -0.24);                       // carcasa superior
+      for (let k = 0; k < 7; k++) box(g, 0.102, 0.006, 0.012, dark, 0, 0.1, -0.35 + k * 0.035);
+      cyl(0.075, 0.13, 0x4a5a2a, 0, 0.0, -0.08, 12);                            // tambor
+      for (let k = 0; k < 6; k++) { const a2 = k * Math.PI / 3; cyl(0.02, 0.135, 0x1a1a1a, Math.cos(a2) * 0.048, Math.sin(a2) * 0.048, -0.08, 8); cyl(0.016, 0.006, 0xc8a040, Math.cos(a2) * 0.048, Math.sin(a2) * 0.048, -0.146, 8); }
+      box(g, 0.022, 0.012, 0.2, steel, 0, -0.08, -0.08);                        // eje del tambor
+      { const fg = box(g, 0.035, 0.09, 0.04, poly, 0, -0.06, -0.3); fg.rotation.x = -0.2; }
+      box(g, 0.04, 0.1, 0.05, poly, 0, -0.085, 0.04); box(g, 0.006, 0.022, 0.006, dark, 0, -0.04, 0.0);
+      box(g, 0.03, 0.05, 0.16, poly, 0, 0.02, 0.12); box(g, 0.05, 0.09, 0.03, poly, 0, 0.0, 0.2);   // culata
+      box(g, 0.014, 0.05, 0.014, dark, 0, 0.12, -0.12); box(g, 0.03, 0.006, 0.006, glow(0xff8a2a), 0, 0.142, -0.12); // alza
+      box(g, 0.002, 0.03, 0.2, acc, 0.051, 0.082, -0.24);
+      L = 0.42; break;
     case 'launcher':
       cyl(0.055, 0.52, 0x4a5a2a, 0, 0.02, -0.2, 12);
       cyl(0.066, 0.06, 0x3a4a1a, 0, 0.02, -0.46, 12); cyl(0.066, 0.06, 0x3a4a1a, 0, 0.02, 0.06, 12);

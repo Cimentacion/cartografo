@@ -173,6 +173,8 @@ export class Sim {
       this.runT += dt;
       // la velocidad sube con la distancia (hasta casi el doble); al elegir ruta va más despacio para leer los carteles
       let tgt = this.v0 * Math.min(1.9, 1 + 0.12 * (this.carD / 1000)) * (this.voting ? 0.65 : 1);
+      // ante los carteles de ruta: a 15 km/h para poder leerlos (en el asfalto pone 20) hasta que alguien elija
+      if (this.voting) { const f = this.road.forks[this.signsFor]; if (f && f.gantry - this.carD < 125 && this.voteT == null) tgt = Math.min(tgt, 15 / 3.6); }
       if (this.road.mudAt(this.carD)) tgt *= Math.min(0.9, 0.4 + 0.12 * this.maxMeta('ruedas'));
       const BZ = BIOMES[BIOME_KEYS[this.road.bioAt(this.carD)]];
       if (BZ.vf && this.road.kindAt(this.carD) === 0) tgt *= BZ.vf;
@@ -1322,7 +1324,12 @@ export class Sim {
       }
       if (!this.story) this.emit('banner', { txt: 'ELIGE RUTA', sub: 'Dispara al cartel: el número es la dificultad (más premio)', c: '#ffe14a' });
     }
-    if (this.signsFor === k && f.choice == null && this.carD > f.gantry - 30) {
+    if (this.voteT != null) this.voteT -= 1 / 60;
+    if (this.signsFor === k && f.choice == null && (this.carD > f.gantry - 30 || (this.voteT != null && this.voteT <= 0))) {
+      const early = this.voteT != null && this.carD < f.gantry - 30;
+      this.voteT = null;
+      // elegido antes de llegar: el coche acelera a tope para salir de la zona
+      if (early) { this.turboT = Math.max(this.turboT, 4); this.emit('banner', { txt: '¡RUTA ELEGIDA!', sub: '¡A toda velocidad!', c: '#7dff8a' }); }
       const signs = this.ents.filter(e => e.type === 'sign' && e.x.k === k);
       let best = -1; const top = [];
       for (const s of signs) {
@@ -2605,7 +2612,11 @@ const HIT = {
   },
   sign(e, p, part, dmg, S) {
     if (!S.voting || e.x.w !== 0) return;
+    // solo cuenta de cerca (así no se vota sin querer desde 500 m)
+    if (e.d - S.carD > 80) return;
     e.x.v++;
+    // primer disparo: en solitario se elige ya; con más gente, 2,5 s para que los demás voten
+    if (S.voteT == null) S.voteT = S.n > 1 ? 2.5 : 0.05;
   },
   rock(e, p, part, dmg, S) { S.damage(e, p, dmg); },
   wall(e, p, part, dmg, S) { S.damage(e, p, dmg); },

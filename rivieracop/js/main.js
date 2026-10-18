@@ -12,7 +12,7 @@ import { SFX } from './audio.js';
 import { Net, makeCode, NETV, LanBeacon, LanScan, Presence, MAXP } from './net.js';
 import { showRewarded, showInterstitial, adsReal, lastAdErr } from './ads.js';
 import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME, BOSS } from './defs.js';
-import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES } from './weapons.js';
+import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES, rangeMul } from './weapons.js';
 import { UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd, turboDur, turboCd, POWERS } from './progress.js';
 import { fpGun, VEHICLES, VCOLORS, convertible } from './models.js';
 import { Outline, toon } from './toon.js';
@@ -43,7 +43,7 @@ const outline = new Outline(renderer);
 outline.enabled = !Q.get('nooutline'); // TODO-TESTEO
 outline.setSize(vw(), vh());
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(72, vw() / vh(), 0.2, 260);
+const camera = new THREE.PerspectiveCamera(72, vw() / vh(), 0.12, 260);
 scene.add(camera);
 const hemi = new THREE.HemisphereLight(0xffffff, 0x777766, 1.1);
 scene.add(hemi);
@@ -311,8 +311,9 @@ function clearChunks() {
 function setFpGun() {
   if (fpg) camera.remove(fpg);
   fpg = fpGun(W.def.model, W.def.rar, G.chars ? G.chars[G.li] : MYCHAR, W.lv || 1);
-  fpg.position.set(0.13, -0.19, -0.5);
-  fpg.scale.setScalar(W.def.model === 'cannon' ? 0.55 : 0.8);
+  // más cerca de la cámara y más pequeña (se ve igual) para que no se meta en los compañeros ni en las paredes
+  fpg.position.set(0.073, -0.106, -0.28);
+  fpg.scale.setScalar(W.def.model === 'cannon' ? 0.31 : 0.45);
   camera.add(fpg);
 }
 // arma efectiva: la base + el nivel guardado de ese tipo de arma + las mejoras compradas
@@ -389,11 +390,13 @@ function fire() {
   const fur = PW.furiaT > 0;
   if (!fur && !(Math.random() < (E.saveP || 0))) W.ammo--;
   W.cd = 1 / (E.rate * (fur ? 2 : 1)); W.recoil = 1; W.flash = 0.06;
-  SFX.shot(W.def.model === 'ray' ? 'launcher' : W.def.model);
+  SFX.shot(W.def.model === 'ray' || W.def.model === 'gl' ? 'launcher' : W.def.model);
+  // retroceso: cada arma sube la mira distinto (la escopeta y el lanzagranadas pegan un buen golpe)
+  if (E.kick) { look.tPitch += E.kick; look.pitch += E.kick * 0.6; if (E.kick >= 0.05) G.shake = Math.max(G.shake, 0.12); }
   const origin = camera.getWorldPosition(new THREE.Vector3());
   const base = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
   const muzzle = fpg.userData.muzzle.getWorldPosition(new THREE.Vector3());
-  fx.muzzle(muzzle, base, W.def.model === 'shotgun' || W.def.model === 'launcher' ? 1.6 : 1);
+  fx.muzzle(muzzle, base, W.def.model === 'shotgun' || W.def.model === 'launcher' || W.def.model === 'gl' ? 1.6 : 1);
   fx.shell(muzzle, V2.set(1, 0, 0).applyQuaternion(camera.quaternion), W.def.model === 'shotgun');
   const agg = new Map();
   let anyHit = false, boomAt = null;
@@ -423,7 +426,7 @@ function fire() {
     anyHit = true;
     const crit = Math.random() < (E.critP || 0);
     const ent0 = G.ents.find(e => e.id === h.id);
-    let dm = E.dmg * (crit ? 2 : 1);
+    let dm = E.dmg * (crit ? 2 : 1) * rangeMul(E, h.point.distanceTo(origin));
     if (h.part === 'head') dm *= (E.headM || 2) / 2;
     if (ent0 && VEHT.has(ent0.type)) dm *= E.vehM || 1;
     if (ent0 && BOSS[ent0.type]) dm *= E.bossM || 1;
@@ -1698,6 +1701,8 @@ function tick(dt) {
     const P = G.players[i], av = view.av[i];
     if (!P || i >= G.n) { av.visible = false; continue; }
     av.visible = !P.gone && !G.hideMates;
+    // el compañero pegado a la cámara se oculta (si no, se ve por dentro)
+    if (av.visible && av.getWorldPosition(V3).distanceTo(camera.position) < 1.15) av.visible = false;
     const legs = av.userData.rig.body.children.slice(0, 4);
     if (G.foot) {
       // a pie: el compañero anda a tu lado (las piernas se ven)

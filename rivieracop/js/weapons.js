@@ -3,23 +3,25 @@ import { pick } from './util.js';
 
 // mag = balas por cargador, dmg = daño por bala, rate = disparos/seg, reload = seg,
 // pellets = perdigones, spread = dispersión (rad), boom = radio de explosión
+// rng = alcance (m): más allá el daño cae (la escopeta pega muchísimo de cerca y casi nada de lejos; el rifle al revés)
+// kick = cuánto sube la mira al disparar (retroceso)
 const BASE = {
-  pistola:  { name: 'Pistola', model: 'pistol', mag: 6, dmg: 1, rate: 5, auto: false, reload: 0.8, pellets: 1, spread: 0 },
-  pesada:   { name: 'Pistola pesada', model: 'pistol', mag: 4, dmg: 2, rate: 4, auto: false, reload: 0.9, pellets: 1, spread: 0 },
-  revolver: { name: 'Revólver', model: 'revolver', mag: 6, dmg: 3, rate: 2.4, auto: false, reload: 1.4, pellets: 1, spread: 0 },
-  subfusil: { name: 'Subfusil', model: 'smg', mag: 16, dmg: 1, rate: 9, auto: true, reload: 1.3, pellets: 1, spread: 0.012 },
-  ametra:   { name: 'Ametralladora', model: 'mg', mag: 10, dmg: 1, rate: 12, auto: true, reload: 1.8, pellets: 1, spread: 0.018 },
-  escopeta: { name: 'Escopeta', model: 'shotgun', mag: 5, dmg: 1, rate: 1.6, auto: false, reload: 1.5, pellets: 6, spread: 0.05 },
-  rifle:    { name: 'Rifle', model: 'rifle', mag: 8, dmg: 4, rate: 2, auto: false, reload: 1.6, pellets: 1, spread: 0 },
-  magnum:   { name: 'Magnum', model: 'revolver', mag: 3, dmg: 6, rate: 1.6, auto: false, reload: 1.5, pellets: 1, spread: 0 },
-  lanza:    { name: 'Lanzagranadas', model: 'launcher', mag: 2, dmg: 8, rate: 1.2, auto: false, reload: 2.2, pellets: 1, spread: 0, boom: 4.5 },
+  pistola:  { name: 'Pistola', model: 'pistol', mag: 6, dmg: 1, rate: 5, auto: false, reload: 0.8, pellets: 1, spread: 0, rng: 35, kick: 0.012 },
+  pesada:   { name: 'Pistola pesada', model: 'pistol', mag: 4, dmg: 2, rate: 4, auto: false, reload: 0.9, pellets: 1, spread: 0, rng: 40, kick: 0.02 },
+  revolver: { name: 'Revólver', model: 'revolver', mag: 6, dmg: 3, rate: 2.4, auto: false, reload: 1.4, pellets: 1, spread: 0, rng: 50, kick: 0.035 },
+  subfusil: { name: 'Subfusil', model: 'smg', mag: 16, dmg: 1, rate: 9, auto: true, reload: 1.3, pellets: 1, spread: 0.012, rng: 22, kick: 0.007 },
+  ametra:   { name: 'Ametralladora', model: 'mg', mag: 10, dmg: 1, rate: 12, auto: true, reload: 1.8, pellets: 1, spread: 0.018, rng: 38, kick: 0.009 },
+  escopeta: { name: 'Escopeta', model: 'shotgun', mag: 5, dmg: 1, rate: 1.6, auto: false, reload: 1.5, pellets: 6, spread: 0.05, rng: 12, kick: 0.05 },
+  rifle:    { name: 'Rifle', model: 'rifle', mag: 8, dmg: 4, rate: 2, auto: false, reload: 1.6, pellets: 1, spread: 0, rng: 95, kick: 0.04 },
+  magnum:   { name: 'Magnum', model: 'revolver', mag: 3, dmg: 6, rate: 1.6, auto: false, reload: 1.5, pellets: 1, spread: 0, rng: 55, kick: 0.05 },
+  lanza:    { name: 'Lanzagranadas', model: 'gl', mag: 2, dmg: 8, rate: 1.2, auto: false, reload: 2.2, pellets: 1, spread: 0, boom: 4.5, rng: 55, kick: 0.06 },
   // raras: solo salen en zonas difíciles (o con mucha suerte)
-  minigun:  { name: 'Minigun', model: 'mg', mag: 60, dmg: 1, rate: 16, auto: true, reload: 2.6, pellets: 1, spread: 0.022, rare: true },
-  plasma:   { name: 'Rifle de plasma', model: 'rifle', mag: 10, dmg: 5, rate: 2.6, auto: false, reload: 1.5, pellets: 1, spread: 0, pierce: true, rare: true },
-  doble:    { name: 'Escopeta doble', model: 'shotgun', mag: 2, dmg: 2, rate: 3, auto: false, reload: 1.3, pellets: 9, spread: 0.06, rare: true },
+  minigun:  { name: 'Minigun', model: 'mg', mag: 60, dmg: 1, rate: 16, auto: true, reload: 2.6, pellets: 1, spread: 0.022, rare: true, rng: 32, kick: 0.005 },
+  plasma:   { name: 'Rifle de plasma', model: 'rifle', mag: 10, dmg: 5, rate: 2.6, auto: false, reload: 1.5, pellets: 1, spread: 0, pierce: true, rare: true, rng: 130, kick: 0.03 },
+  doble:    { name: 'Escopeta doble', model: 'shotgun', mag: 2, dmg: 2, rate: 3, auto: false, reload: 1.3, pellets: 9, spread: 0.06, rare: true, rng: 9, kick: 0.07 },
   // pistola de rayos: láser explosivo con un solo cargador; cuando se gasta, vuelves a la pistola
-  rayo:     { name: 'Pistola de rayos', model: 'ray', mag: 16, dmg: 6, rate: 3, auto: false, reload: 0.1, pellets: 1, spread: 0, boom: 3.2, once: true, rare: true },
-  cohetes:  { name: 'Lanzacohetes', model: 'launcher', mag: 4, dmg: 12, rate: 1.4, auto: false, reload: 2.4, pellets: 1, spread: 0, boom: 6, rare: true },
+  rayo:     { name: 'Pistola de rayos', model: 'ray', mag: 16, dmg: 6, rate: 3, auto: false, reload: 0.1, pellets: 1, spread: 0, boom: 3.2, once: true, rare: true, rng: 70, kick: 0.02 },
+  cohetes:  { name: 'Lanzacohetes', model: 'launcher', mag: 4, dmg: 12, rate: 1.4, auto: false, reload: 2.4, pellets: 1, spread: 0, boom: 6, rare: true, rng: 110, kick: 0.07 },
 };
 
 export const RARITY = [
@@ -73,3 +75,13 @@ export function weaponLines(w) {
 }
 
 export const WEAPON_NAMES = Object.fromEntries(Object.entries(BASE).map(([k, v]) => [k, v.name]));
+
+// daño según la distancia: dentro del alcance, completo; fuera, cae. Escopetas: brutales a quemarropa. Rifles: flojos pegados.
+export function rangeMul(w, dist) {
+  const r = w.rng || 40;
+  let k = dist <= r ? 1 : Math.max(0.2, Math.pow(r / dist, w.pellets > 1 ? 1.6 : 1));
+  if (w.pellets > 1 && dist < r * 0.5) k *= 1.5;
+  if (r >= 90 && dist < 10) k *= 0.75;
+  if (r >= 90 && dist > 40) k *= 1.2;
+  return k;
+}

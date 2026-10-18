@@ -250,6 +250,8 @@ export function buildChunk(road, c, M) {
   if (c === 0) addBox(R.L, 14.6, 7.6, 1, 0x2a2a2a, frame(road, 0.5, 0, 3.8));
   for (const h of road.hosp) if (Math.floor((h.H + 12) / CH) === c) hospital(R, RI, road, h.H);
   for (const f of road.forks) {
+    // "20" pintado en el asfalto antes de los carteles (allí se va despacio para leerlos)
+    for (const at of [f.gantry - 128]) if (at >= d0 && at < d1 && road.kind[Math.floor(at)] !== 1) speedMark(R, road, at);
     if (f.gantry >= d0 && f.gantry < d1) {
       for (const sd of [-1, 1]) addBox(R.L, 0.5, 9, 0.5, 0x8a8f96, frame(road, f.gantry, sd * 9.2, 4.5));
       addBox(R.L, 19, 0.6, 0.6, 0x8a8f96, frame(road, f.gantry, 0, 8.4));
@@ -279,6 +281,27 @@ const PSTY = {
   casino: ['casino'], chino: ['chino'], zombi: ['zombi'], sea: ['submarino'],
 };
 const portalStyle = deco => { for (const k in PSTY) if (PSTY[k].includes(deco)) return k; return 'tech'; };
+// números de 7 segmentos pintados en el suelo (se leen al acercarse); d = donde empieza el número
+const SEG7 = { '2': 'abged', '0': 'abcdef' };
+function speedMark(R, road, d) {
+  const W = 1.6, Hh = 4.2, t = 0.35, col = 0xf2f2f2, h = 0.035;
+  const put = (lat, u0, u1, l0, l1) => { const m = frame(road, d + (u0 + u1) / 2, lat + (l0 + l1) / 2, h); addBox(R.L, Math.abs(l1 - l0), 0.02, Math.abs(u1 - u0), col, m); };
+  // los números se leen desde el coche: "arriba" del número = más lejos
+  [['2', LATS0 - 1.15], ['0', LATS0 + 1.15]].forEach(([ch, cx]) => {
+    const seg = SEG7[ch];
+    const L = cx - W / 2, Rr = cx + W / 2;
+    if (seg.includes('a')) put(0, Hh - t, Hh, L, Rr);
+    if (seg.includes('g')) put(0, Hh / 2 - t / 2, Hh / 2 + t / 2, L, Rr);
+    if (seg.includes('d')) put(0, 0, t, L, Rr);
+    if (seg.includes('b')) put(0, Hh / 2, Hh, Rr - t, Rr);
+    if (seg.includes('c')) put(0, 0, Hh / 2, Rr - t, Rr);
+    if (seg.includes('f')) put(0, Hh / 2, Hh, L, L + t);
+    if (seg.includes('e')) put(0, 0, Hh / 2, L, L + t);
+  });
+  // franjas de frenado
+  for (let k = 0; k < 6; k++) { const m = frame(road, d - 3 - k * 1.2, LATS0, h); addBox(R.L, 4.2, 0.02, 0.4, 0xf2f2f2, m); }
+}
+const LATS0 = 3;
 function facade(R, road, d, out = 0) {
   const i = Math.max(0, Math.min(road.len, Math.floor(out ? d + 6 : d)));
   const B = BIOMES[BIOME_KEYS[road.bio[i]]], st = portalStyle(B.deco);
