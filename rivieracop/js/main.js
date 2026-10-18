@@ -226,7 +226,7 @@ const PROG = loadProg();
 const AB = { shield: { cd: 0 }, bullet: { cd: 0 } };
 const W = { def: defaultWeapon(), e: null, lv: 1, ammo: 6, rl: 0, cd: 0, recoil: 0, flash: 0 };
 W.e = effective(W.def, 1, PROG.upg);
-const net = new Net();
+const net = new Net(); window.__net = net; // TODO-TESTEO
 
 // ---------------- reflejo (lo que ve el invitado) ----------------
 class Mirror {
@@ -1581,6 +1581,8 @@ function tick(dt) {
     av.userData.rig.armR.rotation.x = P.lp || 0;
     av.userData.rig.armL.rotation.set(P.lp || 0, -0.5, 0);
   }
+  // el botón de ocultar también quita al conductor (y en el hospital, a pie, no hay conductor)
+  { const dr = view.car.userData.driver; if (dr) dr.visible = !view.car.userData.noDriver && !G.hideMates && !G.foot; }
   // --- mejoras del coche y cañón ---
   const cu = G.mode === 'guest' ? (G.cu || [0, 0]) : [G.sim.maxMeta('pinchos'), G.sim.maxMeta('torreta')];
   view.setCarParts(cu[0], cu[1]);

@@ -113,6 +113,7 @@ export class Net {
     this.links = new Map();                                 // anfitrión: enlaces con cada invitado
     this.onmsg = null; this.onclose = null; this.onjoin = null; this.onwelcome = null;
     this.isHost = false; this.via = ''; this.myIdx = 0;
+    this.gid = Math.random().toString(36).slice(2, 10); // identifica al invitado aunque cambie de vía
   }
   get open() { return this.isHost ? this.links.size > 0 : !!this.link; }
   get count() { return this.links.size; }
@@ -135,7 +136,7 @@ export class Net {
           if (!data || typeof data !== 'object') return;
           if (this.isHost) {
             const key = name + ':' + id;
-            if (data.t === 'hello' && !this.links.has(key)) this.adopt(key, { kind: name, id, send: o => { try { send(o, id); } catch (e) { } } });
+            if (data.t === 'hello' && !this.links.has(key)) this.adopt(key, { kind: name, id, send: o => { try { send(o, id); } catch (e) { } } }, data.gid);
             const L = this.links.get(key);
             if (L) this.recvHost(data, L);
           } else {
@@ -143,7 +144,7 @@ export class Net {
             if (data.t === 'host' && !this.link) {
               this.link = { kind: name, id, send: o => { try { send(o, id); } catch (e) { } } };
               this.via = name; this.win && this.win();
-            }
+            } else if (data.t === 'host' && this.link && this.link.kind === 'mqtt') this.upgrade({ kind: name, id, send: o => { try { send(o, id); } catch (e) { } } });
             if (this.link && this.link.kind === name && this.link.id === id) this.recv(data);
           }
         });
@@ -157,11 +158,17 @@ export class Net {
     }
   }
   // anfitrión: nuevo invitado (el que manda "hola" primero por cualquier vía)
-  adopt(key, L) {
+  adopt(key, L, gid) {
+    // el mismo invitado llega por otra vía (p. ej. directa tras empezar por el relé): se cambia la vía, conserva su plaza
+    if (gid) for (const [k, o] of this.links) if (o.gid === gid) {
+      this.links.delete(k); L.idx = o.idx; L.key = key; L.gid = gid; this.links.set(key, L);
+      if (o.kind === 'mqtt' && L.kind !== 'mqtt') this.via = L.kind;
+      return L;
+    }
     let idx = 0;
     for (let i = 1; i < MAXP; i++) if (![...this.links.values()].some(x => x.idx === i)) { idx = i; break; }
     if (!idx) { L.send({ t: 'full' }); return null; }
-    L.idx = idx; L.key = key;
+    L.idx = idx; L.key = key; L.gid = gid;
     this.links.set(key, L);
     this.via = L.kind;
     L.send({ t: 'welcome', i: idx });
@@ -173,7 +180,7 @@ export class Net {
     this.links.delete(L.key);
     this.onclose && this.onclose(L.idx);
   }
-  recvHost(d, L) { if (d.t !== 'welcome' && this.onmsg) this.onmsg(d, L.idx); }
+  recvHost(d, L) { if (d.t !== 'welcome' && !(d.t === 'hello' && d.up) && this.onmsg) this.onmsg(d, L.idx); }
   recv(d) {
     if (d.t === 'welcome') { if (!this.welcomed) { this.welcomed = true; this.myIdx = d.i | 0; this.onwelcome && this.onwelcome(this.myIdx); } return; }
     if (d.t === 'host') return;
@@ -183,7 +190,7 @@ export class Net {
   greet() {
     this.welcomed = false;
     let n = 0;
-    const tick = () => { if (!this.link || this.welcomed || n++ > 20) return; this.send({ t: 'hello', v: NETV }); setTimeout(tick, 700); };
+    const tick = () => { if (!this.link || this.welcomed || n++ > 20) return; this.send({ t: 'hello', v: NETV, gid: this.gid }); setTimeout(tick, 700); };
     tick();
   }
   lost() { this.link = null; this.onclose && this.onclose(0); }
@@ -196,7 +203,7 @@ export class Net {
       const m = new MQ(u, (topic, d) => {
         if (!d || typeof d.f !== 'string' || !d.d) return;
         const key = 'mqtt:' + d.f;
-        if (d.d.t === 'hello' && !this.links.has(key)) this.adopt(key, { kind: 'mqtt', id: d.f, mq: m, send: o => m.pub(T + 'g', { to: d.f, d: o }) });
+        if (d.d.t === 'hello' && !this.links.has(key)) this.adopt(key, { kind: 'mqtt', id: d.f, mq: m, send: o => m.pub(T + 'g', { to: d.f, d: o }) }, d.d.gid);
         const L = this.links.get(key);
         if (L) { L.seen = performance.now(); this.recvHost(d.d, L); }
       });
@@ -224,7 +231,7 @@ export class Net {
           c.on('data', d => {
             if (!d || typeof d !== 'object') return;
             if (d.t === 'hello' && !this.links.has(key)) {
-              const L = this.adopt(key, { kind: 'peerjs', id: c.peer, c, send: o => { try { if (c.open) c.send(o); } catch (e) { } } });
+              const L = this.adopt(key, { kind: 'peerjs', id: c.peer, c, send: o => { try { if (c.open) c.send(o); } catch (e) { } } }, d.gid);
               if (!L) { setTimeout(() => { try { c.close(); } catch (e) { } }, 500); return; }
             }
             const L = this.links.get(key);
@@ -253,23 +260,32 @@ export class Net {
           p.on('open', () => {
             const c = p.connect(PREFIX + code, { reliable: true, serialization: 'json' });
             c.on('open', () => {
-              if (this.link) { try { c.close(); } catch (e) { } return; }
-              this.link = { kind: 'peerjs', id: c.peer, c, send: o => { try { if (c.open) c.send(o); } catch (e) { } } };
-              this.via = 'peerjs';
+              const L = { kind: 'peerjs', id: c.peer, c, send: o => { try { if (c.open) c.send(o); } catch (e) { } } };
               c.on('data', d => { if (this.link && this.link.c === c && d && typeof d === 'object') this.recv(d); });
               const bye = () => { if (this.link && this.link.c === c) this.lost(); };
               c.on('close', bye); c.on('error', bye);
+              if (this.link && this.link.kind === 'mqtt') { this.upgrade(L); return; }
+              if (this.link) { try { c.close(); } catch (e) { } return; }
+              this.link = L; this.via = 'peerjs';
               this.win();
             });
           });
           p.on('error', e => console.warn('peerjs', e && e.type));
         } catch (e) { console.warn('peerjs', e); }
       }
-      setTimeout(() => { if (!done && !this.link && tok === this.att) this.joinRelay(code); }, 7000);
+      setTimeout(() => { if (!done && !this.link && tok === this.att) this.joinRelay(code); }, 12000);
       setTimeout(() => { if (!done && tok === this.att && !this.link) { done = true; this.close(); rej(new Error('No se encuentra la sala (¿código bien escrito? ¿tu amigo sigue en la sala?)')); } }, 40000);
     });
   }
 
+  // invitado: estaba por el relé y por fin sale la conexión directa (misma wifi o red buena): se pasa a ella
+  upgrade(L) {
+    if (!this.link || this.link.kind !== 'mqtt') return;
+    this.link = L; this.via = L.kind;
+    L.send({ t: 'hello', v: NETV, gid: this.gid, up: 1 });
+    for (const m of this.mq || []) m.close();
+    this.mq = null; clearInterval(this.mqGc);
+  }
   // invitado: la conexión directa no sale; se prueba por los relés MQTT (el primero que conteste)
   joinRelay(code) {
     if (this.mq || new URLSearchParams(location.search).get('nomq') === '1') return;
@@ -289,13 +305,13 @@ export class Net {
           return;
         }
         if (this.link.mq === m) { lastHost = performance.now(); this.recv(d.d); }
-      }, mm => { mm.pub(T + 'h', { f: me, d: { t: 'hello', v: NETV } }); });
+      }, mm => { mm.pub(T + 'h', { f: me, d: { t: 'hello', v: NETV, gid: this.gid } }); });
       m.sub(T + 'g');
       return m;
     });
     // insistir con el saludo mientras nadie conteste
     let n = 0;
-    const again = () => { if (this.link || this.closed || n++ > 25) return; for (const m of this.mq || []) m.pub(T + 'h', { f: me, d: { t: 'hello', v: NETV } }); setTimeout(again, 1000); };
+    const again = () => { if (this.link || this.closed || n++ > 25) return; for (const m of this.mq || []) m.pub(T + 'h', { f: me, d: { t: 'hello', v: NETV, gid: this.gid } }); setTimeout(again, 1000); };
     setTimeout(again, 1000);
     lastHost = performance.now();
   }
