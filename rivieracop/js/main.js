@@ -995,7 +995,8 @@ try { HUDL = JSON.parse(localStorage.getItem('rc_hud') || '{}') || {}; } catch (
 const saveHUDL = () => { try { localStorage.setItem('rc_hud', JSON.stringify(HUDL)); } catch (e) { } };
 function placeSaved(el, id) {
   const L = HUDL[id];
-  if (!L || L.x == null) { el.style.left = el.style.top = ''; return false; }
+  // sin posición guardada: vuelve a la de serie (antes se quedaba con right/bottom en 'auto' y saltaba arriba a la izquierda)
+  if (!L || L.x == null) { el.style.left = el.style.top = el.style.right = el.style.bottom = ''; return false; }
   el.style.right = 'auto'; el.style.bottom = 'auto';
   el.style.left = Math.round(L.x * vw() - el.offsetWidth / 2) + 'px';
   el.style.top = Math.round(L.y * vh() - el.offsetHeight / 2) + 'px';
@@ -1495,7 +1496,9 @@ function frame(now) {
 function tick(dt) {
   const li = G.li;
   // --- estado del mundo ---
-  if (G.mode === 'guest') {
+  // (sin simulación propia somos invitados aunque el modo se haya perdido por el camino)
+  if (G.mode === 'guest' || !G.sim) {
+    if (!G.mir) return;
     const s = G.mir.sample();
     if (s) { G.carD = s.carD; G.ents = s.ents; G.players = s.players; G.cd = s.cd; G.speed = s.sp; G.slow = !!s.sl; G.mult = s.mu || 1; G.stun = !!s.sn; G.cu = s.cu; G.turbo = !!s.tb; G.smoked = !!s.sm; G.foot = s.fo || null; }
     G.road.extend(G.carD + 340);
@@ -1860,6 +1863,9 @@ $('btnJoin').onclick = () => {
 $('btnGo').onclick = async () => {
   const code = $('codeIn').value.trim().toUpperCase();
   if (code.length !== 4) { lobbyMsg('El código tiene 4 letras'); return; }
+  // ya conectando o conectado: un segundo toque abría otra conexión que luego cortaba la buena
+  if (G.joining || net.open) return;
+  G.joining = true;
   await prep();
   lobbyMsg('Conectando…');
   G.mode = 'guest';
@@ -1872,8 +1878,9 @@ $('btnGo').onclick = async () => {
     lobbyMsg('¡Conectado! Esperando a que el anfitrión empiece…');
   } catch (e) {
     lobbyMsg('Error: ' + (e.message || e.type || e));
-    G.mode = null; $('lanList').hidden = false; lanStop(); LAN.scan = new LanScan(lanList);
+    if (!G.running) { G.mode = null; $('lanList').hidden = false; lanStop(); LAN.scan = new LanScan(lanList); }
   }
+  G.joining = false;
 };
 $('btnStart').onclick = () => { if (!net.open) return; net.send({ t: 'vsel' }); vehSelect(() => { if (net.open) hostStart(); else toMenu('Se han ido todos de la sala'); }); };
 $('btnBack').onclick = () => toMenu('');

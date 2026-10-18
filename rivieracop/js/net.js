@@ -241,6 +241,7 @@ export class Net {
 
   join(code) {
     this.isHost = false; this.closed = false;
+    const tok = this.att = (this.att || 0) + 1;
     return new Promise((res, rej) => {
       let done = false;
       this.win = () => { if (!done) { done = true; this.greet(); res(); } };
@@ -264,8 +265,8 @@ export class Net {
           p.on('error', e => console.warn('peerjs', e && e.type));
         } catch (e) { console.warn('peerjs', e); }
       }
-      setTimeout(() => { if (!done && !this.link) this.joinRelay(code); }, 7000);
-      setTimeout(() => { if (!done) { done = true; this.close(); rej(new Error('No se encuentra la sala (¿código bien escrito? ¿tu amigo sigue en la sala?)')); } }, 40000);
+      setTimeout(() => { if (!done && !this.link && tok === this.att) this.joinRelay(code); }, 7000);
+      setTimeout(() => { if (!done && tok === this.att && !this.link) { done = true; this.close(); rej(new Error('No se encuentra la sala (¿código bien escrito? ¿tu amigo sigue en la sala?)')); } }, 40000);
     });
   }
 
