@@ -558,7 +558,7 @@ function backRows(R, road, B, i0, i1, r, sides, night) {
 function skyBridges(R, road, B, i0, i1) {
   for (const bd of road.bridges(i0, i1)) {
     if (bd < i0 || bd >= i1) continue;
-    const H = 10.5, m = frame(road, bd, 0, 0);
+    const H = 6.4, m = frame(road, bd, 0, 0); // bajito: pasa justo por encima de la furgoneta y del tanque
     addBox(R.C, 20.4, 0.6, 3.2, 0xc8c0b0, m, { y: H, uvs: 3 });
     for (const z of [-1.5, 1.5]) {
       addBox(R.L, 20.4, 0.08, 0.08, 0x3a3a3a, m, { y: H + 1.2, z });
@@ -567,7 +567,7 @@ function skyBridges(R, road, B, i0, i1) {
     addBox(R.L, 12, 0.45, 0.06, pick(rng(bd), [0xd8b45a, 0xc8584a, 0x5a98c0]), m, { y: H - 0.05, z: -1.65 });
     for (const sd of [-1, 1]) addBox(R.C, 0.7, H, 0.7, 0xb0a898, frame(road, bd, sd * 9.2, H / 2), { uvs: 3 });
     // escaleras hasta la acera (lado derecho)
-    const n = 14;
+    const n = 9;
     for (let k = 0; k < n; k++) {
       const dd = bd + 2.2 + k * 0.85, yy = H - (k + 1) * (H / n);
       addBox(R.C, 1.1, 0.28, 0.9, 0xb8b0a0, frame(road, dd, 8.65, yy), { uvs: 2 });
