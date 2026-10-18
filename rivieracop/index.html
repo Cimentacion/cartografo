@@ -100,11 +100,11 @@ body.ctl-joy #wep{right:auto;left:50%;transform:translateX(-50%);bottom:max(8px,
 .wcs{font:11px var(--f-title);color:var(--gold);padding:4px 8px;animation:blink .7s steps(2) infinite}
 .wcb{height:6px;background:#2b2d36;margin:0 8px 5px;border-radius:3px;overflow:hidden}
 .wcb i{display:block;height:100%}
-#banner{position:absolute;left:0;right:0;top:27%;text-align:center;opacity:0;pointer-events:none}
-#banner.on{animation:ban 2.6s ease-out forwards}
+#banner{position:absolute;left:0;right:0;top:15%;text-align:center;opacity:0;pointer-events:none;transform:scale(.72);transform-origin:50% 0}
+#banner.on{animation:ban 2.0s ease-out forwards}
 #banner b{display:block;font:clamp(26px,6vw,52px) var(--f-title);letter-spacing:.04em;text-shadow:0 3px 0 rgba(0,0,0,.6),0 0 18px rgba(0,0,0,.4);font-style:italic}
 #banner span{display:inline-block;margin-top:4px;font:700 clamp(13px,2.4vw,18px) var(--f-ui);background:rgba(0,0,0,.55);padding:3px 10px;border-radius:4px}
-@keyframes ban{0%{opacity:0;transform:scale(1.6)}8%{opacity:1;transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:translateY(-12px)}}
+@keyframes ban{0%{opacity:0;transform:scale(1)}8%{opacity:1;transform:scale(.72)}80%{opacity:1;transform:scale(.72)}100%{opacity:0;transform:translateY(-12px) scale(.72)}}
 #count{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;text-align:center}
 #countN{font:clamp(70px,18vw,150px) var(--f-title);color:var(--gold);text-shadow:0 5px 0 rgba(0,0,0,.6)}
 #count p{font:700 16px var(--f-ui);background:rgba(0,0,0,.55);padding:6px 14px;border-radius:5px;margin:4px}
@@ -376,6 +376,15 @@ body.turbo #hudwrap::after{content:'';position:absolute;inset:0;pointer-events:n
 #fakeAd .fan{font:48px var(--f-title);color:#ffe14a;margin:8px}
 #dead button{display:block;margin:8px auto 0;pointer-events:auto;font-size:15px;padding:12px 18px}
 #dead{z-index:40;pointer-events:auto}
+#style{position:absolute;left:max(10px,env(safe-area-inset-left));top:42%;transform:translateY(-50%);width:150px;pointer-events:none;z-index:4;--c:#6ab0ff;font-family:var(--f-ui)}
+#style .styTop{display:flex;align-items:baseline;gap:6px}
+#style b{font:clamp(26px,5vw,40px) var(--f-title);color:var(--c);text-shadow:2px 2px 0 #000,0 0 14px var(--c);font-style:italic;line-height:1}
+#style span{font:800 11px var(--f-ui);color:var(--c);text-shadow:1px 1px 0 #000;letter-spacing:.06em}
+#style .styBar{height:5px;background:rgba(0,0,0,.5);margin:3px 0 2px;border:1px solid rgba(255,255,255,.25)}
+#style .styBar i{display:block;height:100%;background:var(--c);box-shadow:0 0 8px var(--c)}
+#style small{display:block;font:700 9px var(--f-ui);color:#fff;opacity:.85;text-shadow:1px 1px 0 #000}
+#styF div{font:800 10px var(--f-ui);color:#fff;text-shadow:1px 1px 0 #000;margin-top:2px}
+#styF div.bad{color:#ff6a6a}
 #netTag{position:absolute;left:50%;bottom:max(4px,env(safe-area-inset-bottom));transform:translateX(-50%);font:700 10px var(--f-ui);color:#fff;background:rgba(0,0,0,.45);padding:2px 8px;border-radius:8px;pointer-events:none;z-index:5}
 #btnAdPot small{display:block;font-size:10px;opacity:.85}
 #upd{position:fixed;inset:0;z-index:98;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center}
@@ -530,6 +539,7 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
 
   <div id="hudwrap" hidden>
     <div id="netTag" hidden></div>
+    <div id="style" hidden><div class="styTop"><b id="styR">D</b><span id="styN"></span></div><div class="styBar"><i id="styB"></i></div><small id="styM"></small><div id="styF"></div></div>
     <div id="scope" hidden></div>
     <div id="smokefx"></div>
     <div id="p0" class="pbox"></div>

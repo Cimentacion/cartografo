@@ -432,6 +432,7 @@ function fire() {
     if (h.part === 'shield') dm *= E.shieldM || 1;
     if (W.contraT > 0) dm *= 1 + 0.25 * (PROG.upg.contra | 0);
     if (PW.fuerzaT > 0) dm *= PW.fuerzaM || 2;
+    dm *= STY.dmgM();
     add(h, dm);
     // bala explosiva (mejora)
     if (!E.boom && Math.random() < (E.expP || 0)) boomAt = h.point.clone();
@@ -576,6 +577,7 @@ function handleEvent(ev) {
     case 'hurt':
       if (ev.p === li && (PROG.upg.contra | 0)) W.contraT = 3;
       if (ev.p === li) {
+        STY.hurt();
         flash('hurt'); G.shake = 0.35; SFX.hurt();
         try { navigator.vibrate && navigator.vibrate(120); } catch (e) { }
       }
@@ -625,6 +627,7 @@ function handleEvent(ev) {
       }
       break;
     case 'over': gameOver(ev); break;
+    case 'kill': if (ev.p === G.li) STY.kill(ev); break;
     case 'ability':
       if (ev.a === 'shield') { showBanner(ev.p === li ? '¡ESCUDO!' : (PNAME[ev.p] + ' USA ESCUDO'), '', '#5ae0ff'); SFX.heal(); }
       else if (ev.a === 'turbo') { showBanner('¡TURBO!', '', '#ff8a3d'); SFX.tone(200, 900, 0.6, 'sawtooth', 0.25); }
@@ -793,6 +796,7 @@ function begin(seed, n, li, mode) {
   if (G.sim && Q.get('god')) G.sim.god = true; // TODO-TESTEO
   G.mir = mode === 'guest' ? new Mirror() : null;
   RADIO.q = []; RADIO.t = 0; $('radio').hidden = true; presSet('jugando');
+  STY.reset();
   G.evq = []; G.acc = 0; G.over = false; G.running = true; G.carD = 8; G.shake = 0; G.lastBio = -1; G.lastZd = -1; G.camYaw = null;
   G.ents = []; G.players = [];
   for (let i = 0; i < n; i++) G.players.push({ hp: 10, maxHp: 10, score: 0, alive: true, inv: 0, ly: 0, lp: 0 });
@@ -840,7 +844,7 @@ function gameOver(ev) {
     let h = `<div class="ostats">TIEMPO <b>${Math.floor(ev.t / 60)}:${String(ev.t % 60).padStart(2, '0')}</b> · DISTANCIA <b>${(ev.dist / 1000).toFixed(1)} km</b> · GALLINAS <b>${ev.ck}</b></div>`;
     for (let i = 0; i < n; i++) h += `<div class="orow" style="color:${PCOL[i]}">${n > 1 ? PNAME[i] : 'PUNTOS'} <b>${String(ev.sc[i]).padStart(7, '0')}</b> · ${ev.kl[i]} bajas</div>`;
     h += '<canvas id="routeMap" width="560" height="240"></canvas>';
-    const mine = ev.sc[G.li] || 0, coins = Math.floor(mine / 10 * (1 + 0.1 * (PROG.upg.codicia | 0)));
+    const mine = ev.sc[G.li] || 0, coins = Math.floor(mine / 10 * (1 + 0.1 * (PROG.upg.codicia | 0))) + (STY.coins | 0);
     PROG.coins += coins; saveProg(PROG);
     // ver un anuncio duplica las monedas de esta partida (una vez)
     G.lastCoins = coins; $('btnX2').hidden = coins <= 0; $('btnX2').disabled = false; $('btnX2').textContent = '📺 x2 MONEDAS (+' + coins + ')';
@@ -954,6 +958,46 @@ function toMenu(msg) {
 
 // ---------------- interfaz ----------------
 let bannerT = 0;
+// ---------------- medidor de estilo (racha de bajas al estilo ULTRAKILL) ----------------
+// cada baja suma estilo; las seguidas, en el aire y los jefes, más. Se va vaciando con el tiempo y se pierde al recibir daño.
+// Cuanto más alto el rango, más daño haces y más monedas ganas por baja.
+const STY = {
+  pts: 0, feed: [], coins: 0, lastK: -9, chain: 0, rank: 0,
+  R: [['D', 'DESTRUCTIVO', '#6ab0ff', 0], ['C', 'CAÓTICO', '#5aff9a', 100], ['B', 'BRUTAL', '#ffe14a', 200], ['A', 'ANÁRQUICO', '#ff9a3a', 320],
+    ['S', 'SUPREMO', '#ff4a4a', 460], ['SS', 'SÁDICO', '#ff3aa0', 620], ['SSS', 'SANGUINARIO', '#c040ff', 800], ['¡RIVIERAKILL!', '', '#ffffff', 980]],
+  DM: [1, 1.05, 1.1, 1.17, 1.25, 1.34, 1.45, 1.6], CN: [0, 1, 1, 2, 3, 4, 5, 8],
+  reset() { this.pts = 0; this.feed = []; this.coins = 0; this.chain = 0; this.rank = 0; this.lastK = -9; },
+  dmgM() { return this.DM[this.rank]; },
+  add(n, txt) { this.pts = Math.min(1100, this.pts + n); if (txt) { this.feed.unshift({ txt: '+ ' + txt, t: 2.2 }); if (this.feed.length > 5) this.feed.length = 5; } },
+  kill(ev) {
+    const now = G.t;
+    this.chain = now - this.lastK < 1.4 ? this.chain + 1 : 1; this.lastK = now;
+    this.add(28, ev.boss ? 'JEFE ABATIDO' : ev.big ? 'PESO PESADO' : this.chain === 1 ? 'ELIMINADO' : null);
+    if (this.chain === 2) this.add(20, 'DOBLE BAJA'); else if (this.chain === 3) this.add(35, 'TRIPLE BAJA'); else if (this.chain >= 4) this.add(45, 'MULTIBAJA x' + this.chain);
+    if (ev.air) this.add(18, 'EN EL AIRE');
+    if (ev.boss) this.add(250);
+    this.coins += this.CN[this.rank];
+  },
+  hurt() { if (this.pts > 0) { this.pts *= 0.45; this.feed.unshift({ txt: '− DAÑO RECIBIDO', t: 2, bad: 1 }); } },
+  update(dt) {
+    this.pts = Math.max(0, this.pts - (6 + this.rank * 7) * dt);
+    let r = 0; for (let i = 0; i < this.R.length; i++) if (this.pts >= this.R[i][3]) r = i;
+    if (r > this.rank && r >= 2) SFX.tone(500 + r * 120, 900 + r * 160, 0.12, 'square', 0.12);
+    this.rank = this.pts > 0 ? r : 0;
+    for (const f of this.feed) f.t -= dt;
+    this.feed = this.feed.filter(f => f.t > 0);
+    const el = $('style');
+    if (this.pts <= 0 && !this.feed.length) { el.hidden = true; return; }
+    el.hidden = false;
+    const R = this.R[this.rank], nx = this.R[this.rank + 1];
+    const fill = nx ? (this.pts - R[3]) / (nx[3] - R[3]) : 1;
+    el.style.setProperty('--c', R[2]);
+    $('styR').textContent = R[0]; $('styN').textContent = R[1];
+    $('styB').style.width = Math.round(clamp(fill, 0, 1) * 100) + '%';
+    $('styM').textContent = this.rank ? '×' + this.DM[this.rank].toFixed(2) + ' daño · +' + this.CN[this.rank] + ' 🪙/baja' : '';
+    $('styF').innerHTML = this.feed.map(f => `<div class="${f.bad ? 'bad' : ''}" style="opacity:${Math.min(1, f.t)}">${f.txt}</div>`).join('');
+  },
+};
 function showBanner(txt, sub, col) {
   (G.log || (G.log = [])).push(Math.round(G.sim ? G.sim.runT : G.t) + 's ' + txt); // TODO-TESTEO
   const b = $('banner');
@@ -961,7 +1005,7 @@ function showBanner(txt, sub, col) {
   b.querySelector('b').style.color = col || '#fff';
   b.querySelector('span').textContent = sub || '';
   b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
-  bannerT = 2.6;
+  bannerT = 2.0;
   SFX.banner();
 }
 function flash(k) { const f = $(k === 'hurt' ? 'hurtfx' : k === 'poison' ? 'poisfx' : 'healfx'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on'); }
@@ -1676,6 +1720,7 @@ function tick(dt) {
   if (CAN.t > 0) { CAN.t -= dt; if (CAN.t <= 0) { endCannon(); showBanner('BAJAS DEL CAÑÓN', '', '#ffb020'); } }
   else if (CAN.cd > 0) CAN.cd = Math.max(0, CAN.cd - dt);
   updBeams(G.t); updGodRays(G.t);
+  STY.update(dt);
   // ciudad zombi: pavesas y llamas subiendo de los incendios
   if (BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]].deco === 'zombi' && !G.foot) {
     for (let k = 0; k < 3; k++) if (Math.random() < dt * 14) {

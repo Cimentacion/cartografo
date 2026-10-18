@@ -478,6 +478,8 @@ export class Sim {
       }
       this.stats.kills++;
     }
+    // aviso de baja para el medidor de estilo (racha) de quien la hizo
+    if (p >= 0 && !noPts && PTS[e.type]) this.emit('kill', { p, air: e.h > 2.5 || AIR.has(e.type) ? 1 : 0, boss: BOSS[e.type] ? 1 : 0, big: (e.hm || 0) > 20 ? 1 : 0 });
     const K = KILL[e.type];
     if (K) K(e, p, this);
   }
