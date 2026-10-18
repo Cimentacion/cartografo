@@ -7,6 +7,8 @@ export const LANE_ME = 3, LANE_OT = -3, HALF = 6, WALK = 8.5;
 export const START_TUN = 120, SECTION = 720, APPROACH = 90, TUN = 150;
 const CELL = 20;
 
+export const TUNH = ['coches', 'pinchos', 'moteros', 'emboscada'];
+export const TUNMSG = { coches: 'COCHES EN TODOS LOS CARRILES', pinchos: 'PINCHOS EN LA CALZADA', moteros: 'MOTORISTAS ARMADOS', emboscada: 'EMBOSCADA: CIRCULE CON PRECAUCIÓN' };
 export class Road {
   constructor(seed, bio0 = 0, zd0 = 1) {
     this.seed = seed >>> 0;
@@ -268,6 +270,11 @@ export class Road {
     const L = [];
     for (let x = f.secStart + 90; x < f.gantry - 200; x += 150) L.push(x);
     return L;
+  }
+  // túneles: qué peligro toca en cada tramo de 220 m (lo anuncian los paneles luminosos del techo)
+  tunHazard(f, seg) {
+    if (seg < 1 || (seg + 1) * 220 > (f.slen || SECTION) - 60) return null;
+    return TUNH[hash(this.seed, f.k, seg, 55) % TUNH.length];
   }
   seaAt(d) { const i = clamp(Math.floor(d), 0, this.len); return this.sea[i]; }
   zdAt(d) { const i = clamp(Math.floor(d), 0, this.len); return this.zd[i] || 1; }

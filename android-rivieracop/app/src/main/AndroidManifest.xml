@@ -10,8 +10,8 @@
         android:allowBackup="true"
         android:hardwareAccelerated="true"
         android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen">
-        <!-- ANUNCIOS: identificador DE PRUEBA de AdMob. Cámbialo por el de tu app de AdMob -->
-        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>
+        <!-- ANUNCIOS: ID de la app en AdMob -->
+        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-8476753448483324~5420082632"/>
         <activity android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"

@@ -1,6 +1,7 @@
 // RIVIERA COP — roguelike de disparos sobre raíles, cooperativo, con giroscopio
 import * as THREE from 'three';
 import { initI18n, LANGS, getLang, setLang, tr } from './i18n.js';
+import { STORY, CAST } from './story.js';
 import { Road, LANE_ME } from './road.js';
 import { buildChunk, makeMats, CH } from './scenery.js';
 import { Sim, SEATS, isRear, AIR, ANIMAL } from './sim.js';
@@ -8,7 +9,7 @@ import { View, Fx } from './view.js';
 import { Hud } from './hud.js';
 import { Look } from './input.js';
 import { SFX } from './audio.js';
-import { Net, makeCode, NETV, LanBeacon, LanScan } from './net.js';
+import { Net, makeCode, NETV, LanBeacon, LanScan, Presence } from './net.js';
 import { showRewarded, showInterstitial, adsReal } from './ads.js';
 import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME, BOSS } from './defs.js';
 import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES } from './weapons.js';
@@ -35,7 +36,8 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.get('hq') ? 2 : 
 renderer.setSize(vw(), vh());
 // sombras suaves del sol (se quitan en calidad BAJA)
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+// VSM: bordes suaves y difuminados (no dientes de sierra); como el mapa casi nunca se recalcula, el difuminado sale gratis
+renderer.shadowMap.type = THREE.VSMShadowMap;
 const outline = new Outline(renderer);
 outline.enabled = !Q.get('nooutline'); // TODO-TESTEO
 outline.setSize(vw(), vh());
@@ -50,7 +52,7 @@ sun.shadow.mapSize.set(1024, 1024);
 // sombras de los edificios y el decorado hasta lo lejos: un mapa grande que solo se vuelve a calcular cada ~30 m
 // (lo que se mueve lleva su sombra suave debajo); así no tiemblan y casi no cuestan
 Object.assign(sun.shadow.camera, { left: -170, right: 170, top: 170, bottom: -170, near: 1, far: 700 });
-sun.shadow.bias = -0.004; sun.shadow.normalBias = 0.6; sun.shadow.radius = 2;
+sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.05; sun.shadow.radius = 10; sun.shadow.blurSamples = 16;
 renderer.shadowMap.autoUpdate = false;
 sun.shadow.camera.updateProjectionMatrix();
 const SHC = { key: '' };
@@ -176,8 +178,8 @@ function updateChunks(d, all) {
     if (G.chunks.has(c)) continue;
     if (!all && built >= 1) break;
     const g = buildChunk(G.road, c, MATS);
-    SHC.dirty = true;
     if (!g) break;
+    SHC.dirty = true;
     scene.add(g);
     G.chunks.set(c, g);
     built++;
@@ -185,13 +187,13 @@ function updateChunks(d, all) {
   for (const [c, g] of G.chunks) {
     if (c < c0 - 1 || c > c1 + 3) {
       scene.remove(g);
-      g.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+      g.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.userData.own) { o.material.map.dispose(); o.material.dispose(); } });
       G.chunks.delete(c);
     }
   }
 }
 function clearChunks() {
-  for (const g of G.chunks.values()) { scene.remove(g); g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
+  for (const g of G.chunks.values()) { scene.remove(g); g.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.userData.own) { o.material.map.dispose(); o.material.dispose(); } }); }
   G.chunks.clear();
 }
 
@@ -469,6 +471,7 @@ function handleEvent(ev) {
     case 'potion': if (ev.p === li) { G.potUsed = true; PROG.pot = Math.max(0, (PROG.pot | 0) - 1); saveProg(PROG); updPot(); } break;
     case 'pop': view.pop(ev.w, ev.txt, ev.c || PCOL[ev.p]); break;
     case 'banner': showBanner(ev.txt, ev.sub, ev.c); break;
+    case 'radio': { const S2 = STORY[ev.ch]; if (S2 && S2.radio[ev.z]) for (const l of S2.radio[ev.z]) RADIO.q.push(l); break; }
     case 'weapon': if (ev.p === li) giveWeapon(ev.w); break;
     case 'fork': if (G.mode === 'guest') G.road.setChoice(ev.kk, ev.b, ev.zd || 1); break;
     case 'turret': {
@@ -524,7 +527,7 @@ net.onmsg = (m, from) => {
   if (G.mode === 'host') {
     const S = G.sim, P = S && S.players[from];
     switch (m.t) {
-      case 'hello': if (m.v !== NETV) lobbyMsg('Alguien tiene otra versión: recargad todos la página'); if (m.c) G.peerChars[from] = sanitize(m.c, from); if (m.m) G.peerMetas[from] = m.m; break;
+      case 'hello': if (m.pf) { addRecent(m.pf.id, m.pf.name); G.peerProf = G.peerProf || {}; G.peerProf[from] = m.pf; } if (m.v !== NETV) lobbyMsg('Alguien tiene otra versión: recargad todos la página'); if (m.c) G.peerChars[from] = sanitize(m.c, from); if (m.m) G.peerMetas[from] = m.m; break;
       case 'ab': if (S && G.running && (m.k === 'shield' || m.k === 'bullet' || m.k === 'turbo')) S.useAbility(from, m.k, clamp(m.lv | 0, 1, ABMAX), clamp(m.l2 | 0, 0, 5)); break;
       case 'rv': if (S && G.running) S.revive(from); break;
       case 'pot': if (S && G.running && P) { if (m.fresh) P.pot = 1; S.usePotion(from); } break;
@@ -542,6 +545,8 @@ net.onmsg = (m, from) => {
         G.speedIdx = m.sp | 0;
         G.chars = [0, 1, 2, 3].map(i => sanitize(m.chars && m.chars[i], i));
         G.goneAtStart = m.gone || [];
+        G.story = m.st != null && STORY[m.st] ? m.st | 0 : null;
+        if (Array.isArray(m.pf)) for (const q of m.pf) if (q && typeof q.id === 'string') addRecent(q.id, q.name);
         begin(m.seed, m.n, net.myIdx || 1, 'guest');
         break;
       }
@@ -588,7 +593,7 @@ function hostStart() {
   for (let i = 1; i < n; i++) if (!idx.includes(i)) gone.push(i);
   G.chars = [0, 1, 2, 3].map(i => (i === 0 ? MYCHAR : G.peerChars[i] || defaultChar(i)));
   G.goneAtStart = gone;
-  net.send({ t: 'start', seed, n, chars: G.chars, sp: G.speedIdx, gone });
+  net.send({ t: 'start', seed, n, chars: G.chars, sp: G.speedIdx, gone, st: G.story, pf: [{ id: PROF.id, name: PROF.name }].concat(Object.values(G.peerProf || {})) });
   begin(seed, n, 0, 'host');
 }
 
@@ -597,12 +602,15 @@ function begin(seed, n, li, mode) {
   SFX.unlock();
   G.mode = mode; G.n = n; G.li = li; G.seed = seed >>> 0;
   const qb = BIOME_KEYS.indexOf(Q.get('zona') || ''); // TODO-TESTEO: empezar en una zona concreta
-  G.road = new Road(G.seed, qb > 0 && mode === 'solo' ? qb : 0, +Q.get('zd') || 1);
+  const SC = G.story != null ? STORY[G.story] : null;
+  if (SC) G.road = new Road(G.seed, BIOME_KEYS.indexOf(SC.z[0]), BIOMES[SC.z[0]].lv + G.story);
+  else G.road = new Road(G.seed, qb > 0 && mode === 'solo' ? qb : 0, +Q.get('zd') || 1);
   G.road.extend(520);
-  G.sim = mode === 'guest' ? null : new Sim(G.road, n, G.seed, { speed: G.speedIdx, metas: [0, 1, 2, 3].map(i => (i === 0 ? metaOf(PROG) : G.peerMetas[i] || {})) });
+  G.sim = mode === 'guest' ? null : new Sim(G.road, n, G.seed, { story: SC ? { ch: G.story, z: SC.z.map(k => BIOME_KEYS.indexOf(k)) } : null, speed: G.speedIdx, metas: [0, 1, 2, 3].map(i => (i === 0 ? metaOf(PROG) : G.peerMetas[i] || {})) });
   if (G.sim) for (const i of (mode === 'host' ? G.goneAtStart || [] : [])) if (G.sim.players[i]) { G.sim.players[i].gone = true; G.sim.players[i].alive = false; }
   if (G.sim && Q.get('god')) G.sim.god = true; // TODO-TESTEO
   G.mir = mode === 'guest' ? new Mirror() : null;
+  RADIO.q = []; RADIO.t = 0; $('radio').hidden = true; presSet('jugando');
   G.evq = []; G.acc = 0; G.over = false; G.running = true; G.carD = 8; G.shake = 0; G.lastBio = -1; G.lastZd = -1; G.camYaw = null;
   G.ents = []; G.players = [];
   for (let i = 0; i < n; i++) G.players.push({ hp: 10, maxHp: 10, score: 0, alive: true, inv: 0, ly: 0, lp: 0 });
@@ -653,6 +661,17 @@ function gameOver(ev) {
     const rec = +(localStorage.getItem('rc_best') || 0);
     if (best > rec) { localStorage.setItem('rc_best', best); h += '<div class="orec">¡NUEVO RÉCORD!</div>'; }
     else h += `<div class="oroute">Récord: ${rec}</div>`;
+    // historia: capítulo superado o misión fallida
+    $('overT').textContent = G.story == null ? 'FIN DE LA PARTIDA' : ev.win ? '¡CAPÍTULO COMPLETADO!' : 'MISIÓN FALLIDA';
+    G.nextStory = null;
+    if (G.story != null && ev.win) {
+      const ch = ev.ch | 0;
+      if ((PROG.story | 0) < ch + 1) { PROG.story = ch + 1; saveProg(PROG); }
+      if (ch + 1 < STORY.length) G.nextStory = ch + 1;
+      if (STORY[ch].outro) setTimeout(() => dialog(STORY[ch].outro), 300);
+    }
+    $('btnNext').hidden = G.nextStory == null || G.mode === 'guest';
+    $('btnAgain').textContent = G.story == null ? 'OTRA PARTIDA' : 'REPETIR CAPÍTULO';
     $('overStats').innerHTML = h;
     try { drawRouteMap($('routeMap'), ev.dist); } catch (e) { console.warn(e); }
     $('btnAgain').hidden = G.mode === 'guest';
@@ -727,6 +746,8 @@ function lanList(list, key) {
 }
 function toMenu(msg) {
   lanStop();
+  G.roomCode = null; presSet('menu'); setTimeout(updMenuCard, 0);
+  if (G.packReady) { setTimeout(() => { try { window.RCApp.reloadGame(); } catch (e) { location.reload(); } }, 300); }
   if (G.updPending) { const u = G.updPending; G.updPending = null; setTimeout(() => window.rcUpdate(u[0], u[1]), 500); }
   G.running = false; G.over = false; look.enabled = false; look.fire = false;
   if (G.mode === 'host' && net.open) net.send({ t: 'menu' });
@@ -903,6 +924,160 @@ window.rcUpdateMsg = (k, v) => {
 };
 $('updGo').onclick = () => { try { window.RCApp.update(); } catch (e) { } };
 $('updLater').onclick = () => { $('upd').hidden = true; };
+// actualización del juego por packs (la app la descarga sola; se aplica recargando, sin reinstalar)
+window.rcPack = (k, v) => {
+  const el = $('packMsg');
+  if (k === 'start') { el.hidden = false; el.textContent = 'Descargando actualización…'; }
+  else if (k === 'prog') { el.hidden = false; el.textContent = 'Descargando actualización… ' + (v >= 0 ? v + ' %' : ''); }
+  else if (k === 'err') el.hidden = true;
+  else if (k === 'done') {
+    el.hidden = false; el.textContent = '¡Juego actualizado! Reiniciando…';
+    if (G.running) { G.packReady = true; el.textContent = 'Actualización lista: se aplica al volver al menú'; }
+    else setTimeout(() => { try { window.RCApp.reloadGame(); } catch (e) { location.reload(); } }, 1200);
+  }
+};
+// ---------------- amigos ----------------
+const PROF = (() => {
+  let p = null; try { p = JSON.parse(localStorage.getItem('rc_prof') || 'null'); } catch (e) { }
+  if (!p || !/^[A-Z0-9]{6}$/.test(p.id)) { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; p = { id: Array.from({ length: 6 }, () => A[Math.floor(Math.random() * A.length)]).join(''), name: 'Agente ' + Math.floor(100 + Math.random() * 900) }; }
+  return p;
+})();
+const saveProf = () => { try { localStorage.setItem('rc_prof', JSON.stringify(PROF)); } catch (e) { } };
+saveProf();
+let FRIENDS = [], RECENT = [];
+try { FRIENDS = JSON.parse(localStorage.getItem('rc_friends') || '[]') || []; RECENT = JSON.parse(localStorage.getItem('rc_recent') || '[]') || []; } catch (e) { }
+const saveFriends = () => { try { localStorage.setItem('rc_friends', JSON.stringify(FRIENDS)); localStorage.setItem('rc_recent', JSON.stringify(RECENT.slice(0, 12))); } catch (e) { } };
+let PRES = null;
+try { PRES = new Presence(PROF, () => { if (!$('frScr').hidden) paintFriends(); updFrDot(); }, (from, name, code) => showInvite(from, name, code)); } catch (e) { console.warn(e); }
+function presSet(st, code) { if (PRES) PRES.set(st, code); }
+function updFrDot() { $('frDot').hidden = !(PRES && FRIENDS.some(f => PRES.peers.has(f.id))); }
+function addFriend(id, name) {
+  id = String(id || '').toUpperCase().trim();
+  if (!/^[A-Z0-9]{6}$/.test(id)) return 'El código tiene 6 letras o números';
+  if (id === PROF.id) return 'Ese es tu propio código';
+  if (FRIENDS.some(f => f.id === id)) return 'Ya es tu amigo';
+  const p = PRES && PRES.peers.get(id);
+  FRIENDS.push({ id, name: name || (p && p.name) || id }); saveFriends(); return '';
+}
+function addRecent(id, name) {
+  if (!/^[A-Z0-9]{6}$/.test(id || '') || id === PROF.id) return;
+  RECENT = [{ id, name: String(name || id).slice(0, 16) }].concat(RECENT.filter(r => r.id !== id)).slice(0, 12); saveFriends();
+}
+function joinCode(code) {
+  for (const sc of document.querySelectorAll('.screen')) sc.hidden = true;
+  $('btnJoin').onclick();
+  $('codeIn').value = code;
+  $('btnGo').click();
+}
+function frRow(f, recent) {
+  const p = PRES && PRES.peers.get(f.id), d = document.createElement('div');
+  d.className = 'fr';
+  const st = !p ? 'Desconectado' : p.st === 'sala' && p.code ? 'En su sala ' + p.code : p.st === 'jugando' ? 'Jugando' : 'En el menú';
+  d.innerHTML = `<i class="dot ${!p ? '' : p.st === 'sala' ? 'room' : p.st === 'jugando' ? 'play' : 'on'}"></i><div class="fi"><b></b><small>${f.id} · ${st}</small></div>`;
+  d.querySelector('b').textContent = (p && p.name) || f.name;
+  const btn = (cls, txt, fn) => { const b = document.createElement('button'); b.className = cls; b.textContent = txt; b.onclick = fn; d.appendChild(b); };
+  if (recent) btn('ad', 'AÑADIR', () => { addFriend(f.id, f.name); paintFriends(); });
+  else {
+    if (p && p.st === 'sala' && p.code) btn('j', 'UNIRSE', () => joinCode(p.code));
+    if (p && G.mode === 'host' && G.roomCode) btn('iv', 'INVITAR', () => { PRES.invite(f.id, G.roomCode); $('frMsg').textContent = 'Invitación enviada a ' + ((p && p.name) || f.name); });
+    btn('x', '✕', () => { FRIENDS = FRIENDS.filter(x => x.id !== f.id); saveFriends(); paintFriends(); });
+  }
+  return d;
+}
+function paintFriends() {
+  $('frMyId').textContent = PROF.id;
+  if (document.activeElement !== $('frName')) $('frName').value = PROF.name;
+  const L = $('frList'); L.innerHTML = '';
+  if (!FRIENDS.length) L.innerHTML = '<div class="frEmpty">Aún no tienes amigos añadidos. Pásale tu código a alguien o escribe el suyo arriba.</div>';
+  const sorted = FRIENDS.slice().sort((a, b) => (PRES && PRES.peers.has(b.id) ? 1 : 0) - (PRES && PRES.peers.has(a.id) ? 1 : 0));
+  for (const f of sorted) L.appendChild(frRow(f, false));
+  const R = $('frRecent'); R.innerHTML = '';
+  const rec = RECENT.filter(r => !FRIENDS.some(f => f.id === r.id));
+  if (!rec.length) R.innerHTML = '<div class="frEmpty">Aquí salen los que juegan contigo online.</div>';
+  for (const f of rec) R.appendChild(frRow(f, true));
+  updFrDot();
+}
+$('btnFriends').onclick = () => { for (const sc of document.querySelectorAll('.screen')) sc.hidden = true; $('frScr').hidden = false; $('frMsg').textContent = ''; paintFriends(); };
+$('frBack').onclick = () => { $('frScr').hidden = true; if (G.mode === 'host' && net.open !== undefined && G.roomCode) $('lobby').hidden = false; else $('menu').hidden = false; };
+$('frName').onchange = () => { PROF.name = $('frName').value.trim().slice(0, 16) || PROF.name; saveProf(); if (PRES) PRES.ping(); updMenuCard(); };
+$('frAddBtn').onclick = () => { const e = addFriend($('frCode').value); $('frMsg').textContent = e || '¡Amigo añadido!'; if (!e) $('frCode').value = ''; paintFriends(); };
+$('frCopy').onclick = () => { try { navigator.clipboard.writeText(PROF.id); $('frMsg').textContent = 'Código copiado'; } catch (e) { } };
+let INV = null;
+function showInvite(from, name, code) {
+  if (G.running) return;
+  INV = code;
+  $('invT').textContent = (name || from) + ' te invita a su sala ' + code;
+  $('invite').hidden = false; SFX.banner();
+  setTimeout(() => { if (INV === code) $('invite').hidden = true; }, 20000);
+}
+$('invGo').onclick = () => { $('invite').hidden = true; if (INV) joinCode(INV); INV = null; };
+$('invNo').onclick = () => { $('invite').hidden = true; INV = null; };
+function updMenuCard() {
+  $('mmName').textContent = PROF.name; $('mmId').textContent = '#' + PROF.id;
+  $('mmCoins').textContent = (PROG.coins | 0).toLocaleString('es-ES');
+  $('storyN').textContent = storyLabel();
+  { const n = UPGRADES.filter(u => (PROG.upg[u.id] | 0) < u.max && PROG.coins >= upgCost(u, PROG.upg[u.id] | 0, PROG)).length; $('mmUpgN').textContent = n ? n + ' mejoras disponibles' : 'Gasta tus monedas'; }
+}
+// ---------------- modo historia: diálogos, radio y selección de capítulo ----------------
+function dialog(lines, done) {
+  let i = 0;
+  const D = $('dlg');
+  const show = () => {
+    if (i >= lines.length) { D.hidden = true; D.onclick = null; if (done) done(); return; }
+    const [who, txt] = lines[i], C = CAST[who];
+    D.style.setProperty('--c', C.c);
+    $('dlgP').textContent = C.i; $('dlgN').textContent = C.n; $('dlgX').textContent = txt;
+    D.hidden = false;
+    SFX.tone(600, 700, 0.05, 'square', 0.08);
+  };
+  D.onclick = () => { i++; show(); };
+  show();
+}
+// radio durante la misión: una línea cada ~4,5 s
+const RADIO = { q: [], t: 0 };
+function uiRadio(dt) {
+  RADIO.t -= dt;
+  if (RADIO.t > 0) return;
+  const el = $('radio');
+  if (!RADIO.q.length) { el.hidden = true; return; }
+  const [who, txt] = RADIO.q.shift(), C = CAST[who];
+  el.style.setProperty('--c', C.c);
+  $('rdP').textContent = C.i; $('rdN').textContent = C.n; $('rdX').textContent = txt;
+  el.hidden = false; RADIO.t = 4.6;
+  SFX.tone(1200, 900, 0.08, 'square', 0.08);
+}
+function storyLabel() { const n = Math.min(STORY.length, (PROG.story | 0) + 1); return (PROG.story | 0) >= STORY.length ? 'Completada' : 'Capítulo ' + n + ' de ' + STORY.length; }
+function paintStory() {
+  const L = $('storyList'); L.innerHTML = '';
+  STORY.forEach((S, i) => {
+    const unlocked = i <= (PROG.story | 0), done = i < (PROG.story | 0);
+    const c = document.createElement('button');
+    c.className = 'ch' + (unlocked ? '' : ' lock') + (done ? ' done' : '');
+    c.style.setProperty('--c', BIOMES[S.z[S.z.length - 1]].color);
+    c.innerHTML = `<span class="cn">CAPÍTULO ${i + 1}</span><span class="cs">${done ? '✔ HECHO' : unlocked ? '▶ JUGAR' : '🔒'}</span><b class="ct">${S.t}</b><div class="cz">${S.z.map(z => `<span>${BIOMES[z].name}</span>`).join('')}</div>`;
+    c.onclick = async () => {
+      if (!unlocked) { SFX.empty(); return; }
+      await prep();
+      $('storyScr').hidden = true;
+      dialog(S.intro, () => { G.story = i; begin((Math.random() * 4294967296) >>> 0, 1, 0, 'solo'); });
+    };
+    L.appendChild(c);
+  });
+}
+$('btnInvite').onclick = () => $('btnFriends').onclick();
+$('btnSettings').onclick = () => { for (const sc of document.querySelectorAll('.screen')) sc.hidden = true; $('setScr').hidden = false; };
+$('setBack').onclick = () => { $('setScr').hidden = true; $('menu').hidden = false; };
+$('btnHelp').onclick = () => { for (const sc of document.querySelectorAll('.screen')) sc.hidden = true; $('helpScr').hidden = false; };
+$('helpBack').onclick = () => { $('helpScr').hidden = true; $('menu').hidden = false; };
+setTimeout(updMenuCard, 0);
+$('btnStory').onclick = () => { for (const sc of document.querySelectorAll('.screen')) sc.hidden = true; $('storyScr').hidden = false; paintStory(); };
+$('storyBack').onclick = () => { $('storyScr').hidden = true; $('menu').hidden = false; };
+// en la sala, el anfitrión elige arcade o un capítulo de la historia para todos
+$('btnMode').onclick = () => {
+  const max = Math.min(STORY.length - 1, PROG.story | 0);
+  G.story = G.story == null ? 0 : G.story + 1 > max ? null : G.story + 1;
+  $('btnMode').textContent = 'MODO: ' + (G.story == null ? 'ARCADE' : 'HISTORIA ' + (G.story + 1) + ' · ' + STORY[G.story].t);
+};
 // ---------------- poción (se consigue viendo un anuncio) ----------------
 function updPot() { $('potN').textContent = (PROG.pot | 0) ? 'tienes ' + PROG.pot + ' · máx 3' : 'ver un anuncio'; }
 updPot();
@@ -1236,18 +1411,20 @@ function tick(dt) {
   sun.color.copy(ENV.sc); sun.intensity = ENV.si;
   // el sol sigue al coche; la zona con sombras va un poco por delante de la cámara
   G.road.toWorld(G.carD + 100, 0, 0, V2);
-  { const tx = 30, a = Math.round(V2.dot(SUNX) / tx) * tx, b = Math.round(V2.dot(SUNY) / tx) * tx, c = Math.round(V2.dot(SUNZ) / tx) * tx;
+  // se recoloca en saltos de ~40 m que son un número exacto de píxeles del mapa: los bordes no bailan
+  { const px = 340 / sun.shadow.mapSize.x, tx = Math.round(40 / px) * px, a = Math.round(V2.dot(SUNX) / tx) * tx, b = Math.round(V2.dot(SUNY) / tx) * tx, c = Math.round(V2.dot(SUNZ) / tx) * tx;
     const key = a + ',' + b + ',' + c;
     if (key !== SHC.key || SHC.dirty) { SHC.key = key; SHC.dirty = false; renderer.shadowMap.needsUpdate = true; }
     sun.target.position.copy(SUNX).multiplyScalar(a).addScaledVector(SUNY, b).addScaledVector(SUNZ, c); }
   sun.position.copy(sun.target.position).add(SUNO);
   skyDome.position.copy(camera.position);
+  outline.mat.uniforms.tint.value.copy(ENV.sky).lerp(TC.setHex(0xffffff), 0.25);
   skyMat.uniforms.hz.value.copy(ENV.sky).lerp(TC.setHex(0xffffff), 0.18);
   skyMat.uniforms.top.value.copy(ENV.sky).multiplyScalar(0.62).lerp(TC.setHex(0x1a6aff), inTun ? 0 : 0.35);
   hemi.groundColor.lerp(TC.setHex(0x7a86c8), 0.35);
   sea.position.set(camera.position.x, G.road.seaAt(G.carD), camera.position.z);
   // --- interfaz ---
-  uiPlayers(); uiWeapon(); uiRoute(); uiWcard(); uiAbilities(dt); uiBoss();
+  uiPlayers(); uiWeapon(); uiRoute(); uiWcard(); uiAbilities(dt); uiBoss(); uiRadio(dt);
   setHTML('mult', `x${(G.mult || 1).toFixed(1)} · ${Math.round((G.speed || 0) * 3.6)} km/h`);
   document.body.classList.toggle('poisoned', !!(me && me.poison && me.alive));
   document.body.classList.toggle('slowmo', !!G.slow);
@@ -1311,12 +1488,13 @@ function goFull() {
 }
 async function prep() { SFX.unlock(); goFull(); await look.requestGyro(); }
 
-$('btnSolo').onclick = async () => { await prep(); begin((Math.random() * 4294967296) >>> 0, 1, 0, 'solo'); };
+$('btnSolo').onclick = async () => { await prep(); G.story = null; begin((Math.random() * 4294967296) >>> 0, 1, 0, 'solo'); };
 $('btnHost').onclick = async () => {
   await prep();
   for (const s of document.querySelectorAll('.screen')) s.hidden = true;
   $('lobby').hidden = false;
   $('btnStart').hidden = false; $('btnStart').disabled = true;
+  $('btnMode').hidden = false; $('btnInvite').hidden = false; G.story = null; $('btnMode').textContent = 'MODO: ARCADE';
   $('joinRow').hidden = true; $('lanList').hidden = true;
   const code = makeCode();
   $('lobbyCode').textContent = '····';
@@ -1327,6 +1505,7 @@ $('btnHost').onclick = async () => {
     $('lobbyCode').textContent = code;
     lanStop();
     LAN.beacon = new LanBeacon({ code, n: 1 });
+    G.roomCode = code; presSet('sala', code);
     lobbyMsg('Pásales este código a tus amigos (hasta 3 más) y espera a que se unan');
   } catch (e) { lobbyMsg('Error: ' + (e.message || e.type || e)); }
 };
@@ -1334,6 +1513,7 @@ $('btnJoin').onclick = () => {
   for (const s of document.querySelectorAll('.screen')) s.hidden = true;
   $('lobby').hidden = false;
   $('btnStart').hidden = true;
+  $('btnMode').hidden = true; $('btnInvite').hidden = true;
   $('joinRow').hidden = false;
   $('lobbyCode').textContent = '';
   lobbyMsg('Toca una sala de tu red o escribe el código de tu amigo');
@@ -1351,7 +1531,7 @@ $('btnGo').onclick = async () => {
   lanStop(); $('lanList').hidden = true;
   try {
     await net.join(code);
-    net.send({ t: 'hello', v: NETV, c: MYCHAR, m: metaOf(PROG) });
+    net.send({ t: 'hello', v: NETV, c: MYCHAR, m: metaOf(PROG), pf: { id: PROF.id, name: PROF.name } });
     $('joinRow').hidden = true;
     $('lobbyCode').textContent = code;
     lobbyMsg('¡Conectado! Esperando a que el anfitrión empiece…');
@@ -1369,6 +1549,7 @@ $('btnAgain').onclick = () => {
     else begin(seed, 1, 0, 'solo');
   } else begin(seed, 1, 0, 'solo');
 };
+$('btnNext').onclick = () => { G.story = G.nextStory; $('btnAgain').onclick(); };
 $('btnMenu').onclick = () => toMenu('');
 $('btnQuit').onclick = () => { if (confirm('¿Salir de la partida?')) toMenu(''); };
 $('btnReload').addEventListener('pointerdown', e => { e.stopPropagation(); startReload(); });
@@ -1452,6 +1633,50 @@ function setShadows(v) {
   $('btnShadow').textContent = 'SOMBRAS: ' + (v ? 'SÍ' : 'NO');
 }
 $('btnShadow').onclick = () => setShadows(!SHADOWS);
+// paleta suave (por defecto): decorado de contraste bajo y enemigos destacados
+// ---------------- estilo: interfaz (5 estilos + sin HUD) y colores del juego (6 paletas) ----------------
+const HSTY = [['arcade', 'ARCADE', 'Píxeles de recreativa'], ['moderno', 'MODERNO', 'Limpio y translúcido'], ['neon', 'NEÓN', 'Brillos y degradados'], ['militar', 'MILITAR', 'Camuflaje y plantilla'], ['comic', 'CÓMIC', 'Tinta gorda y trama']];
+// palA: valor mínimo, valor máximo, saturación del decorado, tinte · palB: color de enemigos, tinte propio, niebla de color
+const CPAL = [
+  ['suave', 'SUAVE', 'Decorado tranquilo, enemigos destacados', [0.2, 0.68, 0.88, 0.09], [1.45, 0, 0.25], null, ['#5a6a7a', '#8a9aa8', '#c8b8a0', '#ff3a3a']],
+  ['viva', 'VIVA', 'Colores saturados de dibujo animado', null, null, null, ['#2a8aff', '#ffd23f', '#3ac84a', '#ff3a3a']],
+  ['pastel', 'PASTEL', 'Claro y suave', [0.36, 0.86, 0.62, 0.12], [1.6, 0, 0.3], null, ['#b8d8f0', '#f0d8e8', '#e8f0c8', '#ff3a6a']],
+  ['noir', 'NOIR', 'Blanco y negro; solo los enemigos tienen color', [0.1, 0.7, 0.06, 0], [1.8, 0, 0.2], null, ['#202020', '#707070', '#c8c8c8', '#ff2020']],
+  ['calida', 'ATARDECER', 'Todo en tonos cálidos', [0.2, 0.74, 0.95, 0.22], [1.4, 1, 0.25], [1.0, 0.72, 0.45], ['#7a3a2a', '#d8783a', '#ffc870', '#3ad0ff']],
+  ['nocturna', 'NOCTURNA', 'Azulada y oscura', [0.08, 0.55, 0.75, 0.25], [1.6, 1, 0.3], [0.45, 0.6, 1.0], ['#0a1430', '#2a4a8a', '#6a8ac8', '#ffe14a']],
+];
+let HS = localStorage.getItem('rc_hs') || 'arcade', CP = localStorage.getItem('rc_cp') || 'suave', NOHUD = localStorage.getItem('rc_nohud') === '1';
+function applyStyle() {
+  for (const [k] of HSTY) document.body.classList.toggle('hs-' + k, k === HS);
+  document.body.classList.toggle('nohud', NOHUD);
+  const P = CPAL.find(x => x[0] === CP) || CPAL[0], U = outline.mat.uniforms;
+  U.palOn.value = P[3] ? 1 : 0;
+  if (P[3]) { U.palA.value.set(...P[3]); U.palB.value.set(P[4][0], P[4][1], P[4][2], 0); if (P[5]) U.palT.value.setRGB(...P[5]); }
+  try { localStorage.setItem('rc_hs', HS); localStorage.setItem('rc_cp', CP); localStorage.setItem('rc_nohud', NOHUD ? '1' : '0'); } catch (e) { }
+}
+function paintStyle() {
+  const h = $('stHud'); h.innerHTML = '';
+  for (const [k, n, d] of HSTY) {
+    const c = document.createElement('button');
+    c.className = 'stc hs-' + k + (k === HS ? ' sel' : '');
+    c.innerHTML = `<span class="stn">${n}</span><div class="pbox"><div class="pn">1P</div><div class="sc">0012500</div></div><div style="font:600 11px var(--f-ui);color:#bbb;margin-top:6px">${d}</div>`;
+    c.onclick = () => { HS = k; applyStyle(); paintStyle(); };
+    h.appendChild(c);
+  }
+  const cc = $('stCol'); cc.innerHTML = '';
+  for (const P of CPAL) {
+    const c = document.createElement('button');
+    c.className = 'stc' + (P[0] === CP ? ' sel' : '');
+    c.innerHTML = `<span class="stn">${P[1]}</span><div class="sw">${P[6].map(x => `<i style="background:${x}"></i>`).join('')}</div><div style="font:600 11px var(--f-ui);color:#bbb;margin-top:6px">${P[2]}</div>`;
+    c.onclick = () => { CP = P[0]; applyStyle(); paintStyle(); };
+    cc.appendChild(c);
+  }
+  $('btnNoHud').textContent = NOHUD ? 'HUD: OCULTO' : 'HUD: VISIBLE';
+}
+$('btnNoHud').onclick = () => { NOHUD = !NOHUD; applyStyle(); paintStyle(); };
+$('btnStyle').onclick = () => { for (const sc of document.querySelectorAll('.screen')) sc.hidden = true; $('styleScr').hidden = false; paintStyle(); };
+$('styleBack').onclick = () => { $('styleScr').hidden = true; $('menu').hidden = false; };
+applyStyle();
 function setQuality(i) {
   qIdx = i;
   try { localStorage.setItem('rc_q', i); } catch (e) { }
@@ -1620,7 +1845,7 @@ $('btnShop').onclick = () => {
   for (const s of document.querySelectorAll('.screen')) s.hidden = true;
   $('shop').hidden = false; paintShop();
 };
-$('shopBack').onclick = () => { $('shop').hidden = true; $('menu').hidden = false; };
+$('shopBack').onclick = () => { $('shop').hidden = true; $('menu').hidden = false; updMenuCard(); };
 // ---------------- editor de interfaz ----------------
 const HUD_ITEMS = [
   ['btnFire', 'FUEGO', 96, '#ff4040'], ['btnReload', 'RECARGAR', 76, '#ffd23f'], ['regul', 'VELOCIDAD', 0, '#7dffd2', 'regul'],

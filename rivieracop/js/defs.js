@@ -265,7 +265,7 @@ export const BIOMES = {
     asphalt: 0x3e3c3a, walk: 0x8a7a6a, skirt: 0x3a3028, line: 0xffc040,
     hemi: [0xffc890, 0x5a3a20, 1.3], sun: [0xffb060, 0.6], night: false,
     // túnel larguísimo iluminado en naranja y siempre cuesta abajo; a mitad se le une otro túnel por la derecha
-    slope: -0.035, descent: true, floor: -1e9, len: 1300,
+    slope: -0.035, descent: true, floor: -1e9, len: 2400,
     hmin: 0, hmax: 0, hair: 0,
     build: [0xb8a890], roof: 0x4a4440,
     w: { ecar: 1.4, rammer: 1.4, moto: 1.5, gunman: 0.7, civcar: 1.8, quad: 0.8, drone: 0, heli: 0, sniper: 0, jumper: 0 }, pts: 1.7, deco: 'tuneles', lv: 4,

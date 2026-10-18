@@ -68,6 +68,8 @@ export class Sim {
     this.zt = {}; this.zf = new Set();
     this.forkDone = -1; this.signsFor = -1; this.voting = false;
     this.visited = new Set([road.forks[0] ? road.forks[0].bio : 0]);
+    // modo historia: zonas fijas del capítulo { ch, z: [índices de zona], lv }
+    this.story = opts.story || null;
     this.bonus = {}; this.diff = 1; this.over = false;
     this.stats = { kills: 0, chickens: 0, forks: [] };
   }
@@ -141,7 +143,7 @@ export class Sim {
     }
     if (this.phase === 'count') {
       this.countT -= dt;
-      if (this.countT <= 0) { this.phase = 'run'; this.emit('go'); }
+      if (this.countT <= 0) { this.phase = 'run'; this.emit('go'); if (this.story) this.emit('radio', { ch: this.story.ch, z: 0 }); }
     } else {
       this.runT += dt;
       // la velocidad sube con la distancia (hasta casi el doble); al elegir ruta va más despacio para leer los carteles
@@ -610,6 +612,19 @@ export class Sim {
       if (this.timer('mine', dt, 6)) this.spawnMines();
       if (this.timer('tank', dt, 40) && !this.has('tank')) this.spawnTank();
       if (this.timer('squad', dt, 10)) this.spawnSquad();
+    }
+    // túneles: cada tramo trae el peligro que anuncia el panel luminoso de antes
+    if (deco === 'tuneles' && !inTun && Z.f) {
+      const seg = Math.floor((this.carD + 150 - Z.f.secStart) / 220), hz = this.road.tunHazard(Z.f, seg);
+      if (hz && once('tz' + seg)) {
+        if (hz === 'pinchos') {
+          // tiras de pinchos: dispárales antes de pasar por encima
+          for (let i = 0; i < 2 + (this.diff > 3 ? 1 : 0); i++) { const e = this.add('mine', { d: this.carD + 120 + i * 26, lat: i % 2 ? LANE_OT : LANE_ME, h: 0.02, hp: 2 }); e.x = { sp: 1 }; }
+          this.emit('banner', { txt: '¡PINCHOS!', sub: 'Revienta las tiras antes de pasar', c: '#ffb020' });
+        } else if (hz === 'coches') { this.spawnRammer(); if (this.ok('ecar')) this.spawnECar(); this.zt.tcar = 0; }
+        else if (hz === 'moteros') for (let i = 0; i < 3 + (this.n > 2 ? 1 : 0); i++) this.spawnMoto(i, this.n > 2 && i % 2 === 1);
+        else if (hz === 'emboscada') { this.spawnGunmen(2 + Math.floor(this.diff * 0.4), true); this.spawnGunmen(2, false); }
+      }
     }
     // túneles: cuando se une el segundo tubo, coches por todos los carriles (en vuestro sentido)
     if (deco === 'tuneles' && !inTun && prog > 0.31) {
@@ -1161,12 +1176,23 @@ export class Sim {
     const k = this.forkDone + 1;
     const f = R.forks[k];
     if (!f) return;
+    // historia: al llegar al final de la última zona del capítulo, misión cumplida
+    const SN = this.story ? this.story.z[k + 1] : -1;
+    if (this.story && SN == null) {
+      if (!this.over && this.carD > f.gantry - 170) {
+        this.over = true;
+        for (const P of this.players) if (P.alive) P.score += 5000 * (this.story.ch + 1);
+        this.emit('over', { t: Math.round(this.runT), dist: Math.round(this.carD), sc: this.players.map(p => p.score), kl: this.players.map(p => p.kills), ck: this.stats.chickens, rt: this.stats.forks, win: 1, ch: this.story.ch });
+      }
+      return;
+    }
     if (this.signsFor < k && this.carD > f.gantry - 180) {
       this.signsFor = k; this.voting = true;
       const r = rng(hash(this.seed, k, 4242));
       // las zonas no se repiten hasta haberlas visto todas
       let pool = BIOME_KEYS.map((_, i) => i).filter(b => b !== f.from && !this.visited.has(b));
       if (!pool.length) { this.visited = new Set([f.from]); pool = BIOME_KEYS.map((_, i) => i).filter(b => b !== f.from); }
+      if (this.story) pool = [SN];
       const nOpt = Math.min(pool.length, 2 + (k % 2 === 0 ? 1 : 0));
       const lats = nOpt === 3 ? [-5.9, 0, 5.9] : nOpt === 2 ? [-3.1, 3.1] : [0];
       const opts = [];
@@ -1176,7 +1202,7 @@ export class Sim {
         const e = this.add('sign', { d: f.gantry, lat: lats[i], h: 6.4, hp: 999, ry: Math.PI });
         // dificultad de la zona: la base del sitio + lo lejos que hayáis llegado
         const B = BIOMES[BIOME_KEYS[bi]];
-        const zd = clamp(B.lv + Math.floor(k * 0.8) + (r() < 0.35 ? 1 : 0), 1, 15);
+        const zd = this.story ? clamp(B.lv + this.story.ch, 1, 15) : clamp(B.lv + Math.floor(k * 0.8) + (r() < 0.35 ? 1 : 0), 1, 15);
         e.x = { o: i, l: B.name, s: bo.txt, v: 0, w: 0, b: bi, bo: bo.id, k, zd };
         opts.push({ l: B.name, zd, c: B.color, a: Math.sign(lats[i]) });
       }
@@ -1185,7 +1211,7 @@ export class Sim {
         const e = this.add('preview', { d: f.gantry - dd, lat: sd * 8.0, h: 0.18, hp: 999, ry: Math.PI - sd * 0.5 });
         e.x = { o: opts };
       }
-      this.emit('banner', { txt: 'ELIGE RUTA', sub: 'Dispara al cartel: el número es la dificultad (más premio)', c: '#ffe14a' });
+      if (!this.story) this.emit('banner', { txt: 'ELIGE RUTA', sub: 'Dispara al cartel: el número es la dificultad (más premio)', c: '#ffe14a' });
     }
     if (this.signsFor === k && f.choice == null && this.carD > f.gantry - 30) {
       const signs = this.ents.filter(e => e.type === 'sign' && e.x.k === k);
@@ -1203,6 +1229,7 @@ export class Sim {
       if (win.x.bo === 'terror') this.terrT = Math.min(this.terrT, 22);
       this.stats.forks.push(win.x.l + ' ' + win.x.zd);
       this.emit('fork', { kk: k, b: win.x.b, zd: win.x.zd });
+      if (this.story) this.emit('radio', { ch: this.story.ch, z: k + 1 });
       this.emit('banner', { txt: 'RUTA: ' + win.x.l, sub: 'DIFICULTAD ' + win.x.zd + (win.x.s ? ' · ' + win.x.s : ''), c: BIOMES[BIOME_KEYS[win.x.b]].color });
     }
   }
@@ -1250,6 +1277,7 @@ function ser(e) {
     case 'junk': x = { v: X.v }; break;
     case 'rammer': x = { ph: X.ph }; break;
     case 'crew': x = { v: X.v, gd: X.gd, td: X.td, out: X.out }; break;
+    case 'mine': x = { sp: X.sp }; break;
   }
   if (e.hm) { x = x || {}; x.hm = e.hm; }
   return [e.id, TI[e.type], r2(e.d), r2(e.lat), r2(e.h), r2(e.ry), Math.round(e.hp * 10) / 10, e.st, sh, x];
@@ -1691,7 +1719,7 @@ const U = {
       S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 0.5), s: 1.2 });
       if (pk >= 2) S.emit('banner', { txt: '¡LOS ESPOLONES LA REVIENTAN!', sub: '', c: '#7dff8a' });
       else {
-        S.emit('banner', { txt: '¡MINA!', sub: '', c: '#ff4040' });
+        S.emit('banner', { txt: e.x.sp ? '¡PINCHAZO!' : '¡MINA!', sub: '', c: '#ff4040' });
         for (const i of S.alivePlayers()) { if (S.r() < Math.min(0.9, (pk ? 0.5 : 0) + det * 0.3)) continue; S.players[i].inv = 0; S.hurt(i, 0, 'exp'); }
         S.speed *= 0.4; S.emit('crash', { soft: 1 });
       }

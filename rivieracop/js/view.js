@@ -342,7 +342,7 @@ export class View {
       case 'canoe': g = M.canoe(); break;
       case 'beast': g = M.beast(x.an || 0); break;
       case 'bear': g = M.bear(); break;
-      case 'mine': g = M.mine(); break;
+      case 'mine': g = x.sp ? M.spikes() : M.mine(); break;
       case 'jet': g = M.jet(); break;
       case 'blimp': g = M.blimp(); break;
       case 'rammer': g = M.rammer(); break;

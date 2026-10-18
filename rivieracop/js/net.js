@@ -275,3 +275,48 @@ export class LanScan {
   }
   stop() { this.stopped = true; clearInterval(this.iv); for (const R of this.rooms) try { R.room.leave(); } catch (e) { } this.rooms = []; }
 }
+
+// ---------------- amigos: presencia e invitaciones ----------------
+// Todos los jugadores conectados están en una sala de anuncios común; cada uno dice quién es (su código de amigo),
+// si está en el menú, en una sala (con su código para entrar) o jugando. Cada uno solo enseña a sus amigos.
+async function presRooms(onData, onJoin) {
+  await trReady;
+  if (!TR || NO_TRYSTERO) return [];
+  const rooms = [];
+  for (const join of [TR.joinNostr, TR.joinTorrent]) {
+    try {
+      const cfg = { appId: APP + '-amigos' };
+      const trk = new URLSearchParams(location.search).get('trk');
+      if (trk) { if (join !== TR.joinTorrent) continue; cfg.relayUrls = [trk]; }
+      const room = join(cfg, 'presencia-v1');
+      const [send, get] = room.makeAction('p');
+      get(d => onData(d));
+      room.onPeerJoin(id => onJoin(send, id));
+      rooms.push({ room, send });
+    } catch (e) { console.warn('amigos', e); }
+  }
+  return rooms;
+}
+export class Presence {
+  constructor(me, onChange, onInvite) {
+    this.me = me; this.state = { st: 'menu', code: '' }; this.peers = new Map(); this.rooms = [];
+    this.onChange = onChange; this.onInvite = onInvite;
+    presRooms(d => this.recv(d), (send, id) => { try { send(this.msg(), id); } catch (e) { } }).then(r => {
+      this.rooms = r;
+      this.iv = setInterval(() => this.ping(), 5000);
+      this.ping();
+    });
+    this.gc = setInterval(() => { const t = performance.now(); let ch = false; for (const [k, v] of this.peers) if (t - v.seen > 16000) { this.peers.delete(k); ch = true; } if (ch && this.onChange) this.onChange(); }, 3000);
+  }
+  msg() { return { t: 'here', id: this.me.id, name: this.me.name, st: this.state.st, code: this.state.code, v: NETV }; }
+  ping() { for (const R of this.rooms) try { R.send(this.msg()); } catch (e) { } }
+  set(st, code) { this.state = { st, code: code || '' }; this.ping(); }
+  invite(to, code) { for (const R of this.rooms) try { R.send({ t: 'inv', to, from: this.me.id, name: this.me.name, code }); } catch (e) { } }
+  recv(d) {
+    if (!d || typeof d !== 'object' || typeof d.id !== 'string' && typeof d.from !== 'string') return;
+    if (d.t === 'here' && /^[A-Z0-9]{6}$/.test(d.id) && d.id !== this.me.id) {
+      this.peers.set(d.id, { id: d.id, name: String(d.name || '').slice(0, 16), st: String(d.st || ''), code: /^[A-Z0-9]{4}$/.test(d.code) ? d.code : '', v: d.v | 0, seen: performance.now() });
+      if (this.onChange) this.onChange();
+    } else if (d.t === 'inv' && d.to === this.me.id && /^[A-Z0-9]{4}$/.test(d.code) && this.onInvite) this.onInvite(String(d.from), String(d.name || '').slice(0, 16), d.code);
+  }
+}

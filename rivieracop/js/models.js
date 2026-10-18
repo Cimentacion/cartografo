@@ -652,39 +652,119 @@ export function fpGun(model, rar = 0, cfg = null, lv = 1) {
   const blk = 0x1c1c1e, gr = 0x2c2c30;
   const muzzle = new THREE.Object3D();
   let L = 0.22;
+  // cilindro a lo largo del cañón (eje Z)
+  const cyl = (r, len, c, x, y, z, seg = 10) => { const t = new THREE.Mesh(cgeo(r, len, seg), typeof c === 'number' ? mat(c) : c); t.rotation.x = Math.PI / 2; t.position.set(x, y, z); g.add(t); return t; };
+  const hole = (r, x, y, z) => cyl(r, 0.006, 0x050505, x, y, z, 8);
+  const wood = 0x7a4a26, woodD = 0x5a3418, steel = 0x3a3c42, dark = 0x141416, poly = 0x24262a;
   switch (model) {
     case 'revolver':
-      box(g, 0.04, 0.05, 0.2, gr, 0, 0.02, -0.12); box(g, 0.06, 0.06, 0.07, acc, 0, 0.0, -0.01);
-      box(g, 0.04, 0.1, 0.05, 0x5a3a20, 0, -0.07, 0.04); L = 0.22; break;
+      cyl(0.014, 0.16, steel, 0, 0.03, -0.14); hole(0.008, 0, 0.03, -0.221);
+      box(g, 0.012, 0.012, 0.15, steel, 0, 0.048, -0.13);                       // costilla superior
+      box(g, 0.006, 0.014, 0.012, dark, 0, 0.06, -0.205);                       // punto de mira
+      cyl(0.034, 0.055, steel, 0, 0.012, -0.03, 12);                            // tambor
+      for (let k = 0; k < 6; k++) { const a2 = k * Math.PI / 3; box(g, 0.006, 0.01, 0.05, dark, Math.cos(a2) * 0.034, 0.012 + Math.sin(a2) * 0.034, -0.03); }
+      box(g, 0.03, 0.06, 0.05, steel, 0, 0.01, 0.015);                          // armazón
+      box(g, 0.016, 0.022, 0.02, dark, 0, 0.048, 0.035);                       // martillo
+      box(g, 0.02, 0.008, 0.045, steel, 0, -0.028, -0.02);                      // guardamonte
+      box(g, 0.006, 0.022, 0.006, dark, 0, -0.012, -0.012);                     // gatillo
+      { const gp = box(g, 0.036, 0.1, 0.045, wood, 0, -0.06, 0.05); gp.rotation.x = 0.35; const gp2 = box(g, 0.038, 0.03, 0.04, woodD, 0, -0.105, 0.068); gp2.rotation.x = 0.35; }
+      box(g, 0.002, 0.03, 0.04, acc, 0.018, -0.05, 0.045);
+      L = 0.22; break;
     case 'smg':
-      box(g, 0.05, 0.07, 0.3, blk, 0, 0, -0.1); box(g, 0.04, 0.14, 0.04, gr, 0, -0.09, -0.12);
-      box(g, 0.04, 0.09, 0.05, blk, 0, -0.07, 0.02); box(g, 0.02, 0.02, 0.06, acc, 0, 0.045, -0.12); L = 0.27; break;
+      box(g, 0.05, 0.07, 0.24, poly, 0, 0.0, -0.08);                            // cajón
+      box(g, 0.052, 0.012, 0.22, dark, 0, 0.041, -0.08);                        // riel superior
+      for (let k = 0; k < 6; k++) box(g, 0.054, 0.006, 0.012, steel, 0, 0.048, -0.17 + k * 0.035);
+      cyl(0.024, 0.11, steel, 0, 0.012, -0.25);                                 // camisa del cañón
+      for (let k = 0; k < 4; k++) hole(0.007, 0.0, 0.037, -0.21 - k * 0.025);
+      cyl(0.011, 0.04, dark, 0, 0.012, -0.32); hole(0.007, 0, 0.012, -0.341);
+      box(g, 0.035, 0.13, 0.04, dark, 0, -0.1, -0.12); box(g, 0.037, 0.012, 0.045, steel, 0, -0.168, -0.12); // cargador
+      box(g, 0.04, 0.09, 0.045, poly, 0, -0.07, 0.02); box(g, 0.002, 0.06, 0.03, acc, 0.021, -0.07, 0.02);   // empuñadura
+      box(g, 0.028, 0.008, 0.06, poly, 0, -0.04, -0.035); box(g, 0.006, 0.02, 0.006, dark, 0, -0.03, -0.03);
+      box(g, 0.012, 0.012, 0.03, steel, -0.03, 0.012, -0.03);                   // palanca de carga
+      box(g, 0.006, 0.02, 0.012, dark, 0, 0.06, -0.19); box(g, 0.022, 0.016, 0.012, dark, 0, 0.058, 0.02);
+      box(g, 0.003, 0.012, 0.16, acc, 0.026, 0.0, -0.08);
+      L = 0.34; break;
     case 'mg':
-      box(g, 0.07, 0.09, 0.5, blk, 0, 0, -0.18); box(g, 0.08, 0.1, 0.12, acc, 0, -0.08, -0.12);
-      box(g, 0.05, 0.1, 0.06, blk, 0, -0.08, 0.04); box(g, 0.03, 0.03, 0.2, gr, 0, 0.0, -0.5); L = 0.6; break;
+      box(g, 0.08, 0.1, 0.3, poly, 0, 0.0, -0.08);
+      box(g, 0.082, 0.014, 0.28, dark, 0, 0.056, -0.08);
+      for (let k = 0; k < 7; k++) box(g, 0.084, 0.006, 0.012, steel, 0, 0.065, -0.2 + k * 0.035);
+      cyl(0.034, 0.28, steel, 0, 0.0, -0.36, 12);                               // camisa ventilada
+      for (let k = 0; k < 6; k++) { hole(0.009, 0.026, 0.012, -0.26 - k * 0.04); hole(0.009, -0.026, 0.012, -0.26 - k * 0.04); }
+      cyl(0.015, 0.08, dark, 0, 0.0, -0.53); for (let k = 0; k < 4; k++) box(g, 0.004, 0.034, 0.03, dark, Math.cos(k * 1.57) * 0.017, Math.sin(k * 1.57) * 0.017, -0.56);
+      box(g, 0.1, 0.11, 0.12, 0x4a5a2a, 0.0, -0.1, -0.1);                       // caja de munición
+      box(g, 0.102, 0.012, 0.122, 0x3a4a1a, 0.0, -0.04, -0.1);
+      for (let k = 0; k < 6; k++) box(g, 0.012, 0.03, 0.018, 0xd8a838, 0.055, -0.05 + k * 0.012, -0.06 - k * 0.006); // cinta de balas
+      box(g, 0.05, 0.1, 0.05, dark, 0, -0.08, 0.06); box(g, 0.002, 0.06, 0.03, acc, 0.026, -0.08, 0.06);
+      box(g, 0.012, 0.012, 0.16, steel, 0, 0.1, -0.12); box(g, 0.012, 0.04, 0.012, steel, 0, 0.08, -0.04); box(g, 0.012, 0.04, 0.012, steel, 0, 0.08, -0.2); // asa
+      box(g, 0.01, 0.12, 0.01, dark, 0.02, -0.05, -0.42); box(g, 0.01, 0.12, 0.01, dark, -0.02, -0.05, -0.42);   // bípode plegado
+      L = 0.6; break;
     case 'shotgun':
-      box(g, 0.06, 0.06, 0.55, gr, 0, 0.01, -0.22); box(g, 0.07, 0.05, 0.25, 0x6a4020, 0, -0.04, -0.3);
-      box(g, 0.06, 0.1, 0.12, 0x6a4020, 0, -0.05, 0.08); box(g, 0.065, 0.02, 0.05, acc, 0, 0.05, -0.05); L = 0.5; break;
+      cyl(0.02, 0.5, steel, 0, 0.022, -0.27); hole(0.014, 0, 0.022, -0.521);
+      cyl(0.016, 0.38, dark, 0, -0.016, -0.22);                                 // tubo de cartuchos
+      box(g, 0.004, 0.004, 0.42, 0x8a8a8a, 0, 0.044, -0.27); box(g, 0.006, 0.008, 0.006, 0xd8d8d8, 0, 0.048, -0.5); // banda y punto
+      { const fe = box(g, 0.06, 0.05, 0.16, wood, 0, -0.012, -0.26); for (let k = 0; k < 5; k++) box(g, 0.062, 0.006, 0.008, woodD, 0, -0.012, -0.33 + k * 0.035); }
+      box(g, 0.055, 0.07, 0.16, steel, 0, 0.005, -0.02);                        // cajón
+      box(g, 0.002, 0.03, 0.08, acc, 0.028, 0.0, -0.02); box(g, 0.004, 0.02, 0.05, dark, 0.028, 0.02, -0.04); // ventana de expulsión
+      for (let k = 0; k < 4; k++) { cyl(0.008, 0.035, 0xc02020, -0.032, -0.005 + k * 0.0, -0.0 - k * 0.0, 6).position.set(-0.031, 0.02 - k * 0.0, -0.07 + k * 0.022); }
+      box(g, 0.022, 0.008, 0.05, steel, 0, -0.04, 0.02); box(g, 0.006, 0.022, 0.006, dark, 0, -0.03, 0.02);
+      { const gp = box(g, 0.045, 0.1, 0.06, wood, 0, -0.07, 0.08); gp.rotation.x = 0.4; }
+      box(g, 0.05, 0.06, 0.12, woodD, 0, -0.03, 0.16);                          // arranque de la culata
+      L = 0.52; break;
     case 'rifle':
-      box(g, 0.05, 0.07, 0.6, 0x5a4030, 0, -0.01, -0.2); box(g, 0.03, 0.03, 0.3, gr, 0, 0.02, -0.55);
-      box(g, 0.04, 0.05, 0.22, blk, 0, 0.07, -0.18); box(g, 0.045, 0.02, 0.04, acc, 0, 0.1, -0.1); L = 0.7; break;
+      cyl(0.013, 0.42, steel, 0, 0.012, -0.44); hole(0.008, 0, 0.012, -0.651);
+      cyl(0.02, 0.05, dark, 0, 0.012, -0.64);                                   // bocacha
+      box(g, 0.05, 0.05, 0.36, wood, 0, -0.012, -0.24);                          // guardamanos de madera
+      box(g, 0.052, 0.008, 0.3, woodD, 0, 0.012, -0.26);
+      box(g, 0.05, 0.06, 0.16, steel, 0, 0.012, -0.02);                          // cerrojo
+      cyl(0.008, 0.04, steel, 0.035, 0.03, 0.02, 6).rotation.set(0, 0, Math.PI / 2); box(g, 0.016, 0.016, 0.016, dark, 0.055, 0.03, 0.02);
+      for (const z of [-0.1, 0.03]) box(g, 0.04, 0.03, 0.018, dark, 0, 0.055, z);   // anillas
+      cyl(0.026, 0.24, dark, 0, 0.085, -0.04, 12);                              // visor
+      cyl(0.032, 0.05, dark, 0, 0.085, -0.17, 12); cyl(0.03, 0.05, dark, 0, 0.085, 0.08, 12);
+      cyl(0.026, 0.004, glow(0x6ad0ff, 0.85), 0, 0.085, -0.196, 12);
+      box(g, 0.012, 0.012, 0.012, steel, 0, 0.115, -0.04); box(g, 0.012, 0.012, 0.012, steel, 0.03, 0.085, -0.04);
+      box(g, 0.022, 0.008, 0.05, steel, 0, -0.042, 0.0); box(g, 0.006, 0.022, 0.006, dark, 0, -0.03, 0.0);
+      { const gp = box(g, 0.045, 0.1, 0.06, wood, 0, -0.07, 0.07); gp.rotation.x = 0.45; }
+      box(g, 0.002, 0.025, 0.24, acc, 0.026, -0.012, -0.24);
+      L = 0.66; break;
     case 'launcher':
-      { const t = new THREE.Mesh(cgeo(0.06, 0.5, 8), mat(0x3a4a2a)); t.rotation.x = Math.PI / 2; t.position.set(0, 0.01, -0.2); g.add(t); }
-      box(g, 0.05, 0.1, 0.06, blk, 0, -0.08, 0.0); box(g, 0.08, 0.03, 0.06, acc, 0, 0.07, -0.15); L = 0.45; break;
+      cyl(0.055, 0.52, 0x4a5a2a, 0, 0.02, -0.2, 12);
+      cyl(0.066, 0.06, 0x3a4a1a, 0, 0.02, -0.46, 12); cyl(0.066, 0.06, 0x3a4a1a, 0, 0.02, 0.06, 12);
+      hole(0.05, 0, 0.02, -0.491);
+      { const cn = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.1, 10), mat(0x8a3a2a)); cn.rotation.x = -Math.PI / 2; cn.position.set(0, 0.02, -0.52); g.add(cn); }
+      box(g, 0.04, 0.05, 0.08, dark, 0.06, 0.06, -0.14); cyl(0.012, 0.03, glow(0xff5a2a, 0.8), 0.06, 0.06, -0.185, 8); // visor
+      box(g, 0.05, 0.1, 0.06, dark, 0, -0.08, 0.0); box(g, 0.002, 0.06, 0.03, acc, 0.026, -0.08, 0.0);
+      box(g, 0.04, 0.09, 0.04, dark, 0, -0.07, -0.22);
+      for (const z of [-0.33, -0.08]) box(g, 0.116, 0.014, 0.02, 0x2a2a1a, 0, 0.02, z);
+      box(g, 0.004, 0.04, 0.3, acc, 0.056, 0.02, -0.2);
+      L = 0.48; break;
     case 'cannon':
-      // cañón del coche: dos cañones gordos con escudo
-      for (const x of [-0.07, 0.07]) { const t = new THREE.Mesh(cgeo(0.045, 0.7, 8), mat(0x2a2a2a)); t.rotation.x = Math.PI / 2; t.position.set(x, 0.02, -0.35); g.add(t); }
+      for (const x of [-0.07, 0.07]) { cyl(0.045, 0.7, 0x2a2a2a, x, 0.02, -0.35); cyl(0.055, 0.08, 0x1a1a1a, x, 0.02, -0.68); hole(0.03, x, 0.02, -0.721); }
       box(g, 0.32, 0.2, 0.06, 0x4a5a3a, 0, 0.06, -0.08); box(g, 0.2, 0.14, 0.3, 0x3a3a3a, 0, -0.02, 0.02);
       box(g, 0.05, 0.12, 0.05, 0x1a1a1a, 0.12, -0.08, 0.1); box(g, 0.05, 0.12, 0.05, 0x1a1a1a, -0.12, -0.08, 0.1); L = 0.72; break;
     case 'ray':
-      // pistola de rayos retro: cuerpo redondeado, anillos y punta brillante
-      { const t = new THREE.Mesh(cgeo(0.045, 0.2, 10), mat(0xd0d4dc)); t.rotation.x = Math.PI / 2; t.position.set(0, 0.02, -0.09); g.add(t); }
-      for (const z of [-0.05, -0.11, -0.17]) { const r = new THREE.Mesh(cgeo(0.058, 0.018, 10), glow(0x5aff7a)); r.rotation.x = Math.PI / 2; r.position.set(0, 0.02, z); g.add(r); }
-      box(g, 0.035, 0.035, 0.06, glow(0xb0ffb0), 0, 0.02, -0.22);
-      box(g, 0.04, 0.11, 0.05, 0xc03030, 0, -0.07, 0.0); L = 0.25; break;
+      cyl(0.045, 0.2, 0xd0d4dc, 0, 0.02, -0.09, 12);
+      for (const z of [-0.05, -0.11, -0.17]) cyl(0.058, 0.018, glow(0x5aff7a), 0, 0.02, z, 12);
+      { const cn = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.08, 10), mat(0xd0d4dc)); cn.rotation.x = -Math.PI / 2; cn.position.set(0, 0.02, -0.22); g.add(cn); }
+      box(g, 0.02, 0.02, 0.03, glow(0xb0ffb0), 0, 0.02, -0.265);
+      box(g, 0.012, 0.05, 0.012, 0xd0d4dc, 0, 0.07, -0.05); { const s2 = new THREE.Mesh(sgeo(0.016), glow(0x5aff7a)); s2.position.set(0, 0.1, -0.05); g.add(s2); }
+      { const gp = box(g, 0.04, 0.11, 0.05, 0xc03030, 0, -0.07, 0.0); gp.rotation.x = 0.3; }
+      box(g, 0.02, 0.008, 0.04, 0xd0d4dc, 0, -0.035, -0.04);
+      L = 0.27; break;
     default:
-      box(g, 0.04, 0.06, 0.2, gr, 0, 0.01, -0.08); box(g, 0.04, 0.11, 0.05, blk, 0, -0.07, 0.0);
-      box(g, 0.042, 0.015, 0.16, acc, 0, 0.045, -0.08); L = 0.18;
+      // pistola: corredera con estrías, ventana, miras, armazón, guardamonte, gatillo y empuñadura con textura
+      box(g, 0.042, 0.045, 0.2, steel, 0, 0.022, -0.08);
+      for (let k = 0; k < 5; k++) box(g, 0.044, 0.032, 0.005, dark, 0, 0.022, 0.005 - k * 0.011);
+      box(g, 0.004, 0.016, 0.045, dark, 0.021, 0.03, -0.055);
+      box(g, 0.008, 0.012, 0.01, dark, 0, 0.05, -0.172); box(g, 0.03, 0.01, 0.012, dark, 0, 0.05, 0.008);
+      hole(0.009, 0, 0.022, -0.181);
+      box(g, 0.04, 0.026, 0.17, poly, 0, -0.012, -0.075);
+      for (let k = 0; k < 3; k++) box(g, 0.042, 0.005, 0.01, dark, 0, -0.026, -0.14 + k * 0.022);
+      box(g, 0.03, 0.008, 0.05, poly, 0, -0.045, -0.03); box(g, 0.03, 0.03, 0.008, poly, 0, -0.03, -0.055);
+      box(g, 0.008, 0.024, 0.008, dark, 0, -0.033, -0.028);
+      { const gp = box(g, 0.038, 0.11, 0.05, poly, 0, -0.07, 0.025); gp.rotation.x = 0.25; for (let k = 0; k < 3; k++) { const st = box(g, 0.04, 0.006, 0.04, dark, 0, -0.05 - k * 0.025, 0.02 + k * 0.006); st.rotation.x = 0.25; } }
+      box(g, 0.04, 0.012, 0.054, dark, 0, -0.125, 0.04);
+      box(g, 0.002, 0.012, 0.15, acc, 0.022, 0.012, -0.08); box(g, 0.002, 0.012, 0.15, acc, -0.022, 0.012, -0.08);
+      L = 0.19;
   }
   // el arma se va currando al subir de nivel: mira, bocacha, láser, cargador largo y acabados dorados
   const longGun = ['rifle', 'mg', 'smg', 'shotgun'].includes(model);
@@ -1280,6 +1360,18 @@ export function mine() {
   const l = box(g, 0.1, 0.06, 0.1, glow(0xff2020), 0, 0.27, 0);
   const halo = new THREE.Mesh(sgeo(0.9), glow(0xff2020, 0.15)); halo.position.y = 0.1; g.add(halo);
   proxy(g, 0.8, 0, 0.2, 0);
+  g.userData.light = l; g.userData.halo = halo;
+  return g;
+}
+// tira de pinchos de policía cruzando el carril
+export function spikes() {
+  const g = new THREE.Group();
+  box(g, 3.0, 0.08, 0.5, 0x222222, 0, 0.05, 0, 'body');
+  for (let i = 0; i < 12; i++) { const s = box(g, 0.1, 0.22, 0.1, 0xd8d8e0, -1.38 + i * 0.25, 0.18, (i % 2 ? 0.12 : -0.12), 'body'); s.rotation.z = 0.4; }
+  for (const x of [-1.5, 1.5]) box(g, 0.1, 0.12, 0.5, 0xffb020, x, 0.08, 0, 'body');
+  const l = box(g, 0.08, 0.06, 0.08, glow(0xffb020), 0, 0.2, 0);
+  const halo = new THREE.Mesh(sgeo(1.4), glow(0xffb020, 0.12)); halo.position.y = 0.1; g.add(halo);
+  proxy(g, 0.9, -0.8, 0.2, 0); proxy(g, 0.9, 0.8, 0.2, 0);
   g.userData.light = l; g.userData.halo = halo;
   return g;
 }

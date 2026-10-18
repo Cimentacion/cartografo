@@ -3,7 +3,8 @@ import * as THREE from 'three';
 import { mergeGeometries } from '../lib/BufferGeometryUtils.js';
 import { rng, hash, pick } from './util.js';
 import { BIOMES, BIOME_KEYS, CITY } from './defs.js';
-import { HALF, WALK } from './road.js';
+import { HALF, WALK, TUNMSG } from './road.js';
+import { tr } from './i18n.js';
 import { toon, tex } from './toon.js';
 
 export const CH = 40;
@@ -204,6 +205,8 @@ export function buildChunk(road, c, M) {
       addBox(R.L, 19, 0.6, 0.6, 0x8a8f96, frame(road, f.gantry, 0, 8.4));
     }
   }
+  const mid = Math.min(road.len, d0 + CH / 2);
+  const indoor = road.kind[mid] === 1 || road.kind[mid] === 3 || BIOMES[BIOME_KEYS[road.bio[mid]]].deco === 'tuneles';
   const grp = new THREE.Group();
   for (const k of LIST_KEYS) {
     if (!R[k].length) continue;
@@ -212,9 +215,10 @@ export function buildChunk(road, c, M) {
     if (!g) continue;
     g.computeBoundingSphere();
     const me = new THREE.Mesh(g, M[k]);
-    me.receiveShadow = true; me.castShadow = k !== 'A' && k !== 'P';
+    me.receiveShadow = !indoor; me.castShadow = k !== 'A' && k !== 'P';
     grp.add(me);
   }
+  for (const m of R.X || []) grp.add(m);
   return grp;
 }
 
@@ -266,6 +270,30 @@ function interiorRun(R, road, B, i0, i1, r) {
   if (i1 - i0 > 20 && pr() < 0.7) addBox(R.G, 0.6, 1.4, 4, 0x3ab0e0, frame(road, i0 + 12, 7.0, 1.6));
 }
 
+// panel luminoso colgado del techo (texto en ámbar, señal de peligro y velocidad)
+function ledPanel(R, road, d, lat, msg) {
+  // el mensaje (ya traducido) en dos líneas lo más parecidas posible
+  const w = tr(msg).split(' ');
+  let best = [tr(msg)], bd = 1e9;
+  for (let k = 1; k < w.length; k++) { const a = w.slice(0, k).join(' '), b = w.slice(k).join(' '), df = Math.abs(a.length - b.length); if (df < bd) { bd = df; best = [a, b]; } }
+  const lines = best;
+  const cv = document.createElement('canvas'); cv.width = 512; cv.height = 128;
+  const g = cv.getContext('2d');
+  g.fillStyle = '#060504'; g.fillRect(0, 0, 512, 128);
+  g.fillStyle = '#ffffff'; g.beginPath(); g.arc(62, 64, 50, 0, 7); g.fill();
+  g.strokeStyle = '#ff2a1a'; g.lineWidth = 12; g.beginPath(); g.arc(62, 64, 44, 0, 7); g.stroke();
+  g.fillStyle = '#111'; g.font = 'bold 44px sans-serif'; g.textAlign = 'center'; g.fillText('!', 62, 80);
+  g.fillStyle = '#ffb020'; g.textAlign = 'left';
+  lines.forEach((t, k) => { let fs = 40; g.font = `bold ${fs}px monospace`; const tt = t; while (g.measureText(tt).width > 380 && fs > 20) { fs -= 2; g.font = `bold ${fs}px monospace`; } g.fillText(tt, 124, 56 + k * 44); });
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace;
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(5.2, 1.3), new THREE.MeshBasicMaterial({ map: t, fog: true }));
+  m.userData.own = 1;
+  m.applyMatrix4(frame(road, d, lat, HW_T + 2.2, Math.PI));
+  (R.X || (R.X = [])).push(m);
+  addBox(R.L, 5.5, 1.5, 0.2, 0x222222, frame(road, d, lat, HW_T + 2.2), { z: 0.12 });
+  for (const x of [-2, 2]) addBox(R.L, 0.08, 1.4, 0.08, 0x555555, frame(road, d, lat, HW_T + 3.5), { x });
+}
+const HW_T = 4.4;
 // ladera de montaña alrededor de cada boca de túnel: tapa el cielo y lo que había al lado (nada de huecos raros)
 function portalHill(R, road, d) {
   const y = road.gy[Math.max(0, Math.min(road.len, Math.floor(d)))], down = y + 3;
@@ -1123,47 +1151,72 @@ const DECO = {
       }
     }
   },
-  // túnel largo iluminado en naranja; desde el 30 % de la zona se le une otro túnel por la derecha,
-  // separado por columnas que aguantan el techo
+  // túnel largo con bóveda, luz de sodio y paneles luminosos que avisan del peligro del siguiente tramo.
+  // Al 30 % se le une por la derecha otro tubo (separado por columnas). El segundo tubo existe desde el principio,
+  // escondido detrás de la pared, para que nunca se vea una calzada que acaba en un muro.
   tuneles(R, road, B, i0, i1, r) {
-    const H = 7.2, RW = 20.5;
+    const HW = 4.4, RW = 20.5, C2 = (WALK + RW) / 2, W2 = (RW - WALK) / 2;
     let split = i1;
     for (let i = i0; i < i1; i++) if (road.zoneAt(i).prog >= 0.3) { split = i; break; }
-    const wall = (a, b, sd) => {
-      strip(R.T, road, a, b, C(sd * WALK, 0.18), C(sd * WALK, 1.7), 0xf0dcb8, 1.4);
-      strip(R.K, road, a, b, C(sd * WALK, 1.7), C(sd * WALK, H), 0xe0d0b0, 4);
-    };
-    wall(i0, i1, -1);
-    if (split > i0) { wall(i0, split, 1); strip(R.L, road, i0, split, C(-WALK, H), C(WALK, H), 0x4a4440); }
-    if (split < i1) {
-      // segundo tubo: calzada, líneas, pared del fondo y techo común
-      strip(R.A, road, split, i1, C(WALK, 0.02), C(RW - 1.2, 0.02), LIGHT(B.asphalt, 0.08), 4);
-      strip(R.P, road, split, i1, C(RW - 1.2, 0.18), C(RW, 0.18), B.walk, 2);
-      strip(R.L, road, split, i1, C(RW - 1.2, 0), C(RW - 1.2, 0.18), 0x77736c);
-      for (const l of [WALK + 0.5, RW - 1.6]) strip(R.L, road, split, i1, C(l, 0.03), C(l + 0.15, 0.03), 0xffffff);
-      for (let i = Math.ceil(split / 6) * 6; i < i1; i += 6) addBox(R.L, 0.15, 0.02, 3, 0xffc040, frame(road, i, 14.2, 0.04));
-      wall(split, i1, RW / WALK);
-      strip(R.L, road, split, i1, C(-WALK, H), C(RW, H), 0x4a4440);
-      // tapa del arranque del segundo tubo
-      addBox(R.K, 0.6, H, RW - WALK, 0xb8a890, frame(road, split, (RW + WALK) / 2, H / 2), { ry: Math.PI / 2 });
-      for (let i = Math.ceil(split / 7) * 7; i < i1; i += 7) {
-        const m = frame(road, i, WALK + 0.25, 0);
-        addBox(R.C, 0.9, H, 0.9, 0xd8c8a8, m, { y: H / 2, uvs: 3 });
-        addBox(R.L, 0.95, 0.5, 0.95, 0xffb040, m, { y: 1.0 });
+    const WALLC = 0xe8d49a, VAULT = 0xd8c48c;
+    // bóveda: arco elíptico de 8 tramos entre (c - w, HW) y (c + w, HW)
+    const vault = (a, b, c, w, rise) => {
+      const N = 8;
+      for (let k = 0; k < N; k++) {
+        const t0 = Math.PI * k / N, t1 = Math.PI * (k + 1) / N;
+        strip(R.K, road, a, b, C(c - Math.cos(t0) * w, HW + Math.sin(t0) * rise), C(c - Math.cos(t1) * w, HW + Math.sin(t1) * rise), k === 0 || k === N - 1 ? WALLC : VAULT, 4);
       }
-      for (let i = Math.ceil(split / 9) * 9; i < i1; i += 9) addBox(R.G, 0.4, 0.15, 2.6, 0xffa040, frame(road, i, 14.2, H - 0.12));
+    };
+    const wall = (a, b, l) => {
+      strip(R.T, road, a, b, C(l, 0.18), C(l, 1.2), 0xf4ead0, 1.4);
+      strip(R.K, road, a, b, C(l, 1.2), C(l, HW), WALLC, 4);
+    };
+    wall(i0, i1, -WALK);
+    vault(i0, i1, 0, WALK, 4.0);
+    // segundo tubo (toda la zona): calzada, líneas, pared del fondo y su bóveda
+    strip(R.A, road, i0, i1, C(WALK, 0.02), C(RW - 1.2, 0.02), LIGHT(B.asphalt, 0.08), 4);
+    strip(R.P, road, i0, i1, C(RW - 1.2, 0.18), C(RW, 0.18), B.walk, 2);
+    strip(R.L, road, i0, i1, C(RW - 1.2, 0), C(RW - 1.2, 0.18), 0x77736c);
+    for (const l of [WALK + 0.5, RW - 1.6]) strip(R.L, road, i0, i1, C(l, 0.03), C(l + 0.15, 0.03), 0xffffff);
+    for (let i = Math.ceil(i0 / 6) * 6; i < i1; i += 6) addBox(R.L, 0.15, 0.02, 3, 0xffffff, frame(road, i, C2, 0.04));
+    wall(i0, i1, RW);
+    vault(i0, i1, C2, W2, 3.0);
+    // antes de la unión: pared entre los dos tubos (por las dos caras); después: columnas
+    if (split > i0) wall(i0, split, WALK);
+    // viga sobre las columnas donde se juntan las dos bóvedas
+    strip(R.K, road, i0, i1, C(WALK, HW), C(WALK, HW + 2.2), VAULT, 4);
+    for (let i = Math.ceil(split / 7) * 7; i < i1; i += 7) {
+      const m = frame(road, i, WALK, 0);
+      addBox(R.C, 0.9, HW + 0.4, 0.9, 0xe8dcc0, m, { y: (HW + 0.4) / 2, uvs: 3 });
+      addBox(R.L, 0.95, 0.6, 0.95, 0xffc040, m, { y: 0.6 });
+      addBox(R.L, 0.96, 0.2, 0.96, 0x222222, m, { y: 1.0 });
     }
-    // luces naranjas en el techo, nichos de emergencia y ventiladores
-    for (let i = Math.ceil(i0 / 9) * 9; i < i1; i += 9) for (const l of [-4, 4]) addBox(R.G, 0.4, 0.15, 2.6, 0xffa040, frame(road, i, l, H - 0.12));
+    // filas de luces en los arranques de la bóveda (como en los túneles de verdad) y balizas abajo
+    for (let i = Math.ceil(i0 / 3) * 3; i < i1; i += 3) {
+      for (const l of [-WALK + 0.25, RW - 0.25]) addBox(R.G, 0.2, 0.18, 1.3, 0xffd890, frame(road, i, l, HW - 0.3));
+      if (i % 12 === 0) for (const l of [-WALK + 0.06, RW - 0.06]) addBox(R.G, 0.06, 0.14, 0.14, 0xffffff, frame(road, i, l, 0.7));
+    }
+    // ventiladores colgados del techo
+    for (let i = Math.ceil(i0 / 140) * 140 + 40; i < i1; i += 140) for (const l of [-1.8, 1.8]) {
+      const m = frame(road, i, l, HW + 2.6);
+      addCyl(R.L, 0.9, 0.9, 2.2, 12, 0x8a8a84, m, { rx: Math.PI / 2 });
+      addCyl(R.D, 0.72, 0.72, 2.24, 12, 0x1a1a1a, m, { rx: Math.PI / 2 });
+      addBox(R.L, 0.12, 0.9, 0.12, 0x555555, m, { y: 1.1 });
+    }
+    // nichos de emergencia
     for (let i = Math.ceil(i0 / 60) * 60; i < i1; i += 60) {
       const m = frame(road, i, -WALK + 0.06, 0);
-      addBox(R.G, 0.06, 0.5, 1.0, 0x30ff60, m, { y: 2.6 });
-      addBox(R.L, 0.08, 2.1, 1.3, 0xd03020, m, { y: 1.25 });
+      addBox(R.G, 0.06, 0.45, 0.9, 0x30ff60, m, { y: 2.5 });
+      addBox(R.L, 0.08, 1.9, 1.2, 0xd03020, m, { y: 1.15 });
     }
-    for (let i = Math.ceil(i0 / 110) * 110 + 30; i < i1; i += 110) for (const l of [-2.2, 2.2]) {
-      const m = frame(road, i, l, H - 0.9);
-      addCyl(R.L, 0.8, 0.8, 2.6, 10, 0x6a6a6a, m, { rx: Math.PI / 2 });
-      addCyl(R.D, 0.6, 0.6, 2.62, 10, 0x1a1a1a, m, { rx: Math.PI / 2 });
+    // paneles luminosos: avisan del peligro del tramo siguiente
+    const f = road.zoneAt(i0).f;
+    if (f) for (let seg = 1; seg < 40; seg++) {
+      const d = f.secStart + seg * 220 - 70;
+      if (d < i0 || d >= i1) continue;
+      const hz = road.tunHazard(f, seg);
+      if (!hz) continue;
+      ledPanel(R, road, d, -1.2, TUNMSG[hz]);
     }
   },
   lomas(R, road, B, i0, i1, r) {

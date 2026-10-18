@@ -35,7 +35,12 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,12 +48,16 @@ import java.util.Map;
 // Se sirve desde un origen https falso para que funcionen los módulos JS, los sensores y WebRTC.
 public class MainActivity extends Activity {
     private static final String HOST = "rivieracop.app.local";
-    // ANUNCIOS: estos son los identificadores DE PRUEBA de Google (no pagan).
-    // Para cobrar, cambia estos dos por los de tu cuenta de AdMob, y el APPLICATION_ID en AndroidManifest.xml
-    private static final String REWARDED_ID = "ca-app-pub-3940256099942544/5224354917";
-    private static final String INTER_ID = "ca-app-pub-3940256099942544/1033173712";
+    // ANUNCIOS: identificadores de la cuenta de AdMob del dueño del juego.
+    // (el ID de aplicación va en AndroidManifest.xml)
+    private static final String REWARDED_ID = "ca-app-pub-8476753448483324/9135966364";
+    private static final String INTER_ID = "ca-app-pub-8476753448483324/3461712711";
     // ACTUALIZACIONES: número de compilación de la última versión publicada en GitHub
-    private static final String VERSION_URL = "https://github.com/Cimentacion/cartografo/releases/download/rivieracop/version.txt";
+    // La app solo hay que reinstalarla si cambia la parte de Android (native.txt). El juego en sí (html, js, texturas)
+    // se descarga como "pack" (game.zip) y se instala solo, sin pasar por el instalador de Android.
+    private static final String VERSION_URL = "https://github.com/Cimentacion/cartografo/releases/download/rivieracop/native.txt";
+    private static final String PACKV_URL = "https://github.com/Cimentacion/cartografo/releases/download/rivieracop/pack.txt";
+    private static final String PACK_URL = "https://github.com/Cimentacion/cartografo/releases/download/rivieracop/game.zip";
     private static final String APK_URL = "https://github.com/Cimentacion/cartografo/releases/download/rivieracop/rivieracop.apk";
     private WebView web;
     private RewardedAd rewarded; private InterstitialAd inter;
@@ -77,7 +86,7 @@ public class MainActivity extends Activity {
         web.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView v, String url) {
-                if (!checked) { checked = true; v.postDelayed(MainActivity.this::checkUpdate, 2500); }
+                if (!checked) { checked = true; v.postDelayed(MainActivity.this::checkUpdate, 2500); v.postDelayed(MainActivity.this::checkPack, 1500); }
             }
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView v, WebResourceRequest r) {
@@ -85,7 +94,8 @@ public class MainActivity extends Activity {
                 String path = r.getUrl().getPath();
                 if (path == null || path.equals("/") || path.isEmpty()) path = "/index.html";
                 try {
-                    InputStream in = getAssets().open("game" + path);
+                    File pf = new File(packDir(), path.substring(1));
+                    InputStream in = packOk() && pf.isFile() && pf.getCanonicalPath().startsWith(packDir().getCanonicalPath()) ? new FileInputStream(pf) : getAssets().open("game" + path);
                     Map<String, String> h = new HashMap<>();
                     h.put("Access-Control-Allow-Origin", "*");
                     h.put("Cache-Control", "no-cache");
@@ -112,6 +122,8 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void showInterstitial() { runOnUiThread(MainActivity.this::doInter); }
         @JavascriptInterface public int version() { return myVersion(); }
         @JavascriptInterface public void update() { runOnUiThread(MainActivity.this::startUpdate); }
+        @JavascriptInterface public int pack() { return curPack(); }
+        @JavascriptInterface public void reloadGame() { runOnUiThread(() -> web.reload()); }
     }
 
     // ---------- anuncios (AdMob) ----------
@@ -150,13 +162,68 @@ public class MainActivity extends Activity {
         ad.show(this);
     }
 
-    // ---------- actualizador ----------
-    private int myVersion() {
-        try {
-            android.content.pm.PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
-            return Build.VERSION.SDK_INT >= 28 ? (int) pi.getLongVersionCode() : pi.versionCode;
-        } catch (Exception e) { return 0; }
+    // ---------- packs del juego (actualización sin reinstalar) ----------
+    private File packDir() { return new File(getFilesDir(), "pack"); }
+    private int assetInt(String name) {
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(getAssets().open(name)))) { return Integer.parseInt(r.readLine().trim()); } catch (Exception e) { return 0; }
     }
+    private int filePack() { return getSharedPreferences("rc", MODE_PRIVATE).getInt("pack", 0); }
+    // el pack descargado solo vale si es más nuevo que el juego que trae la propia app
+    private boolean packOk() { return filePack() > assetInt("game/pack.txt") && new File(packDir(), "index.html").isFile(); }
+    private int curPack() { return Math.max(filePack(), assetInt("game/pack.txt")); }
+    private static int readInt(String url) throws Exception {
+        HttpURLConnection c = (HttpURLConnection) new URL(url + "?t=" + System.currentTimeMillis()).openConnection();
+        c.setInstanceFollowRedirects(true); c.setConnectTimeout(8000); c.setReadTimeout(8000);
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(c.getInputStream()))) { return Integer.parseInt(r.readLine().trim()); }
+    }
+    private void checkPack() {
+        new Thread(() -> {
+            try {
+                int remote = readInt(PACKV_URL);
+                if (remote <= curPack()) return;
+                js("window.rcPack&&window.rcPack('start'," + remote + ")");
+                File tmp = new File(getFilesDir(), "pack_new"), old = new File(getFilesDir(), "pack_old");
+                del(tmp); del(old);
+                HttpURLConnection c = (HttpURLConnection) new URL(PACK_URL + "?t=" + System.currentTimeMillis()).openConnection();
+                c.setInstanceFollowRedirects(true); c.setConnectTimeout(15000); c.setReadTimeout(30000);
+                long total = c.getContentLengthLong(), done = 0; int last = -1;
+                String root = tmp.getCanonicalPath();
+                try (ZipInputStream z = new ZipInputStream(c.getInputStream())) {
+                    ZipEntry e; byte[] buf = new byte[65536];
+                    while ((e = z.getNextEntry()) != null) {
+                        File f = new File(tmp, e.getName());
+                        if (!f.getCanonicalPath().startsWith(root)) continue; // nada fuera de la carpeta
+                        if (e.isDirectory()) { f.mkdirs(); continue; }
+                        f.getParentFile().mkdirs();
+                        try (FileOutputStream o = new FileOutputStream(f)) {
+                            int n;
+                            while ((n = z.read(buf)) > 0) { o.write(buf, 0, n); done += n; }
+                        }
+                        int pct = total > 0 ? (int) Math.min(99, done * 100 / (total * 2)) : -1;
+                        if (pct / 10 != last) { last = pct / 10; js("window.rcPack&&window.rcPack('prog'," + pct + ")"); }
+                    }
+                }
+                if (!new File(tmp, "index.html").isFile()) throw new Exception("pack incompleto");
+                File cur = packDir();
+                if (cur.exists() && !cur.renameTo(old)) del(cur);
+                if (!tmp.renameTo(cur)) throw new Exception("no se pudo instalar");
+                del(old);
+                getSharedPreferences("rc", MODE_PRIVATE).edit().putInt("pack", remote).apply();
+                js("window.rcPack&&window.rcPack('done'," + remote + ")");
+            } catch (Exception e) {
+                js("window.rcPack&&window.rcPack('err',0)");
+            }
+        }).start();
+    }
+    private static void del(File f) {
+        if (!f.exists()) return;
+        File[] l = f.listFiles();
+        if (l != null) for (File x : l) del(x);
+        f.delete();
+    }
+
+    // ---------- actualizador de la app (solo cuando cambia la parte de Android) ----------
+    private int myVersion() { return assetInt("native.txt"); }
     private void checkUpdate() {
         new Thread(() -> {
             try {
