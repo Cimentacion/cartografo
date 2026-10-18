@@ -219,7 +219,7 @@ function updRot() {
 // ---------------- estado ----------------
 const G = {
   mode: null, li: 0, n: 1, seed: 0, road: null, sim: null, mir: null,
-  running: false, over: false, carD: 8, speed: 0, ents: [], players: [], cd: -1,
+  running: false, over: false, carD: 60, speed: 0, ents: [], players: [], cd: -1,
   acc: 0, snapT: 0, lookT: 0, evq: [], shake: 0, t: 0, chunks: new Map(), lastBio: -1, prevFire: false,
   partnerFlash: 0, gone: false, fr: 0,
 };
@@ -801,7 +801,7 @@ function begin(seed, n, li, mode) {
   G.mir = mode === 'guest' ? new Mirror() : null;
   RADIO.q = []; RADIO.t = 0; $('radio').hidden = true; presSet('jugando');
   STY.reset();
-  G.evq = []; G.acc = 0; G.over = false; G.running = true; G.carD = 8; G.shake = 0; G.lastBio = -1; G.lastZd = -1; G.camYaw = null;
+  G.evq = []; G.acc = 0; G.over = false; G.running = true; G.carD = 60; G.shake = 0; G.lastBio = -1; G.lastZd = -1; G.camYaw = null;
   G.ents = []; G.players = [];
   for (let i = 0; i < n; i++) G.players.push({ hp: 10, maxHp: 10, score: 0, alive: true, inv: 0, ly: 0, lp: 0 });
   AB.shield.cd = 0; AB.bullet.cd = 0;

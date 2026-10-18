@@ -27,6 +27,8 @@ const FOOT = [[-6.5, 3], [-1, 0.4], [3, 0, 'lobby'], [8, 0], [8, 8.5], [14, 8.5,
 export const SEATS = [[-0.63, 0.25], [0.63, 0.25], [-0.63, 1.5], [0.63, 1.5], [0, 2.55]];
 export const isRear = (i, n) => n > 2 && i >= 2;
 export const SEAT_LAT = SEATS.map(s => LANE_ME + s[0]);
+// se sale a ~60 m de la boca del primer túnel (antes se empezaba al fondo y se hacía largo)
+export const START_D = 60;
 export const SEAT_H = 1.75, SEAT_D = -0.8;
 const VEH = new Set(['xcar', 'harvester', 'police', 'ecar', 'truck', 'amb', 'jeep', 'civcar', 'tank', 'rig', 'fuel', 'float', 'pickup', 'van', 'bus', 'crew']);
 const HOSTILE = new Set(['gunman', 'sniper', 'moto', 'ecar', 'heli', 'drone', 'jeep', 'grenade', 'rocket', 'rock', 'wall', 'train',
@@ -61,7 +63,7 @@ export class Sim {
     this.road = road; this.n = n; this.seed = seed >>> 0;
     this.r = rng(this.seed ^ 0x5a5a1234);
     this.t = 0; this.runT = 0; this.phase = 'count'; this.countT = 3.5;
-    this.carD = 8; this.speed = 0;
+    this.carD = START_D; this.speed = 0;
     this.players = [];
     // vida en puntos (3 de base, hasta 100); el daño va de 1 a 3 según la dificultad de la zona
     const metas = opts.metas || [];
@@ -551,6 +553,9 @@ export class Sim {
   ok(k) { return this.unl.has(k); }
   director(dt) {
     const rt = this.runT;
+    // en el túnel del principio no sale nadie: se empieza tranquilo y la acción llega al salir
+    const T0 = this.road.tunnels[0];
+    if (T0 && T0.start < 20 && this.carD < T0.end - 12) return;
     // ¿toca desbloquear un tipo de enemigo nuevo?
     for (const k in UNLOCK) if (!this.unl.has(k) && rt >= UNLOCK[k]) {
       this.unl.add(k);

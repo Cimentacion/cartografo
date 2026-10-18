@@ -979,7 +979,9 @@ export function fpGun(model, rar = 0, cfg = null, lv = 1) {
   }
   // mano y manga para que se lea como arma empuñada
   box(g, 0.075, 0.08, 0.08, cfg ? SKINS[cfg.skin] ?? 0xd9a476 : 0xd9a476, 0, -0.085, 0.02);
-  box(g, 0.1, 0.1, 0.22, cfg ? sleeveColor(cfg) : 0x2f4f8f, 0.01, -0.1, 0.16);
+  // la manga sigue hacia atrás y hacia abajo hasta salir de la pantalla (antes se veía dónde acababa el brazo)
+  const arm = new THREE.Group(); arm.position.set(0.01, -0.1, 0.06); arm.rotation.x = 0.55; g.add(arm);
+  box(arm, 0.1, 0.1, 1.3, cfg ? sleeveColor(cfg) : 0x2f4f8f, 0, 0, 0.65);
   muzzle.position.set(0, 0.01, -L);
   g.add(muzzle);
   const flash = box(g, 0.12, 0.12, 0.12, glow(0xffd860), 0, 0.01, -L - 0.05);
