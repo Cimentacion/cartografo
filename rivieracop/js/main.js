@@ -1,6 +1,6 @@
 // RIVIERA COP — roguelike de disparos sobre raíles, cooperativo, con giroscopio
 import * as THREE from 'three';
-import { initI18n, LANGS, getLang, setLang } from './i18n.js';
+import { initI18n, LANGS, getLang, setLang, tr } from './i18n.js';
 import { Road, LANE_ME } from './road.js';
 import { buildChunk, makeMats, CH } from './scenery.js';
 import { Sim, SEATS, isRear, AIR, ANIMAL } from './sim.js';
@@ -29,7 +29,7 @@ const $ = id => document.getElementById(id);
 const canvas = $('gl');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
 // calidad: resolución interna (BAJA 1x, MEDIA 1.5x, ALTA 2x) y oclusión ambiental
-const QUAL = [['BAJA', 1], ['MEDIA', 1.5], ['ALTA', 2]];
+const QUAL = [['BAJA', 1], ['MEDIA', 1.25], ['ALTA', 1.6]];
 let qIdx = Math.max(0, Math.min(2, +(localStorage.getItem('rc_q') ?? 1)));
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.get('hq') ? 2 : QUAL[qIdx][1]));
 renderer.setSize(vw(), vh());
@@ -47,8 +47,15 @@ scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xffffff, 1.6);
 sun.castShadow = true;
 sun.shadow.mapSize.set(1024, 1024);
-Object.assign(sun.shadow.camera, { left: -38, right: 38, top: 38, bottom: -38, near: 1, far: 260 });
-sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.06; sun.shadow.radius = 4;
+// sombras de los edificios y el decorado hasta lo lejos: un mapa grande que solo se vuelve a calcular cada ~30 m
+// (lo que se mueve lleva su sombra suave debajo); así no tiemblan y casi no cuestan
+Object.assign(sun.shadow.camera, { left: -170, right: 170, top: 170, bottom: -170, near: 1, far: 700 });
+sun.shadow.bias = -0.0025; sun.shadow.normalBias = 0.35; sun.shadow.radius = 2;
+renderer.shadowMap.autoUpdate = false;
+sun.shadow.camera.updateProjectionMatrix();
+const SHC = { key: '' };
+// ejes de la luz (para encajar la sombra en su rejilla y que no tiemble al moverse)
+const SUNO = new THREE.Vector3(150, 160, 70), SUNZ = SUNO.clone().normalize(), SUNX = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), SUNZ).normalize(), SUNY = new THREE.Vector3().crossVectors(SUNZ, SUNX);
 scene.add(sun); scene.add(sun.target);
 // cielo con degradado: azul intenso arriba y claro en el horizonte
 const skyMat = new THREE.ShaderMaterial({
@@ -169,6 +176,7 @@ function updateChunks(d, all) {
     if (G.chunks.has(c)) continue;
     if (!all && built >= 1) break;
     const g = buildChunk(G.road, c, MATS);
+    SHC.dirty = true;
     if (!g) break;
     scene.add(g);
     G.chunks.set(c, g);
@@ -212,7 +220,7 @@ function weaponXp(n) {
   if (up) {
     recalcWeapon();
     saveProg(PROG); W.xpDirty = false;
-    showBanner(W.def.name.toUpperCase() + ' NIVEL ' + up, W.e.perks.length && up >= 5 ? 'Nuevo: ' + W.e.perks.join(', ') : 'Más daño, recarga y puntería', '#7dff8a');
+    showBanner(tr(W.def.name).toUpperCase() + ' NIVEL ' + up, W.e.perks.length && up >= 5 ? 'Nuevo: ' + W.e.perks.join(', ') : 'Más daño, recarga y puntería', '#7dff8a');
     // a ciertos niveles el arma cambia de aspecto (mira, bocacha, láser, dorados)
     if (up === 3 || up === 5 || up === 8) setFpGun();
     SFX.pickup();
@@ -787,7 +795,7 @@ function uiWcard() {
     const up = lowBetter ? a < b - 1e-6 : a > b + 1e-6, dn = lowBetter ? a > b + 1e-6 : a < b - 1e-6;
     return `<div class="wcl"><span>${lbl}</span><b>${fmt(a)} <i class="${up ? 'up' : dn ? 'dn' : 'eq'}">${up ? '▲' : dn ? '▼' : '='}</i></b></div>`;
   };
-  let h = `<div class="wct" style="background:${R.color}">${d.name.toUpperCase()}</div>`;
+  let h = `<div class="wct" style="background:${R.color}">${tr(d.name).toUpperCase()}</div>`;
   h += cmp('DAÑO', N.dmg * (N.pellets || 1), C.dmg * (C.pellets || 1), v => v.toFixed(1));
   h += cmp('BALAS', N.mag, C.mag, v => String(Math.round(v)));
   h += cmp('RITMO', N.rate, C.rate, v => v.toFixed(1));
@@ -951,10 +959,10 @@ function renderLens() {
   // el círculo ocupa el 60 % del alto: ese trozo del campo de visión ampliado
   const half = Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * 0.6) / zoom;
   LENS.cam.fov = THREE.MathUtils.radToDeg(half * 2); LENS.cam.aspect = 1; LENS.cam.far = camera.far; LENS.cam.updateProjectionMatrix();
-  const au = renderer.shadowMap.autoUpdate;
-  renderer.shadowMap.autoUpdate = false;
+  const nu = renderer.shadowMap.needsUpdate;
+  renderer.shadowMap.needsUpdate = false;
   renderer.setRenderTarget(LENS.rt); renderer.render(scene, LENS.cam); renderer.setRenderTarget(null);
-  renderer.shadowMap.autoUpdate = au;
+  renderer.shadowMap.needsUpdate = nu;
   const sz = renderer.getDrawingBufferSize(V3);
   LENS.mat.uniforms.res.value.set(sz.x, sz.y); LENS.mat.uniforms.rad.value = sz.y * 0.3;
   const ac = renderer.autoClear; renderer.autoClear = false;
@@ -1227,9 +1235,12 @@ function tick(dt) {
   hemi.color.copy(ENV.hs); hemi.groundColor.copy(ENV.hg); hemi.intensity = ENV.hi;
   sun.color.copy(ENV.sc); sun.intensity = ENV.si;
   // el sol sigue al coche; la zona con sombras va un poco por delante de la cámara
-  V2.set(0, 0, -16).applyQuaternion(camera.quaternion); V2.y = 0;
-  sun.target.position.copy(camera.position).add(V2);
-  sun.position.copy(sun.target.position).add(V1.set(30, 70, 22));
+  G.road.toWorld(G.carD + 100, 0, 0, V2);
+  { const tx = 30, a = Math.round(V2.dot(SUNX) / tx) * tx, b = Math.round(V2.dot(SUNY) / tx) * tx, c = Math.round(V2.dot(SUNZ) / tx) * tx;
+    const key = a + ',' + b + ',' + c;
+    if (key !== SHC.key || SHC.dirty) { SHC.key = key; SHC.dirty = false; renderer.shadowMap.needsUpdate = true; }
+    sun.target.position.copy(SUNX).multiplyScalar(a).addScaledVector(SUNY, b).addScaledVector(SUNZ, c); }
+  sun.position.copy(sun.target.position).add(SUNO);
   skyDome.position.copy(camera.position);
   skyMat.uniforms.hz.value.copy(ENV.sky).lerp(TC.setHex(0xffffff), 0.18);
   skyMat.uniforms.top.value.copy(ENV.sky).multiplyScalar(0.62).lerp(TC.setHex(0x1a6aff), inTun ? 0 : 0.35);
@@ -1431,19 +1442,31 @@ initI18n().then(() => {
   sel.innerHTML = LANGS.map(([k, n]) => `<option value="${k}"${k === getLang() ? ' selected' : ''}>${n}</option>`).join('');
   sel.onchange = () => setLang(sel.value);
 });
+// sombras de verdad del sol: opcionales (en muchos móviles van lentas); por defecto, sombras suaves bajo cada cosa
+let SHADOWS = (localStorage.getItem('rc_sh') ?? '1') === '1';
+function setShadows(v) {
+  SHADOWS = v;
+  try { localStorage.setItem('rc_sh', v ? '1' : '0'); } catch (e) { }
+  renderer.shadowMap.enabled = v && qIdx > 0; renderer.shadowMap.needsUpdate = true;
+  scene.traverse(o => { if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => (m.needsUpdate = true)); });
+  $('btnShadow').textContent = 'SOMBRAS: ' + (v ? 'SÍ' : 'NO');
+}
+$('btnShadow').onclick = () => setShadows(!SHADOWS);
 function setQuality(i) {
   qIdx = i;
   try { localStorage.setItem('rc_q', i); } catch (e) { }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, QUAL[i][1]));
   outline.mat.uniforms.aoOn.value = i > 0 ? 1 : 0;
-  renderer.shadowMap.enabled = i > 0;
-  sun.shadow.mapSize.set(i > 1 ? 2048 : 1024, i > 1 ? 2048 : 1024);
+  renderer.shadowMap.enabled = i > 0 && SHADOWS; renderer.shadowMap.needsUpdate = true;
+  outline.mat.uniforms.aoN.value = i > 1 ? 12 : 8;
+  sun.shadow.mapSize.set(i > 1 ? 3072 : 2048, i > 1 ? 3072 : 2048);
   if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
   applyView();
   $('btnQuality').textContent = 'CALIDAD: ' + QUAL[i][0];
 }
 $('btnQuality').onclick = () => setQuality((qIdx + 1) % QUAL.length);
 setQuality(qIdx);
+setShadows(SHADOWS);
 setOutline((localStorage.getItem('rc_outline') ?? '1') === '1');
 // ---------------- editor de personaje ----------------
 let edR = null, edScene, edCam, edModel = null, edOn = false;
@@ -1541,8 +1564,10 @@ function paintShop() {
     if (u.cat !== G.shopCat) continue;
     const lv = PROG.upg[u.id] | 0, cost = upgCost(u, lv, PROG);
     const d = document.createElement('div'); d.className = 'upg';
-    let pips = ''; for (let i = 0; i < u.max; i++) pips += `<i class="${i < lv ? 'on' : ''}"></i>`;
-    d.innerHTML = `<b>${u.name.toUpperCase()} <em>${lv}/${u.max}</em></b><p>${u.desc}</p><div class="lvpips">${pips}</div>`;
+    let pips = '';
+    if (u.max > 20) pips = `<div class="wxp"><div style="width:${Math.round(lv / u.max * 100)}%"></div></div>`;
+    else for (let i = 0; i < u.max; i++) pips += `<i class="${i < lv ? 'on' : ''}"></i>`;
+    d.innerHTML = `<b>${tr(u.name).toUpperCase()} <em>${lv}/${u.max}</em></b><p>${u.desc}</p><div class="lvpips">${pips}</div>`;
     const b = document.createElement('button');
     b.textContent = lv >= u.max ? 'MÁXIMO' : (lv ? 'SUBIR' : 'COMPRAR') + ' · ' + cost;
     b.disabled = lv >= u.max || PROG.coins < cost;
@@ -1558,7 +1583,7 @@ function paintShop() {
     const w = weaponLevel(PROG, id);
     const e = document.createElement('div'); e.className = 'wl';
     const nx = w.lv >= WMAX ? 1 : Math.min(1, (w.xp || 0) / xpNeed(w.lv));
-    e.innerHTML = `${name.toUpperCase()} <em>NV ${w.lv}</em><div class="wxp"><div style="width:${Math.round(nx * 100)}%"></div></div>`;
+    e.innerHTML = `${tr(name).toUpperCase()} <em>NV ${w.lv}</em><div class="wxp"><div style="width:${Math.round(nx * 100)}%"></div></div>`;
     W2.appendChild(e);
   }
 }

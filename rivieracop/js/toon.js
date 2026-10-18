@@ -67,12 +67,12 @@ export class Outline {
       uniforms: {
         tColor: { value: this.rt.texture }, tDepth: { value: this.rt.depthTexture }, tMask: { value: this.mrt.texture },
         res: { value: new THREE.Vector2(2, 2) }, near: { value: 0.1 }, far: { value: 260 },
-        ink: { value: new THREE.Color(0x14101a) }, inkOn: { value: 1 }, red: { value: new THREE.Color(0xff1a14) }, ow: { value: 2.0 }, redOn: { value: 0 }, aoOn: { value: 1 },
+        ink: { value: new THREE.Color(0x14101a) }, inkOn: { value: 1 }, red: { value: new THREE.Color(0xff1a14) }, ow: { value: 2.0 }, redOn: { value: 0 }, aoOn: { value: 1 }, aoN: { value: 8 },
       },
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
       fragmentShader: `
         uniform sampler2D tColor; uniform sampler2D tDepth; uniform sampler2D tMask; uniform vec2 res; uniform float near; uniform float far;
-        uniform vec3 ink; uniform float inkOn; uniform vec3 red; uniform float ow; uniform float redOn; uniform float aoOn;
+        uniform vec3 ink; uniform float inkOn; uniform vec3 red; uniform float ow; uniform float redOn; uniform float aoOn; uniform float aoN;
         float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
         float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
           return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y); }
@@ -103,14 +103,15 @@ export class Outline {
           if (aoOn > 0.5 && raw < 0.99999) {
             // radio en píxeles de ~0,9 m de mundo, dos anillos de 8 muestras
             float rad = clamp(0.9 * res.y / (d * 1.1), 3.0, 40.0);
-            for (int k = 0; k < 16; k++) {
-              float a = float(k) * 0.785398 + nz * 1.3 + float(k / 8) * 0.39;
-              vec2 o2 = vec2(cos(a), sin(a)) * px * rad * (k < 8 ? 0.45 : 1.0);
+            for (int k = 0; k < 12; k++) {
+              if (float(k) >= aoN) break;
+              float a = float(k) * 1.0472 + nz * 1.3 + float(k / 6) * 0.52;
+              vec2 o2 = vec2(cos(a), sin(a)) * px * rad * (k < 6 ? 0.45 : 1.0);
               float dn = lin(texture2D(tDepth, vUv + o2).r);
               float dd2 = d - dn;
               ao += smoothstep(0.03, 0.35, dd2) * (1.0 - smoothstep(1.2, 3.0, dd2));
             }
-            ao = clamp(ao / 9.0, 0.0, 1.0) * (1.0 - smoothstep(35.0, 90.0, d));
+            ao = clamp(ao / (aoN * 0.6), 0.0, 1.0) * (1.0 - smoothstep(35.0, 90.0, d));
           }
           vec4 mk = texture2D(tMask, vUv);
           // contorno rojo: píxel fuera del enemigo con un vecino dentro

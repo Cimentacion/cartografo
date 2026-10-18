@@ -164,6 +164,27 @@ const SCALE = { gunman: 1.35, civilian: 1.3, sniper: 1.5, moto: 1.2, drone: 1.8,
   sign: 1.45, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2, beast: 1.35, bear: 1.5, jelly: 1.4, mine: 1.2 };
 // cosas que no paran las balas
 const NOHIT = new Set(['tlight', 'preview', 'whale']);
+// sombra suave (mancha difuminada en el suelo) bajo coches, personas y animales: barata y estable
+const BLOBT = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 4, 32, 32, 32);
+  gr.addColorStop(0, 'rgba(20,16,40,0.85)'); gr.addColorStop(0.55, 'rgba(20,16,40,0.45)'); gr.addColorStop(1, 'rgba(20,16,40,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+})();
+const BLOBM = new THREE.MeshBasicMaterial({ map: BLOBT, transparent: true, depthWrite: false, opacity: 0.8, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+const BLOBG = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
+const NOBLOB = new Set(['sign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
+const _bb = new THREE.Box3(), _bs = new THREE.Vector3();
+export function addBlob(g, k = 1.15) {
+  _bb.setFromObject(g); _bb.getSize(_bs);
+  const b = new THREE.Mesh(BLOBG, BLOBM);
+  b.scale.set(Math.max(0.8, _bs.x * k), 1, Math.max(0.8, _bs.z * k));
+  b.position.set((_bb.min.x + _bb.max.x) / 2 - g.position.x, 0.05, (_bb.min.z + _bb.max.z) / 2 - g.position.z);
+  b.renderOrder = -1; b.userData.blob = 1; b.raycast = () => { };
+  g.add(b);
+  return b;
+}
 const PITCH = new Set(['ecar', 'truck', 'amb', 'jeep', 'civcar', 'tank', 'rig', 'fuel', 'pickup', 'van', 'bus', 'quad', 'rammer', 'moto', 'crew']);
 // capa de la máscara: enemigos con contorno rojo / cosas importantes que no se desaturan
 const MASK = {
@@ -183,7 +204,8 @@ export class View {
     this.scene = scene; this.road = road; this.fx = fx;
     this.objs = new Map(); this.hit = []; this.tele = []; this.pops = [];
     this.car = M.convertible();
-    this.car.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
+    this.car.traverse(m => { if (m.isMesh) { m.castShadow = false; m.receiveShadow = true; } });
+    addBlob(this.car, 1.1);
     scene.add(this.car);
     this.av = [0, 1, 2, 3].map(i => M.seatedPlayer(i));
     this.av.forEach((a, i) => { a.position.set(SEATS[i][0], 1.4, SEATS[i][1]); this.car.add(a); a.visible = false; });
@@ -342,7 +364,8 @@ export class View {
     });
     const sc = SCALE[e.type];
     if (sc) g.scale.setScalar(sc);
-    g.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
+    g.traverse(m => { if (m.isMesh) { m.castShadow = false; m.receiveShadow = true; } });
+    if (!NOBLOB.has(e.type) && (e.h || 0) < 0.6) { const sc0 = g.scale.x; g.scale.setScalar(1); g.rotation.set(0, 0, 0); g.position.set(0, 0, 0); addBlob(g); g.scale.setScalar(sc0); }
     g.userData.eid = e.id;
     g.userData.type = e.type;
     this.scene.add(g);

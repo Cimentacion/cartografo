@@ -527,7 +527,7 @@ export class Sim {
     const deco = BIOMES[BIOME_KEYS[this.road.bioAt(this.carD + 80)]].deco;
     const inTun = this.road.inTunnel(this.carD + 120);
     this.civT -= dt;
-    if (['rio', 'bosque', 'submarino', 'ruinas', 'guerra', 'llanura', 'bajada'].includes(deco)) this.civT = Math.max(this.civT, 1);
+    if (['rio', 'bosque', 'submarino', 'ruinas', 'guerra', 'llanura', 'bajada', 'tuneles'].includes(deco)) this.civT = Math.max(this.civT, 1);
     if (this.civT <= 0) {
       this.civT = deco === 'manifa' ? 2.5 + this.r() * 2 : 6 + this.r() * 6;
       const w = { truck: rt > 10 ? 1.4 * this.wMult('truck') : 0, civcar: 1.5 * this.wMult('civcar'), civ: this.road.inTunnel(this.carD + 70) ? 0 : deco === 'manifa' ? 20 : 1.2 };
@@ -610,6 +610,15 @@ export class Sim {
       if (this.timer('mine', dt, 6)) this.spawnMines();
       if (this.timer('tank', dt, 40) && !this.has('tank')) this.spawnTank();
       if (this.timer('squad', dt, 10)) this.spawnSquad();
+    }
+    // túneles: cuando se une el segundo tubo, coches por todos los carriles (en vuestro sentido)
+    if (deco === 'tuneles' && !inTun && prog > 0.31) {
+      if (this.timer('tcar', dt, 2.4) && this.count('civcar') < 10) {
+        const behind = this.r() < 0.5, lat = this.r() < 0.5 ? 11.6 : 16.6;
+        const e = this.add('civcar', { d: behind ? this.carD - 45 : this.carD + 170, lat, h: 0, hp: 999, vd: this.speed + (behind ? 7 + this.r() * 5 : -4 - this.r() * 4), ry: 0 });
+        e.x = { c: (this.r() * 6) | 0, pc: 0 };
+      }
+      if (once('tmerge')) this.emit('banner', { txt: '¡SE UNE OTRO TÚNEL!', sub: 'Coches por todos los carriles', c: '#ff9a2a' });
     }
     // ciudad policial: patrullas por el otro carril; si alguien dispara mientras pasan, multa
     if (deco === 'policia' && !inTun) {
@@ -1173,7 +1182,7 @@ export class Sim {
       }
       // carteles grandes a los lados avisando de las rutas, con flechas
       for (const dd of [140, 85]) for (const sd of [-1, 1]) {
-        const e = this.add('preview', { d: f.gantry - dd, lat: sd * 8.0, h: 0.18, hp: 999, ry: Math.PI + sd * 0.5 });
+        const e = this.add('preview', { d: f.gantry - dd, lat: sd * 8.0, h: 0.18, hp: 999, ry: Math.PI - sd * 0.5 });
         e.x = { o: opts };
       }
       this.emit('banner', { txt: 'ELIGE RUTA', sub: 'Dispara al cartel: el número es la dificultad (más premio)', c: '#ffe14a' });
@@ -1412,7 +1421,7 @@ const U = {
     }
   },
   truck(e, dt, S) { if (S.rel(e) < -45) e.rm = true; },
-  civcar(e, dt, S) { if (e.x.pc > 0) e.x.pc -= dt; if (S.rel(e) < -50) e.rm = true; },
+  civcar(e, dt, S) { if (e.x.pc > 0) e.x.pc -= dt; const rl = S.rel(e); if (rl < -50 || rl > 260) e.rm = true; },
   police(e, dt, S) { if (e.x.pc > 0) e.x.pc -= dt; if (S.rel(e) < -50) e.rm = true; },
   float(e, dt, S) { if (e.x.pc > 0) e.x.pc -= dt; if (S.rel(e) < -50) e.rm = true; },
   barrel(e, dt, S) { if (S.rel(e) < -30 || e.st === ST.DEAD) e.rm = true; },

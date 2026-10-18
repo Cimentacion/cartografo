@@ -1,6 +1,7 @@
 // Modelos low-poly estilo recreativa de los 90 (todo con cajas). Mirando hacia -Z.
 // userData.part en cada malla: qué parte recibe el disparo. userData.shooters: de dónde salen las balas.
 import * as THREE from 'three';
+import { tr } from './i18n.js';
 import { RARITY, weaponLines } from './weapons.js';
 import { PCOL } from './defs.js';
 import { toon, tex, toonGrad2 } from './toon.js';
@@ -629,8 +630,8 @@ export function drawWeaponCard(g, w, prog, need, n) {
   c.textAlign = 'center';
   let fs = 24;
   c.font = `bold ${fs}px sans-serif`;
-  while (c.measureText(w.name.toUpperCase()).width > 240 && fs > 13) { fs--; c.font = `bold ${fs}px sans-serif`; }
-  c.fillText(w.name.toUpperCase(), 128, 28);
+  while (c.measureText(tr(w.name).toUpperCase()).width > 240 && fs > 13) { fs--; c.font = `bold ${fs}px sans-serif`; }
+  c.fillText(tr(w.name).toUpperCase(), 128, 28);
   c.font = 'bold 19px monospace';
   weaponLines(w).forEach(([k, v], i) => {
     c.textAlign = 'left'; c.fillStyle = '#9aa3b5'; c.fillText(k, 14, 66 + i * 23);

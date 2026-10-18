@@ -165,6 +165,7 @@ function decal(list, w, h, m, side, o = {}) {
 }
 
 function shoulderOf(B, side) {
+  if (B.deco === 'tuneles') return 0;
   if (B.deco === 'monaco' || B.deco === 'cornisa' || B.deco === 'costa' || B.deco === 'acantilados' || B.deco === 'rio') return side < 0 ? 0 : 14;
   return 14;
 }
@@ -193,8 +194,8 @@ export function buildChunk(road, c, M) {
       if (t.end >= d0 && t.end < d1) restFacade(R, road, t.end - 1.5);
       continue;
     }
-    if (t.fork >= 0 && t.start >= d0 && t.start < d1) facade(R, road, t.start + 1.5);
-    if (t.end >= d0 && t.end < d1) facade(R, road, t.end - 1.5);
+    if (t.fork >= 0 && t.start >= d0 && t.start < d1) { facade(R, road, t.start + 1.5); portalHill(R, road, t.start + 13); }
+    if (t.end >= d0 && t.end < d1) { facade(R, road, t.end - 1.5); portalHill(R, road, t.end - 13); }
   }
   if (c === 0) addBox(R.L, 14.6, 7.6, 1, 0x2a2a2a, frame(road, 0.5, 0, 3.8));
   for (const f of road.forks) {
@@ -265,6 +266,12 @@ function interiorRun(R, road, B, i0, i1, r) {
   if (i1 - i0 > 20 && pr() < 0.7) addBox(R.G, 0.6, 1.4, 4, 0x3ab0e0, frame(road, i0 + 12, 7.0, 1.6));
 }
 
+// ladera de montaña alrededor de cada boca de túnel: tapa el cielo y lo que había al lado (nada de huecos raros)
+function portalHill(R, road, d) {
+  const y = road.gy[Math.max(0, Math.min(road.len, Math.floor(d)))], down = y + 3;
+  addBox(R.K, 150, 34, 24, 0x9a8a72, frame(road, d, 0, 7.6 + 17), { shade: true, uvs: 6 });
+  for (const sd of [-1, 1]) addBox(R.K, 66, 7.6 + down, 24, 0x9a8a72, frame(road, d, sd * (8.6 + 33), (7.6 - down) / 2), { uvs: 6 });
+}
 function tunnelRun(R, road, B, i0, i1) {
   strip(R.A, road, i0, i1, C(-HALF, 0), C(HALF, 0), 0x55575c, 4);
   for (const sd of [-1, 1]) {
@@ -381,7 +388,7 @@ function outsideRun(R, road, B, i0, i1, r) {
     const sh = shoulderOf(B, sd);
     if (sh > 0) strip(R.K, road, i0, i1, C(sd * WALK, 0.18), C(sd * (WALK + sh), 0.18), LIGHT(B.skirt, 0.2), 5);
     const e = WALK + sh;
-    if (B.deco !== 'llanura' && B.deco !== 'lomas') strip(R.K, road, i0, i1, C(sd * e, 0.18), i => [sd * (e + Math.max(3, (road.gy[i] + 2) * 0.55)), -(road.gy[i] + 2)], LIGHT(B.skirt, 0.2), 6);
+    if (B.deco !== 'llanura' && B.deco !== 'lomas' && B.deco !== 'tuneles') strip(R.K, road, i0, i1, C(sd * e, 0.18), i => [sd * (e + Math.max(3, (road.gy[i] + 2) * 0.55)), -(road.gy[i] + 2)], LIGHT(B.skirt, 0.2), 6);
   }
   DECO[B.deco](R, road, B, i0, i1, r);
   if (CITY.has(B.deco)) {
@@ -394,7 +401,7 @@ function outsideRun(R, road, B, i0, i1, r) {
 function ok(road, d, lat, rad, edificio = false) {
   const k = road.kindAt(d);
   if (k === 1) return false;
-  for (const t of road.tunnels) if (d > t.start - 16 && d < t.end + 16) return false;
+  for (const t of road.tunnels) if (d > t.start - 18 - rad && d < t.end + 18 + rad) return false;
   // nada se mete en el pórtico de los carteles ni en los carteles de aviso
   for (const f of road.forks) {
     if (Math.abs(d - f.gantry) < 8 + rad) return false;
@@ -1114,6 +1121,49 @@ const DECO = {
         addBox(R.L, 0.08, 1.1, 0.08, 0x5a5a5a, m, { y: 0.55, z: -2.5 });
         addBox(R.L, 0.03, 0.03, 5, 0x8a8a8a, m, { y: 0.9 }); addBox(R.L, 0.03, 0.03, 5, 0x8a8a8a, m, { y: 0.5 });
       }
+    }
+  },
+  // túnel largo iluminado en naranja; desde el 30 % de la zona se le une otro túnel por la derecha,
+  // separado por columnas que aguantan el techo
+  tuneles(R, road, B, i0, i1, r) {
+    const H = 7.2, RW = 20.5;
+    let split = i1;
+    for (let i = i0; i < i1; i++) if (road.zoneAt(i).prog >= 0.3) { split = i; break; }
+    const wall = (a, b, sd) => {
+      strip(R.T, road, a, b, C(sd * WALK, 0.18), C(sd * WALK, 1.7), 0xf0dcb8, 1.4);
+      strip(R.K, road, a, b, C(sd * WALK, 1.7), C(sd * WALK, H), 0xe0d0b0, 4);
+    };
+    wall(i0, i1, -1);
+    if (split > i0) { wall(i0, split, 1); strip(R.L, road, i0, split, C(-WALK, H), C(WALK, H), 0x4a4440); }
+    if (split < i1) {
+      // segundo tubo: calzada, líneas, pared del fondo y techo común
+      strip(R.A, road, split, i1, C(WALK, 0.02), C(RW - 1.2, 0.02), LIGHT(B.asphalt, 0.08), 4);
+      strip(R.P, road, split, i1, C(RW - 1.2, 0.18), C(RW, 0.18), B.walk, 2);
+      strip(R.L, road, split, i1, C(RW - 1.2, 0), C(RW - 1.2, 0.18), 0x77736c);
+      for (const l of [WALK + 0.5, RW - 1.6]) strip(R.L, road, split, i1, C(l, 0.03), C(l + 0.15, 0.03), 0xffffff);
+      for (let i = Math.ceil(split / 6) * 6; i < i1; i += 6) addBox(R.L, 0.15, 0.02, 3, 0xffc040, frame(road, i, 14.2, 0.04));
+      wall(split, i1, RW / WALK);
+      strip(R.L, road, split, i1, C(-WALK, H), C(RW, H), 0x4a4440);
+      // tapa del arranque del segundo tubo
+      addBox(R.K, 0.6, H, RW - WALK, 0xb8a890, frame(road, split, (RW + WALK) / 2, H / 2), { ry: Math.PI / 2 });
+      for (let i = Math.ceil(split / 7) * 7; i < i1; i += 7) {
+        const m = frame(road, i, WALK + 0.25, 0);
+        addBox(R.C, 0.9, H, 0.9, 0xd8c8a8, m, { y: H / 2, uvs: 3 });
+        addBox(R.L, 0.95, 0.5, 0.95, 0xffb040, m, { y: 1.0 });
+      }
+      for (let i = Math.ceil(split / 9) * 9; i < i1; i += 9) addBox(R.G, 0.4, 0.15, 2.6, 0xffa040, frame(road, i, 14.2, H - 0.12));
+    }
+    // luces naranjas en el techo, nichos de emergencia y ventiladores
+    for (let i = Math.ceil(i0 / 9) * 9; i < i1; i += 9) for (const l of [-4, 4]) addBox(R.G, 0.4, 0.15, 2.6, 0xffa040, frame(road, i, l, H - 0.12));
+    for (let i = Math.ceil(i0 / 60) * 60; i < i1; i += 60) {
+      const m = frame(road, i, -WALK + 0.06, 0);
+      addBox(R.G, 0.06, 0.5, 1.0, 0x30ff60, m, { y: 2.6 });
+      addBox(R.L, 0.08, 2.1, 1.3, 0xd03020, m, { y: 1.25 });
+    }
+    for (let i = Math.ceil(i0 / 110) * 110 + 30; i < i1; i += 110) for (const l of [-2.2, 2.2]) {
+      const m = frame(road, i, l, H - 0.9);
+      addCyl(R.L, 0.8, 0.8, 2.6, 10, 0x6a6a6a, m, { rx: Math.PI / 2 });
+      addCyl(R.D, 0.6, 0.6, 2.62, 10, 0x1a1a1a, m, { rx: Math.PI / 2 });
     }
   },
   lomas(R, road, B, i0, i1, r) {

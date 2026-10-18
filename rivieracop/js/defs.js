@@ -2,7 +2,7 @@
 
 export const BIOME_KEYS = ['monaco', 'puerto', 'casino', 'autopista', 'industrial', 'cornisa', 'detroit', 'desierto', 'costa', 'trenes', 'acantilados', 'orgullo',
   'militar', 'manifa', 'barro', 'chino', 'rio', 'semaforos', 'trenmil',
-  'bosque', 'guerra', 'llanura', 'ruinas', 'submarino', 'bajada', 'curva', 'lomas', 'policia'];
+  'bosque', 'guerra', 'llanura', 'ruinas', 'submarino', 'bajada', 'curva', 'lomas', 'policia', 'tuneles'];
 // zonas de ciudad: más edificios detrás, rascacielos y pasarelas elevadas
 export const CITY = new Set(['policia', 'monaco', 'casino', 'detroit', 'manifa', 'semaforos', 'orgullo', 'chino']);
 
@@ -258,6 +258,17 @@ export const BIOMES = {
     slope: 0, hmin: 12, hmax: 18, hair: 0,
     build: [0xc8c0b0, 0xa8b8c8, 0xd8c0a0, 0xb0b0b8], roof: 0x3a3a48,
     w: { gunman: 1.3, ecar: 1.0, civcar: 0.4 }, pts: 1.6, deco: 'policia', lv: 3,
+  },
+  tuneles: {
+    name: 'LOS TÚNELES', color: '#ff9a2a',
+    sky: 0x2a1808, fogNear: 30, fogFar: 150, sea: 0x1a120a,
+    asphalt: 0x3e3c3a, walk: 0x8a7a6a, skirt: 0x3a3028, line: 0xffc040,
+    hemi: [0xffc890, 0x5a3a20, 1.3], sun: [0xffb060, 0.6], night: false,
+    // túnel larguísimo iluminado en naranja y siempre cuesta abajo; a mitad se le une otro túnel por la derecha
+    slope: -0.035, descent: true, floor: -1e9, len: 1300,
+    hmin: 0, hmax: 0, hair: 0,
+    build: [0xb8a890], roof: 0x4a4440,
+    w: { ecar: 1.4, rammer: 1.4, moto: 1.5, gunman: 0.7, civcar: 1.8, quad: 0.8, drone: 0, heli: 0, sniper: 0, jumper: 0 }, pts: 1.7, deco: 'tuneles', lv: 4,
   },
   lomas: {
     name: 'LAS LOMAS', color: '#9ad84a',
