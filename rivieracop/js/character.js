@@ -12,6 +12,7 @@ export const BEARDS = [['no', 'Sin barba'], ['barba', 'Barba'], ['perilla', 'Per
 export const SHIRTS = [
   ['lisa', 'Lisa'], ['arcoiris', 'Arcoíris'], ['progreso', 'Progreso'], ['trans', 'Trans'], ['bi', 'Bi'],
   ['lesbiana', 'Lesbiana'], ['nobinaria', 'No binaria'], ['pan', 'Pan'], ['ace', 'Asexual'],
+  ['diez', 'Camiseta del 10'], ['marruecos', 'Marruecos'], ['sudadera', 'Sudadera negra'],
 ];
 export const HATS = [['no', 'Nada'], ['paja', 'Sombrero de paja'], ['gladiador', 'Gladiador'], ['vaquero', 'Vaquero'], ['copa', 'Chistera'], ['corona', 'Corona'],
   ['vikingo', 'Vikingo'], ['gorro', 'Gorro de lana'], ['poli', 'Gorra de poli'], ['pirata', 'Pirata'], ['fiesta', 'De fiesta'], ['chef', 'Gorro de chef']];
@@ -30,7 +31,29 @@ const FLAGS = {
   nobinaria: ['#fcf434', '#ffffff', '#9c59d1', '#2c2c2c'],
   pan: ['#ff218c', '#ffd800', '#21b1ff'],
   ace: ['#000000', '#a3a3a3', '#ffffff', '#800080'],
+  // equipaciones (se dibujan aparte; el primer color es el de las mangas)
+  diez: ['#1a1424'], marruecos: ['#c1272d'], sudadera: ['#16161a'],
 };
+// camisetas dibujadas: degradado negro a morado con el 10 dorado, la de Marruecos (roja con detalles verdes y la estrella) y sudadera
+function drawKit(name, g) {
+  if (name === 'diez') {
+    const gr = g.createLinearGradient(0, 0, 0, 64); gr.addColorStop(0, '#16121e'); gr.addColorStop(0.55, '#2a1a3e'); gr.addColorStop(1, '#7a3ac8');
+    g.fillStyle = gr; g.fillRect(0, 0, 32, 64);
+    g.fillStyle = '#d8b04a'; g.font = 'bold 22px sans-serif'; g.textAlign = 'center'; g.fillText('10', 16, 34);
+    g.fillRect(4, 8, 24, 2);
+  } else if (name === 'marruecos') {
+    g.fillStyle = '#c1272d'; g.fillRect(0, 0, 32, 64);
+    g.fillStyle = '#006233'; g.fillRect(0, 0, 32, 5); g.fillRect(0, 59, 32, 5);
+    g.strokeStyle = '#006233'; g.lineWidth = 1.6; g.beginPath();
+    for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * 4 * Math.PI / 5; const x = 16 + Math.cos(a) * 7, y = 26 + Math.sin(a) * 7; i ? g.lineTo(x, y) : g.moveTo(x, y); }
+    g.closePath(); g.stroke();
+    g.fillStyle = '#ffffff'; g.font = 'bold 10px sans-serif'; g.textAlign = 'center'; g.fillText('10', 16, 50);
+  } else if (name === 'sudadera') {
+    g.fillStyle = '#16161a'; g.fillRect(0, 0, 32, 64);
+    g.fillStyle = '#e8e8e8'; g.font = 'bold 7px sans-serif'; g.textAlign = 'center'; g.fillText('CREW', 16, 22);
+    g.fillStyle = '#2a2a30'; g.fillRect(6, 40, 20, 10);
+  }
+}
 
 export function defaultChar(i) {
   return i === 0
@@ -64,10 +87,13 @@ function flagMat(name) {
   if (FM[name]) return FM[name];
   const cols = FLAGS[name];
   const c = document.createElement('canvas');
-  c.width = 32; c.height = 64;
+  const kit = ['diez', 'marruecos', 'sudadera'].includes(name);
+  c.width = kit ? 128 : 32; c.height = kit ? 256 : 64;
   const g = c.getContext('2d');
+  if (kit) g.scale(4, 4);
   const h = 64 / cols.length;
   cols.forEach((col, i) => { g.fillStyle = col; g.fillRect(0, Math.floor(i * h), 32, Math.ceil(h) + 1); });
+  drawKit(name, g);
   if (name === 'progreso') {
     // chevron de la bandera del progreso
     const ch = ['#000000', '#784f17', '#5bcefa', '#f5a9b8', '#ffffff'];
@@ -79,7 +105,7 @@ function flagMat(name) {
   }
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
-  t.magFilter = THREE.NearestFilter;
+  t.magFilter = kit ? THREE.LinearFilter : THREE.NearestFilter;
   // las bandas van de arriba abajo en la camiseta
   t.flipY = true;
   FM[name] = toon({ map: t });
@@ -92,7 +118,7 @@ export function personOpts(cfg) {
   return {
     skin: SKINS[c.skin],
     shirt: c.shirt === 'lisa' ? SHIRT_COLORS[c.shirtCol] : flagMat(c.shirt),
-    sleeve: c.shirt === 'lisa' ? SHIRT_COLORS[c.shirtCol] : 0xf2f2f2,
+    sleeve: c.shirt === 'lisa' ? SHIRT_COLORS[c.shirtCol] : ['diez', 'marruecos', 'sudadera'].includes(c.shirt) ? parseInt(FLAGS[c.shirt][0].slice(1), 16) : 0xf2f2f2,
     pants: PANTS_COLORS[c.pants],
     hairStyle: c.hair, hair: HAIR_COLORS[c.hairCol], beard: c.beard,
     glasses: c.glasses, chair: c.chair, hat: c.hat, back: c.back, neck: c.neck, face: c.face,

@@ -14,7 +14,7 @@ import { showRewarded, showInterstitial, adsReal, lastAdErr } from './ads.js';
 import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME, BOSS } from './defs.js';
 import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES } from './weapons.js';
 import { UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd, turboDur, turboCd, POWERS } from './progress.js';
-import { fpGun } from './models.js';
+import { fpGun, VEHICLES, VCOLORS } from './models.js';
 import { Outline, toon } from './toon.js';
 import { loadChar, saveChar, sanitize, defaultChar, SKINS, HAIRS, HAIR_COLORS, BEARDS, SHIRTS, SHIRT_COLORS, PANTS_COLORS, HATS, BACKS, NECKS, FACES } from './character.js';
 import { seatedPlayer } from './models.js';
@@ -623,6 +623,7 @@ net.onmsg = (m, from) => {
       case 'hello': if (m.pf) { addRecent(m.pf.id, m.pf.name); G.peerProf = G.peerProf || {}; G.peerProf[from] = m.pf; } if (m.v !== NETV) lobbyMsg('Alguien tiene otra versión: recargad todos la página'); if (m.c) G.peerChars[from] = sanitize(m.c, from); if (m.m) G.peerMetas[from] = m.m; break;
       case 'ab': if (S && G.running && (m.k === 'shield' || m.k === 'bullet' || m.k === 'turbo')) S.useAbility(from, m.k, clamp(m.lv | 0, 1, ABMAX), clamp(m.l2 | 0, 0, 5)); break;
       case 'rv': if (S && G.running) S.revive(from); break;
+      case 'veh': if (!G.running && VEHICLES.some(x => x[0] === m.k)) { setVeh(m.k, clamp(m.c | 0, 0, VCOLORS.length - 1), from); net.send({ t: 'vs', k: G.veh.k, c: G.veh.c, left: VS.left }); } break;
       case 'pot': if (S && G.running && P) { if (m.fresh) P.pot = 1; S.usePotion(from); } break;
       case 'pw': if (S && G.running && POWERS[m.k] && m.k !== 'furia') S.power(from, m.k, clamp(m.lv | 0, 1, 3)); break;
       case 'sf': if (P) P.spdF = clamp(+m.v || 1, 0.3, 1); break;
@@ -638,12 +639,15 @@ net.onmsg = (m, from) => {
         G.speedIdx = m.sp | 0;
         G.chars = [0, 1, 2, 3].map(i => sanitize(m.chars && m.chars[i], i));
         G.goneAtStart = m.gone || [];
+        $('vsel').hidden = true;
+        if (m.veh && VEHICLES.some(x => x[0] === m.veh.k)) G.veh = { k: m.veh.k, c: clamp(m.veh.c | 0, 0, VCOLORS.length - 1) };
         G.story = m.st != null && STORY[m.st] ? m.st | 0 : null;
         if (Array.isArray(m.pf)) for (const q of m.pf) if (q && typeof q.id === 'string') addRecent(q.id, q.name);
         begin(m.seed, m.n, net.myIdx || 1, 'guest');
         break;
       }
       case 's': if (G.mir) G.mir.push(m); break;
+      case 'vsel': case 'vs': guestVsel(m); break;
       case 'ev': for (const e of m.e) { if (IMMEDIATE.has(e.k)) handleEvent(e); else G.evq.push(e); } break;
       case 'busy': lobbyMsg('La partida ya ha empezado: entrarás en la siguiente (cuando el anfitrión pulse OTRA VEZ)'); break;
       case 'full': lobbyMsg('La sala ya está llena (máximo 4 jugadores)'); break;
@@ -686,7 +690,7 @@ function hostStart() {
   for (let i = 1; i < n; i++) if (!idx.includes(i)) gone.push(i);
   G.chars = [0, 1, 2, 3].map(i => (i === 0 ? MYCHAR : G.peerChars[i] || defaultChar(i)));
   G.goneAtStart = gone;
-  net.send({ t: 'start', seed, n, chars: G.chars, sp: G.speedIdx, gone, st: G.story, pf: [{ id: PROF.id, name: PROF.name }].concat(Object.values(G.peerProf || {})) });
+  net.send({ t: 'start', seed, n, chars: G.chars, sp: G.speedIdx, gone, st: G.story, veh: G.veh, pf: [{ id: PROF.id, name: PROF.name }].concat(Object.values(G.peerProf || {})) });
   begin(seed, n, 0, 'host');
 }
 
@@ -718,6 +722,7 @@ function begin(seed, n, li, mode) {
   if (!view) view = new View(scene, G.road, fx);
   view.clear(); view.road = G.road;
   if (mode === 'solo') G.chars = [MYCHAR, defaultChar(1), defaultChar(2), defaultChar(3)];
+  applyVeh();
   view.setAvatars(G.chars || [MYCHAR, defaultChar(1), defaultChar(2), defaultChar(3)]);
   // solo se ven los compañeros que hay de verdad (con 3 jugadores, el cuarto asiento va vacío)
   view.av.forEach((a, i) => (a.visible = n > 1 && i < n && i !== li));
@@ -842,6 +847,7 @@ function lanList(list, key) {
 }
 function toMenu(msg) {
   lanStop();
+  clearInterval(VS.iv); $('vsel').hidden = true;
   G.roomCode = null; presSet('menu'); setTimeout(updMenuCard, 0);
   if (G.packReady) { setTimeout(() => { try { window.RCApp.reloadGame(); } catch (e) { location.reload(); } }, 300); }
   if (G.updPending) { const u = G.updPending; G.updPending = null; setTimeout(() => window.rcUpdate(u[0], u[1]), 500); }
@@ -1044,6 +1050,57 @@ window.rcPack = (k, v) => {
     else setTimeout(() => { try { window.RCApp.reloadGame(); } catch (e) { location.reload(); } }, 1200);
   }
 };
+// ---------------- selección de vehículo (10 s antes de cada partida) ----------------
+const VICON = { cabrio: '🚘', clasico: '🚗', furgo: '🚐', moto: '🏍', tanque: '🪖' };
+const VDESC = { cabrio: 'El de siempre', clasico: 'Años 50, con aletas', furgo: 'Puertas abiertas', moto: 'Dos sidecars', tanque: 'Todos encima' };
+G.veh = (() => { try { const v = JSON.parse(localStorage.getItem('rc_veh') || 'null'); if (v && VEHICLES.some(x => x[0] === v.k)) return { k: v.k, c: clamp(v.c | 0, 0, VCOLORS.length - 1) }; } catch (e) { } return { k: 'cabrio', c: 0 }; })();
+function applyVeh() { if (view) view.setVehicle(G.veh.k, VCOLORS[G.veh.c]); }
+function paintVsel() {
+  const L = $('vsList'); L.innerHTML = '';
+  for (const [k, n] of VEHICLES) {
+    const b = document.createElement('button');
+    b.className = 'vsc' + (G.veh.k === k ? ' sel' : '');
+    b.innerHTML = `<span class="mi">${VICON[k]}</span>${n.toUpperCase()}<small>${VDESC[k]}</small>`;
+    b.onclick = () => pickVeh(k, G.veh.c);
+    L.appendChild(b);
+  }
+  const C = $('vsCol'); C.innerHTML = '';
+  VCOLORS.forEach((c, i) => { const b = document.createElement('button'); b.style.background = '#' + c.toString(16).padStart(6, '0'); b.className = G.veh.c === i ? 'sel' : ''; b.onclick = () => pickVeh(G.veh.k, i); C.appendChild(b); });
+}
+function setVeh(k, c, who) {
+  G.veh = { k, c };
+  try { localStorage.setItem('rc_veh', JSON.stringify(G.veh)); } catch (e) { }
+  applyVeh(); paintVsel();
+  if (who != null && G.mode === 'host') $('vsMsg').textContent = (who === 0 ? 'Has elegido' : 'J' + (who + 1) + ' ha elegido') + ': ' + VEHICLES.find(x => x[0] === k)[1];
+}
+function pickVeh(k, c) {
+  SFX.tone(700, 900, 0.05, 'square', 0.1);
+  if (G.mode === 'guest') { net.send({ t: 'veh', k, c }); G.veh = { k, c }; paintVsel(); return; }
+  setVeh(k, c, 0);
+  if (G.mode === 'host' && net.open) net.send({ t: 'vs', k, c, left: VS.left });
+}
+const VS = { left: 0, iv: null };
+function vehSelect(done) {
+  for (const s of document.querySelectorAll('.screen')) s.hidden = true;
+  $('vsel').hidden = false; $('vsGo').hidden = G.mode === 'host' || G.mode === 'guest';
+  $('vsMsg').textContent = G.mode === 'host' ? 'Cualquiera puede cambiarlo: sale el que esté elegido al acabar la cuenta' : 'Elige con qué vas a salir';
+  applyVeh(); paintVsel();
+  VS.left = 10; $('vsT').textContent = VS.left;
+  clearInterval(VS.iv);
+  const end = () => { clearInterval(VS.iv); $('vsel').hidden = true; done(); };
+  $('vsGo').onclick = end;
+  VS.iv = setInterval(() => {
+    VS.left--; $('vsT').textContent = Math.max(0, VS.left);
+    if (G.mode === 'host' && net.open) net.send({ t: 'vs', k: G.veh.k, c: G.veh.c, left: VS.left });
+    if (VS.left <= 0) end();
+  }, 1000);
+}
+// invitado: el anfitrión abre la selección y va mandando la cuenta y lo elegido
+function guestVsel(m) {
+  if ($('vsel').hidden) { for (const s of document.querySelectorAll('.screen')) s.hidden = true; $('vsel').hidden = false; $('vsGo').hidden = true; $('vsMsg').textContent = 'Cualquiera puede cambiarlo: sale el que esté elegido al acabar la cuenta'; }
+  if (m.k && VEHICLES.some(x => x[0] === m.k)) { G.veh = { k: m.k, c: clamp(m.c | 0, 0, VCOLORS.length - 1) }; applyVeh(); paintVsel(); }
+  if (m.left != null) $('vsT').textContent = Math.max(0, m.left | 0);
+}
 // ---------------- amigos ----------------
 const PROF = (() => {
   let p = null; try { p = JSON.parse(localStorage.getItem('rc_prof') || 'null'); } catch (e) { }
@@ -1168,7 +1225,7 @@ function paintStory() {
       if (!unlocked) { SFX.empty(); return; }
       await prep();
       $('storyScr').hidden = true;
-      dialog(S.intro, () => { G.story = i; begin((Math.random() * 4294967296) >>> 0, 1, 0, 'solo'); });
+      dialog(S.intro, () => { G.story = i; G.mode = 'solo'; vehSelect(() => begin((Math.random() * 4294967296) >>> 0, 1, 0, 'solo')); });
     };
     L.appendChild(c);
   });
@@ -1428,7 +1485,7 @@ function tick(dt) {
   QLOOK.setFromEuler(EA);
   camera.quaternion.copy(QCAR).multiply(QLOOK);
   // la cámara un poco hacia fuera del coche: el compañero de al lado tapa menos
-  camera.position.set(SEATS[li][0] * 1.3, 2.3 + (CAN.t > 0 ? 0.75 : 0), SEATS[li][1]);
+  camera.position.set(SEATS[li][0] * 1.3, 2.3 + (car.userData.seatY || 0) + (CAN.t > 0 ? 0.75 : 0), SEATS[li][1]);
   car.localToWorld(camera.position);
   if (G.shake > 0) camera.position.add(V1.set((Math.random() - 0.5) * G.shake * 0.3, (Math.random() - 0.5) * G.shake * 0.3, 0));
   camera.updateMatrixWorld(true);
@@ -1618,7 +1675,7 @@ function goFull() {
 }
 async function prep() { SFX.unlock(); goFull(); await look.requestGyro(); }
 
-$('btnSolo').onclick = async () => { await prep(); G.story = null; begin((Math.random() * 4294967296) >>> 0, 1, 0, 'solo'); };
+$('btnSolo').onclick = async () => { await prep(); G.story = null; G.mode = 'solo'; vehSelect(() => begin((Math.random() * 4294967296) >>> 0, 1, 0, 'solo')); };
 $('btnHost').onclick = async () => {
   await prep();
   for (const s of document.querySelectorAll('.screen')) s.hidden = true;
@@ -1670,14 +1727,14 @@ $('btnGo').onclick = async () => {
     G.mode = null; $('lanList').hidden = false; lanStop(); LAN.scan = new LanScan(lanList);
   }
 };
-$('btnStart').onclick = () => { if (net.open) hostStart(); };
+$('btnStart').onclick = () => { if (!net.open) return; net.send({ t: 'vsel' }); vehSelect(() => { if (net.open) hostStart(); else toMenu('Se han ido todos de la sala'); }); };
 $('btnBack').onclick = () => toMenu('');
 $('btnAgain').onclick = () => {
   const seed = (Math.random() * 4294967296) >>> 0;
   if (G.mode === 'host') {
-    if (net.open) hostStart();
-    else begin(seed, 1, 0, 'solo');
-  } else begin(seed, 1, 0, 'solo');
+    if (net.open) { net.send({ t: 'vsel' }); vehSelect(() => { if (net.open) hostStart(); else begin(seed, 1, 0, 'solo'); }); }
+    else vehSelect(() => begin(seed, 1, 0, 'solo'));
+  } else { G.mode = 'solo'; vehSelect(() => begin(seed, 1, 0, 'solo')); }
 };
 $('btnNext').onclick = () => { G.story = G.nextStory; $('btnAgain').onclick(); };
 $('btnMenu').onclick = () => toMenu('');

@@ -214,7 +214,23 @@ export class View {
     this.aimT = new THREE.Vector3();
   }
   // mejoras del coche que se ven: espolones y torreta
+  // cambia el vehículo (descapotable, clásico, furgoneta, moto con sidecars o tanque) conservando a los jugadores
+  setVehicle(kind, col) {
+    const key = kind + ':' + col;
+    if (this.vkey === key) return;
+    this.vkey = key;
+    const old = this.car;
+    this.car = M.convertible(kind, col);
+    this.car.traverse(m => { if (m.isMesh) { m.castShadow = false; m.receiveShadow = true; } });
+    addBlob(this.car, 1.1);
+    if (old) { this.car.position.copy(old.position); this.car.quaternion.copy(old.quaternion); this.scene.remove(old); }
+    this.scene.add(this.car);
+    const sy = this.car.userData.seatY || 0;
+    this.av.forEach((a, i) => { if (old) old.remove(a); a.position.set(SEATS[i][0], 1.4 + sy, SEATS[i][1]); this.car.add(a); });
+    if (this.parts) this.setCarParts(...this.parts);
+  }
   setCarParts(pk, tu) {
+    this.parts = [pk, tu];
     const u = this.car.userData;
     u.spikes.visible = pk > 0;
     u.turret.visible = tu > 0;
@@ -222,7 +238,8 @@ export class View {
   setAvatars(chars) {
     this.av.forEach(a => this.car.remove(a));
     this.av = [0, 1, 2, 3].map(i => M.seatedPlayer(i, chars[i]));
-    this.av.forEach((a, i) => { a.position.set(SEATS[i][0], 1.4, SEATS[i][1]); this.car.add(a); a.visible = false; });
+    const sy = this.car.userData.seatY || 0;
+    this.av.forEach((a, i) => { a.position.set(SEATS[i][0], 1.4 + sy, SEATS[i][1]); this.car.add(a); a.visible = false; });
   }
   clear() {
     for (const o of this.objs.values()) this.scene.remove(o);

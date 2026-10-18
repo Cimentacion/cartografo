@@ -236,51 +236,132 @@ export function person(o = {}) {
 
 // ---------- coche de los jugadores (descapotable) ----------
 // descapotable alargado (limusina) para hasta 4 jugadores: 2 filas de pie + conductor delante
-export function convertible() {
+// vehículos de los jugadores. Todos tienen los 4 asientos en el mismo sitio (2 delante, 2 detrás);
+// userData.seatY = cuánto más alto van sentados que en el descapotable
+export const VEHICLES = [['cabrio', 'Descapotable'], ['clasico', 'Clásico'], ['furgo', 'Furgoneta'], ['moto', 'Moto con sidecars'], ['tanque', 'Tanque']];
+export const VCOLORS = [0xc8102e, 0x2a6ad0, 0xf0c020, 0x2a9a4a, 0x1a1a1a, 0xf2f2f2, 0xe060a0, 0xf07a20];
+export function convertible(kind = 'cabrio', col = 0xc8102e) {
   const g = new THREE.Group();
-  const red = 0xc8102e, dark = 0x1a1a1a, L = 6.2;
-  box(g, 1.96, 0.5, L, red, 0, 0.6, 0);
-  box(g, 1.9, 0.16, 1.4, red, 0, 0.92, -2.4);
-  box(g, 1.96, 0.2, 0.9, red, 0, 0.94, 2.65);
-  box(g, 1.98, 0.16, 0.3, 0xd8d8d8, 0, 0.42, -L / 2 - 0.05);
-  box(g, 1.98, 0.16, 0.3, 0xd8d8d8, 0, 0.42, L / 2 + 0.05);
-  for (const sd of [-1, 1]) {
-    box(g, 0.08, 0.2, 4.6, red, sd * 0.95, 0.94, 0.4);
-    box(g, 0.1, 0.06, 4.6, 0xd8d8d8, sd * 0.97, 0.78, 0.4);
-    box(g, 0.34, 0.14, 0.05, glow(0xfff6c8), sd * 0.62, 0.66, -L / 2 - 0.01);
-    box(g, 0.36, 0.14, 0.05, glow(0xff2020), sd * 0.62, 0.7, L / 2 + 0.01);
-    box(g, 0.05, 0.5, 0.06, dark, sd * 0.86, 1.2, -1.62);
+  const dark = 0x1a1a1a;
+  let L = 6.2, seatY = 0, drvY = 0.02, front = -3.1;
+  const seat = (x, y, z) => { box(g, 0.62, 0.18, 0.6, 0x3a2414, x, y, z); box(g, 0.62, 0.5, 0.16, 0x3a2414, x, y + 0.24, z + 0.32); };
+  const seats = y => { for (const z of [0.25, 1.5]) for (const sd of [-1, 1]) seat(sd * 0.5, y, z); };
+  if (kind === 'clasico') {
+    // coche americano de los 50: largo, aletas traseras, mucho cromo y dos tonos
+    L = 6.8; front = -3.4;
+    box(g, 2.0, 0.5, L, col, 0, 0.58, 0);
+    box(g, 2.02, 0.12, L, 0xf2f2f2, 0, 0.42, 0);
+    box(g, 1.94, 0.18, 1.7, col, 0, 0.92, -2.5);
+    for (const sd of [-1, 1]) {
+      const fin = box(g, 0.12, 0.4, 1.6, col, sd * 0.94, 1.0, 2.6); fin.rotation.x = -0.12;
+      box(g, 0.14, 0.18, 0.08, glow(0xff2020), sd * 0.94, 1.05, 3.42);
+      box(g, 0.08, 0.2, 4.8, col, sd * 0.96, 0.92, 0.3);
+      box(g, 0.1, 0.05, 6.4, 0xe8e8e8, sd * 1.0, 0.7, 0);
+      const hl = new THREE.Mesh(cgeo(0.16, 0.06, 10), glow(0xfff6c8)); hl.rotation.x = Math.PI / 2; hl.position.set(sd * 0.7, 0.7, -L / 2 - 0.02); g.add(hl);
+      box(g, 0.05, 0.5, 0.06, dark, sd * 0.86, 1.2, -1.62);
+    }
+    box(g, 2.1, 0.22, 0.3, 0xe8e8e8, 0, 0.45, -L / 2 - 0.08); box(g, 2.1, 0.22, 0.3, 0xe8e8e8, 0, 0.45, L / 2 + 0.08);
+    for (let k = -3; k <= 3; k++) box(g, 0.08, 0.22, 0.04, 0xe8e8e8, k * 0.18, 0.62, -L / 2 - 0.02);
+    const ws = box(g, 1.8, 0.5, 0.04, GLASS, 0, 1.2, -1.6); ws.rotation.x = -0.32;
+    box(g, 0.7, 0.18, 0.6, 0xe8e0d0, 0, 0.86, -1.0); box(g, 0.7, 0.55, 0.16, 0xe8e0d0, 0, 1.12, -0.7);
+    for (const z of [0.25, 1.5]) { box(g, 1.7, 0.18, 0.6, 0xe8e0d0, 0, 0.86, z); box(g, 1.7, 0.5, 0.16, 0xe8e0d0, 0, 1.1, z + 0.32); }
+    for (const sx of [-0.97, 0.97]) for (const sz of [-2.3, 2.3]) { wheel(g, sx, 0.36, sz); box(g, 0.3, 0.2, 0.2, 0xf2f2f2, sx * 1.01, 0.36, sz); }
+  } else if (kind === 'furgo') {
+    // furgoneta: cabina con techo; atrás sin techo, puerta lateral corrida y puertas traseras abiertas
+    L = 5.8; seatY = 0.25; drvY = 0.3; front = -2.9;
+    box(g, 2.1, 0.7, L, col, 0, 0.75, 0);
+    box(g, 2.1, 1.3, 1.6, col, 0, 1.75, -2.0);
+    box(g, 1.96, 0.6, 0.05, GLASS, 0, 1.85, -2.81);
+    box(g, 2.12, 0.08, 1.6, 0xf2f2f2, 0, 2.42, -2.0);
+    for (const sd of [-1, 1]) {
+      box(g, 0.06, 0.55, 0.9, GLASS, sd * 1.05, 1.9, -2.1);
+      box(g, 0.08, 1.0, 1.6, col, sd * 1.03, 1.6, 2.1);          // laterales traseros (la parte de delante va abierta)
+      const rd = box(g, 0.06, 1.3, 1.0, col, sd * 1.5, 1.45, 3.15); rd.rotation.y = sd * 1.1; // puertas traseras abiertas
+      box(g, 0.34, 0.14, 0.05, glow(0xfff6c8), sd * 0.7, 0.85, -L / 2 - 0.01);
+      box(g, 0.2, 0.3, 0.05, glow(0xff2020), sd * 0.9, 1.0, L / 2 + 0.01);
+      box(g, 0.06, 0.06, 1.4, 0x888888, sd * 1.06, 1.15, 0.6);     // carril de la puerta corredera
+    }
+    box(g, 2.12, 0.18, L, 0x2a2a2a, 0, 0.4, 0);
+    box(g, 1.9, 0.08, 4.0, 0x4a4a4a, 0, 1.12, 0.9);
+    seats(1.1);
+    for (const sx of [-1.0, 1.0]) for (const sz of [-1.9, 1.9]) wheel(g, sx, 0.42, sz, 0.42, 0.3);
+  } else if (kind === 'moto') {
+    // moto grande en el centro con un sidecar a cada lado; dos jugadores en cada sidecar
+    L = 4.4; seatY = -0.15; drvY = 0.15; front = -2.4;
+    box(g, 0.4, 0.5, 2.2, col, 0, 0.75, -1.1);
+    box(g, 0.5, 0.35, 0.8, col, 0, 1.05, -1.8);
+    box(g, 0.9, 0.06, 0.06, 0xaaaaaa, 0, 1.35, -2.1);
+    { const hl = new THREE.Mesh(cgeo(0.14, 0.08, 10), glow(0xfff6c8)); hl.rotation.x = Math.PI / 2; hl.position.set(0, 1.1, -2.25); g.add(hl); }
+    for (const z of [-2.0, -0.2]) wheel(g, 0, 0.38, z, 0.38, 0.18);
+    box(g, 0.24, 0.24, 0.9, 0xb8b8c0, 0.22, 0.45, -0.6);
+    for (const sd of [-1, 1]) {
+      // sidecar: bañera redondeada con dos asientos
+      box(g, 0.9, 0.55, 2.4, col, sd * 0.6, 0.62, 0.9);
+      box(g, 0.94, 0.08, 2.44, 0xf2f2f2, sd * 0.6, 0.92, 0.9);
+      const nose = box(g, 0.86, 0.45, 0.6, col, sd * 0.6, 0.55, -0.45); nose.rotation.x = 0.5;
+      box(g, 0.1, 0.1, 1.3, 0x888888, sd * 0.32, 0.5, 0.0);
+      wheel(g, sd * 1.12, 0.32, 1.4, 0.32, 0.18);
+      for (const z of [0.25, 1.5]) { box(g, 0.6, 0.12, 0.55, 0x3a2414, sd * 0.6, 0.75, z); box(g, 0.6, 0.4, 0.12, 0x3a2414, sd * 0.6, 0.98, z + 0.3); }
+      box(g, 0.2, 0.12, 0.05, glow(0xff2020), sd * 0.6, 0.7, 2.11);
+    }
+  } else if (kind === 'tanque') {
+    // tanque: cadenas, casco ancho y la torreta detrás; vais todos sentados encima
+    L = 6.6; seatY = 0.75; drvY = 0.55; front = -3.4;
+    const hull = col === 0xc8102e ? 0x5a6a3a : col;
+    box(g, 2.6, 0.7, L, hull, 0, 0.85, 0);
+    const gl = box(g, 2.6, 0.5, 1.0, hull, 0, 0.75, -3.2); gl.rotation.x = 0.6;
+    for (const sd of [-1, 1]) {
+      box(g, 0.6, 0.75, L + 0.3, 0x2a2a2a, sd * 1.5, 0.45, 0);
+      for (let k = 0; k < 6; k++) { const w = new THREE.Mesh(cgeo(0.3, 0.62, 10), mat(0x4a4a4a)); w.rotation.z = Math.PI / 2; w.position.set(sd * 1.5, 0.4, -2.6 + k * 1.04); g.add(w); }
+      for (let k = 0; k < 18; k++) box(g, 0.64, 0.05, 0.12, 0x1a1a1a, sd * 1.5, 0.84, -3.3 + k * 0.39);
+      box(g, 0.66, 0.08, L + 0.4, hull, sd * 1.5, 0.88, 0);
+    }
+    box(g, 1.7, 0.5, 1.4, hull, 0, 1.45, 3.0);
+    { const c = new THREE.Mesh(cgeo(0.12, 2.6, 10), mat(0x3a3a3a)); c.rotation.x = Math.PI / 2; c.position.set(0, 1.55, 4.4); g.add(c); }
+    box(g, 2.0, 0.08, 4.0, 0x3a3a2a, 0, 1.22, -0.6);
+    seats(1.32);
+  } else {
+    box(g, 1.96, 0.5, L, col, 0, 0.6, 0);
+    box(g, 1.9, 0.16, 1.4, col, 0, 0.92, -2.4);
+    box(g, 1.96, 0.2, 0.9, col, 0, 0.94, 2.65);
+    box(g, 1.98, 0.16, 0.3, 0xd8d8d8, 0, 0.42, -L / 2 - 0.05);
+    box(g, 1.98, 0.16, 0.3, 0xd8d8d8, 0, 0.42, L / 2 + 0.05);
+    for (const sd of [-1, 1]) {
+      box(g, 0.08, 0.2, 4.6, col, sd * 0.95, 0.94, 0.4);
+      box(g, 0.1, 0.06, 4.6, 0xd8d8d8, sd * 0.97, 0.78, 0.4);
+      box(g, 0.34, 0.14, 0.05, glow(0xfff6c8), sd * 0.62, 0.66, -L / 2 - 0.01);
+      box(g, 0.36, 0.14, 0.05, glow(0xff2020), sd * 0.62, 0.7, L / 2 + 0.01);
+      box(g, 0.05, 0.5, 0.06, dark, sd * 0.86, 1.2, -1.62);
+    }
+    const ws = box(g, 1.76, 0.48, 0.04, GLASS, 0, 1.2, -1.6);
+    ws.rotation.x = -0.32;
+    box(g, 1.8, 0.06, 0.08, dark, 0, 1.43, -1.52);
+    box(g, 0.7, 0.18, 0.6, 0x3a2414, 0, 0.86, -1.0);
+    box(g, 0.7, 0.55, 0.16, 0x3a2414, 0, 1.12, -0.7);
+    seats(0.86);
+    box(g, 0.08, 0.3, 0.08, dark, 0, 1.1, -1.42);
+    const sw = new THREE.Mesh(cgeo(0.2, 0.04, 10), mat(dark));
+    sw.rotation.x = Math.PI / 2 - 0.4;
+    sw.position.set(0, 1.25, -1.38);
+    g.add(sw);
+    for (const sx of [-0.95, 0.95]) for (const sz of [-2.1, 2.1]) wheel(g, sx, 0.36, sz);
   }
-  const ws = box(g, 1.76, 0.48, 0.04, GLASS, 0, 1.2, -1.6);
-  ws.rotation.x = -0.32;
-  box(g, 1.8, 0.06, 0.08, dark, 0, 1.43, -1.52);
-  // asiento del conductor y dos filas para los jugadores
-  box(g, 0.7, 0.18, 0.6, 0x3a2414, 0, 0.86, -1.0);
-  box(g, 0.7, 0.55, 0.16, 0x3a2414, 0, 1.12, -0.7);
-  for (const z of [0.25, 1.5]) for (const sd of [-1, 1]) {
-    box(g, 0.62, 0.18, 0.6, 0x3a2414, sd * 0.5, 0.86, z);
-    box(g, 0.62, 0.5, 0.16, 0x3a2414, sd * 0.5, 1.1, z + 0.32);
-  }
-  box(g, 0.08, 0.3, 0.08, dark, 0, 1.1, -1.42);
-  const sw = new THREE.Mesh(cgeo(0.2, 0.04, 10), mat(dark));
-  sw.rotation.x = Math.PI / 2 - 0.4;
-  sw.position.set(0, 1.25, -1.38);
-  g.add(sw);
-  for (const sx of [-0.95, 0.95]) for (const sz of [-2.1, 2.1]) wheel(g, sx, 0.36, sz);
+  g.userData.seatY = seatY;
   const drv = person({ shirt: 0xf2f2f2, pants: 0x1a2a44, glasses: true, hair: 0x101010 });
-  drv.position.set(0, 0.02, -1.15);
+  drv.position.set(0, drvY, kind === 'furgo' ? -2.0 : kind === 'moto' ? -0.95 : -1.15);
   drv.userData.rig.armR.rotation.x = -0.6;
   drv.userData.rig.armL.rotation.x = -0.6;
   g.add(drv);
   g.userData.driver = drv;
   // mejoras del coche (se enseñan si alguien las tiene): espolones y torreta en el capó
   const spikes = new THREE.Group(); spikes.visible = false; g.add(spikes);
+  spikes.position.z = front + L / 2;
   box(spikes, 2.1, 0.22, 0.25, 0x6a6a6a, 0, 0.55, -L / 2 - 0.2);
   for (let k = -3; k <= 3; k++) {
     const c = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.6, 5), mat(0xd8d8d8));
     c.rotation.x = -Math.PI / 2; c.position.set(k * 0.32, 0.55, -L / 2 - 0.6); spikes.add(c);
   }
-  const tur = new THREE.Group(); tur.visible = false; tur.position.set(0, 1.0, -2.3); g.add(tur);
+  const tur = new THREE.Group(); tur.visible = false; tur.position.set(0, 1.0 + seatY + (kind === 'furgo' ? 1.5 : 0), kind === 'furgo' ? -2.0 : -2.3); g.add(tur);
   box(tur, 0.5, 0.25, 0.5, 0x2a2a2a, 0, 0.12, 0);
   const tp = new THREE.Group(); tp.position.y = 0.35; tur.add(tp);
   box(tp, 0.36, 0.26, 0.5, 0x3a3a3a, 0, 0, 0);
