@@ -60,12 +60,59 @@ const SHC = { key: '' };
 const SUNO = new THREE.Vector3(150, 160, 70), SUNZ = SUNO.clone().normalize(), SUNX = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), SUNZ).normalize(), SUNY = new THREE.Vector3().crossVectors(SUNZ, SUNX);
 scene.add(sun); scene.add(sun.target);
 // cielo con degradado: azul intenso arriba y claro en el horizonte
+// cielo de dibujo animado: degradado, nubes esponjosas con borde marcado, sol o luna y estrellas de noche.
+// Cada zona tiene su tipo: día, atardecer, nublado o noche (cambia suavemente al pasar de zona)
 const skyMat = new THREE.ShaderMaterial({
-  uniforms: { hz: { value: new THREE.Color(0x9ae0ff) }, top: { value: new THREE.Color(0x2a8aff) } },
+  uniforms: {
+    hz: { value: new THREE.Color(0x9ae0ff) }, top: { value: new THREE.Color(0x2a8aff) },
+    cl: { value: new THREE.Color(0xffffff) }, cs: { value: new THREE.Color(0xb8c8e8) }, sc: { value: new THREE.Color(0xfff2c0) },
+    cover: { value: 0.45 }, night: { value: 0 }, time: { value: 0 }, sunDir: { value: new THREE.Vector3(0.55, 0.45, 0.7).normalize() },
+  },
   vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-  fragmentShader: 'uniform vec3 hz; uniform vec3 top; varying vec3 vP; void main(){ float t = clamp(normalize(vP).y * 2.2, 0.0, 1.0); gl_FragColor = vec4(mix(hz, top, pow(t, 0.8)), 1.0); \n#include <colorspace_fragment>\n }',
+  fragmentShader: `uniform vec3 hz; uniform vec3 top; uniform vec3 cl; uniform vec3 cs; uniform vec3 sc; uniform float cover; uniform float night; uniform float time; uniform vec3 sunDir;
+    varying vec3 vP;
+    float h2(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+    float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+      return mix(mix(h2(i), h2(i + vec2(1, 0)), f.x), mix(h2(i + vec2(0, 1)), h2(i + vec2(1, 1)), f.x), f.y); }
+    float fbm(vec2 p){ float a = 0.5, s = 0.0; for (int k = 0; k < 4; k++) { s += a * vn(p); p = p * 2.03 + 7.1; a *= 0.5; } return s; }
+    void main(){
+      vec3 d = normalize(vP);
+      float t = clamp(d.y * 2.0, 0.0, 1.0);
+      vec3 c = mix(hz, top, pow(t, 0.75));
+      // sol (o luna) con halo
+      float sd = max(dot(d, sunDir), 0.0);
+      c += sc * pow(sd, 18.0) * 0.35 * (1.0 - night * 0.6);
+      c = mix(c, sc, smoothstep(0.9975, 0.999, sd));
+      // estrellas
+      if (night > 0.01 && d.y > 0.05) { vec2 g = floor(d.xz / (d.y + 0.3) * 90.0); float st = step(0.993, h2(g)); c += vec3(st) * night * smoothstep(0.05, 0.3, d.y); }
+      // nubes: proyectadas sobre un techo, con borde nítido (estilo dibujo) y la base más oscura
+      if (d.y > 0.0) {
+        vec2 uv = d.xz / (d.y + 0.12) * 1.6 + vec2(time * 0.012, time * 0.004);
+        float n = fbm(uv);
+        float th = 1.0 - cover;
+        float m = smoothstep(th, th + 0.04, n);
+        float sh = smoothstep(th + 0.02, th + 0.16, fbm(uv + vec2(0.06, 0.09)));
+        vec3 cc = mix(cs, cl, sh);
+        cc += sc * pow(sd, 6.0) * 0.25;
+        c = mix(c, cc, m * smoothstep(0.0, 0.18, d.y));
+      }
+      gl_FragColor = vec4(c, 1.0);
+      #include <colorspace_fragment>
+    }`,
   side: THREE.BackSide, depthWrite: false, fog: false,
 });
+const SKYT = {
+  dia: { cl: 0xffffff, cs: 0xb4c4e4, sc: 0xfff2c0, cover: 0.42, night: 0, top: 0x2a7aff },
+  atardecer: { cl: 0xffe0c8, cs: 0xc87090, sc: 0xffb050, cover: 0.38, night: 0, top: 0x5a3a9a },
+  nublado: { cl: 0xd8dce4, cs: 0x8a909c, sc: 0xfff8e0, cover: 0.62, night: 0, top: 0x6a7a90 },
+  noche: { cl: 0x5a6a90, cs: 0x2a3050, sc: 0xe8f0ff, cover: 0.3, night: 1, top: 0x0a0e2a },
+};
+function skyTypeOf(B) {
+  if (B.night) return 'noche';
+  if (['desierto', 'acantilados', 'costa', 'bajada', 'curva', 'lomas'].includes(B.deco)) return 'atardecer';
+  if (['guerra', 'ruinas', 'bosque', 'militar', 'manifa', 'detroit', 'industrial', 'barro'].includes(B.deco)) return 'nublado';
+  return 'dia';
+}
 const skyDome = new THREE.Mesh(new THREE.SphereGeometry(240, 24, 12), skyMat);
 skyDome.renderOrder = -10; skyDome.frustumCulled = false;
 scene.add(skyDome);
@@ -657,6 +704,8 @@ function gameOver(ev) {
     h += '<canvas id="routeMap" width="560" height="240"></canvas>';
     const mine = ev.sc[G.li] || 0, coins = Math.floor(mine / 10 * (1 + 0.1 * (PROG.upg.codicia | 0)));
     PROG.coins += coins; saveProg(PROG);
+    // ver un anuncio duplica las monedas de esta partida (una vez)
+    G.lastCoins = coins; $('btnX2').hidden = coins <= 0; $('btnX2').disabled = false; $('btnX2').textContent = '📺 x2 MONEDAS (+' + coins + ')';
     h += `<div class="ocoin">+${coins} MONEDAS · tienes ${PROG.coins}</div>`;
     const best = Math.max(...ev.sc);
     const rec = +(localStorage.getItem('rc_best') || 0);
@@ -1104,6 +1153,17 @@ async function adForPotion() {
   return ok;
 }
 $('btnAdPot').onclick = async () => { if (await adForPotion()) $('menuMsg').textContent = '¡Poción conseguida! Te salva una vez por partida: si te matan vuelves con toda la vida (o úsala para curarte entero)'; };
+$('btnX2').onclick = async () => {
+  if (!(G.lastCoins > 0)) return;
+  $('btnX2').disabled = true;
+  const ok = await showRewarded();
+  if (ok) {
+    PROG.coins += G.lastCoins; saveProg(PROG); SFX.pickup();
+    const oc = document.querySelector('#overStats .ocoin');
+    if (oc) oc.textContent = '+' + (G.lastCoins * 2) + ' MONEDAS (x2) · tienes ' + PROG.coins;
+    $('btnX2').textContent = '¡MONEDAS DUPLICADAS!'; G.lastCoins = 0;
+  } else { $('btnX2').disabled = false; $('btnX2').textContent = 'No hay anuncio ahora' + (lastAdErr ? ' (' + lastAdErr.slice(0, 40) + ')' : ''); }
+};
 $('btnOverAd').onclick = async () => { if (await adForPotion()) { $('btnOverAd').hidden = (PROG.pot | 0) >= 3; $('btnOverAd').textContent = '¡+1 POCIÓN! (tienes ' + PROG.pot + ')'; } };
 function usePot(fresh) {
   if (G.mode === 'guest') net.send({ t: 'pot', fresh: fresh ? 1 : 0 });
@@ -1436,8 +1496,12 @@ function tick(dt) {
   sun.position.copy(sun.target.position).add(SUNO);
   skyDome.position.copy(camera.position);
   outline.mat.uniforms.tint.value.copy(ENV.sky).lerp(TC.setHex(0xffffff), 0.25);
-  skyMat.uniforms.hz.value.copy(ENV.sky).lerp(TC.setHex(0xffffff), 0.18);
-  skyMat.uniforms.top.value.copy(ENV.sky).multiplyScalar(0.62).lerp(TC.setHex(0x1a6aff), inTun ? 0 : 0.35);
+  { const U = skyMat.uniforms, T = SKYT[skyTypeOf(B)], q = Math.min(1, dt * 0.8);
+    U.hz.value.copy(ENV.sky).lerp(TC.setHex(0xffffff), 0.18);
+    U.top.value.lerp(TC.setHex(T.top), q); U.cl.value.lerp(TC.setHex(T.cl), q); U.cs.value.lerp(TC.setHex(T.cs), q); U.sc.value.lerp(TC.setHex(T.sc), q);
+    U.cover.value += (T.cover - U.cover.value) * q; U.night.value += (T.night - U.night.value) * q; U.time.value += dt;
+    U.sunDir.value.copy(SUNZ);
+    scene.fog.color.copy(U.hz.value); }
   hemi.groundColor.lerp(TC.setHex(0x7a86c8), 0.35);
   sea.position.set(camera.position.x, G.road.seaAt(G.carD), camera.position.z);
   // --- interfaz ---
