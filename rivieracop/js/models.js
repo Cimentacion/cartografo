@@ -1421,7 +1421,21 @@ export function crew(v = 0) {
   const g = new THREE.Group();
   const sh = [], aim = [];
   let spots;
-  if (v === 0) {
+  if (v === 2) {
+    // tractor verde con ruedas traseras enormes y un remolque de heno detrás; los tiradores van sobre el heno
+    const col = 0x2a8a3a;
+    box(g, 1.3, 1.0, 2.6, col, 0, 1.2, -1.8, 'body');
+    box(g, 1.1, 0.4, 0.3, 0x1a1a1a, 0, 1.0, -3.15, 'body');
+    box(g, 1.5, 1.6, 1.4, col, 0, 2.2, -0.4, 'body');
+    box(g, 1.52, 0.1, 1.6, 0xf0c020, 0, 3.05, -0.4, 'body');
+    box(g, 1.3, 1.0, 0.04, GLASS, 0, 2.3, -1.12, 'body');
+    { const ex = new THREE.Mesh(cgeo(0.08, 1.2, 8), mat(0x2a2a2a)); ex.position.set(0.45, 2.3, -2.4); g.add(ex); }
+    box(g, 0.3, 0.12, 0.05, glow(0xfff6c8), -0.4, 1.4, -3.11); box(g, 0.3, 0.12, 0.05, glow(0xfff6c8), 0.4, 1.4, -3.11);
+    // remolque con balas de heno
+    box(g, 2.2, 0.25, 3.6, 0x8a5a2a, 0, 1.0, 2.6, 'body');
+    for (const [x, y, z] of [[-0.55, 1.5, 1.4], [0.55, 1.5, 1.4], [-0.55, 1.5, 3.6], [0.55, 1.5, 3.6], [0, 2.3, 3.6]]) box(g, 1.05, 0.8, 1.4, 0xe0c060, x, y, z, 'body');
+    spots = [[-0.5, 1.12, 2.4], [0.5, 1.12, 2.6]];
+  } else if (v === 0) {
     const col = 0x6a7a4a;
     box(g, 2.3, 1.5, 1.9, col, 0, 1.45, -2.4, 'body');
     box(g, 2.1, 0.6, 0.05, GLASS, 0, 1.75, -3.36, 'body');
@@ -1446,11 +1460,11 @@ export function crew(v = 0) {
     spots = [[-0.45, 2.52, -0.6], [0.5, 2.52, 1.2]];
   }
   // ruedas grandes con llanta de color: el sitio donde disparar
-  const W0 = v === 0 ? [[-1.1, -2.2], [1.1, -2.2], [-1.1, 1.8], [1.1, 1.8]] : [[-1.05, -1.7], [1.05, -1.7], [-1.05, 1.7], [1.05, 1.7]];
+  const W0 = v === 2 ? [[-0.75, -2.3, 0.5], [0.75, -2.3, 0.5], [-0.95, -0.4, 0.95], [0.95, -0.4, 0.95]] : v === 0 ? [[-1.1, -2.2], [1.1, -2.2], [-1.1, 1.8], [1.1, 1.8]] : [[-1.05, -1.7], [1.05, -1.7], [-1.05, 1.7], [1.05, 1.7]];
   const tires = [];
-  W0.forEach(([x, z], i) => {
-    const t = wheel(g, x, 0.55, z, 0.55, 0.4, 'w' + i);
-    box(g, 0.44, 0.3, 0.3, 0xffb020, x + Math.sign(x) * 0.01, 0.55, z, 'w' + i);
+  W0.forEach(([x, z, rr = 0.55], i) => {
+    const t = wheel(g, x, rr, z, rr, 0.4, 'w' + i);
+    box(g, 0.44, rr * 0.55, rr * 0.55, 0xffb020, x + Math.sign(x) * 0.01, rr, z, 'w' + i);
     tires.push(t);
   });
   spots.forEach(([x, y, z], i) => {
@@ -1547,6 +1561,37 @@ export function spikes() {
   const halo = new THREE.Mesh(sgeo(1.4), glow(0xffb020, 0.12)); halo.position.y = 0.1; g.add(halo);
   proxy(g, 0.9, -0.8, 0.2, 0); proxy(g, 0.9, 0.8, 0.2, 0);
   g.userData.light = l; g.userData.halo = halo;
+  return g;
+}
+// ---------- cosechadora (jefe del pueblo) ----------
+export function harvester() {
+  const g = new THREE.Group();
+  const col = 0x2a8a3a, yel = 0xf0c020;
+  box(g, 3.2, 3.0, 6.4, col, 0, 2.4, 1.0, 'body');
+  box(g, 3.22, 0.3, 6.42, yel, 0, 1.0, 1.0, 'body');
+  box(g, 2.6, 1.2, 2.4, col, 0, 4.4, 2.6, 'body');                     // tolva
+  for (const sx of [-1, 1]) { wheel(g, sx * 1.75, 1.1, -0.8, 1.1, 0.7, 'body'); wheel(g, sx * 1.55, 0.7, 3.6, 0.7, 0.5, 'body'); }
+  // cabina arriba delante con el conductor
+  const cab = new THREE.Group(); cab.position.set(0, 3.9, -1.2); g.add(cab);
+  box(cab, 2.0, 0.15, 2.0, 0xf2f2f2, 0, 1.6, 0, 'cab');
+  box(cab, 2.0, 1.5, 1.9, GLASS, 0, 0.75, 0, 'cab');
+  for (const [x, z] of [[-1, -0.95], [1, -0.95], [-1, 0.95], [1, 0.95]]) box(cab, 0.1, 1.6, 0.1, 0x1a1a1a, x, 0.8, z, 'cab');
+  const drv = person({ shirt: 0x4a6a8a, pants: 0x2a3a4a, cap: 0xc02020, part: 'cab' }); drv.position.set(0, -0.2, 0.1); cab.add(drv);
+  // escalera, tubo de descarga y escape con humo
+  for (let k = 0; k < 5; k++) box(g, 0.5, 0.06, 0.2, 0x2a2a2a, -1.7, 1.2 + k * 0.5, -0.4);
+  { const t = new THREE.Mesh(cgeo(0.25, 5.0, 10), mat(col)); t.rotation.z = Math.PI / 2 - 0.25; t.position.set(-3.6, 4.6, 2.6); g.add(t); }
+  { const ex = new THREE.Mesh(cgeo(0.14, 1.6, 8), mat(0x2a2a2a)); ex.position.set(1.0, 5.6, 2.0); g.add(ex); }
+  // plataforma de corte delante: barra de cuchillas y molinete que gira
+  box(g, 6.4, 0.9, 1.8, yel, 0, 0.75, -3.0, 'cut');
+  box(g, 6.6, 0.12, 0.6, 0x8a8a8a, 0, 0.3, -3.9, 'cut');
+  for (let k = 0; k < 26; k++) { const t = box(g, 0.08, 0.06, 0.45, 0xd8d8d8, -3.1 + k * 0.248, 0.3, -4.3, 'cut'); t.rotation.y = 0.0; }
+  for (const sx of [-1, 1]) box(g, 0.15, 1.4, 1.9, yel, sx * 3.2, 1.1, -3.1, 'cut');
+  const reel = new THREE.Group(); reel.position.set(0, 1.8, -3.6); g.add(reel);
+  { const ax = new THREE.Mesh(cgeo(0.1, 6.2, 8), mat(0x3a3a3a)); ax.rotation.z = Math.PI / 2; reel.add(ax); }
+  for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; const b = box(reel, 6.0, 0.1, 0.12, 0xc02020, 0, Math.sin(a) * 0.9, Math.cos(a) * 0.9, 'cut'); for (const x of [-2.8, 0, 2.8]) { const sp = box(reel, 0.06, 0.9, 0.06, 0x3a3a3a, x, Math.sin(a) * 0.45, Math.cos(a) * 0.45, 'cut'); sp.rotation.x = -a; } }
+  for (const sx of [-1, 1]) box(g, 0.08, 0.9, 0.08, 0x3a3a3a, sx * 3.0, 1.4, -3.2);
+  box(g, 0.5, 0.15, 0.05, glow(0xffb020), -1.0, 3.6, -0.21); box(g, 0.5, 0.15, 0.05, glow(0xffb020), 1.0, 3.6, -0.21);
+  g.userData.reel = reel;
   return g;
 }
 // ---------- caza ----------

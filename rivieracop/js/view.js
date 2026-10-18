@@ -161,7 +161,7 @@ const CIV = [0xf0c040, 0x40a0f0, 0xf06080, 0x60d080, 0xffffff, 0xff8030, 0xa070f
 const SKIN = [0xd9a476, 0xb27a4e, 0xf0c8a0, 0x7a5030];
 // enemigos más grandes: más fáciles de ver y de acertar en el móvil
 const SCALE = { gunman: 1.35, civilian: 1.3, sniper: 1.5, moto: 1.2, drone: 1.8, chicken: 1.4, grenade: 1.7, rocket: 1.5, medkit: 1.3, barrel: 1.2, jeep: 1.1, lady: 1.3, rock: 1.3,
-  sign: 1.45, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2, beast: 1.35, bear: 1.5, jelly: 1.4, mine: 1.2 };
+  sign: 1.45, harvester: 1.9, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2, beast: 1.35, bear: 1.5, jelly: 1.4, mine: 1.2 };
 // cosas que no paran las balas
 const NOHIT = new Set(['tlight', 'preview', 'whale']);
 // sombra suave (mancha difuminada en el suelo) bajo coches, personas y animales: barata y estable
@@ -185,14 +185,14 @@ export function addBlob(g, k = 1.15) {
   g.add(b);
   return b;
 }
-const PITCH = new Set(['ecar', 'truck', 'amb', 'jeep', 'civcar', 'tank', 'rig', 'fuel', 'pickup', 'van', 'bus', 'quad', 'rammer', 'moto', 'crew']);
+const PITCH = new Set(['ecar', 'truck', 'amb', 'jeep', 'civcar', 'tank', 'rig', 'fuel', 'pickup', 'van', 'bus', 'quad', 'rammer', 'moto', 'crew', 'harvester']);
 // capa de la máscara: enemigos con contorno rojo / cosas importantes que no se desaturan
 const MASK = {
   gunman: LAYER_ENEMY, sniper: LAYER_ENEMY, moto: LAYER_ENEMY, ecar: LAYER_ENEMY, heli: LAYER_ENEMY, drone: LAYER_ENEMY, jeep: LAYER_ENEMY,
   grenade: LAYER_ENEMY, rocket: LAYER_ENEMY, rock: LAYER_ENEMY, wall: LAYER_ENEMY, train: LAYER_ENEMY,
   turret: LAYER_ENEMY, gunship: LAYER_ENEMY,
   beast: LAYER_ENEMY, bear: LAYER_ENEMY, mine: LAYER_ENEMY, jet: LAYER_ENEMY, blimp: LAYER_ENEMY, rammer: LAYER_ENEMY, junk: LAYER_ENEMY, jelly: LAYER_ENEMY,
-  quad: LAYER_ENEMY, crew: LAYER_ENEMY, pickup: LAYER_ENEMY, van: LAYER_ENEMY, bus: LAYER_ENEMY, canoe: LAYER_ENEMY,
+  quad: LAYER_ENEMY, crew: LAYER_ENEMY, harvester: LAYER_ENEMY, xcar: LAYER_KEEP, pickup: LAYER_ENEMY, van: LAYER_ENEMY, bus: LAYER_ENEMY, canoe: LAYER_ENEMY,
   jumper: LAYER_ENEMY, tank: LAYER_ENEMY, rig: LAYER_ENEMY, rioter: LAYER_ENEMY, thrown: LAYER_ENEMY, chef: LAYER_ENEMY, boat: LAYER_ENEMY, mtrain: LAYER_ENEMY,
   preview: LAYER_KEEP, police: LAYER_KEEP, tlight: LAYER_KEEP, fuel: LAYER_KEEP, float: LAYER_KEEP,
   sign: LAYER_KEEP, weapon: LAYER_KEEP, medkit: LAYER_KEEP, amb: LAYER_KEEP, truck: LAYER_KEEP, barrel: LAYER_KEEP, lady: LAYER_KEEP, civilian: LAYER_KEEP, chicken: LAYER_KEEP,
@@ -295,6 +295,16 @@ export class View {
         // lanzacohetes al hombro
         if (x.rk) { M.box(p.userData.rig.armR, 0.22, 0.22, 1.3, 0x3a4a2a, -0.05, 0.12, -0.4, 'gun'); M.box(p.userData.rig.armR, 0.26, 0.26, 0.2, 0x1a1a1a, -0.05, 0.12, -1.05, 'gun'); }
         if (x.cv >= 0) { const c = M.cover(x.cv); c.position.z = -0.85; g.add(c); }
+        // pueblo: asomado a un balcón (se queda alineado con la fachada aunque él gire)
+        if (x.win) {
+          const b = new THREE.Group(), s = x.win; g.add(b); g.userData.balc = b;
+          M.box(b, 0.12, 2.6, 2.4, 0xe8d8b0, s * 0.62, 1.2, 0, 'cover');
+          M.box(b, 0.05, 2.1, 1.3, 0x1a1c22, s * 0.55, 1.15, 0);
+          for (const z of [-0.95, 0.95]) M.box(b, 0.06, 2.1, 0.55, 0x3a6a4a, s * 0.52, 1.15, z, 'cover');
+          M.box(b, 1.2, 0.12, 1.9, 0xd8d0c0, 0, -0.06, 0, 'cover');
+          M.box(b, 0.04, 0.05, 1.9, 0x1a1a1a, -s * 0.58, 0.9, 0, 'cover');
+          for (let q = 0; q < 7; q++) M.box(b, 0.03, 0.9, 0.03, 0x1a1a1a, -s * 0.58, 0.45, -0.9 + q * 0.3, 'cover');
+        }
         // escudo antidisturbios (la cabeza queda por encima)
         if (x.shd > 0) {
           const t = p.userData.rig.torso, sh = new THREE.Group(); t.add(sh);
@@ -331,6 +341,8 @@ export class View {
       case 'chicken': g = M.chicken(); break;
       case 'civcar': g = M.civCar(CARC[(x.c || 0) % CARC.length]); break;
       case 'police': g = M.police(); break;
+      case 'xcar': g = M.civCar(CARC[(x.c || 0) % CARC.length]); break;
+      case 'harvester': g = M.harvester(); break;
       case 'amb': g = M.ambulance(); break;
       case 'medkit': g = M.medkit(); break;
       case 'jeep': g = M.jeep(); break;
@@ -404,6 +416,7 @@ export class View {
       const ud = o.userData;
       R.toWorld(e.d, e.lat, e.h, o.position);
       o.rotation.set(0, -R.yawAt(e.d) + e.ry, 0);
+      if (ud.balc) ud.balc.rotation.y = -e.ry;
       // los vehículos se inclinan con la cuesta
       if (PITCH.has(e.type)) { o.rotation.order = 'YXZ'; o.rotation.x = Math.atan2(R.toWorld(e.d + 2, 0, 0, V1).y - R.toWorld(e.d - 2, 0, 0, V2).y, 4) * (Math.abs(e.ry) > 2 ? -1 : 1); if (e.type === 'crew' && e.x && e.x.out) o.rotation.z = e.x.out * Math.min(1.3, (ud.dt || 0) * 0.9); }
       ud.dt = e.st === ST.DEAD ? (ud.dt || 0) + dt : 0;
@@ -502,6 +515,20 @@ function personAnim(o, e, dt, ctx, V) {
 }
 
 const ANIM = {
+  harvester(o, e, dt, ctx, V) {
+    const r = o.userData.reel; if (r) r.rotation.x += dt * (e.st === ST.DEAD ? 0.5 : 6);
+    if (e.st === ST.DEAD) o.rotation.z = Math.min(0.25, (o.userData.dt || 0) * 0.2);
+    // es más ancha que la calle: va rozando las fachadas (chispas) y deja una humareda enorme
+    const W = V.fx;
+    if (e.st !== ST.DEAD) for (const sx of [-1, 1]) if (Math.random() < dt * 30) {
+      const p = new THREE.Vector3(sx * 3.4, 0.5 + Math.random() * 3, -4 + Math.random() * 7); o.localToWorld(p);
+      W.sparks(p, 6);
+    }
+    if (Math.random() < dt * (e.st === ST.DEAD ? 25 : 14)) {
+      const p = new THREE.Vector3((Math.random() - 0.5) * 2, 5.6 + Math.random(), 2 + Math.random() * 2); o.localToWorld(p);
+      W.part(p, new THREE.Vector3((Math.random() - 0.5) * 2, 3 + Math.random() * 3, (Math.random() - 0.5) * 2), 3.5, 3 + Math.random() * 2, W.m.dsmoke, -0.4, 4);
+    }
+  },
   police(o, e, dt, ctx) {
     const s = o.userData.siren, on = (ctx.t * 6 | 0) % 2;
     s[0].visible = !!on; s[1].visible = !on;

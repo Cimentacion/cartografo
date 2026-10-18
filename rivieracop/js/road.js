@@ -264,6 +264,23 @@ export class Road {
     }
     return L;
   }
+  // pueblo: cruces con callejuelas (cada ~110 m) y plazas con iglesia (cada ~420 m), en sitios fijos para todos
+  crossings(d0, d1) {
+    const L = [];
+    for (let c = Math.floor(d0 / 110) - 1; c <= Math.floor(d1 / 110) + 1; c++) {
+      const d = c * 110 + 40 + (hash(this.seed, c, 515) % 30);
+      if (d < d0 - 12 || d > d1 + 12 || d < 0 || d > this.len - 12) continue;
+      const i = Math.floor(d);
+      if (BIOMES[BIOME_KEYS[this.bio[i]]].deco !== 'pueblo' || this.kind[i] !== 0) continue;
+      { const z = this.zoneAt(d); if (z.f && z.prog * (z.f.slen || 720) < 260) continue; }
+      let bad = false;
+      for (let k = -14; k <= 14; k += 4) { const j = clamp(i + k, 0, this.len); if (this.kind[j] !== 0 || this.bio[j] !== this.bio[i]) bad = true; }
+      for (const f of this.forks) if (Math.abs(d - f.gantry) < 30 || Math.abs(d - (f.gantry - 140)) < 14 || Math.abs(d - (f.gantry - 85)) < 14) bad = true;
+      if (!bad) L.push(d);
+    }
+    return L;
+  }
+  isPlaza(d) { return hash(this.seed, Math.round(d), 717) % 4 === 0; }
   nearBridge(d, r) { for (const b of this.bridges(d - r, d + r)) if (Math.abs(b - d) < r) return b; return null; }
   // semáforos de la zona de semáforos
   lights(f) {

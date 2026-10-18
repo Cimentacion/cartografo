@@ -409,7 +409,7 @@ function outsideRun(R, road, B, i0, i1, r) {
   if (B.deco === 'rio') { riverRun(R, road, B, i0, i1, r); return; }
   if (B.deco === 'submarino') { seaRun(R, road, B, i0, i1, r); return; }
   strip(R.A, road, i0, i1, C(-HALF, 0), C(HALF, 0), LIGHT(B.asphalt, 0.08), 4);
-  dashes(R, road, i0, i1, B.line);
+  if (B.deco !== 'pueblo') dashes(R, road, i0, i1, B.line);
   for (const sd of [-1, 1]) {
     strip(R.L, road, i0, i1, C(sd * (HALF - 0.45), 0.02), C(sd * (HALF - 0.3), 0.02), 0xf2f2f2);
     strip(R.P, road, i0, i1, C(sd * HALF, 0.18), C(sd * WALK, 0.18), B.walk, 2);
@@ -599,7 +599,195 @@ function pine(R, road, d, lat, r) {
   addCyl(R.L, 0, 1.2 * s, 2.6 * s, 6, 0x347a3c, m, { y: 3.6 * s + 1.4 * s });
 }
 
+// ---------- mirador de la ermita (entrada al pueblo) ----------
+function mirador(R, road, B, i0, i1, r, into) {
+  // empedrado claro con franjas de grava oscura, de lado a lado
+  strip(R.L, road, i0, i1, C(-HALF, 0.03), C(HALF, 0.03), 0xe4d8c0);
+  for (const l of [-3.6, 0.2, 3.9]) strip(R.L, road, i0, i1, C(l - 0.55, 0.045), C(l + 0.55, 0.045), 0x6a6c74);
+  // a la izquierda: tapia de piedra de la ermita, setos, pinos y cipreses
+  strip(R.L, road, i0, i1, C(-HALF - 0.8, 0.18), C(-HALF - 0.8, 3.2), 0xc8a87a);
+  strip(R.L, road, i0, i1, C(-HALF - 0.8, 3.2), C(-HALF - 1.2, 3.4), 0xb8986a);
+  strip(R.L, road, i0, i1, C(-HALF, 0.05), C(-HALF - 0.8, 0.05), 0x4a4c54);
+  strip(R.L, road, i0, i1, C(-HALF - 0.1, 0.18), C(-HALF - 0.1, 1.0), 0x3a6a32);
+  // a la derecha: pretil de piedra con bolardos negros y cadena, y el barranco
+  strip(R.L, road, i0, i1, C(HALF, 0.0), C(HALF, 0.7), 0xd8ccb0);
+  strip(R.L, road, i0, i1, C(HALF, 0.7), C(HALF + 0.9, 0.7), 0xe4dac4);
+  strip(R.L, road, i0, i1, C(HALF + 0.9, 0.7), i => [HALF + 6, -(road.gy[i] + 2)], 0x9a8a6a);
+  for (let d = Math.ceil(i0 / 3) * 3; d < i1; d += 3) {
+    const m = frame(road, d, HALF + 0.45, 0.7);
+    addCyl(R.L, 0.1, 0.14, 1.0, 8, 0x2a2c30, m, { y: 0.5 }); addCyl(R.L, 0.11, 0.11, 0.12, 8, 0x2a2c30, m, { y: 1.05 });
+    addBox(R.L, 0.05, 0.05, 3.0, 0x2a2c30, m, { y: 0.78, z: 1.5, rx: 0.12 });
+  }
+  for (let d = i0 + 5; d < i1; d += 22 + r() * 10) {
+    // pilares blancos de las estaciones del vía crucis con su cruz
+    if (into(d) > 30 && ok(road, d, -HALF - 0.4, 1)) { const m = frame(road, d, -HALF - 0.4, 0.05); addBox(R.L, 0.8, 1.6, 0.8, 0xf4f4f0, m, { y: 0.8 }); addBox(R.L, 0.95, 0.2, 0.95, 0xf4f4f0, m, { y: 1.7 }); { const g = new THREE.ConeGeometry(0.55, 0.6, 4); g.rotateY(Math.PI / 4); g.translate(0, 2.1, 0); colorize(g, 0xf4f4f0, false); g.applyMatrix4(m); R.L.push(g); } addBox(R.L, 0.05, 0.4, 0.05, 0x1a1a1a, m, { y: 2.6 }); addBox(R.L, 0.25, 0.05, 0.05, 0x1a1a1a, m, { y: 2.65 }); addBox(R.L, 0.02, 0.3, 0.3, 0x2a2a2a, m, { x: 0.41, y: 1.0 }); }
+  }
+  each(i0, i1, r, 9, 16, d => {
+    const lat = -HALF - 3 - r() * 10, m = frame(road, d, lat, 0.1);
+    if (r() < 0.45) { addCyl(R.L, 0.14, 0.2, 1.2, 6, 0x5a4a32, m, { y: 0.6 }); addCyl(R.L, 0.9, 1.1, 8, 8, 0x2a4a2a, m, { y: 5 }); addCyl(R.L, 0.3, 0.9, 2, 8, 0x2a4a2a, m, { y: 9.9 }); }
+    else { addCyl(R.L, 0.18, 0.3, 5, 6, 0x6a5a40, m, { y: 2.5, rz: (r() - 0.5) * 0.3 }); addCyl(R.L, 2.8, 3.4, 1.8, 9, 0x3a6a32, m, { y: 5.8 }); addCyl(R.L, 2.0, 2.8, 1.2, 9, 0x4a7a3a, m, { y: 6.9 }); }
+  });
+  // la ermita al empezar: fachada de piedra con arco, espadaña con cruz y tejado de teja
+  const z0 = road.zoneAt(i0);
+  if (z0.f) {
+    const de = z0.f.secStart + 25;
+    if (de >= i0 && de < i1) {
+      const m = frame(road, de, -HALF - 9, 0);
+      addBox(R.L, 9, 7, 7, 0xd8c09a, m, { y: 3.5 });
+      for (const s2 of [-1, 1]) addBox(R.L, 4.8, 0.25, 7.6, 0xa8502e, m, { x: s2 * 2.2, y: 7.6, rz: -s2 * 0.45 });
+      addBox(R.L, 0.3, 4.5, 2.2, 0xe8d8b8, m, { x: 4.6, y: 9.0 });
+      { const g = new THREE.ConeGeometry(1.6, 1.8, 4); g.rotateY(Math.PI / 4); g.scale(0.25, 1, 1); g.translate(4.6, 12.1, 0); colorize(g, 0xe8d8b8, false); g.applyMatrix4(m); R.L.push(g); }
+      addBox(R.L, 0.1, 1.2, 0.12, 0x5a3a2a, m, { x: 4.7, y: 13.4 }); addBox(R.L, 0.1, 0.12, 0.7, 0x5a3a2a, m, { x: 4.7, y: 13.6 });
+      addBox(R.L, 0.12, 4.2, 1.8, 0x2a2420, m, { x: 4.56, y: 2.1 });
+      { const g = new THREE.CylinderGeometry(0.9, 0.9, 0.12, 12, 1, false, 0, Math.PI); g.rotateZ(Math.PI / 2); g.rotateY(Math.PI / 2); g.translate(4.56, 4.2, 0); colorize(g, 0x2a2420, false); g.applyMatrix4(m); R.L.push(g); }
+    }
+  }
+  // el pueblo abajo, a la derecha: tejados de teja y casas blancas escalonadas y un campanario
+  each(i0, i1, r, 6, 10, d => {
+    for (let q = 0; q < 3; q++) {
+      const lat = HALF + 14 + q * 9 + r() * 6, y = road.gy[Math.floor(d)], m = frame(road, d + (r() - 0.5) * 6, lat, -6 - q * 4 - r() * 2, (r() - 0.5) * 0.3);
+      const w = 6 + r() * 5, dp = 6 + r() * 3, hh = 5 + r() * 4;
+      addBox(R.L, dp, hh + y, w, pick(r, [0xf4f2ec, 0xf0d890, 0xf4f2ec, 0xe8c070]), m, { y: (hh - y) / 2 });
+      for (const s2 of [-1, 1]) addBox(R.L, dp / 2 + 0.4, 0.2, w + 0.4, pick(r, [0xa8502e, 0x9a4a2a, 0xb8603a]), m, { x: s2 * dp / 4, y: hh + 0.6, rz: -s2 * 0.35 });
+      addBox(R.L, 0.08, 1.0, 0.8, 0x3a3020, m, { x: -dp / 2 - 0.02, y: hh * 0.5 });
+    }
+  });
+  const zt = road.zoneAt(i0);
+  if (zt.f) { const dt2 = zt.f.secStart + 160; if (dt2 >= i0 && dt2 < i1) { const t = frame(road, dt2, HALF + 40, -12); addBox(R.L, 5, 26, 5, 0xd8c09a, t, { y: 13 }); addBox(R.L, 5.6, 0.5, 5.6, 0xe8d8b8, t, { y: 26.2 }); addBox(R.L, 3.4, 3, 3.4, 0xd8c09a, t, { y: 28 }); for (const [x, z] of [[1.72, 0], [-1.72, 0], [0, 1.72], [0, -1.72]]) addBox(R.L, x ? 0.1 : 1.2, 1.8, z ? 0.1 : 1.2, 0x1a1a1a, t, { x, y: 28, z }); { const g = new THREE.ConeGeometry(2.6, 2.6, 8); g.translate(0, 30.8, 0); colorize(g, 0xb87040, false, true); g.applyMatrix4(t); R.L.push(g); } } }
+}
+// ---------- pueblo de callejuelas ----------
+// fachada izquierda a lat -1.2 (la calle es de un solo carril) y derecha a lat 7.2
+const PL = -1.2, PR = 6.0;
+function pHouse(R, road, B, d, sd, w, r) {
+  const dep = 9 + r() * 4, nf = 2 + (r() < 0.55 ? 1 : 0) + (r() < 0.15 ? 1 : 0), top = nf * 3.1 + 0.4;
+  const lat = sd < 0 ? PL - dep / 2 : PR + dep / 2;
+  const y = road.gy[Math.floor(d)], down = y + 2, m = frame(road, d, lat, 0), fx = -sd * (dep / 2), o = -sd;
+  const col = pick(r, B.build), band = pick(r, [0xc8a050, 0xe0b040, 0xb8a080, 0x9a8a78, 0xd89060]);
+  // muros de ladrillo viejo, de piedra o encalados
+  const mk = r();
+  addBox(mk < 0.45 ? R.B : mk < 0.75 ? R.K : R.L, dep, top + down, w, mk < 0.45 ? LIGHT(col, 0.1) : mk < 0.75 ? 0xd8c4a0 : col, m, { y: (top - down) / 2, uvs: 3 });
+  // zócalo de piedra o de color, impostas y esquinas pintadas
+  if (r() < 0.5) addBox(R.K, 0.12, 1.1 + down, w, 0xb8a890, m, { x: fx + o * 0.05, y: (1.1 - down) / 2, uvs: 1.5 });
+  else addBox(R.L, 0.1, 1.0, w, band, m, { x: fx + o * 0.05, y: 0.5 });
+  for (const z of [-w / 2 + 0.2, w / 2 - 0.2]) addBox(R.L, 0.12, top - 0.2, 0.4, band, m, { x: fx + o * 0.06, y: top / 2, z });
+  for (let f = 1; f < nf; f++) addBox(R.L, 0.16, 0.2, w, band, m, { x: fx + o * 0.07, y: f * 3.1 + 0.05 });
+  // tejado de teja con alero
+  addBox(R.L, dep + 0.9, 0.22, w + 0.3, B.roof, m, { y: top + 0.1 });
+  addBox(R.L, 0.6, 0.12, w + 0.3, 0x8a3e22, m, { x: fx + o * 0.3, y: top - 0.02 });
+  // planta baja: puerta de madera y ventana con reja
+  const n = Math.max(1, Math.floor(w / 2.6));
+  for (let k = 0; k < n; k++) {
+    const z = -w / 2 + (k + 0.5) * (w / n);
+    if (k === 0 || r() < 0.3) { addBox(R.D, 0.12, 2.3, 1.1, pick(r, [0x5a3418, 0x6a4020, 0x3a5a3a]), m, { x: fx + o * 0.04, y: 1.15, z }); addBox(R.L, 0.14, 0.12, 1.3, 0xd8c8a8, m, { x: fx + o * 0.06, y: 2.36, z }); }
+    else { addBox(R.L, 0.08, 1.2, 0.9, 0x3a4048, m, { x: fx + o * 0.03, y: 1.6, z }); for (let q = 0; q < 4; q++) addBox(R.L, 0.12, 1.3, 0.04, 0x1a1a1a, m, { x: fx + o * 0.12, y: 1.6, z: z - 0.36 + q * 0.24 }); }
+    // pisos de arriba: balcón con barandilla de hierro o ventana con contraventanas
+    for (let f = 1; f < nf; f++) {
+      const yy = f * 3.1;
+      if (r() < 0.55) {
+        addBox(R.D, 0.1, 2.1, 1.0, pick(r, [0x5a3418, 0x3a5a3a, 0x6a4020]), m, { x: fx + o * 0.03, y: yy + 1.15, z });
+        addBox(R.L, 0.6, 0.1, 1.5, 0xd8d0c0, m, { x: fx + o * 0.3, y: yy + 0.08, z });
+        addBox(R.L, 0.04, 0.05, 1.5, 0x1a1a1a, m, { x: fx + o * 0.58, y: yy + 1.0, z });
+        for (let q = 0; q < 6; q++) addBox(R.L, 0.03, 0.9, 0.03, 0x1a1a1a, m, { x: fx + o * 0.58, y: yy + 0.55, z: z - 0.7 + q * 0.28 });
+        if (r() < 0.4) addBox(R.L, 0.3, 0.3, 0.9, 0x3a8a3a, m, { x: fx + o * 0.4, y: yy + 0.3, z });
+      } else {
+        addBox(R.L, 0.08, 1.2, 0.9, 0x3a4048, m, { x: fx + o * 0.03, y: yy + 1.5, z });
+        const sh = pick(r, [0x3a6a4a, 0x5a3418, 0x2a4a7a]);
+        for (const s2 of [-1, 1]) addBox(R.L, 0.06, 1.3, 0.45, sh, m, { x: fx + o * 0.06, y: yy + 1.5, z: z + s2 * 0.7 });
+        addBox(R.L, 0.3, 0.08, 1.1, 0xd8d0c0, m, { x: fx + o * 0.12, y: yy + 0.86, z });
+      }
+    }
+  }
+  // bajante y cables entre fachadas
+  addBox(R.L, 0.1, top, 0.1, 0xd8d0c0, m, { x: fx + o * 0.08, y: top / 2, z: w / 2 - 0.5 });
+  return w;
+}
+function pChurch(R, road, d, r) {
+  // plaza a la izquierda con iglesia, campanario, árboles, farolas y coches aparcados
+  const y = road.gy[Math.floor(d)], down = y + 2;
+  const plaza = frame(road, d, -14, 0.18);
+  addBox(R.P, 26, 0.1, 30, 0xc8b8a8, plaza, { uvs: 2 });
+  addBox(R.L, 0.3, 0.2, 30, 0xd8d0c0, frame(road, d, PL, 0.1));
+  const m = frame(road, d, -36, 0), stone = 0xd8c4a0;
+  addBox(R.L, 16, 9 + down, 22, stone, m, { y: (9 - down) / 2 });
+  for (const s2 of [-1, 1]) { const rf = addBox(R.L, 9.6, 0.3, 23, 0xa8502e, m, { x: s2 * 4.2, y: 10.4, rz: -s2 * 0.42 }); }
+  for (const z of [-7, -2, 3, 8]) addBox(R.L, 0.1, 1.6, 1.0, 0x2a3040, m, { x: 8.02, y: 5.5, z });
+  for (const z of [-9, 0, 9]) addBox(R.L, 1.0, 9, 1.0, 0xe0d0b0, m, { x: 8.4, y: 4.5, z });
+  const t = frame(road, d - 9, -30, 0);
+  addBox(R.L, 5, 22 + down, 5, stone, t, { y: (22 - down) / 2 });
+  addBox(R.L, 5.4, 0.4, 5.4, 0xe0d0b0, t, { y: 16 });
+  for (const [x, z] of [[2.52, 0], [-2.52, 0], [0, 2.52], [0, -2.52]]) addBox(R.L, x ? 0.1 : 1.6, 2.6, z ? 0.1 : 1.6, 0x1a1a1a, t, { x, y: 19, z });
+  addBox(R.L, 5.6, 0.5, 5.6, 0xe0d0b0, t, { y: 22.2 });
+  { const g = new THREE.ConeGeometry(3.6, 3.2, 4); g.rotateY(Math.PI / 4); g.translate(0, 24.1, 0); colorize(g, 0xa8502e, false, true); g.applyMatrix4(t); R.L.push(g); }
+  addCyl(R.L, 0.5, 0.5, 0.9, 8, 0xb8902a, t, { y: 19, rx: Math.PI / 2 });
+  // árboles y farolas de la plaza
+  for (const z of [-10, -3, 4, 11]) {
+    const tm = frame(road, d + z, -5.5, 0.18);
+    addCyl(R.L, 0.18, 0.24, 3.2, 6, 0x6a5a40, tm, { y: 1.6 });
+    addCyl(R.L, 1.9, 2.3, 2.6, 8, 0x3a7a32, tm, { y: 4.2 });
+    addCyl(R.L, 1.3, 1.8, 1.6, 8, 0x4a8a3a, tm, { y: 5.6 });
+  }
+  for (const z of [-13, 0, 13]) { const lm = frame(road, d + z, -2.2, 0.18); addCyl(R.L, 0.08, 0.1, 4, 6, 0x2a2a30, lm, { y: 2 }); addBox(R.L, 0.4, 0.6, 0.4, 0x2a2a30, lm, { y: 4.2 }); addBox(R.G, 0.3, 0.4, 0.3, 0xfff0c0, lm, { y: 4.2 }); }
+  // coches aparcados en batería
+  for (let k = 0; k < 6; k++) {
+    const cm = frame(road, d - 12 + k * 2.6, -10, 0.18, Math.PI / 2);
+    const c = pick(r, [0xf2f2f2, 0x1a1a1a, 0xb02020, 0x3a3a48, 0x8a8a90, 0x2a4a8a]);
+    addBox(R.L, 4.0, 0.7, 1.7, c, cm, { y: 0.6 }); addBox(R.L, 2.2, 0.6, 1.6, c, cm, { y: 1.2, x: 0.2 }); addBox(R.L, 2.1, 0.45, 1.62, 0x3a4a5a, cm, { y: 1.2, x: 0.2 });
+  }
+  // bolardos y cadena entre la plaza y la calle
+  for (let z = -14; z <= 14; z += 3.5) addBox(R.L, 0.18, 0.9, 0.18, 0x1a1a1a, frame(road, d + z, -0.5, 0.18), { y: 0.45 });
+}
 const DECO = {
+  pueblo(R, road, B, i0, i1, r) {
+    // los primeros 230 m: bajada desde la ermita por un camino empedrado con vistas al pueblo de abajo
+    const into = i => { const z = road.zoneAt(i); return z.f ? z.prog * (z.f.slen || 720) : 999; };
+    const MIR = 230;
+    let iv = i0; while (iv < i1 && into(iv) < MIR) iv++;
+    if (iv > i0) { mirador(R, road, B, i0, iv, r, into); if (iv >= i1) return; i0 = iv; }
+    const cr = road.crossings(i0 - 30, i1 + 30);
+    const near = (d, rad) => cr.some(c => Math.abs(c - d) < rad);
+    const plaza = (d, rad) => cr.some(c => road.isPlaza(c) && Math.abs(c - d) < rad);
+    for (const sd of [-1, 1]) {
+      let d = i0 + r() * 2;
+      while (d < i1) {
+        const w = 5 + r() * 5;
+        const lat = sd < 0 ? PL - 6 : PR + 6;
+        if (near(d, 4.5 + w / 2) || (sd < 0 && plaza(d, 16 + w / 2)) || !ok(road, d, lat, 3, true)) { d += 2; continue; }
+        pHouse(R, road, B, d, sd, w, r);
+        d += w + 0.05;
+      }
+      // segunda y tercera fila de casas detrás, más altas (el pueblo se ve apretado)
+      for (const back of [1, 2]) {
+        let d2 = i0 + r() * 4;
+        while (d2 < i1) {
+          const w2 = 6 + r() * 6, dep2 = 9, lat2 = sd < 0 ? PL - 13 - (back - 1) * 10 - dep2 / 2 : PR + 13 + (back - 1) * 10 + dep2 / 2;
+          if (!(sd < 0 && plaza(d2, 22)) && ok(road, d2, lat2, 3, true)) {
+            const y2 = road.gy[Math.floor(d2)], dn = y2 + 2, top2 = 8 + r() * 6 + back * 2, m2 = frame(road, d2, lat2, 0), mk2 = r();
+            addBox(mk2 < 0.5 ? R.B : mk2 < 0.8 ? R.K : R.L, dep2, top2 + dn, w2, mk2 < 0.5 ? 0xe8d0b0 : mk2 < 0.8 ? 0xd8c4a0 : pick(r, B.build), m2, { y: (top2 - dn) / 2, uvs: 3 });
+            for (const s2 of [-1, 1]) addBox(R.L, dep2 / 2 + 0.5, 0.22, w2 + 0.3, pick(r, [0xa8502e, 0x9a4a2a, 0xb8603a]), m2, { x: s2 * dep2 / 4, y: top2 + 0.8, rz: -s2 * 0.35 });
+            if (r() < 0.5) for (let f = 1; f < top2 / 3.1; f++) addBox(R.L, 0.08, 1.1, 0.8, 0x3a3020, m2, { x: -sd * (dep2 / 2 + 0.03), y: f * 3.1 - 0.3, z: (r() - 0.5) * w2 * 0.6 });
+          }
+          d2 += w2 + 0.1;
+        }
+      }
+      // sin aceras: el empedrado llega hasta las fachadas
+      strip(R.P, road, i0, i1, C(HALF, 0.03), C(PR + 0.5, 0.03), 0x7a808a, 2);
+    }
+    // línea amarilla de no aparcar junto al bordillo derecho
+    strip(R.L, road, i0, i1, C(HALF - 0.45, 0.02), C(HALF - 0.25, 0.02), 0xf0d040);
+    // callejuelas que cruzan: suelo adoquinado hacia los dos lados
+    for (const c of cr) {
+      if (c < i0 || c >= i1) continue;
+      if (road.isPlaza(c)) { pChurch(R, road, c, r); addBox(R.P, 5, 0.1, 30, 0x7a808a, frame(road, c, PR + 15, 0.02), { uvs: 2 }); continue; }
+      for (const sd of [-1, 1]) addBox(R.P, 5.5, 0.1, 30, 0x7a808a, frame(road, c, sd < 0 ? PL - 15 : PR + 15, 0.02), { uvs: 2 });
+      // balas de heno en algunas esquinas
+      if (r() < 0.5) { const hm = frame(road, c + 4.5, PR - 0.6, 0.18); for (let q = 0; q < 3; q++) addBox(R.L, 1.1, 0.8, 1.6, 0xd8b850, hm, { y: 0.4 + (q === 2 ? 0.8 : 0), z: q === 2 ? 0.5 : q * 1.1 - 0.5 }); }
+    }
+    // montañas de roca al fondo
+    each(i0, i1, r, 70, 110, d => {
+      const sd = r() < 0.5 ? -1 : 1;
+      addBox(R.K, 60 + r() * 50, 50 + r() * 50, 50 + r() * 40, pick(r, [0x9a9a92, 0x8a8a84]), frame(road, d, sd * (130 + r() * 60), 0, r()), { rx: (r() - 0.5) * 0.3, uvs: 8 });
+    });
+  },
   monaco(R, road, B, i0, i1, r) {
     guardrail(R, road, i0, i1, -1);
     each(i0, i1, r, 14, 22, d => palm(R, road, d, -7.7, r));

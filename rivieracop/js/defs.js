@@ -2,7 +2,7 @@
 
 export const BIOME_KEYS = ['monaco', 'puerto', 'casino', 'autopista', 'industrial', 'cornisa', 'detroit', 'desierto', 'costa', 'trenes', 'acantilados', 'orgullo',
   'militar', 'manifa', 'barro', 'chino', 'rio', 'semaforos', 'trenmil',
-  'bosque', 'guerra', 'llanura', 'ruinas', 'submarino', 'bajada', 'curva', 'lomas', 'policia', 'tuneles'];
+  'bosque', 'guerra', 'llanura', 'ruinas', 'submarino', 'bajada', 'curva', 'lomas', 'policia', 'tuneles', 'pueblo'];
 // zonas de ciudad: más edificios detrás, rascacielos y pasarelas elevadas
 export const CITY = new Set(['policia', 'monaco', 'casino', 'detroit', 'manifa', 'semaforos', 'orgullo', 'chino']);
 
@@ -270,6 +270,17 @@ export const BIOMES = {
     build: [0xb8a890], roof: 0x4a4440,
     w: { ecar: 1.4, rammer: 1.4, moto: 1.5, gunman: 0.7, civcar: 1.8, quad: 0.8, drone: 0, heli: 0, sniper: 0, jumper: 0 }, pts: 1.7, deco: 'tuneles', lv: 4,
   },
+  pueblo: {
+    name: 'EL PUEBLO', color: '#f0c860',
+    sky: 0x9ac8ec, fogNear: 60, fogFar: 200, sea: 0x5a7a4a,
+    asphalt: 0x6a7280, walk: 0xb86a58, skirt: 0x8a7a5a, line: 0xf0d040,
+    hemi: [0xffffff, 0x8a7a60, 1.1], sun: [0xfff0d8, 1.6], night: false,
+    // callejuelas de un solo carril cuesta abajo: tiradores en las ventanas, coches cruzando y la cosechadora detrás
+    slope: -0.045, descent: true, floor: -1e9, len: 1900, narrow: true,
+    hmin: 0, hmax: 0, hair: 0,
+    build: [0xf0d080, 0xf4ecd8, 0xe8c070, 0xf8f4ec, 0xe0a870, 0xd8c8a8], roof: 0xa8502e,
+    w: { gunman: 1.4, moto: 0, ecar: 0, quad: 0, pickup: 0, van: 0, bus: 0, truck: 0, civcar: 0, rammer: 0, jumper: 0.6, sniper: 0.4, heli: 0.3, drone: 0.6 }, pts: 1.9, deco: 'pueblo', lv: 4,
+  },
   lomas: {
     name: 'LAS LOMAS', color: '#9ad84a',
     sky: 0x9ac8f0, fogNear: 90, fogFar: 280, sea: 0x4a7a3a,
@@ -297,9 +308,9 @@ export const TYPES = ['gunman', 'civilian', 'moto', 'ecar', 'heli', 'drone', 'tr
   'amb', 'medkit', 'jeep', 'weapon', 'sign', 'barrel', 'grenade', 'rocket', 'sniper', 'wall', 'train', 'rock', 'lady',
   'jumper', 'tank', 'rig', 'rioter', 'thrown', 'fuel', 'chef', 'boat', 'tlight', 'mtrain', 'preview', 'float',
   'quad', 'pickup', 'van', 'bus', 'canoe',
-  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'whale', 'turret', 'gunship', 'crew', 'police'];
+  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'whale', 'turret', 'gunship', 'crew', 'police', 'xcar', 'harvester'];
 // jefes: llevan barra de vida en pantalla
-export const BOSS = { gunship: 'EL CAÑONERO', bear: 'OSO GRIZZLY', blimp: 'DIRIGIBLE', bus: 'AUTOBÚS', jeep: 'TERRORISTA', heli: 'HELICÓPTERO', wall: 'MURO', train: 'TREN', tank: 'TANQUE', rig: 'CAMIÓN', chef: 'EL CHEF DEL BUFFET', mtrain: 'TREN MILITAR' };
+export const BOSS = { harvester: 'LA COSECHADORA', gunship: 'EL CAÑONERO', bear: 'OSO GRIZZLY', blimp: 'DIRIGIBLE', bus: 'AUTOBÚS', jeep: 'TERRORISTA', heli: 'HELICÓPTERO', wall: 'MURO', train: 'TREN', tank: 'TANQUE', rig: 'CAMIÓN', chef: 'EL CHEF DEL BUFFET', mtrain: 'TREN MILITAR' };
 export const TI = Object.fromEntries(TYPES.map((t, i) => [t, i]));
 
 // Estados de entidad
