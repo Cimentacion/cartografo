@@ -359,7 +359,9 @@ body.turbo #hudwrap::after{content:'';position:absolute;inset:0;pointer-events:n
 #fakeAd .fa{background:#0c0a18;border:3px solid #ff5ad0;padding:18px 24px;text-align:center;max-width:90vw;font:600 13px var(--f-ui);color:#fff}
 #fakeAd b{font:12px var(--f-px);color:#ff5ad0}
 #fakeAd .fan{font:48px var(--f-title);color:#ffe14a;margin:8px}
-#dead button{display:block;margin:8px auto 0;pointer-events:auto}
+#dead button{display:block;margin:8px auto 0;pointer-events:auto;font-size:15px;padding:12px 18px}
+#dead{z-index:40;pointer-events:auto}
+#netTag{position:absolute;left:50%;bottom:max(4px,env(safe-area-inset-bottom));transform:translateX(-50%);font:700 10px var(--f-ui);color:#fff;background:rgba(0,0,0,.45);padding:2px 8px;border-radius:8px;pointer-events:none;z-index:5}
 #btnAdPot small{display:block;font-size:10px;opacity:.85}
 #upd{position:fixed;inset:0;z-index:98;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center}
 #upd .card{max-width:min(520px,92vw);text-align:center}
@@ -512,6 +514,7 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
   <div id="hurtfx"></div><div id="healfx"></div><div id="poisfx"></div>
 
   <div id="hudwrap" hidden>
+    <div id="netTag" hidden></div>
     <div id="scope" hidden></div>
     <div id="smokefx"></div>
     <div id="p0" class="pbox"></div>

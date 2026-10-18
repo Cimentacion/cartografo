@@ -234,18 +234,24 @@ const net = new Net(); window.__net = net; // TODO-TESTEO
 
 // ---------------- reflejo (lo que ve el invitado) ----------------
 class Mirror {
-  constructor() { this.snaps = []; this.off = null; }
+  constructor() { this.snaps = []; this.off = null; this.jit = 0.03; this.delay = 0.12; }
   push(s) {
     const now = performance.now() / 1000;
     const est = s.st - now;
-    if (this.off == null || Math.abs(est - this.off) > 1) this.off = est;
-    else this.off += (est - this.off) * 0.08;
+    // el reloj se ajusta a los paquetes que llegan antes (los que llegan tarde son el "lag" de la red)
+    if (this.off == null || Math.abs(est - this.off) > 1.5) this.off = est;
+    else if (est > this.off) this.off += (est - this.off) * 0.5;
+    else this.off += (est - this.off) * 0.01;
+    // colchón adaptativo: con una red a tirones se ve un poco más tarde pero sin saltos
+    const late = Math.max(0, this.off - est);
+    this.jit += (late - this.jit) * (late > this.jit ? 0.2 : 0.02);
+    this.delay = clamp(0.08 + this.jit * 2.2, 0.1, 0.55);
     s.map = new Map();
     for (const r of s.e) s.map.set(r[0], r);
     this.snaps.push(s);
     if (this.snaps.length > 40) this.snaps.shift();
   }
-  get rt() { return performance.now() / 1000 + (this.off || 0) - 0.12; }
+  get rt() { return performance.now() / 1000 + (this.off || 0) - this.delay; }
   sample() {
     const S = this.snaps;
     if (!S.length) return null;
@@ -255,7 +261,7 @@ class Mirror {
     const span = b.st - a.st;
     const al = span > 0 ? clamp((T - a.st) / span, 0, 1) : 0;
     let carD = lerp(a.d, b.d, al);
-    if (a === b && T > b.st) carD = b.d + b.sp * Math.min(0.25, T - b.st);
+    if (a === b && T > b.st) carD = b.d + b.sp * Math.min(0.6, T - b.st);
     const ents = [];
     for (const r of b.e) {
       const p = a.map.get(r[0]) || r;
@@ -1361,10 +1367,14 @@ function usePot(fresh) {
 }
 $('btnPot').addEventListener('pointerdown', e => { e.stopPropagation(); if ((PROG.pot | 0) > 0 && !G.potUsed) usePot(false); });
 $('btnDeadAd').addEventListener('pointerdown', async e => {
-  e.stopPropagation();
-  if (G.potUsed) return;
+  e.stopPropagation(); e.preventDefault();
+  if (G.potUsed || G.adBusy) return;
   if ((PROG.pot | 0) > 0) { usePot(true); return; }
-  if (await showRewarded()) { PROG.pot = 1; saveProg(PROG); usePot(true); }
+  G.adBusy = true; $('btnDeadAd').textContent = 'Cargando anuncio…';
+  const ok = await showRewarded();
+  G.adBusy = false;
+  if (ok) { PROG.pot = 1; saveProg(PROG); usePot(true); }
+  else { $('btnDeadAd').textContent = 'No hay anuncio ahora'; G.deadT = Math.max(G.deadT || 0, 8); }
 });
 // ---------------- mira telescópica: círculo ampliado en el centro de la pantalla ----------------
 const LENS = { on: false, rt: new THREE.WebGLRenderTarget(512, 512), cam: new THREE.PerspectiveCamera(20, 1, 0.2, 400) };
@@ -1449,7 +1459,12 @@ function useAbility(k) {
 function uiAbilities(dt) {
   if (PW.furiaT > 0) PW.furiaT -= dt;
   if (PW.fuerzaT > 0) PW.fuerzaT -= dt;
-  { const me = G.players[G.li]; $('btnPot').hidden = !((PROG.pot | 0) > 0) || G.potUsed || !me || !me.alive || me.hp >= me.maxHp; $('btnDeadAd').hidden = G.potUsed || !me || me.alive || G.over; }
+  { const me = G.players[G.li]; $('btnPot').hidden = !((PROG.pot | 0) > 0) || G.potUsed || !me || !me.alive || me.hp >= me.maxHp;
+    // al caer: 10 s para revivir con un anuncio (o una poción que tengas); después desaparece
+    if (me && !me.alive) { if (!G.adBusy) G.deadT = (G.deadT || 0) + dt; } else G.deadT = 0;
+    const left = Math.ceil(10 - (G.deadT || 0));
+    $('btnDeadAd').hidden = G.potUsed || !me || me.alive || G.over || left <= 0;
+    if (!$('btnDeadAd').hidden && !G.adBusy) $('btnDeadAd').textContent = ((PROG.pot | 0) > 0 ? 'USAR POCIÓN Y VOLVER' : 'VER ANUNCIO Y VOLVER CON TODA LA VIDA') + ' (' + left + ')'; }
   document.body.classList.toggle('fuerza', PW.fuerzaT > 0);
   // mira telescópica: con rifles no (tienen su zoom con pellizco)
   const sb = $('btnScope'), sl = PROG.upg.mira | 0;
@@ -1545,7 +1560,7 @@ function tick(dt) {
     if (G.mode === 'host' && net.open) {
       if (evs.length) net.send({ t: 'ev', e: evs });
       G.snapT -= dt;
-      if (G.snapT <= 0) { G.snapT = 0.05; net.send(S.snapshot()); }
+      if (G.snapT <= 0) { G.snapT = [...net.links.values()].some(L => L.kind === 'mqtt') ? 0.08 : 0.05; net.send(S.snapshot()); }
     }
     G.carD = S.carD; G.ents = S.ents; G.speed = S.speed; G.slow = S.slowT > 0; G.mult = S.ptsMult();
     G.players = S.players.map(P => Object.assign({}, P, { shield: P.shieldT > 0, poison: P.poison > 0 }));
@@ -1753,6 +1768,17 @@ function tick(dt) {
   $('dead').hidden = !(me && !me.alive && !G.over);
   bannerT -= dt;
   SFX.loops(view.ambDist, view.heliDist, G.speed);
+  // tipo de conexión y retraso (para saber si va directo o por el servidor)
+  if ((G.ntT = (G.ntT || 0) - dt) <= 0) {
+    G.ntT = 1;
+    const on = G.mode === 'guest' || (G.mode === 'host' && net.links.size > 0);
+    $('netTag').hidden = !on;
+    if (on) {
+      const relay = G.mode === 'guest' ? net.via === 'mqtt' : [...net.links.values()].some(L => L.kind === 'mqtt');
+      $('netTag').textContent = (relay ? '🛰 SERVIDOR' : '📶 DIRECTO') + (G.mode === 'guest' && G.mir ? ' · ' + Math.round(G.mir.delay * 1000) + ' ms' : '');
+      $('netTag').style.color = relay ? '#ffd060' : '#7dff8a';
+    }
+  }
   // eurodance desde la furgoneta del traficante (más fuerte cuanto más cerca)
   { let best = 1e9; for (const e of G.ents) if (e.type === 'jeep' && e.x && e.x.dealer && e.st !== ST.DEAD) best = Math.min(best, Math.abs(e.d - G.carD)); SFX.dance(best < 1e9 ? Math.max(0, 1 - best / 140) : 0); }
   $('rotate').hidden = !(look.isTouch && innerHeight > innerWidth && !VP.rot);

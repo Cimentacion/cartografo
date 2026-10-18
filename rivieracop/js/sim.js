@@ -151,6 +151,10 @@ export class Sim {
   step(dt) {
     if (this.over) return;
     this.t += dt;
+    if (this.overT != null) {
+      if (this.alivePlayers().length) this.overT = null;
+      else { this.overT -= dt; if (this.overT <= 0) { this.checkOver(); return; } }
+    }
     // ¿algo obliga a parar? (semáforo en rojo, el jefe del buffet)
     this.hold = false;
     for (const e of this.ents) {
@@ -423,7 +427,9 @@ export class Sim {
     this.emit('banner', { txt: '¡POCIÓN!', sub: (this.n > 1 ? PNAME[pi] + ' vuelve' : 'Vuelves') + ' con toda la vida', c: '#ff5ad0' });
   }
   checkOver() {
-    if (this.alivePlayers().length === 0 && !this.over) {
+    // todos caídos: 10 s de margen para revivir viendo un anuncio antes de acabar
+    if (this.alivePlayers().length === 0 && !this.over && this.overT == null) { this.overT = 10; this.emit('lastchance', { t: 10 }); return; }
+    if (this.alivePlayers().length === 0 && !this.over && this.overT <= 0) {
       this.over = true;
       this.emit('over', { t: Math.round(this.runT), dist: Math.round(this.carD), sc: this.players.map(p => p.score), kl: this.players.map(p => p.kills), ck: this.stats.chickens, rt: this.stats.forks });
     }
