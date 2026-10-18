@@ -123,6 +123,12 @@ function accessories(t, o, hp, bp) {
       box(t, 0.07, 0.07, 0.07, 0xffe14a, 0.07, 1.3, 0, hp);
       break;
     case 'chef': box(t, 0.3, 0.08, 0.3, 0xf8f8f8, 0, 1.01, 0, hp); box(t, 0.36, 0.2, 0.36, 0xf8f8f8, 0, 1.14, 0, hp); break;
+    case 'halo': for (const [x, z, w, d] of [[0, -0.16, 0.34, 0.04], [0, 0.16, 0.34, 0.04], [-0.16, 0, 0.04, 0.34], [0.16, 0, 0.04, 0.34]]) box(t, w, 0.035, d, glow(0xfff2a0), x, 1.2, z, hp); break;
+    case 'cuernos': for (const s of [-1, 1]) { const a = box(t, 0.07, 0.14, 0.07, 0xc81818, s * 0.11, 1.06, -0.04, hp); a.rotation.z = -s * 0.35; const b2 = box(t, 0.045, 0.1, 0.045, 0x8a0a0a, s * 0.15, 1.16, -0.04, hp); b2.rotation.z = -s * 0.7; } break;
+    case 'casco':
+      box(t, 0.34, 0.16, 0.35, 0x1a2230, 0, 1.0, 0, hp); box(t, 0.35, 0.06, 0.36, 0x10161e, 0, 0.92, 0, hp);
+      box(t, 0.3, 0.09, 0.03, glow(0x40c0ff, 0.7), 0, 0.88, -0.17, hp); box(t, 0.2, 0.05, 0.02, 0xf2f2f2, 0, 1.0, 0.18, hp);
+      break;
   }
   const CAPE = { capa: 0xc81818, capan: 0x141418, capaz: 0x1a3aa0, capad: 0xd8a020 };
   if (CAPE[o.back]) {
@@ -131,6 +137,8 @@ function accessories(t, o, hp, bp) {
     box(t, 0.6, 0.03, 0.035, 0x000000, 0, -0.38, 0.265, bp);
   } else if (o.back === 'mochila') { box(t, 0.4, 0.42, 0.18, 0x3a5a2a, 0, 0.36, 0.24, bp); box(t, 0.34, 0.16, 0.06, 0x2a4a1a, 0, 0.24, 0.35, bp); for (const x of [-0.17, 0.17]) box(t, 0.05, 0.5, 0.04, 0x222222, x, 0.4, -0.16, bp); }
   else if (o.back === 'alas') for (const s of [-1, 1]) for (let k = 0; k < 4; k++) { const w = box(t, 0.5 - k * 0.08, 0.1, 0.03, 0xf8f8ff, s * (0.3 + k * 0.03), 0.6 - k * 0.12, 0.22, bp); w.rotation.z = s * (0.5 - k * 0.12); }
+  else if (o.back === 'alasn') for (const s of [-1, 1]) for (let k = 0; k < 4; k++) { const w = box(t, 0.55 - k * 0.08, 0.1, 0.03, k % 2 ? 0x2a0a10 : 0x141418, s * (0.32 + k * 0.03), 0.62 - k * 0.12, 0.22, bp); w.rotation.z = s * (0.65 - k * 0.12); }
+  else if (o.back === 'katana') { const k1 = box(t, 0.04, 0.95, 0.03, 0xd8dce0, 0, 0.45, 0.2, bp); k1.rotation.z = 0.7; const k2 = box(t, 0.05, 0.28, 0.05, 0x1a1a1a, 0.33, 0.8, 0.2, bp); k2.rotation.z = 0.7; const k3 = box(t, 0.14, 0.03, 0.07, 0xd4af37, 0.26, 0.72, 0.2, bp); k3.rotation.z = 0.7; }
   else if (o.back === 'jet') { for (const x of [-0.11, 0.11]) { const c = new THREE.Mesh(cgeo(0.08, 0.42, 8), mat(0xb8b8c0)); c.position.set(x, 0.36, 0.26); t.add(c); box(t, 0.1, 0.06, 0.1, GL, x, 0.12, 0.26, bp); } box(t, 0.36, 0.14, 0.06, 0x3a3a40, 0, 0.5, 0.2, bp); }
   switch (o.neck) {
     case 'cadena': for (let k = 0; k < 7; k++) { const a = -1.2 + k * 0.4; box(t, 0.04, 0.03, 0.03, G, Math.sin(a) * 0.15, 0.6 - Math.cos(a) * 0.08 + 0.04, -0.17, bp); } box(t, 0.08, 0.08, 0.02, G, 0, 0.5, -0.175, bp); break;

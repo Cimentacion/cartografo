@@ -17,7 +17,8 @@ const PROPS = [
   [19.8, 11.6, 2, 0], [23.5, 11.4, 2, 1.57], [31.2, 10.8, 0, 3.14], [39.3, 11, 0, 3.14],
   [16.5, -1.45, 4, -1.57], [18.4, -1.45, 4, -1.57], [32, 1.5, 0, 1.57], [32.6, 1.5, 0, 1.57], [54.5, 1.3, 1, 3.14], [45, -1.45, 4, -1.57],
 ];
-const FOOT = [[-6.5, 3], [-1, 0.4], [3, 0, 'lobby'], [8, 0], [8, 8.5], [14, 8.5, 'h1'],
+const PARK_U = 14, PARK_LAT = 9;
+const FOOT = [[-PARK_U + 0.5, LANE_ME + PARK_LAT - 2.2], [-6, 3.5], [-1.8, 0.2, 'door'], [3, 0, 'lobby'], [8, 0], [8, 8.5], [14, 8.5, 'h1'],
   [17.5, 8.5], [17.5, 13, 'r1'], [17.5, 8.5], [25.5, 8.5], [25.5, 13, 'r2'], [25.5, 8.5],
   [33.5, 8.5], [33.5, 13, 'r3'], [33.5, 8.5], [41.5, 8.5], [41.5, 13.4, 'key'], [41.5, 8.5, 'back'],
   [24, 8.5, 'h2'], [8, 8.5], [8, 0], [20, 0, 'h3'], [53, 0, 'open'], [58.5, 0], [66, 2.2, 'board']];
@@ -67,15 +68,7 @@ export class Sim {
     this.players = [];
     // vida en puntos (3 de base, hasta 100); el daño va de 1 a 3 según la dificultad de la zona
     const metas = opts.metas || [];
-    for (let i = 0; i < n; i++) {
-      const m = metas[i] || {};
-      const P = { shieldT: 0, alive: true, score: 0, inv: 0, ly: 0, lp: 0, kills: 0, gone: false, poison: 0, poT: 0, regT: 0, kv: 0, spdF: 1, rvUsed: 0, emZ: -9 };
-      for (const k of META_KEYS) P[k] = clamp(m[k] | 0, 0, k === 'vida' ? 97 : 40);
-      P.pot = m.pot ? 1 : 0; P.potUsed = 0;
-      P.maxHp = P.hp = maxHpOf(P.vida);
-      P.lives = P.aliento;
-      this.players.push(P);
-    }
+    for (let i = 0; i < n; i++) this.players.push(this.mkPlayer(metas[i]));
     const sp = SPEEDS[clamp(opts.speed | 0, 0, SPEEDS.length - 1)];
     this.v0 = sp.v; this.spMult = sp.mult; this.slowT = 0;
     this.ents = []; this.map = new Map(); this.nid = 1; this.events = [];
@@ -90,7 +83,7 @@ export class Sim {
     this.bonus = {}; this.diff = 1; this.over = false;
     this.stats = { kills: 0, chickens: 0, forks: [] };
     // ciudad zombi: recorrido a pie por el hospital (null = en el coche)
-    this.foot = null; this.hdone = new Set();
+    this.foot = null; this.hdone = new Set(); this.carLat = 0; this.carYo = 0;
   }
 
   emit(k, o = {}) { o.k = k; o.st = this.t; this.events.push(o); }
@@ -105,6 +98,28 @@ export class Sim {
     return e;
   }
   rel(e) { return e.d - this.carD; }
+  mkPlayer(m = {}) {
+    const P = { shieldT: 0, alive: true, score: 0, inv: 0, ly: 0, lp: 0, kills: 0, gone: false, poison: 0, poT: 0, regT: 0, kv: 0, spdF: 1, rvUsed: 0, emZ: -9 };
+    this.applyMeta(P, m || {});
+    return P;
+  }
+  applyMeta(P, m) {
+    for (const k of META_KEYS) P[k] = clamp(m[k] | 0, 0, k === 'vida' ? 97 : 40);
+    P.pot = m.pot ? 1 : 0; P.potUsed = 0;
+    P.maxHp = P.hp = maxHpOf(P.vida);
+    P.lives = P.aliento;
+  }
+  // alguien entra a mitad de partida: ocupa su hueco (o se añaden plazas hasta la suya)
+  lateJoin(idx, meta) {
+    while (this.players.length <= idx) { const Q = this.mkPlayer({}); Q.gone = true; Q.alive = false; this.players.push(Q); }
+    this.n = this.players.length;
+    const P = this.players[idx];
+    const sc = P.score, kl = P.kills;
+    Object.assign(P, this.mkPlayer(meta));
+    P.score = sc; P.kills = kl; P.inv = 3; P.late = 1;
+    this.emit('banner', { txt: PNAME[idx] + ' SE UNE A LA PARTIDA', sub: '', c: '#7dff8a' });
+    return P;
+  }
   alivePlayers() { const a = []; this.players.forEach((p, i) => { if (p.alive && !p.gone) a.push(i); }); return a; }
   // con 3-4 jugadores: lo que está por delante dispara a los de delante, lo de detrás a los de atrás
   pickTgt(e) {
@@ -131,7 +146,7 @@ export class Sim {
     const fm = Math.max(1.0, base * this.fireScale());
     return { alive: true, fireMax: fm, fireT: fm + delay, tgt: this.pickTgt(), on: false, r: 0, kind, v };
   }
-  ptsMult() { return BIOMES[BIOME_KEYS[this.road.bioAt(this.carD)]].pts * (this.bonus.pts ? 1.5 : 1) * this.spMult * Math.max(1, this.speed / this.v0) * (1 + 0.2 * (this.zd() - 1)); }
+  ptsMult() { return BIOMES[BIOME_KEYS[this.road.bioAt(this.carD)]].pts * (this.bonus.pts ? 1.5 : 1) * this.spMult * Math.max(1, this.speed / (this.v0 * 0.8)) * (1 + 0.2 * (this.zd() - 1)); }
   wMult(k) { return (BIOMES[BIOME_KEYS[this.road.bioAt(this.carD + 60)]].w[k] ?? 1) * (k === 'truck' && this.bonus.chick ? 3 : 1); }
   hostileCount(rear) {
     let n = 0;
@@ -174,7 +189,8 @@ export class Sim {
     } else {
       this.runT += dt;
       // la velocidad sube con la distancia (hasta casi el doble); al elegir ruta va más despacio para leer los carteles
-      let tgt = this.v0 * Math.min(1.9, 1 + 0.12 * (this.carD / 1000)) * (this.voting ? 0.65 : 1);
+      // (todo un 20 % más lento que antes: iba demasiado rápido)
+      let tgt = this.v0 * 0.8 * Math.min(1.9, 1 + 0.12 * (this.carD / 1000)) * (this.voting ? 0.65 : 1);
       // ante los carteles de ruta: a 15 km/h para poder leerlos (en el asfalto pone 20) hasta que alguien elija
       if (this.voting) { const f = this.road.forks[this.signsFor]; if (f && f.gantry - this.carD < 125 && this.voteT == null) tgt = Math.min(tgt, 15 / 3.6); }
       if (this.road.mudAt(this.carD)) tgt *= Math.min(0.9, 0.4 + 0.12 * this.maxMeta('ruedas'));
@@ -190,9 +206,11 @@ export class Sim {
       // hospital: el coche frena delante de la puerta y os bajáis
       const HS = this.hospAhead();
       if (HS) {
-        const gap = HS.H - 8 - this.carD;
-        if (gap < 70) tgt = Math.min(tgt, Math.max(0, gap) * 0.55);
-        if (gap < 0.8 && this.speed < 1.5 && !this.foot) this.startFoot(HS);
+        const gap = HS.H - PARK_U - this.carD;
+        if (gap < 70) tgt = Math.min(tgt, Math.max(0.6, gap * 0.5));
+        // entra en el parking de la derecha, de morro y en diagonal
+        if (!this.foot) { let k = clamp(1 - gap / 32, 0, 1); k = k * k * (3 - 2 * k); this.carLat = PARK_LAT * k; this.carYo = 0.95 * k + 0.35 * Math.sin(k * Math.PI); }
+        if (gap < 0.4 && !this.foot) { this.speed = 0; this.startFoot(HS); }
       }
       if (this.stunT > 0) { this.stunT -= dt; tgt = 0; if (this.stunT <= 0) this.emit('banner', { txt: '¡ARRANCAMOS!', sub: '', c: '#7dff8a' }); }
       this.speed += clamp(tgt - this.speed, -9 * dt, (this.turboT > 0 ? 12 : 6) * dt);
@@ -329,6 +347,12 @@ export class Sim {
         this.emit('heal', { p: j, hp: Q.hp });
       }
       this.emit('power', { p: pi, a: 'cura' });
+    } else if (k === 'rayo') {
+      // tormenta: rayos sobre los enemigos más cercanos que haya delante
+      const L = this.ents.filter(e => e.st === ST.ALIVE && HOSTILE.has(e.type) && !PROJ.has(e.type) && this.rel(e) > -12 && this.rel(e) < 95)
+        .sort((a, b) => Math.abs(this.rel(a)) - Math.abs(this.rel(b))).slice(0, 3 + lv * 2);
+      for (const e of L) { this.emit('fx', { f: 'zap', w: this.wpos(e.d, e.lat, e.h + 1.2) }); this.damage(e, pi, 8 + lv * 5); }
+      this.emit('power', { p: pi, a: 'rayo' });
     } else if (k === 'iman') {
       // imán: recoges al vuelo los botiquines y el arma que haya
       for (const e of this.ents) {
@@ -483,7 +507,7 @@ export class Sim {
       this.stats.kills++;
     }
     // aviso de baja para el medidor de estilo (racha) de quien la hizo
-    if (p >= 0 && !noPts && PTS[e.type]) this.emit('kill', { p, air: e.h > 2.5 || AIR.has(e.type) ? 1 : 0, boss: BOSS[e.type] ? 1 : 0, big: (e.hm || 0) > 20 ? 1 : 0 });
+    if (p >= 0 && !noPts && PTS[e.type]) this.emit('kill', { p, t: e.type, dl: e.type === 'jeep' && e.x && e.x.dealer ? 1 : 0, air: e.h > 2.5 || AIR.has(e.type) ? 1 : 0, boss: BOSS[e.type] ? 1 : 0, big: (e.hm || 0) > 20 ? 1 : 0 });
     const K = KILL[e.type];
     if (K) K(e, p, this);
   }
@@ -826,6 +850,7 @@ export class Sim {
     e.sh = [this.shooter(3.8, 'shot', 1.2)];
   }
   spawnCivilians(n, d0) {
+    if (BIOMES[BIOME_KEYS[this.road.bioAt(d0 || this.carD + 60)]].deco === 'zombi') return;
     const r = this.r;
     n = n || 2 + Math.floor(r() * 2);
     for (let i = 0; i < n; i++) {
@@ -1371,25 +1396,33 @@ export class Sim {
   ppos(i) {
     const F = this.foot;
     if (F) { const o = (i - (this.n - 1) / 2) * 0.75; return [F.H + F.u - Math.sin(F.y) * o, F.v + Math.cos(F.y) * o, 1.6]; }
-    return [this.carD - SEATS[i][1], SEAT_LAT[i], SEAT_H];
+    return [this.carD - SEATS[i][1], SEAT_LAT[i] + (this.carLat || 0), SEAT_H];
   }
   hospAhead() {
     for (const h of this.road.hosp) if (!this.hdone.has(h.H) && h.H - 8 - this.carD > -3 && h.H - this.carD < 200) return h;
     return null;
   }
   startFoot(h) {
-    this.carD = h.H - 8; this.speed = 0; this.turboT = 0;
+    this.carD = h.H - PARK_U; this.speed = 0; this.turboT = 0;
     for (const e of this.ents) if (e.type === 'zombie' || e.type === 'bat' || PROJ.has(e.type)) e.rm = true;
-    this.foot = { H: h.H, u: -6.5, v: 3, y: 0, i: 1, done: new Set(), wait: null, wt: 0, key: 0, vt: 6, vents: 0 };
+    this.foot = { H: h.H, u: FOOT[0][0], v: FOOT[0][1], y: 0, i: 1, done: new Set(), wait: null, wt: 0, key: 0, vt: 6, vents: 0 };
     const dr = this.add('hdoor', { d: h.H + 56, lat: 0, h: 0.2, hp: 999 });
     dr.x = { o: 0 };
     this.foot.door = dr.id;
+    // puerta de entrada: se abre cuando llegáis
+    const de = this.add('hdoor', { d: h.H + 0.05, lat: 0, h: 0.2, hp: 999 });
+    de.x = { o: 0, nl: 1 };
+    // botiquín en el armario de la pared de la segunda habitación
+    this.add('medkit', { d: h.H + 27.5, lat: 18.45, h: 1.42, hp: 1 }).x = { st: 1.42, still: 1, life: 999 };
+    this.foot.door0 = de.id;
+    // los zombis ya están dentro (quietos) antes de entrar: nada aparece de golpe
+    for (const g of ['lobby', 'h1', 'r1', 'r2', 'r3', 'key']) this.preGroup(g);
     // mobiliario que revienta: archivadores, máquinas, mesas, extintores (explotan) y bancadas de sala de espera
     for (const [u, v, k, ry] of PROPS) { const p = this.add('prop', { d: h.H + u, lat: v, h: k === 3 ? 1.0 : 0.2, ry, hp: [3, 6, 3, 1, 3][k] }); p.x = { k }; }
     this.emit('banner', { txt: '¡AL HOSPITAL!', sub: 'Bajad del coche: la salida está cerrada con llave', c: '#8aff4a' });
     this.emit('foot', { on: 1 });
   }
-  footAlive() { let n = 0; for (const e of this.ents) if ((e.type === 'zombie' || e.type === 'bat') && e.x.f && e.st !== ST.DEAD) n++; return n; }
+  footAlive() { let n = 0; for (const e of this.ents) if ((e.type === 'zombie' || e.type === 'bat') && e.x.f && !e.x.dorm && e.st !== ST.DEAD) n++; return n; }
   footStep(dt) {
     const F = this.foot;
     // rejillas del techo: en la vuelta, de vez en cuando os cae uno delante
@@ -1426,51 +1459,76 @@ export class Sim {
   zomb(u, v, k, o = {}) {
     const F = this.foot, r = this.r;
     const e = this.add('zombie', { d: F.H + u, lat: v, h: o.fall ? 3.3 : 0.2, hp: k === 1 ? 7 : k === 2 ? 3 : 2 + (this.diff > 4 ? 1 : 0) });
-    e.x = { k, f: 1, sk: Math.floor(r() * 6), sp: k === 1 ? 0.8 : (o.fast ? 2.4 : 1.2) + r() * 1.0, ph: 0, wait: o.wait || 0, fall: o.fall ? 1 : 0 };
+    e.x = { k, f: 1, sk: Math.floor(r() * 6), sp: k === 1 ? 0.8 : (o.fast ? 2.4 : 1.2) + r() * 1.0, ph: 0, wait: o.wait || 0, fall: o.fall ? 1 : 0, grp: o.grp || null, dorm: o.grp ? 1 : 0, hp0: e.hp };
+    if (o.grp) e.ry = r() * 6.28;
     e.sh = [k === 2 ? this.shooter(3.4, 'thrown', 1, 5) : this.shooter(k === 1 ? 1.6 : 1.2, 'melee', 0.2)];
     return e;
   }
-  horde(n, u0, u1, v0, v1, fast) {
+  horde(n, u0, u1, v0, v1, fast, grp) {
     const r = this.r;
-    for (let i = 0; i < n; i++) this.zomb(u0 + r() * (u1 - u0), v0 + r() * (v1 - v0), i % 9 === 8 ? 1 : 0, { wait: i * 0.28, fast });
+    for (let i = 0; i < n; i++) this.zomb(u0 + r() * (u1 - u0), v0 + r() * (v1 - v0), i % 9 === 8 ? 1 : 0, { wait: i * 0.28, fast, grp });
+  }
+  // zombis de cada parte del hospital, colocados (quietos) antes de que lleguéis
+  preGroup(g) {
+    const F = this.foot, n = this.nAlive(), r = this.r;
+    if (!F || F.pre && F.pre.has(g)) return;
+    (F.pre || (F.pre = new Set())).add(g);
+    const o = (w = 0) => ({ grp: g, wait: w });
+    switch (g) {
+      case 'lobby': this.horde(4 + n, 6, 12, -8, 5, false, g); this.zomb(9.5, -6, 0, o()); break;
+      case 'h1': this.horde(Math.min(30, 9 + 3 * n), 30, 46, 7.6, 9.4, true, g); break;
+      case 'r1': for (let i = 0; i < 3; i++) this.zomb(15.5 + i * 2, 15.5 + r() * 2, 0, o()); break;
+      case 'r2': this.zomb(24.5, 16.5, 1, o()); break;
+      case 'r3': this.zomb(32, 16.5, 0, o()); this.zomb(35, 16.5, 0, o()); this.zomb(33.5, 17.4, 2, o()); break;
+      case 'key': this.zomb(40, 16.8, 0, o()); break;
+      case 'h2': this.horde(Math.min(30, 10 + 4 * n), 6, 16, 7.6, 9.4, true, g); break;
+      case 'h3': this.horde(Math.min(30, 16 + 5 * n), 30, 52, -1.6, 1.6, true, g); this.zomb(48, 0.8, 2, o()); this.zomb(50, -0.8, 1, o()); break;
+    }
+  }
+  // despierta a los de ese grupo (escalonados); si no estaban, los crea ya despiertos
+  wake(g) {
+    this.preGroup(g);
+    let i = 0;
+    for (const e of this.ents) if (e.type === 'zombie' && e.x.grp === g && e.x.dorm && e.st !== ST.DEAD) { e.x.dorm = 0; e.x.wait = i++ * 0.25; }
   }
   footEv(ev) {
     const F = this.foot, n = this.nAlive(), clear = () => this.footAlive() === 0;
     const r = this.r;
     switch (ev) {
+      case 'door': {
+        const d0 = this.map.get(F.door0); if (d0) d0.x.o = 1;
+        F.wait = () => true; break;
+      }
       case 'lobby':
-        this.horde(4 + n, 6, 12, -8, 5);
-        this.zomb(9.5, -6, 0, { wait: 0.5 });
+        this.wake('lobby');
         F.wait = clear; break;
       case 'h1':
-        this.horde(Math.min(30, 9 + 3 * n), 30, 46, 7.6, 9.4, true);
+        this.wake('h1');
         this.emit('banner', { txt: '¡HORDA EN EL PASILLO!', sub: 'No se avanza hasta acabar con ellos', c: '#ff4040' });
         F.wait = clear; break;
       case 'r1':
-        for (let i = 0; i < 3; i++) this.zomb(15.5 + i * 2, 15.5 + r() * 2, 0, { wait: i * 0.4 });
+        this.wake('r1');
         F.wait = clear; break;
       case 'r2':
-        this.zomb(25.5, 12.5, 0, { fall: 1 }); this.zomb(24.5, 16.5, 1, { wait: 0.6 });
-        this.add('medkit', { d: F.H + 27.8, lat: 17, h: 1.1, hp: 1 }).x = { st: 1.1, life: 999 };
+        this.zomb(25.5, 12.5, 0, { fall: 1 }); this.wake('r2');
         F.wait = clear; break;
       case 'r3':
-        this.zomb(32, 16.5, 0); this.zomb(35, 16.5, 0, { wait: 0.4 }); this.zomb(33.5, 17.4, 2, { wait: 0.3 });
+        this.wake('r3');
         F.wait = clear; break;
       case 'key': {
-        const k = this.add('key', { d: F.H + 43.4, lat: 16.6, h: 1.25, hp: 1 });
+        const k = this.add('key', { d: F.H + 43.4, lat: 16.6, h: 1.08, hp: 1 });
         k.x = {};
-        this.zomb(40, 16.8, 0, { wait: 0.3 });
+        this.wake('key');
         this.emit('banner', { txt: '¡LA LLAVE!', sub: 'Dispárale para cogerla', c: '#ffe14a' });
         F.wait = () => F.key && clear(); break;
       }
-      case 'back': F.vents = 1; F.vt = 2.5; break;
+      case 'back': F.vents = 1; F.vt = 2.5; this.preGroup('h2'); break;
       case 'h2':
-        this.horde(Math.min(30, 10 + 4 * n), 6, 16, 7.6, 9.4, true);
+        this.wake('h2'); this.preGroup('h3');
         this.emit('banner', { txt: '¡VIENEN POR DETRÁS!', sub: '', c: '#ff4040' });
         F.wait = clear; break;
       case 'h3':
-        this.horde(Math.min(30, 16 + 5 * n), 30, 52, -1.6, 1.6, true);
-        this.zomb(48, 0.8, 2, { wait: 1 }); this.zomb(50, -0.8, 1, { wait: 2 });
+        this.wake('h3');
         this.emit('banner', { txt: '¡LA GRAN HORDA!', sub: 'Aguantad', c: '#ff4040' });
         F.wait = clear; break;
       case 'open': {
@@ -1483,7 +1541,7 @@ export class Sim {
       }
       case 'board': {
         this.hdone.add(F.H);
-        this.foot = null; this.speed = 0;
+        this.foot = null; this.speed = 0; this.carLat = 0; this.carYo = 0;
         this.emit('foot', { on: 0 });
         this.spawnBrute();
         break;
@@ -1545,6 +1603,7 @@ export class Sim {
       sl: this.slowT > 0 ? 1 : 0, mu: r2(this.ptsMult()), sn: this.stunT > 0 || this.hold ? 1 : 0,
       cu: [this.maxMeta('pinchos'), this.maxMeta('torreta')], tb: this.turboT > 0 && !this.hold && this.stunT <= 0 ? 1 : 0, sm: this.smokeT > 0 ? 1 : 0,
       fo: this.foot ? [r2(this.foot.H + this.foot.u), r2(this.foot.v), r2(this.foot.y)] : 0,
+      cl: r2(this.carLat || 0), cy: r2(this.carYo || 0),
     };
   }
 }
@@ -1586,7 +1645,7 @@ function ser(e) {
     case 'zombie': x = { k: X.k, sk: X.sk, ph: X.ph, fall: X.fall ? 1 : 0, f: X.f }; break;
     case 'bat': x = { ph: X.ph }; break;
     case 'brute': x = { ph: X.ph }; break;
-    case 'hdoor': x = { o: X.o }; break;
+    case 'hdoor': x = { o: X.o, nl: X.nl }; break;
     case 'prop': x = { k: X.k }; break;
     case 'obelisk': x = { td: X.td, tl: X.tl }; break;
     case 'casinob': x = { k: X.k, td: X.td, tl: X.tl }; break;
@@ -1861,7 +1920,7 @@ const U = {
   },
   medkit(e, dt, S) {
     const rel = S.rel(e), x = e.x;
-    if (x.st) { e.vd = 0; e.h = x.st + Math.sin(e.age * 2.5) * 0.12; return; }
+    if (x.st) { e.vd = 0; e.h = x.st + (x.still ? 0 : Math.sin(e.age * 2.5) * 0.12); return; }
     x.life -= dt;
     e.vd = S.speed + clamp((x.tr - rel) * 2, -8, 20);
     e.lat += (x.tl - e.lat) * Math.min(1, dt * 1.5);
@@ -2180,6 +2239,7 @@ const U = {
     if (x.f) {
       // dentro del hospital: van a por el jugador más cercano
       if (x.fall) { e.h -= dt * 7; if (e.h <= 0.2) { e.h = 0.2; x.fall = 0; } return; }
+      if (x.dorm) { if (e.hp < x.hp0) { x.dorm = 0; x.wait = 0; } else return; }
       if (x.wait > 0) { x.wait -= dt; return; }
       let t = -1, bd = 1e9, P = null;
       for (const i of S.alivePlayers()) { const q = S.ppos(i), dd = Math.hypot(q[0] - e.d, q[1] - e.lat); if (dd < bd) { bd = dd; t = i; P = q; } }

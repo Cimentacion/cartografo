@@ -16,6 +16,7 @@ import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES, rangeMul } from './we
 import { UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd, turboDur, turboCd, POWERS } from './progress.js';
 import { fpGun, VEHICLES, VCOLORS, convertible } from './models.js';
 import { Outline, toon } from './toon.js';
+import { CHAL, chInit, chAdd, claimable, claim, goal, reward, text as chText, UNLOCKS, UNL_NAME, locked, lockedBy } from './challenges.js';
 import { loadChar, saveChar, sanitize, defaultChar, SKINS, HAIRS, HAIR_COLORS, BEARDS, SHIRTS, SHIRT_COLORS, PANTS_COLORS, HATS, BACKS, NECKS, FACES } from './character.js';
 import { seatedPlayer } from './models.js';
 import { clamp, lerp, lerpAng, VP, vw, vh } from './util.js';
@@ -228,6 +229,9 @@ setTimeout(() => { window.__R = renderer; }); // TODO-TESTEO
 setTimeout(() => { window.__look = look; }); // TODO-TESTEO
 let MYCHAR = loadChar();
 const PROG = loadProg();
+chInit(PROG);
+// retos: contadores de lo que hace el jugador local
+const CHC = (k, n = 1) => { chAdd(PROG, k, n); G.chDirty = 1; };
 const AB = { shield: { cd: 0 }, bullet: { cd: 0 } };
 const W = { def: defaultWeapon(), e: null, lv: 1, ammo: 6, rl: 0, cd: 0, recoil: 0, flash: 0 };
 W.e = effective(W.def, 1, PROG.upg);
@@ -276,7 +280,7 @@ class Mirror {
       });
     }
     const players = b.p.map(q => ({ hp: q[0], score: q[1], alive: !!q[2], inv: q[3], ly: q[4], lp: q[5], gone: !!q[6], maxHp: q[7] || 10, shield: !!q[8], poison: !!q[9] }));
-    return { carD, ents, players, cd: b.cd, sp: b.sp, sl: b.sl, mu: b.mu, sn: b.sn, cu: b.cu, tb: b.tb, sm: b.sm, fo: b.fo };
+    return { carD, ents, players, cd: b.cd, sp: b.sp, sl: b.sl, mu: b.mu, sn: b.sn, cu: b.cu, tb: b.tb, sm: b.sm, fo: b.fo, cl: b.cl, cy: b.cy };
   }
 }
 
@@ -387,6 +391,7 @@ function fire() {
   const me = G.players[G.li];
   if (me && !me.alive) return;
   if (W.ammo <= 0) { SFX.empty(); startReload(); return; }
+  CHC('shots');
   const E = W.e;
   const fur = PW.furiaT > 0;
   if (!fur && !(Math.random() < (E.saveP || 0))) W.ammo--;
@@ -556,6 +561,12 @@ function handleEvent(ev) {
       const dist = p.distanceTo(camera.position);
       if (ev.f === 'boom') { fx.boom(p, ev.s || 1); SFX.boom(dist); if (dist < 14) G.shake = Math.max(G.shake, 0.25); }
       else if (ev.f === 'spark') fx.sparks(p, 10);
+      else if (ev.f === 'zap') {
+        // rayo que cae del cielo en zigzag
+        let x = p.x, z = p.z;
+        for (let i = 0; i < 16; i++) { x += (Math.random() - 0.5) * 0.9; z += (Math.random() - 0.5) * 0.9; fx.part(V2.set(x, p.y + i * 1.4, z).clone(), V3.set(0, 0, 0).clone(), 0.22, 0.5, fx.m.zap, 0, 0); }
+        fx.sparks(p, 16, fx.m.zap); SFX.tone(1800, 120, 0.25, 'sawtooth', 0.18); G.flashZap = 0.08;
+      }
       else if (ev.f === 'feathers') { fx.feathers(p); SFX.cluck(); }
       else if (ev.f === 'heal') fx.heal(p);
       else if (ev.f === 'cluck') SFX.cluck();
@@ -586,12 +597,13 @@ function handleEvent(ev) {
         try { navigator.vibrate && navigator.vibrate(120); } catch (e) { }
       }
       break;
-    case 'heal': if (ev.p === li) { flash('heal'); SFX.heal(); } break;
+    case 'heal': if (ev.p === li) { flash('heal'); SFX.heal(); CHC('heal'); } break;
     case 'potion': if (ev.p === li) { G.potUsed = true; PROG.pot = Math.max(0, (PROG.pot | 0) - 1); saveProg(PROG); updPot(); } break;
     case 'pop': view.pop(ev.w, ev.txt, ev.c || PCOL[ev.p]); break;
     case 'banner': showBanner(ev.txt, ev.sub, ev.c); break;
     case 'radio': { const S2 = STORY[ev.ch]; if (S2 && S2.radio[ev.z]) for (const l of S2.radio[ev.z]) RADIO.q.push(l); break; }
-    case 'weapon': if (ev.p === li) giveWeapon(ev.w); break;
+    case 'weapon': if (ev.p === li) { giveWeapon(ev.w); CHC('weapon'); } break;
+    case 'foot': if (!ev.on) CHC('hosp'); break;
     case 'fork': if (G.mode === 'guest') G.road.setChoice(ev.kk, ev.b, ev.zd || 1); break;
     case 'turret': {
       const u = view.car.userData;
@@ -614,6 +626,7 @@ function handleEvent(ev) {
       showBanner(D.name, ev.p !== li && G.n > 1 ? PNAME[ev.p] : '', D.col);
       if (ev.a === 'emp') { flash('heal'); SFX.tone(1200, 60, 0.7, 'square', 0.3); }
       else if (ev.a === 'aereo') { SFX.tone(800, 200, 1, 'sawtooth', 0.3); G.shake = 0.8; }
+      else if (ev.a === 'rayo') { G.shake = Math.max(G.shake, 0.5); }
       else SFX.heal();
       break;
     }
@@ -631,7 +644,11 @@ function handleEvent(ev) {
       }
       break;
     case 'over': gameOver(ev); break;
-    case 'kill': if (ev.p === G.li) STY.kill(ev); break;
+    case 'kill': if (ev.p === G.li) {
+      STY.kill(ev);
+      CHC('kills'); if (ev.t) CHC('k_' + ev.t); if (ev.boss) CHC('boss'); if (ev.air) CHC('air'); if (ev.big) CHC('big'); if (ev.dl) CHC('dealer');
+      if (STY.chain === 3) CHC('multi');
+    } break;
     case 'ability':
       if (ev.a === 'shield') { showBanner(ev.p === li ? '¡ESCUDO!' : (PNAME[ev.p] + ' USA ESCUDO'), '', '#5ae0ff'); SFX.heal(); }
       else if (ev.a === 'turbo') { showBanner('¡TURBO!', '', '#ff8a3d'); SFX.tone(200, 900, 0.6, 'sawtooth', 0.25); }
@@ -647,14 +664,14 @@ net.onmsg = (m, from) => {
   if (G.mode === 'host') {
     const S = G.sim, P = S && S.players[from];
     switch (m.t) {
-      case 'hello': if (m.pf) { addRecent(m.pf.id, m.pf.name); G.peerProf = G.peerProf || {}; G.peerProf[from] = m.pf; } if (m.v !== NETV) lobbyMsg('Alguien tiene otra versión: recargad todos la página'); if (m.c) G.peerChars[from] = sanitize(m.c, from); if (m.m) G.peerMetas[from] = m.m; break;
+      case 'hello': if (m.pf) { addRecent(m.pf.id, m.pf.name); G.peerProf = G.peerProf || {}; G.peerProf[from] = m.pf; } if (m.v !== NETV) lobbyMsg('Alguien tiene otra versión: recargad todos la página'); if (m.c) G.peerChars[from] = sanitize(m.c, from); if (m.m) G.peerMetas[from] = m.m; if (S && G.running && m.m && S.players[from] && S.players[from].late === 1) { const P = S.players[from]; S.applyMeta(P, m.m); P.late = 2; } if (G.running && m.c && G.chars) { G.chars[from] = G.peerChars[from]; view.setAvatars(G.chars); } break;
       case 'ab': if (S && G.running && (m.k === 'shield' || m.k === 'bullet' || m.k === 'turbo')) S.useAbility(from, m.k, clamp(m.lv | 0, 1, ABMAX), clamp(m.l2 | 0, 0, 5)); break;
       case 'rv': if (S && G.running) S.revive(from); break;
       case 'veh': if (!G.running && VEHICLES.some(x => x[0] === m.k)) { setVeh(m.k, clamp(m.c | 0, 0, VCOLORS.length - 1), from); net.send({ t: 'vs', k: G.veh.k, c: G.veh.c, left: VS.left }); } break;
       case 'pot': if (S && G.running && P) { if (m.fresh) P.pot = 1; S.usePotion(from); } break;
       case 'pw': if (S && G.running && POWERS[m.k] && m.k !== 'furia') S.power(from, m.k, clamp(m.lv | 0, 1, 3)); break;
       case 'sf': if (P) P.spdF = clamp(+m.v || 1, 0.3, 1); break;
-      case 'char': G.peerChars[from] = sanitize(m.c, from); break;
+      case 'char': G.peerChars[from] = sanitize(m.c, from); if (G.running && G.chars) { G.chars[from] = G.peerChars[from]; view.setAvatars(G.chars); } break;
       case 'l': if (P) { P.ly = m.y; P.lp = m.p; } break;
       case 'h': if (S && G.running) for (const h of m.h) S.hit(from, h[0], h[1], h[2]); break;
       case 'b': if (S && G.running) S.boomWorld(from, m.x, m.y, m.z, m.r, m.dmg); break;
@@ -680,6 +697,7 @@ net.onmsg = (m, from) => {
       case 's': if (G.mir) G.mir.push(m); break;
       case 'vsel': case 'vs': guestVsel(m); break;
       case 'ev': for (const e of m.e) { if (IMMEDIATE.has(e.k)) handleEvent(e); else G.evq.push(e); } break;
+      case 'nn': if (G.running && m.n > 0 && m.n <= 5) { G.n = m.n; G.chars = [0, 1, 2, 3, 4].map(i => sanitize(m.chars && m.chars[i], i)); view.setAvatars(G.chars); } break;
       case 'busy': lobbyMsg('La partida ya ha empezado: entrarás en la siguiente (cuando el anfitrión pulse OTRA VEZ)'); break;
       case 'full': lobbyMsg('La sala ya está llena (máximo 5 jugadores)'); break;
       case 'menu': toMenu('El anfitrión ha salido al menú'); break;
@@ -745,6 +763,17 @@ net.onjoin = (idx, back) => {
       G.sim.emit('banner', { txt: 'J' + (idx + 1) + ' HA VUELTO', sub: '', c: '#7dff8a' });
       return;
     }
+    // alguien nuevo a mitad de partida: entra directamente (ocupa una plaza libre)
+    if (G.sim && G.mode === 'host' && idx < 5) {
+      G.sim.lateJoin(idx, G.peerMetas[idx] || {});
+      G.n = G.sim.n;
+      G.chars[idx] = G.peerChars[idx] || defaultChar(idx);
+      view.setAvatars(G.chars);
+      const gone = G.sim.players.map((q, i) => (q.gone ? i : -1)).filter(i => i > 0);
+      net.sendTo(idx, { t: 'start', seed: G.seed, n: G.n, chars: G.chars, sp: G.speedIdx, gone, st: G.story, veh: G.veh, rj: G.road.forks.map(f => [f.choice, f.zd]) });
+      net.send({ t: 'nn', n: G.n, chars: G.chars });
+      return;
+    }
     net.sendTo(idx, { t: 'busy' }); return;
   }
   lobbyMsg('¡Ha entrado J' + (idx + 1) + '! ' + lobbyPlayers() + ' · Pulsa EMPEZAR cuando estéis todos');
@@ -795,7 +824,7 @@ function begin(seed, n, li, mode) {
   if (SC) G.road = new Road(G.seed, BIOME_KEYS.indexOf(SC.z[0]), SC.zd || BIOMES[SC.z[0]].lv + G.story);
   else G.road = new Road(G.seed, qb > 0 && mode === 'solo' ? qb : 0, +Q.get('zd') || 1);
   G.road.extend(520);
-  G.sim = mode === 'guest' ? null : new Sim(G.road, n, G.seed, { story: SC ? { ch: G.story, z: SC.z.map(k => BIOME_KEYS.indexOf(k)) } : null, speed: G.speedIdx, metas: [0, 1, 2, 3].map(i => (i === 0 ? metaOf(PROG) : G.peerMetas[i] || {})) });
+  G.sim = mode === 'guest' ? null : new Sim(G.road, n, G.seed, { story: SC ? { ch: G.story, z: SC.z.map(k => BIOME_KEYS.indexOf(k)) } : null, speed: G.speedIdx, metas: [0, 1, 2, 3, 4].map(i => (i === 0 ? metaOf(PROG) : G.peerMetas[i] || {})) });
   if (G.sim) for (const i of (mode === 'host' ? G.goneAtStart || [] : [])) if (G.sim.players[i]) { G.sim.players[i].gone = true; G.sim.players[i].alive = false; }
   if (G.sim && Q.get('god')) G.sim.god = true; // TODO-TESTEO
   G.mir = mode === 'guest' ? new Mirror() : null;
@@ -809,7 +838,7 @@ function begin(seed, n, li, mode) {
   CAN.t = 0; CAN.cd = 0; CAN.saved = null;
   look.flip = 0; $('btnFlip').classList.remove('on'); G.potUsed = false; TB.cd = 0; TB.rv = 0; W.contraT = 0; PW.furiaT = 0; PW.fuerzaT = 0; LENS.on = false; PW.cd = {}; G.smokeT = 0; G.zoomT = 1; G.zoom = 1; G.lay = 0;
   $('regulIn').value = 100; G.spdF = 1;
-  outline.red = (PROG.upg.aura | 0) > 0;
+  outline.aura = (PROG.upg.aura | 0) > 0; outline.red = outline.aura ? 1 : 0;
   $('btnHide').hidden = n < 2;
   clearChunks();
   if (!view) view = new View(scene, G.road, fx); window.__view = view; // TODO-TESTEO
@@ -849,7 +878,11 @@ function gameOver(ev) {
     for (let i = 0; i < n; i++) h += `<div class="orow" style="color:${PCOL[i]}">${n > 1 ? PNAME[i] : 'PUNTOS'} <b>${String(ev.sc[i]).padStart(7, '0')}</b> · ${ev.kl[i]} bajas</div>`;
     h += '<canvas id="routeMap" width="560" height="240"></canvas>';
     const mine = ev.sc[G.li] || 0, coins = Math.floor(mine / 10 * (1 + 0.1 * (PROG.upg.codicia | 0))) + (STY.coins | 0);
-    PROG.coins += coins; saveProg(PROG);
+    PROG.coins += coins;
+    CHC('runs'); CHC('dist', Math.round(ev.dist) / 1000); CHC('coins', coins); CHC('score', mine); CHC('mins', ev.t / 60); CHC('ck', ev.ck | 0);
+    if (G.n > 1) CHC('coop');
+    if (G.story != null && ev.win) CHC('story');
+    saveProg(PROG); updRetos();
     // ver un anuncio duplica las monedas de esta partida (una vez)
     G.lastCoins = coins; $('btnX2').hidden = coins <= 0; $('btnX2').disabled = false; $('btnX2').textContent = '📺 x2 MONEDAS (+' + coins + ')';
     h += `<div class="ocoin">+${coins} MONEDAS · tienes ${PROG.coins}</div>`;
@@ -941,6 +974,7 @@ function lanList(list, key) {
   for (const b of el.querySelectorAll('.lanRoom')) b.onclick = () => { $('codeIn').value = b.dataset.c; $('btnGo').click(); };
 }
 function toMenu(msg) {
+  if (G.chDirty) { G.chDirty = 0; saveProg(PROG); }
   SFX.dance(-1);
   lanStop();
   clearInterval(VS.iv); $('vsel').hidden = true;
@@ -987,6 +1021,7 @@ const STY = {
     this.pts = Math.max(0, this.pts - (6 + this.rank * 7) * dt);
     let r = 0; for (let i = 0; i < this.R.length; i++) if (this.pts >= this.R[i][3]) r = i;
     if (r > this.rank && r >= 2) SFX.tone(500 + r * 120, 900 + r * 160, 0.12, 'square', 0.12);
+    if (r > this.rank && this.pts > 0) { if (r === 4) CHC('rkS'); if (r === 6) CHC('rkSSS'); if (r === 7) CHC('rkRK'); }
     this.rank = this.pts > 0 ? r : 0;
     for (const f of this.feed) f.t -= dt;
     this.feed = this.feed.filter(f => f.t > 0);
@@ -1067,6 +1102,7 @@ function uiWcard() {
 function uiRoute() {
   const b = G.road.bioAt(G.carD), z = G.road.zdAt(G.carD);
   if (b === G.lastBio && z === G.lastZd) return;
+  if (b !== G.lastBio && G.running) { CHC('z_' + BIOME_KEYS[b]); CHC('zones'); }
   G.lastBio = b; G.lastZd = z;
   const B = BIOMES[BIOME_KEYS[b]];
   $('route').innerHTML = `<span style="color:${B.color}">${B.name}</span> <small class="zd">DIF ${z}</small>`;
@@ -1108,13 +1144,14 @@ function usePower(k) {
   const me = G.players[G.li];
   if (!me || !me.alive) return;
   PW.cd[k] = PW.max[k] = D.cd(lv);
+  CHC('power');
   if (k === 'fuerza') { PW.fuerzaT = D.dur(lv); PW.fuerzaM = D.mul(lv); showBanner('¡FUERZA BRUTA!', 'x' + D.mul(lv).toFixed(1) + ' de daño', D.col); SFX.tone(90, 400, 0.5, 'square', 0.3); return; }
   if (k === 'furia') { PW.furiaT = D.dur(lv); W.ammo = Math.max(W.ammo, 1); W.rl = 0; showBanner('¡FURIA!', 'Doble ritmo y sin gastar balas', D.col); SFX.tone(150, 600, 0.4, 'sawtooth', 0.3); return; }
   if (G.mode === 'guest') net.send({ t: 'pw', k, lv });
   else G.sim.power(G.li, k, lv);
 }
 // coloca los botones de poderes que tengas en columnas, sin pisarse
-const ABTN = ['btnPot', 'btnShield', 'btnBullet', 'btnGrenade', 'btnCannon', 'btnTurbo', 'btnRevive', 'btnP_furia', 'btnP_emp', 'btnP_aereo', 'btnP_cura', 'btnP_iman', 'btnP_fuerza', 'btnScope'];
+const ABTN = ['btnPot', 'btnShield', 'btnBullet', 'btnGrenade', 'btnCannon', 'btnTurbo', 'btnRevive', 'btnP_furia', 'btnP_emp', 'btnP_aereo', 'btnP_cura', 'btnP_iman', 'btnP_rayo', 'btnP_fuerza', 'btnScope'];
 // colocación elegida por el jugador en el editor de interfaz (centro en fracción de pantalla)
 let HUDL = {};
 try { HUDL = JSON.parse(localStorage.getItem('rc_hud') || '{}') || {}; } catch (e) { HUDL = {}; }
@@ -1545,6 +1582,7 @@ function useAbility(k) {
   if (!me || !me.alive) return;
   const l2 = k === 'shield' ? PROG.upg.escudo2 | 0 : PROG.upg.bala2 | 0;
   AB[k].cd = k === 'shield' ? shieldCd(lv, l2) : bulletCd(lv);
+  CHC('ability');
   AB[k].max = AB[k].cd;
   if (G.mode === 'guest') net.send({ t: 'ab', k, lv, l2 });
   else G.sim.useAbility(G.li, k, lv, l2);
@@ -1635,7 +1673,7 @@ function tick(dt) {
   if (G.mode === 'guest' || !G.sim) {
     if (!G.mir) return;
     const s = G.mir.sample();
-    if (s) { G.carD = s.carD; G.ents = s.ents; G.players = s.players; G.cd = s.cd; G.speed = s.sp; G.slow = !!s.sl; G.mult = s.mu || 1; G.stun = !!s.sn; G.cu = s.cu; G.turbo = !!s.tb; G.smoked = !!s.sm; G.foot = s.fo || null; }
+    if (s) { G.carD = s.carD; G.ents = s.ents; G.players = s.players; G.cd = s.cd; G.speed = s.sp; G.slow = !!s.sl; G.mult = s.mu || 1; G.stun = !!s.sn; G.cu = s.cu; G.turbo = !!s.tb; G.smoked = !!s.sm; G.foot = s.fo || null; G.carLat = s.cl || 0; G.carYo = s.cy || 0; }
     G.road.extend(G.carD + 340);
     const rt = G.mir.rt;
     while (G.evq.length && G.evq[0].st <= rt) handleEvent(G.evq.shift());
@@ -1660,7 +1698,7 @@ function tick(dt) {
     G.stun = S.stunT > 0 || S.hold;
     G.turbo = S.turboT > 0 && !S.hold && S.stunT <= 0;
     G.smoked = S.smokeT > 0;
-    G.foot = S.foot ? [S.foot.H + S.foot.u, S.foot.v, S.foot.y] : null;
+    G.foot = S.foot ? [S.foot.H + S.foot.u, S.foot.v, S.foot.y] : null; G.carLat = S.carLat || 0; G.carYo = S.carYo || 0;
     G.cd = S.phase === 'count' ? S.countT : -1;
   }
   // --- cuenta atrás ---
@@ -1669,12 +1707,12 @@ function tick(dt) {
   if (G.cd > 0) setHTML('countN', String(Math.ceil(G.cd)));
   // --- coche, cámara ---
   G.shake = Math.max(0, G.shake - dt);
-  view.placeCar(G.carD, G.t, G.shake * 0.15, dt, G.speed);
+  view.placeCar(G.carD, G.t, G.shake * 0.15, dt, G.speed, G.carLat || 0, G.carYo || 0);
   updateChunks(G.carD, false);
   const car = view.car;
   // horizonte siempre recto (no copia la cuesta ni el traqueteo del coche)
   // la cámara gira CON el coche (mirando un poco por delante en la curva), sin retraso
-  const yawAhead = -G.road.yawAt(G.carD + 6);
+  const yawAhead = -G.road.yawAt(G.carD + 6) - (G.carYo || 0);
   if (G.camYaw == null) G.camYaw = yawAhead;
   G.camYaw = lerpAng(G.camYaw, yawAhead, 1 - Math.exp(-dt * 6));
   // J3-J4 van detrás mirando hacia atrás
@@ -1779,7 +1817,7 @@ function tick(dt) {
   if (G.turbo && !G.turboPrev) G.kick = 1;
   G.turboPrev = G.turbo;
   G.kick = Math.max(0, (G.kick || 0) - dt * 1.4);
-  const fov = (72 + (G.turbo ? 16 + 10 * G.kick : 0) + (fast && !G.turbo ? 7 : 0)) / G.zoom;
+  const fov = (FOV + (G.turbo ? 16 + 10 * G.kick : 0) + (fast && !G.turbo ? 7 : 0)) / G.zoom;
   if (Math.abs(camera.fov - fov) > 0.05) { camera.fov += (fov - camera.fov) * Math.min(1, dt * 6); camera.updateProjectionMatrix(); }
   $('scope').hidden = !(rifle && G.zoom > 1.3);
   G.wind = G.turbo ? 1 : fast ? Math.min(1, (G.speed || 0) / 16) : 0;
@@ -1814,19 +1852,20 @@ function tick(dt) {
   const T0 = G.road.tunnels[0], dark = inTun && T0 && T0.start < 20 && G.carD < T0.end - 2;
   outline.mat.uniforms.dim.value = dark ? 1 : 0; outline.mat.uniforms.dimD.value = dark ? T0.end - G.carD : 0;
   const B = BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]];
+  outline.red = outline.aura ? 1 : B.deco === 'zombi' || G.foot ? 0.45 : 0;
   const k = SHOT ? 1 : 1 - Math.exp(-dt * 1.2);
   ENV.sky.lerp(TC.setHex(B.sky), k);
   ENV.sea.lerp(TC.setHex(B.sea), k);
   // dentro del hospital: luz blanca de fluorescente y sin bruma
   const indoor = !!G.foot && G.foot[0] > G.carD + 4 && G.foot[0] < G.carD + 64 && FPS[G.li] && FPS[G.li][0] - G.carD > 7.5;
-  ENV.hs.lerp(TC.setHex(indoor ? 0x9ae0d8 : B.hemi[0]), k * (indoor ? 3 : 1)); ENV.hg.lerp(TC.setHex(indoor ? 0x1a3a44 : B.hemi[1]), k * (indoor ? 3 : 1));
+  ENV.hs.lerp(TC.setHex(indoor ? 0x9ae0d8 : B.hemi[0]), Math.min(1, k * (indoor ? 3 : 1))); ENV.hg.lerp(TC.setHex(indoor ? 0x1a3a44 : B.hemi[1]), Math.min(1, k * (indoor ? 3 : 1)));
   ENV.hi = lerp(ENV.hi, indoor ? 1.05 : B.hemi[2] * (dark ? 0.13 : inTun ? 0.75 : 1), dark ? 1 : Math.min(1, k * 2));
   ENV.sc.lerp(TC.setHex(B.sun[0]), k);
   ENV.si = lerp(ENV.si, indoor || dark ? 0 : B.sun[1] * (inTun ? 0.45 : 1), dark ? 1 : Math.min(1, k * (indoor ? 4 : 2)));
   // la niebla acaba antes de donde termina el decorado construido y la zona con sombras: nada aparece de golpe
-  ENV.fn = lerp(ENV.fn, indoor ? 1.5 : Math.min(B.fogNear, 120), k * (indoor ? 3 : 1)); ENV.ff = lerp(ENV.ff, indoor ? 17 : Math.min(B.fogFar, 215), k * (indoor ? 3 : 1));
+  ENV.fn = lerp(ENV.fn, indoor ? 1.5 : Math.min(B.fogNear, 120), Math.min(1, k * (indoor ? 3 : 1))); ENV.ff = lerp(ENV.ff, indoor ? 17 : Math.min(B.fogFar, 215), Math.min(1, k * (indoor ? 3 : 1)));
   // pasillos en penumbra: la niebla oscura no deja ver el fondo
-  G.fogIn = lerp(G.fogIn || 0, indoor ? 1 : 0, k * 3);
+  G.fogIn = lerp(G.fogIn || 0, indoor ? 1 : 0, Math.min(1, k * 3));
   scene.background.copy(ENV.sky); scene.fog.color.copy(ENV.sky).lerp(TC.setHex(0x06161c), G.fogIn);
   // pilotos y fluorescentes rotos
   MATS.E.color.setScalar(Math.floor(G.t * 2.5) % 2 ? 1 : 0.15);
@@ -2234,6 +2273,12 @@ $('styleBack').onclick = () => { $('styleScr').hidden = true; $('menu').hidden =
 applyStyle();
 // oclusión ambiental (rincones más oscuros): se puede quitar aparte de las sombras
 let AOON = (localStorage.getItem('rc_ao2') ?? '0') === '1';
+// campo de visión (ajustes)
+const FOVS = [60, 66, 72, 80, 90, 100];
+let FOV = +(localStorage.getItem('rc_fov') || 72); if (!FOVS.includes(FOV)) FOV = 72;
+function setFov(v) { FOV = v; try { localStorage.setItem('rc_fov', v); } catch (e) { } $('btnFov').textContent = 'CAMPO DE VISIÓN: ' + v + '°'; }
+$('btnFov').onclick = () => setFov(FOVS[(FOVS.indexOf(FOV) + 1) % FOVS.length]);
+setFov(FOV);
 function setAO(v) { AOON = v; try { localStorage.setItem('rc_ao2', v ? '1' : '0'); } catch (e) { } outline.mat.uniforms.aoOn.value = v && qIdx > 0 ? 1 : 0; $('btnAO').textContent = 'OCLUSIÓN: ' + (v ? 'SÍ' : 'NO'); }
 $('btnAO').onclick = () => setAO(!AOON);
 function setQuality(i) {
@@ -2278,9 +2323,10 @@ function edPaint() {
     cols.forEach((col, i) => {
       const b = document.createElement('button');
       b.style.background = '#' + col.toString(16).padStart(6, '0');
-      b.className = c[key] === i ? 'sel' : '';
+      const lk = locked(PROG, key + ':' + i);
+      b.className = (c[key] === i ? 'sel' : '') + (lk ? ' lock' : '');
       b.setAttribute('aria-label', key + ' ' + i);
-      b.onclick = () => { c[key] = i; edChanged(); };
+      b.onclick = () => { if (lk) { edLockMsg(key + ':' + i); return; } c[key] = i; edChanged(); };
       el.appendChild(b);
     });
   };
@@ -2288,8 +2334,9 @@ function edPaint() {
     const el = $(id); el.innerHTML = '';
     opts.forEach(([v, label]) => {
       const b = document.createElement('button');
-      b.textContent = label; b.className = c[key] === v ? 'sel' : '';
-      b.onclick = () => { c[key] = v; edChanged(); };
+      const lk = locked(PROG, key + ':' + v);
+      b.textContent = (lk ? '🔒 ' : '') + label; b.className = (c[key] === v ? 'sel' : '') + (lk ? ' lock' : '');
+      b.onclick = () => { if (lk) { edLockMsg(key + ':' + v); return; } c[key] = v; edChanged(); };
       el.appendChild(b);
     });
   };
@@ -2299,8 +2346,55 @@ function edPaint() {
   $('edShirtColRow').hidden = c.shirt !== 'lisa';
   $('edGlasses').className = c.glasses ? 'sel' : ''; $('edChair').className = c.chair ? 'sel' : '';
 }
+// ---------------- retos ----------------
+function showToast(t) {
+  let el = $('toast');
+  if (!el) { el = document.createElement('div'); el.id = 'toast'; document.body.appendChild(el); }
+  el.textContent = t; el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 3200);
+}
+function updRetos() { const n = claimable(PROG); $('retosN').textContent = n ? n : ''; $('retosN').hidden = !n; }
+let RF = 'Todos';
+function paintRetos() {
+  $('retosCoins').textContent = PROG.coins;
+  const tabs = ['Todos', 'Listos', 'Bajas', 'General', 'Zonas'];
+  $('retosTabs').innerHTML = tabs.map(t => `<button class="${t === RF ? 'sel' : ''}" data-t="${t}">${t.toUpperCase()}</button>`).join('');
+  $('retosTabs').querySelectorAll('button').forEach(b => (b.onclick = () => { RF = b.dataset.t; paintRetos(); }));
+  const rows = CHAL.map(c => {
+    const t = PROG.ch[c.id] | 0, v = PROG.st[c.id] || 0, done = t >= 10, g = done ? goal(c, 9) : goal(c, t), ready = !done && v >= g;
+    return { c, t, v, g, done, ready, p: done ? 2 : ready ? 3 : Math.min(1, v / g) };
+  }).filter(r => RF === 'Todos' || (RF === 'Listos' ? r.ready : r.c.cat === RF)).sort((a, b) => b.p - a.p);
+  $('retosList').innerHTML = rows.map(({ c, t, v, g, done, ready }) => {
+    const u = !done && UNLOCKS[c.id] && UNLOCKS[c.id][t];
+    const vv = c.id === 'dist' || c.id === 'mins' ? v.toFixed(1) : Math.floor(v).toLocaleString('es-ES');
+    return `<div class="rto${ready ? ' rdy' : ''}${done ? ' done' : ''}" style="--c:${c.col || (c.cat === 'Bajas' ? '#ff5a5a' : '#ffe14a')}">
+      <div class="rtT">${chText(c, t)}</div>
+      <div class="rtL">${'★'.repeat(t)}${'☆'.repeat(10 - t)}</div>
+      <div class="rtB"><i style="width:${done ? 100 : Math.min(100, v / g * 100)}%"></i><span>${done ? 'COMPLETADO' : vv + ' / ' + g.toLocaleString('es-ES')}</span></div>
+      <div class="rtR">${done ? '' : '<i class="coin"></i> +' + reward(c, t) + (u ? ' · 🎁 ' + UNL_NAME[u] : '')}</div>
+      ${ready ? `<button class="rtC" data-id="${c.id}">RECLAMAR</button>` : ''}
+    </div>`;
+  }).join('') || '<div class="rtEmpty">Nada por aquí todavía</div>';
+  $('retosList').querySelectorAll('.rtC').forEach(b => (b.onclick = () => {
+    const r = claim(PROG, b.dataset.id);
+    if (!r) return;
+    saveProg(PROG); SFX.pickup();
+    showToast('+' + r.coins + ' monedas' + (r.unl ? ' · ¡Desbloqueado: ' + UNL_NAME[r.unl] + '!' : ''));
+    paintRetos(); updRetos(); updMenuCard();
+  }));
+}
+$('btnRetos').onclick = () => { for (const sc of document.querySelectorAll('.screen')) sc.hidden = true; $('retos').hidden = false; RF = claimable(PROG) ? 'Listos' : 'Todos'; paintRetos(); };
+$('retosBack').onclick = () => { $('retos').hidden = true; $('menu').hidden = false; updRetos(); updMenuCard(); };
+updRetos();
+function edLockMsg(k) { showToast('🔒 ' + (UNL_NAME[k] || '') + ' — se consigue en RETOS: ' + lockedBy(k)); }
+// si lo puesto está bloqueado (p. ej. de otra versión), se quita
+function edFixLocks(c) {
+  const d = defaultChar(0);
+  for (const k of ['hat', 'back', 'shirt']) if (locked(PROG, k + ':' + c[k])) c[k] = d[k] || 'no';
+  for (const k of ['shirtCol', 'hairCol']) if (locked(PROG, k + ':' + c[k])) c[k] = d[k];
+  return c;
+}
 function edChanged() {
-  MYCHAR = sanitize(MYCHAR, 0);
+  MYCHAR = edFixLocks(sanitize(MYCHAR, 0));
   saveChar(MYCHAR); edPaint(); edRebuild();
   if (net.open && G.mode === 'guest') net.send({ t: 'char', c: MYCHAR });
   if (!G.running) { view.setAvatars([MYCHAR, defaultChar(1), defaultChar(2), defaultChar(3)]); view.av.forEach((a, i) => (a.visible = i < 2)); }
@@ -2413,7 +2507,7 @@ const HUD_ITEMS = [
   ['btnShield', 'ESCUDO', 46, '#5ae0ff', 'shield'], ['btnBullet', 'T. BALA', 46, '#c48cff', 'bullet'], ['btnGrenade', 'GRANADA', 46, '#7dff5a', 'gren'],
   ['btnCannon', 'CAÑÓN', 46, '#ffb020', 'canon'], ['btnTurbo', 'TURBO', 46, '#ff8a3d', 'turbo'], ['btnRevive', 'REANIMAR', 46, '#40ff80', 'reviv'],
   ['btnP_furia', 'FURIA', 46, '#ff5a3a', 'furia'], ['btnP_emp', 'EMP', 46, '#5ad0ff', 'emp'], ['btnP_aereo', 'AÉREO', 46, '#ffb020', 'aereo'],
-  ['btnP_cura', '+VIDA', 46, '#40ff80', 'cura'], ['btnP_iman', 'IMÁN', 46, '#ffe14a', 'iman'],
+  ['btnP_cura', '+VIDA', 46, '#40ff80', 'cura'], ['btnP_iman', 'IMÁN', 46, '#ffe14a', 'iman'], ['btnP_rayo', 'TORMENTA', 46, '#b48cff', 'rayo'],
   ['btnPot', 'POCIÓN', 46, '#ff5ad0'],
   ['btnP_fuerza', 'FUERZA', 46, '#ff2a6a', 'fuerza'], ['btnScope', 'MIRA', 46, '#9ad0ff', 'mira'],
 ];

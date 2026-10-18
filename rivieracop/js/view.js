@@ -31,7 +31,7 @@ export class Fx {
       fire: M.glow(0xff9a2a), hot: M.glow(0xffe070), spark: M.glow(0xfff2a0),
       smoke: new THREE.MeshLambertMaterial({ color: 0x5a5a5a, transparent: true, opacity: 0.75 }),
       dsmoke: new THREE.MeshLambertMaterial({ color: 0x222222, transparent: true, opacity: 0.8 }),
-      debris: M.mat(0x2a2a2a), feather: M.mat(0xf6f6f0), heal: M.glow(0x50ff90), acid: M.glow(0x8aff3a), acid2: M.glow(0x4ac81a), dust: M.mat(0xb0a890),
+      debris: M.mat(0x2a2a2a), feather: M.mat(0xf6f6f0), heal: M.glow(0x50ff90), zap: M.glow(0xc8b4ff), acid: M.glow(0x8aff3a), acid2: M.glow(0x4ac81a), dust: M.mat(0xb0a890),
       shell: M.mat(0xd8a830), shellR: M.mat(0xc02a20),
     };
   }
@@ -277,9 +277,9 @@ export class View {
   }
 
   // coche con suspensión exagerada estilo Crazy Taxi: se inclina en las curvas, cabecea al acelerar y da botes
-  placeCar(d, t, shake, dt = 0, speed = 0) {
+  placeCar(d, t, shake, dt = 0, speed = 0, lat = 0, yo = 0) {
     const R = this.road, C = this.cf || (this.cf = { roll: 0, pitch: 0, y: 0, vy: 0, hop: 2, sp: 0 });
-    R.toWorld(d, LANE_ME, 0, this.carPos);
+    R.toWorld(d, LANE_ME + lat, 0, this.carPos);
     const y0 = R.toWorld(d - 2, LANE_ME, 0, V1).y, y1 = R.toWorld(d + 2, LANE_ME, 0, V2).y;
     const yaw = R.yawAt(d + 1);
     if (dt > 0) {
@@ -300,8 +300,8 @@ export class View {
       if (C.y < 0) { C.y = 0; C.vy = C.vy < -1.5 ? -C.vy * 0.3 : 0; }
     }
     this.car.position.copy(this.carPos);
-    this.car.position.y += C.y + Math.sin(t * 13) * 0.015 + (shake ? (Math.random() - 0.5) * shake : 0);
-    this.car.rotation.set(Math.atan2(y1 - y0, 4) + C.pitch + C.vy * 0.015, -yaw, C.roll, 'YXZ');
+    this.car.position.y += Math.min(1, Math.abs(lat) / 9) * 0.27 + C.y + Math.sin(t * 13) * 0.015 + (shake ? (Math.random() - 0.5) * shake : 0);
+    this.car.rotation.set(Math.atan2(y1 - y0, 4) + C.pitch + C.vy * 0.015, -yaw - yo, C.roll, 'YXZ');
     this.car.updateMatrixWorld(true);
     const dr = this.car.userData.driver;
     dr.userData.rig.torso.rotation.y = Math.sin(t * 0.6) * 0.1;
@@ -697,7 +697,7 @@ const ANIM = {
   },
   hdoor(o, e, dt) {
     const ud = o.userData, op = e.x && e.x.o;
-    ud.lock.visible = !op;
+    ud.lock.visible = !op && !(e.x && e.x.nl);
     const a = op ? Math.min(1.5, (ud.op = (ud.op || 0) + dt * 1.6)) : 0;
     ud.leaves[0].rotation.y = a; ud.leaves[1].rotation.y = -a;
   },
@@ -823,7 +823,7 @@ const ANIM = {
       if (Math.random() < dt * 10) { o.getWorldPosition(V1); V1.y += 2.4; V.fx.smoke(V1, true); }
     } else { L[0].visible = on; L[1].visible = !on; }
   },
-  medkit(o, e, dt, ctx) { o.userData.k.rotation.y += dt * 2.5; },
+  medkit(o, e, dt, ctx) { if (!(e.x && e.x.still)) o.userData.k.rotation.y += dt * 2.5; else o.userData.k.rotation.y = 0; },
   weapon(o, e, dt, ctx) {
     o.userData.gun.rotation.y += dt * 1.8;
     if (e.x && e.x.w) M.drawWeaponCard(o, e.x.w, e.x.pr || [0, 0], e.x.nd || 5, (e.x.pr || [0]).length);

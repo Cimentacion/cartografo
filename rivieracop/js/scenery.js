@@ -981,8 +981,7 @@ function hospital(R, RI, road, H) {
   B(R.L, -0.7, -0.4, 3, 13, 7.3, 8.3, 0x1a3a6a); for (let k = 0; k < 8; k++) B(R.G, -0.75, -0.7, 3.6 + k * 1.15, 4.3 + k * 1.15, 7.55, 8.05, k === 5 ? 0x2a2a2a : 0xe8f0ff);
   B(R.L, -4.5, -0.4, -4.5, 4.5, 3.1, 3.4, 0xe0e0d8); for (const v of [-4, 4]) B(R.L, -4.2, -3.8, v - 0.2, v + 0.2, 0, 3.1, 0xb8b8b0);
   B(R.G, -4.5, -4.4, -3, 3, 3.15, 3.35, 0xff3030);
-  // puertas de cristal reventadas
-  for (const s of [-1, 1]) B(RI.L, -0.05 + (s > 0 ? 0.4 : 0), 0.05 + (s > 0 ? 0.4 : 0), s * 0.2, s * 1.4, 0.2, 2.7, 0x8ab8c8, { rz: 0 });
+  // (la puerta de entrada es una entidad: se abre al llegar)
   // ---- vestíbulo ----
   wv(7, 0, 4); wu(14, -12, -2); wu(14, 2, 7);
   B(RI.D, 8, 12, -9.5, -7.6, 0.2, 1.25, 0x7a5a3a, { uvs: 1 }); B(RI.L, 7.9, 12.1, -9.6, -7.5, 1.25, 1.35, 0xe8e0d0);
@@ -990,8 +989,32 @@ function hospital(R, RI, road, H) {
   // carteles de la sala de espera y de la máquina de turnos
   B(RI.L, 1, 6.5, -11.85, -11.8, 1.9, 2.6, 0x3a6e78); B(RI.G, 1.3, 6.2, -11.8, -11.78, 2.05, 2.45, 0xf0fff4);
   B(RI.L, 7, 7.5, -11.8, -11.4, 0.2, 1.5, 0xd8d8d0); B(RI.E, 7.1, 7.4, -11.42, -11.38, 1.2, 1.35, 0xff3020);
-  // camilla volcada, papeles y manchas
-  B(RI.L, 4, 6, 3.5, 4.3, 0.25, 0.9, 0xe8e8e8, { rz: 1.3 }); B(RI.S, 4, 6, 3, 3.1, 0.2, 0.8, 0x9aa0a8);
+  // camilla abandonada (con sus patas en el suelo), papeles y manchas
+  B(RI.L, 1.6, 3.6, -3.65, -2.95, 0.72, 0.9, 0xe8e8e8); B(RI.S, 1.55, 3.65, -3.7, -2.9, 0.62, 0.72, 0x9aa0a8);
+  for (const [a, b] of [[1.7, -3.6], [3.5, -3.6], [1.7, -3.0], [3.5, -3.0]]) B(RI.S, a - 0.03, a + 0.03, b - 0.03, b + 0.03, 0.2, 0.62, 0x8a9098);
+  // escalera a la planta de arriba: cortada (cinta, valla y un archivador volcado), no se puede subir
+  for (let i = 0; i < 8; i++) B(RI.L, 9.7 + i * 0.5, 13.85, 3.4, 6.75, 0.2, 0.2 + (i + 1) * 0.38, i % 2 ? 0xb4c0c0 : 0xa8b4b4);
+  for (let i = 0; i < 8; i++) B(RI.S, 9.7 + i * 0.5, 9.74 + i * 0.5, 3.4, 6.75, 0.2 + (i + 1) * 0.38 - 0.04, 0.2 + (i + 1) * 0.38 + 0.005, 0x5a6a6e);
+  B(RI.L, 9.7, 13.85, 3.3, 3.4, 0.2, 3.4, 0x3a6e78);
+  for (let i = 0; i < 8; i += 2) B(RI.S, 9.95 + i * 0.5, 10.0 + i * 0.5, 3.42, 3.47, 0.2 + (i + 1) * 0.38, 1.1 + (i + 1) * 0.38, 0x8a9098);
+  B(RI.L, 11.7, 13.85, 3.4, 6.75, 3.395, 3.41, 0x060608);
+  for (let k = 0; k < 6; k++) B(k % 2 ? RI.L : RI.G, 9.2, 9.35, 3.4 + k * 0.56, 3.96 + k * 0.56, 0.2, 1.1, k % 2 ? 0x1a1a1a : 0xffd020);
+  for (const v of [3.45, 6.7]) B(RI.S, 9.18, 9.38, v - 0.05, v + 0.05, 0.2, 1.15, 0x8a9098);
+  B(RI.L, 10.3, 11.3, 4.1, 5.9, 0.58, 1.2, 0x7a8a8a); B(RI.G, 9.15, 9.18, 4.4, 5.8, 1.2, 1.5, 0xd82020);
+  // ascensores del pasillo principal (cerrados; uno atascado medio abierto)
+  for (const [u, half] of [[18.6, 0], [21.2, 1]]) {
+    const vf = 1.9, sd = -1;
+    B(RI.L, u - 1.05, u + 1.05, vf + sd * 0.06, vf, 2.45, 2.75, 0x6a7478);
+    for (const s of [-1, 1]) B(RI.L, u + s * 1.0, u + s * 1.08, vf + sd * 0.06, vf, 0.2, 2.75, 0x6a7478);
+    if (half) {
+      B(RI.L, u - 0.95, u - 0.45, vf + sd * 0.04, vf, 0.2, 2.45, 0xa8b2b8); B(RI.L, u + 0.45, u + 0.95, vf + sd * 0.04, vf, 0.2, 2.45, 0xa8b2b8);
+      B(RI.L, u - 0.45, u + 0.45, vf + sd * 0.01, vf, 0.2, 2.45, 0x050506);
+    } else {
+      B(RI.L, u - 0.95, u + 0.95, vf + sd * 0.04, vf, 0.2, 2.45, 0xa8b2b8); B(RI.L, u - 0.015, u + 0.015, vf + sd * 0.05, vf, 0.2, 2.45, 0x3a3e40);
+    }
+    B(RI.L, u - 0.3, u + 0.3, vf + sd * 0.07, vf, 2.52, 2.7, 0x101012); B(RI.E, u - 0.1, u + 0.1, vf + sd * 0.08, vf + sd * 0.07, 2.56, 2.66, 0xff3020);
+    B(RI.L, u + 1.2, u + 1.42, vf + sd * 0.04, vf, 1.05, 1.5, 0x8a9094); B(half ? RI.E : RI.G, u + 1.26, u + 1.36, vf + sd * 0.05, vf + sd * 0.04, 1.2, 1.32, 0xffa020);
+  }
   for (const [u, v, w] of [[5, -2, 1.6], [10.5, 2.5, 1.2], [3, 5, 0.9], [11.5, -4, 1.4]]) B(RI.L, u, u + w, v, v + w * 0.5, 0.2, 0.212, 0x5a0c0c);
   B(RI.L, 12.5, 13.2, -11.5, -10.8, 0.2, 1.1, 0x6a4a2a); addCyl(RI.L, 0.5, 0.2, 0.9, 6, 0x3a7a3a, frame(road, H + 12.85, -11.15, 1.5));
   // ---- pasillo lateral y habitaciones ----
@@ -1010,6 +1033,30 @@ function hospital(R, RI, road, H) {
     if (i !== 3) B(RI.D, dc + 1.6, dc + 2.4, 17.9, 18.7, 0.2, 0.9, 0x8a6a4a);
     B(RI.L, dc - 1, dc + 0.4, 12.5, 13.1, 0.2, 0.212, 0x5a0c0c);
   });
+  doors.forEach((dc, i) => {
+    // escritorio contra la pared del pasillo
+    B(RI.D, dc + 2.0, dc + 3.4, 10.3, 11.1, 0.9, 0.98, 0x8a6a4a);
+    for (const [a, b] of [[dc + 2.06, 10.36], [dc + 3.34, 10.36], [dc + 2.06, 11.04], [dc + 3.34, 11.04]]) B(RI.S, a - 0.03, a + 0.03, b - 0.03, b + 0.03, 0.2, 0.9, 0x5a5e60);
+    B(RI.L, dc + 2.4, dc + 3.0, 10.4, 10.5, 1.02, 1.42, 0x1a1a1e); B(RI.L, dc + 2.62, dc + 2.78, 10.5, 10.6, 0.98, 1.04, 0x2a2a2e);
+    B(i % 2 ? RI.E : RI.L, dc + 2.44, dc + 2.96, 10.5, 10.51, 1.06, 1.38, i % 2 ? 0x30d0a0 : 0x0a2a2a);
+    B(RI.L, dc + 2.4, dc + 2.95, 11.5, 12.0, 0.45, 0.55, 0x2a3a4a); B(RI.L, dc + 2.4, dc + 2.95, 11.95, 12.05, 0.55, 1.1, 0x2a3a4a); B(RI.S, dc + 2.65, dc + 2.7, 11.72, 11.78, 0.2, 0.45, 0x5a5e60);
+    // estantería metálica con cajas y frascos
+    for (const a of [dc - 2.6, dc - 1.42]) B(RI.S, a, a + 0.04, 18.45, 18.88, 0.2, 2.1, 0x8a9098);
+    for (let q = 0; q < 4; q++) {
+      const y = 0.35 + q * 0.55;
+      B(RI.S, dc - 2.6, dc - 1.38, 18.45, 18.88, y, y + 0.03, 0x9aa2a8);
+      for (let z = 0; z < 3; z++) if ((q * 3 + z + i) % 4) B(RI.L, dc - 2.5 + z * 0.36, dc - 2.22 + z * 0.36, 18.5, 18.8, y + 0.03, y + 0.03 + (0.18 + ((q + z) % 3) * 0.08), [0xe8e0c8, 0x6aa8c8, 0xc8d8d0, 0xb88a5a][(q + z + i) % 4]);
+    }
+  });
+  // armario de pared con el botiquín (habitación 2), con la puerta de cristal abierta
+  {
+    const a = 26.8, b = 28.2;
+    B(RI.L, a, b, 18.82, 18.9, 1.0, 2.25, 0xf0f0ea);
+    B(RI.L, a, b, 18.12, 18.9, 0.96, 1.03, 0xe8e8e2); B(RI.L, a, b, 18.12, 18.9, 2.2, 2.27, 0xe8e8e2);
+    for (const u of [a, b - 0.05]) B(RI.L, u, u + 0.05, 18.12, 18.9, 1.0, 2.25, 0xe8e8e2);
+    B(RI.G, 27.3, 27.7, 18.1, 18.12, 2.0, 2.12, 0xe82020); B(RI.G, 27.44, 27.56, 18.1, 18.12, 1.92, 2.2, 0xe82020);
+    B(RI.L, a - 0.04, a, 17.38, 18.12, 1.02, 2.24, 0xa8d8e8);
+  }
   // la mesa de la llave (última habitación)
   B(RI.D, 42.6, 44.2, 15.9, 17.3, 0.95, 1.05, 0x8a6a4a); for (const [a, b] of [[42.7, 16], [44.1, 16], [42.7, 17.2], [44.1, 17.2]]) B(RI.D, a - 0.05, a + 0.05, b - 0.05, b + 0.05, 0.2, 0.95, 0x6a4a2a);
   // ---- pasillo principal hasta la salida ----
@@ -1051,7 +1098,11 @@ function hospital(R, RI, road, H) {
     B(RI.L, u - 0.3, u + 0.3, v - 0.02, v + 0.02, 2.1, 2.13, 0x3a3a3a, { rx: -a * 1.3 });
   }
   for (const [u, v] of [[27.5, 7.1], [39, 9.9], [42, -1.9], [9, 6.9]]) { B(RI.L, u - 0.5, u + 0.5, v - 0.04, v + 0.04, 1.4, 2.2, 0x2a2622); B(RI.K, u - 0.7, u + 0.2, v - 0.6, v + 0.6, 0.2, 0.45, 0xc8c8c0); }
-  for (const [u, v, a] of [[19, 8.5, 0.5], [35, 8.5, -0.6], [29, 0.2, 0.55], [50, -0.3, -0.5]]) { B(RI.L, u - 0.6, u + 0.6, v - 0.6, v + 0.6, 3.05, 3.11, 0xd0d4ce, { rz: a }); B(RI.L, u - 0.01, u + 0.01, v + 0.4, v + 0.42, 2.5, 3.4, 0x1a1a1a); }
+  for (const [u, v] of [[19, 8.5], [35, 8.5], [29, 0.2], [50, -0.3]]) {
+    B(RI.L, u - 0.6, u + 0.6, v - 0.6, v + 0.6, 0.2, 0.25, 0xd0d4ce);
+    B(RI.L, u - 0.62, u + 0.62, v - 0.62, v + 0.62, 3.385, 3.395, 0x0a0a0c);
+    B(RI.L, u - 0.01, u + 0.01, v + 0.4, v + 0.42, 2.5, 3.4, 0x1a1a1a);
+  }
   for (const [u, v] of [[12, 8.4], [30.5, 8.8], [44, 8.2], [24, -0.6], [41, 1]]) for (let k = 0; k < 3; k++) B(RI.L, u + k * 0.4 - 0.2, u + k * 0.4, v - 0.2 + k * 0.15, v + 0.1 + k * 0.15, 0.2, 0.26, 0xd0d4ce);
   // pilotos que parpadean: cuadros eléctricos, monitores y los carteles de salida
   for (const [u, v, sd] of [[12.5, 6.88, -1], [36, 7.12, 1], [26, -1.88, 1], [50, 1.88, -1]]) {
@@ -1061,7 +1112,17 @@ function hospital(R, RI, road, H) {
   for (const u of [17.5, 25.5, 33.5, 41.5]) { B(RI.S, u + 1.42, u + 1.48, 17.57, 17.63, 0.2, 1.1, 0x8a9098); B(RI.S, u + 1.2, u + 1.7, 17.4, 17.8, 0.2, 0.25, 0x8a9098); B(RI.L, u + 1.2, u + 1.7, 17.4, 17.8, 1.1, 1.5, 0x2a2e2a); B(RI.E, u + 1.25, u + 1.65, 17.38, 17.4, 1.15, 1.45, 0x30ff60); }
   for (const u of [14.1, 47.9]) B(RI.E, u - 0.04, u + 0.04, 7.6, 9.4, 3.0, 3.2, 0x20d050);
   // fuera: ambulancias abandonadas y barricada
-  for (const [u, v, ry] of [[-10, -9, 0.4], [-14, 10, -0.3], [62, -9, 2.6]]) {
+  // parking: zona asfaltada con plazas en batería a la derecha de la calle
+  B(R.L, -32, -3, 6.2, 21, 0.18, 0.27, 0x34363a);
+  for (let k = -4; k <= 4; k++) { const u = -14 + 1.6 + k * 3.2; if (u < -31 || u > -4) continue; B(R.L, u - 0.06, u + 0.06, 10.5, 17.5, 0.27, 0.285, 0xe8e8e0); }
+  B(R.L, -31, -4, 17.44, 17.56, 0.27, 0.285, 0xe8e8e0);
+  for (const u of [-28, -6]) { B(R.S, u - 0.08, u + 0.08, 19.5, 19.66, 0.27, 5.2, 0x5a5e60); B(R.L, u - 0.5, u + 0.5, 19.0, 19.66, 5.2, 5.35, 0x3a3e40); }
+  B(R.L, -24, -21, 19.8, 19.9, 1.2, 2.4, 0x2a5aa8); B(R.G, -23.6, -21.4, 19.78, 19.8, 1.5, 2.1, 0xf0f0f0);
+  for (const [u, v, ry, c] of [[-20.4, 14, 1.57, 0x6a2a2a], [-7.6, 14.3, 1.5, 0x2a3a5a]]) {
+    const m = frame(road, H + u, v, 0.27, ry);
+    addBox(R.L, 1.9, 0.7, 4.4, c, m, { y: 0.55 }); addBox(R.L, 1.7, 0.55, 2.2, c, m, { y: 1.15, z: 0.2 }); addBox(R.L, 1.6, 0.4, 2.0, 0x1a1e22, m, { y: 1.15, z: 0.2 });
+  }
+  for (const [u, v, ry] of [[-10, -9, 0.4], [-26.8, 14, 1.6], [62, -9, 2.6]]) {
     const m = frame(road, H + u, v, 0.18, ry);
     addBox(R.L, 2.2, 1.9, 5, 0xf0f0ea, m, { y: 1.3 }); addBox(R.L, 2.25, 0.35, 5.05, 0xd02020, m, { y: 1.1 });
     addBox(R.L, 2.1, 1.2, 1.4, 0xf0f0ea, m, { y: 0.95, z: -3 }); addBox(R.G, 0.5, 0.18, 0.3, 0x3a7aff, m, { y: 2.35, z: -1.6 });
@@ -1397,17 +1458,35 @@ const DECO = {
         pHouse(R, road, B, d, sd, w, r, sd > 0 && terr(d) ? 10 : 0);
         d += w + 0.05;
       }
-      // segunda y tercera fila de casas detrás, más altas (el pueblo se ve apretado)
-      for (const back of [1, 2]) {
+      // filas de casas detrás subiendo por la ladera (cada fila más alta): el pueblo se ve apretado y escalonado,
+      // con campanarios, alguna ermita y cipreses entre los tejados
+      for (const back of [1, 2, 3, 4]) {
         let d2 = i0 + r() * 4;
         while (d2 < i1) {
-          const w2 = 6 + r() * 6, dep2 = 9, lat2 = sd < 0 ? PL - 13 - (back - 1) * 10 - dep2 / 2 : PR + 13 + (back - 1) * 10 + dep2 / 2;
+          const w2 = 4.5 + r() * 5, dep2 = 8, el = back * 2.6 + (back > 2 ? 1.5 : 0);
+          const lat2 = sd < 0 ? PL - 13 - (back - 1) * 8.5 - dep2 / 2 : PR + 13 + (back - 1) * 8.5 + dep2 / 2;
           if (!(sd < 0 && plaza(d2, 22)) && ok(road, d2, lat2, 3, true)) {
-            const y2 = road.gy[Math.floor(d2)], dn = y2 + 2, top2 = 8 + r() * 6 + back * 2, m2 = frame(road, d2, lat2, 0), mk2 = r();
+            const y2 = road.gy[Math.floor(d2)], dn = y2 + 2 + el, top2 = 6 + r() * 6 + back, m2 = frame(road, d2, lat2, el), mk2 = r();
+            if (back >= 2 && r() < 0.06) {
+              // campanario o ermita asomando por encima de los tejados
+              const th = 13 + r() * 6;
+              addBox(R.K, 4, th + dn, 4, 0xd8c4a0, m2, { y: (th - dn) / 2, uvs: 2 });
+              addBox(R.L, 4.4, 0.35, 4.4, 0xe8dcc0, m2, { y: th - 3.2 });
+              for (const [x, z] of [[2.02, 0], [-2.02, 0], [0, 2.02], [0, -2.02]]) addBox(R.L, x ? 0.1 : 1.3, 2.2, z ? 0.1 : 1.3, 0x1a1a1a, m2, { x, y: th - 1.6, z });
+              { const g = new THREE.ConeGeometry(3, 2.8, 4); g.rotateY(Math.PI / 4); g.translate(0, th + 1.4, 0); colorize(g, 0xa8502e, false, true); g.applyMatrix4(m2); R.L.push(g); }
+              addBox(R.L, 0.12, 1.2, 0.12, 0x1a1a1a, m2, { y: th + 3.3 }); addBox(R.L, 0.12, 0.12, 0.7, 0x1a1a1a, m2, { y: th + 3.5 });
+              if (r() < 0.6) { addBox(R.B, 7, 6 + dn, w2 + 4, 0xf0e8d8, m2, { y: (6 - dn) / 2, z: w2 / 2 + 3.5, uvs: 3 }); for (const s2 of [-1, 1]) addBox(R.L, 4.2, 0.22, w2 + 4.3, 0xa8502e, m2, { x: s2 * 1.8, y: 6.7, z: w2 / 2 + 3.5, rz: -s2 * 0.38 }); }
+              d2 += w2 + 6;
+              continue;
+            }
             addBox(mk2 < 0.5 ? R.B : mk2 < 0.8 ? R.K : R.L, dep2, top2 + dn, w2, mk2 < 0.5 ? 0xe8d0b0 : mk2 < 0.8 ? 0xd8c4a0 : pick(r, B.build), m2, { y: (top2 - dn) / 2, uvs: 3 });
-            for (const s2 of [-1, 1]) addBox(R.L, dep2 / 2 + 0.5, 0.22, w2 + 0.3, pick(r, [0xa8502e, 0x9a4a2a, 0xb8603a]), m2, { x: s2 * dep2 / 4, y: top2 + 0.8, rz: -s2 * 0.35 });
-            if (r() < 0.5) for (let f = 1; f < top2 / 3.1; f++) addBox(R.L, 0.08, 1.1, 0.8, 0x3a3020, m2, { x: -sd * (dep2 / 2 + 0.03), y: f * 3.1 - 0.3, z: (r() - 0.5) * w2 * 0.6 });
+            for (const s2 of [-1, 1]) addBox(R.L, dep2 / 2 + 0.5, 0.22, w2 + 0.3, pick(r, [0xa8502e, 0x9a4a2a, 0xb8603a, 0xc06a40]), m2, { x: s2 * dep2 / 4, y: top2 + 0.8, rz: -s2 * 0.35 });
+            if (r() < 0.45) addBox(R.L, 0.6, 1.4, 0.6, 0xd8c8b0, m2, { x: (r() - 0.5) * 3, y: top2 + 1.4, z: (r() - 0.5) * (w2 - 1) });
+            // ventanas en la fachada que mira a la calle
+            for (let f = 1; f < top2 / 3.1; f++) for (let q = 0; q < Math.max(1, Math.floor(w2 / 2.4)); q++) if (r() < 0.7) addBox(R.L, 0.08, 1.1, 0.8, r() < 0.15 ? 0x6a5030 : 0x2a2620, m2, { x: -sd * (dep2 / 2 + 0.03), y: f * 3.1 - 0.3, z: -w2 / 2 + (q + 0.5) * (w2 / Math.max(1, Math.floor(w2 / 2.4))) });
           }
+          // cipreses entre las casas
+          if (back > 1 && r() < 0.12) { const cm = frame(road, d2 + w2 / 2 + 0.6, lat2 + (r() - 0.5) * 4, el); addCyl(R.L, 0.2, 1.1, 7 + r() * 3, 7, 0x2a4a2a, cm, { y: 3.8 }); }
           d2 += w2 + 0.1;
         }
       }

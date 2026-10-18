@@ -7,19 +7,21 @@ export const HAIRS = [
   ['corto', 'Corto'], ['calvo', 'Calvo'], ['rapado', 'Rapado'], ['afro', 'Afro'], ['rastas', 'Rastas'],
   ['trenzas', 'Trenzas'], ['cresta', 'Cresta'], ['largo', 'Largo'], ['mono', 'Moño'], ['gorra', 'Gorra'],
 ];
-export const HAIR_COLORS = [0x111111, 0x2a1a10, 0x5a3a1a, 0x9a6a2a, 0xe0c060, 0xd0d0d0, 0xc03030, 0x3060e0, 0xe060c0];
+export const HAIR_COLORS = [0x111111, 0x2a1a10, 0x5a3a1a, 0x9a6a2a, 0xe0c060, 0xd0d0d0, 0xc03030, 0x3060e0, 0xe060c0, 0xf4f4f0, 0x10e0ff];
 export const BEARDS = [['no', 'Sin barba'], ['barba', 'Barba'], ['perilla', 'Perilla'], ['bigote', 'Bigote']];
 export const SHIRTS = [
   ['lisa', 'Lisa'], ['arcoiris', 'Arcoíris'], ['progreso', 'Progreso'], ['trans', 'Trans'], ['bi', 'Bi'],
   ['lesbiana', 'Lesbiana'], ['nobinaria', 'No binaria'], ['pan', 'Pan'], ['ace', 'Asexual'],
   ['diez', 'Camiseta del 10'], ['marruecos', 'Marruecos'], ['sudadera', 'Sudadera negra'],
+  ['cazador', 'Cazazombis'], ['hawaiana', 'Hawaiana'], ['camuflaje', 'Camuflaje'], ['llamas', 'Llamas'], ['oro', 'De oro'],
 ];
 export const HATS = [['no', 'Nada'], ['paja', 'Sombrero de paja'], ['gladiador', 'Gladiador'], ['vaquero', 'Vaquero'], ['copa', 'Chistera'], ['corona', 'Corona'],
-  ['vikingo', 'Vikingo'], ['gorro', 'Gorro de lana'], ['poli', 'Gorra de poli'], ['pirata', 'Pirata'], ['fiesta', 'De fiesta'], ['chef', 'Gorro de chef']];
-export const BACKS = [['no', 'Nada'], ['capa', 'Capa roja'], ['capan', 'Capa negra'], ['capaz', 'Capa azul'], ['capad', 'Capa dorada'], ['mochila', 'Mochila'], ['alas', 'Alas'], ['jet', 'Jetpack']];
+  ['vikingo', 'Vikingo'], ['gorro', 'Gorro de lana'], ['poli', 'Gorra de poli'], ['pirata', 'Pirata'], ['fiesta', 'De fiesta'], ['chef', 'Gorro de chef'],
+  ['halo', 'Halo'], ['cuernos', 'Cuernos'], ['casco', 'Casco SWAT']];
+export const BACKS = [['no', 'Nada'], ['capa', 'Capa roja'], ['capan', 'Capa negra'], ['capaz', 'Capa azul'], ['capad', 'Capa dorada'], ['mochila', 'Mochila'], ['alas', 'Alas'], ['jet', 'Jetpack'], ['alasn', 'Alas de demonio'], ['katana', 'Katana']];
 export const NECKS = [['no', 'Nada'], ['cadena', 'Cadena de oro'], ['perlas', 'Perlas'], ['medalla', 'Medallón'], ['bufanda', 'Bufanda'], ['pajarita', 'Pajarita'], ['flores', 'Collar de flores'], ['corbata', 'Corbata']];
 export const FACES = [['no', 'Nada'], ['gafas', 'Gafas de sol'], ['antifaz', 'Antifaz'], ['parche', 'Parche'], ['pintura', 'Pintura de guerra'], ['pendientes', 'Pendientes']];
-export const SHIRT_COLORS = [0x2f6fd0, 0xd03040, 0x2a9a4a, 0xf0c020, 0x8a3ac0, 0xf07a20, 0xf2f2f2, 0x1a1a1a, 0x30b0c0, 0xe060a0];
+export const SHIRT_COLORS = [0x2f6fd0, 0xd03040, 0x2a9a4a, 0xf0c020, 0x8a3ac0, 0xf07a20, 0xf2f2f2, 0x1a1a1a, 0x30b0c0, 0xe060a0, 0xd4af37, 0x39ff14];
 export const PANTS_COLORS = [0x222222, 0x24365a, 0x6a5a40, 0x3a4a2a, 0x8a8a8a, 0x6a1a1a, 0xe8e0d0];
 
 const FLAGS = {
@@ -33,7 +35,9 @@ const FLAGS = {
   ace: ['#000000', '#a3a3a3', '#ffffff', '#800080'],
   // equipaciones (se dibujan aparte; el primer color es el de las mangas)
   diez: ['#1a1424'], marruecos: ['#c1272d'], sudadera: ['#16161a'],
+  cazador: ['#2a3a1e'], hawaiana: ['#1e8ad0'], camuflaje: ['#4a5a2a'], llamas: ['#141414'], oro: ['#d4af37'],
 };
+const KITS = new Set(['diez', 'marruecos', 'sudadera', 'cazador', 'hawaiana', 'camuflaje', 'llamas', 'oro']);
 // camisetas dibujadas: degradado negro a morado con el 10 dorado, la de Marruecos (roja con detalles verdes y la estrella) y sudadera
 function drawKit(name, g) {
   if (name === 'diez') {
@@ -48,6 +52,25 @@ function drawKit(name, g) {
     for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * 4 * Math.PI / 5; const x = 16 + Math.cos(a) * 7, y = 26 + Math.sin(a) * 7; i ? g.lineTo(x, y) : g.moveTo(x, y); }
     g.closePath(); g.stroke();
     g.fillStyle = '#ffffff'; g.font = 'bold 10px sans-serif'; g.textAlign = 'center'; g.fillText('10', 16, 50);
+  } else if (name === 'cazador') {
+    g.fillStyle = '#2a3a1e'; g.fillRect(0, 0, 32, 64);
+    g.fillStyle = '#e8c020'; g.fillRect(0, 44, 32, 4);
+    g.strokeStyle = '#8aff4a'; g.lineWidth = 2; g.beginPath(); g.arc(16, 24, 8, 0, Math.PI * 2); g.stroke();
+    g.fillStyle = '#8aff4a'; g.font = 'bold 11px sans-serif'; g.textAlign = 'center'; g.fillText('Z', 16, 28);
+    g.strokeStyle = '#d02020'; g.beginPath(); g.moveTo(10, 18); g.lineTo(22, 30); g.stroke();
+  } else if (name === 'hawaiana') {
+    g.fillStyle = '#1e8ad0'; g.fillRect(0, 0, 32, 64);
+    for (let i = 0; i < 14; i++) { const x = (i * 37) % 30 + 1, y = (i * 23) % 60 + 2; g.fillStyle = ['#ffe14a', '#ff5a8a', '#ffffff', '#3ad06a'][i % 4]; g.beginPath(); g.arc(x, y, 2.6, 0, Math.PI * 2); g.fill(); }
+  } else if (name === 'camuflaje') {
+    g.fillStyle = '#4a5a2a'; g.fillRect(0, 0, 32, 64);
+    for (let i = 0; i < 18; i++) { g.fillStyle = ['#2a3a1a', '#7a6a3a', '#1a1a10'][i % 3]; g.fillRect((i * 29) % 28, (i * 17) % 60, 4 + i % 5, 3 + (i * 7) % 5); }
+  } else if (name === 'llamas') {
+    g.fillStyle = '#141414'; g.fillRect(0, 0, 32, 64);
+    for (let i = 0; i < 8; i++) { const x = i * 4 + 2, h = 14 + (i * 13) % 14; g.fillStyle = '#ff5a10'; g.beginPath(); g.moveTo(x - 3, 64); g.lineTo(x, 64 - h); g.lineTo(x + 3, 64); g.fill(); g.fillStyle = '#ffd040'; g.beginPath(); g.moveTo(x - 1.5, 64); g.lineTo(x, 64 - h * 0.55); g.lineTo(x + 1.5, 64); g.fill(); }
+  } else if (name === 'oro') {
+    const gr = g.createLinearGradient(0, 0, 32, 64); gr.addColorStop(0, '#fff2a0'); gr.addColorStop(0.45, '#d4af37'); gr.addColorStop(1, '#8a6a10');
+    g.fillStyle = gr; g.fillRect(0, 0, 32, 64);
+    g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(4, 0, 3, 64);
   } else if (name === 'sudadera') {
     g.fillStyle = '#16161a'; g.fillRect(0, 0, 32, 64);
     g.fillStyle = '#e8e8e8'; g.font = 'bold 7px sans-serif'; g.textAlign = 'center'; g.fillText('CREW', 16, 22);
@@ -87,7 +110,7 @@ function flagMat(name) {
   if (FM[name]) return FM[name];
   const cols = FLAGS[name];
   const c = document.createElement('canvas');
-  const kit = ['diez', 'marruecos', 'sudadera'].includes(name);
+  const kit = KITS.has(name);
   c.width = kit ? 128 : 32; c.height = kit ? 256 : 64;
   const g = c.getContext('2d');
   if (kit) g.scale(4, 4);
@@ -118,7 +141,7 @@ export function personOpts(cfg) {
   return {
     skin: SKINS[c.skin],
     shirt: c.shirt === 'lisa' ? SHIRT_COLORS[c.shirtCol] : flagMat(c.shirt),
-    sleeve: c.shirt === 'lisa' ? SHIRT_COLORS[c.shirtCol] : ['diez', 'marruecos', 'sudadera'].includes(c.shirt) ? parseInt(FLAGS[c.shirt][0].slice(1), 16) : 0xf2f2f2,
+    sleeve: c.shirt === 'lisa' ? SHIRT_COLORS[c.shirtCol] : KITS.has(c.shirt) ? parseInt(FLAGS[c.shirt][0].slice(1), 16) : 0xf2f2f2,
     pants: PANTS_COLORS[c.pants],
     hairStyle: c.hair, hair: HAIR_COLORS[c.hairCol], beard: c.beard,
     glasses: c.glasses, chair: c.chair, hat: c.hat, back: c.back, neck: c.neck, face: c.face,

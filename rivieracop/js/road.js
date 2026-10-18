@@ -334,7 +334,7 @@ export class Road {
     return L;
   }
   // hospital de la ciudad zombi que pilla en d (con margen)
-  hospAt(d, pad = 0) { for (const h of this.hosp) if (d > h.H - 12 - pad && d < h.H + 66 + pad) return h; return null; }
+  hospAt(d, pad = 0) { for (const h of this.hosp) if (d > h.H - 36 - pad && d < h.H + 66 + pad) return h; return null; }
   inTunnel(d) { for (const t of this.tunnels) if (d >= t.start - 4 && d <= t.end + 4) return true; return false; }
 }
 const TMP = { x: 0, y: 0, z: 0, yaw: 0 };

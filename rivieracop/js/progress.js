@@ -132,6 +132,7 @@ export const POWERS = {
   aereo: { cd: lv => 75 - lv * 8, col: '#ffb020', name: 'ATAQUE AÉREO' },
   cura: { cd: lv => 70 - lv * 8, col: '#40ff80', name: 'BOTIQUÍN DE EQUIPO' },
   iman: { cd: lv => 40 - lv * 5, col: '#ffe14a', name: 'IMÁN' },
+  rayo: { cd: lv => 48 - lv * 6, col: '#b48cff', name: 'TORMENTA' },
   fuerza: { cd: lv => 95 - lv * 8, dur: lv => 5 + lv * 2, mul: lv => 1.6 + lv * 0.27, col: '#ff2a6a', name: 'FUERZA BRUTA' },
 };
 export const turboCd = lv => Math.max(22, 45 - lv * 4);

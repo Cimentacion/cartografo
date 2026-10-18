@@ -194,7 +194,7 @@ export class Outline {
     U.near.value = camera.near;
     U.far.value = camera.far;
     U.inkOn.value = this.enabled ? 1 : 0;
-    U.redOn.value = this.red ? 1 : 0;
+    U.redOn.value = typeof this.red === 'number' ? this.red : this.red ? 1 : 0;
     R.setRenderTarget(this.rt);
     R.render(scene, camera);
     // máscara: enemigos en rojo, lo importante en verde, contra la profundidad ya pintada
