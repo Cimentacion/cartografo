@@ -157,10 +157,13 @@ export function person(o = {}) {
   g.add(body);
   const sk = o.skin ?? 0xd9a476, sh = o.shirt ?? 0x333333, pa = o.pants ?? 0x222233;
   const bp = P || 'body', hp = P || 'head';
-  box(body, 0.2, 0.9, 0.22, pa, -0.12, 0.45, 0, bp);
-  box(body, 0.2, 0.9, 0.22, pa, 0.12, 0.45, 0, bp);
-  box(body, 0.22, 0.1, 0.32, 0x111111, -0.12, 0.05, -0.05, bp);
-  box(body, 0.22, 0.1, 0.32, 0x111111, 0.12, 0.05, -0.05, bp);
+  // piernas articuladas en la cadera (para andar, correr y caer)
+  const legs = [-1, 1].map(sd => {
+    const l = new THREE.Group(); l.position.set(sd * 0.12, 0.9, 0); body.add(l);
+    box(l, 0.2, 0.9, 0.22, pa, 0, -0.45, 0, bp);
+    box(l, 0.22, 0.1, 0.32, 0x111111, 0, -0.85, -0.05, bp);
+    return l;
+  });
   const torso = new THREE.Group();
   torso.position.y = 0.92;
   body.add(torso);
@@ -229,7 +232,7 @@ export function person(o = {}) {
     muzzle.position.set(0, 0, -0.62);
     armR.add(muzzle);
   }
-  g.userData.rig = { body, torso, armR, armL, muzzle };
+  g.userData.rig = { body, torso, armR, armL, muzzle, legs };
   g.userData.shooters = [muzzle];
   return g;
 }
@@ -407,7 +410,7 @@ export function seatedPlayer(i, cfg) {
   const p = person(Object.assign({ gun: 'pistol' }, o));
   p.position.y = -0.92;
   yaw.add(p);
-  p.userData.rig.body.children.slice(0, 4).forEach(m => (m.visible = false));
+  p.userData.rig.legs.forEach(m => (m.visible = false));
   if (o.chair) { const wc = wheelchair(); wc.position.y = 0.25; g.add(wc); }
   g.userData.yaw = yaw;
   g.userData.rig = p.userData.rig;
@@ -479,7 +482,7 @@ export function enemyCar(col = 0x16161a) {
     g.add(pivot);
     const p = person({ shirt: 0x2a2a2a, gun: 'mg', part, glasses: true, cap: 0x111111 });
     p.position.y = -0.92;
-    p.userData.rig.body.children.slice(0, 4).forEach(m => (m.visible = false));
+    p.userData.rig.legs.forEach(m => (m.visible = false));
     pivot.add(p);
     pivot.userData.p = p;
     sh.push(p.userData.rig.muzzle);
@@ -533,7 +536,7 @@ export function heli() {
   g.add(door);
   const p = person({ shirt: 0x3a4a2a, gun: 'mg', cap: 0x2a3a2a });
   p.position.y = -0.92;
-  p.userData.rig.body.children.slice(0, 4).forEach(m => (m.visible = false));
+  p.userData.rig.legs.forEach(m => (m.visible = false));
   door.add(p);
   const pod = node(g, -1.3, -0.4, -1.2);
   box(g, 0.4, 0.4, 1.6, 0x222222, -1.3, -0.4, -0.6, 'body');
@@ -1141,7 +1144,7 @@ export function tank() {
   const lid = box(tp, 0.8, 0.12, 0.8, ol, 0.3, 0.86, 0.5, 'armor');
   const crew = person({ shirt: 0x4a5a2a, pants: 0x3a4a2a, cap: 0x3a4a2a, gun: 'mg', gunPart: 'crew', part: 'crew' });
   crew.position.set(0.3, -0.25, 0.5);
-  crew.userData.rig.body.children.slice(0, 4).forEach(m => (m.visible = false));
+  crew.userData.rig.legs.forEach(m => (m.visible = false));
   tp.add(crew);
   g.userData.shooters = [mz, crew.userData.rig.muzzle];
   g.userData.aimers = [tp];
@@ -1255,7 +1258,7 @@ export function boat() {
   [[0.5, 1.4], [-0.5, 2.4]].forEach(([x, z]) => {
     const pv = new THREE.Group(); pv.position.set(x, 1.0, z); g.add(pv);
     const p = person({ shirt: 0x2a2a3a, pants: 0x1a1a1a, gun: 'mg', cap: 0x111111 });
-    p.position.y = -0.92; p.userData.rig.body.children.slice(0, 4).forEach(m => (m.visible = false));
+    p.position.y = -0.92; p.userData.rig.legs.forEach(m => (m.visible = false));
     pv.add(p); sh.push(p.userData.rig.muzzle); aim.push(pv);
   });
   g.userData.shooters = sh; g.userData.aimers = aim;
@@ -1298,7 +1301,7 @@ export function mtrain(side) {
     box(h, 0.06, 1.7, 2.2, 0x0a0806, -side * 1.42, 2.2, zc);
     const pv = new THREE.Group(); pv.position.set(-side * 1.15, 1.95, zc); h.add(pv);
     const p = person({ shirt: 0x4a5a2a, pants: 0x3a4a2a, cap: 0x3a4a2a, gun: 'rifle', part });
-    p.position.y = -0.92; p.userData.rig.body.children.slice(0, 4).forEach(m => m.removeFromParent());
+    p.position.y = -0.92; p.userData.rig.legs.forEach(m => m.removeFromParent());
     pv.add(p); sh.push(p.userData.rig.muzzle); aim.push(pv);
     // restos que se ven cuando el vagón está roto
     const db = new THREE.Group(); g.add(db); db.visible = false; debris.push(db);
@@ -1367,7 +1370,7 @@ export function float(c = 0) {
 function rider(parent, x, y, z, o = {}) {
   const pv = new THREE.Group(); pv.position.set(x, y, z); parent.add(pv);
   const p = person(Object.assign({ shirt: 0x3a2a2a, pants: 0x1a1a1a, gun: 'pistol', mask: 0x101010 }, o));
-  p.position.y = -0.92; p.userData.rig.body.children.slice(0, 4).forEach(m => m.removeFromParent());
+  p.position.y = -0.92; p.userData.rig.legs.forEach(m => m.removeFromParent());
   pv.add(p);
   return { pv, p };
 }
@@ -1718,7 +1721,7 @@ export function gunship() {
   box(g, 0.05, 1.9, 2.6, 0x0a0a0a, 1.42, 0.1, 0.4);
   const pv = new THREE.Group(); pv.position.set(1.2, 0.5, 0.4); g.add(pv);
   const p = person({ shirt: 0x3a3a2a, pants: 0x2a2a1a, bandana: true, part: 'gunner', big: true });
-  p.position.y = -0.92; p.userData.rig.body.children.slice(0, 4).forEach(m => m.removeFromParent());
+  p.position.y = -0.92; p.userData.rig.legs.forEach(m => m.removeFromParent());
   p.rotation.y = -Math.PI / 2; pv.add(p);
   const gat = new THREE.Group(); gat.position.set(0.5, 0.3, 0); pv.add(gat);
   for (let k = 0; k < 6; k++) { const b = new THREE.Mesh(cgeo(0.05, 1.3, 5), mat(0x1a1a1a)); b.rotation.z = Math.PI / 2; b.position.set(0.7, Math.cos(k) * 0.12, Math.sin(k) * 0.12); b.userData.part = 'body'; gat.add(b); }
@@ -1924,7 +1927,7 @@ export function limo() {
     box(p.userData.rig.torso, 0.12, 0.3, 0.02, 0xf0f0f0, 0, 0.42, -0.165, part);
     box(p.userData.rig.torso, 0.05, 0.22, 0.03, 0xb01818, 0, 0.4, -0.18, part);
     box(p.userData.rig.torso, 0.42, 0.06, 0.42, 0x2a2a2a, 0, 1.0, 0, part); box(p.userData.rig.torso, 0.3, 0.16, 0.3, 0x2a2a2a, 0, 1.1, 0, part);
-    p.position.y = -0.92; p.userData.rig.body.children.slice(0, 4).forEach(m => (m.visible = false));
+    p.position.y = -0.92; p.userData.rig.legs.forEach(m => (m.visible = false));
     pivot.add(p); pivot.userData.p = p; sh.push(p.userData.rig.muzzle);
     g.userData['piv_' + part] = pivot;
   });

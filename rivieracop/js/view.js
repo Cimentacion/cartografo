@@ -4,6 +4,7 @@ import * as M from './models.js';
 import { ST } from './defs.js';
 import { LANE_ME } from './road.js';
 import { SEATS } from './sim.js';
+import { lerp } from './util.js';
 import { LAYER_ENEMY, LAYER_KEEP } from './toon.js';
 
 const V1 = new THREE.Vector3(), V2 = new THREE.Vector3();
@@ -153,10 +154,12 @@ const TR1 = new THREE.LineBasicMaterial({ color: 0xfff2a0 });
 const TR2 = new THREE.LineBasicMaterial({ color: 0xff5040 });
 
 // ---------------- vestuario ----------------
+// ropa de los matones: colores vivos para que destaquen sobre el decorado
 const OUTFIT = [
-  { shirt: 0x2a2a2a, pants: 0x1a1a1a, glasses: true }, { shirt: 0x6a3a1a, pants: 0x2a2a3a, cap: 0x222222 },
-  { shirt: 0x3a4a2a, pants: 0x2a2a1a, mask: 0x111111 }, { shirt: 0x8a1a1a, pants: 0x222244, glasses: true },
-  { shirt: 0x444466, pants: 0x1a1a1a, cap: 0x7a1a1a }, { shirt: 0xaa8833, pants: 0x3a2a1a, mask: 0x2a2a2a },
+  { shirt: 0xd82828, pants: 0x1a1a2a, glasses: true }, { shirt: 0x8a2ae0, pants: 0x2a2a3a, cap: 0xffc020 },
+  { shirt: 0x14b0a8, pants: 0x1a1a1a, mask: 0x111111 }, { shirt: 0xf07010, pants: 0x222244, glasses: true },
+  { shirt: 0x2a5ae8, pants: 0x1a1a1a, cap: 0xe02020 }, { shirt: 0xf0c818, pants: 0x3a2a1a, mask: 0x2a2a2a },
+  { shirt: 0xe02a90, pants: 0x1a1a2a, cap: 0x111111 }, { shirt: 0x2ab040, pants: 0x2a2a1a, glasses: true },
 ];
 const CIV = [0xf0c040, 0x40a0f0, 0xf06080, 0x60d080, 0xffffff, 0xff8030, 0xa070f0, 0x30c0c0];
 const SKIN = [0xd9a476, 0xb27a4e, 0xf0c8a0, 0x7a5030];
@@ -199,6 +202,29 @@ const MASK = {
   preview: LAYER_KEEP, police: LAYER_KEEP, tlight: LAYER_KEEP, fuel: LAYER_KEEP, float: LAYER_KEEP,
   sign: LAYER_KEEP, weapon: LAYER_KEEP, medkit: LAYER_KEEP, amb: LAYER_KEEP, truck: LAYER_KEEP, barrel: LAYER_KEEP, lady: LAYER_KEEP, civilian: LAYER_KEEP, chicken: LAYER_KEEP,
 };
+// enemigos con colores más vivos (material saturado, uno por material original)
+const SATM = new Map();
+function satMat(m) {
+  if (!m || !m.color || m.transparent || m.userData.sat) return m;
+  let c = SATM.get(m);
+  if (!c) {
+    c = m.clone(); c.userData.sat = 1;
+    const h = {}; c.color.getHSL(h);
+    // los grises casi puros se quedan como están (si no, todo se vuelve de color)
+    if (h.s > 0.08) c.color.setHSL(h.h, Math.min(1, h.s * 1.5 + 0.1), Math.min(0.62, h.l * 1.06));
+    SATM.set(m, c);
+  }
+  return c;
+}
+// destello blanco de un instante al recibir un balazo
+const FLASHM = new THREE.MeshBasicMaterial({ color: 0xffffff });
+function flash(o, on) {
+  o.traverse(m => {
+    if (!m.isMesh || m.userData.blob || !m.material || m.material.transparent && !m.userData.m0) return;
+    if (on) { if (!m.userData.m0) { m.userData.m0 = m.material; m.material = FLASHM; } }
+    else if (m.userData.m0) { m.material = m.userData.m0; m.userData.m0 = null; }
+  });
+}
 const CARC = [0x2a6ad0, 0xe8e8e8, 0xd0a020, 0x30a050, 0x8a2a8a, 0xd06020];
 
 export class View {
@@ -288,7 +314,7 @@ export class View {
     switch (e.type) {
       case 'gunman': {
         g = new THREE.Group();
-        const o = x.sol ? { shirt: 0x4a5a2a, pants: 0x3a4a2a, cap: 0x3a4a2a, vest: 0x5a6a3a } : Object.assign({}, OUTFIT[(x.sk || 0) % OUTFIT.length]);
+        const o = x.sol ? { shirt: 0x4a5a2a, pants: 0x3a4a2a, cap: 0x3a4a2a, vest: 0x5a6a3a } : Object.assign({}, OUTFIT[((x.sk || 0) + e.id) % OUTFIT.length]);
         if (x.gr) { o.vest = 0xd06a10; o.gun = null; } else if (x.rk) { o.gun = null; o.vest = 0x5a5a3a; } else o.gun = 'pistol';
         o.skin = SKIN[(x.sk || 0) % SKIN.length];
         const p = M.person(o);
@@ -399,6 +425,7 @@ export class View {
       default: g = new THREE.Group();
     }
     const L = MASK[e.type];
+    if (L === LAYER_ENEMY) g.traverse(m => { if (m.isMesh && !m.userData.blob) m.material = satMat(m.material); });
     if (L) g.traverse(m => {
       if (!m.isMesh || m.userData.part === 'cover') return;
       const mt = m.material;
@@ -437,6 +464,10 @@ export class View {
       // los vehículos se inclinan con la cuesta
       if (PITCH.has(e.type)) { o.rotation.order = 'YXZ'; o.rotation.x = Math.atan2(R.toWorld(e.d + 2, 0, 0, V1).y - R.toWorld(e.d - 2, 0, 0, V2).y, 4) * (Math.abs(e.ry) > 2 ? -1 : 1); if (e.type === 'crew' && e.x && e.x.out) o.rotation.z = e.x.out * Math.min(1.3, (ud.dt || 0) * 0.9); }
       ud.dt = e.st === ST.DEAD ? (ud.dt || 0) + dt : 0;
+      // destello al recibir daño (vale para todos los enemigos)
+      if (ud.fh != null && e.hp < ud.fh && MASK[e.type] === LAYER_ENEMY) { if (!ud.ft) flash(o, true); ud.ft = 0.06; }
+      ud.fh = e.hp;
+      if (ud.ft) { ud.ft -= dt; if (ud.ft <= 0) { ud.ft = 0; flash(o, false); } }
       const A = ANIM[e.type];
       if (A) A(o, e, dt, ctx, this);
       o.updateMatrixWorld(true);
@@ -488,48 +519,97 @@ export class View {
   }
 }
 
+// animación de las personas: andar/correr con las piernas, respirar, apuntar, retroceso al disparar,
+// encogerse al recibir un balazo y muertes variadas (hacia atrás, de lado girando o de rodillas)
+const easeOut = t => 1 - Math.pow(1 - Math.min(1, t), 3);
 function personAnim(o, e, dt, ctx, V) {
-  const ud = o.userData, rig = ud.p.userData.rig;
+  const ud = o.userData, rig = ud.p.userData.rig, legs = rig.legs || [];
+  const T = rig.torso, w = ctx.t + e.id * 1.7;
+  // velocidad propia en el suelo (no la del coche): andar o correr
+  const v = ud.pd != null && dt > 0 ? Math.hypot(e.d - ud.pd, e.lat - ud.pl) / dt : 0;
+  ud.pd = e.d; ud.pl = e.lat;
+  ud.v = lerp(ud.v || 0, Math.min(v, 7), Math.min(1, dt * 8));
+  // balazo recibido: se encoge hacia atrás y de lado
+  if (ud.hp0 != null && e.hp < ud.hp0 && e.st !== ST.DEAD) { ud.fl = 1; ud.fs = Math.random() < 0.5 ? -1 : 1; }
+  ud.hp0 = e.hp;
+  ud.fl = Math.max(0, (ud.fl || 0) - dt * 6);
+  if (!ud.fs) ud.fs = e.id % 2 ? 1 : -1;
   // esperando: ya se ven de lejos (los de cobertura agachados detrás, los demás de pie con el arma bajada)
   if (e.st === ST.HIDDEN) {
     o.visible = true;
-    rig.body.position.y = ud.cv ? -0.95 : 0;
+    rig.body.position.set(0, ud.cv ? -0.95 : 0, 0); rig.body.rotation.set(0, 0, 0);
     rig.armR.rotation.set(0.25, 0, 0); rig.armL.rotation.set(0.15, 0, 0);
+    T.rotation.set(0, Math.sin(w * 0.6) * 0.15, 0); T.scale.set(1, 1 + Math.sin(w * 2.2) * 0.015, 1);
+    legs.forEach(l => l.rotation.set(0, 0, 0));
     ud.pop = 0;
     return;
   }
   o.visible = true;
   ud.pop = (ud.pop || 0) + dt;
-  const k = Math.min(1, ud.pop / 0.22);
-  rig.body.position.y = ud.cv ? -0.95 * (1 - k) : 0;
   if (e.st === ST.DEAD) {
-    const a = Math.min(1, ud.dt * 3.5);
-    rig.body.rotation.x = a * 1.5;
-    rig.armR.rotation.set(1.3, 0, 0); rig.armL.rotation.set(1.3, 0, 0);
-    if (ud.dt > 2.5) rig.body.position.y = -(ud.dt - 2.5) * 0.4;
+    const t = ud.dt || 0, kind = e.id % 3, a = easeOut(t * 2.6);
+    // rebote al tocar el suelo
+    const bo = t > 0.38 && t < 0.7 ? Math.sin((t - 0.38) / 0.32 * Math.PI) * 0.12 : 0;
+    if (kind === 0) {
+      // hacia atrás, resbalando un poco por el impacto
+      rig.body.rotation.set(a * 1.52 - bo, 0, ud.fs ? ud.fs * a * 0.15 : 0);
+      rig.body.position.set(0, 0, a * 0.7);
+      rig.armR.rotation.set(2.6 * a, 0, 0.3); rig.armL.rotation.set(2.4 * a, 0, -0.3);
+      legs.forEach((l, i) => l.rotation.set(-a * (i ? 0.25 : 0.05), 0, 0));
+    } else if (kind === 1) {
+      // gira y cae de lado
+      const sd = e.id % 2 ? 1 : -1;
+      rig.body.rotation.set(0, a * sd * 1.2, a * sd * (1.5 - bo));
+      rig.body.position.set(sd * a * 0.3, 0, 0);
+      rig.armR.rotation.set(0.4, 0, sd * a * 1.6); rig.armL.rotation.set(0.6, 0, sd * a * 0.6);
+      legs.forEach((l, i) => l.rotation.set(0, 0, sd * a * (i ? 0.35 : 0.1)));
+    } else {
+      // primero de rodillas y luego de bruces
+      const k1 = easeOut(t * 4), k2 = easeOut(Math.max(0, t - 0.35) * 2.6);
+      rig.body.position.set(0, -0.45 * k1, 0);
+      legs.forEach(l => l.rotation.set(1.5 * k1, 0, 0));
+      rig.body.rotation.set(-1.45 * k2 + bo * k2, 0, 0);
+      rig.armR.rotation.set(0.6 + k2 * 0.9, 0, 0); rig.armL.rotation.set(0.6 + k2 * 0.9, 0, 0);
+    }
+    T.rotation.set(0, 0, 0); T.scale.set(1, 1, 1);
+    if (t > 2.5) rig.body.position.y -= (t - 2.5) * 0.4;
     return;
   }
-  rig.body.rotation.x = 0;
+  // salir de la cobertura con un pequeño impulso
+  const k = Math.min(1, ud.pop / 0.22), over = ud.cv && k < 1 ? Math.sin(k * Math.PI) * 0.12 : 0;
+  const run = Math.min(1, ud.v / 4), stride = w * (6 + ud.v * 1.6);
+  const bob = Math.abs(Math.sin(stride)) * 0.07 * run;
+  rig.body.position.set(0, (ud.cv ? -0.95 * (1 - k) : 0) + over + bob, 0);
+  rig.body.rotation.set(run * 0.18 + ud.fl * -0.25, 0, ud.fl * ud.fs * 0.3);
+  legs.forEach((l, i) => l.rotation.set(Math.sin(stride + i * Math.PI) * 0.75 * run, 0, 0));
+  // respiración y algo de balanceo
+  T.scale.set(1, 1 + Math.sin(w * 2.4) * 0.018, 1);
+  T.rotation.set(-ud.fl * 0.2, Math.sin(w * 0.9) * 0.08 * (1 - run), Math.sin(stride) * 0.06 * run);
   if (ud.civ) {
     rig.body.position.y += Math.abs(Math.sin(ctx.t * 9 + e.id)) * 0.08;
-    rig.armR.rotation.set(1.7, 0, 0); rig.armL.rotation.set(1.7, 0, 0);
+    rig.armR.rotation.set(1.7 + Math.sin(w * 11) * 0.25, 0, 0); rig.armL.rotation.set(1.7 - Math.sin(w * 11) * 0.25, 0, 0);
     return;
   }
   if (e.st === ST.SURRENDER) {
-    rig.armR.rotation.set(1.75, 0, 0); rig.armL.rotation.set(1.75, 0, 0);
-    rig.torso.rotation.z = Math.sin(ctx.t * 20) * 0.03;
+    rig.armR.rotation.set(2.9, 0, -0.15); rig.armL.rotation.set(2.9, 0, 0.15);
+    T.rotation.z = Math.sin(ctx.t * 20) * 0.03;
+    rig.body.position.y -= 0.12; legs.forEach(l => (l.rotation.x = 0.3));
     return;
   }
   const dy = V.aimT.y - (o.position.y + 1.5);
   const dist = Math.hypot(V.aimT.x - o.position.x, V.aimT.z - o.position.z);
   const pitch = Math.max(-1.2, Math.min(1, Math.atan2(dy, dist)));
-  rig.armR.rotation.set(pitch, 0, 0);
-  rig.armL.rotation.set(pitch, -0.5, 0);
-  if (e.x && e.x.gr) {
-    const s = e.sh && e.sh[0];
-    const wind = s && s.on ? s.r : 0;
-    rig.armR.rotation.set(pitch + wind * 2.2, 0, 0);
-  }
+  // retroceso: cuando el disparo sale, el brazo y el cuerpo dan un golpe hacia atrás
+  const s = e.sh && e.sh[0], r = s && s.on ? s.r : 0;
+  if (ud.r0 > 0.6 && r < ud.r0 - 0.3) ud.kick = 1;
+  ud.r0 = r;
+  ud.kick = Math.max(0, (ud.kick || 0) - dt * 7);
+  const kick = ud.kick * ud.kick;
+  // al cargar el disparo se inclina hacia delante
+  T.rotation.x += -r * 0.12 + kick * 0.18;
+  rig.armR.rotation.set(pitch + kick * 0.55 + ud.fl * 0.4, 0, 0);
+  rig.armL.rotation.set(pitch + kick * 0.4 + ud.fl * 0.4, -0.5, 0);
+  if (e.x && e.x.gr) rig.armR.rotation.set(pitch + r * 2.2, 0, 0);
 }
 
 const ANIM = {
@@ -553,6 +633,7 @@ const ANIM = {
       rig.armR.rotation.set(0.5 + Math.sin(w * 0.7) * 0.2 + at * 1.0, 0, -0.3); rig.armL.rotation.set(0.5 - Math.sin(w * 0.7) * 0.2 + at * 1.0, 0, 0.3);
       return;
     }
+    if (rig.legs) rig.legs.forEach((l, i) => l.rotation.set(Math.sin(w * 0.5 + i * Math.PI) * 0.45, 0, i ? 0.06 : -0.06));
     rig.body.rotation.x = 0.12 + at * 0.3;
     rig.body.rotation.z = Math.sin(w * 0.5) * 0.08;
     rig.body.position.y = Math.abs(Math.sin(w)) * 0.05;

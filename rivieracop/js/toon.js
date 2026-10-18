@@ -67,12 +67,12 @@ export class Outline {
       uniforms: {
         tColor: { value: this.rt.texture }, tDepth: { value: this.rt.depthTexture }, tMask: { value: this.mrt.texture },
         res: { value: new THREE.Vector2(2, 2) }, near: { value: 0.1 }, far: { value: 260 },
-        ink: { value: new THREE.Color(0x14101a) }, inkOn: { value: 1 }, red: { value: new THREE.Color(0xff1a14) }, ow: { value: 2.0 }, redOn: { value: 0 }, aoOn: { value: 1 }, aoN: { value: 8 }, palOn: { value: 1 }, tint: { value: new THREE.Color(0xa8c8e8) }, palA: { value: new THREE.Vector4(0.2, 0.68, 0.88, 0.09) }, palB: { value: new THREE.Vector4(1.45, 0, 0.25, 0) }, palT: { value: new THREE.Color(1, 1, 1) },
+        ink: { value: new THREE.Color(0x14101a) }, inkOn: { value: 1 }, red: { value: new THREE.Color(0xff1a14) }, ow: { value: 2.0 }, redOn: { value: 0 }, aoOn: { value: 1 }, aoN: { value: 8 }, palOn: { value: 1 }, tint: { value: new THREE.Color(0xa8c8e8) }, palA: { value: new THREE.Vector4(0.2, 0.68, 0.88, 0.09) }, palB: { value: new THREE.Vector4(1.45, 0, 0.25, 0) }, palT: { value: new THREE.Color(1, 1, 1) }, dim: { value: 0 }, dimD: { value: 100 },
       },
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
       fragmentShader: `
         uniform sampler2D tColor; uniform sampler2D tDepth; uniform sampler2D tMask; uniform vec2 res; uniform float near; uniform float far;
-        uniform vec3 ink; uniform float inkOn; uniform vec3 red; uniform float ow; uniform float redOn; uniform float aoOn; uniform float aoN; uniform float palOn; uniform vec3 tint; uniform vec4 palA; uniform vec4 palB; uniform vec3 palT;
+        uniform vec3 ink; uniform float inkOn; uniform vec3 red; uniform float ow; uniform float redOn; uniform float aoOn; uniform float aoN; uniform float palOn; uniform vec3 tint; uniform vec4 palA; uniform vec4 palB; uniform vec3 palT; uniform float dim; uniform float dimD;
         float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
         float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
           return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y); }
@@ -166,6 +166,8 @@ export class Outline {
             c = clamp((c - 0.5) * 1.08 + 0.52, 0.0, 1.0);
           }
           // lo que está más apartado de la carretera (más lejos) tiene luces y sombras más contrastadas
+          // túnel a oscuras: todo lo que queda antes de la boca se apaga; lo de fuera (y el cielo) sigue con luz
+          if (dim > 0.0) c *= mix(1.0, mix(0.13, 0.32, 1.0 - smoothstep(2.5, 6.0, d)), dim * (1.0 - sky) * (1.0 - smoothstep(dimD - 8.0, dimD + 3.0, d)));
           c = mix(c, ink, clamp(edge, 0.0, 1.0) * 0.9);
           c = mix(c, red, redE);
           gl_FragColor = vec4(c, 1.0);

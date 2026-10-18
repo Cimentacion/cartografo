@@ -482,8 +482,9 @@ function tunnelRun(R, road, B, i0, i1) {
       decal(mural ? R.M : R.F, mural ? 4 : 6, mural ? 4 : 3, frame(road, i, sd * 7.12, mural ? 3.6 : 3.2), sd);
     }
   }
+  const T0 = road.tunnels[0], first = T0 && T0.start < 20 && i0 < T0.end;
   for (let i = i0; i < i1; i++) {
-    if (i % 12 === 0) for (const sd of [-1, 1]) addBox(R.G, 0.5, 0.16, 1.4, 0xffc870, frame(road, i, sd * 2.6, 6.95));
+    if (first ? i % 48 === 24 : i % 12 === 0) for (const sd of [-1, 1]) addBox(R.G, 0.5, 0.16, 1.4, first ? 0x8a6a3a : 0xffc870, frame(road, i, sd * 2.6, 6.95));
     if (i % 16 === 0) {
       const y = road.gy[i], down = y + 3;
       addBox(R.K, 52, 22, 16.5, 0xb09a7e, frame(road, i, 0, 7.6 + 11), { shade: true, uvs: 6 });

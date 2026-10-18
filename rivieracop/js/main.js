@@ -40,7 +40,7 @@ renderer.setSize(vw(), vh());
 renderer.shadowMap.enabled = true;
 // VSM: bordes suaves y difuminados (no dientes de sierra); como el mapa casi nunca se recalcula, el difuminado sale gratis
 renderer.shadowMap.type = THREE.VSMShadowMap;
-const outline = new Outline(renderer);
+const outline = new Outline(renderer); window.__ol = outline; // TODO-TESTEO
 outline.enabled = !Q.get('nooutline'); // TODO-TESTEO
 outline.setSize(vw(), vh());
 const scene = new THREE.Scene();
@@ -61,7 +61,7 @@ sun.shadow.camera.updateProjectionMatrix();
 const SHC = { key: '' };
 // ejes de la luz (para encajar la sombra en su rejilla y que no tiemble al moverse)
 const SUNO = new THREE.Vector3(150, 160, 70), SUNZ = SUNO.clone().normalize(), SUNX = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), SUNZ).normalize(), SUNY = new THREE.Vector3().crossVectors(SUNZ, SUNX);
-scene.add(sun); scene.add(sun.target);
+scene.add(sun); scene.add(sun.target); window.__sun = sun; window.__hemi = hemi; // TODO-TESTEO
 // cielo con degradado: azul intenso arriba y claro en el horizonte
 // cielo de dibujo animado: un degradado suave (sin ruido) y encima una cúpula con nubes dibujadas a mano en un canvas
 // (nubes esponjosas hechas de círculos, con sombra abajo y brillo arriba), sol o luna y estrellas de noche.
@@ -1691,7 +1691,7 @@ function tick(dt) {
   camera.quaternion.copy(QCAR).multiply(QLOOK);
   // la cámara un poco hacia fuera del coche: el compañero de al lado tapa menos
   if (!FO) {
-    camera.position.set(mySeat[0] * (car.userData.camK || 1.3), 2.3 + (car.userData.seatY || 0) + (CAN.t > 0 ? 0.75 : 0), mySeat[1]);
+    camera.position.set(mySeat[0] * (car.userData.camK || 1.5), 2.42 + (car.userData.seatY || 0) + (CAN.t > 0 ? 0.75 : 0), mySeat[1]);
     car.localToWorld(camera.position);
   }
   if (G.shake > 0) camera.position.add(V1.set((Math.random() - 0.5) * G.shake * 0.3, (Math.random() - 0.5) * G.shake * 0.3, 0));
@@ -1702,9 +1702,9 @@ function tick(dt) {
     const P = G.players[i], av = view.av[i];
     if (!P || i >= G.n) { av.visible = false; continue; }
     av.visible = !P.gone && !G.hideMates;
-    // el compañero pegado a la cámara se oculta (si no, se ve por dentro)
-    if (av.visible && av.getWorldPosition(V3).distanceTo(camera.position) < 1.15) av.visible = false;
-    const legs = av.userData.rig.body.children.slice(0, 4);
+    // el compañero pegado a la cámara, o justo delante del arma, se oculta (si no, se ve por dentro o el arma lo atraviesa)
+    if (av.visible && inGunWay(av)) av.visible = false;
+    const legs = av.userData.rig.legs;
     if (G.foot) {
       // a pie: el compañero anda a tu lado (las piernas se ven)
       const fp = footPose(i, 0);
@@ -1719,7 +1719,7 @@ function tick(dt) {
     av.userData.rig.armL.rotation.set(P.lp || 0, -0.5, 0);
   }
   // el botón de ocultar también quita al conductor (y en el hospital, a pie, no hay conductor)
-  { const dr = view.car.userData.driver; if (dr) dr.visible = !view.car.userData.noDriver && !G.hideMates && !G.foot; }
+  { const dr = view.car.userData.driver; if (dr) { dr.visible = !view.car.userData.noDriver && !G.hideMates && !G.foot; if (dr.visible && inGunWay(dr)) dr.visible = false; } }
   // --- mejoras del coche y cañón ---
   const cu = G.mode === 'guest' ? (G.cu || [0, 0]) : [G.sim.maxMeta('pinchos'), G.sim.maxMeta('torreta')];
   view.setCarParts(cu[0], cu[1]);
@@ -1810,6 +1810,9 @@ function tick(dt) {
   }
   // --- entorno por zona ---
   const inTun = G.road.kindAt(G.carD + 2) === 1;
+  // el túnel del principio va casi a oscuras: la salida se ve como un fogonazo de luz
+  const T0 = G.road.tunnels[0], dark = inTun && T0 && T0.start < 20 && G.carD < T0.end - 2;
+  outline.mat.uniforms.dim.value = dark ? 1 : 0; outline.mat.uniforms.dimD.value = dark ? T0.end - G.carD : 0;
   const B = BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]];
   const k = SHOT ? 1 : 1 - Math.exp(-dt * 1.2);
   ENV.sky.lerp(TC.setHex(B.sky), k);
@@ -1817,9 +1820,9 @@ function tick(dt) {
   // dentro del hospital: luz blanca de fluorescente y sin bruma
   const indoor = !!G.foot && G.foot[0] > G.carD + 4 && G.foot[0] < G.carD + 64 && FPS[G.li] && FPS[G.li][0] - G.carD > 7.5;
   ENV.hs.lerp(TC.setHex(indoor ? 0x9ae0d8 : B.hemi[0]), k * (indoor ? 3 : 1)); ENV.hg.lerp(TC.setHex(indoor ? 0x1a3a44 : B.hemi[1]), k * (indoor ? 3 : 1));
-  ENV.hi = lerp(ENV.hi, indoor ? 1.05 : B.hemi[2] * (inTun ? 0.75 : 1), k * 2);
+  ENV.hi = lerp(ENV.hi, indoor ? 1.05 : B.hemi[2] * (dark ? 0.13 : inTun ? 0.75 : 1), dark ? 1 : Math.min(1, k * 2));
   ENV.sc.lerp(TC.setHex(B.sun[0]), k);
-  ENV.si = lerp(ENV.si, indoor ? 0 : B.sun[1] * (inTun ? 0.45 : 1), k * (indoor ? 4 : 2));
+  ENV.si = lerp(ENV.si, indoor || dark ? 0 : B.sun[1] * (inTun ? 0.45 : 1), dark ? 1 : Math.min(1, k * (indoor ? 4 : 2)));
   // la niebla acaba antes de donde termina el decorado construido y la zona con sombras: nada aparece de golpe
   ENV.fn = lerp(ENV.fn, indoor ? 1.5 : Math.min(B.fogNear, 120), k * (indoor ? 3 : 1)); ENV.ff = lerp(ENV.ff, indoor ? 17 : Math.min(B.fogFar, 215), k * (indoor ? 3 : 1));
   // pasillos en penumbra: la niebla oscura no deja ver el fondo
@@ -1930,6 +1933,17 @@ function updBeams(t) {
   });
 }
 
+// ¿está este ocupante del coche pegado a la cámara o en la línea del arma? (entonces se oculta)
+const GW = new THREE.Vector3(), GF = new THREE.Vector3();
+function inGunWay(o) {
+  o.getWorldPosition(GW);
+  const dx = GW.x - camera.position.x, dz = GW.z - camera.position.z, dh = Math.hypot(dx, dz);
+  if (dh < 1.3) return true;
+  if (dh > 2.1) return false;
+  camera.getWorldDirection(GF);
+  const fl = Math.hypot(GF.x, GF.z) || 1;
+  return (dx * GF.x + dz * GF.z) / (dh * fl) > 0.62;
+}
 // posición a pie de cada jugador [d, lat, giro, bote al andar]; la propia se suaviza (al invitado le llega a saltos)
 const FPS = [null, null, null, null, null];
 function footPose(i, dt) {
@@ -1952,7 +1966,7 @@ function footPose(i, dt) {
 let botT = 0, botTarget = null;
 function botAim() {
   botT -= 1 / 60;
-  const camPos = V3.set(SEATS[G.li][0] * 1.3, 2.3, SEATS[G.li][1]);
+  const camPos = V3.set(SEATS[G.li][0] * 1.5, 2.42, SEATS[G.li][1]);
   if (G.foot) camPos.copy(camera.position); else view.car.localToWorld(camPos);
   let best = null, bs = -1e9;
   for (const t of view.tele) if (t.tgt === G.li && !(G.ents.some(e => (e.type === 'wall' || e.type === 'train') && e.st === 0 && !(e.x && e.x.dv)))) {
