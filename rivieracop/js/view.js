@@ -440,16 +440,18 @@ export class View {
 
 function personAnim(o, e, dt, ctx, V) {
   const ud = o.userData, rig = ud.p.userData.rig;
+  // esperando: ya se ven de lejos (los de cobertura agachados detrás, los demás de pie con el arma bajada)
   if (e.st === ST.HIDDEN) {
-    o.visible = !!ud.cv;
-    rig.body.position.y = -0.95;
+    o.visible = true;
+    rig.body.position.y = ud.cv ? -0.95 : 0;
+    rig.armR.rotation.set(0.25, 0, 0); rig.armL.rotation.set(0.15, 0, 0);
     ud.pop = 0;
     return;
   }
   o.visible = true;
   ud.pop = (ud.pop || 0) + dt;
   const k = Math.min(1, ud.pop / 0.22);
-  rig.body.position.y = -0.95 * (1 - k);
+  rig.body.position.y = ud.cv ? -0.95 * (1 - k) : 0;
   if (e.st === ST.DEAD) {
     const a = Math.min(1, ud.dt * 3.5);
     rig.body.rotation.x = a * 1.5;

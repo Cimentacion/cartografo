@@ -5,7 +5,7 @@ let GRAD = null;
 export function toonGrad() {
   if (!GRAD) {
     // sombreado suave en 4 tonos (estilo dibujos: la parte en sombra no se va a negro)
-    const d = new Uint8Array([168, 168, 176, 255, 205, 205, 210, 255, 236, 236, 238, 255, 255, 255, 255, 255]);
+    const d = new Uint8Array([120, 122, 140, 255, 182, 182, 192, 255, 232, 230, 226, 255, 255, 252, 244, 255]);
     GRAD = new THREE.DataTexture(d, 4, 1, THREE.RGBAFormat);
     GRAD.minFilter = GRAD.magFilter = THREE.NearestFilter;
     GRAD.generateMipmaps = false;
@@ -94,7 +94,10 @@ export class Outline {
           // (así no salen rayas en pegatinas, pasos de cebra, suelos en ángulo rasante, etc.)
           float jump = max(max(abs(dl - d), abs(dr - d)), max(abs(du - d), abs(dd - d)));
           float sil = smoothstep(0.25 + d * 0.03, 0.6 + d * 0.06, jump);
-          float edge = smoothstep(0.06, 0.14, e) * sil * (1.0 - smoothstep(30.0, 60.0, d)) * inkOn;
+          // en superficies muy inclinadas (techos y suelos lejanos) la profundidad cambia mucho de un píxel a otro:
+          // el borde solo cuenta si la curvatura es grande comparada con esa pendiente (si no, salían puntitos)
+          float g1 = (abs(1.0 / dl - 1.0 / dr) + abs(1.0 / du - 1.0 / dd)) / w;
+          float edge = smoothstep(0.06, 0.14, e) * smoothstep(0.35, 0.7, e / max(g1, 1e-4)) * sil * (1.0 - smoothstep(30.0, 60.0, d)) * inkOn;
           // trazo irregular, como dibujado a mano
           float nz = vnoise(gl_FragCoord.xy / 5.0);
           edge *= 0.45 + 0.75 * nz;

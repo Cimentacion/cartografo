@@ -1409,8 +1409,8 @@ function tick(dt) {
   scene.background.copy(ENV.sky); scene.fog.color.copy(ENV.sky);
   scene.fog.near = ENV.fn; scene.fog.far = ENV.ff;
   seaMat.color.copy(ENV.sea);
-  hemi.color.copy(ENV.hs); hemi.groundColor.copy(ENV.hg); hemi.intensity = ENV.hi;
-  sun.color.copy(ENV.sc); sun.intensity = ENV.si;
+  hemi.color.copy(ENV.hs); hemi.groundColor.copy(ENV.hg); hemi.intensity = ENV.hi * 0.72;
+  sun.color.copy(ENV.sc); sun.intensity = ENV.si * 1.35; // el sol marca más las caras de los edificios
   // el sol sigue al coche; la zona con sombras va un poco por delante de la cámara
   G.road.toWorld(G.carD + 100, 0, 0, V2);
   // se recoloca en saltos de ~40 m que son un número exacto de píxeles del mapa: los bordes no bailan
@@ -1640,7 +1640,7 @@ $('btnShadow').onclick = () => setShadows(!SHADOWS);
 const HSTY = [['arcade', 'ARCADE', 'Píxeles de recreativa'], ['moderno', 'MODERNO', 'Limpio y translúcido'], ['neon', 'NEÓN', 'Brillos y degradados'], ['militar', 'MILITAR', 'Camuflaje y plantilla'], ['comic', 'CÓMIC', 'Tinta gorda y trama']];
 // palA: valor mínimo, valor máximo, saturación del decorado, tinte · palB: color de enemigos, tinte propio, niebla de color
 const CPAL = [
-  ['suave', 'SUAVE', 'Decorado tranquilo, enemigos destacados', [0.2, 0.68, 0.88, 0.09], [1.45, 0, 0.25], null, ['#5a6a7a', '#8a9aa8', '#c8b8a0', '#ff3a3a']],
+  ['suave', 'SUAVE', 'Decorado tranquilo, enemigos destacados', [0.12, 0.82, 0.9, 0.07], [1.45, 0, 0.22], null, ['#5a6a7a', '#8a9aa8', '#c8b8a0', '#ff3a3a']],
   ['viva', 'VIVA', 'Colores saturados de dibujo animado', null, null, null, ['#2a8aff', '#ffd23f', '#3ac84a', '#ff3a3a']],
   ['pastel', 'PASTEL', 'Claro y suave', [0.36, 0.86, 0.62, 0.12], [1.6, 0, 0.3], null, ['#b8d8f0', '#f0d8e8', '#e8f0c8', '#ff3a6a']],
   ['noir', 'NOIR', 'Blanco y negro; solo los enemigos tienen color', [0.1, 0.7, 0.06, 0], [1.8, 0, 0.2], null, ['#202020', '#707070', '#c8c8c8', '#ff2020']],

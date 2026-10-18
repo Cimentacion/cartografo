@@ -297,8 +297,8 @@ const HW_T = 4.4;
 // ladera de montaña alrededor de cada boca de túnel: tapa el cielo y lo que había al lado (nada de huecos raros)
 function portalHill(R, road, d) {
   const y = road.gy[Math.max(0, Math.min(road.len, Math.floor(d)))], down = y + 3;
-  addBox(R.K, 150, 34, 24, 0x9a8a72, frame(road, d, 0, 7.6 + 17), { shade: true, uvs: 6 });
-  for (const sd of [-1, 1]) addBox(R.K, 66, 7.6 + down, 24, 0x9a8a72, frame(road, d, sd * (8.6 + 33), (7.6 - down) / 2), { uvs: 6 });
+  addBox(R.K, 64, 18, 24, 0x9a8a72, frame(road, d, 0, 7.6 + 9), { shade: true, uvs: 6 });
+  for (const sd of [-1, 1]) addBox(R.K, 22, 7.6 + down, 24, 0x9a8a72, frame(road, d, sd * (8.6 + 11), (7.6 - down) / 2), { uvs: 6 });
 }
 function tunnelRun(R, road, B, i0, i1) {
   strip(R.A, road, i0, i1, C(-HALF, 0), C(HALF, 0), 0x55575c, 4);

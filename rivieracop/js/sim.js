@@ -898,7 +898,7 @@ export class Sim {
   // manifestación: al final, una marcha corta el paso. El coche no avanza hasta dispersarla
   spawnMarch() {
     const r = this.r, n = Math.min(18, 8 + 3 * this.nAlive());
-    const d0 = this.carD + 36;
+    const d0 = this.carD + 60;
     for (let i = 0; i < n; i++) {
       const row = i % 2, col = i >> 1, cols = Math.ceil(n / 2);
       const bl = -6.5 + (13 / Math.max(1, cols - 1)) * col + (row ? 0.6 : 0);
@@ -982,7 +982,7 @@ export class Sim {
   spawnRoofGunmen() {
     const r = this.r, n = 1 + Math.floor(r() * 2 + this.diff * 0.2);
     for (let i = 0; i < n; i++) {
-      const side = r() < 0.5 ? -1 : 1, d = this.carD + 25 + r() * 35;
+      const side = r() < 0.5 ? -1 : 1, d = this.carD + 50 + r() * 35;
       const e = this.add('gunman', { d, lat: side * (WALK + 3), h: 8, hp: 2, st: ST.HIDDEN });
       e.x = { cv: -1, gr: r() < 0.2 ? 1 : 0, pop: 999, sk: Math.floor(r() * 6) };
       e.sh = [e.x.gr ? this.shooter(3.8, 'grenade', 0.5) : this.shooter(3.0 + r() * 0.8, 'shot', 0.6 + i * 0.4)];
@@ -1163,7 +1163,7 @@ export class Sim {
     const n = 2 + this.nAlive() + Math.floor(this.diff * 0.5);
     for (let i = 0; i < n; i++) {
       const behind = this.n > 2 && i % 3 === 2;
-      const d = behind ? this.carD - 25 - r() * 20 : this.carD + 12 + r() * 26;
+      const d = behind ? this.carD - 25 - r() * 20 : this.carD + 40 + r() * 35;
       const e = this.add('gunman', { d, lat: this.sideLat(d, i % 2 ? 1 : -1) + (r() - 0.5) * 0.6, h: 0.18, hp: 2, st: ST.HIDDEN });
       e.x = { cv: r() < 0.5 ? Math.floor(r() * 3) : -1, gr: 0, pop: 999, sk: Math.floor(r() * 6) };
       e.sh = [this.shooter(3.0 + r(), 'shot', 1 + i * 0.4)];
