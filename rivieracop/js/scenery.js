@@ -749,19 +749,19 @@ function hospital(R, RI, road, H) {
   const B = (L, u0, u1, v0, v1, h0, h1, col, o = {}) => addBox(L, v1 - v0, h1 - h0, u1 - u0, col, frame(road, H + (u0 + u1) / 2, (v0 + v1) / 2, (h0 + h1) / 2), o);
   // pared interior en dos tonos (zócalo verde de hospital y pintura clara arriba)
   const W = (u0, u1, v0, v1) => {
-    B(RI.L, u0, u1, v0, v1, 0.2, 1.0, 0x2f8a64); B(RI.L, u0, u1, v0, v1, 1.0, 3.4, 0xf2f4f0);
+    B(RI.L, u0, u1, v0, v1, 0.2, 1.0, 0x3a6e78); B(RI.L, u0, u1, v0, v1, 1.0, 3.4, 0xd4ece8);
     // franja verde y pasamanos
-    B(RI.L, u0 - 0.03, u1 + 0.03, v0 - 0.03, v1 + 0.03, 1.0, 1.08, 0x1f6a4a); B(RI.L, u0 - 0.06, u1 + 0.06, v0 - 0.06, v1 + 0.06, 0.92, 0.98, 0x9ad8b8);
-    B(RI.L, u0 - 0.02, u1 + 0.02, v0 - 0.02, v1 + 0.02, 3.2, 3.28, 0x3aa070);
+    B(RI.L, u0 - 0.03, u1 + 0.03, v0 - 0.03, v1 + 0.03, 1.0, 1.08, 0x2a545c); B(RI.L, u0 - 0.06, u1 + 0.06, v0 - 0.06, v1 + 0.06, 0.92, 0.98, 0xa8c8c8);
+    B(RI.L, u0 - 0.02, u1 + 0.02, v0 - 0.02, v1 + 0.02, 3.2, 3.28, 0x4a8a90);
   };
   const wu = (u, v0, v1) => W(u - 0.1, u + 0.1, v0, v1);
   const wv = (v, u0, u1) => W(u0, u1, v - 0.1, v + 0.1);
   // suelo de baldosa, techo
-  B(RI.L, -0.2, 56.2, -12, 19, 0, 0.2, 0xb4bcb6);
-  B(RI.L, -0.2, 56.2, -12, 19, 3.4, 3.55, 0xd8dcd6);
+  B(RI.L, -0.2, 56.2, -12, 19, 0, 0.2, 0x8eaaae);
+  B(RI.L, -0.2, 56.2, -12, 19, 3.4, 3.55, 0xb8d0d0);
   // juntas de las baldosas
-  for (let u = 0; u < 56; u += 1.2) B(RI.L, u, u + 0.04, -12, 19, 0.2, 0.203, 0x8a948c);
-  for (let v = -12; v < 19; v += 1.2) B(RI.L, -0.2, 56.2, v, v + 0.04, 0.2, 0.203, 0x8a948c);
+  for (let u = 0; u < 56; u += 1.2) B(RI.L, u, u + 0.04, -12, 19, 0.2, 0.203, 0x6a8488);
+  for (let v = -12; v < 19; v += 1.2) B(RI.L, -0.2, 56.2, v, v + 0.04, 0.2, 0.203, 0x6a8488);
   // fachada y muros exteriores (tres plantas con ventanas, algunas encendidas)
   const sh = 10, col = 0xd8dcd4;
   for (const [u0, u1] of [[-0.4, 0], [56, 56.4]]) {
@@ -772,7 +772,7 @@ function hospital(R, RI, road, H) {
   B(R.L, -0.6, 56.6, -12.6, 19.6, sh, sh + 0.5, 0x3a3a3e);
   // por dentro, los muros de fuera también pintados
   wu(0.1, -12, -1.5); wu(0.1, 1.5, 19); wu(55.9, -12, -1.5); wu(55.9, 1.5, 19); wv(-11.9, 0, 56); wv(18.9, 0, 56);
-  for (const u of [0.1, 55.9]) B(RI.L, u - 0.1, u + 0.1, -1.5, 1.5, 2.8, 3.4, 0xf2f4f0);
+  for (const u of [0.1, 55.9]) B(RI.L, u - 0.1, u + 0.1, -1.5, 1.5, 2.8, 3.4, 0xd4ece8);
   // cruz roja luminosa, letrero y marquesina de la entrada
   B(R.G, -0.75, -0.5, -1.4, 1.4, 7.4, 8.2, 0xff2a2a); B(R.G, -0.75, -0.5, -0.4, 0.4, 6.4, 9.2, 0xff2a2a);
   B(R.L, -0.7, -0.4, 3, 13, 7.3, 8.3, 0x1a3a6a); for (let k = 0; k < 8; k++) B(R.G, -0.75, -0.7, 3.6 + k * 1.15, 4.3 + k * 1.15, 7.55, 8.05, k === 5 ? 0x2a2a2a : 0xe8f0ff);
@@ -785,7 +785,7 @@ function hospital(R, RI, road, H) {
   B(RI.D, 8, 12, -9.5, -7.6, 0.2, 1.25, 0x7a5a3a, { uvs: 1 }); B(RI.L, 7.9, 12.1, -9.6, -7.5, 1.25, 1.35, 0xe8e0d0);
   B(RI.L, 9, 9.5, -8.5, -8.1, 1.35, 1.75, 0x2a2a30);
   // carteles de la sala de espera y de la máquina de turnos
-  B(RI.L, 1, 6.5, -11.85, -11.8, 1.9, 2.6, 0x2f8a64); B(RI.G, 1.3, 6.2, -11.8, -11.78, 2.05, 2.45, 0xf0fff4);
+  B(RI.L, 1, 6.5, -11.85, -11.8, 1.9, 2.6, 0x3a6e78); B(RI.G, 1.3, 6.2, -11.8, -11.78, 2.05, 2.45, 0xf0fff4);
   B(RI.L, 7, 7.5, -11.8, -11.4, 0.2, 1.5, 0xd8d8d0); B(RI.E, 7.1, 7.4, -11.42, -11.38, 1.2, 1.35, 0xff3020);
   // camilla volcada, papeles y manchas
   B(RI.L, 4, 6, 3.5, 4.3, 0.25, 0.9, 0xe8e8e8, { rz: 1.3 }); B(RI.S, 4, 6, 3, 3.1, 0.2, 0.8, 0x9aa0a8);
@@ -795,7 +795,7 @@ function hospital(R, RI, road, H) {
   wv(7, 14, 48); wu(48, 7, 10);
   const doors = [17.5, 25.5, 33.5, 41.5];
   let u0 = 0;
-  for (const dc of doors) { wv(10, u0, dc - 0.8); u0 = dc + 0.8; B(RI.L, dc - 0.85, dc + 0.85, 9.85, 10.15, 2.6, 3.4, 0xf2f4f0); B(RI.L, dc - 0.95, dc + 0.95, 9.8, 10.2, 2.55, 2.65, 0x2f8a64); B(RI.E, dc + 0.9, dc + 1.0, 9.75, 9.8, 1.5, 1.6, i2(dc) ? 0xff2020 : 0x20ff40); }
+  for (const dc of doors) { wv(10, u0, dc - 0.8); u0 = dc + 0.8; B(RI.L, dc - 0.85, dc + 0.85, 9.85, 10.15, 2.6, 3.4, 0xd4ece8); B(RI.L, dc - 0.95, dc + 0.95, 9.8, 10.2, 2.55, 2.65, 0x3a6e78); B(RI.E, dc + 0.9, dc + 1.0, 9.75, 9.8, 1.5, 1.6, i2(dc) ? 0xff2020 : 0x20ff40); }
   wv(10, u0, 48);
   for (const u of [13.5, 21.5, 29.5, 37.5, 45.5]) wu(u, 10, 19);
   doors.forEach((dc, i) => {
@@ -820,16 +820,16 @@ function hospital(R, RI, road, H) {
     if ((v === 8.5 && u > 47) || (v === -6 && u > 13) || (v === 0 && u > 4 && u < 14)) continue;
     const q = (u * 7 + v * 3 + 50) % 5;
     // pocas encendidas: el resto fundidas o titilando (los pasillos quedan en penumbra)
-    B(q === 0 ? RI.G : q === 1 ? RI.Y : RI.L, u - 0.6, u + 0.6, v - 0.18, v + 0.18, 3.3, 3.4, q <= 1 ? 0xe8fff0 : 0x5a5e5a);
-    B(RI.L, u - 0.65, u + 0.65, v - 0.22, v + 0.22, 3.38, 3.4, 0x9aa09a);
+    B(q === 0 ? RI.G : q === 1 ? RI.Y : RI.L, u - 0.6, u + 0.6, v - 0.18, v + 0.18, 3.3, 3.4, q <= 1 ? 0xd8fffa : 0x3a4a4e);
+    B(RI.L, u - 0.65, u + 0.65, v - 0.22, v + 0.22, 3.38, 3.4, 0x8aa0a4);
   }
   for (const [u, v] of [[22, 8.5], [30, 8.5], [38, 8.5], [26, 0], [38, 0], [47, 0]]) { B(RI.L, u - 0.45, u + 0.45, v - 0.45, v + 0.45, 3.32, 3.4, 0x1a1a1e); for (let k = -2; k <= 2; k++) B(RI.S, u - 0.4, u + 0.4, v + k * 0.16 - 0.03, v + k * 0.16 + 0.03, 3.31, 3.33, 0x8a9098); }
   for (const u of doors) B(RI.L, u - 0.3, u + 0.3, 13.6, 14.2, 3.32, 3.4, 0x1a1a1e);
   // tuberías por el techo de los pasillos
-  for (const [v, c] of [[7.5, 0x8a9a92], [9.6, 0x2f8a64], [-1.6, 0x8a9a92], [1.6, 0xb8a050]]) {
+  for (const [v, c] of [[7.5, 0x8a9a92], [9.6, 0x3a6e78], [-1.6, 0x8a9a92], [1.6, 0xb8a050]]) {
     const ua = v > 5 ? 4 : 14, ub = v > 5 ? 48 : 56;
     for (let u = ua; u < ub; u += 4) addCyl(RI.S, 0.07, 0.07, 4.02, 6, c, frame(road, H + u + 2, v, 3.12), { rx: Math.PI / 2 });
-    for (let u = ua + 1; u < ub; u += 3) B(RI.L, u, u + 0.06, v - 0.1, v + 0.1, 3.12, 3.4, 0x5a5e5a);
+    for (let u = ua + 1; u < ub; u += 3) B(RI.L, u, u + 0.06, v - 0.1, v + 0.1, 3.12, 3.4, 0x3a4a4e);
   }
   addCyl(RI.S, 0.06, 0.06, 2.4, 6, 0x8a9a92, frame(road, H + 27, 8.6, 2.2), { rz: 0.9 });
   // destrozos: grietas, agujeros en la pared, placas del techo caídas, cables colgando

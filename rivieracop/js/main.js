@@ -1656,15 +1656,15 @@ function tick(dt) {
   ENV.sea.lerp(TC.setHex(B.sea), k);
   // dentro del hospital: luz blanca de fluorescente y sin bruma
   const indoor = !!G.foot && G.foot[0] > G.carD + 4 && G.foot[0] < G.carD + 64 && FPS[G.li] && FPS[G.li][0] - G.carD > 7.5;
-  ENV.hs.lerp(TC.setHex(indoor ? 0xe8f4ec : B.hemi[0]), k * (indoor ? 3 : 1)); ENV.hg.lerp(TC.setHex(indoor ? 0x6a7a70 : B.hemi[1]), k * (indoor ? 3 : 1));
-  ENV.hi = lerp(ENV.hi, indoor ? 0.95 : B.hemi[2] * (inTun ? 0.75 : 1), k * 2);
+  ENV.hs.lerp(TC.setHex(indoor ? 0x9ae0d8 : B.hemi[0]), k * (indoor ? 3 : 1)); ENV.hg.lerp(TC.setHex(indoor ? 0x1a3a44 : B.hemi[1]), k * (indoor ? 3 : 1));
+  ENV.hi = lerp(ENV.hi, indoor ? 1.05 : B.hemi[2] * (inTun ? 0.75 : 1), k * 2);
   ENV.sc.lerp(TC.setHex(B.sun[0]), k);
   ENV.si = lerp(ENV.si, indoor ? 0 : B.sun[1] * (inTun ? 0.45 : 1), k * (indoor ? 4 : 2));
   // la niebla acaba antes de donde termina el decorado construido y la zona con sombras: nada aparece de golpe
   ENV.fn = lerp(ENV.fn, indoor ? 1.5 : Math.min(B.fogNear, 120), k * (indoor ? 3 : 1)); ENV.ff = lerp(ENV.ff, indoor ? 17 : Math.min(B.fogFar, 215), k * (indoor ? 3 : 1));
   // pasillos en penumbra: la niebla oscura no deja ver el fondo
   G.fogIn = lerp(G.fogIn || 0, indoor ? 1 : 0, k * 3);
-  scene.background.copy(ENV.sky); scene.fog.color.copy(ENV.sky).lerp(TC.setHex(0x0a0e0c), G.fogIn);
+  scene.background.copy(ENV.sky); scene.fog.color.copy(ENV.sky).lerp(TC.setHex(0x06161c), G.fogIn);
   // pilotos y fluorescentes rotos
   MATS.E.color.setScalar(Math.floor(G.t * 2.5) % 2 ? 1 : 0.15);
   MATS.Y.color.setScalar(Math.sin(G.t * 31) + Math.sin(G.t * 7.3) > 0.9 ? 0.25 : 1);
