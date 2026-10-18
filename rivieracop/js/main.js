@@ -667,7 +667,7 @@ net.onmsg = (m, from) => {
 };
 function lobbyPlayers() {
   const idx = [...net.links.values()].map(L => L.idx).sort();
-  return 'Jugadores: ' + (1 + idx.length) + '/4 (' + ['J1'].concat(idx.map(i => 'J' + (i + 1))).join(', ') + ')';
+  return 'Jugadores: ' + (1 + idx.length) + '/5 (' + ['J1'].concat(idx.map(i => 'J' + (i + 1))).join(', ') + ')';
 }
 net.onjoin = idx => {
   if (G.running) { net.sendTo(idx, { t: 'busy' }); return; }

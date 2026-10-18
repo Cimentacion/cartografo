@@ -51,6 +51,61 @@ export function makeCode() {
   return s;
 }
 
+// ---------------- relé MQTT (último recurso) ----------------
+// Si la conexión directa entre móviles no sale (datos móviles con NAT estricto), la partida va por un
+// servidor MQTT público y gratuito por WebSocket: el anfitrión y los invitados publican en un "tema" de la sala.
+const BROKERS = new URLSearchParams(location.search).get('mq') ? [new URLSearchParams(location.search).get('mq')] // TODO-TESTEO: relé local
+  : ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt', 'wss://test.mosquitto.org:8081/mqtt'];
+const enc8 = new TextEncoder(), dec8 = new TextDecoder();
+function mqStr(s) { const b = enc8.encode(s); return [b.length >> 8, b.length & 255, ...b]; }
+function mqPkt(type, body) {
+  const out = [type]; let n = body.length;
+  do { let d = n % 128; n = Math.floor(n / 128); if (n > 0) d |= 128; out.push(d); } while (n > 0);
+  const a = new Uint8Array(out.length + body.length); a.set(out); a.set(body, out.length); return a;
+}
+class MQ {
+  constructor(url, onMsg, onUp, onDown) {
+    this.url = url; this.onMsg = onMsg; this.onUp = onUp; this.onDown = onDown; this.subs = []; this.ok = false; this.buf = new Uint8Array(0); this.pid = 1;
+    try {
+      const ws = new WebSocket(url, 'mqtt'); ws.binaryType = 'arraybuffer'; this.ws = ws;
+      ws.onopen = () => ws.send(mqPkt(0x10, [...mqStr('MQTT'), 4, 2, 0, 60, ...mqStr('rc' + Math.random().toString(36).slice(2, 12))]));
+      ws.onmessage = ev => this.feed(new Uint8Array(ev.data));
+      ws.onclose = ws.onerror = () => { if (this.dead) return; this.dead = true; this.ok = false; clearInterval(this.ka); this.onDown && this.onDown(this); };
+    } catch (e) { this.dead = true; }
+  }
+  feed(b) {
+    const a = new Uint8Array(this.buf.length + b.length); a.set(this.buf); a.set(b, this.buf.length);
+    let i = 0;
+    while (i + 2 <= a.length) {
+      let len = 0, mul = 1, j = i + 1, d;
+      do { if (j >= a.length) { this.buf = a.slice(i); return; } d = a[j++]; len += (d & 127) * mul; mul *= 128; } while (d & 128);
+      if (j + len > a.length) break;
+      this.packet(a[i], a.subarray(j, j + len));
+      i = j + len;
+    }
+    this.buf = a.slice(i);
+  }
+  packet(h, p) {
+    const t = h >> 4;
+    if (t === 2) { // CONNACK
+      if (p[1] !== 0) return;
+      this.ok = true;
+      for (const s of this.subs) this.sendSub(s);
+      this.ka = setInterval(() => { try { this.ws.send(new Uint8Array([0xc0, 0])); } catch (e) { } }, 25000);
+      this.onUp && this.onUp(this);
+    } else if (t === 3) { // PUBLISH
+      const tl = (p[0] << 8) | p[1], topic = dec8.decode(p.subarray(2, 2 + tl));
+      const q = (h >> 1) & 3, off = 2 + tl + (q ? 2 : 0);
+      let d = null; try { d = JSON.parse(dec8.decode(p.subarray(off))); } catch (e) { }
+      if (d) this.onMsg(topic, d, this);
+    }
+  }
+  sendSub(topic) { const id = this.pid++; try { this.ws.send(mqPkt(0x82, [id >> 8, id & 255, ...mqStr(topic), 0])); } catch (e) { } }
+  sub(topic) { this.subs.push(topic); if (this.ok) this.sendSub(topic); }
+  pub(topic, obj) { if (!this.ok) return; try { this.ws.send(mqPkt(0x30, [...mqStr(topic), ...enc8.encode(JSON.stringify(obj))])); } catch (e) { } }
+  close() { this.dead = true; clearInterval(this.ka); try { this.ws.send(new Uint8Array([0xe0, 0])); this.ws.close(); } catch (e) { } }
+}
+
 export const MAXP = 5;
 export class Net {
   constructor() {
@@ -133,9 +188,28 @@ export class Net {
   }
   lost() { this.link = null; this.onclose && this.onclose(0); }
 
+  // anfitrión: escucha en los relés MQTT (los invitados que no conectan directo entran por ahí)
+  startRelay(code) {
+    if (new URLSearchParams(location.search).get('nomq') === '1') return; // TODO-TESTEO
+    const T = 'rcop9/' + code + '/';
+    this.mq = BROKERS.map(u => {
+      const m = new MQ(u, (topic, d) => {
+        if (!d || typeof d.f !== 'string' || !d.d) return;
+        const key = 'mqtt:' + d.f;
+        if (d.d.t === 'hello' && !this.links.has(key)) this.adopt(key, { kind: 'mqtt', id: d.f, mq: m, send: o => m.pub(T + 'g', { to: d.f, d: o }) });
+        const L = this.links.get(key);
+        if (L) { L.seen = performance.now(); this.recvHost(d.d, L); }
+      });
+      m.sub(T + 'h');
+      return m;
+    });
+    // invitado por relé que deja de hablar: fuera
+    this.mqGc = setInterval(() => { for (const L of [...this.links.values()]) if (L.kind === 'mqtt' && performance.now() - (L.seen || 0) > 15000) this.drop(L); }, 3000);
+  }
   host(code) {
     this.isHost = true; this.closed = false;
     this.startRooms(code);
+    this.startRelay(code);
     return new Promise(res => {
       let done = false;
       const ok = () => { if (!done) { done = true; res(); } };
@@ -190,10 +264,40 @@ export class Net {
           p.on('error', e => console.warn('peerjs', e && e.type));
         } catch (e) { console.warn('peerjs', e); }
       }
-      setTimeout(() => { if (!done) { done = true; this.close(); rej(new Error('No se encuentra la sala (¿código bien escrito? ¿tu amigo sigue en la sala?)')); } }, 30000);
+      setTimeout(() => { if (!done && !this.link) this.joinRelay(code); }, 7000);
+      setTimeout(() => { if (!done) { done = true; this.close(); rej(new Error('No se encuentra la sala (¿código bien escrito? ¿tu amigo sigue en la sala?)')); } }, 40000);
     });
   }
 
+  // invitado: la conexión directa no sale; se prueba por los relés MQTT (el primero que conteste)
+  joinRelay(code) {
+    if (this.mq || new URLSearchParams(location.search).get('nomq') === '1') return;
+    const T = 'rcop9/' + code + '/', me = 'g' + Math.random().toString(36).slice(2, 10);
+    let lastHost = 0;
+    this.mq = BROKERS.map(u => {
+      const m = new MQ(u, (topic, d) => {
+        if (!d || !d.d || (d.to && d.to !== me)) return;
+        if (!this.link) {
+          // el anfitrión ha contestado por este relé: nos quedamos con él y cerramos los demás
+          this.link = { kind: 'mqtt', id: u, mq: m, send: o => m.pub(T + 'h', { f: me, d: o }) };
+          this.via = 'mqtt';
+          for (const o of this.mq) if (o !== m) o.close();
+          this.mqGc = setInterval(() => { if (this.link && this.link.kind === 'mqtt' && performance.now() - lastHost > 12000) this.lost(); }, 3000);
+          this.win && this.win();
+          this.recv(d.d);
+          return;
+        }
+        if (this.link.mq === m) { lastHost = performance.now(); this.recv(d.d); }
+      }, mm => { mm.pub(T + 'h', { f: me, d: { t: 'hello', v: NETV } }); });
+      m.sub(T + 'g');
+      return m;
+    });
+    // insistir con el saludo mientras nadie conteste
+    let n = 0;
+    const again = () => { if (this.link || this.closed || n++ > 25) return; for (const m of this.mq || []) m.pub(T + 'h', { f: me, d: { t: 'hello', v: NETV } }); setTimeout(again, 1000); };
+    setTimeout(again, 1000);
+    lastHost = performance.now();
+  }
   // anfitrión: a todos; invitado: al anfitrión
   send(o) {
     if (this.isHost) { for (const L of this.links.values()) L.send(o); }
@@ -211,6 +315,8 @@ export class Net {
     this.rooms = [];
     try { if (this.peer) this.peer.destroy(); } catch (e) { }
     this.peer = null;
+    for (const m of this.mq || []) m.close();
+    this.mq = null; clearInterval(this.mqGc);
   }
 }
 
