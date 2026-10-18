@@ -12,6 +12,19 @@ const PREFIX = 'rivieracop-cimentacion-';
 const APP = 'rivieracop-cimentacion-v1';
 export const NETV = 9;
 
+// relé TURN gratuito (Open Relay, credenciales temporales firmadas con su clave pública "static auth"):
+// cuando los datos móviles (4G/5G) no dejan conectar directamente, la partida pasa por el relé
+let TURN = null;
+(async () => {
+  try {
+    const user = Math.floor(Date.now() / 1000 + 86400 * 2) + ':riviera';
+    const enc = new TextEncoder(), key = await crypto.subtle.importKey('raw', enc.encode('openrelayprojectsecret'), { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+    const sig = await crypto.subtle.sign('HMAC', key, enc.encode(user));
+    const cred = btoa(String.fromCharCode(...new Uint8Array(sig)));
+    const h = 'staticauth.openrelay.metered.ca';
+    TURN = [{ urls: [`turn:${h}:80`, `turn:${h}:80?transport=tcp`, `turn:${h}:443`, `turns:${h}:443?transport=tcp`], username: user, credential: cred }];
+  } catch (e) { TURN = null; }
+})();
 function peerOpts() {
   const u = new URLSearchParams(location.search);
   const o = {
@@ -20,6 +33,7 @@ function peerOpts() {
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
         { urls: 'stun:stun.cloudflare.com:3478' },
+        ...(TURN || []),
       ],
     },
   };
@@ -54,7 +68,7 @@ export class Net {
     if (!TR) { trReady.then(() => { if (TR && !this.closed) this.startRooms(code); }); return; }
     for (const [name, join] of [['nostr', TR.joinNostr], ['torrent', TR.joinTorrent]]) {
       try {
-        const cfg = { appId: APP };
+        const cfg = { appId: APP, rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun.cloudflare.com:3478' }, ...(TURN || [])] } };
         const trk = new URLSearchParams(location.search).get('trk'); // TODO-TESTEO: tracker local
         if (trk) { if (name !== 'torrent') continue; cfg.relayUrls = [trk]; }
         const room = join(cfg, code);
