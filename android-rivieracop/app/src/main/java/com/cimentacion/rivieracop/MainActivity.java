@@ -61,6 +61,7 @@ public class MainActivity extends Activity {
     private static final String APK_URL = "https://github.com/Cimentacion/cartografo/releases/download/rivieracop/rivieracop.apk";
     private WebView web;
     private RewardedAd rewarded; private InterstitialAd inter;
+    private volatile boolean packBusy = false;
     private boolean wantRewarded = false, earned = false, checked = false, updating = false;
 
     @Override
@@ -123,6 +124,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public int version() { return myVersion(); }
         @JavascriptInterface public void update() { runOnUiThread(MainActivity.this::startUpdate); }
         @JavascriptInterface public int pack() { return curPack(); }
+        @JavascriptInterface public void checkNow() { if (!packBusy) checkPack(); }
         @JavascriptInterface public void reloadGame() { runOnUiThread(() -> web.reload()); }
     }
 
@@ -177,6 +179,7 @@ public class MainActivity extends Activity {
         try (BufferedReader r = new BufferedReader(new InputStreamReader(c.getInputStream()))) { return Integer.parseInt(r.readLine().trim()); }
     }
     private void checkPack() {
+        packBusy = true;
         new Thread(() -> {
             try {
                 int remote = readInt(PACKV_URL);
@@ -213,6 +216,7 @@ public class MainActivity extends Activity {
             } catch (Exception e) {
                 js("window.rcPack&&window.rcPack('err',0)");
             }
+            packBusy = false;
         }).start();
     }
     private static void del(File f) {

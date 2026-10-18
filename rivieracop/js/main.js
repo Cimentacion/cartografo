@@ -925,6 +925,18 @@ window.rcUpdateMsg = (k, v) => {
 };
 $('updGo').onclick = () => { try { window.RCApp.update(); } catch (e) { } };
 $('updLater').onclick = () => { $('upd').hidden = true; };
+// versión actual (abajo a la derecha en el menú) y comprobación de actualizaciones cada pocos segundos mientras estás en el menú
+function updVerTag() {
+  let v = '';
+  try { if (window.RCApp && window.RCApp.pack) v = 'Versión ' + window.RCApp.pack() + (window.RCApp.version ? ' · app ' + window.RCApp.version() : ''); } catch (e) { }
+  $('verTag').textContent = v || 'Versión web';
+}
+updVerTag();
+setInterval(() => {
+  const inMenu = !$('menu').hidden;
+  document.body.classList.toggle('inmenu', inMenu);
+  if (inMenu && !G.running) { try { if (window.RCApp && window.RCApp.checkNow) window.RCApp.checkNow(); } catch (e) { } }
+}, 3000);
 // actualización del juego por packs (la app la descarga sola; se aplica recargando, sin reinstalar)
 window.rcPack = (k, v) => {
   const el = $('packMsg');

@@ -342,6 +342,8 @@ body.turbo #hudwrap::after{content:'';position:absolute;inset:0;pointer-events:n
 #langSel{font:9px var(--f-px);background:#2a2d38;color:#fff;border:0;padding:6px;box-shadow:3px 3px 0 #000}
 #packMsg{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:97;background:#0c0a18;border:2px solid #7dff8a;color:#7dff8a;font:9px var(--f-px);padding:8px 12px;pointer-events:none}
 #packMsg[hidden]{display:none}
+#verTag{position:fixed;right:max(8px,env(safe-area-inset-right));bottom:max(6px,env(safe-area-inset-bottom));z-index:5;font:700 11px var(--f-ui);color:rgba(255,255,255,.75);text-shadow:0 1px 3px #000;pointer-events:none}
+body:not(.inmenu) #verTag{display:none}
 /* ---------- pantalla de estilo ---------- */
 #styleScr{padding:0;display:grid;grid-template-rows:auto 1fr;grid-template-columns:100%;justify-content:stretch;background:linear-gradient(160deg,#141030,#0a0c18 60%,#1a0e22)}
 #styleScr[hidden]{display:none}
@@ -623,6 +625,7 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
   <div id="invite" hidden><b id="invT"></b><div class="btns"><button id="invGo" class="big alt4">UNIRME</button><button id="invNo" class="big alt2">AHORA NO</button></div></div>
   <div id="dlg" hidden><div class="dlgBox"><div class="dlgP" id="dlgP"></div><div class="dlgT"><b id="dlgN"></b><p id="dlgX"></p><small id="dlgH">Toca para continuar ▶</small></div></div></div>
   <div id="packMsg" hidden></div>
+  <div id="verTag"></div>
   <div id="upd" hidden><div class="card"><h2>¡VERSIÓN NUEVA!</h2><p id="updMsg">Hay una actualización del juego. Se descarga e instala sola (tus mejoras y monedas se mantienen).</p>
     <div class="btns"><button id="updGo" class="big">ACTUALIZAR</button><button id="updLater" class="big alt2">LUEGO</button></div></div></div>
   <div id="hudEd" class="screen" hidden>
