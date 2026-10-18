@@ -223,10 +223,11 @@ export function buildChunk(road, c, M) {
 
 function facade(R, road, d) {
   const y = road.gy[Math.floor(d)] || 0, depthDown = y + 3;
-  for (const sd of [-1, 1]) addBox(R.C, 28, 24 + depthDown, 3, 0xe4ddd0, frame(road, d, sd * 21.2, (24 - depthDown) / 2), { uvs: 4 });
-  addBox(R.C, 14.4, 15.2, 3, 0xe4ddd0, frame(road, d, 0, 6.9 + 7.6), { uvs: 4 });
-  addBox(R.L, 15.4, 0.7, 3.2, 0x2c2c2c, frame(road, d, 0, 7.2));
-  for (let k = -3; k <= 3; k++) addBox(R.G, 1, 0.4, 0.1, k % 2 ? 0xffd400 : 0x111111, frame(road, d, k * 2, 7.25), { z: -1.65 });
+  // las caras de dentro de la boca quedan un poco por fuera de las paredes y el techo del túnel (antes coincidían y parpadeaban)
+  for (const sd of [-1, 1]) addBox(R.C, 28, 24 + depthDown, 3, 0xe4ddd0, frame(road, d, sd * 21.55, (24 - depthDown) / 2), { uvs: 4 });
+  addBox(R.C, 15.4, 15.2, 3, 0xe4ddd0, frame(road, d, 0, 7.6 + 7.6), { uvs: 4 });
+  addBox(R.L, 15.4, 0.6, 3.2, 0x2c2c2c, frame(road, d, 0, 7.75));
+  for (let k = -3; k <= 3; k++) addBox(R.L, 1, 0.4, 0.1, k % 2 ? 0xe8c030 : 0x2a2a2a, frame(road, d, k * 2, 7.75), { z: -1.65 });
 }
 
 // barrio chino: dentro del restaurante
@@ -505,7 +506,8 @@ function building(R, road, B, d, sd, r, night) {
   addBox(R.L, 0.14, 0.35, sw + 0.2, LIGHT(col, -0.25), m, { x: fx - 0.07 * sd, y: 0.25 });
   for (let z = -sw / 2; z <= sw / 2 + 0.01; z += sw / Math.max(2, Math.round(sw / 1.7))) addBox(R.L, 0.14, 2.4, 0.1, 0x3a3a44, m, { x: fx - 0.08 * sd, y: 1.45, z });
   addBox(R.L, 0.14, 2.3, 1.1, 0x5a3a2a, m, { x: fx - 0.08 * sd, y: 1.25, z: (r() - 0.5) * sw * 0.6 });
-  addBox(R.G, 0.14, 0.55, w * 0.55, pick(r, [0xff3a3a, 0x3ad0ff, 0xffd23f, 0x7dff8a, 0xff7ad0, 0xffffff]), m, { x: fx - 0.1 * sd, y: 3.25 });
+  // rótulo de la tienda: colores de pintura (no neón) para que no desentone
+  addBox(R.L, 0.14, 0.55, w * 0.55, pick(r, [0xc8584a, 0x5a98c0, 0xd8b45a, 0x6aa078, 0xc07a9a, 0xe8e2d4]), m, { x: fx - 0.1 * sd, y: 3.25 });
   // cornisa
   addBox(R.L, dep + 0.5, 0.3, w + 0.5, LIGHT(col, 0.35), m, { y: top - 0.5 });
   // tejado: depósito de agua, aparatos de aire o antena
@@ -561,7 +563,7 @@ function skyBridges(R, road, B, i0, i1) {
       addBox(R.L, 20.4, 0.08, 0.08, 0x3a3a3a, m, { y: H + 1.2, z });
       addBox(R.G, 20.2, 0.9, 0.04, 0x9ad8f0, m, { y: H + 0.75, z });
     }
-    addBox(R.G, 12, 0.45, 0.06, pick(rng(bd), [0xffd23f, 0xff3a3a, 0x3ad0ff]), m, { y: H - 0.05, z: -1.65 });
+    addBox(R.L, 12, 0.45, 0.06, pick(rng(bd), [0xd8b45a, 0xc8584a, 0x5a98c0]), m, { y: H - 0.05, z: -1.65 });
     for (const sd of [-1, 1]) addBox(R.C, 0.7, H, 0.7, 0xb0a898, frame(road, bd, sd * 9.2, H / 2), { uvs: 3 });
     // escaleras hasta la acera (lado derecho)
     const n = 14;
@@ -1264,7 +1266,7 @@ const DECO = {
       const rf = pick(r, [0x9a3a24, 0x7a2a1a, 0x4a4a52]);
       addBox(R.L, 9.6, 0.3, 4.3, rf, m, { y: 5.4, z: -1.6, rx: -0.55 });
       addBox(R.L, 9.6, 0.3, 4.3, rf, m, { y: 5.4, z: 1.6, rx: 0.55 });
-      for (const x of [-2.5, 2.5]) addBox(R.L, 1.1, 1.1, 0.1, 0x1a2a3a, m, { x, y: 2.6, z: -sd * 3.52 });
+      for (const x of [-2.5, 2.5]) addBox(R.L, 1.1, 1.1, 0.1, 0x5a6a7a, m, { x, y: 2.6, z: -sd * 3.52 });
       addBox(R.L, 3, 3.5, 3, 0xb04030, m, { x: sd * 9, y: 1.75 });
     });
     each(i0, i1, r, 70, 110, d => {
@@ -1311,7 +1313,7 @@ const DECO = {
         if (!ok(road, d + 5, lat, 4) || r() < 0.08) continue;
         const y = road.gy[Math.floor(d)], down = y + 2, m = frame(road, d + 5, lat, 0);
         addBox(R.C, 6, 8 + down, 9.4, pick(r, B.build), m, { y: (8 - down) / 2, uvs: 3 });
-        for (let q = 0; q < 2; q++) addBox(R.L, 0.14, 1.6, 1.4, 0x0c0c0e, m, { x: -sd * 3.02, y: 2 + q * 3.4, z: (r() - 0.5) * 6 });
+        for (let q = 0; q < 2; q++) addBox(R.L, 0.14, 1.6, 1.4, 0x3a3634, m, { x: -sd * 3.02, y: 2 + q * 3.4, z: (r() - 0.5) * 6 });
         // paredes rotas por detrás
         addBox(R.C, 1.2, 2 + r() * 6, 3 + r() * 5, pick(r, B.build), m, { x: sd * 2.6, y: 8 + 1.5, z: (r() - 0.5) * 4, rz: (r() - 0.5) * 0.4, uvs: 3 });
         if (r() < 0.5) addBox(R.L, 0.08, 3, 0.08, 0x6a4a3a, m, { x: sd * 1.5, y: 9.5, rz: 0.4 });

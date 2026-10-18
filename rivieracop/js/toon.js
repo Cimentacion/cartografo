@@ -39,7 +39,7 @@ export function tex(name) {
     const t = LOADER.load('tex/' + name + '.jpg?v=3');
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
     t.colorSpace = THREE.SRGBColorSpace;
-    t.anisotropy = 4;
+    t.anisotropy = 16; // a lo lejos las texturas no hacen rayas (se limita a lo que admita el móvil)
     TEX[name] = t;
   }
   return TEX[name];
