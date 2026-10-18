@@ -273,8 +273,9 @@ export function convertible(kind = 'cabrio', col = 0xc8102e) {
     const roofY = 2.95, W = col === 0xc8102e ? 0xf4f4f2 : col;
     box(g, 2.1, 0.7, L, W, 0, 0.75, 0);
     box(g, 2.12, 0.18, L, 0x2a2a2a, 0, 0.4, 0);
-    box(g, 2.1, 0.1, L - 1.0, W, 0, roofY, 0.5);                      // techo de la caja
-    { const r2 = box(g, 2.1, 0.1, 1.2, W, 0, roofY - 0.2, -1.6); r2.rotation.x = 0.3; }
+    // techo plano de una pieza desde el hueco del parabrisas hasta atrás
+    box(g, 2.1, 0.12, 4.7, W, 0, roofY, 0.25);
+    box(g, 2.14, 0.1, 0.16, W, 0, roofY - 0.05, -2.02);
     box(g, 2.1, 0.55, 0.9, W, 0, 1.3, -2.2);                          // capó corto
     box(g, 2.12, 0.2, 0.15, 0x2a2a2a, 0, 0.75, -2.62);
     // sin parabrisas: el hueco va abierto para disparar hacia delante
