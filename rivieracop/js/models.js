@@ -1853,3 +1853,40 @@ export function prop(k = 0) {
   }
   return g;
 }
+// gordo: barriga enorme casi esférica que se sale de la camiseta, cabeza pequeña hundida, brazos fofos y piernas cortas
+export function fatZombie(sk = 0) {
+  const g = new THREE.Group(), p = new THREE.Group(); g.add(p);
+  const body = new THREE.Group(); p.add(body);
+  const SK = [0x9ab878, 0x8aa86a, 0xa8b888][sk % 3], SK2 = 0x7a9860, SH = [0xd8d0b8, 0x8a2a2a, 0x3a5a8a][sk % 3], PA = 0x2a2a3a;
+  // piernas cortas y gruesas
+  for (const x of [-0.42, 0.42]) { box(body, 0.55, 0.8, 0.6, PA, x, 0.4, 0, 'body'); box(body, 0.6, 0.16, 0.75, 0x1a1a1a, x, 0.06, -0.08, 'body'); }
+  const torso = new THREE.Group(); torso.position.y = 0.75; body.add(torso);
+  // barriga: capas que forman una bola
+  const L = [[1.5, 0.3, 1.2, 0.15], [1.85, 0.35, 1.6, 0.45], [2.05, 0.4, 1.85, 0.82], [2.0, 0.4, 1.8, 1.2], [1.8, 0.35, 1.5, 1.56], [1.4, 0.3, 1.1, 1.86]];
+  L.forEach(([w, h, d, y], i) => box(torso, w, h, d, i < 4 ? SK : SH, 0, y, -0.12 - (i === 2 || i === 3 ? 0.08 : 0), 'body'));
+  // la camiseta solo tapa el pecho; ombligo, estrías y pústulas verdes
+  box(torso, 1.82, 0.12, 1.62, SH, 0, 1.42, -0.12, 'body');
+  box(torso, 0.14, 0.14, 0.04, 0x4a5a3a, 0, 0.8, -1.12, 'body');
+  for (const [x, y] of [[-0.5, 0.6], [0.55, 0.95], [-0.3, 1.1], [0.35, 0.4]]) box(torso, 0.3, 0.03, 0.03, 0xb88a8a, x, y, -1.1, 'body');
+  for (const [x, y, s] of [[0.6, 0.7, 0.16], [-0.7, 1.0, 0.12], [-0.2, 0.35, 0.1], [0.25, 1.15, 0.13]]) box(torso, s, s, 0.06, glow(0x9aff3a), x, y, -1.1, 'body');
+  box(torso, 0.4, 0.3, 0.04, 0x5a0c0c, -0.4, 1.6, -0.86, 'body');
+  // papada y cabeza pequeña
+  box(torso, 0.9, 0.3, 0.8, SK, 0, 2.06, -0.2, 'head');
+  const hd = new THREE.Group(); hd.position.set(0, 2.25, -0.25); torso.add(hd);
+  box(hd, 0.55, 0.5, 0.5, SK, 0, 0.22, 0, 'head');
+  for (const x of [-0.12, 0.12]) box(hd, 0.08, 0.06, 0.02, glow(0xd8ff40), x, 0.3, -0.26);
+  box(hd, 0.3, 0.1, 0.03, 0x3a0a0a, 0, 0.12, -0.26); box(hd, 0.1, 0.18, 0.03, 0x8ac040, 0.06, 0.02, -0.27);
+  box(hd, 0.5, 0.08, 0.48, 0x2a2a20, 0, 0.5, 0.02, 'head');
+  // brazos fofos (cuelgan un poco hacia fuera)
+  const mkArm = s => {
+    const a = new THREE.Group(); a.position.set(s * 1.05, 1.6, -0.1); torso.add(a);
+    box(a, 0.42, 0.42, 0.8, SK, 0, 0, -0.35, 'body'); box(a, 0.36, 0.36, 0.55, SK2, 0, -0.03, -0.95, 'body'); box(a, 0.3, 0.3, 0.25, SK, 0, -0.04, -1.3, 'body');
+    return a;
+  };
+  const armR = mkArm(1), armL = mkArm(-1);
+  const muzzle = node(hd, 0, 0.1, -0.3);
+  p.userData.rig = { body, torso, armR, armL, muzzle };
+  g.userData.p = p;
+  g.userData.shooters = [muzzle];
+  return g;
+}

@@ -303,6 +303,21 @@ export class Road {
   }
   seaAt(d) { const i = clamp(Math.floor(d), 0, this.len); return this.sea[i]; }
   zdAt(d) { const i = clamp(Math.floor(d), 0, this.len); return this.zd[i] || 1; }
+  // ciudad zombi: gasolineras en llamas (cada ~300 m, a un lado)
+  gasStations(d0, d1) {
+    const L = [];
+    for (let c = Math.floor(d0 / 300) - 1; c <= Math.floor(d1 / 300) + 1; c++) {
+      const d = c * 300 + 80 + (hash(this.seed, c, 919) % 120);
+      if (d < d0 - 20 || d > d1 + 20 || d < 0 || d > this.len - 20) continue;
+      const i = Math.floor(d);
+      if (BIOMES[BIOME_KEYS[this.bio[i]]].deco !== 'zombi' || this.kind[i] !== 0 || this.hospAt(d, 30)) continue;
+      let bad = false;
+      for (const f of this.forks) if (Math.abs(d - f.gantry) < 40 || Math.abs(d - (f.gantry - 140)) < 16 || Math.abs(d - (f.gantry - 85)) < 16) bad = true;
+      for (const t of this.tunnels) if (d > t.start - 40 && d < t.end + 40) bad = true;
+      if (!bad) L.push({ d, sd: hash(this.seed, c, 920) % 2 ? 1 : -1 });
+    }
+    return L;
+  }
   // hospital de la ciudad zombi que pilla en d (con margen)
   hospAt(d, pad = 0) { for (const h of this.hosp) if (d > h.H - 12 - pad && d < h.H + 66 + pad) return h; return null; }
   inTunnel(d) { for (const t of this.tunnels) if (d >= t.start - 4 && d <= t.end + 4) return true; return false; }

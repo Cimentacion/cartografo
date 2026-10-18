@@ -386,7 +386,7 @@ export class View {
       case 'gunship': g = M.gunship(); break;
       case 'train': g = M.train(); break;
       case 'lady': g = M.lady(x.sk || 0); break;
-      case 'zombie': g = M.zombie(x.k || 0, x.sk || 0); break;
+      case 'zombie': g = x.k === 1 ? M.fatZombie(x.sk || 0) : M.zombie(x.k || 0, x.sk || 0); break;
       case 'bat': g = M.bat(); break;
       case 'brute': g = M.brute(); break;
       case 'key': g = M.keyItem(); break;
@@ -403,7 +403,7 @@ export class View {
     });
     const sc = SCALE[e.type];
     if (sc) g.scale.setScalar(sc);
-    if (e.type === 'zombie' && x.k === 1) g.scale.setScalar(x.f ? 1.45 : 1.65);
+    if (e.type === 'zombie' && x.k === 1) g.scale.setScalar(x.f ? 0.95 : 1.15);
     g.traverse(m => { if (m.isMesh) { m.castShadow = false; m.receiveShadow = true; } });
     if (!NOBLOB.has(e.type) && (e.h || 0) < 0.6) { const sc0 = g.scale.x; g.scale.setScalar(1); g.rotation.set(0, 0, 0); g.position.set(0, 0, 0); addBlob(g); g.scale.setScalar(sc0); }
     g.userData.eid = e.id;
@@ -541,6 +541,14 @@ const ANIM = {
       return;
     }
     const s = e.sh && e.sh[0], at = s && s.on ? s.r : 0;
+    if (x.k === 1) {
+      // el gordo se bambolea de lado a lado y la barriga rebota
+      rig.body.rotation.z = Math.sin(w * 0.7) * 0.12; rig.body.rotation.x = -0.05 + at * 0.25;
+      rig.body.position.y = Math.abs(Math.sin(w * 0.7)) * 0.08;
+      rig.torso.scale.set(1 + Math.sin(w * 1.4) * 0.03, 1 - Math.sin(w * 1.4) * 0.03, 1);
+      rig.armR.rotation.set(0.5 + Math.sin(w * 0.7) * 0.2 + at * 1.0, 0, -0.3); rig.armL.rotation.set(0.5 - Math.sin(w * 0.7) * 0.2 + at * 1.0, 0, 0.3);
+      return;
+    }
     rig.body.rotation.x = 0.12 + at * 0.3;
     rig.body.rotation.z = Math.sin(w * 0.5) * 0.08;
     rig.body.position.y = Math.abs(Math.sin(w)) * 0.05;

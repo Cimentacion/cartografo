@@ -221,7 +221,7 @@ export function buildChunk(road, c, M) {
     if (!g) continue;
     g.computeBoundingSphere();
     const me = new THREE.Mesh(g, M[k]);
-    me.receiveShadow = !indoor; me.castShadow = !indoor && k !== 'A' && k !== 'P';
+    me.receiveShadow = !indoor; me.castShadow = !indoor && !'APVGEY'.includes(k);
     grp.add(me);
   }
   for (const m of (R.X || []).concat(RI.X || [])) grp.add(m);
@@ -893,37 +893,125 @@ function hospital(R, RI, road, H) {
   }
   for (let v = -6; v <= 6; v += 1.3) if (Math.abs(v) > 1.6) addBox(R.L, 1.2, 0.8, 0.5, 0xb8a878, frame(road, H - 2.5, v, 0.18, 0.2), { y: 0.4 });
 }
-function zBuilding(R, road, B, d, sd, r) {
-  const w = 9 + r() * 7, dep = 9 + r() * 6, top = 8 + r() * 16;
-  const lat = sd * (WALK + 1.2 + dep / 2);
+// mancha de luz en el suelo (abanico: brillante en el centro y nada en el borde)
+function lightPool(L, road, d, lat, h, rad, col, k = 0.7) {
+  const pos = [], cl = [], idx = [], n = 14;
+  _c.setHex(col);
+  road.toWorld(d, lat, h, _p); pos.push(_p.x, _p.y, _p.z); cl.push(_c.r * k, _c.g * k, _c.b * k);
+  for (let i = 0; i <= n; i++) {
+    const a = i / n * Math.PI * 2;
+    road.toWorld(d + Math.cos(a) * rad, lat + Math.sin(a) * rad, h, _p); pos.push(_p.x, _p.y, _p.z); cl.push(0, 0, 0);
+    if (i) idx.push(0, i, i + 1);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(cl, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(new Array(pos.length / 3 * 2).fill(0), 2));
+  g.setIndex(idx); g.computeVertexNormals();
+  L.push(g);
+}
+// edificio calcinado: solo quedan los pilares y los forjados, negros
+function zBurnt(R, road, d, sd, r, off) {
+  const w = 10 + r() * 6, dep = 9 + r() * 5, fls = 2 + Math.floor(r() * 4), fl = 3.2;
+  const lat = sd * (WALK + 1.2 + off + dep / 2);
+  if (!ok(road, d, lat, Math.max(w, dep) * 0.6, true)) return w;
+  const y = road.gy[Math.floor(d)], down = y + 2, m = frame(road, d, lat, 0);
+  const nx = 3, nz = Math.max(2, Math.round(w / 4));
+  for (let i = 0; i < nx; i++) for (let j = 0; j <= nz; j++) {
+    const hh = fls * fl * (r() < 0.3 ? 0.4 + r() * 0.5 : 1);
+    addBox(R.L, 0.45, hh + down, 0.45, 0x1a1414, m, { x: (i / (nx - 1) - 0.5) * (dep - 0.6), y: (hh - down) / 2, z: (j / nz - 0.5) * (w - 0.6) });
+  }
+  for (let f = 1; f <= fls; f++) if (r() < 0.75) addBox(R.L, dep * (0.5 + r() * 0.5), 0.3, w * (0.4 + r() * 0.6), 0x241c1a, m, { y: f * fl, x: (r() - 0.5) * 2, z: (r() - 0.5) * 3, rz: r() < 0.25 ? (r() - 0.5) * 0.5 : 0 });
+  addBox(R.K, dep, 0.6, w, 0x1a1616, m, { y: 0.2 });
+  for (let q = 0; q < 3; q++) addBox(R.G, 0.6 + r(), 0.5, 0.6 + r(), pick(r, [0xff5a10, 0xc83a10]), m, { x: (r() - 0.5) * dep * 0.7, y: 0.6, z: (r() - 0.5) * w * 0.7 });
+  return w;
+}
+// edificio de la ciudad zombi (varios tipos); off = metros extra hacia fuera (filas de atrás)
+function zBuilding(R, road, B, d, sd, r, off = 0, big = 0) {
+  if (big < 2 && r() < 0.15) return zBurnt(R, road, d, sd, r, off);
+  const kind = big ? (r() < 0.5 ? 2 : 0) : Math.floor(r() * 5);
+  const w = (kind === 4 ? 14 : 9) + r() * 7 + big * 4, dep = 9 + r() * 6 + big * 4;
+  const top = kind === 2 ? 22 + r() * 30 + big * 12 : kind === 4 ? 6 + r() * 3 : 9 + r() * 14 + big * 10;
+  const lat = sd * (WALK + 1.2 + off + dep / 2);
   if (!ok(road, d, lat, Math.max(w, dep) * 0.6, true)) return w;
   const y = road.gy[Math.floor(d)], down = y + 2, m = frame(road, d, lat, 0), fx = -sd * (dep / 2);
   const col = pick(r, B.build);
-  addBox(r() < 0.5 ? R.B : R.C, dep, top + down, w, col, m, { y: (top - down) / 2, uvs: 3 });
-  // ventanas: apagadas, tapiadas o con fuego dentro
-  for (let fl = 0; fl < top / 3.2 - 0.5; fl++) for (const k of [-1, 0, 1]) {
-    if (Math.abs(k) * w * 0.3 > w / 2 - 0.8) continue;
-    const z = k * w * 0.3, q = r();
-    const wy = fl * 3.2 + 1.9;
-    if (q < 0.18) { addBox(R.G, 0.1, 1.3, 1.2, pick(r, [0xff7a1a, 0xffa030]), m, { x: fx - 0.04 * sd, y: wy, z }); addBox(R.L, 0.12, 1.2, 1.4, 0x1a1a1a, m, { x: fx - 0.06 * sd, y: wy + 1.2, z }); }
-    else if (q < 0.4) addBox(R.D, 0.12, 1.3, 1.4, 0x5a4232, m, { x: fx - 0.06 * sd, y: wy, z });
-    else addBox(R.L, 0.1, 1.3, 1.2, q < 0.47 ? 0xd8c890 : 0x141418, m, { x: fx - 0.04 * sd, y: wy, z });
+  const shell = kind === 4 || (kind === 1 && r() < 0.6) ? R.B : R.C;
+  addBox(shell, dep, top + down, w, col, m, { y: (top - down) / 2, uvs: 3 });
+  const fl = kind === 2 ? 3.4 : 3.2;
+  // ventanas: apagadas, tapiadas, con fuego dentro o (pocas) con luz
+  if (kind !== 4) for (let f = 0; f < top / fl - 0.6; f++) for (let k = -2; k <= 2; k++) {
+    const z = k * (kind === 2 ? 2.4 : 2.8);
+    if (Math.abs(z) > w / 2 - 1) continue;
+    const q = r(), wy = f * fl + 1.9;
+    if (kind === 2) { addBox(R.L, 0.08, 2.4, 2.1, q < 0.12 ? 0xff8a2a : q < 0.2 ? 0x8ab0d8 : 0x1a2030, m, { x: fx - 0.04 * sd, y: wy, z }); continue; }
+    if (f === 0 && kind === 1) continue;
+    if (q < 0.12) { addBox(R.G, 0.1, 1.3, 1.1, pick(r, [0xff7a1a, 0xffa030]), m, { x: fx - 0.04 * sd, y: wy, z }); addBox(R.L, 0.12, 1.4, 1.3, 0x14141a, m, { x: fx - 0.06 * sd, y: wy + 1.3, z }); }
+    else if (q < 0.3) addBox(R.D, 0.12, 1.3, 1.3, 0x5a4232, m, { x: fx - 0.06 * sd, y: wy, z });
+    else addBox(R.L, 0.1, 1.3, 1.1, q < 0.36 ? 0xd8e0ff : 0x10141c, m, { x: fx - 0.04 * sd, y: wy, z });
+    // balcones con barandilla (bloques de pisos)
+    if (kind === 0 && f > 0 && k % 2 === 0 && q > 0.5) { addBox(R.L, 0.8, 0.12, 1.8, 0x8a8a96, m, { x: fx - 0.4 * sd, y: wy - 1.0, z }); addBox(R.L, 0.05, 0.6, 1.8, 0x2a2a30, m, { x: fx - 0.8 * sd, y: wy - 0.65, z }); }
   }
-  // tejado roto
-  addBox(R.L, dep + 0.3, 0.5, w + 0.3, 0x2a2622, m, { y: top + 0.25 });
-  if (r() < 0.5) addBox(R.C, 2 + r() * 3, 2 + r() * 4, 2 + r() * 3, col, m, { y: top + 1, x: (r() - 0.5) * dep * 0.4, rz: (r() - 0.5) * 0.6, uvs: 3 });
-  if (r() < 0.4) addBox(R.F, 0.08, 2.6, Math.min(7, w * 0.6), 0xffffff, m, { x: fx - 0.06 * sd, y: 1.6 });
+  if (kind === 1) {
+    // tiendas: persianas metálicas (alguna arrancada) y rótulo apagado
+    for (let z = -w / 2 + 2; z < w / 2 - 1.5; z += 3.4) {
+      const up = r() < 0.3;
+      addBox(R.S, 0.1, up ? 0.8 : 2.6, 3, 0x7a7e88, m, { x: fx - 0.06 * sd, y: up ? 2.6 : 1.3, z });
+      if (up) addBox(R.G, 0.06, 1.6, 2.6, 0xff8a2a, m, { x: fx - 0.02 * sd, y: 1.0, z });
+    }
+    addBox(R.L, 0.14, 0.7, w * 0.7, pick(r, [0x2a3a6a, 0x5a2a4a, 0x2a5a5a]), m, { x: fx - 0.1 * sd, y: 3.3 });
+  }
+  if (kind === 3) {
+    // escalera de incendios en la fachada
+    for (let f = 1; f < top / fl - 0.6; f++) { addBox(R.L, 1.0, 0.08, 3, 0x2a2a2e, m, { x: fx - 0.5 * sd, y: f * fl, z: w * 0.2 }); addBox(R.L, 0.05, 0.9, 3, 0x2a2a2e, m, { x: fx - 1.0 * sd, y: f * fl + 0.45, z: w * 0.2 }); addBox(R.L, 0.9, 0.06, 0.06, 0x2a2a2e, m, { x: fx - 0.5 * sd, y: f * fl + fl / 2, z: w * 0.2, rx: 0.9 }); }
+  }
+  if (kind === 4) {
+    // nave/almacén con portón y tejado de diente de sierra
+    addBox(R.S, 0.1, 4, 5, 0x5a5e68, m, { x: fx - 0.06 * sd, y: 2, z: 0 });
+    for (let z = -w / 2 + 2; z < w / 2; z += 4) addBox(R.L, dep, 1.4, 0.3, 0x3a3a44, m, { y: top + 0.6, z, rx: 0.5 });
+  }
+  // tejado: roto, depósito, antenas o un trozo derrumbado
+  addBox(R.L, dep + 0.3, 0.5, w + 0.3, 0x22222a, m, { y: top + 0.25 });
+  const t = r();
+  if (t < 0.3) addBox(R.C, 2 + r() * 3, 2 + r() * 4, 2 + r() * 3, col, m, { y: top + 1, x: (r() - 0.5) * dep * 0.4, rz: (r() - 0.5) * 0.6, uvs: 3 });
+  else if (t < 0.55) { addCyl(R.L, 1.1, 1.1, 2.2, 8, 0x5a4a3a, m, { y: top + 1.7, x: (r() - 0.5) * dep * 0.4 }); }
+  else if (t < 0.75) addCyl(R.L, 0.06, 0.06, 6, 4, 0x3a3a3a, m, { y: top + 3, z: (r() - 0.5) * w * 0.5 });
+  // incendio en la azotea: llamaradas
+  if (r() < 0.22) { addBox(R.G, dep * 0.4, 2.2, w * 0.4, 0xff6a10, m, { y: top + 1.3 }); addBox(R.G, dep * 0.25, 3.4, w * 0.25, 0xffb030, m, { y: top + 1.9 }); }
+  if (r() < 0.35 && !off) addBox(R.F, 0.08, 2.6, Math.min(7, w * 0.6), 0xffffff, m, { x: fx - 0.06 * sd, y: 1.6 });
   return w;
 }
-// coche ardiendo / volcado
+// coche tirado: ardiendo, volcado, empotrado o abierto de puertas
 function zCar(R, road, d, lat, r, fire) {
-  const m = frame(road, d, lat, 0.02, r() * 6.28), flip = !fire && r() < 0.35;
-  const c = fire ? 0x2a2420 : pick(r, [0x6a2a2a, 0x2a4a6a, 0x8a8a7a, 0x4a5a3a]);
-  addBox(R.U, 1.8, 0.9, 4, c, m, { y: flip ? 1.25 : 0.55, uvs: 2, rz: flip ? Math.PI : 0 });
-  addBox(R.L, 1.6, 0.7, 2, fire ? 0x1a1816 : 0x2a2a2e, m, { y: flip ? 0.45 : 1.3, z: 0.2 });
+  const m = frame(road, d, lat, 0.02, r() * 6.28), q = r(), flip = !fire && q < 0.3, side = !fire && q >= 0.3 && q < 0.45;
+  const c = fire ? 0x2a2420 : pick(r, [0x8a2a2a, 0x2a4a8a, 0xb8b8b0, 0x2a2a2e, 0xc8a030, 0x3a6a4a]);
+  const o = side ? { rz: Math.PI / 2, x: 0.5 } : {};
+  addBox(R.U, 1.8, 0.9, 4, c, m, Object.assign({ y: flip ? 1.25 : side ? 1.0 : 0.55, uvs: 2, rz: flip ? Math.PI : 0 }, side ? { rz: Math.PI / 2, x: 0.45 } : {}));
+  addBox(R.L, 1.6, 0.7, 2, fire ? 0x1a1816 : 0x1a1e28, m, Object.assign({ y: flip ? 0.45 : side ? 1.0 : 1.3, z: 0.2 }, side ? { rz: Math.PI / 2, x: 1.25 } : {}));
+  if (!fire && !flip && !side) {
+    for (const s of [-1, 1]) if (r() < 0.4) addBox(R.U, 0.08, 0.8, 1.1, c, m, { x: s * 1.25, y: 0.75, z: -0.4, ry: s * 0.9 });
+    if (r() < 0.5) addBox(R.G, 0.4, 0.15, 0.05, 0xfff0c0, m, { y: 0.65, z: -2.02, x: 0.55 });
+  }
   if (fire) {
     addBox(R.G, 1.4, 0.9, 2.6, 0xff6a10, m, { y: 1.5 }); addBox(R.G, 0.9, 1.2, 1.6, 0xffa830, m, { y: 2.0 }); addBox(R.G, 0.4, 0.8, 0.6, 0xffe070, m, { y: 2.6, z: 0.3 });
   }
+}
+// gasolinera en llamas
+function gasStation(R, road, d, sd) {
+  const lat = sd * (WALK + 9), m = frame(road, d, lat, 0.18);
+  addBox(R.C, 15, 0.12, 22, 0x3a3a40, m, { y: 0, uvs: 4 });
+  // marquesina medio caída sobre los surtidores
+  addBox(R.L, 9, 0.6, 13, 0xe8e8f0, m, { y: 5.2, rz: sd * 0.12 }); addBox(R.L, 9.05, 0.25, 13.05, 0xd01818, m, { y: 4.85, rz: sd * 0.12 });
+  for (const [x, z] of [[-3, -5], [3, -5], [-3, 5]]) addBox(R.L, 0.4, 5, 0.4, 0xc8c8d0, m, { x, y: 2.5, z });
+  addBox(R.L, 0.4, 3.2, 0.4, 0xc8c8d0, m, { x: 3, y: 1.6, z: 5, rz: 0.5 });
+  for (const z of [-3, 0, 3]) { addBox(R.L, 0.8, 1.6, 0.6, 0xd8d8e0, m, { y: 0.8, z }); addBox(R.L, 0.82, 0.3, 0.62, 0xd01818, m, { y: 1.45, z }); }
+  // tienda
+  addBox(R.C, 6, 3.6, 10, 0x8a8a96, m, { x: sd * 4.5, y: 1.8, uvs: 3 }); addBox(R.L, 0.1, 1.8, 7, 0x1a1a22, m, { x: sd * 1.45, y: 1.6 });
+  // cartel alto con los precios
+  addBox(R.L, 0.4, 9, 0.4, 0x5a5a64, m, { x: -sd * 5, y: 4.5, z: 9 }); addBox(R.L, 0.3, 3, 2.4, 0xd01818, m, { x: -sd * 5, y: 9.5, z: 9 }); for (let k = 0; k < 3; k++) addBox(R.G, 0.32, 0.5, 1.8, 0xffd040, m, { x: -sd * 5, y: 8.7 + k * 0.8, z: 9 });
+  // llamaradas enormes y depósito reventado
+  for (const [z, s] of [[-2, 1.4], [2.5, 1.1], [-5.5, 0.8]]) { addBox(R.G, 3 * s, 3.5 * s, 3 * s, 0xff5a10, m, { y: 1.8 * s, z }); addBox(R.G, 2 * s, 5 * s, 2 * s, 0xff9a20, m, { y: 2.6 * s, z }); addBox(R.G, 0.9 * s, 3 * s, 0.9 * s, 0xffe070, m, { y: 4.5 * s, z }); }
+  addCyl(R.U, 1.3, 1.3, 5, 10, 0x3a3a3a, m, { x: -sd * 2, y: 1.3, z: 9.5, rx: Math.PI / 2 });
 }
 // solar quemado (hueco entre edificios)
 function each0(R, road, d, sd, r) {
@@ -935,33 +1023,55 @@ function each0(R, road, d, sd, r) {
 }
 const DECO = {
   zombi(R, road, B, i0, i1, r) {
+    const gas = road.gasStations(i0 - 20, i1 + 20);
+    const nearGas = (d, rad) => gas.some(g => Math.abs(g.d - d) < rad);
+    for (const g of gas) if (g.d >= i0 && g.d < i1) gasStation(R, road, g.d, g.sd);
     for (const sd of [-1, 1]) {
-      let d = i0 + r() * 4;
+      // primera fila pegada a la acera (sin huecos grandes)
+      let d = i0 + r() * 3;
       while (d < i1) {
-        const w = r() < 0.12 ? (each0(R, road, d, sd, r), 10) : zBuilding(R, road, B, d, sd, r);
-        d += w + 0.6 + r() * 2;
+        if (gas.some(g => g.sd === sd && Math.abs(g.d - d) < 16)) { d += 4; continue; }
+        const w = r() < 0.08 ? (each0(R, road, d, sd, r), 10) : zBuilding(R, road, B, d, sd, r);
+        d += w + 0.3 + r() * 1.2;
       }
+      // segunda y tercera fila: tapan el horizonte de los lados
+      d = i0 + r() * 6;
+      while (d < i1) { const w = zBuilding(R, road, B, d, sd, r, 17 + r() * 4, 1); d += w + 1 + r() * 3; }
+      d = i0 + r() * 10;
+      while (d < i1) { const w = zBuilding(R, road, B, d, sd, r, 46 + r() * 10, 2); d += w + 2 + r() * 4; }
       // escombros, contenedores y vallas en la acera
-      each(i0, i1, r, 6, 13, d => {
+      each(i0, i1, r, 5, 10, d => {
         const lat = sd * (6.8 + r() * 1.4);
-        if (!ok(road, d, lat, 1)) return;
-        if (r() < 0.5) addBox(R.K, 0.8 + r() * 1.4, 0.3 + r() * 0.5, 0.8 + r() * 1.4, pick(r, [0x5a544a, 0x4a463e]), frame(road, d, lat, 0.18, r() * 3), { y: 0.2, uvs: 2 });
-        else { const m = frame(road, d, lat, 0.18, r() * 0.4); addBox(R.L, 1.6, 1.2, 1, 0x2a5a3a, m, { y: 0.6 }); addBox(R.L, 1.7, 0.1, 1.1, 0x1a3a2a, m, { y: 1.25, rz: 0.3 }); }
+        if (!ok(road, d, lat, 1) || nearGas(d, 14)) return;
+        const q = r();
+        if (q < 0.4) addBox(R.K, 0.8 + r() * 1.4, 0.3 + r() * 0.5, 0.8 + r() * 1.4, pick(r, [0x4a4a56, 0x3a3a46]), frame(road, d, lat, 0.18, r() * 3), { y: 0.2, uvs: 2 });
+        else if (q < 0.7) { const m = frame(road, d, lat, 0.18, r() * 0.4); addBox(R.L, 1.6, 1.2, 1, pick(r, [0x2a5a8a, 0x5a2a6a, 0x2a6a6a]), m, { y: 0.6 }); addBox(R.L, 1.7, 0.1, 1.1, 0x1a1a2a, m, { y: 1.25, rz: 0.3 }); }
+        else { const m = frame(road, d, lat, 0.18, (r() - 0.5) * 0.4); addBox(R.L, 0.06, 1.0, 2.6, 0xf0f0f0, m, { y: 0.5 }); for (let k = -1; k <= 1; k++) addBox(R.L, 0.08, 0.2, 0.6, 0xd01818, m, { y: 0.7, z: k * 0.9 }); }
       });
     }
-    // coches ardiendo, volcados y abandonados en mitad de la calle
-    each(i0, i1, r, 16, 30, d => {
-      const lat = (r() < 0.5 ? -1 : 1) * (r() < 0.6 ? 4.6 + r() * 1.2 : 7.6);
-      if (!ok(road, d, lat, 2.5)) return;
-      zCar(R, road, d, lat, r, r() < 0.45);
+    // coches tirados por toda la calle: ardiendo, volcados, en atasco
+    each(i0, i1, r, 9, 18, d => {
+      const lat = (r() < 0.5 ? -1 : 1) * (r() < 0.65 ? 4.2 + r() * 1.6 : 7.6);
+      if (!ok(road, d, lat, 2.5) || nearGas(d, 12)) return;
+      zCar(R, road, d, lat, r, r() < 0.35);
+      if (r() < 0.3 && ok(road, d + 5, lat, 2.5)) zCar(R, road, d + 5, lat + (r() - 0.5), r, false);
+    });
+    // autobús volcado de vez en cuando
+    each(i0, i1, r, 120, 200, d => {
+      const sd = r() < 0.5 ? -1 : 1, lat = sd * 6.5;
+      if (!ok(road, d, lat, 6) || nearGas(d, 20)) return;
+      const m = frame(road, d, lat, 0.02, (r() - 0.5) * 0.4);
+      addBox(R.L, 2.6, 2.8, 11, 0xd8a020, m, { y: 1.3, rz: sd * Math.PI / 2, x: sd * 0.2 });
+      addBox(R.L, 0.1, 2.4, 9, 0x1a1e28, m, { y: 2.65, x: sd * 0.2 });
+      addBox(R.G, 1.5, 1.4, 2.5, 0xff7a1a, m, { y: 2.4, z: 3 });
     });
     // manchas, papeles y hogueras en bidones
-    each(i0, i1, r, 7, 14, d => { const lat = (r() - 0.5) * 11; if (road.hospAt(d, 2)) return; strip(R.L, road, Math.floor(d), Math.floor(d) + 1 + Math.floor(r() * 2), C(lat, 0.012), C(lat + 0.6 + r(), 0.012), pick(r, [0x3a0808, 0x2a2420, 0x4a1010])); });
-    each(i0, i1, r, 22, 36, d => {
+    each(i0, i1, r, 7, 14, d => { const lat = (r() - 0.5) * 11; if (road.hospAt(d, 2)) return; strip(R.L, road, Math.floor(d), Math.floor(d) + 1 + Math.floor(r() * 2), C(lat, 0.012), C(lat + 0.6 + r(), 0.012), pick(r, [0x3a0808, 0x1a1a24, 0x4a1010])); });
+    each(i0, i1, r, 20, 32, d => {
       const sd = r() < 0.5 ? -1 : 1, lat = sd * 7.9;
       if (!ok(road, d, lat, 1)) return;
       const m = frame(road, d, lat, 0.18);
-      addCyl(R.U, 0.4, 0.4, 1, 8, 0x6a4a2a, m, { y: 0.5 });
+      addCyl(R.U, 0.4, 0.4, 1, 8, 0x4a3a2a, m, { y: 0.5 });
       addBox(R.G, 0.55, 0.7, 0.55, 0xff7a20, m, { y: 1.3 }); addBox(R.G, 0.3, 0.6, 0.3, 0xffd040, m, { y: 1.75 });
     });
     // farolas (casi todas fundidas)
@@ -969,17 +1079,53 @@ const DECO = {
       const sd = r() < 0.5 ? -1 : 1;
       if (!ok(road, d, sd * 6.6, 1)) return;
       const m = frame(road, d, sd * 6.6, 0.18), lit = r() < 0.3;
-      addCyl(R.L, 0.08, 0.1, 6, 6, 0x3a3a3e, m, { y: 3, rz: r() < 0.25 ? sd * 0.25 : 0 });
-      addBox(lit ? R.G : R.L, 0.5, 0.18, 0.9, lit ? 0xffe0a0 : 0x2a2a2a, m, { y: 6, x: -sd * 0.6 });
+      addCyl(R.L, 0.08, 0.1, 6, 6, 0x2a2a34, m, { y: 3, rz: r() < 0.25 ? sd * 0.25 : 0 });
+      addBox(lit ? R.G : R.L, 0.5, 0.18, 0.9, lit ? 0xc8d8ff : 0x2a2a2a, m, { y: 6, x: -sd * 0.6 });
     });
-    // al fondo, la ciudad en llamas
-    for (const sd of [-1, 1]) each(i0, i1, r, 16, 30, d => {
-      const lat = sd * (WALK + 26 + r() * 22), w = 10 + r() * 10;
+    // luces rojas por todas partes: balizas de emergencia que parpadean, focos rojos y su luz en el suelo
+    each(i0, i1, r, 11, 20, d => {
+      const sd = r() < 0.5 ? -1 : 1, q = r();
+      if (road.hospAt(d, 4) || nearGas(d, 12)) return;
+      if (q < 0.4) {
+        // baliza/foco rojo en la acera
+        const lat = sd * (6.4 + r() * 1.5);
+        if (!ok(road, d, lat, 1)) return;
+        const m = frame(road, d, lat, 0.18);
+        addBox(R.L, 0.3, 0.9, 0.3, 0x2a2a30, m, { y: 0.45 }); addBox(r() < 0.6 ? R.E : R.G, 0.4, 0.3, 0.4, 0xff1a1a, m, { y: 1.05 });
+        lightPool(R.V, road, d, lat - sd * 1.2, 0.03, 4 + r() * 2, 0xff2020, 0.55);
+      } else if (q < 0.7) {
+        // farola roja de emergencia colgada de la fachada
+        const lat = sd * (WALK + 0.9), h = 4 + r() * 4;
+        const m = frame(road, d, lat, 0);
+        addBox(R.G, 0.5, 0.3, 1.2, 0xff2a2a, m, { y: h }); addBox(R.L, 0.8, 0.08, 0.08, 0x1a1a1a, m, { y: h + 0.2, x: sd * 0.3 });
+        lightPool(R.V, road, d, sd * 5.5, 0.03, 4.5, 0xff2a2a, 0.5);
+        lightPool(R.V, road, d, sd * 7.5, 0.2, 3, 0xff2a2a, 0.45);
+      } else {
+        // coche patrulla abandonado con las luces dando vueltas
+        const lat = sd * (4.6 + r());
+        if (!ok(road, d, lat, 2.5)) return;
+        const m = frame(road, d, lat, 0.02, (r() - 0.5) * 0.8);
+        addBox(R.L, 1.8, 0.9, 4.2, 0xe8e8f0, m, { y: 0.6 }); addBox(R.L, 1.82, 0.4, 2.2, 0x1a1a2a, m, { y: 0.75 }); addBox(R.L, 1.6, 0.6, 2, 0x14141c, m, { y: 1.35, z: 0.2 });
+        addBox(R.E, 0.5, 0.2, 0.3, 0xff1a1a, m, { y: 1.75, x: -0.35, z: 0.2 }); addBox(R.G, 0.5, 0.2, 0.3, 0xff1a1a, m, { y: 1.75, x: 0.35, z: 0.2 });
+        lightPool(R.V, road, d, lat, 0.03, 6, 0xff1818, 0.6);
+      }
+    });
+    // resplandores rojos en las fachadas (ventanales iluminados en rojo)
+    for (const sd of [-1, 1]) each(i0, i1, r, 25, 45, d => {
+      if (road.hospAt(d, 4)) return;
+      const lat = sd * (WALK + 1.25), m = frame(road, d, lat, 0), h = 3 + r() * 9;
+      if (!ok(road, d, sd * 6, 1)) return;
+      addBox(R.G, 0.08, 1.4, 2.4, 0xff3030, m, { y: h });
+      lightPool(R.V, road, d, sd * 6.5, 0.2, 3.5, 0xff2a2a, 0.35);
+    });
+    // muy al fondo: rascacielos y el resplandor de la ciudad ardiendo
+    for (const sd of [-1, 1]) each(i0, i1, r, 18, 30, d => {
+      const lat = sd * (WALK + 70 + r() * 30), w = 14 + r() * 12;
       if (!ok(road, d, lat, w * 0.6)) return;
-      const y = road.gy[Math.floor(d)], down = y + 2, top = 16 + r() * 34, m = frame(road, d, lat, 0);
-      addBox(R.L, w, top + down, w, pick(r, [0x2a2630, 0x34303a, 0x26222a]), m, { y: (top - down) / 2 });
-      if (r() < 0.45) { addBox(R.G, w * 0.6, 3 + r() * 4, 0.3, pick(r, [0xff6a10, 0xff9a30]), m, { x: -sd * (w / 2 + 0.05), y: top * (0.4 + r() * 0.5), rz: 0 }); }
-      if (r() < 0.3) addBox(R.G, 0.3, 0.3, w * 0.8, 0xff4020, m, { x: -sd * (w / 2 + 0.05), y: top - 1 });
+      const y = road.gy[Math.floor(d)], down = y + 2, top = 40 + r() * 50, m = frame(road, d, lat, 0);
+      addBox(R.L, w, top + down, w, pick(r, [0x1a1a2a, 0x22223a, 0x1a2030]), m, { y: (top - down) / 2 });
+      if (r() < 0.5) addBox(R.G, 0.3, 4 + r() * 6, w * 0.6, pick(r, [0xff6a10, 0xff9a30]), m, { x: -sd * (w / 2 + 0.05), y: top * (0.3 + r() * 0.5) });
+      if (r() < 0.4) addBox(R.G, 0.4, 0.4, 0.4, 0xff2020, m, { y: top + 0.5 });
     });
   },
   pueblo(R, road, B, i0, i1, r) {

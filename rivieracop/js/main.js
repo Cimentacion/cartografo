@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { initI18n, LANGS, getLang, setLang, tr } from './i18n.js';
 import { STORY, CAST } from './story.js';
-import { Road, LANE_ME } from './road.js';
+import { Road, LANE_ME, WALK } from './road.js';
 import { buildChunk, makeMats, CH } from './scenery.js';
 import { Sim, SEATS, isRear, AIR, ANIMAL } from './sim.js';
 import { View, Fx } from './view.js';
@@ -74,6 +74,8 @@ const SKYT = {
   dia: { top: 0x1450d0, bands: ['#0f48c8', '#1f6ae0', '#3e8cec', '#9cc8f2'], cl: [255, 255, 255], cs: [170, 192, 228], sun: '#fffbe8', n: 18, nw: 9, mt: '#3a6ab0', wispy: true, noMt: true },
   atardecer: { top: 0x3a2a6a, bands: ['#2c2a64', '#7a4a8a', '#e0788a', '#ffc890'], cl: [255, 214, 190], cs: [150, 90, 130], sun: '#ffb860', n: 20, mt: '#5a3a5a' },
   nublado: { top: 0x5a6478, bands: ['#56607a', '#7a8498', '#a0a8b6', '#b8bec8'], cl: [226, 230, 236], cs: [120, 128, 145], sun: null, n: 34, mt: '#5a6270' },
+  // ciudad zombi: noche morada con nubes de humo
+  infierno: { top: 0x0a0320, bands: ['#08031a', '#1c0838', '#36125e', '#5e2280'], cl: [112, 66, 156], cs: [34, 14, 58], sun: null, n: 46, mt: '#12061e', stars: false },
   noche: { top: 0x0a1030, bands: ['#070b24', '#141c44', '#2a3666', '#4a5a86'], cl: [110, 125, 165], cs: [40, 48, 82], sun: '#f2f6ff', n: 12, mt: '#141a32', stars: true },
 };
 const SKYTEX = {};
@@ -154,6 +156,7 @@ const cloudDomes = [0, 1].map(i => {
 cloudDomes[0].material.map = skyTex('dia'); cloudDomes[0].userData.k = 'dia';
 const SKYST = { k: 'dia', fade: 1 };
 function skyTypeOf(B) {
+  if (B.deco === 'zombi') return 'infierno';
   if (B.night) return 'noche';
   if (['desierto', 'acantilados', 'costa', 'bajada', 'curva', 'lomas'].includes(B.deco)) return 'atardecer';
   if (['guerra', 'ruinas', 'bosque', 'militar', 'manifa', 'detroit', 'industrial', 'barro'].includes(B.deco)) return 'nublado';
@@ -1583,6 +1586,11 @@ function tick(dt) {
       const sd = Math.random() < 0.5 ? -1 : 1;
       G.road.toWorld(G.carD + 8 + Math.random() * 60, sd * (9 + Math.random() * 7), Math.random() * 8, V1);
       fx.part(V1, V2.set((Math.random() - 0.5) * 1.5, 2 + Math.random() * 3, (Math.random() - 0.5) * 1.5).clone(), 1.2 + Math.random(), 0.06 + Math.random() * 0.08, Math.random() < 0.6 ? fx.m.fire : fx.m.hot, -1, 0);
+    }
+    // gasolineras ardiendo: columna de fuego y humo negro
+    for (const g of G.road.gasStations(G.carD - 30, G.carD + 160)) {
+      if (Math.random() < dt * 18) { G.road.toWorld(g.d + (Math.random() - 0.5) * 8, g.sd * (WALK + 9) + (Math.random() - 0.5) * 6, 2 + Math.random() * 3, V1); fx.part(V1, V2.set((Math.random() - 0.5) * 2, 3 + Math.random() * 3, (Math.random() - 0.5) * 2).clone(), 0.9 + Math.random() * 0.6, 0.5 + Math.random() * 0.6, Math.random() < 0.5 ? fx.m.fire : fx.m.hot, -2, 1.5); }
+      if (Math.random() < dt * 8) { G.road.toWorld(g.d + (Math.random() - 0.5) * 6, g.sd * (WALK + 9), 7 + Math.random() * 3, V1); fx.smoke(V1, true); }
     }
   }
   // estela del coche en el río

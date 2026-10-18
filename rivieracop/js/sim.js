@@ -1448,9 +1448,9 @@ export class Sim {
     const r = this.r, kk = this.spk(), n = this.nAlive();
     if (this.timer('zh', dt, 2.4) && this.count('zombie') < 12 + 4 * n) {
       const base = this.carD + (50 + r() * 35) * kk, m = 3 + Math.floor(r() * (3 + this.diff * 0.4));
-      for (let i = 0; i < m; i++) this.zstreet(base + i * 1.8 + r() * 3, (r() - 0.5) * 20, 0, i * 0.25);
+      for (let i = 0; i < m; i++) this.zstreet(base + i * 1.8 + r() * 3, (r() - 0.5) * 17, 0, i * 0.25);
     }
-    if (this.timer('zf', dt, 9)) {
+    if (this.timer('zf', dt, 13)) {
       this.zstreet(this.carD + (60 + r() * 20) * kk, LANE_ME + (r() - 0.5) * 3, 1, 0);
       if (once0(this, 'zfat')) this.emit('banner', { txt: '¡GORDOS!', sub: 'Si llegan al coche, os paran en seco', c: '#8aff4a' });
     }

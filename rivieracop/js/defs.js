@@ -283,14 +283,15 @@ export const BIOMES = {
   },
   zombi: {
     name: 'CIUDAD ZOMBI', color: '#8aff4a',
-    sky: 0x120a14, fogNear: 38, fogFar: 165, sea: 0x0a0a10,
-    asphalt: 0x38383c, walk: 0x58544e, skirt: 0x2a2420, line: 0xb8a860,
-    hemi: [0x9a88c0, 0x3a1810, 0.8], sun: [0xff9a5a, 0.75], night: true,
+    sky: 0x1e0a36, fogNear: 38, fogFar: 165, sea: 0x0a0a10,
+    asphalt: 0x2e3242, walk: 0x4a4e60, skirt: 0x1e2030, line: 0xc8c0a0,
+    hemi: [0xa88ae8, 0x2a1440, 0.85], sun: [0xff9a6a, 0.8], night: true,
     // ciudad arrasada de noche: hordas por las calles, gordos, escupidores y murciélagos;
     // a los 2 minutos, el hospital (se entra a pie a por la llave) y a la salida el jefe
     slope: 0, len: 2360, zom: true,
     hmin: 0, hmax: 0, hair: 0,
-    build: [0x5a5450, 0x6a5a4a, 0x4a4a52, 0x7a6a5a, 0x5a4a44], roof: 0x2a2420,
+    // ciudad en azules, violetas y grises fríos: los zombis (verdes) y el fuego (naranja) resaltan
+    build: [0x4a5a7a, 0x5a4a6a, 0x3a4a6a, 0x6a6a8a, 0x7a5a6e, 0x4a6a80], roof: 0x1a1a2a,
     w: {}, pts: 2.1, deco: 'zombi', lv: 5,
   },
   lomas: {
