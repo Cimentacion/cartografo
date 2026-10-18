@@ -34,11 +34,16 @@ export function defaultWeapon() {
 }
 
 // tier sube con el tiempo de partida (0..3), zd = dificultad de la zona, luck = mejora Suerte
-export function rollWeapon(r, tier, zd = 1, luck = 0) {
+export function rollWeapon(r, tier, zd = 1, luck = 0, rare = false) {
   const pool = ['pesada', 'revolver', 'subfusil', 'ametra', 'ametra', 'escopeta', 'rifle', 'magnum', 'lanza', 'pesada'];
+  // el traficante trae casi siempre algo raro
+  if (rare && r() < 0.65) { const id0 = pick(r, ['minigun', 'plasma', 'doble', 'cohetes', 'rayo', 'magnum', 'lanza']); return rollWeaponId(r, id0, tier, zd, luck); }
   // en zonas difíciles aparecen armas raras
   const rareP = Math.max(0, (zd - 3) * 0.12) + luck * 0.05;
   const id = r() < 0.07 + luck * 0.01 ? 'rayo' : r() < rareP ? pick(r, ['minigun', 'plasma', 'doble', 'cohetes', 'rayo']) : pick(r, pool);
+  return rollWeaponId(r, id, tier, zd, luck);
+}
+export function rollWeaponId(r, id, tier, zd = 1, luck = 0) {
   const b = BASE[id];
   const x = r() + tier * 0.12 + (zd - 1) * 0.06 + luck * 0.05;
   const rar = x > 1.05 ? 3 : x > 0.85 ? 2 : x > 0.55 ? 1 : 0;

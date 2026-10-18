@@ -113,4 +113,41 @@ export const SFX = {
     engine.o.frequency.setTargetAtTime(45 + speed * 2, t, 0.3);
   },
   mute(m) { if (master) master.gain.value = m ? 0 : 0.7; },
+  // eurodance de los 2000 (sintetizado) que suena desde la furgoneta del traficante; v = volumen 0..1 según la distancia
+  dance(v) {
+    if (!ac) return;
+    const D = this._d || (this._d = { on: false, g: null, step: 0, next: 0, iv: null });
+    if (v > 0.01 && !D.on) {
+      D.on = true; D.g = ac.createGain(); D.g.gain.value = 0; D.g.connect(master);
+      D.lp = ac.createBiquadFilter(); D.lp.type = 'lowpass'; D.lp.frequency.value = 2400; D.lp.connect(D.g);
+      D.step = 0; D.next = ac.currentTime + 0.05;
+      const bpm = 140, s16 = 60 / bpm / 4;
+      // La menor - Fa - Do - Sol (la progresión de siempre)
+      const prog = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]], bass = [45, 41, 48, 43];
+      const hz = n => 440 * Math.pow(2, (n - 69) / 12);
+      const tone = (type, f, t, dur, vol, det = 0) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = f; o.detune.value = det; o.connect(g); g.connect(D.lp); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.start(t); o.stop(t + dur + 0.02); };
+      const sched = () => {
+        while (D.next < ac.currentTime + 0.15) {
+          const t = D.next, st = D.step % 16, bar = Math.floor(D.step / 16) % 4;
+          // bombo en cada negra
+          if (st % 4 === 0) { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.12); o.connect(g); g.connect(D.g); g.gain.setValueAtTime(0.9, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.25); o.start(t); o.stop(t + 0.27); }
+          // bajo a contratiempo
+          if (st % 4 === 2) tone('sawtooth', hz(bass[bar]), t, s16 * 1.8, 0.28);
+          // charles abierto a contratiempo y cerrado en semicorcheas
+          { const n = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); n.buffer = noise; f.type = 'highpass'; f.frequency.value = 7000; n.connect(f); f.connect(g); g.connect(D.g); const op = st % 4 === 2; g.gain.setValueAtTime(op ? 0.12 : 0.04, t); g.gain.exponentialRampToValueAtTime(0.0001, t + (op ? 0.12 : 0.03)); n.start(t, Math.random()); n.stop(t + 0.15); }
+          // acordes "supersaw" con el ritmo típico
+          if ([0, 3, 6, 10, 12].includes(st)) for (const nn of prog[bar]) for (const dt of [-12, 0, 12]) tone('sawtooth', hz(nn + 12), t, s16 * 1.6, 0.035, dt);
+          // melodía de arpegio arriba
+          if (st % 2 === 0) { const c = prog[bar], nn = c[(st / 2) % 3] + 24; tone('square', hz(nn), t, s16 * 0.9, 0.04); }
+          D.step++; D.next += s16;
+        }
+      };
+      D.iv = setInterval(sched, 40); sched();
+    }
+    if (v < 0) { if (D.on) { clearInterval(D.iv); D.on = false; try { D.g.disconnect(); } catch (e) { } } return; }
+    if (D.on) {
+      D.g.gain.setTargetAtTime(Math.max(0, Math.min(1, v)) * 0.55, ac.currentTime, 0.2);
+      if (v <= 0.01) { D.off = (D.off || 0) + 1; if (D.off > 120) { clearInterval(D.iv); D.on = false; D.off = 0; try { D.g.disconnect(); } catch (e) { } } } else D.off = 0;
+    }
+  },
 };

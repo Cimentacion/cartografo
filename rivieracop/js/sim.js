@@ -601,6 +601,8 @@ export class Sim {
       if (this.timer('lady', dt, 20)) this.spawnLady();
     }
     if (deco === 'industrial' && !inTun && free && this.timer('wall', dt, 60) && !this.has('wall')) this.spawnWall(2);
+    // una vez por zona: el traficante de armas (lento, con su música); al reventarlo suelta un arma especial
+    if (!inTun && !this.foot && Z.f && prog > 0.2 + (hash(this.seed, kz, 77) % 40) / 100 && deco !== 'submarino' && once('dealer')) this.spawnDealer();
     // casino: limusinas de la mafia con dos tiradores en las ventanillas
     if (deco === 'casino' && !inTun && this.timer('limo', dt, this.n === 1 ? 22 : 15) && !this.ents.some(e => e.type === 'ecar' && e.x.limo && e.st !== ST.DEAD) && this.laneFree(-40, 30)) {
       this.spawnECar();
@@ -865,6 +867,15 @@ export class Sim {
     const e = this.add('amb', { d: this.vStart(40), lat: LANE_OT, h: 0, hp: 22, vd: this.speed + 8 });
     e.x = { ph: 0, hd: 5, ht: 16 };
     this.emit('banner', { txt: '¡AMBULANCIA!', sub: 'Revienta la ambulancia para sacar vida', c: '#40ff80' });
+  }
+  spawnDealer() {
+    const behind = this.r() < 0.4, narrow = BIOMES[BIOME_KEYS[this.road.bioAt(this.carD + 100)]].narrow;
+    const ln = narrow ? LANE_ME : LANE_OT;
+    const e = this.add('jeep', { d: behind ? this.carD - 60 : this.carD + 150, lat: ln, h: 0, hp: 16 + Math.floor(this.diff * 2), vd: behind ? this.speed + 9 : this.speed * 0.45 });
+    e.x = { dealer: 1, ph: behind ? 0 : 1, ln };
+    e.sh = [];
+    e.hm = 0; // sin barra de jefe
+    this.emit('banner', { txt: '¡EL TRAFICANTE DE ARMAS!', sub: behind ? 'Viene por detrás: revienta su furgoneta' : 'Va lento por delante: revienta su furgoneta', c: '#ff40c0' });
   }
   spawnJeep() {
     const e = this.add('jeep', { d: this.vStart(40), lat: LANE_OT, h: 0, hp: 18 + Math.floor(this.diff * 4), vd: this.speed + 9 });
@@ -1533,6 +1544,7 @@ function ser(e) {
     case 'crew': x = { v: X.v, gd: X.gd, td: X.td, out: X.out }; break;
     case 'mine': x = { sp: X.sp }; break;
     case 'xcar': x = { c: X.c }; break;
+    case 'jeep': x = { dealer: X.dealer }; break;
     case 'zombie': x = { k: X.k, sk: X.sk, ph: X.ph, fall: X.fall ? 1 : 0, f: X.f }; break;
     case 'bat': x = { ph: X.ph }; break;
     case 'brute': x = { ph: X.ph }; break;
@@ -1623,6 +1635,14 @@ const U = {
   },
   jeep(e, dt, S) {
     const rel = S.rel(e);
+    // traficante de armas: va lento por el otro carril (lo adelantáis); si viene por detrás, primero os pasa
+    if (e.x.dealer && e.st === ST.ALIVE) {
+      if (e.x.ph === 0) { e.vd = S.speed + 9; if (rel > 22) e.x.ph = 1; }
+      else e.vd = Math.max(3, S.speed * 0.45);
+      e.lat += (e.x.ln - e.lat) * Math.min(1, dt * 2);
+      if (rel < -70) e.rm = true;
+      return;
+    }
     if (e.st === ST.ALIVE) {
       vehPhase(e, dt, S);
       e.lat += (LANE_OT + Math.sin(e.age * 0.7) * 0.5 - e.lat) * Math.min(1, dt * 2);
@@ -2368,7 +2388,7 @@ const HIT = {
   drone(e, p, part, dmg, S) { S.damage(e, p, dmg); },
   heli(e, p, part, dmg, S) { S.damage(e, p, dmg); },
   amb(e, p, part, dmg, S) { S.damage(e, p, dmg); },
-  jeep(e, p, part, dmg, S) { if (part !== 'jeep') S.damage(e, p, dmg); else S.addPts(p, 5, null, ''); },
+  jeep(e, p, part, dmg, S) { if (part !== 'jeep' || e.x.dealer) S.damage(e, p, dmg); else S.addPts(p, 5, null, ''); },
   grenade(e, p, part, dmg, S) { S.kill(e, p); },
   rocket(e, p, part, dmg, S) { S.kill(e, p); },
   thrown(e, p, part, dmg, S) { S.kill(e, p); },
@@ -2566,8 +2586,8 @@ function spawnChicken(t, S) {
   const e = S.add('chicken', { d: t.d + 1.2 + (r() - 0.5) * 8, lat: t.lat + (r() - 0.5) * 2, h: 2.4 + r() * 1.2, hp: 1, vd: t.vd + (r() - 0.5) * 6 });
   e.x = { vh: 3 + r() * 4, vl: (r() - 0.3) * 5, b: 0, run: (r() - 0.5) * 6 };
 }
-function dropWeapon(e, S, extraTier = 0) {
-  const w = rollWeapon(S.r, Math.min(3, Math.floor(S.runT / 150) + extraTier), S.zd(), S.luck());
+function dropWeapon(e, S, extraTier = 0, rare = false) {
+  const w = rollWeapon(S.r, Math.min(3, Math.floor(S.runT / 150) + extraTier), S.zd(), S.luck(), rare);
   const k = S.add('weapon', { d: e.d + 2, lat: LANE_ME, h: 2.5, hp: 999, vd: S.speed });
   k.x = { w, pr: S.players.map(() => 0), nd: S.alivePlayers().length > 1 ? 5 : 2, life: 16 };
   S.emit('banner', { txt: '¡ARMA!', sub: S.n > 1 ? 'Dispárale: se la lleva el primero en darle 5 veces' : 'Dispárale para cogerla', c: '#ffe14a' });
@@ -2611,7 +2631,7 @@ const KILL = {
     S.emit('banner', { txt: '¡COSECHADORA DESTROZADA!', sub: '', c: '#7dff8a' });
   },
   crew(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 1.2), s: 1.8 }); e.x.gd = [1, 1, 1]; if (!e.x.out) e.x.out = e.lat < LANE_ME ? -1 : 1; },
-  jeep(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 1.5), s: 1.2 }); dropWeapon(e, S); },
+  jeep(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 1.5), s: 1.2 }); if (e.x.dealer) { dropWeapon(e, S, 1, true); S.emit('banner', { txt: '¡EL TRAFICANTE SUELTA SU MERCANCÍA!', sub: 'Un arma especial', c: '#ff40c0' }); } else dropWeapon(e, S); },
   amb(e, p, S) {
     S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 1.5), s: 0.8 });
     for (let i = 0; i < 2; i++) {

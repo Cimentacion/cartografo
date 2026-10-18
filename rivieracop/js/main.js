@@ -773,6 +773,7 @@ function begin(seed, n, li, mode) {
   uiWeapon(true);
 }
 function gameOver(ev) {
+  SFX.dance(-1);
   try { localStorage.removeItem('rc_rejoin'); } catch (e) { }
   G.over = true;
   if (W.xpDirty) { saveProg(PROG); W.xpDirty = false; }
@@ -877,6 +878,7 @@ function lanList(list, key) {
   for (const b of el.querySelectorAll('.lanRoom')) b.onclick = () => { $('codeIn').value = b.dataset.c; $('btnGo').click(); };
 }
 function toMenu(msg) {
+  SFX.dance(-1);
   lanStop();
   clearInterval(VS.iv); $('vsel').hidden = true;
   G.roomCode = null; presSet('menu'); setTimeout(updMenuCard, 0);
@@ -1747,6 +1749,8 @@ function tick(dt) {
   $('dead').hidden = !(me && !me.alive && !G.over);
   bannerT -= dt;
   SFX.loops(view.ambDist, view.heliDist, G.speed);
+  // eurodance desde la furgoneta del traficante (más fuerte cuanto más cerca)
+  { let best = 1e9; for (const e of G.ents) if (e.type === 'jeep' && e.x && e.x.dealer && e.st !== ST.DEAD) best = Math.min(best, Math.abs(e.d - G.carD)); SFX.dance(best < 1e9 ? Math.max(0, 1 - best / 140) : 0); }
   $('rotate').hidden = !(look.isTouch && innerHeight > innerWidth && !VP.rot);
   $('btnFire').hidden = !look.isTouch || (!look.force && look.gyro);
 }

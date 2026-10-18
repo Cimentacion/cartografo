@@ -1931,3 +1931,24 @@ export function showgirl(sk = 0) {
   g.add(p); g.userData.p = p; g.userData.civ = true;
   return g;
 }
+// furgoneta del traficante de armas: rosa y amarilla, altavoces y bola de discoteca en el techo, va lenta con eurodance a tope
+export function dealerVan() {
+  const g = new THREE.Group();
+  box(g, 2.1, 1.9, 5.0, 0xff3aa0, 0, 1.35, 0, 'body');
+  box(g, 2.12, 0.5, 5.02, 0xffd030, 0, 0.75, 0, 'body');
+  box(g, 1.9, 0.7, 0.1, GLASS, 0, 1.75, -2.52, 'body');
+  for (const s of [-1, 1]) { box(g, 0.05, 0.8, 2.2, 0x1a1a24, s * 1.07, 1.75, 0.6, 'body'); box(g, 0.32, 0.14, 0.05, glow(0xfff6c8), s * 0.7, 0.8, -2.52); }
+  for (const sx of [-1.0, 1.0]) for (const sz of [-1.7, 1.7]) wheel(g, sx, 0.4, sz, 0.4, 0.3, 'body');
+  // cartel "ARMAS" de bombillas, altavoces y bola de discoteca
+  box(g, 1.6, 0.5, 0.15, 0x1a1a1a, 0, 2.6, -1.6, 'body');
+  for (let k = 0; k < 6; k++) box(g, 0.18, 0.18, 0.05, glow([0xff3030, 0xffe040, 0x40c0ff][k % 3]), -0.6 + k * 0.24, 2.6, -1.69);
+  for (const s of [-1, 1]) { box(g, 0.6, 0.7, 0.6, 0x14141a, s * 0.6, 2.65, 1.2, 'body'); const c = new THREE.Mesh(cgeo(0.22, 0.05, 12), mat(0x3a3a44)); c.rotation.x = Math.PI / 2; c.position.set(s * 0.6, 2.7, 0.88); g.add(c); }
+  const ball = new THREE.Mesh(sgeo(0.32), glow(0xd8e8ff)); ball.position.set(0, 2.85, 0.2); g.add(ball);
+  const lights = [];
+  for (let k = 0; k < 4; k++) { const l = box(g, 0.2, 0.2, 0.2, glow([0xff40c0, 0x40ffe0, 0xffe040, 0x8a40ff][k]), -0.75 + k * 0.5, 2.38, 2.3); lights.push(l); }
+  // el traficante al volante, con gafas de sol
+  const drv = person({ shirt: 0xffffff, pants: 0x1a1a1a, glasses: true, hairStyle: 'cresta', hair: 0xffd030, part: 'body' });
+  drv.position.set(-0.5, 0.65, -1.6); drv.userData.rig.armR.rotation.x = -0.6; drv.userData.rig.armL.rotation.x = -0.6; g.add(drv);
+  g.userData.ball = ball; g.userData.lights = lights;
+  return g;
+}

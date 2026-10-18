@@ -348,7 +348,7 @@ export class View {
       case 'harvester': g = M.harvester(); break;
       case 'amb': g = M.ambulance(); break;
       case 'medkit': g = M.medkit(); break;
-      case 'jeep': g = M.jeep(); break;
+      case 'jeep': g = x.dealer ? M.dealerVan() : M.jeep(); break;
       case 'weapon': g = M.weaponPickup(x.w); break;
       case 'sign': g = M.sign(); break;
       case 'barrel': g = M.barrel(); break;
@@ -681,6 +681,7 @@ const ANIM = {
     if (e.st === ST.DEAD && Math.random() < dt * 14) { o.getWorldPosition(V1); V1.y += 1.4; V.fx.smoke(V1, true); }
   },
   jeep(o, e, dt, ctx, V) {
+    if (o.userData.ball) { o.userData.ball.rotation.y += dt * 3; o.userData.lights.forEach((l, k) => (l.visible = Math.floor(ctx.t * 7.5 + k) % 2 === 0)); return; }
     const t = o.userData.terr;
     if (e.st === ST.DEAD) {
       t.rotation.x = Math.min(1.5, o.userData.dt * 3);
