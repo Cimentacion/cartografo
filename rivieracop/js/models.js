@@ -1717,3 +1717,139 @@ export function gunship() {
   g.userData.shooters = [mz, mz]; g.userData.aimers = [pv]; g.userData.rotor = rotor; g.userData.tr = tr; g.userData.gat = gat;
   return g;
 }
+
+// ---------- ciudad zombi ----------
+// zombi: k 0 normal, 1 gordo, 2 escupidor (bolsa de babas en el cuello)
+export function zombie(k = 0, sk = 0) {
+  const g = new THREE.Group();
+  const SK = [0x8aa070, 0x9aa888, 0x7a9a6a, 0xa0a890][sk % 4];
+  const SH = [0x5a5a6a, 0x8a3a2a, 0x3a5a7a, 0xc8c8b8, 0x4a6a3a, 0x6a4a3a][sk % 6];
+  const p = person({ skin: SK, shirt: SH, pants: [0x2a2a3a, 0x4a3a2a, 0x3a3a3a][sk % 3], hairStyle: sk % 3 === 0 ? 'calvo' : sk % 3 === 1 ? 'largo' : 'corto', hair: 0x2a2a20, big: k === 1 });
+  g.add(p);
+  const t = p.userData.rig.torso;
+  for (const x of [-0.07, 0.07]) box(t, 0.06, 0.045, 0.02, glow(0xd8ff40), x, 0.86, -0.145);
+  box(t, 0.14, 0.04, 0.02, 0x3a0a0a, 0, 0.74, -0.145);
+  // ropa rota y manchas
+  box(t, 0.22, 0.2, 0.02, 0x5a0c0c, 0.1, 0.22, -0.17, 'body');
+  box(t, 0.12, 0.25, 0.02, SK, -0.14, 0.45, -0.17, 'body');
+  if (k === 1) { box(t, 0.86, 0.72, 0.66, SK, 0, 0.26, -0.12, 'body'); box(t, 0.76, 0.32, 0.6, SH, 0, 0.56, -0.08, 'body'); box(t, 0.3, 0.2, 0.04, 0x6a8a3a, 0.15, 0.15, -0.46, 'body'); }
+  if (k === 2) { box(t, 0.38, 0.28, 0.32, 0x9ad040, 0, 0.66, -0.06, 'head'); box(t, 0.2, 0.12, 0.04, glow(0xb8ff40), 0, 0.64, -0.23); }
+  p.userData.rig.armR.rotation.x = 1.45; p.userData.rig.armL.rotation.set(1.3, -0.15, 0);
+  g.userData.p = p;
+  g.userData.shooters = [p.userData.rig.muzzle];
+  return g;
+}
+export function bat() {
+  const g = new THREE.Group();
+  const b = new THREE.Group(); g.add(b);
+  box(b, 0.3, 0.3, 0.45, 0x2a1a30, 0, 0, 0, 'body');
+  box(b, 0.22, 0.22, 0.2, 0x2a1a30, 0, 0.05, -0.3, 'body');
+  for (const x of [-0.07, 0.07]) { box(b, 0.05, 0.05, 0.02, glow(0xff3030), x, 0.08, -0.41); box(b, 0.06, 0.14, 0.06, 0x2a1a30, x, 0.2, -0.3, 'body'); }
+  const wings = [];
+  for (const s of [-1, 1]) {
+    const w = new THREE.Group(); w.position.set(s * 0.14, 0.05, 0); b.add(w); wings.push(w);
+    box(w, 0.7, 0.03, 0.4, 0x3a2440, s * 0.38, 0, 0.02, 'body');
+    box(w, 0.4, 0.03, 0.25, 0x3a2440, s * 0.85, 0, 0.1, 'body');
+  }
+  proxy(g, 0.55, 0, 0, 0);
+  g.userData.wings = wings; g.userData.body = b;
+  g.userData.shooters = [b];
+  return g;
+}
+// el jefe: un gordo gigante y mazado con una maza
+export function brute() {
+  const g = new THREE.Group();
+  const body = new THREE.Group(); g.add(body);
+  const SK = 0x7a9a5a, SK2 = 0x6a8a4a;
+  for (const x of [-0.55, 0.55]) { box(body, 0.75, 1.6, 0.8, 0x3a2a24, x, 0.8, 0, 'body'); box(body, 0.85, 0.3, 1.1, 0x1a1a1a, x, 0.15, -0.1, 'body'); }
+  const torso = new THREE.Group(); torso.position.y = 1.6; body.add(torso);
+  box(torso, 2.3, 1.9, 1.5, SK, 0, 0.95, 0, 'body');
+  box(torso, 2.0, 1.2, 0.6, SK2, 0, 0.5, -0.85, 'body');
+  box(torso, 2.4, 0.5, 1.6, 0x4a3a2a, 0, 0.1, 0, 'body');
+  box(torso, 0.9, 0.5, 0.1, 0x5a0c0c, 0.4, 1.3, -0.78, 'body');
+  for (const x of [-0.6, 0.6]) box(torso, 0.7, 0.35, 0.3, 0x8aa86a, x, 1.75, -0.6, 'body');
+  const head = new THREE.Group(); head.position.set(0, 2.15, -0.2); torso.add(head);
+  box(head, 0.75, 0.7, 0.7, SK, 0, 0.3, 0, 'head');
+  for (const x of [-0.17, 0.17]) box(head, 0.14, 0.09, 0.04, glow(0xd8ff40), x, 0.38, -0.36);
+  box(head, 0.5, 0.14, 0.05, 0x2a0808, 0, 0.12, -0.36);
+  for (let i = 0; i < 4; i++) box(head, 0.06, 0.08, 0.05, 0xe8e0c0, -0.15 + i * 0.1, 0.18, -0.37);
+  const mkArm = s => {
+    const a = new THREE.Group(); a.position.set(s * 1.4, 1.55, 0); torso.add(a);
+    box(a, 0.6, 0.6, 1.5, SK, 0, 0, -0.6, 'body'); box(a, 0.55, 0.55, 0.6, SK2, 0, -0.05, -1.55, 'body');
+    return a;
+  };
+  const armR = mkArm(1), armL = mkArm(-1);
+  // maza: palo y cabeza con pinchos (dispárale aquí cuando la levante)
+  const mace = new THREE.Group(); mace.position.set(0, 0, -1.8); armR.add(mace);
+  box(mace, 0.2, 0.2, 2.6, 0x5a3a20, 0, 0, -1.1, 'mace');
+  const mh = box(mace, 0.95, 0.95, 0.95, 0x4a4a52, 0, 0, -2.6, 'mace');
+  for (const [x, y, z] of [[0.55, 0, 0], [-0.55, 0, 0], [0, 0.55, 0], [0, -0.55, 0], [0, 0, -0.55]]) box(mace, 0.2, 0.2, 0.2, 0xb8b8c0, x, y, -2.6 + z, 'mace');
+  proxy(mace, 0.9, 0, 0, -2.6, 'mace');
+  const tip = node(mace, 0, 0, -2.6);
+  armR.rotation.x = 0.6; armL.rotation.x = 0.9;
+  g.userData.body = body; g.userData.torso = torso; g.userData.armR = armR; g.userData.armL = armL; g.userData.mh = mh;
+  g.userData.shooters = [tip];
+  return g;
+}
+export function keyItem() {
+  const g = new THREE.Group();
+  const k = new THREE.Group(); g.add(k);
+  const c = 0xffd040;
+  box(k, 0.5, 0.08, 0.08, c, 0, 0, 0, 'body');
+  box(k, 0.06, 0.26, 0.08, c, -0.27, 0, 0, 'body'); box(k, 0.06, 0.26, 0.08, c, -0.47, 0, 0, 'body');
+  box(k, 0.26, 0.06, 0.08, c, -0.37, 0.1, 0, 'body'); box(k, 0.26, 0.06, 0.08, c, -0.37, -0.1, 0, 'body');
+  box(k, 0.06, 0.14, 0.08, c, 0.2, -0.09, 0, 'body'); box(k, 0.06, 0.1, 0.08, c, 0.12, -0.07, 0, 'body');
+  const halo = new THREE.Mesh(sgeo(0.55), glow(0xffe060, 0.22)); g.add(halo);
+  proxy(g, 0.5, 0, 0, 0);
+  g.userData.k = k;
+  return g;
+}
+// puerta de salida del hospital: cerrada con cadena y candado
+export function hdoor() {
+  const g = new THREE.Group();
+  const leaves = [];
+  for (const s of [-1, 1]) {
+    const h = new THREE.Group(); h.position.set(s * 1.5, 0, 0); g.add(h); leaves.push(h);
+    box(h, 1.48, 2.55, 0.1, 0x5a7a6a, -s * 0.74, 1.3, 0, 'body');
+    box(h, 0.6, 0.5, 0.12, 0x9ac0c8, -s * 0.74, 1.8, 0, 'body');
+    box(h, 0.08, 0.5, 0.14, 0xc8c8c0, -s * 1.3, 1.2, 0, 'body');
+  }
+  const lock = new THREE.Group(); g.add(lock);
+  for (const y of [1.05, 1.35]) { const c = box(lock, 1.4, 0.07, 0.07, 0x8a8a90, 0, y, -0.12, 'body'); c.rotation.z = y > 1.2 ? 0.25 : -0.25; }
+  box(lock, 0.28, 0.32, 0.12, 0xd8a020, 0, 1.15, -0.2, 'body');
+  g.userData.leaves = leaves; g.userData.lock = lock;
+  return g;
+}
+// mobiliario del hospital que revienta a tiros: 0 archivador, 1 máquina expendedora, 2 mesa, 3 extintor, 4 bancada de sala de espera
+export function prop(k = 0) {
+  const g = new THREE.Group(), b = new THREE.Group(); g.add(b);
+  g.userData.b = b;
+  if (k === 0) {
+    box(b, 0.5, 1.3, 0.6, 0x8a9098, 0, 0.65, 0, 'body');
+    for (let i = 0; i < 4; i++) { box(b, 0.46, 0.02, 0.02, 0x4a5058, 0, 0.3 + i * 0.3, -0.31, 'body'); box(b, 0.14, 0.04, 0.03, 0xd8d8d8, 0, 0.2 + i * 0.3, -0.32, 'body'); }
+    box(b, 0.3, 0.04, 0.4, 0xe8e4d8, 0.05, 1.32, 0.05, 'body');
+  } else if (k === 1) {
+    box(b, 1.0, 1.9, 0.8, 0xc02a2a, 0, 0.95, 0, 'body');
+    const lit = box(b, 0.62, 1.2, 0.03, glow(0xc8f0ff), -0.12, 1.15, -0.41, 'body');
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) box(b, 0.08, 0.18, 0.04, [0xff4040, 0x40a0ff, 0xffd040, 0x40d060][(r + c) % 4], -0.36 + c * 0.16, 0.72 + r * 0.29, -0.43, 'body');
+    box(b, 0.22, 0.5, 0.04, 0x2a2a2a, 0.36, 1.2, -0.42, 'body');
+    box(b, 0.6, 0.18, 0.04, 0x1a1a1a, -0.12, 0.28, -0.42, 'body');
+    box(b, 0.9, 0.22, 0.04, 0xffffff, 0, 1.75, -0.42, 'body');
+    g.userData.lit = lit;
+  } else if (k === 2) {
+    box(b, 1.4, 0.08, 0.8, 0xc8b898, 0, 0.75, 0, 'body');
+    for (const [x, z] of [[-0.62, -0.32], [0.62, -0.32], [-0.62, 0.32], [0.62, 0.32]]) box(b, 0.06, 0.72, 0.06, 0x6a6a6a, x, 0.36, z, 'body');
+    box(b, 0.3, 0.02, 0.22, 0x3a7ac8, -0.3, 0.8, 0.1, 'body'); box(b, 0.3, 0.02, 0.22, 0xd84a3a, 0.2, 0.8, -0.1, 'body');
+    box(b, 0.12, 0.14, 0.12, 0xf0f0f0, 0.5, 0.86, 0.2, 'body');
+  } else if (k === 3) {
+    box(b, 0.24, 0.55, 0.24, 0xd01818, 0, 0.28, 0, 'body');
+    box(b, 0.12, 0.08, 0.12, 0x1a1a1a, 0, 0.6, 0, 'body'); box(b, 0.05, 0.05, 0.25, 0x1a1a1a, 0, 0.6, -0.15, 'body');
+    box(b, 0.22, 0.1, 0.01, 0xf0f0f0, 0, 0.3, -0.125, 'body');
+    proxy(g, 0.32, 0, 0.3, 0);
+  } else {
+    box(b, 1.8, 0.08, 0.12, 0x6a6a6a, 0, 0.4, 0, 'body');
+    for (const x of [-0.75, 0.75]) box(b, 0.08, 0.4, 0.4, 0x6a6a6a, x, 0.2, 0, 'body');
+    for (let i = 0; i < 3; i++) { box(b, 0.52, 0.06, 0.48, 0x2a6ac8, -0.6 + i * 0.6, 0.47, 0, 'body'); box(b, 0.52, 0.5, 0.06, 0x2a6ac8, -0.6 + i * 0.6, 0.75, 0.24, 'body'); }
+  }
+  return g;
+}

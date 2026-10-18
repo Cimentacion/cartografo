@@ -18,7 +18,7 @@ export class Road {
     this.sea = [0]; this.gy = [70];
     this.grid = new Map();
     this._addGrid(0);
-    this.queue = []; this.tunnels = []; this.forks = [];
+    this.queue = []; this.tunnels = []; this.forks = []; this.hosp = [];
     this.planEnd = 0;
     this.cur = { yaw: 0, slope: 0 };
     this.baseYaw = 0; this.lastHair = 0;
@@ -44,6 +44,12 @@ export class Road {
       this._q({ type: 'section', len: 300, bio, zd, sub: null });
       this._q({ type: 'interior', len: 100, bio, zd, fork: -2 });
       this._q({ type: 'section', len: SECTION - 400, bio, zd, sub: null });
+    } else if (BIOMES[BIOME_KEYS[bio]].zom) {
+      // ciudad zombi: tramo recto y llano con el hospital (se entra a pie), y después el jefe
+      this._q({ type: 'section', len: slen - 660, bio, zd, sub: null });
+      const hb = this._q({ type: 'hosp', len: 240, bio, zd });
+      this.hosp.push({ H: hb.start + 70, k });
+      this._q({ type: 'section', len: 420, bio, zd, sub: null });
     } else this._q({ type: 'section', len: slen, bio, zd, sub: null });
     this._q({ type: 'approach', len: APPROACH, bio, zd });
     const tn = this._q({ type: 'tunnel', len: TUN, fork: k, bio, zd });
@@ -98,6 +104,8 @@ export class Road {
         // acantilados: primero se sube por la ladera y luego se va cayendo en picado hacia el mar
         slopeT = b.pos < b.len * 0.28 ? (this.y[this.len] < 85 ? 0.07 : 0) : (this.y[this.len] > 12 ? -0.085 : 0);
       } else if (BB.slope < 0 && this.y[this.len] < 16) slopeT = 0;
+    } else if (b.type === 'hosp') {
+      k = 0; slopeT = 0;
     } else if (b.type === 'tunnel' || b.type === 'interior') {
       if (b.kmax == null) { const r = rng(hash(this.seed, b.fork + 7, 99)); b.kmax = (r() - 0.5) * 0.008; }
       k = b.kmax * Math.sin(Math.PI * (b.pos + 0.5) / b.len);
@@ -295,6 +303,8 @@ export class Road {
   }
   seaAt(d) { const i = clamp(Math.floor(d), 0, this.len); return this.sea[i]; }
   zdAt(d) { const i = clamp(Math.floor(d), 0, this.len); return this.zd[i] || 1; }
+  // hospital de la ciudad zombi que pilla en d (con margen)
+  hospAt(d, pad = 0) { for (const h of this.hosp) if (d > h.H - 12 - pad && d < h.H + 66 + pad) return h; return null; }
   inTunnel(d) { for (const t of this.tunnels) if (d >= t.start - 4 && d <= t.end + 4) return true; return false; }
 }
 const TMP = { x: 0, y: 0, z: 0, yaw: 0 };

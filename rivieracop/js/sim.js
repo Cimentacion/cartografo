@@ -2,11 +2,25 @@
 // Todo va en "coordenadas de carretera": d = metros recorridos, lat = lateral, h = altura.
 import { TI, ST, BIOMES, BIOME_KEYS, BONUSES, PNAME, BOSS } from './defs.js';
 import { rollWeapon } from './weapons.js';
-import { LANE_ME, LANE_OT, WALK } from './road.js';
+import { LANE_ME, LANE_OT, WALK, HALF } from './road.js';
 import { rng, hash, clamp, lerp, pick, r2 } from './util.js';
 import { SPEEDS, shieldDur, bulletDur, maxHpOf, META_KEYS, turboDur } from './progress.js';
 
 export const SPEED = 14;
+// hospital de la ciudad zombi: recorrido a pie [u (metros desde la puerta), lateral, suceso]
+// mobiliario del hospital [u, lateral, tipo (0 archivador, 1 máquina, 2 mesa, 3 extintor, 4 bancada), giro]
+const PROPS = [
+  [2.6, -10.6, 4, -1.57], [4.4, -10.6, 4, -1.57], [2.6, -8.2, 4, 1.57], [4.4, -8.2, 4, 1.57], [6.2, -10.6, 4, -1.57],
+  [3.5, -5.6, 2, 0], [12.9, -11.5, 1, -1.57], [11.2, -11.6, 0, -1.57], [10.6, -11.6, 0, -1.57], [13.4, 5.3, 1, 3.14], [1.2, 6.5, 0, 1.57],
+  [13.75, -4.2, 3, 3.14], [7.2, 6.75, 3, 1.57], [20.5, 7.25, 3, -1.57], [36.5, 9.75, 3, 1.57], [25.5, -1.75, 3, -1.57], [40.5, 1.75, 3, 1.57], [51.5, -1.75, 3, -1.57],
+  [28, 7.4, 0, -1.57], [28.6, 7.4, 0, -1.57], [44.5, 9.6, 0, 1.57], [46.6, 7.6, 1, -1.57], [31, 7.45, 4, -1.57],
+  [19.8, 11.6, 2, 0], [23.5, 11.4, 2, 1.57], [31.2, 10.8, 0, 3.14], [39.3, 11, 0, 3.14],
+  [16.5, -1.45, 4, -1.57], [18.4, -1.45, 4, -1.57], [32, 1.5, 0, 1.57], [32.6, 1.5, 0, 1.57], [54.5, 1.3, 1, 3.14], [45, -1.45, 4, -1.57],
+];
+const FOOT = [[-6.5, 3], [-1, 0.4], [3, 0, 'lobby'], [8, 0], [8, 8.5], [14, 8.5, 'h1'],
+  [17.5, 8.5], [17.5, 13, 'r1'], [17.5, 8.5], [25.5, 8.5], [25.5, 13, 'r2'], [25.5, 8.5],
+  [33.5, 8.5], [33.5, 13, 'r3'], [33.5, 8.5], [41.5, 8.5], [41.5, 13.4, 'key'], [41.5, 8.5, 'back'],
+  [24, 8.5, 'h2'], [8, 8.5], [8, 0], [20, 0, 'h3'], [53, 0, 'open'], [58.5, 0], [66, 2.2, 'board']];
 // asientos en el coche: [x lateral, z hacia atrás] (local del coche); J1-J2 delante mirando al frente,
 // J3-J4 detrás, de espaldas, cubriendo la retaguardia (solo si sois más de 2)
 export const SEATS = [[-0.63, 0.25], [0.63, 0.25], [-0.63, 1.5], [0.63, 1.5]];
@@ -16,18 +30,18 @@ export const SEAT_H = 1.75, SEAT_D = -0.8;
 const VEH = new Set(['xcar', 'harvester', 'police', 'ecar', 'truck', 'amb', 'jeep', 'civcar', 'tank', 'rig', 'fuel', 'float', 'pickup', 'van', 'bus', 'crew']);
 const HOSTILE = new Set(['gunman', 'sniper', 'moto', 'ecar', 'heli', 'drone', 'jeep', 'grenade', 'rocket', 'rock', 'wall', 'train',
   'jumper', 'tank', 'rig', 'rioter', 'thrown', 'chef', 'boat', 'mtrain', 'quad', 'pickup', 'van', 'bus', 'canoe',
-  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'turret', 'gunship', 'crew', 'xcar', 'harvester']);
+  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'turret', 'gunship', 'crew', 'xcar', 'harvester', 'zombie', 'bat', 'brute']);
 export const AIR = new Set(['heli', 'drone', 'jet', 'blimp', 'gunship']);
 export const ANIMAL = new Set(['beast', 'bear', 'jelly', 'chicken']);
 const PROJ = new Set(['grenade', 'rocket', 'rock', 'thrown']);
 const VEHICLE_DMG = new Set(['moto', 'ecar', 'heli', 'jeep', 'tank', 'rig', 'boat', 'mtrain', 'train', 'wall', 'drone', 'crew', 'xcar', 'harvester']);
 const OFFH = { gunman: 1.5, sniper: 1.5, moto: 1.6, ecar: 1.6, heli: -0.4, drone: 0, jeep: 2.6, rioter: 1.6, chef: 2.2, boat: 1.4, tank: 2.4, mtrain: 2.5,
-  quad: 1.4, pickup: 2.2, van: 1.6, bus: 2.4, canoe: 0.8, bear: 2.2, blimp: -3, jet: 0, rammer: 1.4, jelly: 0, turret: 0.6, gunship: 0, crew: 2.4, xcar: 1.4, harvester: 4 };
+  quad: 1.4, pickup: 2.2, van: 1.6, bus: 2.4, canoe: 0.8, bear: 2.2, blimp: -3, jet: 0, rammer: 1.4, jelly: 0, turret: 0.6, gunship: 0, crew: 2.4, xcar: 1.4, harvester: 4, zombie: 1.3, bat: 0, brute: 3.5 };
 const PTS = {
   gunman: 100, sniper: 200, moto: 150, ecar: 300, heli: 1000, drone: 150, jeep: 1500, grenade: 60, rocket: 80, rock: 60, chicken: 50, amb: 200,
   barrel: 50, wall: 600, train: 900, jumper: 180, tank: 2000, rig: 1200, rioter: 80, thrown: 30, chef: 3000, boat: 450, mtrain: 2500,
   quad: 150, pickup: 400, van: 600, bus: 1200, canoe: 120,
-  beast: 160, bear: 3500, mine: 60, jet: 500, blimp: 5000, rammer: 500, junk: 20, jelly: 90, turret: 300, gunship: 6000, crew: 500, xcar: 150, harvester: 8000,
+  beast: 160, bear: 3500, mine: 60, jet: 500, blimp: 5000, rammer: 500, junk: 20, jelly: 90, turret: 300, gunship: 6000, crew: 500, xcar: 150, harvester: 8000, zombie: 60, bat: 80, brute: 9000, key: 500, prop: 30,
 };
 
 // los enemigos normales se van desbloqueando a lo largo de la partida (segundos de partida)
@@ -72,6 +86,8 @@ export class Sim {
     this.story = opts.story || null;
     this.bonus = {}; this.diff = 1; this.over = false;
     this.stats = { kills: 0, chickens: 0, forks: [] };
+    // ciudad zombi: recorrido a pie por el hospital (null = en el coche)
+    this.foot = null; this.hdone = new Set();
   }
 
   emit(k, o = {}) { o.k = k; o.st = this.t; this.events.push(o); }
@@ -91,7 +107,7 @@ export class Sim {
   pickTgt(e) {
     const a = this.alivePlayers();
     if (!a.length) return -1;
-    if (e && this.n > 2) {
+    if (e && this.n > 2 && !this.foot) {
       const back = this.rel(e) < -3;
       const pref = a.filter(i => isRear(i, this.n) === back);
       if (pref.length) return pref[Math.floor(this.r() * pref.length)];
@@ -142,7 +158,9 @@ export class Sim {
       if (e.type === 'chef' && e.st === ST.ALIVE && rel < 34) this.hold = true;
       if (e.type === 'rioter' && e.x.march && e.st === ST.ALIVE && rel < 44) this.hold = true;
       if (e.type === 'junk' && e.st === ST.ALIVE && rel < 7.5 && rel > 0) this.hold = true;
+      if (e.type === 'brute' && e.st === ST.ALIVE) this.hold = true;
     }
+    if (this.foot) this.hold = true;
     if (this.phase === 'count') {
       this.countT -= dt;
       if (this.countT <= 0) { this.phase = 'run'; this.emit('go'); if (this.story) this.emit('radio', { ch: this.story.ch, z: 0 }); }
@@ -160,6 +178,13 @@ export class Sim {
       // turbo (no hace nada si estáis parados)
       if (this.turboT > 0) { this.turboT -= dt; if (!this.hold && this.stunT <= 0) tgt *= 1.7; }
       if (this.hold) tgt = 0;
+      // hospital: el coche frena delante de la puerta y os bajáis
+      const HS = this.hospAhead();
+      if (HS) {
+        const gap = HS.H - 8 - this.carD;
+        if (gap < 70) tgt = Math.min(tgt, Math.max(0, gap) * 0.55);
+        if (gap < 0.8 && this.speed < 1.5 && !this.foot) this.startFoot(HS);
+      }
       if (this.stunT > 0) { this.stunT -= dt; tgt = 0; if (this.stunT <= 0) this.emit('banner', { txt: '¡ARRANCAMOS!', sub: '', c: '#7dff8a' }); }
       this.speed += clamp(tgt - this.speed, -9 * dt, (this.turboT > 0 ? 12 : 6) * dt);
     }
@@ -185,7 +210,7 @@ export class Sim {
       }
     }
     this.charging = [0, 0, 0, 0];
-    if (this.phase === 'run') { this.director(wd); this.forks(); this.turret(wd); }
+    if (this.phase === 'run') { if (this.foot) this.footStep(wd); this.director(wd); this.forks(); if (!this.foot) this.turret(wd); }
     for (const e of this.ents) {
       e.age += wd;
       if (e.st === ST.DEAD) e.deadT += wd;
@@ -203,7 +228,7 @@ export class Sim {
       const s = e.sh[i];
       if (!s.alive || !active) { s.on = false; s.r = 0; continue; }
       let bad = s.tgt < 0 || !this.players[s.tgt].alive || this.players[s.tgt].gone;
-      if (!bad && this.n > 2 && s.kind !== 'impact' && s.kind !== 'melee' && isRear(s.tgt, this.n) !== (this.rel(e) < -3)) bad = this.alivePlayers().some(i => isRear(i, this.n) === (this.rel(e) < -3));
+      if (!bad && this.n > 2 && !this.foot && s.kind !== 'impact' && s.kind !== 'melee' && isRear(s.tgt, this.n) !== (this.rel(e) < -3)) bad = this.alivePlayers().some(i => isRear(i, this.n) === (this.rel(e) < -3));
       if (bad) {
         if (s.kind === 'melee') { s.on = false; continue; }
         s.tgt = this.pickTgt(e);
@@ -461,6 +486,9 @@ export class Sim {
       case 'rig': { let best = -1; e.x.th.forEach((h, i) => { if (h > 0 && (best < 0 || h > e.x.th[best])) best = i; }); if (best >= 0) H.rig(e, p, 't' + best, dmg, this); break; }
       case 'mtrain': { const i = e.x.wh.findIndex(h => h > 0); if (i >= 0) H.mtrain(e, p, 'w' + i, dmg, this); break; }
       case 'chicken': H.chicken(e, p, 'body', dmg, this); break;
+      // los bidones hacen mucho daño al jefe zombi (y le cortan el golpe)
+      case 'brute': this.damage(e, p, 30); if (e.x.ph === 1) { e.x.ph = 2; e.x.t = 3; this.emit('banner', { txt: '¡LE HA PILLADO LA EXPLOSIÓN!', sub: '', c: '#ffb020' }); } break;
+      case 'key': break;
       default:
         if (['heli', 'jeep', 'wall', 'chef', 'boat', 'pickup', 'van', 'bus', 'bear', 'blimp', 'rammer', 'junk', 'gunship', 'turret', 'crew'].includes(e.type)) this.damage(e, p, dmg);
         else if (PROJ.has(e.type) || e.hp <= dmg) this.kill(e, p);
@@ -522,6 +550,7 @@ export class Sim {
     if (this.voting) return;
     // si la carretera de delante aún no existe (antes del desvío), no sale nada: aparecería fuera del mapa
     if (!this.canAhead(130)) return;
+    if (this.foot || this.has('brute') || BIOMES[BIOME_KEYS[this.road.bioAt(this.carD + 80)]].deco === 'zombi') { this.zombieDir(dt); return; }
     this.waveT -= dt;
     const front = Math.min(2, this.n), cap = Math.floor(1 + this.diff * 0.9) + (front - 1) + (this.stunT > 0 || this.hold ? 3 : 0);
     if (this.waveT <= 0) {
@@ -1281,6 +1310,178 @@ export class Sim {
   }
 
   // ---------------- red ----------------
+  // ---------------- ciudad zombi ----------------
+  // dónde está cada jugador (para que los zombis y los escupitajos vayan a por él): a pie o en su asiento
+  ppos(i) {
+    const F = this.foot;
+    if (F) { const o = (i - (this.n - 1) / 2) * 0.75; return [F.H + F.u - Math.sin(F.y) * o, F.v + Math.cos(F.y) * o, 1.6]; }
+    return [this.carD - SEATS[i][1], SEAT_LAT[i], SEAT_H];
+  }
+  hospAhead() {
+    for (const h of this.road.hosp) if (!this.hdone.has(h.H) && h.H - 8 - this.carD > -3 && h.H - this.carD < 200) return h;
+    return null;
+  }
+  startFoot(h) {
+    this.carD = h.H - 8; this.speed = 0; this.turboT = 0;
+    for (const e of this.ents) if (e.type === 'zombie' || e.type === 'bat' || PROJ.has(e.type)) e.rm = true;
+    this.foot = { H: h.H, u: -6.5, v: 3, y: 0, i: 1, done: new Set(), wait: null, wt: 0, key: 0, vt: 6, vents: 0 };
+    const dr = this.add('hdoor', { d: h.H + 56, lat: 0, h: 0.2, hp: 999 });
+    dr.x = { o: 0 };
+    this.foot.door = dr.id;
+    // mobiliario que revienta: archivadores, máquinas, mesas, extintores (explotan) y bancadas de sala de espera
+    for (const [u, v, k, ry] of PROPS) { const p = this.add('prop', { d: h.H + u, lat: v, h: k === 3 ? 1.0 : 0.2, ry, hp: [3, 6, 3, 1, 3][k] }); p.x = { k }; }
+    this.emit('banner', { txt: '¡AL HOSPITAL!', sub: 'Bajad del coche: la salida está cerrada con llave', c: '#8aff4a' });
+    this.emit('foot', { on: 1 });
+  }
+  footAlive() { let n = 0; for (const e of this.ents) if ((e.type === 'zombie' || e.type === 'bat') && e.x.f && e.st !== ST.DEAD) n++; return n; }
+  footStep(dt) {
+    const F = this.foot;
+    // rejillas del techo: en la vuelta, de vez en cuando os cae uno delante
+    if (F.vents) {
+      F.vt -= dt;
+      if (F.vt <= 0 && this.footAlive() < 4) {
+        F.vt = 5 + this.r() * 4;
+        const k = 3 + this.r() * 1.5;
+        this.zomb(F.u + Math.cos(F.y) * k, F.v + Math.sin(F.y) * k * 0.4, 0, { fall: 1 });
+        if (once0(this, 'vent')) this.emit('banner', { txt: '¡DE LAS REJILLAS!', sub: 'Caen del techo', c: '#8aff4a' });
+      }
+    }
+    if (F.wait) {
+      F.wt += dt;
+      if (F.wt > 1.2 && F.wait()) { F.wait = null; F.wt = 0; }
+      return;
+    }
+    const P = FOOT[F.i];
+    if (!P) return;
+    const du = P[0] - F.u, dv = P[1] - F.v, dist = Math.hypot(du, dv);
+    if (dist < 0.05) {
+      F.u = P[0]; F.v = P[1];
+      if (P[2] && !F.done.has(F.i)) { F.done.add(F.i); this.footEv(P[2]); }
+      F.i++;
+      return;
+    }
+    const st = Math.min(dist, 3.1 * dt);
+    F.u += du / dist * st; F.v += dv / dist * st;
+    // mira hacia donde anda (girando suave)
+    const ty = Math.atan2(dv, du);
+    let da = ty - F.y; while (da > Math.PI) da -= Math.PI * 2; while (da < -Math.PI) da += Math.PI * 2;
+    F.y += da * Math.min(1, dt * 6);
+  }
+  zomb(u, v, k, o = {}) {
+    const F = this.foot, r = this.r;
+    const e = this.add('zombie', { d: F.H + u, lat: v, h: o.fall ? 3.3 : 0.2, hp: k === 1 ? 7 : k === 2 ? 3 : 2 + (this.diff > 4 ? 1 : 0) });
+    e.x = { k, f: 1, sk: Math.floor(r() * 6), sp: k === 1 ? 0.8 : (o.fast ? 2.4 : 1.2) + r() * 1.0, ph: 0, wait: o.wait || 0, fall: o.fall ? 1 : 0 };
+    e.sh = [k === 2 ? this.shooter(3.4, 'thrown', 1, 5) : this.shooter(k === 1 ? 1.6 : 1.2, 'melee', 0.2)];
+    return e;
+  }
+  horde(n, u0, u1, v0, v1, fast) {
+    const r = this.r;
+    for (let i = 0; i < n; i++) this.zomb(u0 + r() * (u1 - u0), v0 + r() * (v1 - v0), i % 9 === 8 ? 1 : 0, { wait: i * 0.28, fast });
+  }
+  footEv(ev) {
+    const F = this.foot, n = this.nAlive(), clear = () => this.footAlive() === 0;
+    const r = this.r;
+    switch (ev) {
+      case 'lobby':
+        this.horde(4 + n, 6, 12, -8, 5);
+        this.zomb(9.5, -6, 0, { wait: 0.5 });
+        F.wait = clear; break;
+      case 'h1':
+        this.horde(Math.min(30, 9 + 3 * n), 30, 46, 7.6, 9.4, true);
+        this.emit('banner', { txt: '¡HORDA EN EL PASILLO!', sub: 'No se avanza hasta acabar con ellos', c: '#ff4040' });
+        F.wait = clear; break;
+      case 'r1':
+        for (let i = 0; i < 3; i++) this.zomb(15.5 + i * 2, 15.5 + r() * 2, 0, { wait: i * 0.4 });
+        F.wait = clear; break;
+      case 'r2':
+        this.zomb(25.5, 12.5, 0, { fall: 1 }); this.zomb(24.5, 16.5, 1, { wait: 0.6 });
+        this.add('medkit', { d: F.H + 27.8, lat: 17, h: 1.1, hp: 1 }).x = { st: 1.1, life: 999 };
+        F.wait = clear; break;
+      case 'r3':
+        this.zomb(32, 16.5, 0); this.zomb(35, 16.5, 0, { wait: 0.4 }); this.zomb(33.5, 17.4, 2, { wait: 0.3 });
+        F.wait = clear; break;
+      case 'key': {
+        const k = this.add('key', { d: F.H + 43.4, lat: 16.6, h: 1.25, hp: 1 });
+        k.x = {};
+        this.zomb(40, 16.8, 0, { wait: 0.3 });
+        this.emit('banner', { txt: '¡LA LLAVE!', sub: 'Dispárale para cogerla', c: '#ffe14a' });
+        F.wait = () => F.key && clear(); break;
+      }
+      case 'back': F.vents = 1; F.vt = 2.5; break;
+      case 'h2':
+        this.horde(Math.min(30, 10 + 4 * n), 6, 16, 7.6, 9.4, true);
+        this.emit('banner', { txt: '¡VIENEN POR DETRÁS!', sub: '', c: '#ff4040' });
+        F.wait = clear; break;
+      case 'h3':
+        this.horde(Math.min(30, 16 + 5 * n), 30, 52, -1.6, 1.6, true);
+        this.zomb(48, 0.8, 2, { wait: 1 }); this.zomb(50, -0.8, 1, { wait: 2 });
+        this.emit('banner', { txt: '¡LA GRAN HORDA!', sub: 'Aguantad', c: '#ff4040' });
+        F.wait = clear; break;
+      case 'open': {
+        F.vents = 0;
+        const d = this.map.get(F.door); if (d) d.x.o = 1;
+        this.carD = F.H + 70;
+        this.emit('banner', { txt: '¡ABIERTO!', sub: 'Corred al coche', c: '#8aff4a' });
+        this.emit('fx', { f: 'spark', w: this.wpos(F.H + 55.8, 0, 1.3) });
+        break;
+      }
+      case 'board': {
+        this.hdone.add(F.H);
+        this.foot = null; this.speed = 0;
+        this.emit('foot', { on: 0 });
+        this.spawnBrute();
+        break;
+      }
+    }
+  }
+  spawnBrute() {
+    const e = this.add('brute', { d: this.carD + 9.5, lat: LANE_ME, h: 0.18, hp: 240 + 80 * this.nAlive() });
+    e.x = { a: 0, ph: 0, t: 5, mh: 0, ht: 4, bt: 1 };
+    e.sh = [{ alive: true, fireMax: 9, fireT: 9, tgt: 0, on: false, r: 0, kind: 'impact' }];
+    this.emit('banner', { txt: '¡EL CARNICERO!', sub: 'Cuando levante la maza, dispárale a la maza', c: '#8aff4a' });
+  }
+  // calle: hordas, gordos, escupidores y murciélagos
+  zombieDir(dt) {
+    if (this.foot || this.has('brute')) return;
+    const h = this.hospAhead();
+    if (h && h.H - this.carD < 130) return;
+    const r = this.r, kk = this.spk(), n = this.nAlive();
+    if (this.timer('zh', dt, 2.4) && this.count('zombie') < 12 + 4 * n) {
+      const base = this.carD + (50 + r() * 35) * kk, m = 3 + Math.floor(r() * (3 + this.diff * 0.4));
+      for (let i = 0; i < m; i++) this.zstreet(base + i * 1.8 + r() * 3, (r() - 0.5) * 20, 0, i * 0.25);
+    }
+    if (this.timer('zf', dt, 9)) {
+      this.zstreet(this.carD + (60 + r() * 20) * kk, LANE_ME + (r() - 0.5) * 3, 1, 0);
+      if (once0(this, 'zfat')) this.emit('banner', { txt: '¡GORDOS!', sub: 'Si llegan al coche, os paran en seco', c: '#8aff4a' });
+    }
+    if (this.runT > 8 && this.timer('zs', dt, 7)) {
+      const sd = r() < 0.5 ? -1 : 1;
+      this.zstreet(this.carD + (55 + r() * 25) * kk, sd * (WALK - 0.8), 2, 0);
+      if (once0(this, 'zspit')) this.emit('banner', { txt: '¡ESCUPIDORES!', sub: 'Revienta las babas en el aire', c: '#8aff4a' });
+    }
+    if (this.runT > 15 && this.timer('zbat', dt, 12) && this.count('bat') < 4) {
+      for (let i = 0, m = 3 + (r() < 0.5 ? 1 : 0); i < m; i++) this.spawnBat(i);
+      if (once0(this, 'zbats')) this.emit('banner', { txt: '¡MURCIÉLAGOS!', sub: '', c: '#c080ff' });
+    }
+    if (this.timer('zbar', dt, 13)) {
+      const d = this.carD + (70 + r() * 20) * kk, sd = r() < 0.5 ? -1 : 1;
+      for (let i = 0; i < 2; i++) this.add('barrel', { d: d + i * 1.2, lat: sd * (3 + r() * 3), h: 0.02, hp: 1 });
+    }
+  }
+  zstreet(d, lat, k, wait) {
+    const r = this.r;
+    const e = this.add('zombie', { d, lat, h: Math.abs(lat) > HALF ? 0.18 : 0.02, hp: k === 1 ? 6 : k === 2 ? 3 : 2 + (this.diff > 4 ? 1 : 0) });
+    e.x = { k, f: 0, sk: Math.floor(r() * 6), sp: k === 1 ? 0.7 : 0.8 + r() * 1.4, ph: 0, wait, side: Math.sign(lat - LANE_ME) || 1 };
+    e.sh = [k === 2 ? this.shooter(3.4, 'thrown', 1, 5) : this.shooter(1.2, 'melee', 0.2)];
+    if (k !== 2) e.sh[0].tgt = -1;
+    return e;
+  }
+  spawnBat(i) {
+    const r = this.r;
+    const e = this.add('bat', { d: this.carD + 45 + i * 4, lat: (r() - 0.5) * 14, h: 7 + r() * 3, hp: 1 });
+    e.x = { ph: 0, t: 1.5 + r() * 2 + i * 0.6, sd: r() < 0.5 ? -1 : 1, life: 22, f: this.foot ? 1 : 0, tg: this.pickTgt() };
+    e.sh = [this.shooter(1.0, 'melee', 0)];
+  }
   snapshot() {
     return {
       t: 's', st: r2(this.t), d: r2(this.carD), sp: r2(this.speed), cd: this.phase === 'count' ? r2(this.countT) : -1,
@@ -1288,6 +1489,7 @@ export class Sim {
       p: this.players.map(P => [P.hp, P.score, P.alive ? 1 : 0, P.inv > 0 ? 1 : 0, r2(P.ly), r2(P.lp), P.gone ? 1 : 0, P.maxHp, P.shieldT > 0 ? 1 : 0, P.poison > 0 ? 1 : 0]),
       sl: this.slowT > 0 ? 1 : 0, mu: r2(this.ptsMult()), sn: this.stunT > 0 || this.hold ? 1 : 0,
       cu: [this.maxMeta('pinchos'), this.maxMeta('torreta')], tb: this.turboT > 0 && !this.hold && this.stunT <= 0 ? 1 : 0, sm: this.smokeT > 0 ? 1 : 0,
+      fo: this.foot ? [r2(this.foot.H + this.foot.u), r2(this.foot.v), r2(this.foot.y)] : 0,
     };
   }
 }
@@ -1325,6 +1527,11 @@ function ser(e) {
     case 'crew': x = { v: X.v, gd: X.gd, td: X.td, out: X.out }; break;
     case 'mine': x = { sp: X.sp }; break;
     case 'xcar': x = { c: X.c }; break;
+    case 'zombie': x = { k: X.k, sk: X.sk, ph: X.ph, fall: X.fall ? 1 : 0, f: X.f }; break;
+    case 'bat': x = { ph: X.ph }; break;
+    case 'brute': x = { ph: X.ph }; break;
+    case 'hdoor': x = { o: X.o }; break;
+    case 'prop': x = { k: X.k }; break;
   }
   if (e.hm) { x = x || {}; x.hm = e.hm; }
   return [e.id, TI[e.type], r2(e.d), r2(e.lat), r2(e.h), r2(e.ry), Math.round(e.hp * 10) / 10, e.st, sh, x];
@@ -1588,6 +1795,7 @@ const U = {
   },
   medkit(e, dt, S) {
     const rel = S.rel(e), x = e.x;
+    if (x.st) { e.vd = 0; e.h = x.st + Math.sin(e.age * 2.5) * 0.12; return; }
     x.life -= dt;
     e.vd = S.speed + clamp((x.tr - rel) * 2, -8, 20);
     e.lat += (x.tl - e.lat) * Math.min(1, dt * 1.5);
@@ -1900,6 +2108,160 @@ const U = {
     } else { e.h -= dt * 1.5; e.vd = S.speed * 0.5; if (e.deadT > 1.5) e.rm = true; }
   },
   whale(e, dt, S) { if (S.rel(e) < -120) e.rm = true; },
+  zombie(e, dt, S) {
+    const x = e.x;
+    if (e.st === ST.DEAD) { e.vd = 0; e.h = Math.max(x.f ? 0.2 : 0.02, e.h - dt * 3); if (e.deadT > 3) e.rm = true; return; }
+    if (x.f) {
+      // dentro del hospital: van a por el jugador más cercano
+      if (x.fall) { e.h -= dt * 7; if (e.h <= 0.2) { e.h = 0.2; x.fall = 0; } return; }
+      if (x.wait > 0) { x.wait -= dt; return; }
+      let t = -1, bd = 1e9, P = null;
+      for (const i of S.alivePlayers()) { const q = S.ppos(i), dd = Math.hypot(q[0] - e.d, q[1] - e.lat); if (dd < bd) { bd = dd; t = i; P = q; } }
+      if (t < 0) return;
+      const dd = P[0] - e.d, dl = P[1] - e.lat;
+      e.ry = Math.atan2(-dl, dd);
+      e.sh[0].tgt = t;
+      if (x.k === 2) { S.tick(e, dt, bd < 26); return; }
+      if (bd > 2.0) { const st = Math.min(bd - 1.95, x.sp * dt); e.d += dd / bd * st; e.lat += dl / bd * st; }
+      // no se amontonan: se apartan unos de otros
+      for (const o of S.ents) if (o !== e && o.type === 'zombie' && o.x.f && o.st !== ST.DEAD) {
+        const ad = e.d - o.d, al = e.lat - o.lat, q = Math.hypot(ad, al);
+        if (q < 0.85 && q > 0.001) { const k = (0.85 - q) * 0.5; e.d += ad / q * k; e.lat += al / q * k; }
+      }
+      S.tick(e, dt, bd < 2.6);
+      return;
+    }
+    const rel = S.rel(e);
+    if (x.ph === 2) {
+      // agarrado al coche: pega hasta que lo bajes
+      e.d = S.carD + x.off; e.vd = 0; e.lat = x.lt; e.h = 1.25;
+      e.ry = x.sp2 === 1 ? -Math.PI / 2 : x.sp2 === 2 ? Math.PI / 2 : x.rr ? 0 : Math.PI;
+      if (!S.players[x.tg] || !S.players[x.tg].alive) { e.st = ST.DEAD; e.deadT = 0; return; }
+      e.sh[0].tgt = x.tg;
+      S.tick(e, dt, true);
+      return;
+    }
+    if (x.ph === 1) {
+      x.jt += dt;
+      const u = clamp(x.jt / 0.6, 0, 1);
+      e.d = S.carD + lerp(x.d0, x.off, u); e.vd = 0;
+      e.lat = lerp(x.l0, x.lt, u); e.h = lerp(x.h0, 1.25, u) + 2.2 * u * (1 - u);
+      if (u >= 1) x.ph = 2;
+      return;
+    }
+    if (x.wait > 0) { x.wait -= dt; return; }
+    e.vd = 0;
+    e.ry = faceCar(e, S);
+    if (x.k === 2) {
+      // escupidor: quieto en la acera, lanza babas
+      S.tick(e, dt, !S.voting && rel < 60 && rel > 6);
+      if (rel < -20) e.rm = true;
+      return;
+    }
+    // andan hacia el coche (también cuando está parado)
+    const tl = LANE_ME + x.side * 1.3;
+    e.lat += clamp(tl - e.lat, -x.sp * dt, x.sp * dt);
+    if (Math.abs(rel) > 1.5) e.d -= Math.sign(rel) * x.sp * 0.6 * dt;
+    e.h = Math.abs(e.lat) > HALF ? 0.18 : 0.02;
+    if (rel < 4.5 && rel > -3.5 && Math.abs(e.lat - LANE_ME) < 3.3) {
+      if (x.k === 1) {
+        // gordo: os para en seco y revienta
+        S.speed *= 0.3; S.stunT = Math.max(S.stunT, 1.2);
+        S.emit('crash', { soft: 1 });
+        for (const i of S.alivePlayers()) { S.players[i].inv = 0; S.hurt(i, 0, 'crash'); }
+        S.emit('banner', { txt: '¡EL GORDO OS PARA!', sub: '', c: '#8aff4a' });
+        S.kill(e, -1, true);
+        return;
+      }
+      let on = 0;
+      for (const o of S.ents) if (o.type === 'zombie' && o.st === ST.ALIVE && o.x.ph >= 1 && !o.x.f) on++;
+      if (on < 1 + S.nAlive()) {
+        // se tira encima del coche: capó, laterales o maletero
+        const spot = rel > 2.5 ? 0 : rel < -2 ? 3 : (e.lat < LANE_ME ? 1 : 2);
+        const off = [2.3, 0.6, 0.6, -3.1][spot], lt = LANE_ME + [0, -1.45, 1.45, 0][spot] + (spot === 0 || spot === 3 ? (S.r() - 0.5) : 0);
+        let t = -1, bd = 1e9;
+        for (const i of S.alivePlayers()) { const q = Math.abs(SEATS[i][1] + off) + Math.abs(SEATS[i][0] - (lt - LANE_ME)); if (q < bd) { bd = q; t = i; } }
+        if (t >= 0) { x.ph = 1; x.jt = 0; x.tg = t; x.rr = spot === 3 ? 1 : 0; x.sp2 = spot; x.d0 = rel; x.l0 = e.lat; x.h0 = e.h; x.off = off; x.lt = lt; return; }
+      }
+      if (S.speed > 3 && Math.abs(rel) < 2.5) { S.emit('fx', { f: 'splat', w: S.wpos(e.d, e.lat, 0.8) }); S.kill(e, -1, true); return; }
+    }
+    if (rel < -25) e.rm = true;
+  },
+  bat(e, dt, S) {
+    const x = e.x, s = e.sh[0];
+    if (e.st === ST.DEAD) { e.vd = 0; e.h = Math.max(0.1, e.h - dt * 9); if (e.deadT > 2) e.rm = true; return; }
+    if (!S.players[x.tg] || !S.players[x.tg].alive) x.tg = S.pickTgt();
+    if (x.tg < 0) return;
+    const P = S.ppos(x.tg);
+    e.vd = 0; e.d += S.speed * dt;
+    x.life -= dt;
+    let g;
+    if (x.life <= 0) { e.h += dt * 6; e.d += 10 * dt; if (x.life < -3) e.rm = true; s.on = false; return; }
+    if (x.ph === 0) {
+      g = [P[0] + 8 + Math.sin(e.age * 1.7 + e.id) * 2.5, P[1] + x.sd * 4 + Math.sin(e.age * 1.3) * 2, P[2] + 2.5 + Math.sin(e.age * 5) * 0.5];
+      x.t -= dt; if (x.t <= 0) { x.ph = 1; x.t = 1.2; }
+      s.on = false;
+    } else if (x.ph === 1) {
+      g = [P[0] + 1.3, P[1] + x.sd * 0.3, P[2] + 0.15];
+      x.t -= dt;
+      if (x.t <= 0 || Math.hypot(g[0] - e.d, g[1] - e.lat) < 0.7) { x.ph = 2; x.t = 1.6; s.fireT = s.fireMax; }
+    } else {
+      g = [P[0] + 1.2, P[1] + Math.sin(e.age * 7) * 0.3, P[2] + 0.15 + Math.sin(e.age * 9) * 0.1];
+      s.tgt = x.tg;
+      S.tick(e, dt, true);
+      x.t -= dt; if (x.t <= 0) { x.ph = 0; x.t = 2 + S.r() * 2; x.sd = -x.sd; }
+    }
+    const k = Math.min(1, dt * (x.ph === 0 ? 2 : 5));
+    e.d += (g[0] - e.d) * k; e.lat += (g[1] - e.lat) * k; e.h += (g[2] - e.h) * k;
+    e.ry = Math.atan2(-(P[1] - e.lat), P[0] - e.d);
+  },
+  brute(e, dt, S) {
+    const x = e.x, s = e.sh[0];
+    if (e.st === ST.DEAD) { s.on = false; if (e.deadT > 9) e.rm = true; return; }
+    const R = 9.5;
+    x.a += dt * (x.ph === 0 ? 0.22 : 0.03);
+    e.d = S.carD + Math.cos(x.a) * R; e.lat = LANE_ME + Math.sin(x.a) * R;
+    e.ry = Math.atan2(-(LANE_ME - e.lat), S.carD - e.d);
+    x.t -= dt;
+    if (x.ph === 0) {
+      s.on = false; s.r = 0;
+      if (x.t <= 0) { x.ph = 1; x.t = 2.6; x.mh = 0; S.emit('banner', { txt: '¡VA A GOLPEAR EL SUELO!', sub: 'Dispara a la maza', c: '#ff4040' }); }
+    } else if (x.ph === 1) {
+      s.on = true; s.r = clamp(1 - x.t / 2.6, 0, 1); s.tgt = S.pickTgt();
+      if (x.mh >= 5 + 2 * S.nAlive()) { x.ph = 2; x.t = 3; S.emit('banner', { txt: '¡LE HAS PARADO EL GOLPE!', sub: '', c: '#7dff8a' }); }
+      else if (x.t <= 0) {
+        // golpe: cascada de ácido que os alcanza a todos
+        x.ph = 0; x.t = 6 + S.r() * 3;
+        S.emit('fx', { f: 'acid', w: S.wpos(e.d, e.lat, 0.3), s: 3 });
+        S.emit('fx', { f: 'acid', w: S.wpos(S.carD, LANE_ME, 1), s: 2 });
+        S.emit('crash', {});
+        for (const i of S.alivePlayers()) { S.players[i].inv = 0; S.hurt(i, 1, 'exp'); }
+        S.emit('banner', { txt: '¡CASCADA DE ÁCIDO!', sub: '', c: '#8aff4a' });
+      }
+    } else { s.on = false; s.r = 0; if (x.t <= 0) { x.ph = 0; x.t = 4 + S.r() * 2; } }
+    // hordas mientras tanto
+    x.ht -= dt;
+    if (x.ht <= 0) {
+      x.ht = 8;
+      if (S.count('zombie') < 10 + 2 * S.nAlive()) for (let i = 0, m = 3 + S.nAlive(); i < m; i++) {
+        const a = S.r() * Math.PI * 2, rr = 22 + S.r() * 8;
+        S.zstreet(S.carD + Math.max(-8, Math.cos(a) * rr), LANE_ME + Math.sin(a) * rr * 0.6, i === 0 && S.r() < 0.3 ? 2 : 0, i * 0.3);
+      }
+    }
+    // bidones en su camino: revientan y le hacen mucho daño
+    x.bt -= dt;
+    if (x.bt <= 0) {
+      x.bt = 15;
+      if (S.count('barrel') < 3) for (let i = 0; i < 2; i++) {
+        const a = x.a + 0.9 + i * 0.25;
+        S.add('barrel', { d: S.carD + Math.cos(a) * R, lat: LANE_ME + Math.sin(a) * R, h: 0.02, hp: 1 });
+      }
+      if (once0(S, 'bruteBar')) S.emit('banner', { txt: '¡BIDONES!', sub: 'Revienta los que tenga cerca', c: '#ffb020' });
+    }
+  },
+  key(e, dt, S) { e.vd = 0; if (!S.foot && e.age > 2) e.rm = true; },
+  prop(e, dt, S) { e.vd = 0; if (!S.foot && S.rel(e) < -40) e.rm = true; },
+  hdoor(e, dt, S) { e.vd = 0; if (!S.foot && S.rel(e) < -60) e.rm = true; },
   rock(e, dt, S) { proj(e, dt, S); },
   grenade(e, dt, S) { proj(e, dt, S); },
   rocket(e, dt, S) { proj(e, dt, S); },
@@ -1909,17 +2271,17 @@ const U = {
 function proj(e, dt, S) {
   const x = e.x, s = e.sh[0];
   const u = clamp(e.age / x.T, 0, 1);
-  const tgtLat = x.tgt >= 0 ? SEAT_LAT[x.tgt] : LANE_ME;
-  e.d = lerp(x.d0, S.carD - (x.tgt >= 0 ? SEATS[x.tgt][1] : 0.8) - 1.2, u);
-  e.lat = lerp(x.l0, tgtLat, u);
-  e.h = lerp(x.h0, SEAT_H, u) + x.ar * 4 * u * (1 - u);
+  const P = S.ppos(Math.max(0, x.tgt));
+  e.d = lerp(x.d0, P[0] - (S.foot ? 0.6 : 1.2), u);
+  e.lat = lerp(x.l0, P[1], u);
+  e.h = lerp(x.h0, P[2], u) + x.ar * 4 * u * (1 - u);
   e.ry += dt * 8;
   s.fireT = x.T - e.age; s.r = u; s.on = true;
   if (u >= 1) {
     e.rm = true;
     // granada de humo: ciega a todos unos segundos
     if (e.type === 'thrown' && x.v === 4) { S.smokeT = 4.5; S.emit('smoke', { dur: 4.5 }); return; }
-    S.emit('fx', { f: e.type === 'thrown' ? 'splat' : 'boom', w: S.wpos(e.d, e.lat, e.h), s: 0.6 });
+    S.emit('fx', { f: e.type === 'thrown' ? (x.v === 5 ? 'acid' : 'splat') : 'boom', w: S.wpos(e.d, e.lat, e.h), s: 0.6 });
     if (x.tgt >= 0) S.hurt(x.tgt, e.type === 'grenade' || e.type === 'rocket' ? 1 : 0, 'exp');
   }
 }
@@ -2004,6 +2366,14 @@ const HIT = {
   grenade(e, p, part, dmg, S) { S.kill(e, p); },
   rocket(e, p, part, dmg, S) { S.kill(e, p); },
   thrown(e, p, part, dmg, S) { S.kill(e, p); },
+  zombie(e, p, part, dmg, S) { S.damage(e, p, part === 'head' ? dmg * 2 : dmg); },
+  bat(e, p, part, dmg, S) { S.kill(e, p); },
+  brute(e, p, part, dmg, S) {
+    if (part === 'mace') { if (e.x.ph === 1) { e.x.mh += dmg; S.emit('fx', { f: 'spark', w: S.wpos(e.d, e.lat, 4) }); } return; }
+    S.damage(e, p, part === 'head' ? dmg * 1.5 : dmg);
+  },
+  key(e, p, part, dmg, S) { S.kill(e, p); },
+  prop(e, p, part, dmg, S) { e.hp -= dmg; S.emit('fx', { f: 'spark', w: S.wpos(e.d, e.lat, e.h + 0.6) }); if (e.hp <= 0) S.kill(e, p); },
   barrel(e, p, part, dmg, S) { S.kill(e, p); },
   // cisterna: si le das, revienta... y si está cerca os pilla
   fuel(e, p, part, dmg, S) {
@@ -2198,6 +2568,32 @@ function dropWeapon(e, S, extraTier = 0) {
 }
 
 const KILL = {
+  zombie(e, p, S) {
+    // el gordo revienta en ácido: si estáis cerca, os salpica
+    if (e.x.k === 1) {
+      S.emit('fx', { f: 'acid', w: S.wpos(e.d, e.lat, 1), s: 1.5 });
+      if (S.foot) for (const i of S.alivePlayers()) { const q = S.ppos(i); if (Math.hypot(q[0] - e.d, q[1] - e.lat) < 2.6) S.hurt(i, 0, 'exp'); }
+    } else S.emit('fx', { f: 'splat', w: S.wpos(e.d, e.lat, 1.2) });
+  },
+  bat(e, p, S) { S.emit('fx', { f: 'splat', w: S.wpos(e.d, e.lat, e.h) }); },
+  brute(e, p, S) {
+    S.emit('fx', { f: 'acid', w: S.wpos(e.d, e.lat, 2), s: 4 });
+    S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 2), s: 2 });
+    S.emit('banner', { txt: '¡EL CARNICERO HA CAÍDO!', sub: '¡Arrancamos!', c: '#7dff8a' });
+    for (const o of S.ents) if (o.type === 'zombie' && o.st !== ST.DEAD) { o.st = ST.DEAD; o.deadT = 0; }
+  },
+  prop(e, p, S) {
+    const k = e.x.k, w = S.wpos(e.d, e.lat, e.h + 0.6);
+    // el extintor revienta: nube blanca y onda que tumba a los zombis de alrededor
+    if (k === 3) { S.emit('fx', { f: 'ext', w }); S.explode(e.d, e.lat, e.h, 3.4, p, e); }
+    else S.emit('fx', { f: k === 1 ? 'vend' : 'rock', w });
+  },
+  key(e, p, S) {
+    e.rm = true;
+    if (S.foot) S.foot.key = 1;
+    S.emit('fx', { f: 'heal', w: S.wpos(e.d, e.lat, e.h) });
+    S.emit('banner', { txt: '¡TENÉIS LA LLAVE!', sub: 'Volved a la puerta de salida', c: '#ffe14a' });
+  },
   barrel(e, p, S) { S.explode(e.d, e.lat, e.h + 0.6, 6, p, e); e.rm = true; },
   grenade(e, p, S) { e.rm = true; S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, e.h), s: 0.5 }); },
   rocket(e, p, S) { e.rm = true; S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, e.h), s: 0.6 }); },

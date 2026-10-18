@@ -30,7 +30,7 @@ export class Fx {
       fire: M.glow(0xff9a2a), hot: M.glow(0xffe070), spark: M.glow(0xfff2a0),
       smoke: new THREE.MeshLambertMaterial({ color: 0x5a5a5a, transparent: true, opacity: 0.75 }),
       dsmoke: new THREE.MeshLambertMaterial({ color: 0x222222, transparent: true, opacity: 0.8 }),
-      debris: M.mat(0x2a2a2a), feather: M.mat(0xf6f6f0), heal: M.glow(0x50ff90), dust: M.mat(0xb0a890),
+      debris: M.mat(0x2a2a2a), feather: M.mat(0xf6f6f0), heal: M.glow(0x50ff90), acid: M.glow(0x8aff3a), acid2: M.glow(0x4ac81a), dust: M.mat(0xb0a890),
       shell: M.mat(0xd8a830), shellR: M.mat(0xc02a20),
     };
   }
@@ -97,6 +97,7 @@ export class Fx {
   dust(pos) { for (let i = 0; i < 4; i++) this.part(pos, this.rnd(2).clone().setY(1 + Math.random()), 0.4, 0.12, this.m.dust, 3, 1); }
   smoke(pos, dark) { this.part(pos, V2.set((Math.random() - 0.5), 2 + Math.random() * 2, (Math.random() - 0.5)).clone(), 1.3, 0.6 + Math.random() * 0.4, dark ? this.m.dsmoke : this.m.smoke, -0.5, 2.5); }
   feathers(pos) { for (let i = 0; i < 14; i++) this.part(pos, this.rnd(5).clone().setY(1 + Math.random() * 3), 1.4 + Math.random(), 0.12, this.m.feather, 2.5, 0); }
+  acid(pos, s = 1) { for (let i = 0; i < 18 * Math.min(3, s); i++) this.part(pos, this.rnd(4 * s).clone().setY(2 + Math.random() * 5 * Math.min(2, s)), 0.8 + Math.random() * 0.5, 0.18 + Math.random() * 0.2 * s, i % 2 ? this.m.acid : this.m.acid2, 9, 0.6); }
   heal(pos) { for (let i = 0; i < 16; i++) this.part(pos, this.rnd(5).clone(), 0.7, 0.16, this.m.heal, -3, 0); }
   // trazada de bala: un cilindro fino brillante (las líneas de WebGL siempre miden 1 píxel)
   tracer(a, b, col = 0xfff2a0, t = 0.06, w = 0.018) {
@@ -161,7 +162,7 @@ const CIV = [0xf0c040, 0x40a0f0, 0xf06080, 0x60d080, 0xffffff, 0xff8030, 0xa070f
 const SKIN = [0xd9a476, 0xb27a4e, 0xf0c8a0, 0x7a5030];
 // enemigos más grandes: más fáciles de ver y de acertar en el móvil
 const SCALE = { gunman: 1.35, civilian: 1.3, sniper: 1.5, moto: 1.2, drone: 1.8, chicken: 1.4, grenade: 1.7, rocket: 1.5, medkit: 1.3, barrel: 1.2, jeep: 1.1, lady: 1.3, rock: 1.3,
-  sign: 1.45, harvester: 1.9, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2, beast: 1.35, bear: 1.5, jelly: 1.4, mine: 1.2 };
+  sign: 1.45, harvester: 1.9, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2, beast: 1.35, bear: 1.5, jelly: 1.4, mine: 1.2, zombie: 1.3, bat: 1.5, key: 2.2 };
 // cosas que no paran las balas
 const NOHIT = new Set(['tlight', 'preview', 'whale']);
 // sombra suave (mancha difuminada en el suelo) bajo coches, personas y animales: barata y estable
@@ -174,7 +175,7 @@ const BLOBT = (() => {
 })();
 const BLOBM = new THREE.MeshBasicMaterial({ map: BLOBT, transparent: true, depthWrite: false, opacity: 0.8, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
 const BLOBG = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
-const NOBLOB = new Set(['sign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
+const NOBLOB = new Set(['bat', 'key', 'hdoor', 'prop', 'sign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
 const _bb = new THREE.Box3(), _bs = new THREE.Vector3();
 export function addBlob(g, k = 1.15) {
   _bb.setFromObject(g); _bb.getSize(_bs);
@@ -194,6 +195,7 @@ const MASK = {
   beast: LAYER_ENEMY, bear: LAYER_ENEMY, mine: LAYER_ENEMY, jet: LAYER_ENEMY, blimp: LAYER_ENEMY, rammer: LAYER_ENEMY, junk: LAYER_ENEMY, jelly: LAYER_ENEMY,
   quad: LAYER_ENEMY, crew: LAYER_ENEMY, harvester: LAYER_ENEMY, xcar: LAYER_KEEP, pickup: LAYER_ENEMY, van: LAYER_ENEMY, bus: LAYER_ENEMY, canoe: LAYER_ENEMY,
   jumper: LAYER_ENEMY, tank: LAYER_ENEMY, rig: LAYER_ENEMY, rioter: LAYER_ENEMY, thrown: LAYER_ENEMY, chef: LAYER_ENEMY, boat: LAYER_ENEMY, mtrain: LAYER_ENEMY,
+  zombie: LAYER_ENEMY, bat: LAYER_ENEMY, brute: LAYER_ENEMY, key: LAYER_KEEP, hdoor: LAYER_KEEP, prop: LAYER_KEEP,
   preview: LAYER_KEEP, police: LAYER_KEEP, tlight: LAYER_KEEP, fuel: LAYER_KEEP, float: LAYER_KEEP,
   sign: LAYER_KEEP, weapon: LAYER_KEEP, medkit: LAYER_KEEP, amb: LAYER_KEEP, truck: LAYER_KEEP, barrel: LAYER_KEEP, lady: LAYER_KEEP, civilian: LAYER_KEEP, chicken: LAYER_KEEP,
 };
@@ -384,6 +386,12 @@ export class View {
       case 'gunship': g = M.gunship(); break;
       case 'train': g = M.train(); break;
       case 'lady': g = M.lady(x.sk || 0); break;
+      case 'zombie': g = M.zombie(x.k || 0, x.sk || 0); break;
+      case 'bat': g = M.bat(); break;
+      case 'brute': g = M.brute(); break;
+      case 'key': g = M.keyItem(); break;
+      case 'hdoor': g = M.hdoor(); break;
+      case 'prop': g = M.prop(x.k || 0); break;
       default: g = new THREE.Group();
     }
     const L = MASK[e.type];
@@ -395,6 +403,7 @@ export class View {
     });
     const sc = SCALE[e.type];
     if (sc) g.scale.setScalar(sc);
+    if (e.type === 'zombie' && x.k === 1) g.scale.setScalar(x.f ? 1.45 : 1.65);
     g.traverse(m => { if (m.isMesh) { m.castShadow = false; m.receiveShadow = true; } });
     if (!NOBLOB.has(e.type) && (e.h || 0) < 0.6) { const sc0 = g.scale.x; g.scale.setScalar(1); g.rotation.set(0, 0, 0); g.position.set(0, 0, 0); addBlob(g); g.scale.setScalar(sc0); }
     g.userData.eid = e.id;
@@ -520,6 +529,57 @@ function personAnim(o, e, dt, ctx, V) {
 }
 
 const ANIM = {
+  zombie(o, e, dt, ctx) {
+    const rig = o.userData.p.userData.rig, x = e.x || {};
+    if (e.st === ST.DEAD) { rig.body.rotation.x = Math.min(1.5, (o.userData.dt || 0) * 4); rig.body.position.y = 0; return; }
+    const w = ctx.t * 6 + e.id;
+    if (x.ph === 2) {
+      // agarrado al coche
+      rig.body.position.y = -0.55; rig.body.rotation.x = 0.35;
+      const k = Math.sin(ctx.t * 12 + e.id);
+      rig.armR.rotation.set(1.5 + k * 0.6, 0, 0); rig.armL.rotation.set(1.5 - k * 0.6, -0.2, 0);
+      return;
+    }
+    const s = e.sh && e.sh[0], at = s && s.on ? s.r : 0;
+    rig.body.rotation.x = 0.12 + at * 0.3;
+    rig.body.rotation.z = Math.sin(w * 0.5) * 0.08;
+    rig.body.position.y = Math.abs(Math.sin(w)) * 0.05;
+    rig.armR.rotation.set(1.45 + Math.sin(w) * 0.15 + at * 0.8, 0, 0); rig.armL.rotation.set(1.3 - Math.sin(w) * 0.15 + at * 0.8, -0.15, 0);
+    if (x.k === 2 && at > 0) rig.torso.rotation.x = -at * 0.4; else rig.torso.rotation.x = 0;
+  },
+  bat(o, e, dt, ctx) {
+    const ud = o.userData;
+    if (e.st === ST.DEAD) { ud.body.rotation.z = Math.min(2.5, (ud.dt || 0) * 6); return; }
+    const f = Math.sin(ctx.t * 26 + e.id) * 0.8;
+    ud.wings[0].rotation.z = f; ud.wings[1].rotation.z = -f;
+  },
+  brute(o, e, dt, ctx) {
+    const ud = o.userData, x = e.x || {};
+    if (e.st === ST.DEAD) { ud.body.rotation.x = Math.min(1.5, (ud.dt || 0) * 1.2); return; }
+    const w = ctx.t * 3;
+    ud.body.position.y = Math.abs(Math.sin(w)) * 0.12;
+    ud.body.rotation.z = Math.sin(w * 0.5) * 0.05;
+    const s = e.sh && e.sh[0];
+    if (x.ph === 1) { const r = s ? s.r : 0; ud.armR.rotation.x = 0.6 + Math.min(1, r * 2) * 2.4; ud.torso.rotation.x = -0.2 * r; ud.mh.material = r > 0.5 && Math.floor(ctx.t * 8) % 2 ? M.glow(0xff4040) : M.mat(0x4a4a52); }
+    else if (x.ph === 2) { ud.armR.rotation.x = 0.2; ud.torso.rotation.x = 0.35 + Math.sin(ctx.t * 9) * 0.05; ud.mh.material = M.mat(0x4a4a52); }
+    else { ud.armR.rotation.x = 0.6 + Math.sin(w) * 0.2; ud.torso.rotation.x = 0; ud.mh.material = M.mat(0x4a4a52); }
+    ud.armL.rotation.x = 0.9 - Math.sin(w) * 0.2;
+  },
+  key(o, e, dt) { o.userData.k.rotation.y += dt * 2.5; },
+  prop(o, e) {
+    // reventado: se vuelca (el extintor desaparece)
+    const k = e.x ? e.x.k : 0, t = o.userData.dt || 0;
+    if (e.st !== ST.DEAD) return;
+    if (k === 3) { o.visible = false; return; }
+    o.userData.b.rotation.x = Math.min(k === 1 ? 1.45 : k === 2 ? 0.5 : 1.5, t * 4); o.userData.b.position.y = k === 2 ? -0.2 : 0;
+    if (o.userData.lit) o.userData.lit.visible = false;
+  },
+  hdoor(o, e, dt) {
+    const ud = o.userData, op = e.x && e.x.o;
+    ud.lock.visible = !op;
+    const a = op ? Math.min(1.5, (ud.op = (ud.op || 0) + dt * 1.6)) : 0;
+    ud.leaves[0].rotation.y = a; ud.leaves[1].rotation.y = -a;
+  },
   harvester(o, e, dt, ctx, V) {
     const r = o.userData.reel; if (r) r.rotation.x += dt * (e.st === ST.DEAD ? 0.5 : 6);
     if (e.st === ST.DEAD) o.rotation.z = Math.min(0.25, (o.userData.dt || 0) * 0.2);

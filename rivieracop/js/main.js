@@ -259,7 +259,7 @@ class Mirror {
       });
     }
     const players = b.p.map(q => ({ hp: q[0], score: q[1], alive: !!q[2], inv: q[3], ly: q[4], lp: q[5], gone: !!q[6], maxHp: q[7] || 10, shield: !!q[8], poison: !!q[9] }));
-    return { carD, ents, players, cd: b.cd, sp: b.sp, sl: b.sl, mu: b.mu, sn: b.sn, cu: b.cu, tb: b.tb, sm: b.sm };
+    return { carD, ents, players, cd: b.cd, sp: b.sp, sl: b.sl, mu: b.mu, sn: b.sn, cu: b.cu, tb: b.tb, sm: b.sm, fo: b.fo };
   }
 }
 
@@ -538,6 +538,9 @@ function handleEvent(ev) {
       else if (ev.f === 'feathers') { fx.feathers(p); SFX.cluck(); }
       else if (ev.f === 'heal') fx.heal(p);
       else if (ev.f === 'cluck') SFX.cluck();
+      else if (ev.f === 'ext') { for (let i = 0; i < 22; i++) fx.part(p, fx.rnd(6).clone(), 1.1 + Math.random() * 0.6, 0.35 + Math.random() * 0.3, fx.m.feather, -0.5, 4); fx.boom(p, 0.5); SFX.boom(dist); if (dist < 8) G.shake = Math.max(G.shake, 0.3); }
+      else if (ev.f === 'vend') { fx.sparks(p, 24); fx.sparks(p, 12, fx.m.heal); fx.dust(p); SFX.boom(dist + 6); }
+      else if (ev.f === 'acid') { fx.acid(p, ev.s || 1); SFX.tone(140, 60, 0.25, 'sawtooth', 0.18); if (dist < 10) G.shake = Math.max(G.shake, 0.2); }
       else if (ev.f === 'splat') { fx.sparks(p, 10, fx.m.feather); SFX.tone(200, 90, 0.1, 'square', 0.15); }
       else if (ev.f === 'rock') { fx.sparks(p, 12, fx.m.dust); fx.dust(p); fx.dust(p); SFX.boom(dist + 10); }
       break;
@@ -1483,7 +1486,7 @@ function tick(dt) {
   // --- estado del mundo ---
   if (G.mode === 'guest') {
     const s = G.mir.sample();
-    if (s) { G.carD = s.carD; G.ents = s.ents; G.players = s.players; G.cd = s.cd; G.speed = s.sp; G.slow = !!s.sl; G.mult = s.mu || 1; G.stun = !!s.sn; G.cu = s.cu; G.turbo = !!s.tb; G.smoked = !!s.sm; }
+    if (s) { G.carD = s.carD; G.ents = s.ents; G.players = s.players; G.cd = s.cd; G.speed = s.sp; G.slow = !!s.sl; G.mult = s.mu || 1; G.stun = !!s.sn; G.cu = s.cu; G.turbo = !!s.tb; G.smoked = !!s.sm; G.foot = s.fo || null; }
     G.road.extend(G.carD + 340);
     const rt = G.mir.rt;
     while (G.evq.length && G.evq[0].st <= rt) handleEvent(G.evq.shift());
@@ -1508,6 +1511,7 @@ function tick(dt) {
     G.stun = S.stunT > 0 || S.hold;
     G.turbo = S.turboT > 0 && !S.hold && S.stunT <= 0;
     G.smoked = S.smokeT > 0;
+    G.foot = S.foot ? [S.foot.H + S.foot.u, S.foot.v, S.foot.y] : null;
     G.cd = S.phase === 'count' ? S.countT : -1;
   }
   // --- cuenta atrás ---
@@ -1526,15 +1530,21 @@ function tick(dt) {
   G.camYaw = lerpAng(G.camYaw, yawAhead, 1 - Math.exp(-dt * 6));
   // J3-J4 van detrás mirando hacia atrás
   const mySeat = view.seat(li);
-  EA.set(0, G.camYaw + (mySeat[2] != null ? mySeat[2] : isRear(li, G.n) ? Math.PI : 0), 0, 'YXZ');
+  // a pie (hospital de la ciudad zombi): la cámara va con el grupo, a la altura de los ojos
+  const FO = footPose(li, dt);
+  if (FO) EA.set(0, -G.road.yawAt(FO[0]) - FO[2], 0, 'YXZ');
+  else EA.set(0, G.camYaw + (mySeat[2] != null ? mySeat[2] : isRear(li, G.n) ? Math.PI : 0), 0, 'YXZ');
   QCAR.setFromEuler(EA);
+  if (FO) { G.road.toWorld(FO[0], FO[1], 1.82 + (FO[3] || 0), camera.position); }
   if (BOT) botAim();
   EA.set(look.pitch, look.yaw, 0, 'YXZ');
   QLOOK.setFromEuler(EA);
   camera.quaternion.copy(QCAR).multiply(QLOOK);
   // la cámara un poco hacia fuera del coche: el compañero de al lado tapa menos
-  camera.position.set(mySeat[0] * (car.userData.camK || 1.3), 2.3 + (car.userData.seatY || 0) + (CAN.t > 0 ? 0.75 : 0), mySeat[1]);
-  car.localToWorld(camera.position);
+  if (!FO) {
+    camera.position.set(mySeat[0] * (car.userData.camK || 1.3), 2.3 + (car.userData.seatY || 0) + (CAN.t > 0 ? 0.75 : 0), mySeat[1]);
+    car.localToWorld(camera.position);
+  }
   if (G.shake > 0) camera.position.add(V1.set((Math.random() - 0.5) * G.shake * 0.3, (Math.random() - 0.5) * G.shake * 0.3, 0));
   camera.updateMatrixWorld(true);
   // compañero
@@ -1543,7 +1553,17 @@ function tick(dt) {
     const P = G.players[i], av = view.av[i];
     if (!P || i >= G.n) { av.visible = false; continue; }
     av.visible = !P.gone && !G.hideMates;
-    { const st = view.seat(i); av.userData.yaw.rotation.set(P.alive ? 0 : 0.7, (P.ly || 0) + (st[2] != null ? st[2] : isRear(i, G.n) ? Math.PI : 0), 0); }
+    const legs = av.userData.rig.body.children.slice(0, 4);
+    if (G.foot) {
+      // a pie: el compañero anda a tu lado (las piernas se ven)
+      const fp = footPose(i, 0);
+      G.road.toWorld(fp[0], fp[1], 1.12 + (fp[3] || 0), V1); car.worldToLocal(av.position.copy(V1));
+      av.userData.yaw.rotation.set(P.alive ? 0 : 0.7, (P.ly || 0) - fp[2], 0);
+      legs.forEach(m => (m.visible = true)); av.userData.onFoot = 1;
+    } else {
+      if (av.userData.onFoot) { av.userData.onFoot = 0; const st = view.seat(i); av.position.set(st[0], 1.4 + (car.userData.seatY || 0), st[1]); legs.forEach(m => (m.visible = false)); }
+      const st = view.seat(i); av.userData.yaw.rotation.set(P.alive ? 0 : 0.7, (P.ly || 0) + (st[2] != null ? st[2] : isRear(i, G.n) ? Math.PI : 0), 0);
+    }
     av.userData.rig.armR.rotation.x = P.lp || 0;
     av.userData.rig.armL.rotation.set(P.lp || 0, -0.5, 0);
   }
@@ -1552,6 +1572,14 @@ function tick(dt) {
   view.setCarParts(cu[0], cu[1]);
   if (CAN.t > 0) { CAN.t -= dt; if (CAN.t <= 0) { endCannon(); showBanner('BAJAS DEL CAÑÓN', '', '#ffb020'); } }
   else if (CAN.cd > 0) CAN.cd = Math.max(0, CAN.cd - dt);
+  // ciudad zombi: pavesas y llamas subiendo de los incendios
+  if (BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]].deco === 'zombi' && !G.foot) {
+    for (let k = 0; k < 3; k++) if (Math.random() < dt * 14) {
+      const sd = Math.random() < 0.5 ? -1 : 1;
+      G.road.toWorld(G.carD + 8 + Math.random() * 60, sd * (9 + Math.random() * 7), Math.random() * 8, V1);
+      fx.part(V1, V2.set((Math.random() - 0.5) * 1.5, 2 + Math.random() * 3, (Math.random() - 0.5) * 1.5).clone(), 1.2 + Math.random(), 0.06 + Math.random() * 0.08, Math.random() < 0.6 ? fx.m.fire : fx.m.hot, -1, 0);
+    }
+  }
   // estela del coche en el río
   if (BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]].deco === 'rio' && G.road.kindAt(G.carD) === 0 && G.speed > 1) {
     for (let k = 0; k < 2; k++) if (Math.random() < dt * 25) {
@@ -1626,13 +1654,20 @@ function tick(dt) {
   const k = 1 - Math.exp(-dt * 1.2);
   ENV.sky.lerp(TC.setHex(B.sky), k);
   ENV.sea.lerp(TC.setHex(B.sea), k);
-  ENV.hs.lerp(TC.setHex(B.hemi[0]), k); ENV.hg.lerp(TC.setHex(B.hemi[1]), k);
-  ENV.hi = lerp(ENV.hi, B.hemi[2] * (inTun ? 0.75 : 1), k * 2);
+  // dentro del hospital: luz blanca de fluorescente y sin bruma
+  const indoor = !!G.foot && G.foot[0] > G.carD + 4 && G.foot[0] < G.carD + 64 && FPS[G.li] && FPS[G.li][0] - G.carD > 7.5;
+  ENV.hs.lerp(TC.setHex(indoor ? 0xe8f4ec : B.hemi[0]), k * (indoor ? 3 : 1)); ENV.hg.lerp(TC.setHex(indoor ? 0x6a7a70 : B.hemi[1]), k * (indoor ? 3 : 1));
+  ENV.hi = lerp(ENV.hi, indoor ? 0.95 : B.hemi[2] * (inTun ? 0.75 : 1), k * 2);
   ENV.sc.lerp(TC.setHex(B.sun[0]), k);
-  ENV.si = lerp(ENV.si, B.sun[1] * (inTun ? 0.45 : 1), k * 2);
+  ENV.si = lerp(ENV.si, indoor ? 0 : B.sun[1] * (inTun ? 0.45 : 1), k * (indoor ? 4 : 2));
   // la niebla acaba antes de donde termina el decorado construido y la zona con sombras: nada aparece de golpe
-  ENV.fn = lerp(ENV.fn, Math.min(B.fogNear, 120), k); ENV.ff = lerp(ENV.ff, Math.min(B.fogFar, 215), k);
-  scene.background.copy(ENV.sky); scene.fog.color.copy(ENV.sky);
+  ENV.fn = lerp(ENV.fn, indoor ? 1.5 : Math.min(B.fogNear, 120), k * (indoor ? 3 : 1)); ENV.ff = lerp(ENV.ff, indoor ? 17 : Math.min(B.fogFar, 215), k * (indoor ? 3 : 1));
+  // pasillos en penumbra: la niebla oscura no deja ver el fondo
+  G.fogIn = lerp(G.fogIn || 0, indoor ? 1 : 0, k * 3);
+  scene.background.copy(ENV.sky); scene.fog.color.copy(ENV.sky).lerp(TC.setHex(0x0a0e0c), G.fogIn);
+  // pilotos y fluorescentes rotos
+  MATS.E.color.setScalar(Math.floor(G.t * 2.5) % 2 ? 1 : 0.15);
+  MATS.Y.color.setScalar(Math.sin(G.t * 31) + Math.sin(G.t * 7.3) > 0.9 ? 0.25 : 1);
   scene.fog.near = ENV.fn; scene.fog.far = ENV.ff;
   seaMat.color.copy(ENV.sea);
   hemi.color.copy(ENV.hs); hemi.groundColor.copy(ENV.hg); hemi.intensity = ENV.hi * 0.68;
@@ -1655,7 +1690,7 @@ function tick(dt) {
     cloudDomes[0].material.opacity = Math.min(1, cloudDomes[0].material.opacity + dt * 0.5);
     cloudDomes[1].material.opacity = Math.max(0, cloudDomes[1].material.opacity - dt * 0.5);
     for (const m of cloudDomes) { m.position.copy(camera.position); m.rotation.y += dt * 0.004; }
-    scene.fog.color.copy(U.hz.value); }
+    scene.fog.color.copy(U.hz.value).lerp(TC.setHex(0x0a0e0c), G.fogIn || 0); }
   // la luz ambiente (lo que queda en sombra) tira a azul
   hemi.color.lerp(TC.setHex(0x8aa4ff), 0.45);
   hemi.groundColor.lerp(TC.setHex(0x5a6ac8), 0.5);
@@ -1673,12 +1708,30 @@ function tick(dt) {
   $('btnFire').hidden = !look.isTouch || (!look.force && look.gyro);
 }
 
+// posición a pie de cada jugador [d, lat, giro, bote al andar]; la propia se suaviza (al invitado le llega a saltos)
+const FPS = [null, null, null, null];
+function footPose(i, dt) {
+  const F = G.foot;
+  if (!F) { FPS[i] = null; return null; }
+  const o = (i - (G.n - 1) / 2) * 0.75;
+  const t = [F[0] - Math.sin(F[2]) * o, F[1] + Math.cos(F[2]) * o, F[2]];
+  let q = FPS[i];
+  if (!q) q = FPS[i] = [t[0], t[1], t[2], 0, 0];
+  const k = dt > 0 ? 1 - Math.exp(-dt * 12) : 0;
+  const mv = Math.hypot(t[0] - q[0], t[1] - q[1]);
+  q[0] += (t[0] - q[0]) * k; q[1] += (t[1] - q[1]) * k;
+  let da = t[2] - q[2]; while (da > Math.PI) da -= Math.PI * 2; while (da < -Math.PI) da += Math.PI * 2;
+  q[2] += da * k;
+  if (dt > 0) { q[4] += dt * (mv > 0.02 ? 9 : 0); q[3] = Math.abs(Math.sin(q[4])) * 0.06; }
+  return q;
+}
+
 // TODO-TESTEO: bot que apunta solo al objetivo más urgente
 let botT = 0, botTarget = null;
 function botAim() {
   botT -= 1 / 60;
   const camPos = V3.set(SEATS[G.li][0] * 1.3, 2.3, SEATS[G.li][1]);
-  view.car.localToWorld(camPos);
+  if (G.foot) camPos.copy(camera.position); else view.car.localToWorld(camPos);
   let best = null, bs = -1e9;
   for (const t of view.tele) if (t.tgt === G.li && !(G.ents.some(e => (e.type === 'wall' || e.type === 'train') && e.st === 0 && !(e.x && e.x.dv)))) {
     const s = 100 + t.r * 100;
