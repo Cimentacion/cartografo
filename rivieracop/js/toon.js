@@ -166,8 +166,6 @@ export class Outline {
             c = clamp((c - 0.5) * 1.08 + 0.52, 0.0, 1.0);
           }
           // lo que está más apartado de la carretera (más lejos) tiene luces y sombras más contrastadas
-          { float far = smoothstep(10.0, 55.0, d) * (1.0 - sky) * (1.0 - keep);
-            c = clamp((c - 0.42) * (1.0 + 0.45 * far) + 0.42, 0.0, 1.0); }
           c = mix(c, ink, clamp(edge, 0.0, 1.0) * 0.9);
           c = mix(c, red, redE);
           gl_FragColor = vec4(c, 1.0);

@@ -52,13 +52,13 @@ sun.shadow.mapSize.set(1024, 1024);
 // sombras de los edificios y el decorado hasta lo lejos: un mapa grande que solo se vuelve a calcular cada ~30 m
 // (lo que se mueve lleva su sombra suave debajo); así no tiemblan y casi no cuestan
 Object.assign(sun.shadow.camera, { left: -145, right: 145, top: 145, bottom: -145, near: 1, far: 700 });
-sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.05; sun.shadow.radius = 10; sun.shadow.blurSamples = 16;
+// sombras duras (poco difuminado)
+sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.05; sun.shadow.radius = 1.5; sun.shadow.blurSamples = 4;
 renderer.shadowMap.autoUpdate = false;
 sun.shadow.camera.updateProjectionMatrix();
 const SHC = { key: '' };
 // ejes de la luz (para encajar la sombra en su rejilla y que no tiemble al moverse)
-// sol alto: ilumina tejados y cornisas desde arriba y deja las fachadas en penumbra
-const SUNO = new THREE.Vector3(80, 230, 45), SUNZ = SUNO.clone().normalize(), SUNX = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), SUNZ).normalize(), SUNY = new THREE.Vector3().crossVectors(SUNZ, SUNX);
+const SUNO = new THREE.Vector3(150, 160, 70), SUNZ = SUNO.clone().normalize(), SUNX = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), SUNZ).normalize(), SUNY = new THREE.Vector3().crossVectors(SUNZ, SUNX);
 scene.add(sun); scene.add(sun.target);
 // cielo con degradado: azul intenso arriba y claro en el horizonte
 // cielo de dibujo animado: un degradado suave (sin ruido) y encima una cúpula con nubes dibujadas a mano en un canvas
@@ -1626,8 +1626,8 @@ function tick(dt) {
   scene.background.copy(ENV.sky); scene.fog.color.copy(ENV.sky);
   scene.fog.near = ENV.fn; scene.fog.far = ENV.ff;
   seaMat.color.copy(ENV.sea);
-  hemi.color.copy(ENV.hs); hemi.groundColor.copy(ENV.hg); hemi.intensity = ENV.hi * 0.6;
-  sun.color.copy(ENV.sc); sun.intensity = ENV.si * 1.6; // el sol marca más las caras de los edificios
+  hemi.color.copy(ENV.hs); hemi.groundColor.copy(ENV.hg); hemi.intensity = ENV.hi * 0.68;
+  sun.color.copy(ENV.sc); sun.intensity = ENV.si * 1.4; // el sol marca más las caras de los edificios
   // el sol sigue al coche; la zona con sombras va un poco por delante de la cámara
   G.road.toWorld(G.carD + (G.n > 2 ? 60 : 95), 0, 0, V2);
   // se recoloca en saltos de ~40 m que son un número exacto de píxeles del mapa: los bordes no bailan
@@ -1647,7 +1647,9 @@ function tick(dt) {
     cloudDomes[1].material.opacity = Math.max(0, cloudDomes[1].material.opacity - dt * 0.5);
     for (const m of cloudDomes) { m.position.copy(camera.position); m.rotation.y += dt * 0.004; }
     scene.fog.color.copy(U.hz.value); }
-  hemi.groundColor.lerp(TC.setHex(0x7a86c8), 0.35);
+  // la luz ambiente (lo que queda en sombra) tira a azul
+  hemi.color.lerp(TC.setHex(0x8aa4ff), 0.45);
+  hemi.groundColor.lerp(TC.setHex(0x5a6ac8), 0.5);
   sea.position.set(camera.position.x, G.road.seaAt(G.carD), camera.position.z);
   // --- interfaz ---
   uiPlayers(); uiWeapon(); uiRoute(); uiWcard(); uiAbilities(dt); uiBoss(); uiRadio(dt);
