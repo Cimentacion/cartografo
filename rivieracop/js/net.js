@@ -66,7 +66,9 @@ export class Net {
   startRooms(code) {
     if (NO_TRYSTERO) return;
     if (!TR) { trReady.then(() => { if (TR && !this.closed) this.startRooms(code); }); return; }
-    for (const [name, join] of [['nostr', TR.joinNostr], ['torrent', TR.joinTorrent]]) {
+    // (los trackers de torrent abren muchísimas conexiones WebRTC: el móvil se quedaba sin; solo para pruebas locales)
+    const TRK = new URLSearchParams(location.search).get('trk');
+    for (const [name, join] of TRK ? [['torrent', TR.joinTorrent]] : [['nostr', TR.joinNostr]]) {
       try {
         const cfg = { appId: APP, rtcConfig: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun.cloudflare.com:3478' }, ...(TURN || [])] } };
         const trk = new URLSearchParams(location.search).get('trk'); // TODO-TESTEO: tracker local
@@ -237,7 +239,7 @@ async function lanRooms(onData, onJoin) {
   if (!TR || NO_TRYSTERO) return { rooms: [], key: null };
   const key = new URLSearchParams(location.search).get('lan') || await lanKey(); // TODO-TESTEO: ?lan=x fuerza la red
   const rooms = [];
-  for (const join of [TR.joinNostr, TR.joinTorrent]) {
+  for (const join of new URLSearchParams(location.search).get('trk') ? [TR.joinTorrent] : [TR.joinNostr]) {
     try {
       const cfg = { appId: APP + '-lan' };
       const trk = new URLSearchParams(location.search).get('trk');
@@ -298,7 +300,9 @@ export class LanScan {
 // si está en el menú, en una sala (con su código para entrar) o jugando. Cada uno solo enseña a sus amigos.
 async function presRooms(onData, onJoin) {
   await trReady;
-  if (!TR || NO_TRYSTERO) return [];
+  // la sala común de todos los jugadores conectaba cada móvil con todos los demás (y se agotaban las conexiones):
+  // ahora los amigos van solo por los buzones de PeerJS; la sala común queda para las pruebas locales
+  if (!TR || NO_TRYSTERO || !new URLSearchParams(location.search).get('trk')) return [];
   const rooms = [];
   for (const join of [TR.joinNostr, TR.joinTorrent]) {
     try {
@@ -345,7 +349,7 @@ export class Presence {
       p.on('error', e => {
         // amigo no conectado: su buzón no existe
         const m = /u-([A-Z0-9]{6})/.exec((e && e.message) || '');
-        if (e && e.type === 'peer-unavailable' && m) { const L = this.pj.get(m[1]); if (L) L.busy = false; }
+        if (e && e.type === 'peer-unavailable' && m) { const L = this.pj.get(m[1]); if (L) { L.busy = false; L.off = true; L.t = performance.now(); if (L.c) { try { L.c.close(); } catch (e2) { } L.c = null; } } }
         else if (e && e.type === 'unavailable-id') { /* la app abierta dos veces: vale con la otra */ }
       });
     } catch (e) { console.warn('amigos peerjs', e); }
@@ -357,6 +361,9 @@ export class Presence {
       let L = this.pj.get(id);
       if (L && L.c && L.c.open) { try { L.c.send(Object.assign({ t: 'q' }, this.msg())); } catch (e) { } continue; }
       if (L && L.busy && performance.now() - L.t < 12000) continue;
+      // amigo desconectado: no se le vuelve a llamar hasta pasado un rato (cada llamada gasta una conexión)
+      if (L && L.off && performance.now() - L.t < 45000) continue;
+      if (L && L.c) try { L.c.close(); } catch (e) { }
       L = { busy: true, t: performance.now(), c: null };
       this.pj.set(id, L);
       try {
@@ -364,8 +371,10 @@ export class Presence {
         L.c = c;
         c.on('open', () => { L.busy = false; try { c.send(Object.assign({ t: 'q' }, this.msg())); } catch (e) { } });
         c.on('data', d => { if (d && d.t === 'here' && d.id === id) this.recv(d); });
-        const bye = () => { L.c = null; L.busy = false; };
+        const bye = () => { try { c.close(); } catch (e) { } L.c = null; L.busy = false; };
         c.on('close', bye); c.on('error', bye);
+        // si en 10 s no abre, se cierra y se libera
+        setTimeout(() => { if (!c.open) { L.off = true; bye(); } }, 10000);
       } catch (e) { L.busy = false; }
     }
   }

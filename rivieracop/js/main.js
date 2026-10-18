@@ -1167,7 +1167,7 @@ let FRIENDS = [], RECENT = [];
 try { FRIENDS = JSON.parse(localStorage.getItem('rc_friends') || '[]') || []; RECENT = JSON.parse(localStorage.getItem('rc_recent') || '[]') || []; } catch (e) { }
 const saveFriends = () => { try { localStorage.setItem('rc_friends', JSON.stringify(FRIENDS)); localStorage.setItem('rc_recent', JSON.stringify(RECENT.slice(0, 12))); } catch (e) { } };
 let PRES = null;
-setInterval(() => { if (PRES) PRES.poll(FRIENDS.map(f => f.id)); }, 6000);
+setInterval(() => { if (PRES && !G.running) PRES.poll(FRIENDS.map(f => f.id)); }, 8000);
 try { PRES = new Presence(PROF, () => { if (!$('frScr').hidden) paintFriends(); updFrDot(); }, (from, name, code) => showInvite(from, name, code)); } catch (e) { console.warn(e); }
 function presSet(st, code) { if (PRES) PRES.set(st, code); }
 function updFrDot() { $('frDot').hidden = !(PRES && FRIENDS.some(f => PRES.peers.has(f.id))); }
