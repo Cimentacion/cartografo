@@ -21,7 +21,7 @@ jobs:
       - name: Copiar el juego dentro de la app
         run: |
           mkdir -p android-rivieracop/app/src/main/assets/game
-          cp -r rivieracop/index.html rivieracop/js rivieracop/lib rivieracop/tex android-rivieracop/app/src/main/assets/game/
+          cp -r rivieracop/index.html rivieracop/icon.png rivieracop/js rivieracop/lib rivieracop/tex android-rivieracop/app/src/main/assets/game/
           echo "${{ github.run_number }}" > android-rivieracop/app/src/main/assets/game/pack.txt
           cp android-rivieracop/native.txt android-rivieracop/app/src/main/assets/native.txt
           # pack del juego: se descarga e instala solo dentro de la app (sin reinstalar el APK)
