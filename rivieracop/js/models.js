@@ -270,14 +270,15 @@ export function convertible(kind = 'cabrio', col = 0xc8102e) {
     // furgoneta de reparto techada: J1 conduce, J2 de copiloto, J3 detrás asomado a la puerta corredera (derecha)
     // y J4 sentado mirando por las puertas traseras abiertas
     L = 5.2; seatY = 0.25; drvY = 0.3; front = -2.6;
-    const roofY = 2.95, W = col === 0xc8102e ? 0xf2f2f2 : col;
+    const roofY = 2.95, W = col === 0xc8102e ? 0xf4f4f2 : col;
     box(g, 2.1, 0.7, L, W, 0, 0.75, 0);
     box(g, 2.12, 0.18, L, 0x2a2a2a, 0, 0.4, 0);
     box(g, 2.1, 0.1, L - 1.0, W, 0, roofY, 0.5);                      // techo de la caja
     { const r2 = box(g, 2.1, 0.1, 1.2, W, 0, roofY - 0.2, -1.6); r2.rotation.x = 0.3; }
     box(g, 2.1, 0.55, 0.9, W, 0, 1.3, -2.2);                          // capó corto
     box(g, 2.12, 0.2, 0.15, 0x2a2a2a, 0, 0.75, -2.62);
-    { const ws = box(g, 1.94, 1.1, 0.03, GLASS, 0, 2.15, -1.78); ws.rotation.x = -0.35; }
+    // sin parabrisas: el hueco va abierto para disparar hacia delante
+    box(g, 1.94, 0.08, 0.1, W, 0, 1.62, -1.95);
     for (const sd of [-1, 1]) {
       box(g, 0.34, 0.14, 0.05, glow(0xfff6c8), sd * 0.7, 1.3, -2.66);
       box(g, 0.2, 0.3, 0.05, glow(0xff2020), sd * 0.9, 1.0, L / 2 + 0.01);
@@ -318,21 +319,32 @@ export function convertible(kind = 'cabrio', col = 0xc8102e) {
       box(g, 0.2, 0.12, 0.05, glow(0xff2020), sd * 0.6, 0.7, 2.11);
     }
   } else if (kind === 'tanque') {
-    // tanque: cadenas, casco ancho y la torreta detrás; vais todos sentados encima
+    // tanque: cadenas con sus ruedas a la vista, casco ancho y la torreta delante con el cañón hacia delante;
+    // vais todos sentados encima de la parte de atrás
     L = 6.6; seatY = 0.75; drvY = 0.55; front = -3.4;
-    const hull = col === 0xc8102e ? 0x5a6a3a : col;
-    box(g, 2.6, 0.7, L, hull, 0, 0.85, 0);
-    const gl = box(g, 2.6, 0.5, 1.0, hull, 0, 0.75, -3.2); gl.rotation.x = 0.6;
+    const hull = col === 0xc8102e ? 0x5a6a3a : col, trk = 0x1c1c1c, rw = 0x5a5a52;
+    box(g, 2.3, 0.7, L - 0.6, hull, 0, 0.95, 0);
+    const gl = box(g, 2.3, 0.5, 0.9, hull, 0, 0.85, -3.05); gl.rotation.x = 0.7;
+    box(g, 2.3, 0.08, 4.2, 0x3a3a2a, 0, 1.32, 1.0);
     for (const sd of [-1, 1]) {
-      box(g, 0.6, 0.75, L + 0.3, 0x2a2a2a, sd * 1.5, 0.45, 0);
-      for (let k = 0; k < 6; k++) { const w = new THREE.Mesh(cgeo(0.3, 0.62, 10), mat(0x4a4a4a)); w.rotation.z = Math.PI / 2; w.position.set(sd * 1.5, 0.4, -2.6 + k * 1.04); g.add(w); }
-      for (let k = 0; k < 18; k++) box(g, 0.64, 0.05, 0.12, 0x1a1a1a, sd * 1.5, 0.84, -3.3 + k * 0.39);
-      box(g, 0.66, 0.08, L + 0.4, hull, sd * 1.5, 0.88, 0);
+      const x = sd * 1.42;
+      // cadena: tramo de arriba, de abajo y las dos curvas de los extremos
+      box(g, 0.56, 0.08, L - 0.9, trk, x, 1.0, 0);
+      box(g, 0.56, 0.08, L - 0.9, trk, x, 0.04, 0);
+      for (const z of [-(L - 0.9) / 2, (L - 0.9) / 2]) { const e = new THREE.Mesh(cgeo(0.5, 0.56, 12), mat(trk)); e.rotation.z = Math.PI / 2; e.position.set(x, 0.52, z); g.add(e); }
+      for (let k = 0; k < 16; k++) { box(g, 0.58, 0.04, 0.1, 0x3a3a3a, x, 1.06, -2.6 + k * 0.35); box(g, 0.58, 0.04, 0.1, 0x3a3a3a, x, -0.01, -2.6 + k * 0.35); }
+      // ruedas de rodaje, rueda motriz y guardabarros
+      for (let k = 0; k < 6; k++) { const w = new THREE.Mesh(cgeo(0.36, 0.5, 12), mat(rw)); w.rotation.z = Math.PI / 2; w.position.set(x, 0.42, -2.2 + k * 0.88); g.add(w); const h = new THREE.Mesh(cgeo(0.14, 0.52, 8), mat(0x8a8a80)); h.rotation.z = Math.PI / 2; h.position.copy(w.position); g.add(h); }
+      for (const z of [-(L - 0.9) / 2, (L - 0.9) / 2]) { const sp = new THREE.Mesh(cgeo(0.32, 0.6, 10), mat(0x6a6a60)); sp.rotation.z = Math.PI / 2; sp.position.set(x, 0.52, z); g.add(sp); }
+      box(g, 0.7, 0.06, L, hull, x, 1.12, 0);
     }
-    box(g, 1.7, 0.5, 1.4, hull, 0, 1.45, 3.0);
-    { const c = new THREE.Mesh(cgeo(0.12, 2.6, 10), mat(0x3a3a3a)); c.rotation.x = Math.PI / 2; c.position.set(0, 1.55, 4.4); g.add(c); }
-    box(g, 2.0, 0.08, 4.0, 0x3a3a2a, 0, 1.22, -0.6);
+    // torreta delante con el cañón hacia delante
+    box(g, 1.8, 0.55, 1.7, hull, 0, 1.58, -1.7);
+    box(g, 1.4, 0.2, 1.3, hull, 0, 1.95, -1.75);
+    { const c = new THREE.Mesh(cgeo(0.13, 3.0, 12), mat(0x3a3a34)); c.rotation.x = Math.PI / 2; c.position.set(0, 1.62, -4.0); g.add(c); const mb = new THREE.Mesh(cgeo(0.19, 0.35, 12), mat(0x2a2a26)); mb.rotation.x = Math.PI / 2; mb.position.set(0, 1.62, -5.4); g.add(mb); }
+    box(g, 0.5, 0.18, 0.5, 0x2a2a26, 0.45, 2.12, -1.6);
     seats(1.32);
+    g.userData.noDriver = true;
   } else {
     box(g, 1.96, 0.5, L, col, 0, 0.6, 0);
     box(g, 1.9, 0.16, 1.4, col, 0, 0.92, -2.4);

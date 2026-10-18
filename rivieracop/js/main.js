@@ -14,7 +14,7 @@ import { showRewarded, showInterstitial, adsReal, lastAdErr } from './ads.js';
 import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME, BOSS } from './defs.js';
 import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES } from './weapons.js';
 import { UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd, turboDur, turboCd, POWERS } from './progress.js';
-import { fpGun, VEHICLES, VCOLORS } from './models.js';
+import { fpGun, VEHICLES, VCOLORS, convertible } from './models.js';
 import { Outline, toon } from './toon.js';
 import { loadChar, saveChar, sanitize, defaultChar, SKINS, HAIRS, HAIR_COLORS, BEARDS, SHIRTS, SHIRT_COLORS, PANTS_COLORS, HATS, BACKS, NECKS, FACES } from './character.js';
 import { seatedPlayer } from './models.js';
@@ -57,7 +57,8 @@ renderer.shadowMap.autoUpdate = false;
 sun.shadow.camera.updateProjectionMatrix();
 const SHC = { key: '' };
 // ejes de la luz (para encajar la sombra en su rejilla y que no tiemble al moverse)
-const SUNO = new THREE.Vector3(150, 160, 70), SUNZ = SUNO.clone().normalize(), SUNX = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), SUNZ).normalize(), SUNY = new THREE.Vector3().crossVectors(SUNZ, SUNX);
+// sol alto: ilumina tejados y cornisas desde arriba y deja las fachadas en penumbra
+const SUNO = new THREE.Vector3(80, 230, 45), SUNZ = SUNO.clone().normalize(), SUNX = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), SUNZ).normalize(), SUNY = new THREE.Vector3().crossVectors(SUNZ, SUNX);
 scene.add(sun); scene.add(sun.target);
 // cielo con degradado: azul intenso arriba y claro en el horizonte
 // cielo de dibujo animado: un degradado suave (sin ruido) y encima una cúpula con nubes dibujadas a mano en un canvas
@@ -1056,17 +1057,52 @@ const VDESC = { cabrio: 'El de siempre', clasico: 'Años 50, con aletas', furgo:
 G.veh = (() => { try { const v = JSON.parse(localStorage.getItem('rc_veh') || 'null'); if (v && VEHICLES.some(x => x[0] === v.k)) return { k: v.k, c: clamp(v.c | 0, 0, VCOLORS.length - 1) }; } catch (e) { } return { k: 'cabrio', c: 0 }; })();
 function applyVeh() { if (view) view.setVehicle(G.veh.k, VCOLORS[G.veh.c]); }
 function paintVsel() {
-  const L = $('vsList'); L.innerHTML = '';
-  for (const [k, n] of VEHICLES) {
-    const b = document.createElement('button');
-    b.className = 'vsc' + (G.veh.k === k ? ' sel' : '');
-    b.innerHTML = `<span class="mi">${VICON[k]}</span>${n.toUpperCase()}<small>${VDESC[k]}</small>`;
-    b.onclick = () => pickVeh(k, G.veh.c);
-    L.appendChild(b);
-  }
+  const i = VEHICLES.findIndex(x => x[0] === G.veh.k);
+  $('vsN').textContent = VICON[G.veh.k] + ' ' + VEHICLES[i][1].toUpperCase();
+  $('vsD').textContent = VDESC[G.veh.k];
+  $('vsDots').innerHTML = VEHICLES.map((_, j) => `<i class="${j === i ? 'on' : ''}"></i>`).join('');
   const C = $('vsCol'); C.innerHTML = '';
-  VCOLORS.forEach((c, i) => { const b = document.createElement('button'); b.style.background = '#' + c.toString(16).padStart(6, '0'); b.className = G.veh.c === i ? 'sel' : ''; b.onclick = () => pickVeh(G.veh.k, i); C.appendChild(b); });
+  VCOLORS.forEach((c, j) => { const b = document.createElement('button'); b.style.background = '#' + c.toString(16).padStart(6, '0'); b.className = G.veh.c === j ? 'sel' : ''; b.onclick = e => { e.stopPropagation(); pickVeh(G.veh.k, j); }; C.appendChild(b); });
+  VPREV.set(G.veh.k, VCOLORS[G.veh.c]);
 }
+function stepVeh(d) { const i = VEHICLES.findIndex(x => x[0] === G.veh.k); pickVeh(VEHICLES[(i + d + VEHICLES.length) % VEHICLES.length][0], G.veh.c); }
+$('vsL').onclick = e => { e.stopPropagation(); stepVeh(-1); };
+$('vsR').onclick = e => { e.stopPropagation(); stepVeh(1); };
+{ let sx = null; const el = $('vsel');
+  el.addEventListener('pointerdown', e => { sx = e.clientX; });
+  el.addEventListener('pointerup', e => { if (sx == null) return; const dx = e.clientX - sx; sx = null; if (Math.abs(dx) > 40) stepVeh(dx < 0 ? 1 : -1); }); }
+// escaparate: escena aparte con el vehículo girando sobre una plataforma
+const VPREV = {
+  scene: new THREE.Scene(), cam: new THREE.PerspectiveCamera(40, 1, 0.1, 100), model: null, key: '', on: false,
+  init() {
+    if (this.ready) return; this.ready = true;
+    const S = this.scene;
+    S.background = new THREE.Color(0x2a3a6a);
+    S.add(new THREE.HemisphereLight(0xffffff, 0x404060, 1.2));
+    const d = new THREE.DirectionalLight(0xffffff, 2.0); d.position.set(4, 8, 5); S.add(d);
+    const r = new THREE.DirectionalLight(0x8ab0ff, 0.8); r.position.set(-6, 3, -4); S.add(r);
+    const pl = new THREE.Mesh(new THREE.CylinderGeometry(5, 5.2, 0.4, 48), toon({ color: 0x3a3a48 })); pl.position.y = -0.2; S.add(pl);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(5.05, 0.06, 6, 64), new THREE.MeshBasicMaterial({ color: 0xffe14a })); ring.rotation.x = Math.PI / 2; ring.position.y = 0.01; S.add(ring);
+    this.spin = new THREE.Group(); S.add(this.spin);
+  },
+  set(k, col) {
+    this.init();
+    const key = k + ':' + col; if (key === this.key) return; this.key = key;
+    if (this.model) this.spin.remove(this.model);
+    this.model = convertible(k, col);
+    const S2 = this.model.userData.seats, sy = this.model.userData.seatY || 0;
+    [0, 1, 2, 3].forEach(i => { const a = seatedPlayer(i, i === 0 ? MYCHAR : null); const st = S2 ? S2[i] : [SEATS[i][0], SEATS[i][1], i >= 2 ? Math.PI : 0]; a.position.set(st[0], 1.4 + sy, st[1]); a.userData.yaw.rotation.y = st[2] || 0; this.model.add(a); });
+    this.model.scale.setScalar(0.0001); this.pop = 0;
+    this.spin.add(this.model);
+  },
+  render(dt) {
+    this.spin.rotation.y += dt * 0.7;
+    if (this.model && this.pop < 1) { this.pop = Math.min(1, this.pop + dt * 5); const k = 1 - Math.pow(1 - this.pop, 3); this.model.scale.setScalar(0.7 + 0.3 * k); }
+    this.cam.aspect = vw() / vh(); this.cam.updateProjectionMatrix();
+    this.cam.position.set(0, 4.6, 12.5); this.cam.lookAt(0, 2.0, 0);
+    renderer.setRenderTarget(null); renderer.render(this.scene, this.cam);
+  },
+};
 function setVeh(k, c, who) {
   G.veh = { k, c };
   try { localStorage.setItem('rc_veh', JSON.stringify(G.veh)); } catch (e) { }
@@ -1083,6 +1119,7 @@ const VS = { left: 0, iv: null };
 function vehSelect(done) {
   for (const s of document.querySelectorAll('.screen')) s.hidden = true;
   $('vsel').hidden = false; $('vsGo').hidden = G.mode === 'host' || G.mode === 'guest';
+  VPREV.key = '';
   $('vsMsg').textContent = G.mode === 'host' ? 'Cualquiera puede cambiarlo: sale el que esté elegido al acabar la cuenta' : 'Elige con qué vas a salir';
   applyVeh(); paintVsel();
   VS.left = 10; $('vsT').textContent = VS.left;
@@ -1425,7 +1462,8 @@ function frame(now) {
   if ((G.gs = (G.gs || 0) - dt) <= 0) { G.gs = 0.4; gyroStatus(); updRot(); }
   if (G.running) tick(dt);
   fx.update(dt);
-  if (NR === 1 || (++G.fr % NR) === 0) { outline.render(scene, camera); if (LENS.on && G.running) renderLens(); }
+  if (!$('vsel').hidden) VPREV.render(dt);
+  else if (NR === 1 || (++G.fr % NR) === 0) { outline.render(scene, camera); if (LENS.on && G.running) renderLens(); }
   if (G.running && view) {
     const me = G.players[G.li];
     hud.draw(camera, view, G.li, G.t, dt, { dead: !me || !me.alive || G.over, wind: G.wind || 0, turbo: !!G.turbo });
@@ -1588,8 +1626,8 @@ function tick(dt) {
   scene.background.copy(ENV.sky); scene.fog.color.copy(ENV.sky);
   scene.fog.near = ENV.fn; scene.fog.far = ENV.ff;
   seaMat.color.copy(ENV.sea);
-  hemi.color.copy(ENV.hs); hemi.groundColor.copy(ENV.hg); hemi.intensity = ENV.hi * 0.72;
-  sun.color.copy(ENV.sc); sun.intensity = ENV.si * 1.35; // el sol marca más las caras de los edificios
+  hemi.color.copy(ENV.hs); hemi.groundColor.copy(ENV.hg); hemi.intensity = ENV.hi * 0.6;
+  sun.color.copy(ENV.sc); sun.intensity = ENV.si * 1.6; // el sol marca más las caras de los edificios
   // el sol sigue al coche; la zona con sombras va un poco por delante de la cámara
   G.road.toWorld(G.carD + (G.n > 2 ? 60 : 95), 0, 0, V2);
   // se recoloca en saltos de ~40 m que son un número exacto de píxeles del mapa: los bordes no bailan

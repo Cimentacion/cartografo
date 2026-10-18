@@ -438,25 +438,25 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
 #invite{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:97;background:#0c0a18;border:3px solid #7dff8a;padding:12px 16px;text-align:center;box-shadow:0 0 0 3px #000,6px 6px 0 rgba(0,0,0,.5)}
 #invite[hidden]{display:none}
 #invite b{display:block;font:16px var(--f-title);color:#fff;margin-bottom:8px}
-/* ---------- selección de vehículo ---------- */
-#vsel{position:fixed;left:0;right:0;bottom:0;z-index:90;background:linear-gradient(0deg,rgba(6,6,16,.95),rgba(6,6,16,.75) 70%,rgba(6,6,16,0));padding:30px max(14px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
+/* ---------- selección de vehículo: el modelo gira en el centro y se cambia deslizando ---------- */
+#vsel{position:fixed;inset:0;z-index:90;touch-action:none}
 #vsel[hidden]{display:none}
-.vsTop{display:flex;align-items:center;gap:14px;margin-bottom:8px}
-.vsTop b{font:14px var(--f-px);color:#ffe14a;text-shadow:2px 2px 0 #000}
-#vsT{font:30px var(--f-title);color:#fff;background:#c8102e;border:3px solid #000;border-radius:50%;width:52px;height:52px;display:flex;align-items:center;justify-content:center;box-shadow:3px 3px 0 #000}
-#vsList{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
-.vsc{flex:none;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:118px;padding:9px 8px;background:#1c1830;color:#fff;border:3px solid #3a3456;border-radius:10px;font:13px var(--f-title);box-shadow:3px 3px 0 #000}
-.vsc .mi{font-size:30px;line-height:1}
-.vsc small{font:700 10px var(--f-ui);color:#9a94b8}
-.vsc.sel{border-color:#ffe14a;background:#3a2a10}
-#vsCol{display:flex;gap:7px;margin:8px 0 4px}
+.vsTop{position:absolute;top:max(10px,env(safe-area-inset-top));left:0;right:0;display:flex;align-items:center;justify-content:center;gap:14px}
+.vsTop b{font:15px var(--f-px);color:#ffe14a;text-shadow:2px 2px 0 #000}
+#vsT{font:28px var(--f-title);color:#fff;background:#c8102e;border:3px solid #000;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;box-shadow:3px 3px 0 #000}
+.vsName{position:absolute;top:calc(max(10px,env(safe-area-inset-top)) + 54px);left:0;right:0;text-align:center;pointer-events:none}
+.vsName b{display:block;font:clamp(26px,5vw,42px) var(--f-title);color:#fff;text-shadow:0 3px 0 #000,0 0 18px rgba(0,0,0,.5);letter-spacing:.04em}
+.vsName small{font:700 14px var(--f-ui);color:#e8e4ff;text-shadow:0 1px 3px #000}
+#vsDots{display:flex;gap:6px;justify-content:center;margin-top:6px}
+#vsDots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.35)}
+#vsDots i.on{background:#ffe14a}
+.vsArr{position:absolute;top:50%;transform:translateY(-50%);width:64px;height:64px;border-radius:50%;background:rgba(12,10,24,.7);color:#fff;font:28px var(--f-title);border:3px solid rgba(255,255,255,.6)}
+#vsL{left:max(14px,env(safe-area-inset-left))}#vsR{right:max(14px,env(safe-area-inset-right))}
+.vsBot{position:absolute;left:0;right:0;bottom:max(10px,env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;padding:0 14px}
+#vsCol{display:flex;gap:7px}
 #vsCol button{width:34px;height:34px;border-radius:50%;border:3px solid #000;box-shadow:2px 2px 0 #000}
 #vsCol button.sel{outline:3px solid #ffe14a;outline-offset:2px}
-.vsBot{display:flex;align-items:center;gap:12px;justify-content:space-between}
-#vsMsg{font:700 12px var(--f-ui);color:#d8d4f0}
-#btnFlip{position:absolute;left:max(12px,env(safe-area-inset-left));top:45%;width:58px;height:58px;border-radius:50%;pointer-events:auto;background:rgba(12,10,24,.7);color:#fff;border:2px solid rgba(255,255,255,.5);font:22px var(--f-title);line-height:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
-#btnFlip small{font:8px var(--f-px)}
-#btnFlip.on{background:#ffe14a;color:#111}
+#vsMsg{font:700 12px var(--f-ui);color:#fff;text-shadow:0 1px 3px #000;max-width:340px}
 /* buscador de salas */
 #lanList{margin:6px 0 10px;display:flex;flex-direction:column;gap:6px;align-items:center}
 .lanRoom{font:600 14px var(--f-ui);background:#0c0a18;color:#fff;border:3px solid var(--gold);padding:8px 16px;min-width:240px;box-shadow:3px 3px 0 #000}
@@ -646,9 +646,9 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
   <div id="dlg" hidden><div class="dlgBox"><div class="dlgP" id="dlgP"></div><div class="dlgT"><b id="dlgN"></b><p id="dlgX"></p><small id="dlgH">Toca para continuar ▶</small></div></div></div>
   <div id="vsel" hidden>
     <div class="vsTop"><b>ELIGE VEHÍCULO</b><span id="vsT">10</span></div>
-    <div id="vsList"></div>
-    <div id="vsCol"></div>
-    <div class="vsBot"><span id="vsMsg">Cualquiera puede cambiarlo: sale el que esté elegido al acabar la cuenta</span><button id="vsGo" class="big alt4" hidden>¡YA!</button></div>
+    <div class="vsName"><b id="vsN"></b><small id="vsD"></small><i id="vsDots"></i></div>
+    <button id="vsL" class="vsArr" aria-label="Anterior">◀</button><button id="vsR" class="vsArr" aria-label="Siguiente">▶</button>
+    <div class="vsBot"><div id="vsCol"></div><span id="vsMsg"></span><button id="vsGo" class="big alt4" hidden>¡YA!</button></div>
   </div>
   <div id="packMsg" hidden></div>
   <div id="verTag"></div>
