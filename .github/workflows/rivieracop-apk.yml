@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: "17" }
       - uses: gradle/actions/setup-gradle@v4
-        with: { gradle-version: "8.9" }
+        with: { gradle-version: "8.11.1" }
       - name: Copiar el juego dentro de la app
         run: |
           mkdir -p android-rivieracop/app/src/main/assets/game
@@ -28,12 +28,20 @@ jobs:
           (cd android-rivieracop/app/src/main/assets/game && zip -qr "$GITHUB_WORKSPACE/game.zip" .)
           echo "${{ github.run_number }}" > pack.txt
           cp android-rivieracop/native.txt native.txt
+      - name: Clave de subida de Google Play
+        env: { KS: "${{ secrets.PLAY_KEYSTORE_B64 }}" }
+        run: |
+          if [ -n "$KS" ]; then echo "$KS" | base64 -d > "$RUNNER_TEMP/upload.jks"; echo "PLAY_KS=$RUNNER_TEMP/upload.jks" >> $GITHUB_ENV; fi
       - name: Compilar
         working-directory: android-rivieracop
-        run: gradle assembleRelease --no-daemon --stacktrace
+        env:
+          PLAY_KS_PASS: ${{ secrets.PLAY_KEYSTORE_PASS }}
+          PLAY_KS_ALIAS: ${{ secrets.PLAY_KEYSTORE_ALIAS }}
+        run: gradle assembleGithubRelease bundlePlayRelease --no-daemon --stacktrace
       - name: Renombrar
         run: |
-          cp android-rivieracop/app/build/outputs/apk/release/app-release.apk rivieracop.apk
+          cp android-rivieracop/app/build/outputs/apk/github/release/app-github-release.apk rivieracop.apk
+          cp android-rivieracop/app/build/outputs/bundle/playRelease/app-play-release.aab rivieracop-play.aab
           echo "${{ github.run_number }}" > version.txt
       - name: Publicar en Releases
         uses: softprops/action-gh-release@v2
@@ -47,4 +55,5 @@ jobs:
             game.zip
             native.txt
             pack.txt
+            rivieracop-play.aab
           make_latest: false

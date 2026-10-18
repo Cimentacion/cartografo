@@ -870,7 +870,7 @@ function gameOver(ev) {
     $('btnOverAd').hidden = (PROG.pot | 0) >= 3;
     // en la app, un anuncio a pantalla completa cada 3 partidas
     G.overs = (G.overs || 0) + 1;
-    if (adsReal() && G.overs % 3 === 0) setTimeout(showInterstitial, 600);
+    if (adsReal() && G.overs % 4 === 0) setTimeout(showInterstitial, 600); // pantalla completa cada 4 partidas
     $('overWait').hidden = G.mode !== 'guest';
   }, 1600);
 }

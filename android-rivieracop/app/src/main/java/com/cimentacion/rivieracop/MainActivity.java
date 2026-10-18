@@ -229,6 +229,7 @@ public class MainActivity extends Activity {
     // ---------- actualizador de la app (solo cuando cambia la parte de Android) ----------
     private int myVersion() { return assetInt("native.txt"); }
     private void checkUpdate() {
+        if (BuildConfig.PLAY) return; // en Google Play actualiza la tienda
         new Thread(() -> {
             try {
                 HttpURLConnection c = (HttpURLConnection) new URL(VERSION_URL + "?t=" + System.currentTimeMillis()).openConnection();
@@ -241,7 +242,7 @@ public class MainActivity extends Activity {
         }).start();
     }
     private void startUpdate() {
-        if (updating) return;
+        if (updating || BuildConfig.PLAY) return;
         if (Build.VERSION.SDK_INT >= 26 && !getPackageManager().canRequestPackageInstalls()) {
             js("window.rcUpdateMsg&&window.rcUpdateMsg('perm')");
             try { startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getPackageName()))); } catch (Exception e) { }

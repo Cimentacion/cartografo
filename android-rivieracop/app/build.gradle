@@ -1,27 +1,42 @@
 plugins { id "com.android.application" }
 android {
     namespace "com.cimentacion.rivieracop"
-    compileSdk 34
+    compileSdk 36
     defaultConfig {
         applicationId "com.cimentacion.rivieracop"
         minSdk 24
-        targetSdk 34
+        targetSdk 36
         versionCode (System.getenv("GITHUB_RUN_NUMBER") ? System.getenv("GITHUB_RUN_NUMBER").toInteger() : 1)
         versionName "1.0." + (System.getenv("GITHUB_RUN_NUMBER") ?: "0")
     }
+    buildFeatures { buildConfig true }
     signingConfigs {
+        // APK de GitHub (se instala a mano y se actualiza solo)
         release {
             storeFile file("../cartografo.jks")
             storePassword "cartografo"
             keyAlias "cartografo"
             keyPassword "cartografo"
         }
+        // Google Play: clave de subida privada (llega desde los secretos de GitHub)
+        upload {
+            storeFile file(System.getenv("PLAY_KS") ?: "../cartografo.jks")
+            storePassword System.getenv("PLAY_KS_PASS") ?: "cartografo"
+            keyAlias System.getenv("PLAY_KS_ALIAS") ?: "cartografo"
+            keyPassword System.getenv("PLAY_KS_PASS") ?: "cartografo"
+        }
+    }
+    flavorDimensions "dist"
+    productFlavors {
+        github { dimension "dist"; buildConfigField "boolean", "PLAY", "false"; signingConfig signingConfigs.release }
+        // en Google Play las actualizaciones las hace la tienda: sin autoactualizador del APK ni permiso de instalar
+        play { dimension "dist"; buildConfigField "boolean", "PLAY", "true"; signingConfig signingConfigs.upload }
     }
     buildTypes {
-        release { minifyEnabled false; signingConfig signingConfigs.release }
+        release { minifyEnabled false }
     }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
 dependencies {
-    implementation "com.google.android.gms:play-services-ads:23.3.0"
+    implementation "com.google.android.gms:play-services-ads:24.4.0"
 }
