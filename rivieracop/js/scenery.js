@@ -658,10 +658,10 @@ function mirador(R, road, B, i0, i1, r, into) {
 // ---------- pueblo de callejuelas ----------
 // fachada izquierda a lat -1.2 (la calle es de un solo carril) y derecha a lat 7.2
 const PL = -1.2, PR = 6.0;
-function pHouse(R, road, B, d, sd, w, r) {
+function pHouse(R, road, B, d, sd, w, r, off = 0) {
   const dep = 9 + r() * 4, nf = 2 + (r() < 0.55 ? 1 : 0) + (r() < 0.15 ? 1 : 0), top = nf * 3.1 + 0.4;
-  const lat = sd < 0 ? PL - dep / 2 : PR + dep / 2;
-  const y = road.gy[Math.floor(d)], down = y + 2, m = frame(road, d, lat, 0), fx = -sd * (dep / 2), o = -sd;
+  const lat = sd < 0 ? PL - dep / 2 : PR + off + dep / 2;
+  const y = road.gy[Math.floor(d)], down = y + 2, m = frame(road, d, lat, off ? 1.3 : 0), fx = -sd * (dep / 2), o = -sd;
   const col = pick(r, B.build), band = pick(r, [0xc8a050, 0xe0b040, 0xb8a080, 0x9a8a78, 0xd89060]);
   // muros de ladrillo viejo, de piedra o encalados
   const mk = r();
@@ -745,6 +745,9 @@ const DECO = {
     if (iv > i0) { mirador(R, road, B, i0, iv, r, into); if (iv >= i1) return; i0 = iv; }
     const cr = road.crossings(i0 - 30, i1 + 30);
     const near = (d, rad) => cr.some(c => Math.abs(c - d) < rad);
+    // tramo de terraza: calle de ladrillo con canal de piedra blanca en medio; a la derecha un muro de piedra con seto
+    // y una placita empedrada con las casas más atrás (como la calle de la foto)
+    const terr = d => cr.some(c => !road.isPlaza(c) && d > c + 8 && d < c + 62);
     const plaza = (d, rad) => cr.some(c => road.isPlaza(c) && Math.abs(c - d) < rad);
     for (const sd of [-1, 1]) {
       let d = i0 + r() * 2;
@@ -752,7 +755,7 @@ const DECO = {
         const w = 5 + r() * 5;
         const lat = sd < 0 ? PL - 6 : PR + 6;
         if (near(d, 4.5 + w / 2) || (sd < 0 && plaza(d, 16 + w / 2)) || !ok(road, d, lat, 3, true)) { d += 2; continue; }
-        pHouse(R, road, B, d, sd, w, r);
+        pHouse(R, road, B, d, sd, w, r, sd > 0 && terr(d) ? 10 : 0);
         d += w + 0.05;
       }
       // segunda y tercera fila de casas detrás, más altas (el pueblo se ve apretado)
@@ -771,6 +774,31 @@ const DECO = {
       }
       // sin aceras: el empedrado llega hasta las fachadas
       strip(R.P, road, i0, i1, C(HALF, 0.03), C(PR + 0.5, 0.03), 0x7a808a, 2);
+    }
+    for (let d = i0; d < i1; d++) {
+      if (!terr(d) || terr(d - 1)) continue;
+      let e = d; while (e < i1 && terr(e)) e++;
+      strip(R.L, road, d, e, C(PL, 0.035), C(PR, 0.035), 0x6a3a34);
+      strip(R.L, road, d, e, C(1.9, 0.05), C(3.1, 0.05), 0xe8e0d0);
+      for (const l of [1.85, 3.15]) strip(R.L, road, d, e, C(l - 0.08, 0.055), C(l + 0.08, 0.055), 0xc8c0b0);
+      strip(R.K, road, d, e, C(PR, 0), C(PR, 1.3), 0xc8a87a, 1.5);
+      strip(R.L, road, d, e, C(PR, 1.3), C(PR + 10, 1.3), 0xd8d0c0);
+      strip(R.L, road, d, e, C(PR + 0.2, 1.3), C(PR + 0.2, 2.2), 0x2f6a2a);
+      strip(R.L, road, d, e, C(PR + 0.2, 2.2), C(PR + 1.0, 2.2), 0x3a7a32);
+      for (let q = d; q < e; q += 2) addBox(R.L, 0.04, 1.0, 0.04, 0x1a1a1a, frame(road, q, PR - 0.05, 1.3), { y: 0.5 });
+      strip(R.L, road, d, e, C(PR - 0.05, 2.3), C(PR - 0.05, 2.36), 0x1a1a1a);
+      for (let q = d + 4; q < e - 3; q += 9) { const pm = frame(road, q, PR + 8.5, 1.3); addCyl(R.L, 0.35, 0.28, 0.6, 8, 0xb8603a, pm, { y: 0.3 }); addCyl(R.L, 0.45, 0.5, 0.6, 7, 0x4a8a3a, pm, { y: 0.9 }); }
+      d = e;
+    }
+    // farolas de pared y cables cruzando la calle
+    for (let d = Math.ceil(i0 / 14) * 14; d < i1; d += 14) {
+      const sd = (d / 14) % 2 ? -1 : 1, lat = sd < 0 ? PL + 0.05 : PR - 0.05;
+      if (near(d, 6) || !ok(road, d, lat, 0.5, true)) continue;
+      const m = frame(road, d, lat, 0);
+      addBox(R.L, 0.7, 0.05, 0.05, 0x1a1a1a, m, { x: -sd * 0.35, y: 3.6 });
+      addBox(R.L, 0.32, 0.45, 0.32, 0x1a1a1a, m, { x: -sd * 0.7, y: 3.35 });
+      addBox(R.G, 0.24, 0.3, 0.24, 0xfff0c0, m, { x: -sd * 0.7, y: 3.3 });
+      if ((d / 14) % 3 === 0) addBox(R.L, 0.03, 0.03, PR - PL, 0x1a1a1a, frame(road, d + 2, (PL + PR) / 2, 5.6 + Math.sin(d) * 0.4, Math.PI / 2));
     }
     // línea amarilla de no aparcar junto al bordillo derecho
     strip(R.L, road, i0, i1, C(HALF - 0.45, 0.02), C(HALF - 0.25, 0.02), 0xf0d040);

@@ -7,9 +7,33 @@
 <meta name="mobile-web-app-capable" content="yes">
 <title>Riviera Cop</title>
 <link rel="icon" href="icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Russo+One&family=Chakra+Petch:wght@500;700&family=Press+Start+2P&family=Rajdhani:wght@600;700&family=Orbitron:wght@600;800&family=Black+Ops+One&family=Share+Tech+Mono&family=Bangers&display=swap" media="print" onload="this.media='all'">
+<link rel="preload" href="fonts/russo-one-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/chakra-petch-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/chakra-petch-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/press-start-2p-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+/* fuentes incluidas en el juego (sin internet, sin saltos al cargar) */
+@font-face{font-family:'Bangers';font-weight:400;font-style:normal;font-display:block;src:url(fonts/bangers-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Black Ops One';font-weight:400;font-style:normal;font-display:block;src:url(fonts/black-ops-one-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Chakra Petch';font-weight:400;font-style:normal;font-display:block;src:url(fonts/chakra-petch-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Chakra Petch';font-weight:500;font-style:normal;font-display:block;src:url(fonts/chakra-petch-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Chakra Petch';font-weight:600;font-style:normal;font-display:block;src:url(fonts/chakra-petch-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Chakra Petch';font-weight:700;font-style:normal;font-display:block;src:url(fonts/chakra-petch-latin-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Orbitron';font-weight:400;font-style:normal;font-display:block;src:url(fonts/orbitron-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Orbitron';font-weight:500;font-style:normal;font-display:block;src:url(fonts/orbitron-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Orbitron';font-weight:600;font-style:normal;font-display:block;src:url(fonts/orbitron-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Orbitron';font-weight:700;font-style:normal;font-display:block;src:url(fonts/orbitron-latin-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Orbitron';font-weight:800;font-style:normal;font-display:block;src:url(fonts/orbitron-latin-800-normal.woff2) format('woff2')}
+@font-face{font-family:'Press Start 2P';font-weight:400;font-style:normal;font-display:block;src:url(fonts/press-start-2p-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Rajdhani';font-weight:400;font-style:normal;font-display:block;src:url(fonts/rajdhani-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Rajdhani';font-weight:500;font-style:normal;font-display:block;src:url(fonts/rajdhani-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Rajdhani';font-weight:600;font-style:normal;font-display:block;src:url(fonts/rajdhani-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Rajdhani';font-weight:700;font-style:normal;font-display:block;src:url(fonts/rajdhani-latin-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Russo One';font-weight:400;font-style:normal;font-display:block;src:url(fonts/russo-one-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Share Tech Mono';font-weight:400;font-style:normal;font-display:block;src:url(fonts/share-tech-mono-latin-400-normal.woff2) format('woff2')}
+/* hasta que estén las fuentes y el idioma, no se enseña el menú (evita que se recoloque al abrir) */
+body.booting #menu,body.booting #mmTop{opacity:0}
+#menu{transition:opacity .25s}
 :root{
   --ink:#f5f1e6; --dim:#a7a9b4; --bg:#0b0d14; --panel:rgba(8,10,18,.72); --gold:#ffe14a; --red:#ff3a3a;
   --p1:#3fa9ff; --p2:#ff4f5e;
@@ -480,7 +504,7 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
 <script type="importmap">{ "imports": { "three": "./lib/three.module.js" } }</script>
 <script src="lib/peerjs.min.js"></script>
 </head>
-<body>
+<body class="booting">
 <div id="game">
   <canvas id="gl"></canvas>
   <canvas id="hud"></canvas>

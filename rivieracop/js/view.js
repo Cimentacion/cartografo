@@ -416,7 +416,11 @@ export class View {
       const ud = o.userData;
       R.toWorld(e.d, e.lat, e.h, o.position);
       o.rotation.set(0, -R.yawAt(e.d) + e.ry, 0);
-      if (ud.balc) ud.balc.rotation.y = -e.ry;
+      if (ud.balc) {
+        if (ud.balc.parent === o) ud.balc.rotation.y = -e.ry;
+        // al morir el balcón se queda en la fachada (antes salía volando con él)
+        if (e.st === ST.DEAD && ud.balc.parent === o) { o.updateMatrixWorld(true); this.scene.attach(ud.balc); }
+      }
       // los vehículos se inclinan con la cuesta
       if (PITCH.has(e.type)) { o.rotation.order = 'YXZ'; o.rotation.x = Math.atan2(R.toWorld(e.d + 2, 0, 0, V1).y - R.toWorld(e.d - 2, 0, 0, V2).y, 4) * (Math.abs(e.ry) > 2 ? -1 : 1); if (e.type === 'crew' && e.x && e.x.out) o.rotation.z = e.x.out * Math.min(1.3, (ud.dt || 0) * 0.9); }
       ud.dt = e.st === ST.DEAD ? (ud.dt || 0) + dt : 0;
@@ -438,6 +442,7 @@ export class View {
     for (const [id, o] of this.objs) {
       if (seen.has(id)) continue;
       if (o.userData.laser) this.scene.remove(o.userData.laser);
+      if (o.userData.balc && o.userData.balc.parent !== o) this.scene.remove(o.userData.balc);
       this.scene.remove(o);
       this.objs.delete(id);
     }

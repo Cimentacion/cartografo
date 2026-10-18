@@ -1857,7 +1857,12 @@ function setOutline(on) {
 }
 $('btnOutline').onclick = () => setOutline(!outline.enabled);
 // idioma
-initI18n().then(() => {
+// arranque: se enseña el menú cuando ya están las fuentes y el idioma (máximo 2,5 s)
+const bootDone = () => document.body.classList.remove('booting');
+setTimeout(bootDone, 2500);
+const i18nP = initI18n();
+Promise.all([i18nP, document.fonts ? document.fonts.ready : null]).then(() => requestAnimationFrame(bootDone), bootDone);
+i18nP.then(() => {
   const sel = $('langSel');
   sel.innerHTML = LANGS.map(([k, n]) => `<option value="${k}"${k === getLang() ? ' selected' : ''}>${n}</option>`).join('');
   sel.onchange = () => setLang(sel.value);
