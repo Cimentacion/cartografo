@@ -175,7 +175,7 @@ const BLOBT = (() => {
 })();
 const BLOBM = new THREE.MeshBasicMaterial({ map: BLOBT, transparent: true, depthWrite: false, opacity: 0.8, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
 const BLOBG = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
-const NOBLOB = new Set(['bat', 'key', 'hdoor', 'prop', 'sign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
+const NOBLOB = new Set(['megalodon', 'bat', 'key', 'hdoor', 'prop', 'sign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
 const _bb = new THREE.Box3(), _bs = new THREE.Vector3();
 export function addBlob(g, k = 1.15) {
   _bb.setFromObject(g); _bb.getSize(_bs);
@@ -195,7 +195,7 @@ const MASK = {
   beast: LAYER_ENEMY, bear: LAYER_ENEMY, mine: LAYER_ENEMY, jet: LAYER_ENEMY, blimp: LAYER_ENEMY, rammer: LAYER_ENEMY, junk: LAYER_ENEMY, jelly: LAYER_ENEMY,
   quad: LAYER_ENEMY, crew: LAYER_ENEMY, harvester: LAYER_ENEMY, xcar: LAYER_KEEP, pickup: LAYER_ENEMY, van: LAYER_ENEMY, bus: LAYER_ENEMY, canoe: LAYER_ENEMY,
   jumper: LAYER_ENEMY, tank: LAYER_ENEMY, rig: LAYER_ENEMY, rioter: LAYER_ENEMY, thrown: LAYER_ENEMY, chef: LAYER_ENEMY, boat: LAYER_ENEMY, mtrain: LAYER_ENEMY,
-  zombie: LAYER_ENEMY, bat: LAYER_ENEMY, brute: LAYER_ENEMY, key: LAYER_KEEP, hdoor: LAYER_KEEP, prop: LAYER_KEEP,
+  megalodon: LAYER_ENEMY, zombie: LAYER_ENEMY, bat: LAYER_ENEMY, brute: LAYER_ENEMY, key: LAYER_KEEP, hdoor: LAYER_KEEP, prop: LAYER_KEEP,
   preview: LAYER_KEEP, police: LAYER_KEEP, tlight: LAYER_KEEP, fuel: LAYER_KEEP, float: LAYER_KEEP,
   sign: LAYER_KEEP, weapon: LAYER_KEEP, medkit: LAYER_KEEP, amb: LAYER_KEEP, truck: LAYER_KEEP, barrel: LAYER_KEEP, lady: LAYER_KEEP, civilian: LAYER_KEEP, chicken: LAYER_KEEP,
 };
@@ -393,6 +393,7 @@ export class View {
       case 'key': g = M.keyItem(); break;
       case 'hdoor': g = M.hdoor(); break;
       case 'prop': g = M.prop(x.k || 0); break;
+      case 'megalodon': g = M.megalodon(); break;
       default: g = new THREE.Group();
     }
     const L = MASK[e.type];
@@ -575,6 +576,14 @@ const ANIM = {
     ud.armL.rotation.x = 0.9 - Math.sin(w) * 0.2;
   },
   key(o, e, dt) { o.userData.k.rotation.y += dt * 2.5; },
+  megalodon(o, e, dt, ctx) {
+    const ud = o.userData;
+    if (e.st === ST.DEAD) { ud.body.rotation.z = Math.min(Math.PI, (ud.dt || 0) * 0.8); return; }
+    const fast = e.x && e.x.ph === 2;
+    ud.tail.rotation.y = Math.sin(ctx.t * (fast ? 9 : 3)) * 0.5;
+    ud.body.rotation.y = Math.sin(ctx.t * (fast ? 9 : 3) + 1) * 0.06;
+    const k = 0.6 + Math.sin(ctx.t * 6) * 0.4; ud.wounds.forEach(w => w.scale.setScalar(0.9 + k * 0.2));
+  },
   prop(o, e) {
     // reventado: se vuelca (el extintor desaparece)
     const k = e.x ? e.x.k : 0, t = o.userData.dt || 0;

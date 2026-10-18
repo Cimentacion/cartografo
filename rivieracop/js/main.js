@@ -30,8 +30,9 @@ const $ = id => document.getElementById(id);
 const canvas = $('gl');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
 // calidad: resolución interna (BAJA 1x, MEDIA 1.5x, ALTA 2x) y oclusión ambiental
-const QUAL = [['BAJA', 1], ['MEDIA', 1.25], ['ALTA', 1.6]];
-let qIdx = Math.max(0, Math.min(2, +(localStorage.getItem('rc_q') ?? 1)));
+// las dos últimas: más resolución para ver mejor a los enemigos (gasta más batería)
+const QUAL = [['BAJA', 1], ['MEDIA', 1.25], ['ALTA', 1.6], ['ULTRA', 2.25], ['NATIVA', 4]];
+let qIdx = Math.max(0, Math.min(QUAL.length - 1, +(localStorage.getItem('rc_q') ?? 1)));
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.get('hq') ? 2 : QUAL[qIdx][1]));
 renderer.setSize(vw(), vh());
 // sombras suaves del sol (se quitan en calidad BAJA)
@@ -74,6 +75,8 @@ const SKYT = {
   dia: { top: 0x1450d0, bands: ['#0f48c8', '#1f6ae0', '#3e8cec', '#9cc8f2'], cl: [255, 255, 255], cs: [170, 192, 228], sun: '#fffbe8', n: 18, nw: 9, mt: '#3a6ab0', wispy: true, noMt: true },
   atardecer: { top: 0x3a2a6a, bands: ['#2c2a64', '#7a4a8a', '#e0788a', '#ffc890'], cl: [255, 214, 190], cs: [150, 90, 130], sun: '#ffb860', n: 20, mt: '#5a3a5a' },
   nublado: { top: 0x5a6478, bands: ['#56607a', '#7a8498', '#a0a8b6', '#b8bec8'], cl: [226, 230, 236], cs: [120, 128, 145], sun: null, n: 34, mt: '#5a6270' },
+  // fondo marino: agua azul que se aclara hacia la superficie, con el sol difuminado arriba
+  mar: { top: 0x6ad4f4, bands: ['#7ae0fa', '#2a9ad0', '#0e5a8a', '#06304e'], cl: [180, 230, 255], cs: [40, 120, 170], sun: '#e8ffff', n: 0, mt: '#04202e', stars: false },
   // casino: noche morada con el horizonte dorado de las luces
   casino: { top: 0x0a0420, bands: ['#0a0420', '#260c48', '#56207a', '#c8789a'], cl: [150, 100, 190], cs: [50, 24, 80], sun: null, n: 14, mt: '#1a0a2a', stars: true },
   // ciudad zombi: noche morada con nubes de humo
@@ -159,6 +162,7 @@ cloudDomes[0].material.map = skyTex('dia'); cloudDomes[0].userData.k = 'dia';
 const SKYST = { k: 'dia', fade: 1 };
 function skyTypeOf(B) {
   if (B.deco === 'zombi') return 'infierno';
+  if (B.deco === 'submarino') return 'mar';
   if (B.deco === 'casino') return 'casino';
   if (B.night) return 'noche';
   if (['desierto', 'acantilados', 'costa', 'bajada', 'curva', 'lomas'].includes(B.deco)) return 'atardecer';
@@ -1611,7 +1615,7 @@ function tick(dt) {
   view.setCarParts(cu[0], cu[1]);
   if (CAN.t > 0) { CAN.t -= dt; if (CAN.t <= 0) { endCannon(); showBanner('BAJAS DEL CAÑÓN', '', '#ffb020'); } }
   else if (CAN.cd > 0) CAN.cd = Math.max(0, CAN.cd - dt);
-  updBeams(G.t);
+  updBeams(G.t); updGodRays(G.t);
   // ciudad zombi: pavesas y llamas subiendo de los incendios
   if (BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]].deco === 'zombi' && !G.foot) {
     for (let k = 0; k < 3; k++) if (Math.random() < dt * 14) {
@@ -1768,6 +1772,27 @@ const BEAMS = (() => {
   }
   return L;
 })();
+// rayos de sol que entran desde la superficie en el fondo marino (se mecen despacio)
+const GODR = (() => {
+  const geo = new THREE.CylinderGeometry(1.2, 7, 70, 8, 3, true).translate(0, -35, 0);
+  const P = geo.attributes.position, col = new Float32Array(P.count * 3);
+  for (let i = 0; i < P.count; i++) { const k = Math.pow(1 + P.getY(i) / 70, 1.8); col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = k; }
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const L = [];
+  for (let i = 0; i < 9; i++) { const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x9ae8ff, vertexColors: true, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); m.visible = false; m.frustumCulled = false; scene.add(m); L.push(m); }
+  return L;
+})();
+function updGodRays(t) {
+  const on = BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]].deco === 'submarino' && G.road.kindAt(G.carD) === 0;
+  const base = Math.floor((G.carD - 20) / 24);
+  GODR.forEach((m, i) => {
+    m.visible = on; if (!on) return;
+    const c = base + i, d = c * 24 + 6, lat = ((c * 37) % 9 - 4) * 7;
+    G.road.toWorld(d, lat, 48, m.position);
+    m.rotation.set(0.25 + Math.sin(t * 0.3 + c) * 0.08, -G.road.yawAt(d), 0.3 + Math.sin(t * 0.23 + c * 1.3) * 0.12, 'YXZ');
+    m.material.opacity = 0.16 + 0.08 * Math.sin(t * 0.7 + c * 2.1);
+  });
+}
 function updBeams(t) {
   const on = BIOMES[BIOME_KEYS[G.road.bioAt(G.carD + 60)]].deco === 'casino' || BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]].deco === 'casino';
   const base = Math.floor((G.carD - 30) / 42);

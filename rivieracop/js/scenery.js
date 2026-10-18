@@ -529,6 +529,25 @@ function seaRun(R, road, B, i0, i1, r) {
     else if (k < 0.75) { const c = pick(r, [0xff6a8a, 0xffa040, 0xc87aff, 0xffe14a, 0x5ad0ff]); addCyl(R.L, 0.1, 0.5, 1 + r() * 1.5, 6, c, m, { y: 0.6 }); addCyl(R.L, 0, 0.6, 1.2, 6, c, m, { y: 1.6 }); }
     else addBox(R.K, 1.5 + r() * 3, 1 + r() * 2, 1.5 + r() * 3, pick(r, [0x6a7a7a, 0x5a6a6a]), m, { y: 0.5, uvs: 3 });
   });
+  // arrecifes de coral a los dos lados: cerebros, cuernos de ciervo, abanicos, anémonas, esponjas y rocas con coral encima
+  for (const sd of [-1, 1]) each(i0, i1, r, 2.2, 4.5, d => {
+    const lat = sd * (HALF + 3 + r() * 14), m = frame(road, d, lat, 0, r() * 6), k = r();
+    const C = pick(r, [0xff6a8a, 0xffa040, 0xc87aff, 0xffe14a, 0x5ad0ff, 0xff4a6a, 0x7affc0]);
+    if (k < 0.2) { addCyl(R.L, 0.9 + r() * 0.6, 1.2 + r() * 0.6, 0.9 + r() * 0.5, 9, C, m, { y: 0.4 }); for (let q = 0; q < 5; q++) addBox(R.L, 1.8, 0.06, 0.08, LIGHT(C, -0.2), m, { y: 0.9, z: -0.6 + q * 0.3 }); }
+    else if (k < 0.4) { for (let q = 0; q < 6; q++) { const a = q / 6 * 6.28; addBox(R.L, 0.14, 1.6 + r() * 1.4, 0.14, C, m, { y: 1, x: Math.cos(a) * 0.4, z: Math.sin(a) * 0.4, rz: Math.cos(a) * 0.5, rx: Math.sin(a) * 0.5 }); } }
+    else if (k < 0.55) { addBox(R.L, 0.06, 2 + r() * 1.5, 2 + r() * 1.5, pick(r, [0xc04aff, 0xff4a8a, 0xffa040]), m, { y: 1.4 }); addBox(R.L, 0.12, 0.6, 0.12, 0x6a4a3a, m, { y: 0.3 }); }
+    else if (k < 0.7) { addCyl(R.L, 0.35, 0.4, 0.6, 8, 0xff8a3a, m, { y: 0.3 }); for (let q = 0; q < 10; q++) { const a = q / 10 * 6.28; addBox(R.L, 0.06, 0.7, 0.06, pick(r, [0xff5ab0, 0xffe0f0]), m, { y: 0.9, x: Math.cos(a) * 0.25, z: Math.sin(a) * 0.25, rz: Math.cos(a) * 0.4, rx: Math.sin(a) * 0.4 }); } }
+    else if (k < 0.82) for (let q = 0; q < 3; q++) addCyl(R.L, 0.22, 0.28, 1 + r() * 2, 7, pick(r, [0xffd040, 0xa060ff, 0x40c0a0]), m, { y: 0.8, x: (q - 1) * 0.5, z: (r() - 0.5) * 0.4 });
+    else { const h = 1.5 + r() * 3; addBox(R.K, 2 + r() * 3, h, 2 + r() * 2.5, pick(r, [0x4a5a6a, 0x3a4a5a]), m, { y: h / 2, uvs: 3 }); for (let q = 0; q < 4; q++) addCyl(R.L, 0.2, 0.35, 0.5 + r(), 6, pick(r, [0xff6a8a, 0xffa040, 0xc87aff, 0x5ad0ff]), m, { y: h + 0.3, x: (r() - 0.5) * 1.6, z: (r() - 0.5) * 1.4 }); }
+  });
+  // arcos de roca de vez en cuando por encima de la carretera
+  each(i0, i1, r, 90, 160, d => {
+    const m = frame(road, d, 0, 0);
+    for (const sd of [-1, 1]) addBox(R.K, 3, 12, 4, 0x3a4a5a, m, { x: sd * 11, y: 6, rz: sd * 0.12, uvs: 3 });
+    addBox(R.K, 26, 3.5, 4.5, 0x3a4a5a, m, { y: 12.5, uvs: 3 });
+    for (let q = 0; q < 8; q++) addCyl(R.L, 0.25, 0.4, 0.8, 6, pick(r, [0xff6a8a, 0xffa040, 0xc87aff, 0x7affc0]), m, { y: 14.5, x: (r() - 0.5) * 22, z: (r() - 0.5) * 3 });
+    for (let q = 0; q < 10; q++) addBox(R.L, 0.08, 1 + r() * 2.5, 0.08, 0x2a8a4a, m, { y: 10.8 - r(), x: (r() - 0.5) * 20, z: (r() - 0.5) * 3 });
+  });
   // bancos de peces
   each(i0, i1, r, 12, 20, d => {
     const lat = (r() - 0.5) * 50, h = 2 + r() * 6, c = pick(r, [0xffd23f, 0x5ad0ff, 0xff7a3a, 0xffffff]);

@@ -31,18 +31,18 @@ export const SEAT_H = 1.75, SEAT_D = -0.8;
 const VEH = new Set(['xcar', 'harvester', 'police', 'ecar', 'truck', 'amb', 'jeep', 'civcar', 'tank', 'rig', 'fuel', 'float', 'pickup', 'van', 'bus', 'crew']);
 const HOSTILE = new Set(['gunman', 'sniper', 'moto', 'ecar', 'heli', 'drone', 'jeep', 'grenade', 'rocket', 'rock', 'wall', 'train',
   'jumper', 'tank', 'rig', 'rioter', 'thrown', 'chef', 'boat', 'mtrain', 'quad', 'pickup', 'van', 'bus', 'canoe',
-  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'turret', 'gunship', 'crew', 'xcar', 'harvester', 'zombie', 'bat', 'brute']);
+  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'turret', 'gunship', 'crew', 'xcar', 'harvester', 'zombie', 'bat', 'brute', 'megalodon']);
 export const AIR = new Set(['heli', 'drone', 'jet', 'blimp', 'gunship']);
 export const ANIMAL = new Set(['beast', 'bear', 'jelly', 'chicken']);
 const PROJ = new Set(['grenade', 'rocket', 'rock', 'thrown']);
 const VEHICLE_DMG = new Set(['moto', 'ecar', 'heli', 'jeep', 'tank', 'rig', 'boat', 'mtrain', 'train', 'wall', 'drone', 'crew', 'xcar', 'harvester']);
 const OFFH = { gunman: 1.5, sniper: 1.5, moto: 1.6, ecar: 1.6, heli: -0.4, drone: 0, jeep: 2.6, rioter: 1.6, chef: 2.2, boat: 1.4, tank: 2.4, mtrain: 2.5,
-  quad: 1.4, pickup: 2.2, van: 1.6, bus: 2.4, canoe: 0.8, bear: 2.2, blimp: -3, jet: 0, rammer: 1.4, jelly: 0, turret: 0.6, gunship: 0, crew: 2.4, xcar: 1.4, harvester: 4, zombie: 1.3, bat: 0, brute: 3.5 };
+  quad: 1.4, pickup: 2.2, van: 1.6, bus: 2.4, canoe: 0.8, bear: 2.2, blimp: -3, jet: 0, rammer: 1.4, jelly: 0, turret: 0.6, gunship: 0, crew: 2.4, xcar: 1.4, harvester: 4, zombie: 1.3, bat: 0, brute: 3.5, megalodon: 0 };
 const PTS = {
   gunman: 100, sniper: 200, moto: 150, ecar: 300, heli: 1000, drone: 150, jeep: 1500, grenade: 60, rocket: 80, rock: 60, chicken: 50, amb: 200,
   barrel: 50, wall: 600, train: 900, jumper: 180, tank: 2000, rig: 1200, rioter: 80, thrown: 30, chef: 3000, boat: 450, mtrain: 2500,
   quad: 150, pickup: 400, van: 600, bus: 1200, canoe: 120,
-  beast: 160, bear: 3500, mine: 60, jet: 500, blimp: 5000, rammer: 500, junk: 20, jelly: 90, turret: 300, gunship: 6000, crew: 500, xcar: 150, harvester: 8000, zombie: 60, bat: 80, brute: 9000, key: 500, prop: 30,
+  beast: 160, bear: 3500, mine: 60, jet: 500, blimp: 5000, rammer: 500, junk: 20, jelly: 90, turret: 300, gunship: 6000, crew: 500, xcar: 150, harvester: 8000, zombie: 60, bat: 80, brute: 9000, key: 500, prop: 30, megalodon: 8000,
 };
 
 // los enemigos normales se van desbloqueando a lo largo de la partida (segundos de partida)
@@ -702,6 +702,8 @@ export class Sim {
       if (this.timer('jelly', dt, 9) && this.count('jelly') < 12) this.spawnJellies();
       if (this.timer('shark', dt, 7) && this.count('beast') < 2 + this.n) this.spawnBeasts(2);
       if (this.timer('whale', dt, 16) && this.count('whale') < 2) this.spawnWhale();
+      // jefe: el megalodón, que embiste de lado a lado por delante
+      if (prog > 0.45 && once('mega')) this.spawnMega();
     }
     // pueblo: tiradores en los balcones, coches que cruzan en las esquinas, tractores y, al minuto, la cosechadora
     if (deco === 'pueblo' && !inTun) {
@@ -867,6 +869,12 @@ export class Sim {
     const e = this.add('amb', { d: this.vStart(40), lat: LANE_OT, h: 0, hp: 22, vd: this.speed + 8 });
     e.x = { ph: 0, hd: 5, ht: 16 };
     this.emit('banner', { txt: '¡AMBULANCIA!', sub: 'Revienta la ambulancia para sacar vida', c: '#40ff80' });
+  }
+  spawnMega() {
+    const side = this.r() < 0.5 ? -1 : 1;
+    const e = this.add('megalodon', { d: this.carD + 80, lat: side * 60, h: 5, hp: 200 + 70 * this.nAlive() });
+    e.x = { ph: 0, t: 6, side, rel: 80, from: 0, to: 0, dr: 12, bit: 0 };
+    this.emit('banner', { txt: '¡EL MEGALODÓN!', sub: 'Dispara a sus heridas rojas cuando pase de lado', c: '#ff4a4a' });
   }
   spawnDealer() {
     const behind = this.r() < 0.4, narrow = BIOMES[BIOME_KEYS[this.road.bioAt(this.carD + 100)]].narrow;
@@ -2286,6 +2294,39 @@ const U = {
     }
   },
   key(e, dt, S) { e.vd = 0; if (!S.foot && e.age > 2) e.rm = true; },
+  megalodon(e, dt, S) {
+    const x = e.x;
+    e.vd = 0;
+    if (e.st === ST.DEAD) { e.d = S.carD + x.rel; e.h = Math.max(-6, e.h - dt * 2); if (e.deadT > 6) e.rm = true; return; }
+    x.t -= dt;
+    if (x.ph === 0) {
+      // nada lejos, a un lado, al ritmo del coche
+      x.rel += (75 - x.rel) * Math.min(1, dt * 0.5);
+      e.lat += (x.side * 55 + Math.sin(e.age * 0.7) * 6 - e.lat) * Math.min(1, dt * 0.8);
+      e.h += (5 + Math.sin(e.age) - e.h) * Math.min(1, dt);
+      e.ry = 0;
+      if (x.t <= 0) { x.ph = 1; x.t = 1.8; x.dr = 10 + S.r() * 8; }
+    } else if (x.ph === 1) {
+      // se coloca por delante y se gira hacia la carretera
+      x.rel += (x.dr - x.rel) * Math.min(1, dt * 1.6);
+      e.h += (2.2 - e.h) * Math.min(1, dt * 2);
+      e.ry = x.side > 0 ? Math.PI / 2 : -Math.PI / 2;
+      if (x.t <= 0) { x.ph = 2; x.t = 2.4; x.from = e.lat; x.to = -x.side * 55; x.bit = 0; if (once0(S, 'megaTip')) S.emit('banner', { txt: '¡EMBISTE DE LADO!', sub: 'Las heridas rojas se ven al pasar', c: '#ff4a4a' }); }
+    } else {
+      // embestida lateral: cruza la carretera de un lado a otro
+      const u = clamp(1 - x.t / 2.4, 0, 1);
+      e.lat = lerp(x.from, x.to, u * u * (3 - 2 * u));
+      e.ry = x.to > x.from ? -Math.PI / 2 : Math.PI / 2;
+      if (!x.bit && Math.abs(e.lat - LANE_ME) < 4 && Math.abs(x.rel) < 14) {
+        x.bit = 1;
+        S.emit('crash', {});
+        for (const i of S.alivePlayers()) { S.players[i].inv = 0; S.hurt(i, 1, 'crash'); }
+        S.emit('banner', { txt: '¡MORDISCO!', sub: '', c: '#ff4a4a' });
+      }
+      if (x.t <= 0) { x.ph = 0; x.side = -x.side; x.t = 5 + S.r() * 3; }
+    }
+    e.d = S.carD + x.rel;
+  },
   prop(e, dt, S) { e.vd = 0; if (!S.foot && S.rel(e) < -40) e.rm = true; },
   hdoor(e, dt, S) { e.vd = 0; if (!S.foot && S.rel(e) < -60) e.rm = true; },
   rock(e, dt, S) { proj(e, dt, S); },
@@ -2399,6 +2440,7 @@ const HIT = {
     S.damage(e, p, part === 'head' ? dmg * 1.5 : dmg);
   },
   key(e, p, part, dmg, S) { S.kill(e, p); },
+  megalodon(e, p, part, dmg, S) { if (part === 'wound') { S.damage(e, p, dmg); S.emit('fx', { f: 'splat', w: S.wpos(e.d, e.lat, e.h) }); } else S.damage(e, p, dmg * 0.12); },
   prop(e, p, part, dmg, S) { e.hp -= dmg; S.emit('fx', { f: 'spark', w: S.wpos(e.d, e.lat, e.h + 0.6) }); if (e.hp <= 0) S.kill(e, p); },
   barrel(e, p, part, dmg, S) { S.kill(e, p); },
   // cisterna: si le das, revienta... y si está cerca os pilla
@@ -2614,6 +2656,7 @@ const KILL = {
     if (k === 3) { S.emit('fx', { f: 'ext', w }); S.explode(e.d, e.lat, e.h, 3.4, p, e); }
     else S.emit('fx', { f: k === 1 ? 'vend' : 'rock', w });
   },
+  megalodon(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, e.h), s: 2.5 }); S.emit('banner', { txt: '¡MEGALODÓN ABATIDO!', sub: '', c: '#7dff8a' }); },
   key(e, p, S) {
     e.rm = true;
     if (S.foot) S.foot.key = 1;

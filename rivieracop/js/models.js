@@ -1952,3 +1952,32 @@ export function dealerVan() {
   g.userData.ball = ball; g.userData.lights = lights;
   return g;
 }
+// megalodón: tiburón gigante con heridas rojas en los costados (ahí es donde le hace daño)
+export function megalodon() {
+  const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
+  const C = 0x4a5a6a, W = 0xd8dcd8;
+  const segs = [[3.2, 3.0, 3.0, -4.5], [3.6, 3.4, 3.2, -1.5], [3.4, 3.2, 3.0, 1.5], [2.6, 2.5, 2.6, 4.2], [1.6, 1.6, 2.2, 6.4]];
+  for (const [w, h, d, z] of segs) { box(body, w, h, d, C, 0, 0, z, 'body'); box(body, w * 0.9, h * 0.35, d * 0.95, W, 0, -h * 0.38, z, 'body'); }
+  // morro y mandíbula abierta con dientes
+  box(body, 2.6, 2.0, 2.2, C, 0, 0.4, -7.0, 'body'); box(body, 2.2, 0.8, 2.0, W, 0, -1.2, -6.8, 'body');
+  box(body, 2.0, 0.5, 1.6, 0x5a1a1a, 0, -0.55, -7.1);
+  for (let k = 0; k < 7; k++) { box(body, 0.18, 0.4, 0.18, 0xf8f8f0, -0.9 + k * 0.3, -0.2, -7.9); box(body, 0.18, 0.4, 0.18, 0xf8f8f0, -0.9 + k * 0.3, -0.95, -7.7); }
+  for (const s of [-1, 1]) { box(body, 0.1, 0.35, 0.35, 0x0a0a0a, s * 1.31, 0.7, -6.2); for (let k = 0; k < 4; k++) box(body, 0.05, 1.2, 0.1, 0x3a4652, s * 1.82, 0, -3.4 + k * 0.35); }
+  // aletas
+  const dor = box(body, 0.4, 3.2, 2.6, C, 0, 2.9, -0.5, 'body'); dor.rotation.x = -0.45;
+  for (const s of [-1, 1]) { const p = box(body, 3.4, 0.3, 1.6, C, s * 2.8, -1.0, -2.6, 'body'); p.rotation.z = s * -0.35; }
+  const tail = new THREE.Group(); tail.position.set(0, 0, 7.6); body.add(tail);
+  box(tail, 0.4, 1.2, 1.6, C, 0, 0, 0.6, 'body');
+  const t1 = box(tail, 0.35, 3.6, 1.4, C, 0, 1.6, 1.6, 'body'); t1.rotation.x = 0.6;
+  const t2 = box(tail, 0.35, 2.6, 1.2, C, 0, -1.2, 1.5, 'body'); t2.rotation.x = -0.7;
+  // heridas abiertas en los costados (punto débil)
+  const wounds = [];
+  for (const s of [-1, 1]) for (const [y, z, sz] of [[0.6, -2.6, 0.9], [-0.2, 0.8, 1.1], [0.4, 3.6, 0.8]]) {
+    const w = box(body, 0.2, sz, sz * 1.4, glow(0xff2a2a), s * (z < 0 ? 1.81 : z < 2 ? 1.71 : 1.31), y, z, 'wound');
+    box(body, 0.22, sz * 0.5, sz * 0.9, 0x6a0a0a, s * (z < 0 ? 1.82 : z < 2 ? 1.72 : 1.32), y, z, 'wound');
+    wounds.push(w);
+  }
+  g.userData.body = body; g.userData.tail = tail; g.userData.wounds = wounds;
+  g.userData.shooters = [node(body, 0, -0.5, -8)];
+  return g;
+}
