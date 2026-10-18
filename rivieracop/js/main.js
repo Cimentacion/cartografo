@@ -1478,14 +1478,15 @@ function tick(dt) {
   if (G.camYaw == null) G.camYaw = yawAhead;
   G.camYaw = lerpAng(G.camYaw, yawAhead, 1 - Math.exp(-dt * 6));
   // J3-J4 van detrás mirando hacia atrás
-  EA.set(0, G.camYaw + (isRear(li, G.n) ? Math.PI : 0), 0, 'YXZ');
+  const mySeat = view.seat(li);
+  EA.set(0, G.camYaw + (mySeat[2] != null ? mySeat[2] : isRear(li, G.n) ? Math.PI : 0), 0, 'YXZ');
   QCAR.setFromEuler(EA);
   if (BOT) botAim();
   EA.set(look.pitch, look.yaw, 0, 'YXZ');
   QLOOK.setFromEuler(EA);
   camera.quaternion.copy(QCAR).multiply(QLOOK);
   // la cámara un poco hacia fuera del coche: el compañero de al lado tapa menos
-  camera.position.set(SEATS[li][0] * 1.3, 2.3 + (car.userData.seatY || 0) + (CAN.t > 0 ? 0.75 : 0), SEATS[li][1]);
+  camera.position.set(mySeat[0] * (car.userData.camK || 1.3), 2.3 + (car.userData.seatY || 0) + (CAN.t > 0 ? 0.75 : 0), mySeat[1]);
   car.localToWorld(camera.position);
   if (G.shake > 0) camera.position.add(V1.set((Math.random() - 0.5) * G.shake * 0.3, (Math.random() - 0.5) * G.shake * 0.3, 0));
   camera.updateMatrixWorld(true);
@@ -1495,7 +1496,7 @@ function tick(dt) {
     const P = G.players[i], av = view.av[i];
     if (!P || i >= G.n) { av.visible = false; continue; }
     av.visible = !P.gone && !G.hideMates;
-    av.userData.yaw.rotation.set(P.alive ? 0 : 0.7, (P.ly || 0) + (isRear(i, G.n) ? Math.PI : 0), 0);
+    { const st = view.seat(i); av.userData.yaw.rotation.set(P.alive ? 0 : 0.7, (P.ly || 0) + (st[2] != null ? st[2] : isRear(i, G.n) ? Math.PI : 0), 0); }
     av.userData.rig.armR.rotation.x = P.lp || 0;
     av.userData.rig.armL.rotation.set(P.lp || 0, -0.5, 0);
   }

@@ -226,9 +226,11 @@ export class View {
     if (old) { this.car.position.copy(old.position); this.car.quaternion.copy(old.quaternion); this.scene.remove(old); }
     this.scene.add(this.car);
     const sy = this.car.userData.seatY || 0;
-    this.av.forEach((a, i) => { if (old) old.remove(a); a.position.set(SEATS[i][0], 1.4 + sy, SEATS[i][1]); this.car.add(a); });
+    this.av.forEach((a, i) => { if (old) old.remove(a); const st = this.seat(i); a.position.set(st[0], 1.4 + sy, st[1]); this.car.add(a); });
     if (this.parts) this.setCarParts(...this.parts);
   }
+  // asiento de cada jugador en el vehículo: [x, z, mirada base] (null = la de siempre)
+  seat(i) { const S = this.car.userData.seats; return S ? S[i] : [SEATS[i][0], SEATS[i][1], null]; }
   setCarParts(pk, tu) {
     this.parts = [pk, tu];
     const u = this.car.userData;
@@ -239,7 +241,7 @@ export class View {
     this.av.forEach(a => this.car.remove(a));
     this.av = [0, 1, 2, 3].map(i => M.seatedPlayer(i, chars[i]));
     const sy = this.car.userData.seatY || 0;
-    this.av.forEach((a, i) => { a.position.set(SEATS[i][0], 1.4 + sy, SEATS[i][1]); this.car.add(a); a.visible = false; });
+    this.av.forEach((a, i) => { const st = this.seat(i); a.position.set(st[0], 1.4 + sy, st[1]); this.car.add(a); a.visible = false; });
   }
   clear() {
     for (const o of this.objs.values()) this.scene.remove(o);
