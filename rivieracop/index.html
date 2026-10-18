@@ -257,51 +257,28 @@ body.shielded #shieldfx{opacity:1}
 #spd button.sel{background:var(--gold);color:#111}
 .big.alt4{background:#7dff8a;box-shadow:0 4px 0 #2a7a3a}
 /* ---------- menú principal ---------- */
-#menu{padding:0;overflow:hidden;background:linear-gradient(90deg,rgba(8,6,20,.55) 0%,rgba(8,6,20,.25) 40%,rgba(8,6,20,0) 60%,rgba(8,6,20,.2) 100%)}
-.mm{width:100%;height:100%;display:grid;grid-template-columns:minmax(300px,1.1fr) minmax(250px,.9fr);gap:18px;padding:max(14px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) 14px max(22px,env(safe-area-inset-left));align-items:center}
-.mmL{display:flex;flex-direction:column;gap:10px;align-items:stretch;max-width:460px}
-.mmL h1{text-align:left;font-size:clamp(38px,7vw,70px)}
-.mmL .sub{text-align:left;margin:0 0 6px}
-.mmBig{display:flex;align-items:center;gap:14px;text-align:left;padding:12px 16px;border-radius:12px;color:#111;border:3px solid #000;box-shadow:0 5px 0 #000,0 10px 24px rgba(0,0,0,.4);transition:transform .08s}
-.mmBig:active,.mmMid:active,.mmSm:active{transform:translateY(3px)}
-.mmBig .mi{font-size:30px;line-height:1}
-.mmBig b{display:block;font:24px var(--f-title);letter-spacing:.04em}
-.mmBig small{display:block;font:700 12px var(--f-ui);opacity:.75;margin-top:2px}
-.mmArc{background:linear-gradient(135deg,#ffe14a 0%,#ffb020 60%,#ff8a1a 100%);color:#111;padding:16px 18px}
-.mmArc b{font-size:30px}
-.mmArc .mi{font-size:36px}
-.mmRow2{display:grid;grid-template-columns:1.6fr 1fr;gap:8px}
-.mmUpg,.mmStory{display:flex;align-items:center;gap:10px;text-align:left;padding:9px 12px;border-radius:10px;border:2px solid #000;box-shadow:0 4px 0 #000}
-.mmUpg{background:linear-gradient(135deg,#7dff8a,#2ac86a);color:#0a2a14}
-.mmStory{background:rgba(42,34,68,.72);color:#e8e0ff;border-color:#4a4270}
-.mmUpg .mi,.mmStory .mi{font-size:22px}
-.mmUpg b,.mmStory b{display:block;font:17px var(--f-title);letter-spacing:.03em}
-.mmStory b{font-size:14px}
-.mmUpg small,.mmStory small{display:block;font:700 10px var(--f-ui);opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
-.mmOnline{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.mmMid{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 6px;border-radius:10px;background:rgba(30,26,54,.72);color:#fff;border:2px solid #4a4270;box-shadow:0 4px 0 #000}
-.mmMid .mi{font-size:20px}
-.mmMid b{font:13px var(--f-title);letter-spacing:.04em}
-.mmMid i{position:absolute;top:6px;right:8px;width:10px;height:10px;border-radius:50%;background:#7dff8a;box-shadow:0 0 8px #7dff8a}
-.mmR{display:flex;flex-direction:column;gap:10px;align-self:center;justify-self:end;width:min(360px,100%)}
-.mmCard{background:rgba(12,10,26,.6);backdrop-filter:blur(3px);border:2px solid #ffe14a;border-radius:12px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.45)}
-.mmName{font:18px var(--f-title);color:#fff;display:flex;align-items:baseline;gap:8px}
-.mmName small{font:700 11px var(--f-ui);color:#9a94b8}
-.mmStat{display:flex;align-items:center;gap:8px;margin:6px 0 8px;font:700 13px var(--f-ui);color:#bdb8d8}
-.mmStat b{font:16px var(--f-title);color:#ffe14a;margin-right:10px}
-.mmStat #best{font:700 12px var(--f-ui)}
-.mmPot{width:100%;padding:9px;border-radius:8px;background:linear-gradient(135deg,#ff5ad0,#b04aff);color:#fff;font:15px var(--f-title);border:2px solid #000;box-shadow:0 3px 0 #000}
-.mmPot small{display:block;font:700 11px var(--f-ui);opacity:.9}
-.mmGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.mmGrid.g5{grid-template-columns:repeat(6,1fr)}.mmGrid.g5 .mmSm{grid-column:span 2}.mmGrid.g5 .mmSm:nth-child(n+4){grid-column:span 3}
-.mmSm{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:10px;background:rgba(30,26,54,.62);color:#fff;font:11px var(--f-title);letter-spacing:.03em;border:2px solid #3a3456;box-shadow:0 3px 0 #000}
-.mmSm .mi{font-size:20px}
-#menuMsg{color:#ff8a6a;font-weight:700;min-height:1em;text-align:left}
+#menu{overflow:hidden;align-items:center;justify-content:center;padding-top:60px}
+#menu .card{width:min(780px,100%)}
+#menu #menuMsg{text-shadow:0 1px 3px #000}
+#mmTop{position:absolute;top:max(8px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));display:flex;justify-content:space-between;align-items:flex-start;gap:10px;pointer-events:none}
+#mmTop > *{pointer-events:auto}
+.mmChip{display:flex;align-items:center;gap:7px;background:rgba(8,10,18,.6);padding:7px 12px;border-radius:20px;font:15px var(--f-title);color:#fff}
+.mmChip small{font:700 10px var(--f-ui);color:#9a94b8;margin-right:6px}
+.mmChip b{font:15px var(--f-title);color:#ffe14a}
+.mmIcons{display:flex;gap:6px}
+.mmIc{display:flex;flex-direction:column;align-items:center;gap:1px;width:58px;padding:5px 2px 4px;border-radius:10px;background:rgba(8,10,18,.6);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:20px;line-height:1.1}
+.mmIc small{font:8px var(--f-title);letter-spacing:.04em;opacity:.85}
+#btnShop small{display:block;font:700 10px var(--f-ui);opacity:.8}
+.mmSec{margin-top:12px;gap:8px}
+.mmS{position:relative;font:13px var(--f-title);padding:9px 14px;border-radius:8px;background:rgba(8,10,18,.6);color:#fff;border:1px solid rgba(255,255,255,.2)}
+.mmS small{font:700 10px var(--f-ui);opacity:.75}
+.mmS i{position:absolute;top:-4px;right:-4px;width:11px;height:11px;border-radius:50%;background:#7dff8a;box-shadow:0 0 8px #7dff8a}
+.mmPot{background:linear-gradient(135deg,rgba(255,90,208,.85),rgba(176,74,255,.85));border-color:#000}
+#menu #best{margin-top:8px;font:700 12px var(--f-ui);color:#d8d8e0;text-shadow:0 1px 3px #000}
+@media (max-height:400px){#menu h1{font-size:44px}#menu .sub{margin:4px 0 8px}#menu .big{padding:10px 16px;font-size:16px;min-width:130px}#menu{padding-top:52px}}
 #setScr,#helpScr{padding:0;display:grid;grid-template-rows:auto 1fr;grid-template-columns:100%;justify-content:stretch;background:linear-gradient(160deg,#141030,#0a0c18 60%,#1a0e22)}
 #setScr[hidden],#helpScr[hidden]{display:none}
 .setBody .row{justify-content:flex-start}
-@media (max-width:700px){#menu{overflow:auto}.mm{grid-template-columns:1fr;height:auto}.mmR{justify-self:stretch;width:100%}}
-@media (max-height:380px){.mmL h1{font-size:40px}.mmL .sub{display:none}.mmArc{padding:10px 14px}.mmArc b{font-size:24px}.mmL{gap:7px}.mmMid{padding:6px}}
 /* ---------- tienda de mejoras ---------- */
 #shop{padding:0;display:grid;grid-template-rows:auto 1fr;grid-template-columns:100%;justify-content:stretch;align-items:stretch;background:linear-gradient(160deg,#141030 0%,#0a0c18 60%,#1a0e22 100%);overflow:hidden}
 #shop[hidden]{display:none}
@@ -417,14 +394,14 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
 #storyScr{padding:0;display:grid;grid-template-rows:auto 1fr;grid-template-columns:100%;justify-content:stretch;background:linear-gradient(160deg,#1a1030,#0a0c18 60%,#2a0e12)}
 #storyScr[hidden]{display:none}
 .chList{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
-.ch{position:relative;display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding:12px 14px 14px;background:linear-gradient(160deg,#241e40,#16122a);border:2px solid #3a3456;border-left:6px solid var(--c);color:#fff;box-shadow:4px 4px 0 rgba(0,0,0,.5);min-height:120px}
-.ch .cn{font:9px 'Press Start 2P',monospace;color:var(--c)}
-.ch .ct{display:block;font:20px var(--f-title);margin:6px 0 8px;letter-spacing:.03em}
-.ch .cz{display:flex;gap:5px;flex-wrap:wrap}
-.ch .cz span{font:700 11px var(--f-ui);background:rgba(0,0,0,.35);padding:3px 7px;border-radius:10px}
-.ch .cs{position:absolute;top:10px;right:12px;font:9px 'Press Start 2P',monospace}
-.ch.lock{opacity:.45;filter:grayscale(.7)}
-.ch.done .cs{color:#7dff8a}
+.chap{position:relative;display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding:12px 14px 14px;background:linear-gradient(160deg,#241e40,#16122a);border:2px solid #3a3456;border-left:6px solid var(--c);color:#fff;box-shadow:4px 4px 0 rgba(0,0,0,.5);min-height:120px}
+.chap .cn{font:9px 'Press Start 2P',monospace;color:var(--c)}
+.chap .ct{display:block;font:20px var(--f-title);margin:6px 0 8px;letter-spacing:.03em}
+.chap .cz{display:flex;gap:5px;flex-wrap:wrap}
+.chap .cz span{font:700 11px var(--f-ui);background:rgba(0,0,0,.35);padding:3px 7px;border-radius:10px}
+.chap .cs{position:absolute;top:10px;right:12px;font:9px 'Press Start 2P',monospace}
+.chap.lock{opacity:.45;filter:grayscale(.7)}
+.chap.done .cs{color:#7dff8a}
 #dlg{position:fixed;inset:0;z-index:96;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;padding:0 12px max(18px,env(safe-area-inset-bottom))}
 #dlg[hidden]{display:none}
 .dlgBox{display:flex;gap:14px;align-items:flex-start;width:min(760px,100%);background:#0c0a18;border:3px solid var(--c,#ffe14a);box-shadow:0 0 0 3px #000,6px 6px 0 rgba(0,0,0,.6);padding:14px 16px;animation:dlgIn .25s ease-out}
@@ -531,36 +508,32 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
   </div>
 
   <div id="menu" class="screen">
-    <div class="mm">
-      <div class="mmL">
-        <h1>RIVIERA COP</h1>
-        <div class="sub">ROGUELIKE · SOBRE RUEDAS</div>
-        <button id="btnSolo" class="mmBig mmArc"><span class="mi">🏁</span><span><b>JUGAR</b><small>Arcade · rutas sin fin, elige tu camino</small></span></button>
-        <div class="mmOnline">
-          <button id="btnHost" class="mmMid"><span class="mi">📡</span><b>CREAR SALA</b></button>
-          <button id="btnJoin" class="mmMid"><span class="mi">🔗</span><b>UNIRSE</b></button>
-          <button id="btnFriends" class="mmMid"><span class="mi">👥</span><b>AMIGOS</b><i id="frDot" hidden></i></button>
-        </div>
-        <div class="mmRow2">
-          <button id="btnShop" class="mmUpg"><span class="mi">⬆</span><span><b>MEJORAS</b><small id="mmUpgN">Gasta tus monedas</small></span></button>
-          <button id="btnStory" class="mmStory"><span class="mi">📖</span><span><b>HISTORIA</b><small id="storyN"></small></span></button>
-        </div>
-        <div id="menuMsg"></div>
+    <div id="mmTop">
+      <div class="mmChip"><span id="mmName">AGENTE</span><small id="mmId"></small><i class="coin"></i><b id="mmCoins">0</b></div>
+      <div class="mmIcons">
+        <button id="btnStyle" class="mmIc" aria-label="Estilo">🎨<small>ESTILO</small></button>
+        <button id="btnHudEd" class="mmIc" aria-label="Interfaz">🕹<small>INTERFAZ</small></button>
+        <button id="btnSettings" class="mmIc" aria-label="Ajustes">⚙<small>AJUSTES</small></button>
+        <button id="btnHelp" class="mmIc" aria-label="Cómo se juega">❓<small>AYUDA</small></button>
       </div>
-      <div class="mmR">
-        <div class="mmCard">
-          <div class="mmName"><span id="mmName">AGENTE</span><small id="mmId"></small></div>
-          <div class="mmStat"><i class="coin"></i><b id="mmCoins">0</b><span id="best"></span></div>
-          <button id="btnAdPot" class="mmPot">🧪 POCIÓN GRATIS <small id="potN"></small></button>
-        </div>
-        <div class="mmGrid g5">
-          <button id="btnChar" class="mmSm"><span class="mi">🧑</span>PERSONAJE</button>
-          <button id="btnStyle" class="mmSm"><span class="mi">🎨</span>ESTILO</button>
-          <button id="btnHudEd" class="mmSm"><span class="mi">🕹</span>INTERFAZ</button>
-          <button id="btnSettings" class="mmSm"><span class="mi">⚙</span>AJUSTES</button>
-          <button id="btnHelp" class="mmSm"><span class="mi">❓</span>CÓMO SE JUEGA</button>
-        </div>
+    </div>
+    <div class="card">
+      <h1>RIVIERA COP</h1>
+      <div class="sub">ROGUELIKE · SOBRE RUEDAS</div>
+      <div class="btns">
+        <button id="btnSolo" class="big">JUGAR</button>
+        <button id="btnHost" class="big alt">CREAR SALA</button>
+        <button id="btnJoin" class="big alt2">UNIRSE</button>
+        <button id="btnShop" class="big alt4">MEJORAS<small id="mmUpgN"></small></button>
       </div>
+      <div class="btns mmSec">
+        <button id="btnFriends" class="mmS">👥 AMIGOS<i id="frDot" hidden></i></button>
+        <button id="btnChar" class="mmS">🧑 PERSONAJE</button>
+        <button id="btnStory" class="mmS">📖 HISTORIA <small id="storyN"></small></button>
+        <button id="btnAdPot" class="mmS mmPot">🧪 POCIÓN GRATIS <small id="potN"></small></button>
+      </div>
+      <div id="best"></div>
+      <div id="menuMsg"></div>
     </div>
   </div>
 

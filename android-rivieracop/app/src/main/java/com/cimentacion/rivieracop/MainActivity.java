@@ -131,7 +131,7 @@ public class MainActivity extends Activity {
         try {
             RewardedAd.load(this, REWARDED_ID, new AdRequest.Builder().build(), new RewardedAdLoadCallback() {
                 @Override public void onAdLoaded(RewardedAd ad) { rewarded = ad; if (wantRewarded) doRewarded(); }
-                @Override public void onAdFailedToLoad(LoadAdError e) { rewarded = null; if (wantRewarded) { wantRewarded = false; js("window.rcAdDone&&window.rcAdDone(false)"); } }
+                @Override public void onAdFailedToLoad(LoadAdError e) { rewarded = null; if (wantRewarded) { wantRewarded = false; js("window.rcAdDone&&window.rcAdDone(false," + org.json.JSONObject.quote(e.getCode() + ": " + e.getMessage()) + ")"); } }
             });
         } catch (Throwable t) { }
     }
@@ -141,7 +141,7 @@ public class MainActivity extends Activity {
         RewardedAd ad = rewarded; rewarded = null;
         ad.setFullScreenContentCallback(new FullScreenContentCallback() {
             @Override public void onAdDismissedFullScreenContent() { js("window.rcAdDone&&window.rcAdDone(" + earned + ")"); loadRewarded(); immersive(); }
-            @Override public void onAdFailedToShowFullScreenContent(AdError e) { js("window.rcAdDone&&window.rcAdDone(false)"); loadRewarded(); }
+            @Override public void onAdFailedToShowFullScreenContent(AdError e) { js("window.rcAdDone&&window.rcAdDone(false," + org.json.JSONObject.quote(e.getCode() + ": " + e.getMessage()) + ")"); loadRewarded(); }
         });
         ad.show(this, item -> earned = true);
     }

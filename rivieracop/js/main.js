@@ -10,7 +10,7 @@ import { Hud } from './hud.js';
 import { Look } from './input.js';
 import { SFX } from './audio.js';
 import { Net, makeCode, NETV, LanBeacon, LanScan, Presence } from './net.js';
-import { showRewarded, showInterstitial, adsReal } from './ads.js';
+import { showRewarded, showInterstitial, adsReal, lastAdErr } from './ads.js';
 import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME, BOSS } from './defs.js';
 import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES } from './weapons.js';
 import { UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd, turboDur, turboCd, POWERS } from './progress.js';
@@ -1016,7 +1016,7 @@ function updMenuCard() {
   $('mmName').textContent = PROF.name; $('mmId').textContent = '#' + PROF.id;
   $('mmCoins').textContent = (PROG.coins | 0).toLocaleString('es-ES');
   $('storyN').textContent = storyLabel();
-  { const n = UPGRADES.filter(u => (PROG.upg[u.id] | 0) < u.max && PROG.coins >= upgCost(u, PROG.upg[u.id] | 0, PROG)).length; $('mmUpgN').textContent = n ? n + ' mejoras disponibles' : 'Gasta tus monedas'; }
+  { const n = UPGRADES.filter(u => (PROG.upg[u.id] | 0) < u.max && PROG.coins >= upgCost(u, PROG.upg[u.id] | 0, PROG)).length; $('mmUpgN').textContent = n ? n + ' disponibles' : ''; }
 }
 // ---------------- modo historia: diálogos, radio y selección de capítulo ----------------
 function dialog(lines, done) {
@@ -1052,7 +1052,7 @@ function paintStory() {
   STORY.forEach((S, i) => {
     const unlocked = i <= (PROG.story | 0), done = i < (PROG.story | 0);
     const c = document.createElement('button');
-    c.className = 'ch' + (unlocked ? '' : ' lock') + (done ? ' done' : '');
+    c.className = 'chap' + (unlocked ? '' : ' lock') + (done ? ' done' : '');
     c.style.setProperty('--c', BIOMES[S.z[S.z.length - 1]].color);
     c.innerHTML = `<span class="cn">CAPÍTULO ${i + 1}</span><span class="cs">${done ? '✔ HECHO' : unlocked ? '▶ JUGAR' : '🔒'}</span><b class="ct">${S.t}</b><div class="cz">${S.z.map(z => `<span>${BIOMES[z].name}</span>`).join('')}</div>`;
     c.onclick = async () => {
@@ -1083,7 +1083,9 @@ function updPot() { $('potN').textContent = (PROG.pot | 0) ? 'tienes ' + PROG.po
 updPot();
 async function adForPotion() {
   if ((PROG.pot | 0) >= 3) { $('menuMsg').textContent = 'Ya tienes 3 pociones (el máximo)'; return false; }
+  $('menuMsg').textContent = 'Cargando anuncio…';
   const ok = await showRewarded();
+  $('menuMsg').textContent = ok ? '' : 'No hay anuncio disponible ahora mismo' + (lastAdErr ? ' (' + lastAdErr + ')' : '') + '. Los bloques nuevos de AdMob pueden tardar en empezar a servir anuncios.';
   if (ok) { PROG.pot = Math.min(3, (PROG.pot | 0) + 1); saveProg(PROG); updPot(); SFX.pickup(); }
   return ok;
 }

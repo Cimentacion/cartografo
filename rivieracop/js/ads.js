@@ -3,7 +3,8 @@
 const APP = () => (typeof window.RCApp === 'object' && window.RCApp) || null;
 let pending = null;
 // la app llama a esto cuando el anuncio con recompensa termina (ok = lo has visto entero)
-window.rcAdDone = ok => { const p = pending; pending = null; if (p) p(!!ok); };
+export let lastAdErr = '';
+window.rcAdDone = (ok, err) => { lastAdErr = err || (ok ? '' : 'sin respuesta'); const p = pending; pending = null; if (p) p(!!ok); };
 
 export function adsReal() { return !!APP(); }
 
