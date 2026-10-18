@@ -69,47 +69,53 @@ const skyMat = new THREE.ShaderMaterial({
   side: THREE.BackSide, depthWrite: false, fog: false,
 });
 const SKYT = {
-  dia: { cl: '#ffffff', cs: '#b8c8ea', hi: '#ffffff', sun: '#fff4c8', n: 16, top: 0x2a7aff },
-  atardecer: { cl: '#ffd8c8', cs: '#c8789c', hi: '#fff0e0', sun: '#ffb050', n: 14, top: 0x5a3a9a },
-  nublado: { cl: '#dfe3ea', cs: '#8e96a6', hi: '#f4f6fa', sun: null, n: 26, top: 0x6a7a90 },
-  noche: { cl: '#5a6a92', cs: '#2a3256', hi: '#7a8ab0', sun: '#eef4ff', n: 9, top: 0x0a0e2a, stars: true },
+  dia: { top: 0x3a7ad0, bands: ['#3a78c8', '#6aa4dc', '#a8d0ec', '#e8f0e8'], cl: [255, 255, 255], cs: [150, 170, 205], sun: '#fff6d8', n: 22, mt: '#5a7a9a' },
+  atardecer: { top: 0x3a2a6a, bands: ['#2c2a64', '#7a4a8a', '#e0788a', '#ffc890'], cl: [255, 214, 190], cs: [150, 90, 130], sun: '#ffb860', n: 20, mt: '#5a3a5a' },
+  nublado: { top: 0x5a6478, bands: ['#56607a', '#7a8498', '#a4acba', '#cfd3d8'], cl: [226, 230, 236], cs: [120, 128, 145], sun: null, n: 34, mt: '#5a6270' },
+  noche: { top: 0x0a1030, bands: ['#070b24', '#141c44', '#2a3666', '#4a5a86'], cl: [110, 125, 165], cs: [40, 48, 82], sun: '#f2f6ff', n: 12, mt: '#141a32', stars: true },
 };
 const SKYTEX = {};
+// cielo pintado a mano como los de los juegos de N64 (Majora's Mask), pero en alta resolución:
+// franjas de color suaves, nubes difuminadas por capas, sol con halo y montañas lejanas en el horizonte
 function skyTex(k) {
   if (SKYTEX[k]) return SKYTEX[k];
   const T = SKYT[k], W = 2048, H = 1024, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const g = cv.getContext('2d');
-  let seed = 1234 + k.length * 77; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  // la textura cubre la esfera: y = H/2 es el horizonte, y = 0 el cénit
+  let seed = 4321 + k.length * 131; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const hz = H / 2;
-  if (T.stars) for (let i = 0; i < 500; i++) { const y = rnd() * hz * 0.92; g.fillStyle = `rgba(255,255,255,${0.4 + rnd() * 0.6})`; const r = rnd() < 0.1 ? 2.2 : 1.2; g.fillRect(rnd() * W, y, r, r); }
+  const gr = g.createLinearGradient(0, 0, 0, hz);
+  T.bands.forEach((c, i) => gr.addColorStop(i / (T.bands.length - 1), c));
+  g.fillStyle = gr; g.fillRect(0, 0, W, hz + 4);
+  g.fillStyle = T.bands[T.bands.length - 1]; g.fillRect(0, hz, W, H - hz);
+  if (T.stars) for (let i = 0; i < 700; i++) { const y = rnd() * hz * 0.85; g.fillStyle = `rgba(255,255,255,${0.25 + rnd() * 0.7})`; const r = rnd() < 0.08 ? 2.4 : 1.2; g.beginPath(); g.arc(rnd() * W, y, r, 0, 7); g.fill(); }
   if (T.sun) {
-    const sx = W * 0.62, sy = hz * 0.5, R = T.stars ? 34 : 46;
-    const gr = g.createRadialGradient(sx, sy, R * 0.5, sx, sy, R * 4); gr.addColorStop(0, T.sun + 'aa'); gr.addColorStop(1, T.sun + '00');
-    // en la cúpula lo de arriba se estrecha: el sol se dibuja más ancho para que se vea redondo
-    const ex = 1 / Math.cos((1 - sy / hz) * Math.PI / 2);
-    g.save(); g.translate(sx, sy); g.scale(ex, 1);
-    g.fillStyle = gr; g.translate(-sx, -sy); g.beginPath(); g.arc(sx, sy, R * 4, 0, 7); g.fill();
+    const sx = W * 0.62, sy = hz * 0.55, R = T.stars ? 30 : 40, ex = 1 / Math.cos((1 - sy / hz) * Math.PI / 2);
+    g.save(); g.translate(sx, sy); g.scale(ex, 1); g.translate(-sx, -sy);
+    const hg = g.createRadialGradient(sx, sy, R * 0.6, sx, sy, R * 7); hg.addColorStop(0, T.sun + 'cc'); hg.addColorStop(0.35, T.sun + '33'); hg.addColorStop(1, T.sun + '00');
+    g.fillStyle = hg; g.beginPath(); g.arc(sx, sy, R * 7, 0, 7); g.fill();
     g.fillStyle = T.sun; g.beginPath(); g.arc(sx, sy, R, 0, 7); g.fill();
     g.restore();
-    if (T.stars) { g.fillStyle = 'rgba(160,170,200,.5)'; g.beginPath(); g.arc(sx - 10, sy - 6, 9, 0, 7); g.arc(sx + 12, sy + 10, 6, 0, 7); g.fill(); }
   }
-  // nubes: grupos de círculos; primero la sombra (abajo), luego el cuerpo y un brillo arriba
-  const cloud = (cx, cy, sc) => {
-    const parts = [];
-    const n = 5 + Math.floor(rnd() * 5);
-    for (let i = 0; i < n; i++) { const t = i / (n - 1) - 0.5; parts.push([cx + t * 230 * sc + (rnd() - 0.5) * 30 * sc, cy - Math.cos(t * Math.PI) * 26 * sc * (0.6 + rnd() * 0.6), (30 + rnd() * 34) * sc * (1 - Math.abs(t) * 0.7)]); }
-    const draw = (dx, dy, col, k) => { g.fillStyle = col; g.beginPath(); for (const [x, y, r] of parts) { for (const off of [-W, 0, W]) { g.moveTo(x + off + dx + r * k, y + dy); g.arc(x + off + dx, y + dy, r * k, 0, 7); } } g.fill(); };
-    draw(0, 9 * sc, T.cs, 1.0);
-    g.fillStyle = T.cs; g.fillRect(cx - 125 * sc, cy, 250 * sc, 18 * sc);
-    draw(0, 0, T.cl, 0.96);
-    draw(-6 * sc, -9 * sc, T.hi, 0.55);
-    g.fillStyle = T.cl; g.fillRect(cx - 118 * sc, cy - 4 * sc, 236 * sc, 14 * sc);
+  // nubes: muchas manchas difuminadas superpuestas (sin borde), sombra abajo y luz arriba
+  const blob = (x, y, r, c, a) => {
+    for (const off of [-W, 0, W]) {
+      const rg = g.createRadialGradient(x + off, y, 0, x + off, y, r);
+      rg.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${a})`); rg.addColorStop(0.55, `rgba(${c[0]},${c[1]},${c[2]},${a * 0.6})`); rg.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
+      g.fillStyle = rg; g.beginPath(); g.arc(x + off, y, r, 0, 7); g.fill();
+    }
   };
   for (let i = 0; i < T.n; i++) {
-    // más nubes y más pequeñas cerca del horizonte (perspectiva)
-    const yy = hz * (0.22 + Math.pow(rnd(), 0.6) * 0.68), sc = 0.35 + (1 - yy / hz) * 0.9;
-    cloud(rnd() * W, yy, sc);
+    const yy = hz * (0.18 + Math.pow(rnd(), 0.55) * 0.72), sc = 0.4 + (1 - yy / hz) * 1.1, cx = rnd() * W, len = (180 + rnd() * 260) * sc;
+    for (let j = 0; j < 14; j++) { const t = rnd() - 0.5; blob(cx + t * len, yy + 10 * sc + rnd() * 10 * sc, (40 + rnd() * 40) * sc, T.cs, 0.35); }
+    for (let j = 0; j < 18; j++) { const t = rnd() - 0.5; blob(cx + t * len, yy - Math.cos(t * Math.PI) * 22 * sc + rnd() * 8 * sc, (34 + rnd() * 44) * sc * (1 - Math.abs(t) * 0.6), T.cl, 0.45); }
+    // jirones alargados cerca del horizonte
+    if (yy > hz * 0.7) { g.fillStyle = `rgba(${T.cl[0]},${T.cl[1]},${T.cl[2]},0.18)`; g.fillRect(cx - len, yy + 6, len * 2, 3 * sc); }
+  }
+  // montañas lejanas en el horizonte, en dos capas con la de atrás más clara
+  for (const [col, hmax, a] of [[T.bands[T.bands.length - 2], 70, 0.55], [T.mt, 46, 0.9]]) {
+    g.globalAlpha = a; g.fillStyle = col; g.beginPath(); g.moveTo(0, hz + 2);
+    for (let x = 0; x <= W; x += 16) { const h = (Math.sin(x * 0.006 + hmax) * 0.5 + 0.5) * hmax * 0.6 + (Math.sin(x * 0.023 + a * 9) * 0.5 + 0.5) * hmax * 0.4; g.lineTo(x, hz + 2 - h); }
+    g.lineTo(W, hz + 2); g.closePath(); g.fill(); g.globalAlpha = 1;
   }
   const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; t.anisotropy = 8;
   SKYTEX[k] = t; return t;
@@ -1511,7 +1517,7 @@ function tick(dt) {
   skyDome.position.copy(camera.position);
   outline.mat.uniforms.tint.value.copy(ENV.sky).lerp(TC.setHex(0xffffff), 0.25);
   { const U = skyMat.uniforms, k = skyTypeOf(B), T = SKYT[k], q = Math.min(1, dt * 0.8);
-    U.hz.value.copy(ENV.sky).lerp(TC.setHex(0xffffff), 0.18);
+    U.hz.value.lerp(TC.set(T.bands[T.bands.length - 1]), q); if (!U.hz.init) { U.hz.value.set(T.bands[T.bands.length - 1]); U.hz.init = 1; }
     U.top.value.lerp(TC.setHex(T.top), q);
     // cambio de cielo: la cúpula nueva aparece fundiéndose sobre la vieja
     if (k !== SKYST.k) { SKYST.k = k; const [a, b] = cloudDomes; b.material.map = a.material.map; b.material.opacity = 1; b.material.needsUpdate = true; a.material.map = skyTex(k); a.material.opacity = 0; a.material.needsUpdate = true; }

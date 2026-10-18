@@ -97,7 +97,7 @@ export class Outline {
           // en superficies muy inclinadas (techos y suelos lejanos) la profundidad cambia mucho de un píxel a otro:
           // el borde solo cuenta si la curvatura es grande comparada con esa pendiente (si no, salían puntitos)
           float g1 = (abs(1.0 / dl - 1.0 / dr) + abs(1.0 / du - 1.0 / dd)) / w;
-          float edge = smoothstep(0.06, 0.14, e) * smoothstep(0.35, 0.7, e / max(g1, 1e-4)) * sil * (1.0 - smoothstep(30.0, 60.0, d)) * inkOn;
+          float edge = smoothstep(0.06, 0.14, e) * smoothstep(0.35, 0.7, e / max(g1, 1e-4)) * sil * (1.0 - smoothstep(22.0, 40.0, d)) * inkOn;
           // trazo irregular, como dibujado a mano
           float nz = vnoise(gl_FragCoord.xy / 5.0);
           edge *= 0.85 + 0.15 * nz;
