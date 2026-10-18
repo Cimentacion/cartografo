@@ -69,9 +69,9 @@ const skyMat = new THREE.ShaderMaterial({
   side: THREE.BackSide, depthWrite: false, fog: false,
 });
 const SKYT = {
-  dia: { top: 0x3a7ad0, bands: ['#3a78c8', '#6aa4dc', '#a8d0ec', '#e8f0e8'], cl: [255, 255, 255], cs: [150, 170, 205], sun: '#fff6d8', n: 22, mt: '#5a7a9a' },
+  dia: { top: 0x3a7ad0, bands: ['#3a78c8', '#64a0dc', '#94c4e8', '#b8d8ee'], cl: [255, 255, 255], cs: [150, 170, 205], sun: '#fff6d8', n: 22, mt: '#5a7a9a' },
   atardecer: { top: 0x3a2a6a, bands: ['#2c2a64', '#7a4a8a', '#e0788a', '#ffc890'], cl: [255, 214, 190], cs: [150, 90, 130], sun: '#ffb860', n: 20, mt: '#5a3a5a' },
-  nublado: { top: 0x5a6478, bands: ['#56607a', '#7a8498', '#a4acba', '#cfd3d8'], cl: [226, 230, 236], cs: [120, 128, 145], sun: null, n: 34, mt: '#5a6270' },
+  nublado: { top: 0x5a6478, bands: ['#56607a', '#7a8498', '#a0a8b6', '#b8bec8'], cl: [226, 230, 236], cs: [120, 128, 145], sun: null, n: 34, mt: '#5a6270' },
   noche: { top: 0x0a1030, bands: ['#070b24', '#141c44', '#2a3666', '#4a5a86'], cl: [110, 125, 165], cs: [40, 48, 82], sun: '#f2f6ff', n: 12, mt: '#141a32', stars: true },
 };
 const SKYTEX = {};
@@ -109,12 +109,19 @@ function skyTex(k) {
     for (let j = 0; j < 14; j++) { const t = rnd() - 0.5; blob(cx + t * len, yy + 10 * sc + rnd() * 10 * sc, (40 + rnd() * 40) * sc, T.cs, 0.35); }
     for (let j = 0; j < 18; j++) { const t = rnd() - 0.5; blob(cx + t * len, yy - Math.cos(t * Math.PI) * 22 * sc + rnd() * 8 * sc, (34 + rnd() * 44) * sc * (1 - Math.abs(t) * 0.6), T.cl, 0.45); }
     // jirones alargados cerca del horizonte
-    if (yy > hz * 0.7) { g.fillStyle = `rgba(${T.cl[0]},${T.cl[1]},${T.cl[2]},0.18)`; g.fillRect(cx - len, yy + 6, len * 2, 3 * sc); }
   }
   // montañas lejanas en el horizonte, en dos capas con la de atrás más clara
-  for (const [col, hmax, a] of [[T.bands[T.bands.length - 2], 70, 0.55], [T.mt, 46, 0.9]]) {
-    g.globalAlpha = a; g.fillStyle = col; g.beginPath(); g.moveTo(0, hz + 2);
-    for (let x = 0; x <= W; x += 16) { const h = (Math.sin(x * 0.006 + hmax) * 0.5 + 0.5) * hmax * 0.6 + (Math.sin(x * 0.023 + a * 9) * 0.5 + 0.5) * hmax * 0.4; g.lineTo(x, hz + 2 - h); }
+  // perfil irregular (varias ondas sumadas que cierran justo en la vuelta, sin corte) y degradado hacia el horizonte
+  const TAU = Math.PI * 2;
+  for (const [hmax, a, ph] of [[34, 0.35, 1.3], [22, 0.6, 4.1]]) {
+    const mg = g.createLinearGradient(0, hz - hmax, 0, hz);
+    mg.addColorStop(0, T.mt); mg.addColorStop(1, T.bands[T.bands.length - 1]);
+    g.globalAlpha = a; g.fillStyle = mg; g.beginPath(); g.moveTo(0, hz + 2);
+    for (let x = 0; x <= W; x += 6) {
+      const u = x / W * TAU;
+      const h = (0.5 + 0.22 * Math.sin(u * 3 + ph) + 0.16 * Math.sin(u * 7 + ph * 2) + 0.08 * Math.sin(u * 17 + ph * 3) + 0.04 * Math.sin(u * 41 + ph)) * hmax;
+      g.lineTo(x, hz + 2 - h);
+    }
     g.lineTo(W, hz + 2); g.closePath(); g.fill(); g.globalAlpha = 1;
   }
   const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; t.anisotropy = 8;
