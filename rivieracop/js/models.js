@@ -1995,3 +1995,34 @@ export function megalodon() {
   g.userData.shooters = [node(body, 0, -0.5, -8)];
   return g;
 }
+
+// obelisco de la rotonda del casino (estilo Washington): fuste blanco que se estrecha, punta dorada y anillos de neón
+export function obelisk() {
+  const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
+  box(body, 6.4, 1.8, 6.4, 0xd8d0c0, 0, 0.9, 0, 'body'); box(body, 5.4, 0.5, 5.4, 0xffd040, 0, 2.0, 0, 'body');
+  const H = 44, r0 = 2.6, r1 = 1.8;
+  const sh = new THREE.Mesh(new THREE.CylinderGeometry(r1, r0, H, 4, 1), mat(0xeee6d6)); sh.rotation.y = Math.PI / 4; sh.position.y = 2.2 + H / 2; sh.userData.part = 'body'; body.add(sh);
+  const tp = new THREE.Mesh(new THREE.CylinderGeometry(0, r1, 4.6, 4, 1), mat(0xffd040)); tp.rotation.y = Math.PI / 4; tp.position.y = 2.2 + H + 2.3; tp.userData.part = 'body'; body.add(tp);
+  for (const [y, c] of [[9, 0xc040ff], [24, 0xffd040], [38, 0xff40c0]]) { const w = 2 * 0.7071 * (r0 + (r1 - r0) * (y / H)) + 0.12; box(body, w, 0.5, w, glow(c), 0, 2.2 + y, 0, 'body'); }
+  const lt = box(body, 0.6, 0.6, 0.6, glow(0xff2020), 0, 2.2 + H + 4.9);
+  g.userData.body = body; g.userData.lt = lt;
+  return g;
+}
+// casino que se viene abajo cuando le cae el obelisco (+z mira a la calle)
+export function casinoTower(k = 0) {
+  const g = new THREE.Group(), top = new THREE.Group(); g.add(top);
+  const col = [0x2a1a4a, 0x401a3a, 0x1a2a4a][k], neon = [0xff40c0, 0xc040ff, 0xffd040, 0x40c0ff];
+  box(g, 18, 6, 16, col, 0, 3, 0);
+  box(g, 8, 3, 0.3, glow(0xffd040), 0, 2, 8.1);
+  box(top, 18, 30, 16, col, 0, 21, 0);
+  for (let q = 0; q < 9; q++) box(top, 18.2, q % 3 === 2 ? 0.5 : 1.0, 16.2, q % 3 === 2 ? glow(neon[(q + k) % 4]) : glow(0xffe0a0, 0.9), 0, 8 + q * 3.2);
+  for (let q = 0; q < 3; q++) box(top, 16 - q * 3.4, 1.2, 14 - q * 3.4, glow(neon[(q + k + 1) % 4]), 0, 36.6 + q * 1.6);
+  // letrero vertical
+  box(top, 3.6, 18, 0.6, 0x14081e, 0, 22, 8.5);
+  for (let q = 0; q < 6; q++) box(top, 2.6, 2.2, 0.2, glow(neon[(q + k) % 4]), 0, 14.5 + q * 3, 8.85);
+  // escombros (salen al derrumbarse)
+  const rub = new THREE.Group(); g.add(rub); rub.visible = false;
+  for (let q = 0; q < 14; q++) { const s = 2 + (q * 37 % 5); const b = box(rub, s, s * 0.7, s, q % 3 ? col : 0x5a5060, ((q * 53) % 22) - 11, 6 + s * 0.3, ((q * 29) % 18) - 9); b.rotation.set(q * 0.7, q * 1.3, q * 0.4); }
+  g.userData.top = top; g.userData.rub = rub;
+  return g;
+}

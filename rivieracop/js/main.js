@@ -22,7 +22,8 @@ import { clamp, lerp, lerpAng, VP, vw, vh } from './util.js';
 
 const Q = new URLSearchParams(location.search);
 const BOT = Q.get('bot') === '1';          // TODO-TESTEO: apunta y dispara solo
-const TS = +Q.get('ts') || 1;              // TODO-TESTEO: acelerar el tiempo
+const TS = +Q.get('ts') || 1;
+const SHOT = !!Q.get('shot');               // TODO-TESTEO: capturas (entorno sin transiciones)              // TODO-TESTEO: acelerar el tiempo
 const NR = +Q.get('nr') || 1;              // TODO-TESTEO: pintar 1 de cada N fotogramas
 const $ = id => document.getElementById(id);
 
@@ -811,7 +812,7 @@ function begin(seed, n, li, mode) {
   outline.red = (PROG.upg.aura | 0) > 0;
   $('btnHide').hidden = n < 2;
   clearChunks();
-  if (!view) view = new View(scene, G.road, fx);
+  if (!view) view = new View(scene, G.road, fx); window.__view = view; // TODO-TESTEO
   view.clear(); view.road = G.road;
   if (mode === 'solo') G.chars = [MYCHAR, defaultChar(1), defaultChar(2), defaultChar(3)];
   applyVeh();
@@ -1810,7 +1811,7 @@ function tick(dt) {
   // --- entorno por zona ---
   const inTun = G.road.kindAt(G.carD + 2) === 1;
   const B = BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]];
-  const k = 1 - Math.exp(-dt * 1.2);
+  const k = SHOT ? 1 : 1 - Math.exp(-dt * 1.2);
   ENV.sky.lerp(TC.setHex(B.sky), k);
   ENV.sea.lerp(TC.setHex(B.sea), k);
   // dentro del hospital: luz blanca de fluorescente y sin bruma
@@ -1841,13 +1842,13 @@ function tick(dt) {
   sun.position.copy(sun.target.position).add(SUNO);
   skyDome.position.copy(camera.position);
   outline.mat.uniforms.tint.value.copy(ENV.sky).lerp(TC.setHex(0xffffff), 0.25);
-  { const U = skyMat.uniforms, k = skyTypeOf(B), T = SKYT[k], q = Math.min(1, dt * 0.8);
+  { const U = skyMat.uniforms, k = skyTypeOf(B), T = SKYT[k], q = SHOT ? 1 : Math.min(1, dt * 0.8);
     U.hz.value.lerp(TC.set(T.bands[T.bands.length - 1]), q); if (!U.hz.init) { U.hz.value.set(T.bands[T.bands.length - 1]); U.hz.init = 1; }
     U.top.value.lerp(TC.setHex(T.top), q);
     // cambio de cielo: la cúpula nueva aparece fundiéndose sobre la vieja
     if (k !== SKYST.k) { SKYST.k = k; const [a, b] = cloudDomes; b.material.map = a.material.map; b.material.opacity = 1; b.material.needsUpdate = true; a.material.map = skyTex(k); a.material.opacity = 0; a.material.needsUpdate = true; }
-    cloudDomes[0].material.opacity = Math.min(1, cloudDomes[0].material.opacity + dt * 0.5);
-    cloudDomes[1].material.opacity = Math.max(0, cloudDomes[1].material.opacity - dt * 0.5);
+    cloudDomes[0].material.opacity = Math.min(1, cloudDomes[0].material.opacity + (SHOT ? 1 : dt * 0.5));
+    cloudDomes[1].material.opacity = Math.max(0, cloudDomes[1].material.opacity - (SHOT ? 1 : dt * 0.5));
     for (const m of cloudDomes) { m.position.copy(camera.position); m.rotation.y += dt * 0.004; }
     scene.fog.color.copy(U.hz.value).lerp(TC.setHex(0x0a0e0c), G.fogIn || 0); }
   // la luz ambiente (lo que queda en sombra) tira a azul
@@ -1908,10 +1909,10 @@ function updGodRays(t) {
   const base = Math.floor((G.carD - 20) / 24);
   GODR.forEach((m, i) => {
     m.visible = on; if (!on) return;
-    const c = base + i, d = c * 24 + 6, lat = ((c * 37) % 9 - 4) * 7;
+    const c = base + i, d = c * 24 + 30, sd = (c * 7919) % 2 ? 1 : -1, lat = sd * (30 + ((c * 37) % 6) * 9);
     G.road.toWorld(d, lat, 48, m.position);
-    m.rotation.set(0.25 + Math.sin(t * 0.3 + c) * 0.08, -G.road.yawAt(d), 0.3 + Math.sin(t * 0.23 + c * 1.3) * 0.12, 'YXZ');
-    m.material.opacity = 0.16 + 0.08 * Math.sin(t * 0.7 + c * 2.1);
+    m.rotation.set(0.12 + Math.sin(t * 0.3 + c) * 0.05, -G.road.yawAt(d), sd * 0.18 + Math.sin(t * 0.23 + c * 1.3) * 0.06, 'YXZ');
+    m.material.opacity = 0.11 + 0.05 * Math.sin(t * 0.7 + c * 2.1);
   });
 }
 function updBeams(t) {

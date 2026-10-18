@@ -321,9 +321,9 @@ export const TYPES = ['gunman', 'civilian', 'moto', 'ecar', 'heli', 'drone', 'tr
   'amb', 'medkit', 'jeep', 'weapon', 'sign', 'barrel', 'grenade', 'rocket', 'sniper', 'wall', 'train', 'rock', 'lady',
   'jumper', 'tank', 'rig', 'rioter', 'thrown', 'fuel', 'chef', 'boat', 'tlight', 'mtrain', 'preview', 'float',
   'quad', 'pickup', 'van', 'bus', 'canoe',
-  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'whale', 'turret', 'gunship', 'crew', 'police', 'xcar', 'harvester', 'zombie', 'bat', 'brute', 'key', 'hdoor', 'prop', 'megalodon'];
+  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'whale', 'turret', 'gunship', 'crew', 'police', 'xcar', 'harvester', 'zombie', 'bat', 'brute', 'key', 'hdoor', 'prop', 'megalodon', 'obelisk', 'casinob'];
 // jefes: llevan barra de vida en pantalla
-export const BOSS = { megalodon: 'EL MEGALODÓN', brute: 'EL CARNICERO', harvester: 'LA COSECHADORA', gunship: 'EL CAÑONERO', bear: 'OSO GRIZZLY', blimp: 'DIRIGIBLE', bus: 'AUTOBÚS', jeep: 'TERRORISTA', heli: 'HELICÓPTERO', wall: 'MURO', train: 'TREN', tank: 'TANQUE', rig: 'CAMIÓN', chef: 'EL CHEF DEL BUFFET', mtrain: 'TREN MILITAR' };
+export const BOSS = { obelisk: 'EL OBELISCO', megalodon: 'EL MEGALODÓN', brute: 'EL CARNICERO', harvester: 'LA COSECHADORA', gunship: 'EL CAÑONERO', bear: 'OSO GRIZZLY', blimp: 'DIRIGIBLE', bus: 'AUTOBÚS', jeep: 'TERRORISTA', heli: 'HELICÓPTERO', wall: 'MURO', train: 'TREN', tank: 'TANQUE', rig: 'CAMIÓN', chef: 'EL CHEF DEL BUFFET', mtrain: 'TREN MILITAR' };
 export const TI = Object.fromEntries(TYPES.map((t, i) => [t, i]));
 
 // Estados de entidad

@@ -42,7 +42,7 @@ const PTS = {
   gunman: 100, sniper: 200, moto: 150, ecar: 300, heli: 1000, drone: 150, jeep: 1500, grenade: 60, rocket: 80, rock: 60, chicken: 50, amb: 200,
   barrel: 50, wall: 600, train: 900, jumper: 180, tank: 2000, rig: 1200, rioter: 80, thrown: 30, chef: 3000, boat: 450, mtrain: 2500,
   quad: 150, pickup: 400, van: 600, bus: 1200, canoe: 120,
-  beast: 160, bear: 3500, mine: 60, jet: 500, blimp: 5000, rammer: 500, junk: 20, jelly: 90, turret: 300, gunship: 6000, crew: 500, xcar: 150, harvester: 8000, zombie: 60, bat: 80, brute: 9000, key: 500, prop: 30, megalodon: 8000,
+  beast: 160, bear: 3500, mine: 60, jet: 500, blimp: 5000, rammer: 500, junk: 20, jelly: 90, turret: 300, gunship: 6000, crew: 500, xcar: 150, harvester: 8000, zombie: 60, bat: 80, brute: 9000, key: 500, prop: 30, megalodon: 8000, obelisk: 3000, casinob: 10000,
 };
 
 // los enemigos normales se van desbloqueando a lo largo de la partida (segundos de partida)
@@ -620,6 +620,8 @@ export class Sim {
       e.x.limo = 1; e.hp = Math.ceil(e.hp * 1.4);
       if (once0(this, 'limo')) this.emit('banner', { txt: '¡LA MAFIA!', sub: 'Limusinas con tiradores', c: '#ff40c0' });
     }
+    // casino: en cada rotonda, un obelisco gigante que al reventarlo cae encima de un casino junto a la calle
+    if (deco === 'casino' && !inTun) for (const rb of this.road.roundabouts(this.carD + 110, this.carD + 240)) if (rb > this.carD + 110 && rb < this.carD + 240 && once('ob' + Math.round(rb))) this.spawnObelisk(rb);
     if (deco === 'trenes' && !inTun && this.timer('train', dt, 26) && !this.has('train')) this.spawnTrain();
     if (deco === 'acantilados' && !inTun && this.timer('rock', dt, 6.5)) this.spawnRocks();
     if (deco === 'militar' && !inTun) {
@@ -879,6 +881,14 @@ export class Sim {
     const e = this.add('amb', { d: this.vStart(40), lat: LANE_OT, h: 0, hp: 22, vd: this.speed + 8 });
     e.x = { ph: 0, hd: 5, ht: 16 };
     this.emit('banner', { txt: '¡AMBULANCIA!', sub: 'Revienta la ambulancia para sacar vida', c: '#40ff80' });
+  }
+  spawnObelisk(rb) {
+    const td = rb + 44, tl = -34;
+    const c = this.add('casinob', { d: td, lat: tl, h: 0, hp: 1 });
+    c.x = { k: hash(this.seed, Math.round(rb), 91) % 3, td: rb, tl: 0 };
+    const e = this.add('obelisk', { d: rb, lat: -17, h: 1.65, hp: 26 + 10 * this.nAlive() });
+    e.x = { cb: c.id, td, tl, kp: -1 };
+    this.emit('banner', { txt: '¡EL OBELISCO!', sub: 'Dispárale y caerá sobre el casino', c: '#ffd040' });
   }
   spawnMega() {
     const side = this.r() < 0.5 ? -1 : 1;
@@ -1573,6 +1583,8 @@ function ser(e) {
     case 'brute': x = { ph: X.ph }; break;
     case 'hdoor': x = { o: X.o }; break;
     case 'prop': x = { k: X.k }; break;
+    case 'obelisk': x = { td: X.td, tl: X.tl }; break;
+    case 'casinob': x = { k: X.k, td: X.td, tl: X.tl }; break;
   }
   if (e.hm) { x = x || {}; x.hm = e.hm; }
   return [e.id, TI[e.type], r2(e.d), r2(e.lat), r2(e.h), r2(e.ry), Math.round(e.hp * 10) / 10, e.st, sh, x];
@@ -2342,6 +2354,14 @@ const U = {
     }
     e.d = S.carD + x.rel;
   },
+  obelisk(e, dt, S) {
+    e.vd = 0;
+    const c = S.map.get(e.x.cb);
+    // tarda un poco en caer: el casino revienta cuando la punta llega al tejado
+    if (e.st === ST.DEAD && !e.x.done && e.deadT > 1.25) { e.x.done = 1; if (c && c.st !== ST.DEAD) S.kill(c, e.x.kp, e.x.kp < 0); }
+    if (S.rel(e) < -90) e.rm = true;
+  },
+  casinob(e, dt, S) { e.vd = 0; if (S.rel(e) < -90) e.rm = true; },
   prop(e, dt, S) { e.vd = 0; if (!S.foot && S.rel(e) < -40) e.rm = true; },
   hdoor(e, dt, S) { e.vd = 0; if (!S.foot && S.rel(e) < -60) e.rm = true; },
   rock(e, dt, S) { proj(e, dt, S); },
@@ -2456,6 +2476,8 @@ const HIT = {
   },
   key(e, p, part, dmg, S) { S.kill(e, p); },
   megalodon(e, p, part, dmg, S) { if (part === 'wound') { S.damage(e, p, dmg); S.emit('fx', { f: 'splat', w: S.wpos(e.d, e.lat, e.h) }); } else S.damage(e, p, dmg * 0.12); },
+  obelisk(e, p, part, dmg, S) { e.x.kp = p; S.damage(e, p, dmg); },
+  casinob() { },
   prop(e, p, part, dmg, S) { e.hp -= dmg; S.emit('fx', { f: 'spark', w: S.wpos(e.d, e.lat, e.h + 0.6) }); if (e.hp <= 0) S.kill(e, p); },
   barrel(e, p, part, dmg, S) { S.kill(e, p); },
   // cisterna: si le das, revienta... y si está cerca os pilla
@@ -2674,6 +2696,11 @@ const KILL = {
     // el extintor revienta: nube blanca y onda que tumba a los zombis de alrededor
     if (k === 3) { S.emit('fx', { f: 'ext', w }); S.explode(e.d, e.lat, e.h, 3.4, p, e); }
     else S.emit('fx', { f: k === 1 ? 'vend' : 'rock', w });
+  },
+  obelisk(e, p, S) { e.x.kp = p; S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 3), s: 1.6 }); },
+  casinob(e, p, S) {
+    for (let k = 0; k < 4; k++) S.emit('fx', { f: 'boom', w: S.wpos(e.d + (k - 1.5) * 4, e.lat + 6, 8 + k * 7), s: 2.6 });
+    S.emit('banner', { txt: '¡JACKPOT!', sub: 'El obelisco ha tumbado el casino', c: '#ffd040' });
   },
   megalodon(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, e.h), s: 2.5 }); S.emit('banner', { txt: '¡MEGALODÓN ABATIDO!', sub: '', c: '#7dff8a' }); },
   key(e, p, S) {

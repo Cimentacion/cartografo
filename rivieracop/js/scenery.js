@@ -613,7 +613,7 @@ function ok(road, d, lat, rad, edificio = false) {
   const k = road.kindAt(d);
   if (k === 1) return false;
   if (road.hospAt(d, rad) && Math.abs(lat) < 24 + rad) return false;
-  if (lat < 6 + rad && BIOMES[BIOME_KEYS[road.bio[Math.max(0, Math.min(road.len, Math.floor(d)))]]].deco === 'casino') for (const rb of road.roundabouts(d - 60, d + 60)) if (Math.abs(rb - d) < 38 + rad) return false;
+  if (lat < 6 + rad && BIOMES[BIOME_KEYS[road.bio[Math.max(0, Math.min(road.len, Math.floor(d)))]]].deco === 'casino') for (const rb of road.roundabouts(d - 60, d + 100)) if (d > rb - 38 - rad && d < rb + 66 + rad) return false;
   for (const t of road.tunnels) if (d > t.start - 18 - rad && d < t.end + 18 + rad) return false;
   // nada se mete en el pórtico de los carteles ni en los carteles de aviso
   for (const f of road.forks) {
@@ -1197,8 +1197,6 @@ function roundabout(R, road, d, r) {
   // fuente con chorros iluminados y estatua dorada de una ficha gigante
   addCyl(R.C, 4.2, 4.4, 0.9, 24, 0xf0e8f8, F(0, cl, 1.2)); addCyl(R.G, 3.9, 3.9, 0.08, 24, 0x40c0ff, F(0, cl, 1.62));
   for (let a = 0; a < 8; a++) { const t = a / 8 * Math.PI * 2; addCyl(R.V, 0.05, 0.35, 3.5, 6, 0x60b0ff, F(Math.cos(t) * 3, cl + Math.sin(t) * 3, 3.4)); }
-  addCyl(R.C, 1, 1.4, 4, 8, 0xe8e0f0, F(0, cl, 3.6));
-  addCyl(R.G, 2.4, 2.4, 0.5, 20, 0xffc030, F(0, cl, 8), { rx: Math.PI / 2 }); addCyl(R.L, 1.6, 1.6, 0.55, 20, 0xc01818, F(0, cl, 8), { rx: Math.PI / 2 });
   for (let a = 0; a < 6; a++) { const t = a / 6 * Math.PI * 2; palm(R, road, d + Math.cos(t) * 7, cl + Math.sin(t) * 7, r); }
   // focos de colores apuntando al cielo alrededor de la isla
   for (let a = 0; a < 4; a++) { const t = a / 4 * Math.PI * 2 + 0.4; addCyl(R.V, 0.3, 1.6, 50, 8, pick(r, [0x8a50ff, 0xff40c0, 0x40c0ff]), F(Math.cos(t) * 8.5, cl + Math.sin(t) * 8.5, 25.5), { rz: Math.sin(t) * 0.25 }); }

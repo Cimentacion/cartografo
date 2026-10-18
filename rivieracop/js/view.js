@@ -164,7 +164,7 @@ const SKIN = [0xd9a476, 0xb27a4e, 0xf0c8a0, 0x7a5030];
 const SCALE = { gunman: 1.35, civilian: 1.3, sniper: 1.5, moto: 1.2, drone: 1.8, chicken: 1.4, grenade: 1.7, rocket: 1.5, medkit: 1.3, barrel: 1.2, jeep: 1.1, lady: 1.3, rock: 1.3,
   sign: 1.45, harvester: 1.9, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2, beast: 1.35, bear: 1.5, jelly: 1.4, mine: 1.2, zombie: 1.3, bat: 1.5, key: 2.2 };
 // cosas que no paran las balas
-const NOHIT = new Set(['tlight', 'preview', 'whale']);
+const NOHIT = new Set(['tlight', 'preview', 'whale', 'casinob']);
 // sombra suave (mancha difuminada en el suelo) bajo coches, personas y animales: barata y estable
 const BLOBT = (() => {
   const c = document.createElement('canvas'); c.width = c.height = 64;
@@ -175,7 +175,7 @@ const BLOBT = (() => {
 })();
 const BLOBM = new THREE.MeshBasicMaterial({ map: BLOBT, transparent: true, depthWrite: false, opacity: 0.8, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
 const BLOBG = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
-const NOBLOB = new Set(['megalodon', 'bat', 'key', 'hdoor', 'prop', 'sign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
+const NOBLOB = new Set(['obelisk', 'casinob', 'megalodon', 'bat', 'key', 'hdoor', 'prop', 'sign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
 const _bb = new THREE.Box3(), _bs = new THREE.Vector3();
 export function addBlob(g, k = 1.15) {
   _bb.setFromObject(g); _bb.getSize(_bs);
@@ -195,7 +195,7 @@ const MASK = {
   beast: LAYER_ENEMY, bear: LAYER_ENEMY, mine: LAYER_ENEMY, jet: LAYER_ENEMY, blimp: LAYER_ENEMY, rammer: LAYER_ENEMY, junk: LAYER_ENEMY, jelly: LAYER_ENEMY,
   quad: LAYER_ENEMY, crew: LAYER_ENEMY, harvester: LAYER_ENEMY, xcar: LAYER_KEEP, pickup: LAYER_ENEMY, van: LAYER_ENEMY, bus: LAYER_ENEMY, canoe: LAYER_ENEMY,
   jumper: LAYER_ENEMY, tank: LAYER_ENEMY, rig: LAYER_ENEMY, rioter: LAYER_ENEMY, thrown: LAYER_ENEMY, chef: LAYER_ENEMY, boat: LAYER_ENEMY, mtrain: LAYER_ENEMY,
-  megalodon: LAYER_ENEMY, zombie: LAYER_ENEMY, bat: LAYER_ENEMY, brute: LAYER_ENEMY, key: LAYER_KEEP, hdoor: LAYER_KEEP, prop: LAYER_KEEP,
+  obelisk: LAYER_KEEP, megalodon: LAYER_ENEMY, zombie: LAYER_ENEMY, bat: LAYER_ENEMY, brute: LAYER_ENEMY, key: LAYER_KEEP, hdoor: LAYER_KEEP, prop: LAYER_KEEP,
   preview: LAYER_KEEP, police: LAYER_KEEP, tlight: LAYER_KEEP, fuel: LAYER_KEEP, float: LAYER_KEEP,
   sign: LAYER_KEEP, weapon: LAYER_KEEP, medkit: LAYER_KEEP, amb: LAYER_KEEP, truck: LAYER_KEEP, barrel: LAYER_KEEP, lady: LAYER_KEEP, civilian: LAYER_KEEP, chicken: LAYER_KEEP,
 };
@@ -394,6 +394,8 @@ export class View {
       case 'hdoor': g = M.hdoor(); break;
       case 'prop': g = M.prop(x.k || 0); break;
       case 'megalodon': g = M.megalodon(); break;
+      case 'obelisk': g = M.obelisk(); break;
+      case 'casinob': g = M.casinoTower(x.k || 0); break;
       default: g = new THREE.Group();
     }
     const L = MASK[e.type];
@@ -574,6 +576,26 @@ const ANIM = {
     else if (x.ph === 2) { ud.armR.rotation.x = 0.2; ud.torso.rotation.x = 0.35 + Math.sin(ctx.t * 9) * 0.05; ud.mh.material = M.mat(0x4a4a52); }
     else { ud.armR.rotation.x = 0.6 + Math.sin(w) * 0.2; ud.torso.rotation.x = 0; ud.mh.material = M.mat(0x4a4a52); }
     ud.armL.rotation.x = 0.9 - Math.sin(w) * 0.2;
+  },
+  obelisk(o, e, dt, ctx, V) {
+    const ud = o.userData, x = e.x || {};
+    // cae hacia el casino que tiene al lado
+    if (x.td != null) { V.road.toWorld(x.td, x.tl, 0, V1); o.rotation.y = Math.atan2(V1.x - o.position.x, V1.z - o.position.z); }
+    ud.lt.visible = Math.floor(ctx.t * 1.5) % 2 === 0;
+    if (e.st !== ST.DEAD) return;
+    const t = ud.dt || 0;
+    ud.body.rotation.x = Math.min(1.5, 0.08 * t + 0.5 * t * t);
+    if (t < 3 && Math.random() < dt * 10) { o.getWorldPosition(V2); V2.y += 2; V.fx.smoke(V2, true); }
+  },
+  casinob(o, e, dt, ctx, V) {
+    const ud = o.userData, x = e.x || {};
+    if (x.td != null) { V.road.toWorld(x.td, x.tl, 0, V1); o.rotation.y = Math.atan2(V1.x - o.position.x, V1.z - o.position.z); }
+    if (e.st !== ST.DEAD) return;
+    // se desploma: la parte de arriba se hunde y se tuerce, polvo y escombros
+    const t = ud.dt || 0;
+    ud.top.position.y = -Math.min(27, 5 * t * t); ud.top.rotation.z = Math.min(0.22, t * 0.1); ud.top.rotation.x = -Math.min(0.12, t * 0.05);
+    ud.rub.visible = t > 0.6;
+    if (t < 6 && Math.random() < dt * 22) { o.getWorldPosition(V2); V2.x += (Math.random() - 0.5) * 18; V2.z += (Math.random() - 0.5) * 16; V2.y += 3 + Math.random() * Math.max(4, 30 - t * 6); V.fx.smoke(V2, Math.random() < 0.4); }
   },
   key(o, e, dt) { o.userData.k.rotation.y += dt * 2.5; },
   megalodon(o, e, dt, ctx) {
