@@ -1057,19 +1057,21 @@ const VDESC = { cabrio: 'El de siempre', clasico: 'Años 50, con aletas', furgo:
 G.veh = (() => { try { const v = JSON.parse(localStorage.getItem('rc_veh') || 'null'); if (v && VEHICLES.some(x => x[0] === v.k)) return { k: v.k, c: clamp(v.c | 0, 0, VCOLORS.length - 1) }; } catch (e) { } return { k: 'cabrio', c: 0 }; })();
 function applyVeh() { if (view) view.setVehicle(G.veh.k, VCOLORS[G.veh.c]); }
 function paintVsel() {
-  const i = VEHICLES.findIndex(x => x[0] === G.veh.k);
+  let i = VEHICLES.findIndex(x => x[0] === G.veh.k);
+  if (i < 0) { i = 0; G.veh = { k: VEHICLES[0][0], c: 0 }; }
   $('vsN').textContent = VICON[G.veh.k] + ' ' + VEHICLES[i][1].toUpperCase();
   $('vsD').textContent = VDESC[G.veh.k];
   $('vsDots').innerHTML = VEHICLES.map((_, j) => `<i class="${j === i ? 'on' : ''}"></i>`).join('');
   const C = $('vsCol'); C.innerHTML = '';
-  VCOLORS.forEach((c, j) => { const b = document.createElement('button'); b.style.background = '#' + c.toString(16).padStart(6, '0'); b.className = G.veh.c === j ? 'sel' : ''; b.onclick = e => { e.stopPropagation(); pickVeh(G.veh.k, j); }; C.appendChild(b); });
-  VPREV.set(G.veh.k, VCOLORS[G.veh.c]);
+  VCOLORS.forEach((c, j) => { const b = document.createElement('button'); b.style.background = '#' + c.toString(16).padStart(6, '0'); b.className = G.veh.c === j ? 'sel' : ''; b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); pickVeh(G.veh.k, j); }); C.appendChild(b); });
+  try { VPREV.set(G.veh.k, VCOLORS[G.veh.c]); } catch (e) { console.error(e); $('vsMsg').textContent = 'Error: ' + (e && e.message); }
 }
 function stepVeh(d) { const i = VEHICLES.findIndex(x => x[0] === G.veh.k); pickVeh(VEHICLES[(i + d + VEHICLES.length) % VEHICLES.length][0], G.veh.c); }
-$('vsL').onclick = e => { e.stopPropagation(); stepVeh(-1); };
-$('vsR').onclick = e => { e.stopPropagation(); stepVeh(1); };
+// pointerdown (no click): en el móvil el control de la mirada puede cancelar los clics
+$('vsL').addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); stepVeh(-1); });
+$('vsR').addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); stepVeh(1); });
 { let sx = null; const el = $('vsel');
-  el.addEventListener('pointerdown', e => { sx = e.clientX; });
+  el.addEventListener('pointerdown', e => { sx = e.clientX; e.stopPropagation(); });
   el.addEventListener('pointerup', e => { if (sx == null) return; const dx = e.clientX - sx; sx = null; if (Math.abs(dx) > 40) stepVeh(dx < 0 ? 1 : -1); }); }
 // escaparate: escena aparte con el vehículo girando sobre una plataforma
 const VPREV = {
@@ -1110,10 +1112,12 @@ function setVeh(k, c, who) {
   if (who != null && G.mode === 'host') $('vsMsg').textContent = (who === 0 ? 'Has elegido' : 'J' + (who + 1) + ' ha elegido') + ': ' + VEHICLES.find(x => x[0] === k)[1];
 }
 function pickVeh(k, c) {
+  try {
   SFX.tone(700, 900, 0.05, 'square', 0.1);
   if (G.mode === 'guest') { net.send({ t: 'veh', k, c }); G.veh = { k, c }; paintVsel(); return; }
   setVeh(k, c, 0);
   if (G.mode === 'host' && net.open) net.send({ t: 'vs', k, c, left: VS.left });
+  } catch (e) { console.error(e); $('vsMsg').textContent = 'Error: ' + (e && e.message); }
 }
 const VS = { left: 0, iv: null };
 function vehSelect(done) {
@@ -1121,11 +1125,15 @@ function vehSelect(done) {
   $('vsel').hidden = false; $('vsGo').hidden = G.mode === 'host' || G.mode === 'guest';
   VPREV.key = '';
   $('vsMsg').textContent = G.mode === 'host' ? 'Cualquiera puede cambiarlo: sale el que esté elegido al acabar la cuenta' : 'Elige con qué vas a salir';
-  applyVeh(); paintVsel();
   VS.left = 10; $('vsT').textContent = VS.left;
   clearInterval(VS.iv);
-  const end = () => { clearInterval(VS.iv); $('vsel').hidden = true; done(); };
-  $('vsGo').onclick = end;
+  let ended = false;
+  const end = () => { if (ended) return; ended = true; clearInterval(VS.iv); $('vsel').hidden = true; done(); };
+  $('vsGo').onpointerdown = e => { e.stopPropagation(); e.preventDefault(); end(); };
+  look.enabled = false; look.fire = false;
+  // si algo del escaparate falla, la selección sigue funcionando (y se ve el motivo)
+  try { applyVeh(); } catch (e) { console.error(e); }
+  try { paintVsel(); } catch (e) { console.error(e); $('vsMsg').textContent = 'Error: ' + (e && e.message); }
   VS.iv = setInterval(() => {
     VS.left--; $('vsT').textContent = Math.max(0, VS.left);
     if (G.mode === 'host' && net.open) net.send({ t: 'vs', k: G.veh.k, c: G.veh.c, left: VS.left });
@@ -1462,8 +1470,9 @@ function frame(now) {
   if ((G.gs = (G.gs || 0) - dt) <= 0) { G.gs = 0.4; gyroStatus(); updRot(); }
   if (G.running) tick(dt);
   fx.update(dt);
-  if (!$('vsel').hidden) VPREV.render(dt);
-  else if (NR === 1 || (++G.fr % NR) === 0) { outline.render(scene, camera); if (LENS.on && G.running) renderLens(); }
+  let vsOk = false;
+  if (!$('vsel').hidden && VPREV.ready && !VPREV.bad) { try { VPREV.render(dt); vsOk = true; } catch (e) { VPREV.bad = 1; console.error(e); $('vsMsg').textContent = 'Error: ' + (e && e.message); } }
+  if (vsOk) { } else if (NR === 1 || (++G.fr % NR) === 0) { outline.render(scene, camera); if (LENS.on && G.running) renderLens(); }
   if (G.running && view) {
     const me = G.players[G.li];
     hud.draw(camera, view, G.li, G.t, dt, { dead: !me || !me.alive || G.over, wind: G.wind || 0, turbo: !!G.turbo });
