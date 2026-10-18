@@ -245,7 +245,7 @@ export function convertible(kind = 'cabrio', col = 0xc8102e) {
   const dark = 0x1a1a1a;
   let L = 6.2, seatY = 0, drvY = 0.02, front = -3.1;
   const seat = (x, y, z) => { box(g, 0.62, 0.18, 0.6, 0x3a2414, x, y, z); box(g, 0.62, 0.5, 0.16, 0x3a2414, x, y + 0.24, z + 0.32); };
-  const seats = y => { for (const z of [0.25, 1.5]) for (const sd of [-1, 1]) seat(sd * 0.5, y, z); };
+  const seats = y => { for (const z of [0.25, 1.5]) for (const sd of [-1, 1]) seat(sd * 0.5, y, z); seat(0, y + 0.1, 2.5); };
   if (kind === 'clasico') {
     // coche americano de los 50: largo, aletas traseras, mucho cromo y dos tonos
     L = 6.8; front = -3.4;
@@ -298,7 +298,7 @@ export function convertible(kind = 'cabrio', col = 0xc8102e) {
     box(g, 0.6, 0.3, 0.6, 0x5a4a3a, 0.45, 1.3, 0.75); box(g, 0.6, 0.3, 0.6, 0x5a4a3a, 0, 1.3, 2.0);     // cajas donde se sientan
     for (const sx of [-1.0, 1.0]) for (const sz of [-1.7, 1.7]) wheel(g, sx, 0.42, sz, 0.42, 0.3);
     // asientos propios [x, z, mirada base] y sin conductor (conduce J1)
-    g.userData.seats = [[-0.48, -0.95, 0], [0.48, -0.95, 0], [0.45, 0.75, -Math.PI / 2], [0, 1.95, Math.PI]];
+    g.userData.seats = [[-0.48, -0.95, 0], [0.48, -0.95, 0], [0.45, 0.75, -Math.PI / 2], [0.3, 1.95, Math.PI], [-0.45, 0.75, Math.PI / 2]];
     g.userData.noDriver = true; g.userData.camK = 1;
   } else if (kind === 'moto') {
     // moto grande en el centro con un sidecar a cada lado; dos jugadores en cada sidecar
@@ -403,7 +403,7 @@ export function seatedPlayer(i, cfg) {
   const g = new THREE.Group();
   const yaw = new THREE.Group();
   g.add(yaw);
-  const o = cfg ? personOpts(cfg) : { shirt: [0x2f6fd0, 0xd03040, 0x30a050, 0xd0a020][i], pants: 0x222222, hair: i === 0 ? 0x3a2a1a : 0x111111, glasses: i === 1 };
+  const o = cfg ? personOpts(cfg) : { shirt: [0x2f6fd0, 0xd03040, 0x30a050, 0xd0a020, 0x9040d0][i], pants: 0x222222, hair: i === 0 ? 0x3a2a1a : 0x111111, glasses: i === 1 };
   const p = person(Object.assign({ gun: 'pistol' }, o));
   p.position.y = -0.92;
   yaw.add(p);

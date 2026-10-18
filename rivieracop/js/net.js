@@ -10,7 +10,7 @@ const trReady = import('../lib/trystero.js').then(m => { TR = m; }).catch(e => c
 
 const PREFIX = 'rivieracop-cimentacion-';
 const APP = 'rivieracop-cimentacion-v1';
-export const NETV = 8;
+export const NETV = 9;
 
 function peerOpts() {
   const u = new URLSearchParams(location.search);
@@ -37,7 +37,7 @@ export function makeCode() {
   return s;
 }
 
-export const MAXP = 4;
+export const MAXP = 5;
 export class Net {
   constructor() {
     this.peer = null; this.rooms = []; this.link = null;   // invitado: su enlace con el anfitrión

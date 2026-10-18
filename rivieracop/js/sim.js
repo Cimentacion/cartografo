@@ -23,7 +23,8 @@ const FOOT = [[-6.5, 3], [-1, 0.4], [3, 0, 'lobby'], [8, 0], [8, 8.5], [14, 8.5,
   [24, 8.5, 'h2'], [8, 8.5], [8, 0], [20, 0, 'h3'], [53, 0, 'open'], [58.5, 0], [66, 2.2, 'board']];
 // asientos en el coche: [x lateral, z hacia atrás] (local del coche); J1-J2 delante mirando al frente,
 // J3-J4 detrás, de espaldas, cubriendo la retaguardia (solo si sois más de 2)
-export const SEATS = [[-0.63, 0.25], [0.63, 0.25], [-0.63, 1.5], [0.63, 1.5]];
+// J5 va de pie en el maletero, mirando hacia atrás
+export const SEATS = [[-0.63, 0.25], [0.63, 0.25], [-0.63, 1.5], [0.63, 1.5], [0, 2.55]];
 export const isRear = (i, n) => n > 2 && i >= 2;
 export const SEAT_LAT = SEATS.map(s => LANE_ME + s[0]);
 export const SEAT_H = 1.75, SEAT_D = -0.8;
@@ -209,7 +210,7 @@ export class Sim {
         if (p.regT >= 60 - 5 * p.regen) { p.regT = 0; p.hp = Math.min(p.maxHp, p.hp + 0.5); this.emit('regen', { p: i }); }
       }
     }
-    this.charging = [0, 0, 0, 0];
+    this.charging = [0, 0, 0, 0, 0];
     if (this.phase === 'run') { if (this.foot) this.footStep(wd); this.director(wd); this.forks(); if (!this.foot) this.turret(wd); }
     for (const e of this.ents) {
       e.age += wd;

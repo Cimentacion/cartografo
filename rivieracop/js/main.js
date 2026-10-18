@@ -647,7 +647,7 @@ net.onmsg = (m, from) => {
     switch (m.t) {
       case 'start': {
         G.speedIdx = m.sp | 0;
-        G.chars = [0, 1, 2, 3].map(i => sanitize(m.chars && m.chars[i], i));
+        G.chars = [0, 1, 2, 3, 4].map(i => sanitize(m.chars && m.chars[i], i));
         G.goneAtStart = m.gone || [];
         $('vsel').hidden = true;
         if (m.veh && VEHICLES.some(x => x[0] === m.veh.k)) G.veh = { k: m.veh.k, c: clamp(m.veh.c | 0, 0, VCOLORS.length - 1) };
@@ -660,7 +660,7 @@ net.onmsg = (m, from) => {
       case 'vsel': case 'vs': guestVsel(m); break;
       case 'ev': for (const e of m.e) { if (IMMEDIATE.has(e.k)) handleEvent(e); else G.evq.push(e); } break;
       case 'busy': lobbyMsg('La partida ya ha empezado: entrarás en la siguiente (cuando el anfitrión pulse OTRA VEZ)'); break;
-      case 'full': lobbyMsg('La sala ya está llena (máximo 4 jugadores)'); break;
+      case 'full': lobbyMsg('La sala ya está llena (máximo 5 jugadores)'); break;
       case 'menu': toMenu('El anfitrión ha salido al menú'); break;
     }
   }
@@ -698,7 +698,7 @@ function hostStart() {
   const n = 1 + Math.max(0, ...idx);
   const gone = [];
   for (let i = 1; i < n; i++) if (!idx.includes(i)) gone.push(i);
-  G.chars = [0, 1, 2, 3].map(i => (i === 0 ? MYCHAR : G.peerChars[i] || defaultChar(i)));
+  G.chars = [0, 1, 2, 3, 4].map(i => (i === 0 ? MYCHAR : G.peerChars[i] || defaultChar(i)));
   G.goneAtStart = gone;
   net.send({ t: 'start', seed, n, chars: G.chars, sp: G.speedIdx, gone, st: G.story, veh: G.veh, pf: [{ id: PROF.id, name: PROF.name }].concat(Object.values(G.peerProf || {})) });
   begin(seed, n, 0, 'host');
@@ -743,7 +743,7 @@ function begin(seed, n, li, mode) {
   updateChunks(G.carD, true);
   for (const s of document.querySelectorAll('.screen')) s.hidden = true;
   $('hudwrap').hidden = false;
-  for (let i = 1; i < 4; i++) $('p' + i).hidden = i >= n;
+  for (let i = 1; i < 5; i++) $('p' + i).hidden = i >= n;
   document.body.classList.toggle('many', n > 2);
   document.body.classList.toggle('n2', n === 2);
   $('count').hidden = false;
@@ -852,7 +852,7 @@ function lanList(list, key) {
   if (!el) return;
   const head = key === 'mundo' ? 'SALAS ABIERTAS (no se ha podido saber tu red: salen las de cualquier sitio)' : 'SALAS EN TU RED';
   if (!list.length) { el.innerHTML = `<div class="lbl">${head}</div><div class="lanEmpty">${key ? 'Buscando… (tu amigo tiene que haber pulsado CREAR SALA en el mismo wifi)' : 'Preparando el buscador…'}</div>`; return; }
-  el.innerHTML = `<div class="lbl">${head}</div>` + list.map(r => `<button class="lanRoom" data-c="${r.code}"${r.v !== NETV ? ' disabled' : ''}><b>${r.code}</b> <span>${r.n}/4 jugadores${r.v !== NETV ? ' · otra versión del juego' : ''}</span></button>`).join('');
+  el.innerHTML = `<div class="lbl">${head}</div>` + list.map(r => `<button class="lanRoom" data-c="${r.code}"${r.v !== NETV ? ' disabled' : ''}><b>${r.code}</b> <span>${r.n}/5 jugadores${r.v !== NETV ? ' · otra versión del juego' : ''}</span></button>`).join('');
   for (const b of el.querySelectorAll('.lanRoom')) b.onclick = () => { $('codeIn').value = b.dataset.c; $('btnGo').click(); };
 }
 function toMenu(msg) {
@@ -1102,7 +1102,7 @@ const VPREV = {
     if (this.model) this.spin.remove(this.model);
     this.model = convertible(k, col);
     const S2 = this.model.userData.seats, sy = this.model.userData.seatY || 0;
-    [0, 1, 2, 3].forEach(i => { const a = seatedPlayer(i, i === 0 ? MYCHAR : null); const st = S2 ? S2[i] : [SEATS[i][0], SEATS[i][1], i >= 2 ? Math.PI : 0]; a.position.set(st[0], 1.4 + sy, st[1]); a.userData.yaw.rotation.y = st[2] || 0; this.model.add(a); });
+    [0, 1, 2, 3, 4].forEach(i => { const a = seatedPlayer(i, i === 0 ? MYCHAR : null); const st = S2 ? S2[i] : [SEATS[i][0], SEATS[i][1], i >= 2 ? Math.PI : 0]; a.position.set(st[0], 1.4 + sy, st[1]); a.userData.yaw.rotation.y = st[2] || 0; this.model.add(a); });
     this.model.scale.setScalar(0.0001); this.pop = 0;
     this.spin.add(this.model);
   },
@@ -1559,7 +1559,7 @@ function tick(dt) {
   if (G.shake > 0) camera.position.add(V1.set((Math.random() - 0.5) * G.shake * 0.3, (Math.random() - 0.5) * G.shake * 0.3, 0));
   camera.updateMatrixWorld(true);
   // compañero
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 5; i++) {
     if (i === li) continue;
     const P = G.players[i], av = view.av[i];
     if (!P || i >= G.n) { av.visible = false; continue; }
@@ -1754,7 +1754,7 @@ function updBeams(t) {
 }
 
 // posición a pie de cada jugador [d, lat, giro, bote al andar]; la propia se suaviza (al invitado le llega a saltos)
-const FPS = [null, null, null, null];
+const FPS = [null, null, null, null, null];
 function footPose(i, dt) {
   const F = G.foot;
   if (!F) { FPS[i] = null; return null; }

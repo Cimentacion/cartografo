@@ -209,7 +209,7 @@ export class View {
     this.car.traverse(m => { if (m.isMesh) { m.castShadow = false; m.receiveShadow = true; } });
     addBlob(this.car, 1.1);
     scene.add(this.car);
-    this.av = [0, 1, 2, 3].map(i => M.seatedPlayer(i));
+    this.av = [0, 1, 2, 3, 4].map(i => M.seatedPlayer(i));
     this.av.forEach((a, i) => { a.position.set(SEATS[i][0], 1.4, SEATS[i][1]); this.car.add(a); a.visible = false; });
     this.ambDist = 1e9; this.heliDist = 1e9;
     this.carPos = new THREE.Vector3();
@@ -241,7 +241,7 @@ export class View {
   }
   setAvatars(chars) {
     this.av.forEach(a => this.car.remove(a));
-    this.av = [0, 1, 2, 3].map(i => M.seatedPlayer(i, chars[i]));
+    this.av = [0, 1, 2, 3, 4].map(i => M.seatedPlayer(i, chars[i]));
     const sy = this.car.userData.seatY || 0;
     this.av.forEach((a, i) => { const st = this.seat(i); a.position.set(st[0], 1.4 + sy, st[1]); this.car.add(a); a.visible = false; });
   }
