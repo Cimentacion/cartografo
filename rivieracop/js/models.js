@@ -84,6 +84,71 @@ export function canvasTex(w, h) {
   return { c, g: c.getContext('2d'), t };
 }
 
+// ---------- complementos del personaje: sombreros, espalda, cuello y cara ----------
+function accessories(t, o, hp, bp) {
+  const G = 0xffc531, GL = glow(0xffe680);
+  switch (o.hat) {
+    case 'paja':
+      box(t, 0.62, 0.03, 0.62, 0xe8c870, 0, 1.0, 0, hp); box(t, 0.3, 0.14, 0.3, 0xe0bc60, 0, 1.08, 0, hp); box(t, 0.31, 0.04, 0.31, 0xc02020, 0, 1.03, 0, hp);
+      for (let k = 0; k < 4; k++) box(t, 0.6, 0.006, 0.02, 0xc8a850, 0, 1.017, -0.24 + k * 0.16, hp);
+      break;
+    case 'gladiador':
+      box(t, 0.32, 0.22, 0.33, 0xb8b8c0, 0, 0.95, 0, hp); box(t, 0.33, 0.03, 0.34, 0xd8a030, 0, 0.85, 0, hp);
+      for (const x of [-0.15, 0.15]) box(t, 0.03, 0.18, 0.12, 0xa8a8b0, x, 0.8, -0.1, hp);
+      box(t, 0.05, 0.03, 0.12, 0x9a9aa0, 0, 0.86, -0.17, hp);
+      for (let k = 0; k < 6; k++) box(t, 0.06, 0.12 - Math.abs(k - 2.5) * 0.02, 0.06, 0xd02020, 0, 1.12, -0.15 + k * 0.06, hp);
+      break;
+    case 'vaquero':
+      { const b = box(t, 0.6, 0.03, 0.5, 0x7a4a24, 0, 1.0, 0, hp); for (const x of [-0.27, 0.27]) { const s = box(t, 0.08, 0.03, 0.5, 0x7a4a24, x, 1.03, 0, hp); s.rotation.z = x > 0 ? 0.6 : -0.6; } }
+      box(t, 0.3, 0.16, 0.3, 0x6a3a1a, 0, 1.09, 0, hp); box(t, 0.31, 0.035, 0.31, 0x2a1a0a, 0, 1.03, 0, hp);
+      break;
+    case 'copa': box(t, 0.44, 0.025, 0.44, 0x111111, 0, 1.0, 0, hp); box(t, 0.28, 0.32, 0.28, 0x151515, 0, 1.17, 0, hp); box(t, 0.29, 0.05, 0.29, 0x8a1a1a, 0, 1.04, 0, hp); break;
+    case 'corona':
+      box(t, 0.31, 0.08, 0.31, G, 0, 1.02, 0, hp);
+      for (const [x, z] of [[-0.13, -0.13], [0.13, -0.13], [-0.13, 0.13], [0.13, 0.13], [0, -0.14], [0, 0.14], [-0.14, 0], [0.14, 0]]) box(t, 0.05, 0.08, 0.05, G, x, 1.09, z, hp);
+      box(t, 0.05, 0.05, 0.02, glow(0xff2040), 0, 1.02, -0.16, hp); box(t, 0.02, 0.05, 0.05, glow(0x3060ff), 0.16, 1.02, 0, hp);
+      break;
+    case 'vikingo':
+      box(t, 0.32, 0.14, 0.32, 0x8a8a90, 0, 1.0, 0, hp); box(t, 0.33, 0.03, 0.33, 0x6a4a24, 0, 0.94, 0, hp); box(t, 0.04, 0.16, 0.03, 0x8a8a90, 0, 0.86, -0.165, hp);
+      for (const s of [-1, 1]) { const h1 = box(t, 0.07, 0.07, 0.16, 0xf0e8d0, s * 0.2, 1.05, 0, hp); h1.rotation.z = s * 0.6; const h2 = box(t, 0.05, 0.12, 0.05, 0xf0e8d0, s * 0.27, 1.14, 0, hp); h2.rotation.z = -s * 0.3; }
+      break;
+    case 'gorro': box(t, 0.31, 0.16, 0.31, 0x2a6ad0, 0, 1.03, 0, hp); box(t, 0.32, 0.05, 0.32, 0xf2f2f2, 0, 0.96, 0, hp); box(t, 0.1, 0.1, 0.1, 0xf2f2f2, 0, 1.15, 0, hp); break;
+    case 'poli': box(t, 0.31, 0.1, 0.33, 0x1a2a5a, 0, 1.03, 0, hp); box(t, 0.28, 0.025, 0.14, 0x111111, 0, 0.98, -0.22, hp); box(t, 0.06, 0.06, 0.02, G, 0, 1.04, -0.17, hp); box(t, 0.32, 0.03, 0.34, 0xf2f2f2, 0, 1.08, 0, hp); break;
+    case 'pirata':
+      box(t, 0.5, 0.12, 0.34, 0x151515, 0, 1.04, 0, hp); box(t, 0.28, 0.12, 0.28, 0x151515, 0, 1.13, 0.02, hp);
+      box(t, 0.07, 0.07, 0.02, 0xf2f2f2, 0, 1.06, -0.175, hp); box(t, 0.5, 0.02, 0.35, G, 0, 1.105, 0, hp);
+      break;
+    case 'fiesta':
+      { const c = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.32, 8), mat(0xff5ad0)); c.position.set(0.04, 1.14, 0); c.rotation.z = -0.15; if (hp) c.userData.part = hp; t.add(c); }
+      box(t, 0.07, 0.07, 0.07, 0xffe14a, 0.07, 1.3, 0, hp);
+      break;
+    case 'chef': box(t, 0.3, 0.08, 0.3, 0xf8f8f8, 0, 1.01, 0, hp); box(t, 0.36, 0.2, 0.36, 0xf8f8f8, 0, 1.14, 0, hp); break;
+  }
+  const CAPE = { capa: 0xc81818, capan: 0x141418, capaz: 0x1a3aa0, capad: 0xd8a020 };
+  if (CAPE[o.back]) {
+    box(t, 0.6, 0.06, 0.08, CAPE[o.back], 0, 0.66, 0.12, bp);
+    const cp = box(t, 0.62, 1.05, 0.03, CAPE[o.back], 0, 0.14, 0.2, bp); cp.rotation.x = 0.12;
+    box(t, 0.6, 0.03, 0.035, 0x000000, 0, -0.38, 0.265, bp);
+  } else if (o.back === 'mochila') { box(t, 0.4, 0.42, 0.18, 0x3a5a2a, 0, 0.36, 0.24, bp); box(t, 0.34, 0.16, 0.06, 0x2a4a1a, 0, 0.24, 0.35, bp); for (const x of [-0.17, 0.17]) box(t, 0.05, 0.5, 0.04, 0x222222, x, 0.4, -0.16, bp); }
+  else if (o.back === 'alas') for (const s of [-1, 1]) for (let k = 0; k < 4; k++) { const w = box(t, 0.5 - k * 0.08, 0.1, 0.03, 0xf8f8ff, s * (0.3 + k * 0.03), 0.6 - k * 0.12, 0.22, bp); w.rotation.z = s * (0.5 - k * 0.12); }
+  else if (o.back === 'jet') { for (const x of [-0.11, 0.11]) { const c = new THREE.Mesh(cgeo(0.08, 0.42, 8), mat(0xb8b8c0)); c.position.set(x, 0.36, 0.26); t.add(c); box(t, 0.1, 0.06, 0.1, GL, x, 0.12, 0.26, bp); } box(t, 0.36, 0.14, 0.06, 0x3a3a40, 0, 0.5, 0.2, bp); }
+  switch (o.neck) {
+    case 'cadena': for (let k = 0; k < 7; k++) { const a = -1.2 + k * 0.4; box(t, 0.04, 0.03, 0.03, G, Math.sin(a) * 0.15, 0.6 - Math.cos(a) * 0.08 + 0.04, -0.17, bp); } box(t, 0.08, 0.08, 0.02, G, 0, 0.5, -0.175, bp); break;
+    case 'perlas': for (let k = 0; k < 9; k++) { const a = -1.3 + k * 0.325, s = new THREE.Mesh(sgeo(0.025), mat(0xf4f0e8)); s.position.set(Math.sin(a) * 0.16, 0.64 - Math.cos(a) * 0.09 + 0.04, -0.17); t.add(s); } break;
+    case 'medalla': box(t, 0.2, 0.02, 0.02, 0x2a2a2a, 0, 0.62, -0.165, bp); { const m = new THREE.Mesh(cgeo(0.06, 0.02, 10), mat(G)); m.rotation.x = Math.PI / 2; m.position.set(0, 0.5, -0.175); t.add(m); } break;
+    case 'bufanda': box(t, 0.32, 0.08, 0.31, 0xc81818, 0, 0.66, 0, bp); box(t, 0.09, 0.3, 0.03, 0xc81818, 0.08, 0.5, -0.17, bp); for (let k = 0; k < 3; k++) box(t, 0.1, 0.02, 0.035, 0xf2f2f2, 0.08, 0.42 + k * 0.09, -0.17, bp); break;
+    case 'pajarita': box(t, 0.06, 0.05, 0.03, 0x111111, 0, 0.62, -0.175, bp); for (const x of [-0.06, 0.06]) box(t, 0.06, 0.08, 0.025, 0x111111, x, 0.62, -0.172, bp); break;
+    case 'flores': for (let k = 0; k < 10; k++) { const a = -1.4 + k * 0.31; box(t, 0.06, 0.06, 0.04, [0xff5ad0, 0xffe14a, 0xff7a3a, 0xf2f2f2][k % 4], Math.sin(a) * 0.18, 0.64 - Math.cos(a) * 0.1 + 0.05, -0.17, bp); } break;
+    case 'corbata': box(t, 0.06, 0.05, 0.03, 0xc81818, 0, 0.6, -0.17, bp); box(t, 0.07, 0.34, 0.025, 0xc81818, 0, 0.4, -0.168, bp); break;
+  }
+  switch (o.face) {
+    case 'gafas': box(t, 0.29, 0.07, 0.04, 0x050505, 0, 0.86, -0.15, hp); box(t, 0.1, 0.04, 0.005, glow(0x6ad0ff, 0.6), -0.07, 0.865, -0.172, hp); box(t, 0.1, 0.04, 0.005, glow(0x6ad0ff, 0.6), 0.07, 0.865, -0.172, hp); break;
+    case 'antifaz': box(t, 0.3, 0.08, 0.04, 0x111111, 0, 0.87, -0.145, hp); for (const x of [-0.07, 0.07]) box(t, 0.06, 0.03, 0.01, 0xf2f2f2, x, 0.87, -0.168, hp); break;
+    case 'parche': box(t, 0.3, 0.015, 0.29, 0x111111, 0, 0.9, 0, hp); box(t, 0.08, 0.08, 0.03, 0x111111, -0.07, 0.86, -0.15, hp); break;
+    case 'pintura': for (const x of [-0.08, 0.08]) { box(t, 0.1, 0.025, 0.01, 0x2050e0, x, 0.82, -0.142, hp); box(t, 0.1, 0.025, 0.01, 0xe02020, x, 0.79, -0.142, hp); } break;
+    case 'pendientes': for (const x of [-0.145, 0.145]) { const s = new THREE.Mesh(sgeo(0.025), mat(G)); s.position.set(x, 0.76, -0.02); t.add(s); } break;
+  }
+}
 // ---------- personas ----------
 export function person(o = {}) {
   const g = new THREE.Group();
@@ -136,6 +201,7 @@ export function person(o = {}) {
   if (o.bandana) { box(torso, 0.3, 0.1, 0.31, 0xc01818, 0, 0.94, 0, hp); box(torso, 0.29, 0.12, 0.05, 0xc01818, 0, 0.74, -0.15, hp); }
   if (o.mask) box(torso, 0.3, 0.32, 0.3, o.mask, 0, 0.84, 0, hp);
   if (o.cap) { box(torso, 0.3, 0.1, 0.31, o.cap, 0, 1.02, 0, hp); box(torso, 0.26, 0.04, 0.18, o.cap, 0, 0.98, -0.2, hp); }
+  accessories(torso, o, hp, bp);
   const mkArm = side => {
     const a = new THREE.Group();
     a.position.set(side * 0.34, 0.56, 0);

@@ -13,6 +13,11 @@ export const SHIRTS = [
   ['lisa', 'Lisa'], ['arcoiris', 'Arcoíris'], ['progreso', 'Progreso'], ['trans', 'Trans'], ['bi', 'Bi'],
   ['lesbiana', 'Lesbiana'], ['nobinaria', 'No binaria'], ['pan', 'Pan'], ['ace', 'Asexual'],
 ];
+export const HATS = [['no', 'Nada'], ['paja', 'Sombrero de paja'], ['gladiador', 'Gladiador'], ['vaquero', 'Vaquero'], ['copa', 'Chistera'], ['corona', 'Corona'],
+  ['vikingo', 'Vikingo'], ['gorro', 'Gorro de lana'], ['poli', 'Gorra de poli'], ['pirata', 'Pirata'], ['fiesta', 'De fiesta'], ['chef', 'Gorro de chef']];
+export const BACKS = [['no', 'Nada'], ['capa', 'Capa roja'], ['capan', 'Capa negra'], ['capaz', 'Capa azul'], ['capad', 'Capa dorada'], ['mochila', 'Mochila'], ['alas', 'Alas'], ['jet', 'Jetpack']];
+export const NECKS = [['no', 'Nada'], ['cadena', 'Cadena de oro'], ['perlas', 'Perlas'], ['medalla', 'Medallón'], ['bufanda', 'Bufanda'], ['pajarita', 'Pajarita'], ['flores', 'Collar de flores'], ['corbata', 'Corbata']];
+export const FACES = [['no', 'Nada'], ['gafas', 'Gafas de sol'], ['antifaz', 'Antifaz'], ['parche', 'Parche'], ['pintura', 'Pintura de guerra'], ['pendientes', 'Pendientes']];
 export const SHIRT_COLORS = [0x2f6fd0, 0xd03040, 0x2a9a4a, 0xf0c020, 0x8a3ac0, 0xf07a20, 0xf2f2f2, 0x1a1a1a, 0x30b0c0, 0xe060a0];
 export const PANTS_COLORS = [0x222222, 0x24365a, 0x6a5a40, 0x3a4a2a, 0x8a8a8a, 0x6a1a1a, 0xe8e0d0];
 
@@ -50,6 +55,7 @@ export function sanitize(c, i) {
   if (Number.isInteger(c.shirtCol) && c.shirtCol >= 0 && c.shirtCol < SHIRT_COLORS.length) o.shirtCol = c.shirtCol;
   if (Number.isInteger(c.pants) && c.pants >= 0 && c.pants < PANTS_COLORS.length) o.pants = c.pants;
   o.glasses = !!c.glasses; o.chair = !!c.chair;
+  for (const [k, L] of [['hat', HATS], ['back', BACKS], ['neck', NECKS], ['face', FACES]]) o[k] = L.some(h => h[0] === c[k]) ? c[k] : 'no';
   return o;
 }
 
@@ -89,7 +95,7 @@ export function personOpts(cfg) {
     sleeve: c.shirt === 'lisa' ? SHIRT_COLORS[c.shirtCol] : 0xf2f2f2,
     pants: PANTS_COLORS[c.pants],
     hairStyle: c.hair, hair: HAIR_COLORS[c.hairCol], beard: c.beard,
-    glasses: c.glasses, chair: c.chair,
+    glasses: c.glasses, chair: c.chair, hat: c.hat, back: c.back, neck: c.neck, face: c.face,
   };
 }
 // color de la manga del arma en primera persona

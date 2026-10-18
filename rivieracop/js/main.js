@@ -16,7 +16,7 @@ import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES } from './weapons.js';
 import { UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd, turboDur, turboCd, POWERS } from './progress.js';
 import { fpGun } from './models.js';
 import { Outline, toon } from './toon.js';
-import { loadChar, saveChar, sanitize, defaultChar, SKINS, HAIRS, HAIR_COLORS, BEARDS, SHIRTS, SHIRT_COLORS, PANTS_COLORS } from './character.js';
+import { loadChar, saveChar, sanitize, defaultChar, SKINS, HAIRS, HAIR_COLORS, BEARDS, SHIRTS, SHIRT_COLORS, PANTS_COLORS, HATS, BACKS, NECKS, FACES } from './character.js';
 import { seatedPlayer } from './models.js';
 import { clamp, lerp, lerpAng, VP, vw, vh } from './util.js';
 
@@ -949,6 +949,7 @@ let FRIENDS = [], RECENT = [];
 try { FRIENDS = JSON.parse(localStorage.getItem('rc_friends') || '[]') || []; RECENT = JSON.parse(localStorage.getItem('rc_recent') || '[]') || []; } catch (e) { }
 const saveFriends = () => { try { localStorage.setItem('rc_friends', JSON.stringify(FRIENDS)); localStorage.setItem('rc_recent', JSON.stringify(RECENT.slice(0, 12))); } catch (e) { } };
 let PRES = null;
+setInterval(() => { if (PRES) PRES.poll(FRIENDS.map(f => f.id)); }, 6000);
 try { PRES = new Presence(PROF, () => { if (!$('frScr').hidden) paintFriends(); updFrDot(); }, (from, name, code) => showInvite(from, name, code)); } catch (e) { console.warn(e); }
 function presSet(st, code) { if (PRES) PRES.set(st, code); }
 function updFrDot() { $('frDot').hidden = !(PRES && FRIENDS.some(f => PRES.peers.has(f.id))); }
@@ -1743,6 +1744,7 @@ function edPaint() {
     });
   };
   sw('edSkin', SKINS, 'skin'); ch('edHair', HAIRS, 'hair'); sw('edHairCol', HAIR_COLORS, 'hairCol');
+  ch('edHat', HATS, 'hat'); ch('edBack', BACKS, 'back'); ch('edNeck', NECKS, 'neck'); ch('edFace', FACES, 'face');
   ch('edBeard', BEARDS, 'beard'); ch('edShirt', SHIRTS, 'shirt'); sw('edShirtCol', SHIRT_COLORS, 'shirtCol'); sw('edPants', PANTS_COLORS, 'pants');
   $('edShirtColRow').hidden = c.shirt !== 'lisa';
   $('edGlasses').className = c.glasses ? 'sel' : ''; $('edChair').className = c.chair ? 'sel' : '';

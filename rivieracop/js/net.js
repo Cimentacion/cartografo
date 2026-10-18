@@ -250,7 +250,10 @@ export class LanBeacon {
   }
   msg() { return Object.assign({ t: 'sala', v: NETV }, this.info); }
   update(o) { Object.assign(this.info, o); this.ping(); }
-  ping() { for (const R of this.rooms) try { R.send(this.msg()); } catch (e) { } }
+  ping() {
+    for (const R of this.rooms) try { R.send(this.msg()); } catch (e) { }
+    for (const L of (this.pj || new Map()).values()) if (L.c && L.c.open) try { L.c.send(this.msg()); } catch (e) { }
+  }
   stop() {
     this.stopped = true; clearInterval(this.iv);
     for (const R of this.rooms) { try { R.send({ t: 'cerrada', code: this.info.code }); } catch (e) { } try { R.room.leave(); } catch (e) { } }
@@ -306,12 +309,64 @@ export class Presence {
       this.iv = setInterval(() => this.ping(), 5000);
       this.ping();
     });
-    this.gc = setInterval(() => { const t = performance.now(); let ch = false; for (const [k, v] of this.peers) if (t - v.seen > 16000) { this.peers.delete(k); ch = true; } if (ch && this.onChange) this.onChange(); }, 3000);
+    this.gc = setInterval(() => { const t = performance.now(); let ch = false; for (const [k, v] of this.peers) if (t - v.seen > 20000) { this.peers.delete(k); ch = true; } if (ch && this.onChange) this.onChange(); }, 3000);
+    // segunda vía, más fiable: cada jugador tiene su "buzón" en PeerJS con su código de amigo;
+    // para saber si un amigo está, se le llama directamente y contesta con su estado
+    this.pj = new Map();
+    this.startPJ();
+  }
+  startPJ() {
+    if (NO_PEERJS || typeof Peer !== 'function') return;
+    try {
+      const p = new Peer(PREFIX + 'u-' + this.me.id, peerOpts());
+      this.peer = p;
+      p.on('connection', c => {
+        c.on('data', d => {
+          if (!d || typeof d !== 'object') return;
+          if (d.t === 'q' || d.t === 'here') { this.recv(d.t === 'here' ? d : { t: 'here', id: String(d.id || ''), name: d.name, st: d.st, code: d.code, v: d.v }); try { c.send(this.msg()); } catch (e) { } }
+          else if (d.t === 'inv') this.recv(Object.assign({}, d, { to: this.me.id }));
+        });
+      });
+      p.on('disconnected', () => { try { if (!p.destroyed) p.reconnect(); } catch (e) { } });
+      p.on('error', e => {
+        // amigo no conectado: su buzón no existe
+        const m = /u-([A-Z0-9]{6})/.exec((e && e.message) || '');
+        if (e && e.type === 'peer-unavailable' && m) { const L = this.pj.get(m[1]); if (L) L.busy = false; }
+        else if (e && e.type === 'unavailable-id') { /* la app abierta dos veces: vale con la otra */ }
+      });
+    } catch (e) { console.warn('amigos peerjs', e); }
+  }
+  // pregunta a cada amigo cómo está (cada pocos segundos)
+  poll(ids) {
+    if (!this.peer || this.peer.destroyed || !this.peer.open) return;
+    for (const id of ids) {
+      let L = this.pj.get(id);
+      if (L && L.c && L.c.open) { try { L.c.send(Object.assign({ t: 'q' }, this.msg())); } catch (e) { } continue; }
+      if (L && L.busy && performance.now() - L.t < 12000) continue;
+      L = { busy: true, t: performance.now(), c: null };
+      this.pj.set(id, L);
+      try {
+        const c = this.peer.connect(PREFIX + 'u-' + id, { reliable: true, serialization: 'json' });
+        L.c = c;
+        c.on('open', () => { L.busy = false; try { c.send(Object.assign({ t: 'q' }, this.msg())); } catch (e) { } });
+        c.on('data', d => { if (d && d.t === 'here' && d.id === id) this.recv(d); });
+        const bye = () => { L.c = null; L.busy = false; };
+        c.on('close', bye); c.on('error', bye);
+      } catch (e) { L.busy = false; }
+    }
   }
   msg() { return { t: 'here', id: this.me.id, name: this.me.name, st: this.state.st, code: this.state.code, v: NETV }; }
-  ping() { for (const R of this.rooms) try { R.send(this.msg()); } catch (e) { } }
+  ping() {
+    for (const R of this.rooms) try { R.send(this.msg()); } catch (e) { }
+    for (const L of (this.pj || new Map()).values()) if (L.c && L.c.open) try { L.c.send(this.msg()); } catch (e) { }
+  }
   set(st, code) { this.state = { st, code: code || '' }; this.ping(); }
-  invite(to, code) { for (const R of this.rooms) try { R.send({ t: 'inv', to, from: this.me.id, name: this.me.name, code }); } catch (e) { } }
+  invite(to, code) {
+    const m = { t: 'inv', to, from: this.me.id, name: this.me.name, code };
+    for (const R of this.rooms) try { R.send(m); } catch (e) { }
+    const L = this.pj.get(to);
+    if (L && L.c && L.c.open) try { L.c.send(m); } catch (e) { }
+  }
   recv(d) {
     if (!d || typeof d !== 'object' || typeof d.id !== 'string' && typeof d.from !== 'string') return;
     if (d.t === 'here' && /^[A-Z0-9]{6}$/.test(d.id) && d.id !== this.me.id) {
