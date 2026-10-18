@@ -1890,3 +1890,44 @@ export function fatZombie(sk = 0) {
   g.userData.shooters = [muzzle];
   return g;
 }
+// limusina de la mafia: muy larga, negra, con dos mafiosos asomados por las ventanillas
+export function limo() {
+  const g = new THREE.Group();
+  const C = 0x0c0c10;
+  box(g, 2.0, 0.72, 7.6, C, 0, 0.62, 0, 'body');
+  box(g, 1.8, 0.5, 5.2, C, 0, 1.22, 0.3, 'body');
+  box(g, 1.82, 0.36, 4.9, GLASS, 0, 1.24, 0.3, 'body');
+  box(g, 2.02, 0.06, 7.62, 0xd8d8e0, 0, 0.9, 0, 'body');
+  for (const s of [-1, 1]) { box(g, 0.32, 0.14, 0.05, glow(0xfff6c8), s * 0.65, 0.72, -3.81); box(g, 0.34, 0.14, 0.05, glow(0xff2020), s * 0.65, 0.76, 3.81); }
+  box(g, 1.0, 0.08, 0.06, 0xd8d8e0, 0, 0.55, -3.82);
+  for (const sx of [-1.0, 1.0]) for (const sz of [-2.6, 0.2, 2.6]) wheel(g, sx, 0.36, sz, 0.36, 0.28, 'body');
+  // banderines en el capó
+  for (const s of [-1, 1]) { box(g, 0.03, 0.4, 0.03, 0xd8d8e0, s * 0.8, 1.15, -3.2); box(g, 0.02, 0.18, 0.25, 0xd01818, s * 0.8, 1.28, -3.07); }
+  const sh = [];
+  [[-1.4, 'g0'], [1.5, 'g1']].forEach(([z, part]) => {
+    const pivot = new THREE.Group(); pivot.position.set(0.9, 1.05, z); g.add(pivot);
+    const p = person({ shirt: 0x1a1a1e, sleeve: 0x1a1a1e, pants: 0x1a1a1e, gun: 'mg', part, glasses: true, hairStyle: 'rapado', hair: 0x1a1a1a });
+    box(p.userData.rig.torso, 0.12, 0.3, 0.02, 0xf0f0f0, 0, 0.42, -0.165, part);
+    box(p.userData.rig.torso, 0.05, 0.22, 0.03, 0xb01818, 0, 0.4, -0.18, part);
+    box(p.userData.rig.torso, 0.42, 0.06, 0.42, 0x2a2a2a, 0, 1.0, 0, part); box(p.userData.rig.torso, 0.3, 0.16, 0.3, 0x2a2a2a, 0, 1.1, 0, part);
+    p.position.y = -0.92; p.userData.rig.body.children.slice(0, 4).forEach(m => (m.visible = false));
+    pivot.add(p); pivot.userData.p = p; sh.push(p.userData.rig.muzzle);
+    g.userData['piv_' + part] = pivot;
+  });
+  g.userData.shooters = sh;
+  g.userData.aimers = [g.userData.piv_g0, g.userData.piv_g1];
+  return g;
+}
+// chica de espectáculo de Las Vegas (civil): tocado de plumas, traje de lentejuelas y boa
+export function showgirl(sk = 0) {
+  const g = new THREE.Group();
+  const C = [0xff40c0, 0x40c0ff, 0xffd040, 0xc040ff][sk % 4];
+  const p = person({ shirt: C, pants: 0xf0c8a0, skin: [0xf0c8a0, 0xd9a476, 0xb27a4e][sk % 3], part: 'civ', hairStyle: 'largo', hair: [0x2a1a10, 0xd8b060, 0x8a2a1a][sk % 3] });
+  const t = p.userData.rig.torso;
+  for (let k = -2; k <= 2; k++) { const f = box(t, 0.08, 0.7, 0.04, C, k * 0.08, 1.3, 0.05, 'civ'); f.rotation.z = k * 0.18; }
+  box(t, 0.34, 0.08, 0.32, glow(0xfff0a0), 0, 1.04, 0, 'civ');
+  box(t, 0.6, 0.12, 0.36, glow(C), 0, 0.62, 0, 'civ');
+  for (const s of [-1, 1]) box(t, 0.12, 0.6, 0.12, 0xf0f0f0, s * 0.3, 0.45, -0.1, 'civ');
+  g.add(p); g.userData.p = p; g.userData.civ = true;
+  return g;
+}

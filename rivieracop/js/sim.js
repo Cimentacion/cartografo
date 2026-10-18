@@ -543,7 +543,6 @@ export class Sim {
     // ¿toca desbloquear un tipo de enemigo nuevo?
     for (const k in UNLOCK) if (!this.unl.has(k) && rt >= UNLOCK[k]) {
       this.unl.add(k);
-      if (UNAME[k] && !this.voting) this.emit('banner', { txt: '¡NUEVO ENEMIGO!', sub: UNAME[k], c: '#ff8a3d' });
       break;
     }
     // mientras se elige ruta no sale nadie (y lo que hay no dispara)
@@ -552,10 +551,11 @@ export class Sim {
     if (!this.canAhead(130)) return;
     if (this.foot || this.has('brute') || BIOMES[BIOME_KEYS[this.road.bioAt(this.carD + 80)]].deco === 'zombi') { this.zombieDir(dt); return; }
     this.waveT -= dt;
-    const front = Math.min(2, this.n), cap = Math.floor(1 + this.diff * 0.9) + (front - 1) + (this.stunT > 0 || this.hold ? 3 : 0);
+    const front = Math.min(2, this.n), cap = Math.max(1, Math.floor(1 + this.diff * 0.9) + (front - 1) + (this.stunT > 0 || this.hold ? 3 : 0) - (this.n === 1 ? 1 : 0));
     if (this.waveT <= 0) {
       if (this.hostileCount(this.n > 2 ? false : null) < cap) this.spawnWave();
-      this.waveT = Math.max(2.0, 7 - this.diff * 0.7) * (0.8 + this.r() * 0.5);
+      // en solitario salen menos: más tiempo entre oleadas
+      this.waveT = Math.max(2.0, 7 - this.diff * 0.7) * (0.8 + this.r() * 0.5) * (this.n === 1 ? 1.4 : 1);
     }
     const deco = BIOMES[BIOME_KEYS[this.road.bioAt(this.carD + 80)]].deco;
     const inTun = this.road.inTunnel(this.carD + 120);
@@ -600,6 +600,13 @@ export class Sim {
       if (this.timer('lady', dt, 20)) this.spawnLady();
     }
     if (deco === 'industrial' && !inTun && free && this.timer('wall', dt, 60) && !this.has('wall')) this.spawnWall(2);
+    // casino: limusinas de la mafia con dos tiradores en las ventanillas
+    if (deco === 'casino' && !inTun && this.timer('limo', dt, this.n === 1 ? 22 : 15) && !this.ents.some(e => e.type === 'ecar' && e.x.limo && e.st !== ST.DEAD) && this.laneFree(-40, 30)) {
+      this.spawnECar();
+      const e = this.ents[this.ents.length - 1];
+      e.x.limo = 1; e.hp = Math.ceil(e.hp * 1.4);
+      if (once0(this, 'limo')) this.emit('banner', { txt: '¡LA MAFIA!', sub: 'Limusinas con tiradores', c: '#ff40c0' });
+    }
     if (deco === 'trenes' && !inTun && this.timer('train', dt, 26) && !this.has('train')) this.spawnTrain();
     if (deco === 'acantilados' && !inTun && this.timer('rock', dt, 6.5)) this.spawnRocks();
     if (deco === 'militar' && !inTun) {
@@ -804,7 +811,7 @@ export class Sim {
       const side = r() < 0.5 ? -1 : 1;
       const dir = r() < 0.5 ? 1 : -1;
       const e = this.add('civilian', { d, lat: this.sideLat(d, side) + (r() - 0.5) * 0.9, h: 0.18, hp: 1, vd: dir * (1 + r()), ry: dir > 0 ? 0 : Math.PI });
-      e.x = { sk: Math.floor(r() * 8), pc: 0 };
+      e.x = { sk: Math.floor(r() * 8), pc: 0, sg: BIOMES[BIOME_KEYS[this.road.bioAt(d)]].deco === 'casino' && r() < 0.6 ? 1 : 0 };
     }
   }
   spawnMoto(i, behind) {
@@ -922,7 +929,6 @@ export class Sim {
     const e = this.add('van', { d: this.vStart(40), lat: LANE_OT, h: 0, hp: 16 + Math.floor(this.diff * 2), vd: this.speed + 9 });
     e.x = { ph: ahead ? 1 : 0, ht: 14 };
     e.sh = [this.shooter(2.6, 'shot', 1.2), this.shooter(3.2, 'shot', 2)];
-    this.emit('banner', { txt: '¡FURGÓN BLINDADO!', sub: '', c: '#ff8a3d' });
   }
   // autobús: va a vuestro lado con tiradores en las ventanillas
   spawnBus() {
@@ -1446,8 +1452,8 @@ export class Sim {
     const h = this.hospAhead();
     if (h && h.H - this.carD < 130) return;
     const r = this.r, kk = this.spk(), n = this.nAlive();
-    if (this.timer('zh', dt, 2.4) && this.count('zombie') < 12 + 4 * n) {
-      const base = this.carD + (50 + r() * 35) * kk, m = 3 + Math.floor(r() * (3 + this.diff * 0.4));
+    if (this.timer('zh', dt, n === 1 ? 3.4 : 2.4) && this.count('zombie') < (n === 1 ? 9 : 12 + 4 * n)) {
+      const base = this.carD + (50 + r() * 35) * kk, m = (n === 1 ? 2 : 3) + Math.floor(r() * ((n === 1 ? 2 : 3) + this.diff * 0.4));
       for (let i = 0; i < m; i++) this.zstreet(base + i * 1.8 + r() * 3, (r() - 0.5) * 17, 0, i * 0.25);
     }
     if (this.timer('zf', dt, 13)) {
@@ -1461,7 +1467,6 @@ export class Sim {
     }
     if (this.runT > 15 && this.timer('zbat', dt, 12) && this.count('bat') < 4) {
       for (let i = 0, m = 3 + (r() < 0.5 ? 1 : 0); i < m; i++) this.spawnBat(i);
-      if (once0(this, 'zbats')) this.emit('banner', { txt: '¡MURCIÉLAGOS!', sub: '', c: '#c080ff' });
     }
     if (this.timer('zbar', dt, 13)) {
       const d = this.carD + (70 + r() * 20) * kk, sd = r() < 0.5 ? -1 : 1;
@@ -1500,8 +1505,8 @@ function ser(e) {
   const X = e.x;
   switch (e.type) {
     case 'gunman': x = { cv: X.cv, gr: X.gr, sk: X.sk, sol: X.sol, shd: X.shd, rk: X.rk, win: X.win }; break;
-    case 'civilian': x = { sk: X.sk }; break;
-    case 'ecar': x = { gd: X.gd, suv: X.suv }; break;
+    case 'civilian': x = { sk: X.sk, sg: X.sg }; break;
+    case 'ecar': x = { gd: X.gd, suv: X.suv, limo: X.limo }; break;
     case 'civcar': x = { c: X.c }; break;
     case 'sign': x = { l: X.l, s: X.s, v: X.v, w: X.w, zd: X.zd }; break;
     case 'lady': x = { sk: X.sk, used: X.used }; break;
@@ -2169,7 +2174,7 @@ const U = {
         S.speed *= 0.3; S.stunT = Math.max(S.stunT, 1.2);
         S.emit('crash', { soft: 1 });
         for (const i of S.alivePlayers()) { S.players[i].inv = 0; S.hurt(i, 0, 'crash'); }
-        S.emit('banner', { txt: '¡EL GORDO OS PARA!', sub: '', c: '#8aff4a' });
+        if (once0(S, 'fatStop')) S.emit('banner', { txt: '¡EL GORDO OS PARA!', sub: '', c: '#8aff4a' });
         S.kill(e, -1, true);
         return;
       }

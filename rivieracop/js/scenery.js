@@ -9,6 +9,45 @@ import { toon, tex } from './toon.js';
 
 export const CH = 40;
 
+// nombres inventados de casinos (letras apiladas en vertical) e iniciales sueltas
+const CNAMES = ['FARAON', 'CROCO', 'ROYALE', 'LUNA', 'DIAMOND', 'FORTUNA', 'VEGA', 'ZAFIRO'];
+const CINIT = ['F', 'R', 'L', 'V', 'D', 'C', '7', '$'];
+function casinoAtlas(kind) {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = kind ? 512 : 1024;
+  const g = c.getContext('2d');
+  const cols = [['#ffd040', '#c040ff'], ['#ff60e0', '#ffd040'], ['#ffe890', '#8a40ff'], ['#60e0ff', '#ff40c0']];
+  if (!kind) {
+    CNAMES.forEach((n, i) => {
+      const [a, b] = cols[i % 4], x = i * 128 + 64, step = 1000 / n.length;
+      g.font = `bold ${Math.min(120, step * 0.92)}px Impact, 'Arial Black', sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      for (let k = 0; k < n.length; k++) {
+        const y = 12 + step * (k + 0.5);
+        g.shadowColor = b; g.shadowBlur = 22; g.lineWidth = 10; g.strokeStyle = b; g.strokeText(n[k], x, y);
+        g.shadowBlur = 8; g.fillStyle = a; g.fillText(n[k], x, y);
+      }
+    });
+  } else {
+    CINIT.forEach((n, i) => {
+      const [a, b] = cols[i % 4], x = (i % 4) * 256 + 128, y = Math.floor(i / 4) * 256 + 134;
+      g.font = "bold 210px Impact, 'Arial Black', sans-serif"; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.shadowColor = b; g.shadowBlur = 30; g.lineWidth = 16; g.strokeStyle = b; g.strokeText(n, x, y);
+      g.shadowBlur = 10; g.fillStyle = a; g.fillText(n, x, y);
+    });
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  return t;
+}
+// plano con un trozo del atlas (u0..u1, v0..v1), mirando a la carretera desde el lado sd
+function atlasPlane(L, w, h, m, sd, uv, o = {}) {
+  const g = new THREE.PlaneGeometry(w, h);
+  const U = g.attributes.uv;
+  for (let i = 0; i < U.count; i++) U.setXY(i, uv[0] + U.getX(i) * (uv[2] - uv[0]), uv[1] + U.getY(i) * (uv[3] - uv[1]));
+  colorize(g, 0xffffff, false);
+  g.rotateY(sd < 0 ? Math.PI / 2 : -Math.PI / 2);
+  g.translate(o.x || 0, o.y || 0, o.z || 0);
+  g.applyMatrix4(m);
+  L.push(g);
+}
 export function makeMats() {
   // fachada: enlucido (textura) + 2x2 ventanas por "planta"
   const mk = night => {
@@ -50,6 +89,9 @@ export function makeMats() {
     // luces que parpadean (pilotos LED) y fluorescentes que titilan: main.js les cambia el brillo
     E: new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }),
     Y: new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }),
+    // carteles de casino: nombres en vertical (Z) e iniciales gigantes (J), en neón dorado y morado
+    Z: new THREE.MeshBasicMaterial({ map: casinoAtlas(0), transparent: true, side: THREE.DoubleSide }),
+    J: new THREE.MeshBasicMaterial({ map: casinoAtlas(1), transparent: true, side: THREE.DoubleSide }),
     // haces de luz (suman luz, no tapan)
     V: new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }),
     N: new THREE.MeshBasicMaterial({ vertexColors: true, map: mk(true) }),
@@ -58,7 +100,7 @@ export function makeMats() {
     F: T('graff'), M: T('mural'),
   };
 }
-const LIST_KEYS = ['L', 'W', 'G', 'E', 'Y', 'V', 'N', 'A', 'P', 'C', 'K', 'Q', 'U', 'S', 'T', 'D', 'B', 'F', 'M'];
+const LIST_KEYS = ['L', 'W', 'G', 'E', 'Y', 'V', 'Z', 'J', 'N', 'A', 'P', 'C', 'K', 'Q', 'U', 'S', 'T', 'D', 'B', 'F', 'M'];
 const LIGHT = (hex, k) => { _c.setHex(hex); _c.lerp(_w.setHex(0xffffff), k); return _c.getHex(); };
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(1, 1, 1);
@@ -203,7 +245,7 @@ export function buildChunk(road, c, M) {
       continue;
     }
     if (t.fork >= 0 && t.start >= d0 && t.start < d1) { facade(R, road, t.start + 1.5); portalHill(R, road, t.start + 13); }
-    if (t.end >= d0 && t.end < d1) { facade(R, road, t.end - 1.5); portalHill(R, road, t.end - 13); }
+    if (t.end >= d0 && t.end < d1) { facade(R, road, t.end - 1.5, 1); portalHill(R, road, t.end - 13); }
   }
   if (c === 0) addBox(R.L, 14.6, 7.6, 1, 0x2a2a2a, frame(road, 0.5, 0, 3.8));
   for (const h of road.hosp) if (Math.floor((h.H + 12) / CH) === c) hospital(R, RI, road, h.H);
@@ -228,13 +270,104 @@ export function buildChunk(road, c, M) {
   return grp;
 }
 
-function facade(R, road, d) {
-  const y = road.gy[Math.floor(d)] || 0, depthDown = y + 3;
-  // las caras de dentro de la boca quedan un poco por fuera de las paredes y el techo del túnel (antes coincidían y parpadeaban)
-  for (const sd of [-1, 1]) addBox(R.C, 28, 24 + depthDown, 3, 0xe4ddd0, frame(road, d, sd * 21.55, (24 - depthDown) / 2), { uvs: 4 });
-  addBox(R.C, 15.4, 15.2, 3, 0xe4ddd0, frame(road, d, 0, 7.6 + 7.6), { uvs: 4 });
-  addBox(R.L, 15.4, 0.6, 3.2, 0x2c2c2c, frame(road, d, 0, 7.75));
-  for (let k = -3; k <= 3; k++) addBox(R.L, 1, 0.4, 0.1, k % 2 ? 0xe8c030 : 0x2a2a2a, frame(road, d, k * 2, 7.75), { z: -1.65 });
+// boca del túnel tematizada según la zona (antes era siempre un muro blanco que parecía un edificio)
+// out = 1 en la salida del túnel (la cara que se ve es la de delante)
+const PSTY = {
+  rock: ['bosque', 'llanura', 'lomas', 'desierto', 'acantilados', 'costa', 'cornisa', 'rio', 'barro', 'bajada', 'curva', 'pueblo', 'ruinas', 'puerto'],
+  tech: ['autopista', 'industrial', 'trenes', 'trenmil', 'tuneles', 'semaforos'],
+  mil: ['militar', 'guerra'], city: ['monaco', 'policia', 'detroit', 'manifa', 'orgullo'],
+  casino: ['casino'], chino: ['chino'], zombi: ['zombi'], sea: ['submarino'],
+};
+const portalStyle = deco => { for (const k in PSTY) if (PSTY[k].includes(deco)) return k; return 'tech'; };
+function facade(R, road, d, out = 0) {
+  const i = Math.max(0, Math.min(road.len, Math.floor(out ? d + 6 : d)));
+  const B = BIOMES[BIOME_KEYS[road.bio[i]]], st = portalStyle(B.deco);
+  const y = road.gy[Math.floor(d)] || 0, dn = y + 3, fz = out ? 1.65 : -1.65;
+  const r = rng(hash(road.seed, Math.floor(d), 4242));
+  const F = (lat, h) => frame(road, d, lat, h);
+  // muros base (laterales y dintel); el material y el color cambian con el estilo
+  const wall = (L, col, uvs) => {
+    for (const sd of [-1, 1]) addBox(L, 28, 24 + dn, 3, col, F(sd * 21.55, (24 - dn) / 2), { uvs });
+    addBox(L, 15.4, 15.2, 3, col, F(0, 15.2), { uvs });
+  };
+  const rim = (col, L = R.L) => {
+    for (const sd of [-1, 1]) addBox(L, 0.9, 8.4, 3.3, col, F(sd * 8.0, 4.2));
+    addBox(L, 16.9, 0.9, 3.3, col, F(0, 8.05));
+  };
+  if (st === 'rock') {
+    // ladera de roca con arco de piedra, cima irregular, arbustos y hiedra
+    wall(R.K, 0x8a7a66, 6);
+    for (let k = -4; k <= 4; k++) { const a = k / 4 * 1.25; addBox(R.C, 1.4, 1.2, 3.4, 0xb8ac98, F(Math.sin(a) * 8.3, 7.4 + Math.cos(a) * 1.2), { rz: -a, uvs: 2 }); }
+    for (const sd of [-1, 1]) addBox(R.C, 1.2, 7.4, 3.4, 0xb0a490, F(sd * 8.1, 3.7), { uvs: 2 });
+    for (let k = 0; k < 9; k++) { const lat = (r() - 0.5) * 66, h = 22 + r() * 6; addBox(R.K, 6 + r() * 8, 5 + r() * 7, 6 + r() * 6, 0x7a6a56, F(lat, h), { ry: r() * 3, rz: (r() - 0.5) * 0.5, uvs: 5 }); }
+    for (let k = 0; k < 8; k++) { const lat = (r() - 0.5) * 60; addBox(R.L, 2 + r() * 2.5, 1.6 + r() * 1.5, 2 + r() * 2, pick(r, [0x3a6a2a, 0x4a7a32, 0x2e5a26]), F(lat, 24 + r() * 5), { z: fz * 0.4 }); }
+    for (let k = 0; k < 10; k++) { const lat = (r() < 0.5 ? -1 : 1) * (9 + r() * 22); addBox(R.L, 0.6 + r() * 1.2, 2 + r() * 6, 0.15, pick(r, [0x3a6a2a, 0x2e5a26]), F(lat, 10 + r() * 10), { z: fz * 1.0 }); }
+  } else if (st === 'mil') {
+    // búnker: hormigón de camuflaje, sacos terreros, alambrada, torreta con foco
+    wall(R.C, 0x6a6a4a, 4);
+    for (let k = 0; k < 14; k++) addBox(R.L, 3 + r() * 4, 2 + r() * 4, 0.1, pick(r, [0x4a5232, 0x7a6a48, 0x3a3a2a]), F((r() - 0.5) * 60, 9 + r() * 12), { z: fz });
+    rim(0x4a4a3a);
+    for (const sd of [-1, 1]) for (let row = 0; row < 3; row++) for (let k = 0; k < 6; k++) addBox(R.L, 1.1, 0.5, 0.7, 0xb8a878, F(sd * (9.5 + k * 1.15 + (row % 2) * 0.5), 0.25 + row * 0.5), { z: fz * 1.6 });
+    addBox(R.L, 60, 0.05, 0.05, 0x5a5a5a, F(0, 24.4), { z: fz * 0.6 });
+    for (let k = -6; k <= 6; k++) addBox(R.L, 0.08, 1.2, 0.08, 0x3a3a3a, F(k * 5, 24.6), { z: fz * 0.6 });
+    for (const sd of [-1, 1]) { addBox(R.L, 3, 3, 3, 0x5a5a40, F(sd * 14, 25.5)); addBox(R.G, 0.8, 0.6, 0.4, 0xfff4c0, F(sd * 14, 26), { z: fz * 1.7 }); }
+    for (let k = -3; k <= 3; k++) addBox(R.L, 2, 0.5, 0.2, k % 2 ? 0xd01818 : 0xf0f0f0, F(k * 2, 7.75), { z: fz * 1.0 });
+  } else if (st === 'city') {
+    // puente de piedra con arco, cornisa, farolas y un gran cartel encima
+    wall(R.B, 0xc8a888, 3);
+    rim(0xe8dcc8, R.C);
+    for (let k = -1; k <= 1; k++) addBox(R.C, 1.2, 1.6, 3.4, 0xf0e8d8, F(k * 1.3, 8.4 + (k ? 0 : 0.3)));
+    addBox(R.C, 72, 0.8, 3.8, 0xe8dcc8, F(0, 18), { uvs: 2 }); addBox(R.C, 72, 1.2, 3.4, 0xd8ccb8, F(0, 24.6), { uvs: 2 });
+    for (let k = -8; k <= 8; k++) addBox(R.C, 0.4, 1.6, 0.4, 0xe8dcc8, F(k * 4, 26), { z: fz * 0.8 });
+    for (const sd of [-1, 1]) { addBox(R.L, 0.15, 1.6, 0.15, 0x2a2a2a, F(sd * 10, 10.5), { z: fz * 1.3 }); addBox(R.G, 0.5, 0.6, 0.5, 0xfff0b0, F(sd * 10, 11.5), { z: fz * 1.3 }); }
+    addBox(R.L, 16, 6, 0.3, 0x1a1a22, F(0, 31), { z: fz * 0.5 }); decal(R.M, 15, 5.4, F(0, 31), out ? -1 : 1, { x: 0, z: fz * 0.7 });
+    for (const sd of [-1, 1]) addBox(R.L, 0.3, 4, 0.3, 0x3a3a3a, F(sd * 6, 26.5));
+  } else if (st === 'casino') {
+    // fachada negra con neones morados y rosas, bombillas que parpadean y un gran letrero
+    wall(R.L, 0x16101e, 0);
+    for (const [c, o] of [[0xc040ff, 0], [0xff40c0, 0.7]]) {
+      for (const sd of [-1, 1]) addBox(R.G, 0.25, 8.4 + o * 2, 0.2, c, F(sd * (8.0 + o), 4.2 + o), { z: fz * 1.0 });
+      addBox(R.G, 16.2 + o * 2, 0.25, 0.2, c, F(0, 8.3 + o), { z: fz * 1.0 });
+    }
+    for (let k = -16; k <= 16; k++) addBox(k % 2 ? R.E : R.G, 0.35, 0.35, 0.2, k % 3 ? 0xffe070 : 0xff60ff, F(k * 2, 22.8), { z: fz * 1.0 });
+    for (const sd of [-1, 1]) for (let h = 1; h < 22; h += 2) addBox(h % 4 === 1 ? R.E : R.G, 0.35, 0.35, 0.2, 0xffe070, F(sd * 35, h), { z: fz * 1.0 });
+    addBox(R.L, 24, 7, 0.4, 0x2a0a3a, F(0, 16), { z: fz * 0.9 });
+    addBox(R.G, 22, 0.3, 0.2, 0xff40c0, F(0, 19.3), { z: fz * 1.1 }); addBox(R.G, 22, 0.3, 0.2, 0xff40c0, F(0, 12.7), { z: fz * 1.1 });
+    for (let k = 0; k < 3; k++) { const x = (k - 1) * 6; addBox(R.G, 3.4, 0.6, 0.2, 0xffd040, F(x, 18.0), { z: fz * 1.1 }); addBox(R.G, 0.6, 4.6, 0.2, 0xffd040, F(x + 1.2, 15.6), { z: fz * 1.1, rz: -0.35 }); }
+    for (const sd of [-1, 1]) for (let k = 0; k < 3; k++) addBox(R.G, 0.2, 12, 0.2, [0xc040ff, 0x40c0ff, 0xff40c0][k], F(sd * (20 + k * 4), 12), { z: fz * 1.0 });
+  } else if (st === 'chino') {
+    // puerta china: muro rojo, columnas, tejado de pagoda verde con aleros curvados y farolillos
+    wall(R.L, 0x8a1414, 0);
+    rim(0xd8a020);
+    for (const sd of [-1, 1]) addCyl(R.L, 0.8, 0.8, 22, 10, 0xb01818, F(sd * 10, 11), { z: fz * 0.8 });
+    for (let t = 0; t < 2; t++) { const w = 40 - t * 12, h = 23 + t * 4; addBox(R.L, w, 0.8, 6, 0x1a5a3a, F(0, h)); for (const sd of [-1, 1]) addBox(R.L, 3, 0.6, 6, 0x1a5a3a, F(sd * (w / 2 + 0.8), h + 0.6), { rz: sd * 0.35 }); addBox(R.L, w - 4, 3, 4, 0x8a1414, F(0, h - 1.8)); }
+    addBox(R.L, 8, 3, 0.3, 0x1a1a1a, F(0, 13), { z: fz * 0.9 }); addBox(R.G, 7, 2.2, 0.2, 0xd8a020, F(0, 13), { z: fz * 1.0 });
+    for (const sd of [-1, 1]) for (let k = 0; k < 3; k++) addBox(R.G, 1, 1.4, 1, 0xff3020, F(sd * (12 + k * 6), 20), { z: fz * 1.2 });
+  } else if (st === 'zombi') {
+    // cuarentena: hormigón quemado, barricada de coches calcinados, rayas amarillas, luces rojas y fuego arriba
+    wall(R.C, 0x4a4652, 4);
+    for (let k = 0; k < 10; k++) addBox(R.L, 3 + r() * 6, 2 + r() * 6, 0.1, 0x1a1418, F((r() - 0.5) * 60, 4 + r() * 18), { z: fz });
+    for (let k = -7; k <= 7; k++) addBox(R.L, 2, 0.8, 0.2, k % 2 ? 0xe8c030 : 0x1a1a1a, F(k * 2, 8.6), { z: fz * 1.05, rz: 0.5 });
+    addBox(R.L, 9, 2.4, 0.2, 0xe8c030, F(0, 12), { z: fz * 1.0 }); addBox(R.L, 8, 0.6, 0.22, 0x1a1a1a, F(0, 12), { z: fz * 1.0 });
+    for (const sd of [-1, 1]) {
+      for (let k = 0; k < 3; k++) { const m = F(sd * (10 + k * 2.4), 0); addBox(R.U, 1.8, 0.9, 4, 0x2a2420, m, { y: 0.55 + (k === 1 ? 0.9 : 0), z: fz * 2.5, ry: 1.2 + r(), rz: k === 1 ? Math.PI : 0 }); }
+      addBox(R.E, 0.6, 0.6, 0.6, 0xff1a1a, F(sd * 9, 9.8), { z: fz * 1.2 });
+      lightPool(R.V, road, d + fz * 4, sd * 5, 0.03, 6, 0xff2020, 0.55);
+    }
+    for (let k = 0; k < 6; k++) { const lat = (r() - 0.5) * 50; addBox(R.G, 2 + r() * 2, 2.5 + r() * 2, 2, 0xff6a10, F(lat, 25)); addBox(R.G, 1, 2.5, 1, 0xffc040, F(lat, 26.5)); }
+  } else if (st === 'sea') {
+    wall(R.K, 0x4a6a7a, 6);
+    for (let k = 0; k < 18; k++) addBox(R.L, 1 + r() * 2, 1 + r() * 4, 1 + r() * 2, pick(r, [0xff6a8a, 0xffa040, 0xa060ff, 0x40e0c0]), F((r() - 0.5) * 60, 6 + r() * 18), { z: fz * 1.2, rz: (r() - 0.5) });
+  } else {
+    // técnico: hormigón con nervios, franja de peligro, focos y paneles
+    wall(R.C, 0xc8c8c4, 4);
+    for (let k = -8; k <= 8; k++) if (Math.abs(k) > 1) addBox(R.C, 0.9, 23, 0.5, 0xb0b0ac, F(k * 4.2, 11.5), { z: fz * 1.0, uvs: 3 });
+    addBox(R.L, 15.4, 0.6, 3.2, 0x2c2c2c, F(0, 7.75));
+    for (let k = -3; k <= 3; k++) addBox(R.L, 1, 0.4, 0.1, k % 2 ? 0xe8c030 : 0x2a2a2a, F(k * 2, 7.75), { z: fz });
+    for (let k = -3; k <= 3; k++) addBox(R.G, 1.2, 0.3, 0.3, 0xfff0c0, F(k * 2.2, 9.3), { z: fz * 1.0 });
+    addBox(R.C, 72, 1.0, 3.6, 0x9a9a96, F(0, 24.3), { uvs: 2 });
+    for (const sd of [-1, 1]) { addBox(R.L, 4, 2.4, 0.2, 0x1a4a9a, F(sd * 14, 12), { z: fz * 1.0 }); addBox(R.L, 3.4, 0.3, 0.22, 0xf0f0f0, F(sd * 14, 12.4), { z: fz * 1.0 }); }
+  }
 }
 
 // barrio chino: dentro del restaurante
@@ -438,6 +571,7 @@ function ok(road, d, lat, rad, edificio = false) {
   const k = road.kindAt(d);
   if (k === 1) return false;
   if (road.hospAt(d, rad) && Math.abs(lat) < 24 + rad) return false;
+  if (lat < 6 + rad && BIOMES[BIOME_KEYS[road.bio[Math.max(0, Math.min(road.len, Math.floor(d)))]]].deco === 'casino') for (const rb of road.roundabouts(d - 60, d + 60)) if (Math.abs(rb - d) < 38 + rad) return false;
   for (const t of road.tunnels) if (d > t.start - 18 - rad && d < t.end + 18 + rad) return false;
   // nada se mete en el pórtico de los carteles ni en los carteles de aviso
   for (const f of road.forks) {
@@ -1013,6 +1147,81 @@ function gasStation(R, road, d, sd) {
   for (const [z, s] of [[-2, 1.4], [2.5, 1.1], [-5.5, 0.8]]) { addBox(R.G, 3 * s, 3.5 * s, 3 * s, 0xff5a10, m, { y: 1.8 * s, z }); addBox(R.G, 2 * s, 5 * s, 2 * s, 0xff9a20, m, { y: 2.6 * s, z }); addBox(R.G, 0.9 * s, 3 * s, 0.9 * s, 0xffe070, m, { y: 4.5 * s, z }); }
   addCyl(R.U, 1.3, 1.3, 5, 10, 0x3a3a3a, m, { x: -sd * 2, y: 1.3, z: 9.5, rx: Math.PI / 2 });
 }
+// rotonda con fuente, estatua y casinos alrededor (isla a la izquierda; la calle pasa por el borde)
+function roundabout(R, road, d, r) {
+  const cl = -17, F = (dd, lat, h) => frame(road, d + dd, lat, h);
+  addCyl(R.A, 16.3, 16.3, 0.06, 40, 0x34323e, F(0, cl, 0.17));
+  for (let a = 0; a < 40; a++) { const t = a / 40 * Math.PI * 2; if (a % 2) continue; addBox(R.L, 0.25, 0.04, 1.6, 0xf0f0f0, F(Math.cos(t) * 12.2, cl + Math.sin(t) * 12.2, 0.21), { ry: -t }); }
+  addCyl(R.C, 9.5, 9.8, 0.5, 32, 0xe8e0f0, F(0, cl, 0.45));
+  addCyl(R.L, 9, 9, 0.1, 32, 0x2a6a3a, F(0, cl, 0.72));
+  // fuente con chorros iluminados y estatua dorada de una ficha gigante
+  addCyl(R.C, 4.2, 4.4, 0.9, 24, 0xf0e8f8, F(0, cl, 1.2)); addCyl(R.G, 3.9, 3.9, 0.08, 24, 0x40c0ff, F(0, cl, 1.62));
+  for (let a = 0; a < 8; a++) { const t = a / 8 * Math.PI * 2; addCyl(R.V, 0.05, 0.35, 3.5, 6, 0x60b0ff, F(Math.cos(t) * 3, cl + Math.sin(t) * 3, 3.4)); }
+  addCyl(R.C, 1, 1.4, 4, 8, 0xe8e0f0, F(0, cl, 3.6));
+  addCyl(R.G, 2.4, 2.4, 0.5, 20, 0xffc030, F(0, cl, 8), { rx: Math.PI / 2 }); addCyl(R.L, 1.6, 1.6, 0.55, 20, 0xc01818, F(0, cl, 8), { rx: Math.PI / 2 });
+  for (let a = 0; a < 6; a++) { const t = a / 6 * Math.PI * 2; palm(R, road, d + Math.cos(t) * 7, cl + Math.sin(t) * 7, r); }
+  // focos de colores apuntando al cielo alrededor de la isla
+  for (let a = 0; a < 4; a++) { const t = a / 4 * Math.PI * 2 + 0.4; addCyl(R.V, 0.3, 1.6, 50, 8, pick(r, [0x8a50ff, 0xff40c0, 0x40c0ff]), F(Math.cos(t) * 8.5, cl + Math.sin(t) * 8.5, 25.5), { rz: Math.sin(t) * 0.25 }); }
+  // casinos alrededor de la rotonda
+  for (const [t, k] of [[2.2, 0], [Math.PI, 1], [4.1, 2]]) {
+    const dd = Math.cos(t) * 34, lat = cl + Math.sin(t) * 34, m = frame(road, d + dd, lat, 0, -t + Math.PI / 2), top = 30 + k * 12;
+    addBox(R.N, 16, top, 14, [0x2a1a4a, 0x401a3a, 0x1a2a4a][k], m, { y: top / 2, win: true });
+    for (let q = 0; q < 3; q++) addBox(R.G, 16.4 - q * 3, 0.5, 14.4 - q * 3, [0xff40c0, 0xc040ff, 0xffd040][(q + k) % 3], m, { y: top + 0.8 + q * 2 });
+    addBox(R.L, 12, 4, 0.4, 0x14081e, m, { y: 9, z: -7.3 });
+    for (let q = 0; q < 6; q++) addBox(q % 2 ? R.E : R.G, 1.4, 1.4, 0.2, [0xff40c0, 0xffd040, 0x40c0ff][q % 3], m, { y: 9, z: -7.6, x: -5 + q * 2 });
+    lightPool(R.V, road, d + Math.cos(t) * 25, cl + Math.sin(t) * 25, 0.26, 8, [0xa040ff, 0xff40c0, 0x40c0ff][k], 0.4);
+  }
+}
+// tragaperras en la acera (m ya mira hacia la carretera)
+function slotMachine(R, m, z, r) {
+  addBox(R.L, 0.7, 1.6, 0.6, pick(r, [0xc01818, 0x1848c0, 0xd8a020]), m, { y: 0.8, x: z });
+  addBox(R.G, 0.5, 0.4, 0.05, 0x101018, m, { y: 1.15, x: z, z: -0.31 });
+  for (let k = -1; k <= 1; k++) addBox(R.G, 0.12, 0.28, 0.06, pick(r, [0xffe040, 0xff4040, 0x40ff80]), m, { y: 1.15, x: z + k * 0.15, z: -0.32 });
+  addBox(R.E, 0.6, 0.1, 0.06, 0xffe070, m, { y: 1.5, x: z, z: -0.31 });
+  addBox(R.L, 0.05, 0.4, 0.05, 0xd8d8d8, m, { y: 1.2, x: z + 0.4 }); addBox(R.G, 0.1, 0.1, 0.1, 0xff2020, m, { y: 1.42, x: z + 0.4 });
+}
+// casinos emblemáticos: 0 pirámide de cristal negro con rayo de luz y esfinge, 1 el del cocodrilo gigante, 2 torre con corona de neón
+function casinoLandmark(R, road, d, sd, k, r) {
+  const lat = sd * (WALK + 22), m = frame(road, d, lat, 0), fz = -sd;
+  // explanada con alfombra roja, cordones y focos
+  addBox(R.C, 20, 0.1, 40, 0x2a2232, frame(road, d, sd * (WALK + 10), 0.19), { uvs: 4 });
+  addBox(R.L, 10, 0.05, 2.4, 0xb01818, frame(road, d, sd * (WALK + 6), 0.25));
+  for (const z of [-1.4, 1.4]) for (let q = 0; q < 5; q++) { addBox(R.L, 0.08, 0.8, 0.08, 0xd8b040, frame(road, d + z, sd * (WALK + 2 + q * 2), 0.6)); }
+  for (const z of [-14, 14]) { addCyl(R.V, 0.4, 2.5, 60, 8, 0x6a50ff, frame(road, d + z, sd * (WALK + 8), 30), { rz: sd * 0.25 }); addBox(R.G, 1, 0.6, 1, 0xd8d0ff, frame(road, d + z, sd * (WALK + 8), 0.5)); }
+  if (k === 0) {
+    const P = frame(road, d, lat + sd * 6, 0);
+    addCyl(R.L, 0, 30, 36, 4, 0x10101a, P, { y: 18 });
+    // aristas doradas
+    for (let a = 0; a < 4; a++) { const ang = a * Math.PI / 2 + Math.PI / 4; addBox(R.G, 0.3, 46, 0.3, 0xffd060, P, { y: 18, x: Math.cos(ang) * 15, z: Math.sin(ang) * 15, rz: Math.cos(ang) * 0.69, rx: -Math.sin(ang) * 0.69 }); }
+    for (let f = 1; f < 9; f++) addBox(R.G, 0.2, 0.2, 60 * (1 - f / 9) * 0.7, 0xffc040, P, { y: f * 4, x: -sd * (30 * (1 - f / 9) * 0.7 + 0.1) });
+    addCyl(R.V, 0.6, 1.6, 220, 8, 0xc8d0ff, P, { y: 36 + 110 });
+    addBox(R.G, 2, 1.4, 2, 0xffffff, P, { y: 36.4 });
+    // esfinge y obelisco a la entrada
+    const S = frame(road, d - 12, sd * (WALK + 9), 0.2);
+    addBox(R.C, 3, 2.4, 7, 0xd8c090, S, { y: 1.2, uvs: 2 }); addBox(R.C, 2.2, 2.6, 2, 0xd8c090, S, { y: 3.4, z: -2.8, uvs: 2 }); addBox(R.L, 2.6, 1.6, 0.3, 0x1848a0, S, { y: 3.6, z: -2.0 });
+    addCyl(R.C, 0.4, 1.2, 14, 4, 0xd8c090, frame(road, d + 12, sd * (WALK + 9), 7.2));
+  } else if (k === 1) {
+    // casino del cocodrilo: edificio verde y dorado con un cocodrilo gigante con la boca abierta encima
+    addBox(R.N, 22, 26, 34, 0x1a4a2a, m, { y: 13, win: true });
+    addBox(R.G, 0.3, 0.6, 34, 0xffd040, m, { y: 26.2, x: fz * 11.1 });
+    const Cm = frame(road, d, lat, 26.5), G = 0x3a8a3a, G2 = 0x2a6a2a;
+    addBox(R.L, 6, 3, 24, G, Cm, { y: 1.5 });
+    for (let s = 0; s < 8; s++) addBox(R.L, 1.2, 0.8, 1.6, G2, Cm, { y: 3.2, z: -10 + s * 3 });
+    addBox(R.L, 3, 1.4, 10, G, Cm, { y: 1.0, z: 16, rx: 0.2 });
+    addBox(R.L, 5, 1.2, 8, G, Cm, { y: 1.6, z: -16 }); addBox(R.L, 5, 1.0, 8, G, Cm, { y: 4.0, z: -15, rx: -0.5 });
+    for (let t = 0; t < 6; t++) { addBox(R.L, 0.3, 0.7, 0.3, 0xf8f8f0, Cm, { y: 2.5, x: -2.2 + t * 0.85, z: -19.5 }); addBox(R.L, 0.3, 0.7, 0.3, 0xf8f8f0, Cm, { y: 3.4, x: -2.2 + t * 0.85, z: -18.8 }); }
+    for (const s of [-1, 1]) { addBox(R.G, 0.8, 0.8, 0.8, 0xffe040, Cm, { y: 3.3, x: s * 1.8, z: -12.5 }); for (const z of [-7, 7]) addBox(R.L, 1.4, 3, 1.4, G2, Cm, { y: -0.5, x: s * 3.2, z }); }
+    addBox(R.L, 18, 4, 0.4, 0x0a2a14, m, { y: 22, x: fz * 11.2 }); addBox(R.G, 16, 0.4, 0.2, 0x60ff80, m, { y: 23.5, x: fz * 11.4 }); addBox(R.G, 16, 0.4, 0.2, 0xffd040, m, { y: 20.5, x: fz * 11.4 });
+  } else {
+    // torre con corona de neón y franjas verticales moradas
+    const top = 60 + r() * 20;
+    addBox(R.N, 16, top, 16, 0x2a1a4a, m, { y: top / 2, win: true });
+    for (const z of [-7.9, 0, 7.9]) addBox(R.G, 0.3, top - 4, 0.4, 0xc040ff, m, { y: top / 2, x: fz * 8.1, z });
+    for (let t = 0; t < 3; t++) addBox(R.G, 17 - t * 4, 0.6, 17 - t * 4, [0xff40c0, 0xc040ff, 0xffd040][t], m, { y: top + 1 + t * 3 });
+    addCyl(R.L, 0.3, 0.3, 14, 6, 0xd8d8e0, m, { y: top + 10 }); addBox(R.E, 1, 1, 1, 0xff2020, m, { y: top + 17 });
+    addBox(R.L, 14, 5, 0.4, 0x1a0a2a, m, { y: 12, x: fz * 8.3 }); for (let q = 0; q < 5; q++) addBox(q % 2 ? R.E : R.G, 2, 2, 0.2, [0xff40c0, 0xffd040, 0x40c0ff, 0xc040ff, 0xff4040][q], m, { y: 12, x: fz * 8.5, z: -5 + q * 2.5 });
+  }
+}
 // solar quemado (hueco entre edificios)
 function each0(R, road, d, sd, r) {
   const lat = sd * (WALK + 5);
@@ -1246,12 +1455,59 @@ const DECO = {
     each(i0, i1, r, 30, 40, d => lamp(R, road, d, 1));
   },
   casino(R, road, B, i0, i1, r) {
+    // grandes casinos cada ~170 m (pirámide con rayo de luz, el del cocodrilo, torre con corona de neón), en sitios fijos
+    const lm = [];
+    for (let c = Math.floor(i0 / 170) - 1; c <= Math.floor(i1 / 170) + 1; c++) {
+      const d = c * 170 + 60 + (hash(road.seed, c, 333) % 50);
+      lm.push({ d, sd: hash(road.seed, c, 334) % 2 ? 1 : -1, k: hash(road.seed, c, 335) % 3 });
+    }
+    const rbs = road.roundabouts(i0 - 60, i1 + 60);
+    for (const d of rbs) if (d >= i0 && d < i1) roundabout(R, road, d, r);
+    for (const L of lm) if (L.d >= i0 && L.d < i1 && !(L.sd < 0 && rbs.some(d => Math.abs(d - L.d) < 50))) casinoLandmark(R, road, L.d, L.sd, L.k, r);
     for (const sd of [-1, 1]) {
       let d = i0 + r() * 5;
-      while (d < i1) { const w = building(R, road, B, d, sd, r, true); d += w + 1.5 + r() * 2; }
+      while (d < i1) {
+        if (lm.some(L => L.sd === sd && Math.abs(L.d - d) < 32)) { d += 5; continue; }
+        const w = building(R, road, B, d, sd, r, true); d += w + 1.5 + r() * 2;
+      }
     }
-    each(i0, i1, r, 16, 22, d => palm(R, road, d, (r() < 0.5 ? -1 : 1) * 7.7, r));
-    each(i0, i1, r, 18, 24, d => lamp(R, road, d, r() < 0.5 ? -1 : 1));
+    // aceras: tragaperras, alfombras rojas, palmeras, fuentes y farolas moradas con su luz en el suelo
+    for (const sd of [-1, 1]) each(i0, i1, r, 9, 16, d => {
+      const lat = sd * (WALK - 0.7);
+      if (!ok(road, d, lat, 1.2)) return;
+      const q = r(), m = frame(road, d, lat, 0.18, sd < 0 ? Math.PI / 2 : -Math.PI / 2);
+      if (q < 0.45) for (let k = -1; k <= 1; k++) slotMachine(R, m, k * 0.85, r);
+      else if (q < 0.65) { addCyl(R.C, 1.4, 1.6, 0.6, 12, 0xe8e0f0, frame(road, d, lat, 0.48)); addCyl(R.G, 1.2, 1.2, 0.1, 12, 0x60d8ff, frame(road, d, lat, 0.78)); addCyl(R.V, 0.1, 0.5, 2.6, 6, 0x60b0ff, frame(road, d, lat, 2.1)); }
+      else palm(R, road, d, sd * 7.7, r);
+    });
+    each(i0, i1, r, 16, 22, d => {
+      const sd = r() < 0.5 ? -1 : 1, lat = sd * 6.6;
+      if (!ok(road, d, lat, 1)) return;
+      const m = frame(road, d, lat, 0.18);
+      addCyl(R.L, 0.08, 0.1, 6, 6, 0x2a2a34, m, { y: 3 });
+      addBox(R.G, 0.6, 0.25, 0.6, pick(r, [0xc040ff, 0xff40c0, 0x8a60ff]), m, { y: 6.1 });
+      lightPool(R.V, road, d, sd * 5.4, 0.03, 4.2, pick(r, [0xa040ff, 0xff40c0]), 0.5);
+    });
+    // carteles verticales con el nombre del casino en las fachadas, con marco de bombillas
+    for (const sd of [-1, 1]) each(i0, i1, r, 22, 36, d => {
+      const lat = sd * (WALK + 1.0);
+      if (!ok(road, d, sd * 7, 1)) return;
+      const m = frame(road, d, lat, 0), n = Math.floor(r() * 8), h = 13 + r() * 5, y0 = 4 + r() * 2;
+      addBox(R.L, 0.4, h + 0.6, 3.0, 0x14081e, m, { y: y0 + h / 2, x: -sd * 0.6 });
+      atlasPlane(R.Z, 2.6, h, m, sd, [n / 8, 0, (n + 1) / 8, 1], { x: -sd * 0.82, y: y0 + h / 2 });
+      for (let q = 0; q <= 10; q++) for (const z of [-1.45, 1.45]) addBox(q % 2 ? R.E : R.G, 0.2, 0.2, 0.2, 0xffe070, m, { x: -sd * 0.85, y: y0 + q * h / 10, z });
+      addBox(R.L, 1.2, 0.2, 0.2, 0x2a2a2a, m, { x: sd * 0.1, y: y0 + h * 0.8 });
+    });
+    // iniciales gigantes sobre los edificios, en lo alto
+    for (const sd of [-1, 1]) each(i0, i1, r, 45, 80, d => {
+      const lat = sd * (WALK + 9), n = Math.floor(r() * 8);
+      if (!ok(road, d, sd * 7, 1)) return;
+      const m = frame(road, d, lat, 0), y = 24 + r() * 14;
+      atlasPlane(R.J, 9, 9, m, sd, [(n % 4) / 4, n < 4 ? 0.5 : 0, (n % 4 + 1) / 4, n < 4 ? 1 : 0.5], { y, x: -sd * 0.2 });
+      for (const z of [-3, 3]) addBox(R.L, 0.3, 6, 0.3, 0x2a2a34, m, { y: y - 6, z, x: sd * 0.3 });
+    });
+    // reflejos morados y rosas en el asfalto mojado
+    each(i0, i1, r, 10, 18, d => lightPool(R.V, road, d, (r() - 0.5) * 9, 0.025, 2 + r() * 2.5, pick(r, [0xa040ff, 0xff40c0, 0x40c0ff]), 0.3));
   },
   autopista(R, road, B, i0, i1, r) {
     for (const sd of [-1, 1]) for (let i = i0; i < i1; i += 4) addBox(R.C, 0.5, 0.9, 4.02, 0xe8e8e0, frame(road, i + 2, sd * 6.6, 0.45), { uvs: 2 });

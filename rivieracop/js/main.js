@@ -74,6 +74,8 @@ const SKYT = {
   dia: { top: 0x1450d0, bands: ['#0f48c8', '#1f6ae0', '#3e8cec', '#9cc8f2'], cl: [255, 255, 255], cs: [170, 192, 228], sun: '#fffbe8', n: 18, nw: 9, mt: '#3a6ab0', wispy: true, noMt: true },
   atardecer: { top: 0x3a2a6a, bands: ['#2c2a64', '#7a4a8a', '#e0788a', '#ffc890'], cl: [255, 214, 190], cs: [150, 90, 130], sun: '#ffb860', n: 20, mt: '#5a3a5a' },
   nublado: { top: 0x5a6478, bands: ['#56607a', '#7a8498', '#a0a8b6', '#b8bec8'], cl: [226, 230, 236], cs: [120, 128, 145], sun: null, n: 34, mt: '#5a6270' },
+  // casino: noche morada con el horizonte dorado de las luces
+  casino: { top: 0x0a0420, bands: ['#0a0420', '#260c48', '#56207a', '#c8789a'], cl: [150, 100, 190], cs: [50, 24, 80], sun: null, n: 14, mt: '#1a0a2a', stars: true },
   // ciudad zombi: noche morada con nubes de humo
   infierno: { top: 0x0a0320, bands: ['#08031a', '#1c0838', '#36125e', '#5e2280'], cl: [112, 66, 156], cs: [34, 14, 58], sun: null, n: 46, mt: '#12061e', stars: false },
   noche: { top: 0x0a1030, bands: ['#070b24', '#141c44', '#2a3666', '#4a5a86'], cl: [110, 125, 165], cs: [40, 48, 82], sun: '#f2f6ff', n: 12, mt: '#141a32', stars: true },
@@ -157,6 +159,7 @@ cloudDomes[0].material.map = skyTex('dia'); cloudDomes[0].userData.k = 'dia';
 const SKYST = { k: 'dia', fade: 1 };
 function skyTypeOf(B) {
   if (B.deco === 'zombi') return 'infierno';
+  if (B.deco === 'casino') return 'casino';
   if (B.night) return 'noche';
   if (['desierto', 'acantilados', 'costa', 'bajada', 'curva', 'lomas'].includes(B.deco)) return 'atardecer';
   if (['guerra', 'ruinas', 'bosque', 'militar', 'manifa', 'detroit', 'industrial', 'barro'].includes(B.deco)) return 'nublado';
@@ -1580,6 +1583,7 @@ function tick(dt) {
   view.setCarParts(cu[0], cu[1]);
   if (CAN.t > 0) { CAN.t -= dt; if (CAN.t <= 0) { endCannon(); showBanner('BAJAS DEL CAÑÓN', '', '#ffb020'); } }
   else if (CAN.cd > 0) CAN.cd = Math.max(0, CAN.cd - dt);
+  updBeams(G.t);
   // ciudad zombi: pavesas y llamas subiendo de los incendios
   if (BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]].deco === 'zombi' && !G.foot) {
     for (let k = 0; k < 3; k++) if (Math.random() < dt * 14) {
@@ -1719,6 +1723,34 @@ function tick(dt) {
   SFX.loops(view.ambDist, view.heliDist, G.speed);
   $('rotate').hidden = !(look.isTouch && innerHeight > innerWidth && !VP.rot);
   $('btnFire').hidden = !look.isTouch || (!look.force && look.gyro);
+}
+
+// focos del casino: haces morados y dorados que barren el cielo despacio (se recolocan a lo largo de la calle)
+const BEAMS = (() => {
+  const geo = new THREE.CylinderGeometry(0.5, 4.5, 90, 12, 4, true).translate(0, 45, 0);
+  const P = geo.attributes.position, col = new Float32Array(P.count * 3);
+  for (let i = 0; i < P.count; i++) { const k = Math.pow(1 - P.getY(i) / 90, 1.6); col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = k; }
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const L = [];
+  for (let i = 0; i < 10; i++) {
+    const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: i % 2 ? 0xffc040 : 0xa040ff, vertexColors: true, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+    m.visible = false; m.frustumCulled = false; scene.add(m); L.push(m);
+  }
+  return L;
+})();
+function updBeams(t) {
+  const on = BIOMES[BIOME_KEYS[G.road.bioAt(G.carD + 60)]].deco === 'casino' || BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]].deco === 'casino';
+  const base = Math.floor((G.carD - 30) / 42);
+  BEAMS.forEach((m, i) => {
+    const c = base + i, d = c * 42 + 10;
+    const ok = on && BIOMES[BIOME_KEYS[G.road.bioAt(d)]].deco === 'casino' && G.road.kindAt(d) === 0 && d < G.road.len;
+    m.visible = ok;
+    if (!ok) return;
+    const sd = c % 2 ? 1 : -1;
+    G.road.toWorld(d, sd * (WALK + 12 + (c % 3) * 6), 1, m.position);
+    m.rotation.set(Math.sin(t * 0.33 + c * 1.7) * 0.55, -G.road.yawAt(d), sd * 0.35 + Math.cos(t * 0.27 + c * 2.3) * 0.45, 'YXZ');
+    m.material.color.setHex(c % 2 ? 0xffc040 : 0xa040ff);
+  });
 }
 
 // posición a pie de cada jugador [d, lat, giro, bote al andar]; la propia se suaviza (al invitado le llega a saltos)

@@ -303,6 +303,21 @@ export class Road {
   }
   seaAt(d) { const i = clamp(Math.floor(d), 0, this.len); return this.sea[i]; }
   zdAt(d) { const i = clamp(Math.floor(d), 0, this.len); return this.zd[i] || 1; }
+  // casino: rotondas (cada ~700 m) con la isla a la izquierda; la carretera pasa por su borde
+  roundabouts(d0, d1) {
+    const L = [];
+    for (let c = Math.floor(d0 / 700) - 1; c <= Math.floor(d1 / 700) + 1; c++) {
+      const d = c * 700 + 300 + (hash(this.seed, c, 701) % 120);
+      if (d < d0 - 60 || d > d1 + 60 || d < 0 || d > this.len - 20) continue;
+      const i = Math.floor(d);
+      if (BIOMES[BIOME_KEYS[this.bio[i]]].deco !== 'casino' || this.kind[i] !== 0) continue;
+      let bad = false;
+      for (let k = -40; k <= 40; k += 8) { const j = clamp(i + k, 0, this.len); if (this.kind[j] !== 0 || this.bio[j] !== this.bio[i]) bad = true; }
+      for (const f of this.forks) if (Math.abs(d - f.gantry) < 60 || Math.abs(d - (f.gantry - 140)) < 40 || Math.abs(d - (f.gantry - 85)) < 40) bad = true;
+      if (!bad) L.push(d);
+    }
+    return L;
+  }
   // ciudad zombi: gasolineras en llamas (cada ~300 m, a un lado)
   gasStations(d0, d1) {
     const L = [];

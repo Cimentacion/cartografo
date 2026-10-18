@@ -319,6 +319,7 @@ export class View {
         break;
       }
       case 'civilian': {
+        if (x.sg) { g = M.showgirl(x.sk || 0); break; }
         g = new THREE.Group();
         const p = M.person({ shirt: CIV[(x.sk || 0) % CIV.length], pants: 0x3a4a6a, skin: SKIN[(x.sk || 1) % SKIN.length], part: 'civ', hair: 0x4a3020 });
         g.add(p); g.userData.p = p; g.userData.civ = true;
@@ -336,7 +337,7 @@ export class View {
         break;
       }
       case 'moto': g = M.moto(); break;
-      case 'ecar': g = M.enemyCar(x.suv ? 0x2a3a24 : 0x16161a); break;
+      case 'ecar': g = x.limo ? M.limo() : M.enemyCar(x.suv ? 0x2a3a24 : 0x16161a); break;
       case 'heli': g = M.heli(); break;
       case 'drone': g = M.drone(); break;
       case 'truck': g = M.truck(); break;
