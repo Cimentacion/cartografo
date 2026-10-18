@@ -4,7 +4,7 @@ import { TI, ST, BIOMES, BIOME_KEYS, BONUSES, PNAME, BOSS } from './defs.js';
 import { rollWeapon } from './weapons.js';
 import { LANE_ME, LANE_OT, WALK } from './road.js';
 import { rng, hash, clamp, lerp, pick, r2 } from './util.js';
-import { SPEEDS, shieldDur, bulletDur, maxHpOf, META_KEYS } from './progress.js';
+import { SPEEDS, shieldDur, bulletDur, maxHpOf, META_KEYS, turboDur } from './progress.js';
 
 export const SPEED = 14;
 // asientos en el coche: [x lateral, z hacia atrás] (local del coche); J1-J2 delante mirando al frente,
@@ -15,15 +15,19 @@ export const SEAT_LAT = SEATS.map(s => LANE_ME + s[0]);
 export const SEAT_H = 1.75, SEAT_D = -0.8;
 const VEH = new Set(['ecar', 'truck', 'amb', 'jeep', 'civcar', 'tank', 'rig', 'fuel', 'float', 'pickup', 'van', 'bus']);
 const HOSTILE = new Set(['gunman', 'sniper', 'moto', 'ecar', 'heli', 'drone', 'jeep', 'grenade', 'rocket', 'rock', 'wall', 'train',
-  'jumper', 'tank', 'rig', 'rioter', 'thrown', 'chef', 'boat', 'mtrain', 'quad', 'pickup', 'van', 'bus', 'canoe']);
+  'jumper', 'tank', 'rig', 'rioter', 'thrown', 'chef', 'boat', 'mtrain', 'quad', 'pickup', 'van', 'bus', 'canoe',
+  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly']);
+export const AIR = new Set(['heli', 'drone', 'jet', 'blimp']);
+export const ANIMAL = new Set(['beast', 'bear', 'jelly', 'chicken']);
 const PROJ = new Set(['grenade', 'rocket', 'rock', 'thrown']);
 const VEHICLE_DMG = new Set(['moto', 'ecar', 'heli', 'jeep', 'tank', 'rig', 'boat', 'mtrain', 'train', 'wall', 'drone']);
 const OFFH = { gunman: 1.5, sniper: 1.5, moto: 1.6, ecar: 1.6, heli: -0.4, drone: 0, jeep: 2.6, rioter: 1.6, chef: 2.2, boat: 1.4, tank: 2.4, mtrain: 2.5,
-  quad: 1.4, pickup: 2.2, van: 1.6, bus: 2.4, canoe: 0.8 };
+  quad: 1.4, pickup: 2.2, van: 1.6, bus: 2.4, canoe: 0.8, bear: 2.2, blimp: -3, jet: 0, rammer: 1.4, jelly: 0 };
 const PTS = {
   gunman: 100, sniper: 200, moto: 150, ecar: 300, heli: 1000, drone: 150, jeep: 1500, grenade: 60, rocket: 80, rock: 60, chicken: 50, amb: 200,
   barrel: 50, wall: 600, train: 900, jumper: 180, tank: 2000, rig: 1200, rioter: 80, thrown: 30, chef: 3000, boat: 450, mtrain: 2500,
   quad: 150, pickup: 400, van: 600, bus: 1200, canoe: 120,
+  beast: 160, bear: 3500, mine: 60, jet: 500, blimp: 5000, rammer: 500, junk: 20, jelly: 90,
 };
 
 export class Sim {
@@ -37,7 +41,7 @@ export class Sim {
     const metas = opts.metas || [];
     for (let i = 0; i < n; i++) {
       const m = metas[i] || {};
-      const P = { shieldT: 0, alive: true, score: 0, inv: 0, ly: 0, lp: 0, kills: 0, gone: false, poison: 0, poT: 0, regT: 0, kv: 0 };
+      const P = { shieldT: 0, alive: true, score: 0, inv: 0, ly: 0, lp: 0, kills: 0, gone: false, poison: 0, poT: 0, regT: 0, kv: 0, spdF: 1, rvUsed: 0, emZ: -9 };
       for (const k of META_KEYS) P[k] = clamp(m[k] | 0, 0, 40);
       P.maxHp = P.hp = maxHpOf(P.vida);
       P.lives = P.aliento;
@@ -47,7 +51,7 @@ export class Sim {
     this.v0 = sp.v; this.spMult = sp.mult; this.slowT = 0;
     this.ents = []; this.map = new Map(); this.nid = 1; this.events = [];
     this.waveT = 3; this.civT = 5; this.ambT = 75; this.terrT = 150; this.lastAmb = -99;
-    this.rearT = 14; this.stunT = 0; this.hold = false; this.turT = 2;
+    this.rearT = 14; this.stunT = 0; this.hold = false; this.turT = 2; this.turboT = 0; this.ramT = 30;
     this.zt = {}; this.zf = new Set();
     this.forkDone = -1; this.signsFor = -1; this.voting = false;
     this.visited = new Set([road.forks[0] ? road.forks[0].bio : 0]);
@@ -120,6 +124,7 @@ export class Sim {
       if (e.type === 'tlight' && !e.x.g && rel < 24 && rel > 1) this.hold = true;
       if (e.type === 'chef' && e.st === ST.ALIVE && rel < 34) this.hold = true;
       if (e.type === 'rioter' && e.x.march && e.st === ST.ALIVE && rel < 44) this.hold = true;
+      if (e.type === 'junk' && e.st === ST.ALIVE && rel < 7.5 && rel > 0) this.hold = true;
     }
     if (this.phase === 'count') {
       this.countT -= dt;
@@ -129,9 +134,17 @@ export class Sim {
       // la velocidad sube con la distancia (hasta casi el doble); al elegir ruta va más despacio para leer los carteles
       let tgt = this.v0 * Math.min(1.9, 1 + 0.12 * (this.carD / 1000)) * (this.voting ? 0.65 : 1);
       if (this.road.mudAt(this.carD)) tgt *= Math.min(0.9, 0.4 + 0.12 * this.maxMeta('ruedas'));
+      const BZ = BIOMES[BIOME_KEYS[this.road.bioAt(this.carD)]];
+      if (BZ.vf && this.road.kindAt(this.carD) === 0) tgt *= BZ.vf;
+      // regulador de velocidad: manda el que lo tenga más bajo
+      let rf = 1;
+      for (const p of this.players) if (p.alive && !p.gone) rf = Math.min(rf, p.spdF || 1);
+      tgt *= clamp(rf, 0.3, 1);
+      // turbo (no hace nada si estáis parados)
+      if (this.turboT > 0) { this.turboT -= dt; if (!this.hold && this.stunT <= 0) tgt *= 1.7; }
       if (this.hold) tgt = 0;
       if (this.stunT > 0) { this.stunT -= dt; tgt = 0; if (this.stunT <= 0) this.emit('banner', { txt: '¡ARRANCAMOS!', sub: '', c: '#7dff8a' }); }
-      this.speed += clamp(tgt - this.speed, -9 * dt, 6 * dt);
+      this.speed += clamp(tgt - this.speed, -9 * dt, (this.turboT > 0 ? 12 : 6) * dt);
     }
     // tiempo bala: el mundo va al 35% (los jugadores disparan a velocidad normal)
     const wd = this.slowT > 0 ? dt * 0.35 : dt;
@@ -234,7 +247,33 @@ export class Sim {
     if (!P || !P.alive) return;
     if (k === 'shield') { P.shieldT = shieldDur(lv); this.emit('ability', { p: pi, a: 'shield', dur: P.shieldT }); }
     if (k === 'bullet') { this.slowT = Math.max(this.slowT, bulletDur(lv, l2)); this.emit('ability', { p: pi, a: 'bullet', dur: this.slowT }); }
+    if (k === 'turbo') {
+      if (this.stunT > 0 || this.hold) { this.emit('banner', { txt: 'EL TURBO NO SIRVE AHORA', sub: 'Estáis parados', c: '#aaaaaa' }); return; }
+      this.turboT = Math.max(this.turboT, turboDur(lv, l2)); this.emit('ability', { p: pi, a: 'turbo', dur: this.turboT });
+    }
   }
+  // poder de reanimar: una vez por partida
+  revive(pi) {
+    const P = this.players[pi];
+    if (!P || !P.alive || P.rvUsed) return;
+    const dead = this.players.findIndex(q => !q.alive && !q.gone);
+    if (dead < 0) return;
+    P.rvUsed = 1;
+    const D = this.players[dead];
+    D.alive = true; D.hp = Math.min(D.maxHp, Math.max(3, D.maxHp * 0.4)); D.inv = 3; D.poison = 0;
+    this.emit('heal', { p: dead, hp: D.hp, rev: 1, by: pi });
+    this.emit('banner', { txt: `¡${PNAME[pi]} REANIMA A ${PNAME[dead]}!`, sub: '', c: '#40ff80' });
+  }
+  // embestida: el coche pierde velocidad de golpe
+  ram(e) {
+    this.speed *= 0.45;
+    this.emit('crash', { soft: 1, ram: 1 });
+    this.emit('banner', { txt: '¡OS EMBISTEN!', sub: '', c: '#ff8a3d' });
+  }
+  // ¿hay carretera generada hasta tan lejos? (si no, lo que salga quedaría fuera del mapa)
+  canAhead(dist) { return this.carD + dist < this.road.len - 8; }
+  // con 1-2 jugadores nadie viene por detrás: los vehículos aparecen delante y se dejan caer
+  vStart(back) { return this.n > 2 ? this.carD - back : this.carD + 95; }
   hurt(pi, extra = 0, kind = '') {
     const P = this.players[pi];
     if (!P.alive || P.inv > 0 || this.god) return; // god: TODO-TESTEO
@@ -252,6 +291,13 @@ export class Sim {
     if (!P.alive) return;
     P.hp -= amt;
     this.emit('hurt', { p: pi, hp: P.hp, why });
+    // botiquín de emergencia: una vez por zona
+    const zk = this.forkDone;
+    if (P.emerg && P.hp > 0 && P.hp < P.maxHp * 0.25 && P.emZ !== zk) {
+      P.emZ = zk; P.hp = Math.min(P.maxHp, P.hp + 2);
+      this.emit('heal', { p: pi, hp: P.hp });
+      this.emit('banner', { txt: '¡BOTIQUÍN DE EMERGENCIA!', sub: '', c: '#40ff80' });
+    }
     if (P.hp <= 0 && P.lives > 0) {
       P.lives--; P.hp = 1; P.inv = 3;
       this.emit('banner', { txt: '¡ÚLTIMO ALIENTO!', sub: this.n > 1 ? PNAME[pi] + ' aguanta con 1 de vida' : 'Aguantas con 1 de vida', c: '#ffe14a' });
@@ -337,7 +383,7 @@ export class Sim {
       case 'mtrain': { const i = e.x.wh.findIndex(h => h > 0); if (i >= 0) H.mtrain(e, p, 'w' + i, dmg, this); break; }
       case 'chicken': H.chicken(e, p, 'body', dmg, this); break;
       default:
-        if (['heli', 'jeep', 'wall', 'chef', 'boat', 'pickup', 'van', 'bus'].includes(e.type)) this.damage(e, p, dmg);
+        if (['heli', 'jeep', 'wall', 'chef', 'boat', 'pickup', 'van', 'bus', 'bear', 'blimp', 'rammer', 'junk'].includes(e.type)) this.damage(e, p, dmg);
         else if (PROJ.has(e.type) || e.hp <= dmg) this.kill(e, p);
         else this.damage(e, p, dmg);
     }
@@ -388,6 +434,8 @@ export class Sim {
     const rt = this.runT;
     // mientras se elige ruta no sale nadie (y lo que hay no dispara)
     if (this.voting) return;
+    // si la carretera de delante aún no existe (antes del desvío), no sale nada: aparecería fuera del mapa
+    if (!this.canAhead(130)) return;
     this.waveT -= dt;
     const front = Math.min(2, this.n), cap = Math.floor(1 + this.diff * 0.9) + (front - 1) + (this.stunT > 0 || this.hold ? 3 : 0);
     if (this.waveT <= 0) {
@@ -397,7 +445,7 @@ export class Sim {
     const deco = BIOMES[BIOME_KEYS[this.road.bioAt(this.carD + 80)]].deco;
     const inTun = this.road.inTunnel(this.carD + 120);
     this.civT -= dt;
-    if (deco === 'rio') this.civT = Math.max(this.civT, 1);
+    if (['rio', 'bosque', 'submarino', 'ruinas', 'guerra', 'llanura'].includes(deco)) this.civT = Math.max(this.civT, 1);
     if (this.civT <= 0) {
       this.civT = deco === 'manifa' ? 2.5 + this.r() * 2 : 6 + this.r() * 6;
       const w = { truck: rt > 10 ? 1.4 * this.wMult('truck') : 0, civcar: 1.5 * this.wMult('civcar'), civ: this.road.inTunnel(this.carD + 70) ? 0 : deco === 'manifa' ? 20 : 1.2 };
@@ -462,7 +510,42 @@ export class Sim {
     // tren militar: primero uno y, 30 s después, el otro por el otro lado
     if (deco === 'trenmil' && !inTun) {
       if (prog > 0.05 && once('mt1')) { this.spawnMTrain(-1); this.zt.mt2 = 30; }
-      if (this.zt.mt2 > 0) { this.zt.mt2 -= dt; if (this.zt.mt2 <= 0 && once('mt2')) this.spawnMTrain(1); }
+      if (this.zt.mt2 > 0) {
+        this.zt.mt2 -= dt;
+        // el segundo siempre por el otro lado, y solo si ese lado está libre
+        if (this.zt.mt2 <= 0) {
+          if (!this.ents.some(e => e.type === 'mtrain' && e.lat > 0)) { if (once('mt2')) this.spawnMTrain(1); }
+          else this.zt.mt2 = 3;
+        }
+      }
+    }
+    if (deco === 'bosque') {
+      if (this.timer('beast', dt, 3.6) && this.count('beast') < 3 + this.n) this.spawnBeasts(this.r() < 0.5 ? 0 : 1);
+      if (prog > 0.45 && once('bear')) this.spawnBear();
+    }
+    if (deco === 'guerra' && !inTun) {
+      if (this.timer('mine', dt, 6)) this.spawnMines();
+      if (this.timer('tank', dt, 40) && !this.has('tank')) this.spawnTank();
+      if (this.timer('squad', dt, 10)) this.spawnSquad();
+    }
+    if (deco === 'llanura' && !inTun) {
+      if (prog > 0.1 && once('blimp')) this.spawnBlimp();
+      if (this.timer('jet', dt, 11)) this.spawnJet();
+    }
+    if (deco === 'ruinas' && !inTun) {
+      if (this.count('junk') < 3 && this.timer('junk', dt, 1.2)) this.spawnJunk();
+      if (this.timer('roof', dt, 4) && this.hostileCount(false) < cap + 1) this.spawnRoofGunmen();
+      if (this.timer('lady', dt, 18)) this.spawnLady();
+    }
+    if (deco === 'submarino' && !inTun) {
+      if (this.timer('jelly', dt, 9) && this.count('jelly') < 12) this.spawnJellies();
+      if (this.timer('shark', dt, 7) && this.count('beast') < 2 + this.n) this.spawnBeasts(2);
+      if (this.timer('whale', dt, 16) && this.count('whale') < 2) this.spawnWhale();
+    }
+    // coches que embisten (por detrás si hay artilleros traseros; si no, de lado)
+    if (rt > 60 && !inTun && deco !== 'rio' && deco !== 'submarino' && deco !== 'bosque' && deco !== 'ruinas') {
+      this.ramT -= dt;
+      if (this.ramT <= 0) { this.ramT = 26 + this.r() * 14; if (!this.has('rammer') && (this.n > 2 || this.laneFree(-30, 100))) this.spawnRammer(); }
     }
   }
   weighted(w) {
@@ -479,7 +562,7 @@ export class Sim {
     const w = {
       gunman: tun ? 1 : 5, cover: tun ? 0 : 3,
       moto: rt > 12 ? 2 : 0, ecar: rt > 22 && this.laneFree(-40, 30) ? 2 : 0,
-      drone: rt > 40 ? 1.5 : 0, grenadier: rt > 30 && !tun ? 1.4 : 0,
+      drone: rt > 40 && !tun ? 1.5 : 0, grenadier: rt > 30 && !tun ? 1.4 : 0,
       sniper: rt > 55 && !tun && !this.has('sniper') ? 1 : 0, heli: rt > 75 && !tun && !this.has('heli') ? 0.9 : 0,
       barrels: rt > 18 && !tun ? 1.2 : 0, jumper: rt > 50 && !tun ? 0.8 : 0,
       quad: rt > 25 ? 1.3 : 0, pickup: rt > 45 && this.laneFree(-40, 30) ? 1.0 : 0,
@@ -490,6 +573,7 @@ export class Sim {
     const r = this.r;
     switch (k) {
       case 'gunman': this.spawnGunmen(1 + Math.floor(r() * (1 + this.diff * 0.5)), false); break;
+      // (los soldados con escudo salen dentro de spawnGunmen)
       case 'cover': this.spawnGunmen(1 + Math.floor(r() * 2 + this.diff * 0.3), true); break;
       case 'grenadier': this.spawnGunmen(1, true, true); if (r() < 0.5) this.spawnGunmen(1, false); break;
       case 'moto': for (let i = 0, n = 1 + (r() < 0.4 + this.diff * 0.08 ? 1 : 0); i < n; i++) this.spawnMoto(i); break;
@@ -518,7 +602,9 @@ export class Sim {
       const d = base + i * (5 + r() * 6);
       const side = i % 2 ? -side0 : side0;
       const e = this.add('gunman', { d, lat: this.sideLat(d, side), h: 0.18, hp: 2 + (this.diff > 3 ? 1 : 0), st: ST.HIDDEN });
-      e.x = { cv: withCover ? Math.floor(r() * 3) : -1, gr: gren ? 1 : 0, pop: (30 + r() * 38) * kk, sk: Math.floor(r() * 6), sol: sol ? 1 : 0 };
+      // algunos llevan escudo antidisturbios: hay que romperlo o darles en la cabeza
+      const shd = !withCover && !gren && this.runT > 40 && r() < 0.15 + this.diff * 0.03 ? Math.ceil(6 * this.hpMul('gunman')) : 0;
+      e.x = { cv: withCover ? Math.floor(r() * 3) : -1, gr: gren ? 1 : 0, pop: (30 + r() * 38) * kk, sk: Math.floor(r() * 6), sol: sol ? 1 : 0, shd };
       e.sh = [gren ? this.shooter(3.6, 'grenade', 0.3) : this.shooter(3.0 + r() * 0.8, 'shot', i * 0.5)];
     }
     if (r() < 0.3 && !sol) this.spawnCivilians(1, base + 6);
@@ -550,13 +636,13 @@ export class Sim {
   spawnMoto(i) {
     const r = this.r;
     const lane = pick(r, [LANE_OT - 0.5, -1, LANE_OT + 1, 5.4]);
-    const e = this.add('moto', { d: this.carD - 30 - i * 8, lat: lane, h: 0, hp: 3, vd: this.speed + 9 });
+    const e = this.add('moto', { d: this.vStart(30) + i * 8, lat: lane, h: 0, hp: 3, vd: this.speed + 9 });
     e.x = { ph: 0, hd: 1 + r() * 9, ht: 7 + r() * 4, ln: lane };
     e.sh = [this.shooter(2.9 + r() * 0.6, 'shot', 0.6)];
   }
   spawnECar() {
     const r = this.r;
-    const e = this.add('ecar', { d: this.carD - 32, lat: LANE_OT, h: 0, hp: 14 + Math.floor(this.diff * 2), vd: this.speed + 10 });
+    const e = this.add('ecar', { d: this.vStart(32), lat: LANE_OT, h: 0, hp: 14 + Math.floor(this.diff * 2), vd: this.speed + 10 });
     e.x = { ph: 0, hd: -1 + r() * 6, ht: 10 + r() * 4, g: [2, 2], gd: [0, 0] };
     e.sh = [this.shooter(3.0, 'shot', 0.5), this.shooter(3.4, 'shot', 1.6)];
   }
@@ -594,12 +680,12 @@ export class Sim {
     e.x = { c: Math.floor(this.r() * 6), pc: 0 };
   }
   spawnAmb() {
-    const e = this.add('amb', { d: this.carD - 40, lat: LANE_OT, h: 0, hp: 22, vd: this.speed + 8 });
+    const e = this.add('amb', { d: this.vStart(40), lat: LANE_OT, h: 0, hp: 22, vd: this.speed + 8 });
     e.x = { ph: 0, hd: 5, ht: 16 };
     this.emit('banner', { txt: '¡AMBULANCIA!', sub: 'Revienta la ambulancia para sacar vida', c: '#40ff80' });
   }
   spawnJeep() {
-    const e = this.add('jeep', { d: this.carD - 40, lat: LANE_OT, h: 0, hp: 18 + Math.floor(this.diff * 4), vd: this.speed + 9 });
+    const e = this.add('jeep', { d: this.vStart(40), lat: LANE_OT, h: 0, hp: 18 + Math.floor(this.diff * 4), vd: this.speed + 9 });
     e.x = { ph: 0, hd: 2.5, ht: 45 };
     e.sh = [this.shooter(2.0, 'shot', 0.8), this.shooter(6, 'grenade', 3)];
     this.emit('banner', { txt: '¡TERRORISTA!', sub: 'Mátalo y soltará un arma', c: '#ff3030' });
@@ -611,11 +697,11 @@ export class Sim {
     if (k < 0.5) {
       for (let i = 0, n = 1 + (r() < 0.5 ? 1 : 0); i < n; i++) {
         const lane = pick(r, [LANE_OT, -1, 0.5, LANE_ME + 0.2]);
-        const e = this.add('moto', { d: this.carD - 70 - i * 8, lat: lane, h: 0, hp: 3, vd: this.speed + 9 });
+        const e = this.add('moto', { d: this.carD - 110 - i * 8, lat: lane, h: 0, hp: 3, vd: this.speed + 9 });
         e.x = { ph: 0, hd: -(10 + r() * 10), ht: 9 + r() * 5, ln: lane, rear: 1 };
         e.sh = [this.shooter(3.0 + r() * 0.6, 'shot', 0.6)];
       }
-    } else if (k < 0.65 && this.laneFree(-80, -5)) this.spawnSUV(-75);
+    } else if (k < 0.65 && this.laneFree(-120, -5)) this.spawnSUV(-110);
     else if (k < 0.8) this.spawnQuads(true);
     else if (k < 0.9 && this.laneFree(-80, -5)) this.spawnPickup(true);
     else for (let i = 0; i < 2; i++) this.spawnDrone(i, true);
@@ -632,7 +718,7 @@ export class Sim {
     const r = this.r;
     for (let i = 0; i < 2; i++) {
       const lane = pick(r, [LANE_OT - 0.5, -1, LANE_OT + 1, 0.3]);
-      const e = this.add('quad', { d: this.carD - (rear ? 75 : 35) - i * 7, lat: lane, h: 0, hp: 3, vd: this.speed + 10 });
+      const e = this.add('quad', { d: (rear ? this.carD - 110 : this.vStart(35)) - i * 7, lat: lane, h: 0, hp: 3, vd: this.speed + 10 });
       e.x = { ph: 0, hd: rear ? -(8 + r() * 10) : 2 + r() * 12, ht: 8 + r() * 4, ln: lane, rear: rear ? 1 : 0 };
       e.sh = [this.shooter(2.8 + r() * 0.6, 'shot', 0.5 + i * 0.6)];
     }
@@ -640,20 +726,21 @@ export class Sim {
   // pickup artillada: ametralladora en la caja
   spawnPickup(rear) {
     const r = this.r;
-    const e = this.add('pickup', { d: this.carD - (rear ? 80 : 38), lat: LANE_OT, h: 0, hp: 10 + Math.floor(this.diff), vd: this.speed + 10 });
+    const e = this.add('pickup', { d: rear ? this.carD - 110 : this.vStart(38), lat: LANE_OT, h: 0, hp: 10 + Math.floor(this.diff), vd: this.speed + 10 });
     e.x = { ph: 0, hd: rear ? -(10 + r() * 8) : 1 + r() * 8, ht: 11 + r() * 4, ln: LANE_OT, rear: rear ? 1 : 0 };
     e.sh = [this.shooter(2.3, 'shot', 0.6), this.shooter(2.9, 'shot', 1.5)];
   }
   // furgón blindado: se os pone delante con las puertas de atrás abiertas
   spawnVan() {
-    const e = this.add('van', { d: this.carD - 40, lat: LANE_OT, h: 0, hp: 16 + Math.floor(this.diff * 2), vd: this.speed + 9 });
-    e.x = { ph: 0, ht: 14 };
+    const ahead = this.n <= 2;
+    const e = this.add('van', { d: this.vStart(40), lat: LANE_OT, h: 0, hp: 16 + Math.floor(this.diff * 2), vd: this.speed + 9 });
+    e.x = { ph: ahead ? 1 : 0, ht: 14 };
     e.sh = [this.shooter(2.6, 'shot', 1.2), this.shooter(3.2, 'shot', 2)];
     this.emit('banner', { txt: '¡FURGÓN BLINDADO!', sub: '', c: '#ff8a3d' });
   }
   // autobús: va a vuestro lado con tiradores en las ventanillas
   spawnBus() {
-    const e = this.add('bus', { d: this.carD - 50, lat: LANE_OT, h: 0, hp: 28, vd: this.speed + 9 });
+    const e = this.add('bus', { d: this.vStart(50), lat: LANE_OT, h: 0, hp: 28, vd: this.speed + 9 });
     e.x = { ph: 0, hd: 2, ht: 18, g: [2, 2, 2, 2], gd: [0, 0, 0, 0] };
     e.sh = [0, 1, 2, 3].map(i => this.shooter(3.0 + i * 0.25, 'shot', 0.8 + i * 0.5));
     this.emit('banner', { txt: '¡AUTOBÚS!', sub: 'Limpia las ventanillas', c: '#ffd23f' });
@@ -678,6 +765,88 @@ export class Sim {
       e.sh = i % 3 === 0 ? [this.shooter(3.4 + r(), 'thrown', 1 + i * 0.2, r() < 0.5 ? 0 : 3)] : [];
     }
     this.emit('banner', { txt: '¡LA MARCHA OS CORTA EL PASO!', sub: 'Dispersadla para poder seguir', c: '#ffd23f' });
+  }
+  // ---- bosque oscuro / fondo marino: animales que se lanzan al coche (an: 0 lobo, 1 pantera, 2 tiburón) ----
+  spawnBeasts(an) {
+    const r = this.r, n = an === 1 ? 1 : 2 + (r() < 0.4 ? 1 : 0);
+    for (let i = 0; i < n; i++) {
+      const side = r() < 0.5 ? -1 : 1;
+      const d = this.carD + (45 + r() * 25 + i * 4) * this.spk();
+      const e = this.add('beast', { d, lat: side * (WALK + 2 + r() * 4), h: an === 2 ? 2 + r() * 3 : 0.18, hp: an === 0 ? 2 : 3, st: ST.ALIVE });
+      e.x = { ph: 0, an, sk: 0, kf: 0, jt: 0, side, run: 1 };
+      e.sh = [this.shooter(1.3, 'melee', 0.3)];
+      e.sh[0].tgt = -1;
+    }
+  }
+  // el jefe del bosque: un oso grizzly que salta de lado a lado y se lanza a por vosotros
+  spawnBear() {
+    const e = this.add('bear', { d: this.carD + 60, lat: -5, h: 0, hp: 45 + 15 * this.nAlive(), vd: this.speed });
+    e.x = { tl: 5, jt: 0, j0: -5, lt: 4, lunge: 0 };
+    e.sh = [this.shooter(2.2, 'melee', 1)];
+    this.emit('banner', { txt: '¡OSO GRIZZLY!', sub: '¡Que no os alcance!', c: '#c08a4a' });
+  }
+  // ---- zona de guerra: minas en la carretera (dispárales antes de pisarlas) ----
+  spawnMines() {
+    const r = this.r, n = 1 + (r() < 0.5 ? 1 : 0) + (this.diff > 4 ? 1 : 0);
+    for (let i = 0; i < n; i++) {
+      const lat = i === 0 ? LANE_ME + (r() - 0.5) * 1.6 : (r() - 0.5) * 9;
+      const e = this.add('mine', { d: this.carD + 90 + r() * 30 + i * 6, lat, h: 0.02, hp: 1 });
+      e.x = {};
+    }
+  }
+  // ---- llanura: dirigible lanzamisiles (jefe con mucha vida) y cazas en pasada ----
+  spawnBlimp() {
+    const e = this.add('blimp', { d: this.carD + 150, lat: -14, h: 34, hp: 90 + 30 * this.nAlive(), vd: this.speed });
+    e.x = { life: 120 };
+    e.sh = [this.shooter(3.4, 'rocket', 2), this.shooter(4.2, 'rocket', 3.5), this.shooter(5.0, 'rocket', 5)];
+    this.emit('banner', { txt: '¡DIRIGIBLE!', sub: 'Revienta sus misiles y luego a él', c: '#c8f07a' });
+  }
+  spawnJet() {
+    const r = this.r;
+    const e = this.add('jet', { d: this.carD + 260, lat: (r() - 0.5) * 16, h: 22 + r() * 10, hp: 5, vd: -30 });
+    e.x = { dive: 0 };
+    e.sh = [this.shooter(1.6, 'shot', 0.2)];
+    this.emit('banner', { txt: '¡CAZA EN PASADA!', sub: '', c: '#9ad0ff' });
+  }
+  // ---- coche que embiste ----
+  spawnRammer() {
+    const r = this.r, rear = this.n > 2;
+    const e = this.add('rammer', { d: rear ? this.carD - 110 : this.carD + 90, lat: rear ? LANE_ME : LANE_OT, h: 0, hp: 12 + Math.floor(this.diff), vd: this.speed + 10 });
+    e.x = { ph: 0, rear: rear ? 1 : 0, ct: 2.5 + r() * 2, hits: 0 };
+    e.sh = [this.shooter(3.2, 'shot', 1.5)];
+    this.emit('banner', { txt: rear ? '¡OS QUIEREN EMBESTIR POR DETRÁS!' : '¡OS QUIEREN EMBESTIR!', sub: 'Revienta el coche antes de que os frene', c: '#ff8a3d' });
+  }
+  // ---- ciudad en ruinas: basura y contenedores que bloquean la calle; tiradores en lo alto ----
+  spawnJunk() {
+    let far = this.carD + 12;
+    for (const e of this.ents) if (e.type === 'junk' && e.st === ST.ALIVE) far = Math.max(far, e.d);
+    const v = this.r() < 0.35 ? 1 : 0;
+    const e = this.add('junk', { d: far + 9 + this.r() * 6, lat: LANE_ME + (this.r() - 0.5) * 0.8, h: 0, hp: v ? 6 : 2, ry: this.r() * 0.6 });
+    e.x = { v };
+  }
+  spawnRoofGunmen() {
+    const r = this.r, n = 1 + Math.floor(r() * 2 + this.diff * 0.2);
+    for (let i = 0; i < n; i++) {
+      const side = r() < 0.5 ? -1 : 1, d = this.carD + 25 + r() * 35;
+      const e = this.add('gunman', { d, lat: side * (WALK + 3), h: 8, hp: 2, st: ST.HIDDEN });
+      e.x = { cv: -1, gr: r() < 0.2 ? 1 : 0, pop: 999, sk: Math.floor(r() * 6) };
+      e.sh = [e.x.gr ? this.shooter(3.8, 'grenade', 0.5) : this.shooter(3.0 + r() * 0.8, 'shot', 0.6 + i * 0.4)];
+    }
+  }
+  // ---- fondo marino: bancos de medusas eléctricas y ballenas (de paisaje) ----
+  spawnJellies() {
+    const r = this.r, n = 5 + Math.floor(r() * 4);
+    const d0 = this.carD + 50 + r() * 30, l0 = (r() - 0.5) * 10;
+    for (let i = 0; i < n; i++) {
+      const e = this.add('jelly', { d: d0 + (r() - 0.5) * 10, lat: l0 + (r() - 0.5) * 8, h: 2 + r() * 4, hp: 1, vd: this.speed * 0.3 });
+      e.x = { ph: r() * 6, hd: 12 + r() * 25 };
+      e.sh = i % 2 === 0 ? [this.shooter(3.4 + r(), 'shot', 1 + i * 0.3)] : [];
+    }
+  }
+  spawnWhale() {
+    const r = this.r, side = r() < 0.5 ? -1 : 1;
+    const e = this.add('whale', { d: this.carD + 120, lat: side * (25 + r() * 15), h: 8 + r() * 8, hp: 999, vd: this.speed * 0.2, ry: Math.PI });
+    e.x = {};
   }
   // barricada que cruza la carretera (v: 0 chatarra de Detroit, 1 militar, 2 contenedores). Si no la reventáis, os estampáis
   spawnWall(v) {
@@ -738,9 +907,10 @@ export class Sim {
   // autopista: camión que viene por detrás; si no le pinchas las ruedas, te adelanta y frena delante
   spawnRig() {
     const tires = Math.ceil(2 * this.hpMul('rig'));
-    const e = this.add('rig', { d: this.carD - 60, lat: LANE_OT, h: 0, hp: 4, vd: this.speed + 8 });
+    const ahead = this.n <= 2;
+    const e = this.add('rig', { d: ahead ? this.carD + 60 : this.carD - 60, lat: LANE_OT, h: 0, hp: 4, vd: this.speed + 8 });
     e.hp = 4; e.hm = 4;
-    e.x = { ph: 0, th: [tires, tires, tires, tires, tires, tires], tp: 0 };
+    e.x = { ph: ahead ? 1 : 0, th: [tires, tires, tires, tires, tires, tires], tp: 0 };
     this.emit('banner', { txt: '¡CAMIÓN!', sub: 'Revienta 4 ruedas antes de que se os eche encima', c: '#ffb020' });
   }
   // manifestación: al final se ponen violentos y lanzan cosas (a esos sí se les puede disparar)
@@ -815,7 +985,7 @@ export class Sim {
     const n = 2 + this.nAlive() + Math.floor(this.diff * 0.5);
     for (let i = 0; i < n; i++) {
       const behind = this.n > 2 && i % 3 === 2;
-      const d = behind ? this.carD - 8 - r() * 16 : this.carD + 9 + r() * 26;
+      const d = behind ? this.carD - 25 - r() * 20 : this.carD + 12 + r() * 26;
       const e = this.add('gunman', { d, lat: this.sideLat(d, i % 2 ? 1 : -1) + (r() - 0.5) * 0.6, h: 0.18, hp: 2, st: ST.HIDDEN });
       e.x = { cv: r() < 0.5 ? Math.floor(r() * 3) : -1, gr: 0, pop: 999, sk: Math.floor(r() * 6) };
       e.sh = [this.shooter(3.0 + r(), 'shot', 1 + i * 0.4)];
@@ -849,7 +1019,7 @@ export class Sim {
       }
       // carteles grandes a los lados avisando de las rutas, con flechas
       for (const dd of [140, 85]) for (const sd of [-1, 1]) {
-        const e = this.add('preview', { d: f.gantry - dd, lat: sd * (WALK + 0.6), h: 2.6, hp: 999, ry: Math.PI + sd * 0.35 });
+        const e = this.add('preview', { d: f.gantry - dd, lat: sd * 6.9, h: 0.18, hp: 999, ry: Math.PI + sd * 0.22 });
         e.x = { o: opts };
       }
       this.emit('banner', { txt: 'ELIGE RUTA', sub: 'Dispara al cartel: el número es la dificultad (más premio)', c: '#ffe14a' });
@@ -881,7 +1051,7 @@ export class Sim {
       e: this.ents.map(ser),
       p: this.players.map(P => [P.hp, P.score, P.alive ? 1 : 0, P.inv > 0 ? 1 : 0, r2(P.ly), r2(P.lp), P.gone ? 1 : 0, P.maxHp, P.shieldT > 0 ? 1 : 0, P.poison > 0 ? 1 : 0]),
       sl: this.slowT > 0 ? 1 : 0, mu: r2(this.ptsMult()), sn: this.stunT > 0 || this.hold ? 1 : 0,
-      cu: [this.maxMeta('pinchos'), this.maxMeta('torreta')],
+      cu: [this.maxMeta('pinchos'), this.maxMeta('torreta')], tb: this.turboT > 0 && !this.hold && this.stunT <= 0 ? 1 : 0,
     };
   }
 }
@@ -891,7 +1061,7 @@ function ser(e) {
   let x = 0;
   const X = e.x;
   switch (e.type) {
-    case 'gunman': x = { cv: X.cv, gr: X.gr, sk: X.sk, sol: X.sol }; break;
+    case 'gunman': x = { cv: X.cv, gr: X.gr, sk: X.sk, sol: X.sol, shd: X.shd }; break;
     case 'civilian': x = { sk: X.sk }; break;
     case 'ecar': x = { gd: X.gd, suv: X.suv }; break;
     case 'civcar': x = { c: X.c }; break;
@@ -912,6 +1082,10 @@ function ser(e) {
     case 'preview': x = { o: X.o }; break;
     case 'float': x = { c: X.c }; break;
     case 'bus': x = { gd: X.gd }; break;
+    case 'beast': x = { ph: X.ph, an: X.an, rr: X.rr }; break;
+    case 'bear': x = { lunge: X.lunge }; break;
+    case 'junk': x = { v: X.v }; break;
+    case 'rammer': x = { ph: X.ph }; break;
   }
   if (e.hm) { x = x || {}; x.hm = e.hm; }
   return [e.id, TI[e.type], r2(e.d), r2(e.lat), r2(e.h), r2(e.ry), Math.round(e.hp * 10) / 10, e.st, sh, x];
@@ -926,7 +1100,8 @@ function vehPhase(e, dt, S, holdV = 0) {
   else if (x.rear) { e.vd = S.speed - 12; if (rel < -150) e.rm = true; }
   else { e.vd = S.speed + 14 + f; if (rel > 150) e.rm = true; }
 }
-const behindOK = S => (S.n > 2 ? -42 : -20);
+// con 1-2 jugadores los que se quedan atrás dejan de disparar (nadie os ataca por la espalda)
+const behindOK = S => (S.n > 2 ? -42 : -3);
 // vehículo enemigo genérico (quad, pickup): llega por detrás, se pone a tu altura y dispara
 function gveh(e, dt, S, sway, swayF) {
   const rel = S.rel(e);
@@ -934,7 +1109,7 @@ function gveh(e, dt, S, sway, swayF) {
     vehPhase(e, dt, S);
     e.lat += (e.x.ln + Math.sin(e.age * swayF * 2) * sway - e.lat) * Math.min(1, dt * 2);
     e.ry = Math.sin(e.age * swayF * 2) * 0.08;
-    S.tick(e, dt, !S.voting && e.x.ph < 2 && rel > (e.x.rear ? -45 : -25) && rel < 45);
+    S.tick(e, dt, !S.voting && e.x.ph < 2 && rel > (e.x.rear ? -45 : S.n > 2 ? -25 : -4) && rel < 45);
   } else {
     e.vd = Math.max(0, e.vd - 20 * dt);
     e.ry = Math.min(0.7, e.deadT * 0.5);
@@ -948,7 +1123,7 @@ const U = {
     if (e.st === ST.HIDDEN && rel < e.x.pop) e.st = ST.ALIVE;
     if (e.st !== ST.DEAD) e.ry = faceCar(e, S);
     S.tick(e, dt, !S.voting && e.st === ST.ALIVE && rel < 90 && rel > behindOK(S) && e.age > 0.2);
-    if (rel < behindOK(S) - 10 || (e.st === ST.DEAD && e.deadT > 5)) e.rm = true;
+    if (rel < Math.min(-15, behindOK(S) - 10) || (e.st === ST.DEAD && e.deadT > 5)) e.rm = true;
   },
   sniper(e, dt, S) {
     const rel = S.rel(e);
@@ -974,7 +1149,7 @@ const U = {
       vehPhase(e, dt, S);
       e.lat += (e.x.ln + Math.sin(e.age * 1.3) * 0.5 - e.lat) * Math.min(1, dt * 2);
       e.ry = Math.sin(e.age * 1.3) * 0.08;
-      S.tick(e, dt, !S.voting && e.x.ph < 2 && rel > (e.x.rear ? -45 : -25) && rel < 45);
+      S.tick(e, dt, !S.voting && e.x.ph < 2 && rel > (e.x.rear ? -45 : S.n > 2 ? -25 : -4) && rel < 45);
     } else {
       e.vd = Math.max(0, e.vd - 30 * dt);
       if (rel < -60 || e.deadT > 4) e.rm = true;
@@ -985,7 +1160,7 @@ const U = {
     if (e.st === ST.ALIVE) {
       vehPhase(e, dt, S);
       e.lat += (LANE_OT + Math.sin(e.age * 0.9) * 0.4 - e.lat) * Math.min(1, dt * 2);
-      S.tick(e, dt, !S.voting && e.x.ph < 2 && rel > (e.x.rear ? -45 : -25) && rel < 45);
+      S.tick(e, dt, !S.voting && e.x.ph < 2 && rel > (e.x.rear ? -45 : S.n > 2 ? -25 : -4) && rel < 45);
     } else {
       e.vd = Math.max(0, e.vd - 18 * dt);
       e.ry = Math.min(0.6, e.deadT * 0.4);
@@ -1175,6 +1350,8 @@ const U = {
     }
     if (x.ph === 0) {
       e.ry = faceCar(e, S);
+      // los animales corren hacia la carretera
+      if (x.run) { e.vd = S.speed * 0.35; e.lat += (x.side * 6.5 - e.lat) * Math.min(1, dt * 0.8); }
       if (rel < 16 && rel > 0) {
         const t = S.pickTgt(e);
         if (t < 0) return;
@@ -1182,7 +1359,7 @@ const U = {
         x.ph = 1; x.jt = 0; x.tg = t; x.rr = rear ? 1 : 0;
         x.d0 = rel; x.l0 = e.lat; x.h0 = e.h;
         x.off = rear ? -3.1 : 2.3; x.lt = LANE_ME + SEATS[t][0] * 0.9; x.side = Math.sign(e.lat) || 1;
-        S.emit('banner', { txt: '¡SE TE TIRA ENCIMA!', sub: '', c: '#ff8a3d' });
+        if (e.type === 'jumper') S.emit('banner', { txt: '¡SE TE TIRA ENCIMA!', sub: '', c: '#ff8a3d' });
       }
       if (rel < -8) e.rm = true;
     } else if (x.ph === 1) {
@@ -1284,6 +1461,105 @@ const U = {
       if (rel < -110) e.rm = true;
     }
   },
+  beast(e, dt, S) { U.jumper(e, dt, S); },
+  bear(e, dt, S) {
+    const rel = S.rel(e), x = e.x;
+    if (e.st === ST.DEAD) { e.vd = Math.max(0, e.vd - 10 * dt); if (rel < -40 || e.deadT > 6) e.rm = true; return; }
+    // salta de un lado a otro de la carretera por delante del coche
+    x.jt += dt;
+    const u = clamp(x.jt / 1.1, 0, 1);
+    e.lat = lerp(x.j0, x.tl, u);
+    e.h = Math.sin(Math.PI * u) * 3.2;
+    if (x.jt > 1.9) { x.jt = 0; x.j0 = e.lat; x.tl = (e.lat > 0 ? -1 : 1) * (3 + S.r() * 3.5); }
+    x.lt -= dt;
+    if (x.lt <= 0 && !x.lunge) { x.lunge = 1; x.lt = 3.5; }
+    if (x.lunge) { x.lt -= dt; if (x.lt <= 0) { x.lunge = 0; x.lt = 4 + S.r() * 3; } }
+    const hd = x.lunge ? 5 : 18;
+    e.vd = S.speed + clamp((hd - rel) * 1.4, -10, 14);
+    e.ry = faceCar(e, S);
+    S.tick(e, dt, !S.voting && x.lunge && rel < 10);
+    if (rel < -30) e.rm = true;
+  },
+  mine(e, dt, S) {
+    const rel = S.rel(e);
+    if (e.st === ST.ALIVE && rel < 2.6 && rel > -1 && Math.abs(e.lat - LANE_ME) < 1.8) {
+      e.st = ST.DEAD; e.deadT = 0;
+      const pk = S.maxMeta('pinchos'), det = S.maxMeta('detector');
+      S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 0.5), s: 1.2 });
+      if (pk >= 2) S.emit('banner', { txt: '¡LOS ESPOLONES LA REVIENTAN!', sub: '', c: '#7dff8a' });
+      else {
+        S.emit('banner', { txt: '¡MINA!', sub: '', c: '#ff4040' });
+        for (const i of S.alivePlayers()) { if (S.r() < Math.min(0.9, (pk ? 0.5 : 0) + det * 0.3)) continue; S.players[i].inv = 0; S.hurt(i, 0, 'exp'); }
+        S.speed *= 0.4; S.emit('crash', { soft: 1 });
+      }
+    }
+    if (rel < -10 || (e.st === ST.DEAD && e.deadT > 1)) e.rm = true;
+  },
+  blimp(e, dt, S) {
+    const rel = S.rel(e), x = e.x;
+    if (e.st === ST.ALIVE) {
+      x.life -= dt;
+      const leaving = x.life <= 0 || S.voting;
+      e.vd = S.speed + clamp(((leaving ? 400 : 70 + Math.sin(e.age * 0.2) * 10) - rel) * 0.4, -10, 14);
+      e.lat += ((leaving ? -60 : Math.sin(e.age * 0.15) * 16) - e.lat) * Math.min(1, dt * 0.3);
+      e.ry = Math.sin(e.age * 0.1) * 0.2;
+      S.tick(e, dt, !leaving && rel < 120);
+      if (leaving && rel > 350) e.rm = true;
+    } else {
+      e.vd = Math.max(S.speed - 8, e.vd - 3 * dt);
+      e.h -= (2 + e.deadT * 6) * dt; e.ry += dt * 0.5;
+      if (e.h < 0 || e.deadT > 6) { S.explode(e.d, e.lat, Math.max(0, e.h), 10, -1, e); e.rm = true; }
+    }
+  },
+  jet(e, dt, S) {
+    const rel = S.rel(e);
+    if (e.st === ST.ALIVE) {
+      e.vd = -32 - S.vfast() * 2;
+      e.h += ((rel > 60 ? 14 : 22) - e.h) * Math.min(1, dt);
+      e.ry = Math.PI;
+      S.tick(e, dt, !S.voting && rel < 140 && rel > 12);
+      if (rel < -120) e.rm = true;
+    } else {
+      e.h -= (6 + e.deadT * 16) * dt; e.ry += dt * 6;
+      if (e.h < 0.5 || e.deadT > 3) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, Math.max(0.5, e.h)), s: 1.4 }); e.rm = true; }
+    }
+  },
+  rammer(e, dt, S) {
+    const rel = S.rel(e), x = e.x;
+    if (e.st === ST.ALIVE) {
+      if (x.rear) {
+        // por detrás: se acerca, espera y embiste
+        if (x.ph === 0) { e.vd = S.speed + 9; if (rel > -14) { x.ph = 1; x.ct = 2 + S.r() * 2; } }
+        else if (x.ph === 1) { e.vd = S.speed + (-13 - rel) * 1.5; x.ct -= dt; if (x.ct <= 0) x.ph = 2; }
+        else { e.vd = S.speed + 9; if (rel > -4.4) { S.ram(e); x.ph = 1; x.ct = 3 + S.r() * 2; e.vd = S.speed - 8; if (++x.hits >= 4) x.ph = 3; } }
+        if (x.ph === 3) { e.vd = S.speed - 12; if (rel < -150) e.rm = true; }
+        e.lat += (LANE_ME - e.lat) * Math.min(1, dt * 2);
+        S.tick(e, dt, !S.voting && x.ph < 3 && rel > -45);
+      } else {
+        // de lado: se pone a tu altura y da volantazos contra el coche
+        if (x.ph === 0) { e.vd = S.speed + clamp((0.5 - rel) * 1.4, -12, 8); if (Math.abs(rel - 0.5) < 2) { x.ph = 1; x.ct = 2 + S.r() * 2; } e.lat += (LANE_OT - e.lat) * Math.min(1, dt * 2); }
+        else if (x.ph === 1) { e.vd = S.speed + (0.5 - rel) * 1.5; x.ct -= dt; e.lat += (LANE_OT - e.lat) * Math.min(1, dt * 2); if (x.ct <= 0) x.ph = 2; }
+        else if (x.ph === 2) { e.vd = S.speed + (0.5 - rel) * 1.5; e.lat += 7 * dt; if (e.lat > LANE_ME - 2.3) { S.ram(e); x.ph = 1; x.ct = 3 + S.r() * 2; if (++x.hits >= 4) x.ph = 3; } }
+        else { e.vd = S.speed + 14; e.lat += (LANE_OT - e.lat) * Math.min(1, dt); if (rel > 160) e.rm = true; }
+        e.ry = x.ph === 2 ? 0.25 : 0;
+        S.tick(e, dt, !S.voting && x.ph < 3 && rel > -6 && rel < 40);
+      }
+    } else {
+      e.vd = Math.max(0, e.vd - 18 * dt); e.ry = Math.min(0.8, e.deadT * 0.5);
+      if (rel < -60 || e.deadT > 5) e.rm = true;
+    }
+  },
+  junk(e, dt, S) { if (S.rel(e) < -15 || (e.st === ST.DEAD && e.deadT > 0.5)) e.rm = true; },
+  jelly(e, dt, S) {
+    const rel = S.rel(e), x = e.x;
+    if (e.st === ST.ALIVE) {
+      e.vd = S.speed + clamp((x.hd - rel) * 0.3, -4, 3);
+      e.h += Math.sin(e.age * 1.5 + x.ph) * dt * 0.8;
+      S.tick(e, dt, !S.voting && rel < 50 && rel > -10);
+      if (rel < -30) e.rm = true;
+    } else { e.h -= dt * 1.5; e.vd = S.speed * 0.5; if (e.deadT > 1.5) e.rm = true; }
+  },
+  whale(e, dt, S) { if (S.rel(e) < -120) e.rm = true; },
   rock(e, dt, S) { proj(e, dt, S); },
   grenade(e, dt, S) { proj(e, dt, S); },
   rocket(e, dt, S) { proj(e, dt, S); },
@@ -1311,6 +1587,14 @@ const HIT = {
   gunman(e, p, part, dmg, S) {
     if (e.st === ST.SURRENDER) return;
     if (part === 'cover') return;
+    // escudo antidisturbios: se rompe a disparos (la cabeza queda al aire)
+    if (part === 'shield') {
+      if (!(e.x.shd > 0)) return;
+      e.x.shd -= dmg;
+      S.addPts(p, 5, null, '');
+      if (e.x.shd <= 0) { e.x.shd = 0; S.emit('fx', { f: 'spark', w: S.wpos(e.d, e.lat, 1.2) }); S.addPts(p, 100, e, '¡ESCUDO ROTO!', '#5ae0ff'); }
+      return;
+    }
     if (part === 'gun' && e.sh[0].alive && e.st === ST.ALIVE) {
       e.st = ST.SURRENDER;
       e.sh[0].alive = false; e.sh[0].on = false;
@@ -1329,6 +1613,14 @@ const HIT = {
   pickup(e, p, part, dmg, S) { S.damage(e, p, dmg); },
   van(e, p, part, dmg, S) { S.damage(e, p, dmg); },
   canoe(e, p, part, dmg, S) { S.damage(e, p, dmg); },
+  beast(e, p, part, dmg, S) { S.damage(e, p, dmg); },
+  bear(e, p, part, dmg, S) { S.damage(e, p, part === 'head' ? dmg * 1.5 : dmg); },
+  mine(e, p, part, dmg, S) { S.kill(e, p); },
+  blimp(e, p, part, dmg, S) { S.damage(e, p, dmg); },
+  jet(e, p, part, dmg, S) { S.damage(e, p, dmg); },
+  rammer(e, p, part, dmg, S) { S.damage(e, p, dmg); },
+  junk(e, p, part, dmg, S) { S.damage(e, p, dmg); },
+  jelly(e, p, part, dmg, S) { S.damage(e, p, dmg); },
   // autobús: los tiradores de las ventanillas caen por separado
   bus(e, p, part, dmg, S) {
     if (part && part[0] === 'g') {
@@ -1548,6 +1840,21 @@ const KILL = {
   rig(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 1.5), s: 1.4 }); S.emit('banner', { txt: '¡CAMIÓN FUERA!', sub: '', c: '#7dff8a' }); },
   boat(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, e.h + 1), s: 1 }); },
   canoe(e, p, S) { S.emit('fx', { f: 'spark', w: S.wpos(e.d, e.lat, 0.6) }); },
+  mine(e, p, S) { e.rm = true; S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 0.4), s: 0.9 }); },
+  junk(e, p, S) { S.emit('fx', { f: e.x.v ? 'boom' : 'splat', w: S.wpos(e.d, e.lat, 0.8), s: 0.6 }); },
+  jelly(e, p, S) { S.emit('fx', { f: 'spark', w: S.wpos(e.d, e.lat, e.h) }); },
+  beast(e, p, S) { e.x.side = e.x.side || 1; },
+  rammer(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 1), s: 1.2 }); },
+  jet(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, e.h), s: 1.2 }); S.emit('banner', { txt: '¡CAZA DERRIBADO!', sub: '', c: '#9ad0ff' }); },
+  blimp(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, e.h), s: 3 }); S.emit('banner', { txt: '¡DIRIGIBLE DERRIBADO!', sub: '', c: '#c8f07a' }); dropWeapon(e, S, 1); },
+  bear(e, p, S) {
+    S.emit('banner', { txt: '¡HAS TUMBADO AL OSO!', sub: '', c: '#c08a4a' });
+    dropWeapon(e, S, 1);
+    for (let i = 0; i < 2; i++) {
+      const k = S.add('medkit', { d: e.d - 4 + i, lat: LANE_ME, h: 2, hp: 1, vd: S.speed });
+      k.x = { tr: 10 + i * 2.5, tl: LANE_ME + (i ? 1.8 : -1.8), life: 14 };
+    }
+  },
   quad(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 0.8), s: 0.6 }); },
   pickup(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 1), s: 1.2 }); },
   van(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 1.2), s: 1.4 }); S.emit('banner', { txt: '¡FURGÓN FUERA!', sub: '', c: '#7dff8a' }); },

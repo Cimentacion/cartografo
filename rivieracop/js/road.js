@@ -1,7 +1,7 @@
 // Carretera procedural determinista: túnel inicial, bajada estilo Mónaco, y cada ~1 min
 // un desvío con carteles + túnel. El tramo tras el túnel no se genera hasta que se decide la ruta.
 import { rng, hash, clamp } from './util.js';
-import { BIOMES, BIOME_KEYS } from './defs.js';
+import { BIOMES, BIOME_KEYS, CITY } from './defs.js';
 
 export const LANE_ME = 3, LANE_OT = -3, HALF = 6, WALK = 8.5;
 export const START_TUN = 120, SECTION = 720, APPROACH = 90, TUN = 150;
@@ -34,15 +34,16 @@ export class Road {
   _queueSection(bio, zd) {
     const k = this.forks.length;
     const secStart = this.planEnd;
+    const slen = BIOMES[BIOME_KEYS[bio]].len || SECTION;
     if (BIOMES[BIOME_KEYS[bio]].deco === 'chino') {
       // barrio chino: a mitad de camino se entra en un restaurante
       this._q({ type: 'section', len: 300, bio, zd, sub: null });
       this._q({ type: 'interior', len: 100, bio, zd, fork: -2 });
       this._q({ type: 'section', len: SECTION - 400, bio, zd, sub: null });
-    } else this._q({ type: 'section', len: SECTION, bio, zd, sub: null });
+    } else this._q({ type: 'section', len: slen, bio, zd, sub: null });
     this._q({ type: 'approach', len: APPROACH, bio, zd });
     const tn = this._q({ type: 'tunnel', len: TUN, fork: k, bio, zd });
-    this.forks.push({ k, gantry: tn.start - 40, tStart: tn.start, tEnd: tn.start + TUN, choice: null, from: bio, zd: null, secStart, bio });
+    this.forks.push({ k, gantry: tn.start - 40, tStart: tn.start, tEnd: tn.start + TUN, choice: null, from: bio, zd: null, secStart, bio, slen });
     this._q({ type: 'wait', len: 0, fork: k });
   }
   setChoice(k, bio, zd = 1) {
@@ -206,7 +207,7 @@ export class Road {
   zoneAt(d) {
     for (let i = this.forks.length - 1; i >= 0; i--) {
       const f = this.forks[i];
-      if (d >= f.secStart) return { f, k: i, prog: (d - f.secStart) / SECTION };
+      if (d >= f.secStart) return { f, k: i, prog: (d - f.secStart) / (f.slen || SECTION) };
     }
     return { f: null, k: -1, prog: 0 };
   }
@@ -217,6 +218,23 @@ export class Road {
     const c = Math.floor(d / 34);
     return hash(this.seed, c, 55) % 5 < 2 && d - c * 34 < 15;
   }
+  // pasarelas elevadas de las zonas de ciudad (iguales en todos los móviles): centros entre d0 y d1
+  bridges(d0, d1) {
+    const L = [];
+    for (let c = Math.floor(d0 / 140) - 1; c <= Math.floor(d1 / 140) + 1; c++) {
+      const d = c * 140 + 70;
+      if (d < d0 - 20 || d > d1 + 20 || d < 0 || d > this.len - 20) continue;
+      if (hash(this.seed, c, 808) % 3 !== 0) continue;
+      const i = Math.floor(d);
+      if (!CITY.has(BIOMES[BIOME_KEYS[this.bio[i]]].deco)) continue;
+      let bad = false;
+      for (let k = -20; k <= 20; k += 4) { const j = clamp(i + k, 0, this.len); if (this.kind[j] !== 0 || this.bio[j] !== this.bio[i]) bad = true; }
+      for (const f of this.forks) if (Math.abs(d - f.gantry) < 40 || Math.abs(d - (f.gantry - 140)) < 14 || Math.abs(d - (f.gantry - 85)) < 14) bad = true;
+      if (!bad) L.push(d);
+    }
+    return L;
+  }
+  nearBridge(d, r) { for (const b of this.bridges(d - r, d + r)) if (Math.abs(b - d) < r) return b; return null; }
   // semáforos de la zona de semáforos
   lights(f) {
     const L = [];

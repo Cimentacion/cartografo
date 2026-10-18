@@ -532,7 +532,8 @@ export function rocket() {
 export function sign() {
   const g = new THREE.Group();
   box(g, 3.7, 2.3, 0.15, 0x0b6b3a, 0, 0, 0, 'body');
-  const T = canvasTex(256, 160);
+  // lienzo al doble de resolución: se lee bien de lejos
+  const T = canvasTex(512, 320);
   const plane = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 2.15), new THREE.MeshBasicMaterial({ map: T.t }));
   plane.position.z = -0.085;
   plane.rotation.y = Math.PI;
@@ -548,6 +549,7 @@ export function drawSign(g, x) {
   if (g.userData.key === key) return;
   g.userData.key = key;
   const { g: c, t } = g.userData.T;
+  c.setTransform(2, 0, 0, 2, 0, 0);
   const win = x.w === 1, lose = x.w === -1;
   c.fillStyle = lose ? '#3a3a3a' : win ? '#0f9a4a' : '#0b6b3a';
   c.fillRect(0, 0, 256, 160);
@@ -561,6 +563,7 @@ export function drawSign(g, x) {
   let fs = 38;
   c.font = `bold ${fs}px sans-serif`;
   while (c.measureText(x.l).width > 228 && fs > 18) { fs -= 2; c.font = `bold ${fs}px sans-serif`; }
+  c.lineWidth = 5; c.strokeStyle = 'rgba(0,0,0,.55)'; c.strokeText(x.l, 128, 72);
   c.fillText(x.l, 128, 72);
   if (x.s) { c.fillStyle = '#ffe14a'; c.font = 'bold 17px sans-serif'; c.fillText(x.s, 128, 96); }
   if (x.zd) {
@@ -1006,32 +1009,34 @@ export function mtrain(side) {
 // ---------- cartel lateral de aviso antes del desvío: rutas con flechas ----------
 export function preview(opts) {
   const g = new THREE.Group();
-  const T = canvasTex(512, 300);
+  const T = canvasTex(1024, 600);
   const c = T.g;
-  c.fillStyle = '#0b4a8a'; c.fillRect(0, 0, 512, 300);
-  c.strokeStyle = '#ffffff'; c.lineWidth = 10; c.strokeRect(8, 8, 496, 284);
-  c.fillStyle = '#ffe14a'; c.font = 'bold 30px sans-serif'; c.textAlign = 'center';
-  c.fillText('PRÓXIMO DESVÍO', 256, 50);
-  const n = opts.length, rowH = Math.min(78, 220 / n);
+  c.fillStyle = '#063a70'; c.fillRect(0, 0, 1024, 600);
+  c.strokeStyle = '#ffffff'; c.lineWidth = 18; c.strokeRect(14, 14, 996, 572);
+  c.fillStyle = '#ffe14a'; c.font = 'bold 64px sans-serif'; c.textAlign = 'center';
+  c.fillText('PRÓXIMO DESVÍO', 512, 96);
+  const n = opts.length, rowH = Math.min(150, 450 / n);
   opts.forEach((o, i) => {
-    const y = 72 + i * rowH + rowH / 2;
+    const y = 130 + i * rowH + rowH / 2;
+    if (i) { c.fillStyle = 'rgba(255,255,255,.25)'; c.fillRect(40, y - rowH / 2, 944, 4); }
     const ar = o.a < 0 ? '◀' : o.a > 0 ? '▶' : '▲';
-    c.fillStyle = '#ffffff'; c.font = `bold ${Math.round(rowH * 0.62)}px sans-serif`; c.textAlign = 'left';
-    c.fillText(ar, 26, y + rowH * 0.22);
-    c.fillStyle = o.c; c.font = `bold ${Math.round(rowH * 0.42)}px sans-serif`;
-    let fs = Math.round(rowH * 0.42);
-    while (c.measureText(o.l).width > 300 && fs > 16) { fs -= 2; c.font = `bold ${fs}px sans-serif`; }
-    c.fillText(o.l, 90, y + rowH * 0.15);
+    c.fillStyle = '#ffffff'; c.font = `bold ${Math.round(rowH * 0.7)}px sans-serif`; c.textAlign = 'left';
+    c.fillText(ar, 44, y + rowH * 0.24);
+    let fs = Math.round(rowH * 0.46);
+    c.font = `bold ${fs}px sans-serif`;
+    while (c.measureText(o.l).width > 560 && fs > 30) { fs -= 2; c.font = `bold ${fs}px sans-serif`; }
+    c.lineWidth = 8; c.strokeStyle = '#000'; c.strokeText(o.l, 170, y + rowH * 0.16);
+    c.fillStyle = o.c; c.fillText(o.l, 170, y + rowH * 0.16);
     const z = o.zd, zc = z <= 2 ? '#7dff8a' : z <= 4 ? '#ffe14a' : z <= 6 ? '#ff8a3d' : '#ff3a5a';
-    c.fillStyle = zc; c.font = `bold ${Math.round(rowH * 0.38)}px sans-serif`; c.textAlign = 'right';
-    c.fillText('DIF ' + z, 490, y + rowH * 0.14);
+    c.fillStyle = zc; c.font = `bold ${Math.round(rowH * 0.4)}px sans-serif`; c.textAlign = 'right';
+    c.fillText('DIF ' + z, 984, y + rowH * 0.15);
   });
   T.t.needsUpdate = true;
-  const pl = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 3.75), new THREE.MeshBasicMaterial({ map: T.t }));
-  pl.position.set(0, 3.2, -0.1); pl.rotation.y = Math.PI;
+  const pl = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 2.7), new THREE.MeshBasicMaterial({ map: T.t }));
+  pl.position.set(0, 4.3, -0.08); pl.rotation.y = Math.PI;
   g.add(pl);
-  box(g, 6.6, 3.95, 0.12, 0xd8d8d8, 0, 3.2, 0);
-  for (const x of [-2.4, 2.4]) box(g, 0.2, 3.2, 0.2, 0x8a8f96, x, 0.4, 0.1);
+  box(g, 4.8, 2.9, 0.1, 0xd8d8d8, 0, 4.3, 0);
+  for (const x of [-1.9, 1.9]) box(g, 0.16, 4.3, 0.16, 0x8a8f96, x, 2.15, 0.08);
   return g;
 }
 
@@ -1131,5 +1136,149 @@ export function canoe() {
   // remo
   box(g, 0.06, 0.06, 2.2, 0x6a4a2a, 0.5, 0.7, 1.4, 'body');
   g.userData.shooters = [a.p.userData.rig.muzzle]; g.userData.aimers = [a.pv];
+  return g;
+}
+
+// ---------- animales: lobo, pantera y tiburón (se lanzan al coche) ----------
+export function beast(an = 0) {
+  const g = new THREE.Group();
+  const body = new THREE.Group(); g.add(body);
+  let mouth;
+  if (an === 2) {
+    // tiburón
+    const c = 0x6a7a88;
+    box(body, 0.9, 0.9, 3.0, c, 0, 0, 0, 'body');
+    box(body, 0.7, 0.6, 0.9, c, 0, -0.05, -1.8, 'head');
+    box(body, 0.75, 0.12, 0.5, 0xeeeeee, 0, -0.32, -1.9, 'head');
+    const fin = box(body, 0.12, 0.9, 0.7, c, 0, 0.7, 0.1, 'body'); fin.rotation.x = -0.4;
+    box(body, 0.1, 1.0, 0.5, c, 0, 0.2, 1.7, 'body');
+    for (const sx of [-1, 1]) { const f = box(body, 0.8, 0.08, 0.4, c, sx * 0.6, -0.2, -0.3, 'body'); f.rotation.z = sx * 0.4; }
+    for (const sx of [-0.3, 0.3]) box(body, 0.06, 0.06, 0.06, glow(0x000000), sx, 0.12, -2.2);
+    mouth = new THREE.Object3D(); mouth.position.set(0, -0.2, -2.3); body.add(mouth);
+  } else {
+    const c = an === 1 ? 0x16161a : 0x6a6a70, c2 = an === 1 ? 0x222228 : 0x8a8a90;
+    box(body, 0.6, 0.6, 1.5, c, 0, 0.75, 0, 'body');
+    box(body, 0.5, 0.5, 0.55, c2, 0, 0.95, -0.95, 'head');
+    box(body, 0.3, 0.25, 0.4, c2, 0, 0.85, -1.35, 'head');
+    for (const sx of [-0.14, 0.14]) { box(body, 0.1, 0.22, 0.1, c, sx, 1.3, -0.85, 'head'); box(body, 0.07, 0.07, 0.05, glow(0xff2020), sx, 1.02, -1.23); }
+    for (const sx of [-0.2, 0.2]) for (const z of [-0.55, 0.55]) box(body, 0.16, 0.6, 0.16, c, sx, 0.3, z, 'body');
+    const tail = box(body, 0.12, 0.12, 0.8, c, 0, 0.95, 1.0, 'body'); tail.rotation.x = an === 1 ? 0.3 : -0.5;
+    mouth = new THREE.Object3D(); mouth.position.set(0, 0.8, -1.5); body.add(mouth);
+  }
+  g.userData.body = body; g.userData.shooters = [mouth];
+  return g;
+}
+// ---------- oso grizzly (jefe) ----------
+export function bear() {
+  const g = new THREE.Group();
+  const body = new THREE.Group(); g.add(body);
+  const c = 0x5a3a20, c2 = 0x4a2e18;
+  box(body, 1.8, 1.7, 3.0, c, 0, 1.6, 0, 'body');
+  box(body, 1.9, 1.3, 1.2, c2, 0, 2.2, -1.0, 'body');
+  const head = new THREE.Group(); head.position.set(0, 2.4, -1.9); body.add(head);
+  box(head, 1.1, 1.0, 1.0, c, 0, 0, 0, 'head');
+  box(head, 0.6, 0.45, 0.5, 0x8a6a4a, 0, -0.2, -0.6, 'head');
+  for (const sx of [-0.4, 0.4]) { box(head, 0.3, 0.3, 0.2, c2, sx, 0.6, 0.1, 'head'); box(head, 0.12, 0.12, 0.05, glow(0xff3020), sx * 0.6, 0.18, -0.52); }
+  box(head, 0.4, 0.12, 0.1, 0xf0f0e0, 0, -0.38, -0.86, 'head');
+  const legs = [];
+  for (const sx of [-0.6, 0.6]) for (const z of [-0.9, 1.0]) {
+    const l = new THREE.Group(); l.position.set(sx, 1.0, z); body.add(l); legs.push(l);
+    box(l, 0.55, 1.1, 0.55, c2, 0, -0.5, 0, 'body');
+    for (const k of [-0.15, 0, 0.15]) box(l, 0.06, 0.06, 0.3, 0xe8e8d8, k, -1.05, -0.35, 'body');
+  }
+  const mouth = new THREE.Object3D(); mouth.position.set(0, -0.3, -0.9); head.add(mouth);
+  g.userData.body = body; g.userData.legs = legs; g.userData.shooters = [mouth];
+  return g;
+}
+// ---------- mina antitanque ----------
+export function mine() {
+  const g = new THREE.Group();
+  const m = new THREE.Mesh(cgeo(0.45, 0.16, 10), mat(0x3a4a2a)); m.position.y = 0.08; m.userData.part = 'body'; g.add(m);
+  const t = new THREE.Mesh(cgeo(0.15, 0.1, 8), mat(0x2a2a2a)); t.position.y = 0.2; t.userData.part = 'body'; g.add(t);
+  const l = box(g, 0.1, 0.06, 0.1, glow(0xff2020), 0, 0.27, 0);
+  const halo = new THREE.Mesh(sgeo(0.9), glow(0xff2020, 0.15)); halo.position.y = 0.1; g.add(halo);
+  proxy(g, 0.8, 0, 0.2, 0);
+  g.userData.light = l; g.userData.halo = halo;
+  return g;
+}
+// ---------- caza ----------
+export function jet() {
+  const g = new THREE.Group();
+  const c = 0x7a8a9a;
+  box(g, 1.0, 0.9, 7, c, 0, 0, 0, 'body');
+  box(g, 0.7, 0.5, 1.6, GLASS, 0, 0.55, -1.6, 'body');
+  box(g, 8, 0.15, 2.2, c, 0, -0.1, 0.6, 'body');
+  box(g, 3.2, 0.12, 1.2, c, 0, 0, 3.1, 'body');
+  box(g, 0.12, 1.6, 1.2, c, 0, 0.8, 3.0, 'body');
+  const n = box(g, 0.6, 0.6, 1.0, 0x5a6a7a, 0, 0, -3.8, 'body'); n.rotation.z = Math.PI / 4;
+  box(g, 0.7, 0.7, 0.3, glow(0xffa040), 0, 0, 3.6);
+  const mz = new THREE.Object3D(); mz.position.set(0, -0.3, -4.2); g.add(mz);
+  g.userData.shooters = [mz];
+  return g;
+}
+// ---------- dirigible lanzamisiles (jefe) ----------
+export function blimp() {
+  const g = new THREE.Group();
+  const hull = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 10), tmat('steel', 0xa8aab0));
+  hull.scale.set(7, 7, 22); hull.userData.part = 'body'; g.add(hull);
+  for (const [x, y] of [[0, 6], [0, -6], [6, 0], [-6, 0]]) { const f = box(g, x ? 4 : 0.4, y ? 4 : 0.4, 5, 0x8a2020, x, y, 18, 'body'); }
+  box(g, 4, 2.6, 8, 0x3a3a3a, 0, -8, -2, 'body');
+  box(g, 6, 1.2, 0.2, glow(0xffd23f), 0, 0, -21.9);
+  const sh = [];
+  for (const x of [-1.6, 0, 1.6]) { const m = new THREE.Object3D(); m.position.set(x, -9.4, -5); g.add(m); sh.push(m); box(g, 0.6, 0.6, 2, 0x1a1a1a, x, -9.2, -4, 'body'); }
+  g.userData.shooters = sh;
+  return g;
+}
+// ---------- coche que embiste ----------
+export function rammer() {
+  const g = new THREE.Group();
+  const col = 0x8a1010;
+  box(g, 2.0, 0.7, 4.6, col, 0, 0.75, 0, 'body');
+  box(g, 1.8, 0.6, 2.0, 0x111111, 0, 1.4, 0.3, 'body');
+  box(g, 2.3, 0.35, 0.4, 0x8a8a8a, 0, 0.6, -2.45, 'body');
+  box(g, 2.3, 0.35, 0.4, 0x8a8a8a, 0, 0.6, 2.45, 'body');
+  for (let k = -2; k <= 2; k++) box(g, 0.12, 0.6, 0.12, 0xb0b0b0, k * 0.5, 0.8, -2.6, 'body');
+  for (const sx of [-0.95, 0.95]) for (const z of [-1.5, 1.5]) wheel(g, sx, 0.42, z, 0.45, 0.36, 'body');
+  const a = rider(g, 0.45, 1.25, 0.3, { shirt: 0x2a2a2a, gun: 'pistol' });
+  g.userData.shooters = [a.p.userData.rig.muzzle]; g.userData.aimers = [a.pv];
+  return g;
+}
+// ---------- basura que bloquea la calle: bolsas o contenedor ----------
+export function junk(v = 0) {
+  const g = new THREE.Group();
+  if (v) {
+    box(g, 1.8, 1.4, 1.3, tmat('rust', 0x2a6a3a), 0, 0.7, 0, 'body');
+    box(g, 1.9, 0.12, 1.4, 0x1a3a1a, 0, 1.45, 0.05, 'body');
+    box(g, 0.6, 0.4, 0.4, 0x222222, 0.3, 1.65, 0.1, 'body');
+  } else {
+    for (const [x, z, s2] of [[-0.4, 0, 1], [0.35, 0.2, 0.85], [0, -0.35, 0.9], [0.1, 0.1, 0.7]]) {
+      const b = new THREE.Mesh(sgeo(0.45), mat(0x141414)); b.scale.set(s2, s2 * 1.1, s2); b.position.set(x, 0.45 * s2 + (s2 < 0.8 ? 0.6 : 0), z); b.userData.part = 'body'; g.add(b);
+    }
+    proxy(g, 1.0, 0, 0.6, 0);
+  }
+  return g;
+}
+// ---------- medusa eléctrica ----------
+export function jelly() {
+  const g = new THREE.Group();
+  const b = new THREE.Mesh(new THREE.SphereGeometry(0.5, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), glow(0xc87aff, 0.75));
+  b.userData.part = 'body'; g.add(b);
+  const ten = [];
+  for (let k = 0; k < 5; k++) { const t = box(g, 0.05, 1.0, 0.05, glow(0x7ae0ff, 0.8), Math.cos(k * 1.25) * 0.3, -0.5, Math.sin(k * 1.25) * 0.3); ten.push(t); }
+  proxy(g, 0.6, 0, -0.1, 0);
+  const mz = new THREE.Object3D(); mz.position.set(0, -0.6, 0); g.add(mz);
+  g.userData.shooters = [mz]; g.userData.ten = ten;
+  return g;
+}
+// ---------- ballena (de paisaje) ----------
+export function whale() {
+  const g = new THREE.Group();
+  const c = 0x2a3a5a;
+  const b = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), mat(c)); b.scale.set(3.5, 3, 11); g.add(b);
+  const belly = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), mat(0xc8c8c0)); belly.scale.set(3, 1.6, 9); belly.position.set(0, -1.6, -0.5); g.add(belly);
+  const tail = new THREE.Group(); tail.position.z = 11; g.add(tail);
+  box(tail, 8, 0.4, 2.5, c, 0, 0, 1.2);
+  for (const sx of [-1, 1]) { const f = box(g, 4, 0.3, 1.6, c, sx * 4, -1.5, -3); f.rotation.z = sx * 0.4; }
+  g.userData.tail = tail;
   return g;
 }

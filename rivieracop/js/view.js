@@ -161,13 +161,14 @@ const CIV = [0xf0c040, 0x40a0f0, 0xf06080, 0x60d080, 0xffffff, 0xff8030, 0xa070f
 const SKIN = [0xd9a476, 0xb27a4e, 0xf0c8a0, 0x7a5030];
 // enemigos más grandes: más fáciles de ver y de acertar en el móvil
 const SCALE = { gunman: 1.35, civilian: 1.3, sniper: 1.5, moto: 1.2, drone: 1.8, chicken: 1.4, grenade: 1.7, rocket: 1.5, medkit: 1.3, barrel: 1.2, jeep: 1.1, lady: 1.3, rock: 1.3,
-  sign: 1.45, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2 };
+  sign: 1.45, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2, beast: 1.35, bear: 1.5, jelly: 1.4, mine: 1.2 };
 // cosas que no paran las balas
-const NOHIT = new Set(['tlight', 'preview']);
+const NOHIT = new Set(['tlight', 'preview', 'whale']);
 // capa de la máscara: enemigos con contorno rojo / cosas importantes que no se desaturan
 const MASK = {
   gunman: LAYER_ENEMY, sniper: LAYER_ENEMY, moto: LAYER_ENEMY, ecar: LAYER_ENEMY, heli: LAYER_ENEMY, drone: LAYER_ENEMY, jeep: LAYER_ENEMY,
   grenade: LAYER_ENEMY, rocket: LAYER_ENEMY, rock: LAYER_ENEMY, wall: LAYER_ENEMY, train: LAYER_ENEMY,
+  beast: LAYER_ENEMY, bear: LAYER_ENEMY, mine: LAYER_ENEMY, jet: LAYER_ENEMY, blimp: LAYER_ENEMY, rammer: LAYER_ENEMY, junk: LAYER_ENEMY, jelly: LAYER_ENEMY,
   quad: LAYER_ENEMY, pickup: LAYER_ENEMY, van: LAYER_ENEMY, bus: LAYER_ENEMY, canoe: LAYER_ENEMY,
   jumper: LAYER_ENEMY, tank: LAYER_ENEMY, rig: LAYER_ENEMY, rioter: LAYER_ENEMY, thrown: LAYER_ENEMY, chef: LAYER_ENEMY, boat: LAYER_ENEMY, mtrain: LAYER_ENEMY,
   preview: LAYER_KEEP, tlight: LAYER_KEEP, fuel: LAYER_KEEP, float: LAYER_KEEP,
@@ -203,14 +204,28 @@ export class View {
     this.objs.clear(); this.hit.length = 0; this.tele.length = 0; this.pops.length = 0;
   }
 
-  placeCar(d, t, shake) {
-    const R = this.road;
+  // coche con suspensión exagerada estilo Crazy Taxi: se inclina en las curvas, cabecea al acelerar y da botes
+  placeCar(d, t, shake, dt = 0, speed = 0) {
+    const R = this.road, C = this.cf || (this.cf = { roll: 0, pitch: 0, y: 0, vy: 0, hop: 2, sp: 0 });
     R.toWorld(d, LANE_ME, 0, this.carPos);
     const y0 = R.toWorld(d - 2, LANE_ME, 0, V1).y, y1 = R.toWorld(d + 2, LANE_ME, 0, V2).y;
     const yaw = R.yawAt(d + 1);
+    if (dt > 0) {
+      const curv = R.yawAt(d + 5) - R.yawAt(d - 3);
+      const acc = (speed - C.sp) / dt; C.sp = speed;
+      const tr = Math.max(-0.14, Math.min(0.14, curv * speed * 0.35)) + Math.sin(t * 6.5) * 0.012 * Math.min(1, speed / 12);
+      const tp = Math.max(-0.09, Math.min(0.09, acc * 0.012));
+      C.roll += (tr - C.roll) * Math.min(1, dt * 5);
+      C.pitch += (tp - C.pitch) * Math.min(1, dt * 4);
+      // botes: de vez en cuando pilla un bache y salta un poco
+      C.hop -= dt;
+      if (C.hop <= 0 && speed > 6 && C.y <= 0.001) { C.vy = 1.2 + Math.random() * 1.4; C.hop = 1.2 + Math.random() * 2.8; }
+      C.vy -= 14 * dt; C.y += C.vy * dt;
+      if (C.y < 0) { C.y = 0; C.vy = C.vy < -1.5 ? -C.vy * 0.3 : 0; }
+    }
     this.car.position.copy(this.carPos);
-    this.car.position.y += Math.sin(t * 13) * 0.012 + (shake ? (Math.random() - 0.5) * shake : 0);
-    this.car.rotation.set(Math.atan2(y1 - y0, 4), -yaw, Math.sin(t * 1.7) * 0.006, 'YXZ');
+    this.car.position.y += C.y + Math.sin(t * 13) * 0.015 + (shake ? (Math.random() - 0.5) * shake : 0);
+    this.car.rotation.set(Math.atan2(y1 - y0, 4) + C.pitch + C.vy * 0.015, -yaw, C.roll, 'YXZ');
     this.car.updateMatrixWorld(true);
     const dr = this.car.userData.driver;
     dr.userData.rig.torso.rotation.y = Math.sin(t * 0.6) * 0.1;
@@ -230,6 +245,14 @@ export class View {
         g.add(p);
         if (x.gr) M.box(p.userData.rig.armR, 0.2, 0.24, 0.2, 0x2a4a1a, 0, 0, -0.65, 'body');
         if (x.cv >= 0) { const c = M.cover(x.cv); c.position.z = -0.85; g.add(c); }
+        // escudo antidisturbios (la cabeza queda por encima)
+        if (x.shd > 0) {
+          const t = p.userData.rig.torso, sh = new THREE.Group(); t.add(sh);
+          M.box(sh, 0.82, 1.25, 0.08, 0x2a3442, 0.04, 0.0, -0.36, 'shield');
+          M.box(sh, 0.5, 0.1, 0.09, M.glow(0x8ad0ff, 0.6), 0.04, 0.42, -0.37, 'shield');
+          M.box(sh, 0.5, 0.18, 0.09, 0xd8d8d8, 0.04, -0.2, -0.37, 'shield');
+          g.userData.shield = sh;
+        }
         g.userData.p = p; g.userData.shooters = p.userData.shooters; g.userData.cv = x.cv >= 0;
         break;
       }
@@ -284,6 +307,15 @@ export class View {
       case 'van': g = M.van(); break;
       case 'bus': g = M.bus(); break;
       case 'canoe': g = M.canoe(); break;
+      case 'beast': g = M.beast(x.an || 0); break;
+      case 'bear': g = M.bear(); break;
+      case 'mine': g = M.mine(); break;
+      case 'jet': g = M.jet(); break;
+      case 'blimp': g = M.blimp(); break;
+      case 'rammer': g = M.rammer(); break;
+      case 'junk': g = M.junk(x.v || 0); break;
+      case 'jelly': g = M.jelly(); break;
+      case 'whale': g = M.whale(); break;
       case 'train': g = M.train(); break;
       case 'lady': g = M.lady(x.sk || 0); break;
       default: g = new THREE.Group();
@@ -410,7 +442,32 @@ function personAnim(o, e, dt, ctx, V) {
 }
 
 const ANIM = {
-  gunman: personAnim,
+  gunman(o, e, dt, ctx, V) {
+    personAnim(o, e, dt, ctx, V);
+    if (o.userData.shield) o.userData.shield.visible = !!(e.x && e.x.shd > 0) && e.st !== ST.DEAD;
+  },
+  beast(o, e, dt, ctx) {
+    const b = o.userData.body, ph = e.x ? e.x.ph : 0;
+    if (e.st === ST.DEAD) { b.rotation.z = Math.min(1.5, (o.userData.dt || 0) * 4); return; }
+    if (ph === 2) { b.rotation.x = 0.5 + Math.sin(ctx.t * 16) * 0.15; b.position.y = -0.3; }
+    else if (ph === 1) { b.rotation.x = -0.4; }
+    else { b.rotation.x = Math.sin(ctx.t * 12 + e.id) * 0.08; b.position.y = Math.abs(Math.sin(ctx.t * 12 + e.id)) * 0.15; }
+  },
+  bear(o, e, dt, ctx) {
+    const ud = o.userData;
+    if (e.st === ST.DEAD) { ud.body.rotation.z = Math.min(1.6, (ud.dt || 0) * 1.5); return; }
+    const k = Math.sin(ctx.t * 9);
+    ud.legs.forEach((l, i) => (l.rotation.x = (i % 2 ? k : -k) * 0.5));
+    ud.body.rotation.x = e.x && e.x.lunge ? -0.35 + Math.sin(ctx.t * 14) * 0.15 : 0;
+  },
+  mine(o, e, dt, ctx) { const on = Math.floor(ctx.t * 4) % 2 === 0; o.userData.light.visible = on; o.userData.halo.scale.setScalar(on ? 1 : 0.7); },
+  jelly(o, e, dt, ctx) {
+    const k = 1 + Math.sin(ctx.t * 4 + e.id) * 0.15;
+    o.scale.set(1.4 * k, 1.4 / k, 1.4 * k);
+    o.userData.ten.forEach((t, i) => (t.rotation.x = Math.sin(ctx.t * 3 + i + e.id) * 0.4));
+  },
+  whale(o, e, dt, ctx) { o.userData.tail.rotation.x = Math.sin(ctx.t * 0.8 + e.id) * 0.35; o.rotation.z = Math.sin(ctx.t * 0.3) * 0.05; },
+  jet(o, e) { if (e.st === ST.DEAD) o.rotation.z += 0.1; },
   civilian: personAnim,
   sniper(o, e, dt, ctx, V) {
     personAnim(o, e, dt, ctx, V);

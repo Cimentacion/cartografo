@@ -194,6 +194,20 @@ body.ctl-joy #btnGrenade{bottom:250px;right:max(12px,env(safe-area-inset-right))
 #btnCannon{--c:#ffb020;right:calc(max(10px,env(safe-area-inset-right)) + 54px);bottom:206px}
 body.ctl-joy #btnCannon{bottom:146px;right:calc(max(12px,env(safe-area-inset-right)) + 54px)}
 #btnCannon.act{box-shadow:0 0 0 3px #000,0 0 18px #ffb020}
+#btnTurbo{--c:#ff8a3d;right:calc(max(10px,env(safe-area-inset-right)) + 54px);bottom:258px}
+body.ctl-joy #btnTurbo{bottom:198px;right:calc(max(12px,env(safe-area-inset-right)) + 54px)}
+#btnRevive{--c:#40ff80;right:calc(max(10px,env(safe-area-inset-right)) + 54px);bottom:310px}
+body.ctl-joy #btnRevive{bottom:250px;right:calc(max(12px,env(safe-area-inset-right)) + 54px)}
+/* regulador de velocidad: palanca vertical a la derecha */
+#regul{position:absolute;right:calc(max(8px,env(safe-area-inset-right)) + 108px);top:calc(max(8px,env(safe-area-inset-top)) + 70px);width:40px;height:150px;pointer-events:auto;
+  background:#0c0a18;border:2px solid #7dffd2;box-shadow:3px 3px 0 #000;display:flex;flex-direction:column;align-items:center}
+#regul span{font:7px var(--f-px);color:#7dffd2;margin-top:4px}
+#regulIn{width:120px;transform:rotate(-90deg);transform-origin:center;margin-top:58px;accent-color:#7dffd2;height:26px}
+/* ficha del arma que se puede coger: a la izquierda, simple, con comparativa */
+#wcard{left:max(10px,env(safe-area-inset-left));right:auto;top:calc(max(8px,env(safe-area-inset-top)) + 92px);width:150px}
+body.many #wcard{top:calc(max(8px,env(safe-area-inset-top)) + 130px)}
+.wcl i{font-style:normal;margin-left:3px}
+.wcl i.up{color:#7dff8a}.wcl i.dn{color:#ff5a5a}.wcl i.eq{color:#888}
 #grenN{position:absolute;right:-4px;bottom:-4px;font:8px var(--f-px);color:#fff;background:#000;padding:2px 3px;border:1px solid #7dff5a}
 #btnHide.on{background:#ffe14a;color:#111}
 #shopTabs{display:flex;gap:6px;margin:4px 0 10px;flex-wrap:wrap}
@@ -281,6 +295,9 @@ body.shielded #shieldfx{opacity:1}
     <button id="btnFire" class="ui" hidden>FUEGO</button>
     <button id="btnShield" class="ui ability" hidden aria-label="Escudo"><span><svg viewBox="0 0 16 16" width="20" height="20" shape-rendering="crispEdges"><path fill="#5ae0ff" d="M3 2h10v1h1v6h-1v2h-1v1h-1v1h-1v1H9v1H7v-1H6v-1H5v-1H4v-1H3V9H2V3h1z"/><path fill="#0c0a18" d="M7 4h2v2h2v2H9v3H7V8H5V6h2z"/></svg></span></button>
     <button id="btnGrenade" class="ui ability" hidden aria-label="Granada"><span><svg viewBox="0 0 16 16" width="18" height="18" shape-rendering="crispEdges"><path fill="#7dff5a" d="M6 4h4v1h1v1h1v6h-1v1h-1v1H6v-1H5v-1H4V6h1V5h1z"/><path fill="#c0c0c0" d="M7 1h3v1h1v2H9V3H7z"/><path fill="#0c0a18" d="M7 7h2v4H7z"/></svg><b id="grenN">0</b></span></button>
+    <button id="btnTurbo" class="ui ability" hidden aria-label="Turbo"><span><svg viewBox="0 0 16 16" width="20" height="20" shape-rendering="crispEdges"><path fill="#ff8a3d" d="M9 1h3L9 6h4l-8 9 2-6H3z"/></svg></span></button>
+    <button id="btnRevive" class="ui ability ready" hidden aria-label="Reanimar"><span><svg viewBox="0 0 16 16" width="20" height="20" shape-rendering="crispEdges"><path fill="#40ff80" d="M6 2h4v4h4v4h-4v4H6v-4H2V6h4z"/></svg></span></button>
+    <div id="regul" class="ui" hidden><span>VEL</span><input id="regulIn" type="range" min="30" max="100" value="100" aria-label="Regulador de velocidad"></div>
     <button id="btnCannon" class="ui ability" hidden aria-label="Cañón del coche"><span><svg viewBox="0 0 16 16" width="20" height="20" shape-rendering="crispEdges"><path fill="#ffb020" d="M2 9h5V7h7v2h1v2H7v2H5v1H3v-1H2z"/><path fill="#ffe14a" d="M8 8h6v1H8z"/><path fill="#0c0a18" d="M3 11h2v1H3z"/></svg></span></button>
     <button id="btnBullet" class="ui ability" hidden aria-label="Tiempo bala"><span><svg viewBox="0 0 16 16" width="20" height="20" shape-rendering="crispEdges"><path fill="#c48cff" d="M3 1h10v2h-1v2h-1v1h-1v1H9v2h1v1h1v1h1v2h1v2H3v-2h1v-2h1v-1h1V9h1V7H6V6H5V5H4V3H3z"/><path fill="#0c0a18" d="M6 3h4v1H9v1H7V4H6zm1 9h2v1h1v1H6v-1h1z"/></svg></span></button>
     <div id="slowfx"></div><div id="shieldfx"></div>

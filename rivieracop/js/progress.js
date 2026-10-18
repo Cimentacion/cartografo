@@ -27,6 +27,8 @@ export const UPGRADES = [
   { id: 'suerte', cat: 'pj', name: 'Suerte', desc: 'Armas más raras y mejores de los terroristas', max: 6, base: 2500, g: 1.6 },
   { id: 'rapina', cat: 'pj', name: 'Rapiña', desc: 'Necesitas menos disparos para quedarte un arma', max: 3, base: 1500, g: 1.8 },
   { id: 'aura', cat: 'pj', name: 'Visión roja', desc: 'Los enemigos visibles salen marcados con un contorno rojo', max: 1, base: 5000, g: 1 },
+  { id: 'emerg', cat: 'pj', name: 'Botiquín de emergencia', desc: 'La primera vez en cada zona que bajas del 25% de vida, recuperas 2', max: 3, base: 3000, g: 1.8 },
+  { id: 'descuento', cat: 'pj', name: 'Precio de amigo', desc: '-4% en el precio de todas las mejoras', max: 5, base: 2500, g: 1.7 },
   { id: 'halcon', cat: 'pj', name: 'Ojo de halcón', desc: 'La mira frena más al pasar por encima de un enemigo', max: 3, base: 1200, g: 1.6 },
   // ---- armas ----
   { id: 'atk', cat: 'arma', name: 'Ataque', desc: '+10% de daño con todas las armas', max: 20, base: 900, g: 1.25 },
@@ -46,6 +48,12 @@ export const UPGRADES = [
   { id: 'vehic', cat: 'arma', name: 'Antivehículos', desc: '+12% de daño a motos, coches, camiones, barcos y tanques', max: 6, base: 1500, g: 1.5 },
   { id: 'jefes', cat: 'arma', name: 'Cazajefes', desc: '+10% de daño a los jefes', max: 6, base: 2000, g: 1.5 },
   { id: 'veter', cat: 'arma', name: 'Veterano', desc: '+15% de experiencia para tus armas', max: 6, base: 1200, g: 1.5 },
+  { id: 'antiaereo', cat: 'arma', name: 'Antiaéreo', desc: '+15% de daño a helicópteros, drones, aviones y dirigibles', max: 5, base: 1500, g: 1.5 },
+  { id: 'cazador', cat: 'arma', name: 'Cazador', desc: '+15% de daño a animales', max: 5, base: 1200, g: 1.5 },
+  { id: 'rompe', cat: 'arma', name: 'Rompeescudos', desc: '+30% de daño a los escudos de los enemigos', max: 4, base: 1500, g: 1.6 },
+  { id: 'estab', cat: 'arma', name: 'Estabilizador', desc: '-15% de dispersión de las balas', max: 4, base: 1200, g: 1.6 },
+  { id: 'contra', cat: 'arma', name: 'Contraataque', desc: 'Tras recibir un golpe, tus siguientes disparos hacen más daño', max: 4, base: 1800, g: 1.6 },
+  { id: 'ahorro', cat: 'arma', name: 'Ahorro', desc: '+8% de que un disparo no gaste bala', max: 5, base: 1500, g: 1.6 },
   { id: 'tactica', cat: 'arma', name: 'Recarga táctica', desc: '+5% de que la recarga sea instantánea', max: 6, base: 1500, g: 1.5 },
   { id: 'cargador', cat: 'arma', name: 'Cargador ampliado', desc: '+10% de balas en las armas que coges', max: 5, base: 1200, g: 1.5 },
   // ---- el coche ----
@@ -53,11 +61,16 @@ export const UPGRADES = [
   { id: 'torreta', cat: 'coche', name: 'Torreta automática', desc: 'Una ametralladora en el capó dispara sola a lo que tengáis delante. Cada nivel dispara más y pega más', max: 5, base: 6000, g: 1.7 },
   { id: 'canon', cat: 'coche', name: 'Cañón del coche', desc: 'Botón: te subes al cañón del coche unos segundos (disparos explosivos sin recargar). Cada nivel dura más', max: 5, base: 7000, g: 1.7 },
   { id: 'ruedas', cat: 'coche', name: 'Ruedas todoterreno', desc: 'El barro os frena menos', max: 4, base: 2500, g: 1.6 },
+  { id: 'detector', cat: 'coche', name: 'Detector de minas', desc: 'Las minas se ven más y hacen un 30% menos de daño por nivel', max: 3, base: 2000, g: 1.6 },
   { id: 'parabrisas', cat: 'coche', name: 'Parabrisas reforzado', desc: 'Los que se suben al coche pegan un 15% más despacio', max: 4, base: 2500, g: 1.6 },
   // ---- poderes (botones) y sus mejoras ----
   { id: 'shield', cat: 'poder', name: 'Escudo', desc: 'Botón que te hace invulnerable unos segundos. Cada nivel dura más y carga antes', max: 8, base: 3000, g: 1.6 },
   { id: 'bullet', cat: 'poder', name: 'Tiempo bala', desc: 'Ralentiza a todos los enemigos (también a tus compañeros). Cada nivel dura más', max: 8, base: 4000, g: 1.6 },
   { id: 'gren', cat: 'poder', name: 'Granada', desc: 'Lanzas una granada que explota fuerte. No se recarga: 1 por nivel en cada partida', max: 6, base: 3000, g: 1.7 },
+  { id: 'turbo', cat: 'poder', name: 'Turbo', desc: 'Botón: el coche acelera a tope unos segundos (no sirve si estáis parados por un muro o barricada)', max: 5, base: 3000, g: 1.6 },
+  { id: 'turbo2', cat: 'poder', name: 'Turbo largo', desc: '+1 s de turbo por nivel', max: 4, base: 1500, g: 1.6 },
+  { id: 'regul', cat: 'poder', name: 'Regulador de velocidad', desc: 'Una palanca a la derecha para ir más despacio en las zonas peligrosas', max: 1, base: 4000, g: 1 },
+  { id: 'reviv', cat: 'poder', name: 'Reanimar', desc: 'Botón: revives a un compañero caído una vez por partida', max: 1, base: 6000, g: 1 },
   { id: 'escudo2', cat: 'poder', name: 'Escudo rápido', desc: '-8% de espera del escudo', max: 5, base: 2000, g: 1.6 },
   { id: 'bala2', cat: 'poder', name: 'Bala lenta', desc: '+8% de duración del tiempo bala', max: 5, base: 2000, g: 1.6 },
   { id: 'gren2', cat: 'poder', name: 'Granada gorda', desc: '+12% de radio y daño de tus granadas', max: 5, base: 2000, g: 1.6 },
@@ -83,11 +96,11 @@ export function loadProg() {
   return p;
 }
 export function saveProg(p) { try { localStorage.setItem(KEY, JSON.stringify(p)); } catch (e) { } }
-export const upgCost = (u, lv) => Math.round(u.base * Math.pow(u.g || 1.5, lv) / 50) * 50;
+export const upgCost = (u, lv, p) => Math.round(u.base * Math.pow(u.g || 1.5, lv) * (1 - 0.04 * ((p && p.upg.descuento) | 0)) / 50) * 50;
 
 // lo que necesita saber el anfitrión de cada jugador
 export const META_KEYS = ['vida', 'def', 'regen', 'botiq', 'antid', 'remedio', 'choque', 'chapa', 'esquiva', 'invul', 'antiexp', 'aliento',
-  'vampiro', 'calma', 'revivir', 'ambu', 'civil', 'botin', 'suerte', 'rapina', 'pinchos', 'torreta', 'ruedas', 'parabrisas'];
+  'vampiro', 'calma', 'revivir', 'ambu', 'civil', 'botin', 'suerte', 'rapina', 'pinchos', 'torreta', 'ruedas', 'parabrisas', 'emerg', 'detector'];
 export function metaOf(p) {
   const m = {};
   for (const k of META_KEYS) m[k] = p.upg[k] | 0;
@@ -101,6 +114,8 @@ export const bulletDur = (lv, l2 = 0) => (3 + lv * 0.6) * (1 + 0.08 * l2);
 export const bulletCd = lv => Math.max(20, 48 - lv * 3.6);
 export const ABMAX = 8;
 export const canonDur = lv => 6 + lv * 1.5;
+export const turboDur = (lv, l2 = 0) => 3 + lv * 0.8 + l2;
+export const turboCd = lv => Math.max(22, 45 - lv * 4);
 export const canonCd = lv => Math.max(28, 52 - lv * 4);
 
 // ---------- niveles de arma (se guardan por tipo de arma) ----------
@@ -134,7 +149,11 @@ export function effective(def, lv, upg) {
   e.mag = def.once ? def.mag : Math.max(1, Math.round(def.mag * (1 + 0.1 * L) * (1 + 0.12 * u('ammo')) * extraMag));
   e.reload = def.reload * Math.max(0.45, 1 - 0.05 * L) * Math.max(0.4, 1 - 0.06 * u('rec'));
   e.rate = def.rate * (1 + 0.05 * L) * (1 + 0.05 * u('cad'));
-  e.spread = (def.spread || 0) * Math.max(0.3, 1 - 0.1 * L);
+  e.spread = (def.spread || 0) * Math.max(0.3, 1 - 0.1 * L) * (1 - 0.15 * u('estab'));
+  e.airM = 1 + 0.15 * u('antiaereo');
+  e.animM = 1 + 0.15 * u('cazador');
+  e.shieldM = 1 + 0.3 * u('rompe');
+  e.saveP = 0.08 * u('ahorro');
   e.assist = 1 + 0.3 * u('aim');
   e.critP = 0.03 * u('crit');
   e.headM = 2 * (1 + 0.15 * u('cabeza'));

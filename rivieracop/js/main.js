@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { Road, LANE_ME } from './road.js';
 import { buildChunk, makeMats, CH } from './scenery.js';
-import { Sim, SEATS, isRear } from './sim.js';
+import { Sim, SEATS, isRear, AIR, ANIMAL } from './sim.js';
 import { View, Fx } from './view.js';
 import { Hud } from './hud.js';
 import { Look } from './input.js';
@@ -10,7 +10,7 @@ import { SFX } from './audio.js';
 import { Net, makeCode, NETV } from './net.js';
 import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME, BOSS } from './defs.js';
 import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES } from './weapons.js';
-import { UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd } from './progress.js';
+import { UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd, turboDur, turboCd } from './progress.js';
 import { fpGun } from './models.js';
 import { Outline, toon } from './toon.js';
 import { loadChar, saveChar, sanitize, defaultChar, SKINS, HAIRS, HAIR_COLORS, BEARDS, SHIRTS, SHIRT_COLORS, PANTS_COLORS } from './character.js';
@@ -134,13 +134,14 @@ class Mirror {
       });
     }
     const players = b.p.map(q => ({ hp: q[0], score: q[1], alive: !!q[2], inv: q[3], ly: q[4], lp: q[5], gone: !!q[6], maxHp: q[7] || 10, shield: !!q[8], poison: !!q[9] }));
-    return { carD, ents, players, cd: b.cd, sp: b.sp, sl: b.sl, mu: b.mu, sn: b.sn, cu: b.cu };
+    return { carD, ents, players, cd: b.cd, sp: b.sp, sl: b.sl, mu: b.mu, sn: b.sn, cu: b.cu, tb: b.tb };
   }
 }
 
 // ---------------- carretera / decorado ----------------
 function updateChunks(d, all) {
-  const c0 = Math.floor((d - 60) / CH), c1 = Math.floor((d + 235) / CH);
+  // con artilleros traseros se ve mucho más hacia atrás
+  const c0 = Math.floor((d - (G.n > 2 && G.running ? 200 : 60)) / CH), c1 = Math.floor((d + 235) / CH);
   let built = 0;
   for (let c = Math.max(0, c0); c <= c1; c++) {
     if (G.chunks.has(c)) continue;
@@ -240,7 +241,8 @@ function fire() {
   if (me && !me.alive) return;
   if (W.ammo <= 0) { SFX.empty(); startReload(); return; }
   const E = W.e;
-  W.ammo--; W.cd = 1 / E.rate; W.recoil = 1; W.flash = 0.06;
+  if (!(Math.random() < (E.saveP || 0))) W.ammo--;
+  W.cd = 1 / E.rate; W.recoil = 1; W.flash = 0.06;
   SFX.shot(W.def.model === 'ray' ? 'launcher' : W.def.model);
   const origin = camera.getWorldPosition(new THREE.Vector3());
   const base = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
@@ -279,6 +281,10 @@ function fire() {
     if (h.part === 'head') dm *= (E.headM || 2) / 2;
     if (ent0 && VEHT.has(ent0.type)) dm *= E.vehM || 1;
     if (ent0 && BOSS[ent0.type]) dm *= E.bossM || 1;
+    if (ent0 && AIR.has(ent0.type)) dm *= E.airM || 1;
+    if (ent0 && ANIMAL.has(ent0.type)) dm *= E.animM || 1;
+    if (h.part === 'shield') dm *= E.shieldM || 1;
+    if (W.contraT > 0) dm *= 1 + 0.25 * (PROG.upg.contra | 0);
     add(h, dm);
     // bala explosiva (mejora)
     if (!E.boom && Math.random() < (E.expP || 0)) boomAt = h.point.clone();
@@ -410,11 +416,14 @@ function handleEvent(ev) {
       fx.muzzle(a, V3.copy(view.seatWorld(ev.p, V2)).sub(a), 1.3);
       const b = view.seatWorld(ev.p, V2);
       if (!ev.hit) b.add(V3.set((Math.random() - 0.5) * 3, Math.random() * 1.5, (Math.random() - 0.5) * 3));
-      fx.tracer(a, b, 0xff4a30, 0.09, 0.035);
+      const sht = G.ents.find(x => x.id === ev.id);
+      const elec = sht && sht.type === 'jelly';
+      fx.tracer(a, b, elec ? 0x8ae0ff : 0xff4a30, elec ? 0.14 : 0.09, elec ? 0.06 : 0.035);
       SFX.eshot(a.distanceTo(camera.position));
       break;
     }
     case 'hurt':
+      if (ev.p === li && (PROG.upg.contra | 0)) W.contraT = 3;
       if (ev.p === li) {
         flash('hurt'); G.shake = 0.35; SFX.hurt();
         try { navigator.vibrate && navigator.vibrate(120); } catch (e) { }
@@ -455,6 +464,7 @@ function handleEvent(ev) {
     case 'over': gameOver(ev); break;
     case 'ability':
       if (ev.a === 'shield') { showBanner(ev.p === li ? '¡ESCUDO!' : (PNAME[ev.p] + ' USA ESCUDO'), '', '#5ae0ff'); SFX.heal(); }
+      else if (ev.a === 'turbo') { showBanner('¡TURBO!', '', '#ff8a3d'); SFX.tone(200, 900, 0.6, 'sawtooth', 0.25); }
       else { showBanner('TIEMPO BALA', 'El mundo va a cámara lenta', '#c48cff'); SFX.tone(400, 120, 0.8, 'sawtooth', 0.25); }
       break;
     case 'block': if (ev.p === li) { flash('heal'); SFX.tone(1400, 900, 0.12, 'triangle', 0.2); } break;
@@ -468,7 +478,9 @@ net.onmsg = (m, from) => {
     const S = G.sim, P = S && S.players[from];
     switch (m.t) {
       case 'hello': if (m.v !== NETV) lobbyMsg('Alguien tiene otra versión: recargad todos la página'); if (m.c) G.peerChars[from] = sanitize(m.c, from); if (m.m) G.peerMetas[from] = m.m; break;
-      case 'ab': if (S && G.running && (m.k === 'shield' || m.k === 'bullet')) S.useAbility(from, m.k, clamp(m.lv | 0, 1, ABMAX), clamp(m.l2 | 0, 0, 5)); break;
+      case 'ab': if (S && G.running && (m.k === 'shield' || m.k === 'bullet' || m.k === 'turbo')) S.useAbility(from, m.k, clamp(m.lv | 0, 1, ABMAX), clamp(m.l2 | 0, 0, 5)); break;
+      case 'rv': if (S && G.running) S.revive(from); break;
+      case 'sf': if (P) P.spdF = clamp(+m.v || 1, 0.3, 1); break;
       case 'char': G.peerChars[from] = sanitize(m.c, from); break;
       case 'l': if (P) { P.ly = m.y; P.lp = m.p; } break;
       case 'h': if (S && G.running) for (const h of m.h) S.hit(from, h[0], h[1], h[2]); break;
@@ -545,6 +557,8 @@ function begin(seed, n, li, mode) {
   AB.shield.cd = 0; AB.bullet.cd = 0;
   GR.n = PROG.upg.gren | 0; for (const g of GR.list) scene.remove(g.m); GR.list.length = 0;
   CAN.t = 0; CAN.cd = 0; CAN.saved = null;
+  TB.cd = 0; TB.rv = 0; W.contraT = 0;
+  $('regulIn').value = 100; G.spdF = 1;
   outline.red = (PROG.upg.aura | 0) > 0;
   $('btnHide').hidden = n < 2;
   clearChunks();
@@ -702,10 +716,19 @@ function uiWcard() {
   if (!w) { setHTML('wcard', ''); $('wcard').hidden = true; return; }
   $('wcard').hidden = false;
   const d = w.x.w, R = RARITY[d.rar], pr = w.x.pr || [0], nd = w.x.nd || 5;
-  let h = `<div class="wct" style="background:${R.color}">${d.name.toUpperCase()}</div><div class="wcr">${R.name}</div>`;
-  for (const [k, v] of weaponLines(d)) h += `<div class="wcl"><span>${k}</span><b>${v}</b></div>`;
-  h += `<div class="wcl"><span>TU NIVEL</span><b>NV ${weaponLevel(PROG, d.id).lv}</b></div>`;
-  h += '<div class="wcs">¡DISPÁRALE PARA COGERLA!</div>';
+  // comparativa con tu arma actual (con tus niveles y mejoras)
+  const N = effective(d, weaponLevel(PROG, d.id).lv, PROG.upg), C = W.e;
+  const cmp = (lbl, a, b, fmt, lowBetter) => {
+    const up = lowBetter ? a < b - 1e-6 : a > b + 1e-6, dn = lowBetter ? a > b + 1e-6 : a < b - 1e-6;
+    return `<div class="wcl"><span>${lbl}</span><b>${fmt(a)} <i class="${up ? 'up' : dn ? 'dn' : 'eq'}">${up ? '▲' : dn ? '▼' : '='}</i></b></div>`;
+  };
+  let h = `<div class="wct" style="background:${R.color}">${d.name.toUpperCase()}</div>`;
+  h += cmp('DAÑO', N.dmg * (N.pellets || 1), C.dmg * (C.pellets || 1), v => v.toFixed(1));
+  h += cmp('BALAS', N.mag, C.mag, v => String(Math.round(v)));
+  h += cmp('RITMO', N.rate, C.rate, v => v.toFixed(1));
+  h += cmp('RECARGA', N.once ? 99 : N.reload, C.once ? 99 : C.reload, v => (v >= 99 ? '—' : v.toFixed(1) + 's'), true);
+  if (N.boom) h += '<div class="wcl"><span>EXPLOSIVA</span><b><i class="up">✓</i></b></div>';
+  h += '<div class="wcs">¡DISPÁRALE!</div>';
   for (let i = 0; i < pr.length; i++) h += `<div class="wcb"><i style="width:${Math.min(100, pr[i] / nd * 100)}%;background:${PCOL[i]}"></i></div>`;
   setHTML('wcard', h);
 }
@@ -745,6 +768,30 @@ function gyroStatus() {
   if (UIC.gyro !== t) { UIC.gyro = t; $('gyroSt').textContent = t; $('gyroSt2').textContent = t; }
 }
 
+// ---------------- turbo, reanimar y regulador de velocidad ----------------
+const TB = { cd: 0, max: 1, rv: 0 };
+function useTurbo() {
+  const lv = PROG.upg.turbo | 0;
+  if (!lv || TB.cd > 0 || !G.running || G.over || G.cd > 0) return;
+  if (G.stun) { showBanner('EL TURBO NO SIRVE AHORA', 'Estáis parados', '#aaaaaa'); return; }
+  TB.cd = turboCd(lv); TB.max = TB.cd;
+  const l2 = PROG.upg.turbo2 | 0;
+  if (G.mode === 'guest') net.send({ t: 'ab', k: 'turbo', lv, l2 });
+  else G.sim.useAbility(G.li, 'turbo', lv, l2);
+}
+function useRevive() {
+  if (!(PROG.upg.reviv | 0) || TB.rv || !G.running || G.over) return;
+  const me = G.players[G.li];
+  if (!me || !me.alive || !G.players.some(p => !p.alive && !p.gone)) return;
+  TB.rv = 1;
+  if (G.mode === 'guest') net.send({ t: 'rv' });
+  else G.sim.revive(G.li);
+}
+function setSpeedF(v) {
+  G.spdF = clamp(v, 0.3, 1);
+  if (G.mode === 'guest') net.send({ t: 'sf', v: G.spdF });
+  else if (G.sim && G.sim.players[G.li]) G.sim.players[G.li].spdF = G.spdF;
+}
 // ---------------- habilidades: escudo y tiempo bala ----------------
 function useAbility(k) {
   const lv = PROG.upg[k] | 0;
@@ -758,6 +805,16 @@ function useAbility(k) {
   else G.sim.useAbility(G.li, k, lv, l2);
 }
 function uiAbilities(dt) {
+  const tb = $('btnTurbo'), tl = PROG.upg.turbo | 0;
+  tb.hidden = !tl;
+  if (tl) {
+    if (TB.cd > 0) TB.cd = Math.max(0, TB.cd - dt);
+    tb.style.setProperty('--p', (TB.cd > 0 ? Math.round((1 - TB.cd / TB.max) * 100) : 100) + '%');
+    tb.classList.toggle('ready', TB.cd <= 0);
+  }
+  const rb = $('btnRevive');
+  rb.hidden = !(PROG.upg.reviv | 0) || TB.rv || G.n < 2 || !G.players.some(p => !p.alive && !p.gone);
+  $('regul').hidden = !(PROG.upg.regul | 0);
   const cb = $('btnCannon'), cl = PROG.upg.canon | 0;
   cb.hidden = !cl;
   if (cl) {
@@ -806,7 +863,7 @@ function tick(dt) {
   // --- estado del mundo ---
   if (G.mode === 'guest') {
     const s = G.mir.sample();
-    if (s) { G.carD = s.carD; G.ents = s.ents; G.players = s.players; G.cd = s.cd; G.speed = s.sp; G.slow = !!s.sl; G.mult = s.mu || 1; G.stun = !!s.sn; G.cu = s.cu; }
+    if (s) { G.carD = s.carD; G.ents = s.ents; G.players = s.players; G.cd = s.cd; G.speed = s.sp; G.slow = !!s.sl; G.mult = s.mu || 1; G.stun = !!s.sn; G.cu = s.cu; G.turbo = !!s.tb; }
     G.road.extend(G.carD + 340);
     const rt = G.mir.rt;
     while (G.evq.length && G.evq[0].st <= rt) handleEvent(G.evq.shift());
@@ -828,7 +885,8 @@ function tick(dt) {
     }
     G.carD = S.carD; G.ents = S.ents; G.speed = S.speed; G.slow = S.slowT > 0; G.mult = S.ptsMult();
     G.players = S.players.map(P => Object.assign({}, P, { shield: P.shieldT > 0, poison: P.poison > 0 }));
-    G.stun = S.stunT > 0;
+    G.stun = S.stunT > 0 || S.hold;
+    G.turbo = S.turboT > 0 && !S.hold && S.stunT <= 0;
     G.cd = S.phase === 'count' ? S.countT : -1;
   }
   // --- cuenta atrás ---
@@ -837,7 +895,7 @@ function tick(dt) {
   if (G.cd > 0) setHTML('countN', String(Math.ceil(G.cd)));
   // --- coche, cámara ---
   G.shake = Math.max(0, G.shake - dt);
-  view.placeCar(G.carD, G.t, G.shake * 0.15);
+  view.placeCar(G.carD, G.t, G.shake * 0.15, dt, G.speed);
   updateChunks(G.carD, false);
   const car = view.car;
   // horizonte siempre recto (no copia la cuesta ni el traqueteo del coche)
@@ -880,6 +938,11 @@ function tick(dt) {
       fx.part(V1, V2.set((Math.random() - 0.5) * 2, 1.5 + Math.random() * 1.5, (Math.random() - 0.5) * 2).clone(), 0.6, 0.18, fx.m.feather, 6, 1);
     }
   }
+  // burbujas bajo el agua
+  if (BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]].deco === 'submarino' && G.road.kindAt(G.carD) === 0 && Math.random() < dt * 14) {
+    V1.set((Math.random() - 0.5) * 6, Math.random() * 2, (Math.random() - 0.5) * 8); car.localToWorld(V1);
+    fx.part(V1, V2.set((Math.random() - 0.5) * 0.4, 1.5 + Math.random(), (Math.random() - 0.5) * 0.4).clone(), 2.2, 0.08 + Math.random() * 0.08, fx.m.feather, -0.5, 0);
+  }
   // --- entidades ---
   view.sync(G.ents, { li, t: G.t, dt });
   // --- arma ---
@@ -895,6 +958,10 @@ function tick(dt) {
   look.slow = hud.hot ? 0.4 / (1 + 0.35 * (PROG.upg.halcon | 0)) : 1;
   updGrenades(dt);
   W.recoil = Math.max(0, W.recoil - dt * 9);
+  if (W.contraT > 0) W.contraT -= dt;
+  // turbo: campo de visión más abierto
+  const fov = 72 + (G.turbo ? 10 : 0);
+  if (Math.abs(camera.fov - fov) > 0.1) { camera.fov += (fov - camera.fov) * Math.min(1, dt * 4); camera.updateProjectionMatrix(); }
   W.flash -= dt;
   if (fpg) {
     fpg.visible = !!(me && me.alive);
@@ -972,7 +1039,7 @@ function botAim() {
     if (ty === 'truck') p.y += 2;
     const d = p.distanceTo(camPos);
     if (d > (ty === 'wall' || ty === 'train' ? 170 : 90)) continue;
-    const s = (ty === 'wall' || ty === 'train' || ty === 'rock' ? 90 : ty === 'sign' || ty === 'weapon' || ty === 'medkit' ? 60 : 30) - d * 0.3;
+    const s = (ty === 'wall' || ty === 'train' || ty === 'rock' || ty === 'junk' || ty === 'mine' ? 90 : ty === 'sign' || ty === 'weapon' || ty === 'medkit' ? 60 : 30) - d * 0.3;
     if (s > bs) { bs = s; best = p; }
   }
   if (best) {
@@ -1203,7 +1270,7 @@ function paintShop() {
   const L = $('shopList'); L.innerHTML = '';
   for (const u of UPGRADES) {
     if (u.cat !== G.shopCat) continue;
-    const lv = PROG.upg[u.id] | 0, cost = upgCost(u, lv);
+    const lv = PROG.upg[u.id] | 0, cost = upgCost(u, lv, PROG);
     const d = document.createElement('div'); d.className = 'upg';
     let pips = ''; for (let i = 0; i < u.max; i++) pips += `<i class="${i < lv ? 'on' : ''}"></i>`;
     d.innerHTML = `<b>${u.name.toUpperCase()} <em>${lv}/${u.max}</em></b><p>${u.desc}</p><div class="lvpips">${pips}</div>`;
@@ -1233,9 +1300,13 @@ $('shopBack').onclick = () => { $('shop').hidden = true; $('menu').hidden = fals
 $('btnShield').addEventListener('pointerdown', e => { e.stopPropagation(); useAbility('shield'); });
 $('btnGrenade').addEventListener('pointerdown', e => { e.stopPropagation(); throwGrenade(); });
 $('btnCannon').addEventListener('pointerdown', e => { e.stopPropagation(); useCannon(); });
+$('btnTurbo').addEventListener('pointerdown', e => { e.stopPropagation(); useTurbo(); });
+$('btnRevive').addEventListener('pointerdown', e => { e.stopPropagation(); useRevive(); });
+$('regulIn').addEventListener('input', e => setSpeedF(+e.target.value / 100));
+for (const ev of ['pointerdown', 'pointermove', 'touchstart', 'touchmove']) $('regul').addEventListener(ev, e => e.stopPropagation(), { passive: true });
 $('btnHide').addEventListener('pointerdown', e => { e.stopPropagation(); G.hideMates = !G.hideMates; $('btnHide').classList.toggle('on', !!G.hideMates); });
 $('btnBullet').addEventListener('pointerdown', e => { e.stopPropagation(); useAbility('bullet'); });
-window.addEventListener('keydown', e => { if (e.code === 'KeyQ') useAbility('shield'); if (e.code === 'KeyE') useAbility('bullet'); if (e.code === 'KeyG') throwGrenade(); if (e.code === 'KeyF') useCannon(); });
+window.addEventListener('keydown', e => { if (e.code === 'KeyQ') useAbility('shield'); if (e.code === 'KeyE') useAbility('bullet'); if (e.code === 'KeyG') throwGrenade(); if (e.code === 'KeyF') useCannon(); if (e.code === 'KeyT') useTurbo(); });
 
 const SENS = [1, 1.5, 2, 2.6];
 function setSens(i) {

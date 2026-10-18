@@ -1,7 +1,10 @@
 // Datos del juego: zonas (biomas), bonus de ruta y tipos de entidad
 
 export const BIOME_KEYS = ['monaco', 'puerto', 'casino', 'autopista', 'industrial', 'cornisa', 'detroit', 'desierto', 'costa', 'trenes', 'acantilados', 'orgullo',
-  'militar', 'manifa', 'barro', 'chino', 'rio', 'semaforos', 'trenmil'];
+  'militar', 'manifa', 'barro', 'chino', 'rio', 'semaforos', 'trenmil',
+  'bosque', 'guerra', 'llanura', 'ruinas', 'submarino'];
+// zonas de ciudad: más edificios detrás, rascacielos y pasarelas elevadas
+export const CITY = new Set(['monaco', 'casino', 'detroit', 'manifa', 'semaforos', 'orgullo', 'chino']);
 
 // w = multiplicadores de probabilidad de oleadas; pts = multiplicador de puntos; lv = dificultad base de la zona
 export const BIOMES = {
@@ -178,6 +181,53 @@ export const BIOMES = {
     build: [0x6a7050], roof: 0x3a4030,
     w: { gunman: 0.4, drone: 1.2 }, pts: 1.7, deco: 'trenmil', lv: 5,
   },
+  bosque: {
+    name: 'BOSQUE OSCURO', color: '#7a9a6a',
+    sky: 0x0c120e, fogNear: 6, fogFar: 55, sea: 0x0a100c,
+    asphalt: 0x2a2a28, walk: 0x3a3a30, skirt: 0x1e2a18, line: 0x8a8a70,
+    hemi: [0x8aa08a, 0x101410, 0.7], sun: [0xa0b0c0, 0.35], night: true,
+    slope: 0, hmin: 10, hmax: 16, hair: 0,
+    build: [0x2a2a22], roof: 0x1a1a14,
+    // en la niebla solo hay animales
+    w: { gunman: 0, moto: 0, ecar: 0, drone: 0, heli: 0, sniper: 0, barrels: 0, jumper: 0, grenadier: 0, quad: 0, pickup: 0, van: 0, bus: 0, truck: 0, civcar: 0 }, pts: 1.6, deco: 'bosque', lv: 3,
+  },
+  guerra: {
+    name: 'ZONA DE GUERRA', color: '#ff7a3a',
+    sky: 0x8a7a68, fogNear: 45, fogFar: 170, sea: 0x3a3a30,
+    asphalt: 0x3e3a36, walk: 0x6a645a, skirt: 0x4a4234, line: 0xc8b890,
+    hemi: [0xe0c8b0, 0x40382c, 0.95], sun: [0xffb080, 1.1], night: false,
+    slope: 0, hmin: 10, hmax: 16, hair: 0,
+    build: [0x8a7a6a, 0x7a6a5a, 0x6a5a4a], roof: 0x3a3028,
+    w: { gunman: 2, grenadier: 1.6, heli: 1.4, drone: 1.3, sniper: 1.3 }, pts: 1.8, deco: 'guerra', lv: 5,
+  },
+  llanura: {
+    name: 'LA GRAN LLANURA', color: '#c8f07a',
+    sky: 0x9ad0ff, fogNear: 120, fogFar: 330, sea: 0x5a8a3a,
+    asphalt: 0x56585c, walk: 0xb0a890, skirt: 0x7aa84a, line: 0xffffff,
+    hemi: [0xffffff, 0x6a8a4a, 1.15], sun: [0xfff4e0, 1.7], night: false,
+    slope: 0, hmin: 8, hmax: 12, hair: 0,
+    build: [0xe8dcc0], roof: 0xa04a2a,
+    w: { drone: 1.8, heli: 1.6, gunman: 0.5, sniper: 0 }, pts: 1.5, deco: 'llanura', lv: 4,
+  },
+  ruinas: {
+    name: 'CIUDAD EN RUINAS', color: '#c0a080',
+    sky: 0x8a8a84, fogNear: 40, fogFar: 150, sea: 0x3a3a38,
+    asphalt: 0x3a3a3a, walk: 0x6a6660, skirt: 0x4a4640, line: 0x9a9a8a,
+    hemi: [0xd8d0c8, 0x403c38, 0.9], sun: [0xf0e0d0, 1.0], night: false,
+    slope: 0, hmin: 10, hmax: 14, hair: 0, vf: 0.3, len: 420,
+    build: [0x8a8070, 0x7a7266, 0x6a645a], roof: 0x3a3630,
+    // la calle está vacía: los enemigos están arriba, en lo que queda de los edificios
+    w: { gunman: 0, moto: 0, ecar: 0, drone: 0, heli: 0, sniper: 0, barrels: 0, jumper: 0, grenadier: 0, quad: 0, pickup: 0, van: 0, bus: 0, truck: 0, civcar: 0, sniper: 1.2 }, pts: 1.7, deco: 'ruinas', lv: 4,
+  },
+  submarino: {
+    name: 'FONDO MARINO', color: '#3ad0ff',
+    sky: 0x0a3a5a, fogNear: 10, fogFar: 85, sea: 0x08304a,
+    asphalt: 0x6a6a58, walk: 0xc8b890, skirt: 0xb8a878, line: 0x8ae0ff,
+    hemi: [0x8ad0ff, 0x10304a, 0.9], sun: [0x8ad8ff, 0.9], night: false,
+    slope: 0, hmin: 8, hmax: 10, hair: 0, vf: 0.8, len: 1440,
+    build: [0x3a6a6a], roof: 0x2a4a4a,
+    w: { gunman: 0, moto: 0, ecar: 0, drone: 0, heli: 0, sniper: 0, barrels: 0, jumper: 0, grenadier: 0, quad: 0, pickup: 0, van: 0, bus: 0, truck: 0, civcar: 0 }, pts: 1.6, deco: 'submarino', lv: 4,
+  },
 };
 
 // Bonus extra que puede llevar cada cartel de ruta
@@ -193,9 +243,10 @@ export const BONUSES = [
 export const TYPES = ['gunman', 'civilian', 'moto', 'ecar', 'heli', 'drone', 'truck', 'chicken', 'civcar',
   'amb', 'medkit', 'jeep', 'weapon', 'sign', 'barrel', 'grenade', 'rocket', 'sniper', 'wall', 'train', 'rock', 'lady',
   'jumper', 'tank', 'rig', 'rioter', 'thrown', 'fuel', 'chef', 'boat', 'tlight', 'mtrain', 'preview', 'float',
-  'quad', 'pickup', 'van', 'bus', 'canoe'];
+  'quad', 'pickup', 'van', 'bus', 'canoe',
+  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'whale'];
 // jefes: llevan barra de vida en pantalla
-export const BOSS = { bus: 'AUTOBÚS', jeep: 'TERRORISTA', heli: 'HELICÓPTERO', wall: 'MURO', train: 'TREN', tank: 'TANQUE', rig: 'CAMIÓN', chef: 'EL CHEF DEL BUFFET', mtrain: 'TREN MILITAR' };
+export const BOSS = { bear: 'OSO GRIZZLY', blimp: 'DIRIGIBLE', bus: 'AUTOBÚS', jeep: 'TERRORISTA', heli: 'HELICÓPTERO', wall: 'MURO', train: 'TREN', tank: 'TANQUE', rig: 'CAMIÓN', chef: 'EL CHEF DEL BUFFET', mtrain: 'TREN MILITAR' };
 export const TI = Object.fromEntries(TYPES.map((t, i) => [t, i]));
 
 // Estados de entidad
