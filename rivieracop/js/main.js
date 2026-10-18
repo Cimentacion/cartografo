@@ -51,7 +51,7 @@ sun.castShadow = true;
 sun.shadow.mapSize.set(1024, 1024);
 // sombras de los edificios y el decorado hasta lo lejos: un mapa grande que solo se vuelve a calcular cada ~30 m
 // (lo que se mueve lleva su sombra suave debajo); así no tiemblan y casi no cuestan
-Object.assign(sun.shadow.camera, { left: -120, right: 120, top: 120, bottom: -120, near: 1, far: 700 });
+Object.assign(sun.shadow.camera, { left: -145, right: 145, top: 145, bottom: -145, near: 1, far: 700 });
 sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.05; sun.shadow.radius = 10; sun.shadow.blurSamples = 16;
 renderer.shadowMap.autoUpdate = false;
 sun.shadow.camera.updateProjectionMatrix();
@@ -172,7 +172,7 @@ class Mirror {
 // ---------------- carretera / decorado ----------------
 function updateChunks(d, all) {
   // con artilleros traseros se ve mucho más hacia atrás
-  const c0 = Math.floor((d - (G.n > 2 && G.running ? 200 : 60)) / CH), c1 = Math.floor((d + 235) / CH);
+  const c0 = Math.floor((d - (G.n > 2 && G.running ? 200 : 60)) / CH), c1 = Math.floor((d + 262) / CH);
   let built = 0;
   for (let c = Math.max(0, c0); c <= c1; c++) {
     if (G.chunks.has(c)) continue;
@@ -626,7 +626,8 @@ function begin(seed, n, li, mode) {
   view.clear(); view.road = G.road;
   if (mode === 'solo') G.chars = [MYCHAR, defaultChar(1), defaultChar(2), defaultChar(3)];
   view.setAvatars(G.chars || [MYCHAR, defaultChar(1), defaultChar(2), defaultChar(3)]);
-  view.av.forEach((a, i) => (a.visible = n > 1 && i !== li));
+  // solo se ven los compañeros que hay de verdad (con 3 jugadores, el cuarto asiento va vacío)
+  view.av.forEach((a, i) => (a.visible = n > 1 && i < n && i !== li));
   hud.myCol = PCOL[li];
   W.def = defaultWeapon(); recalcWeapon(); W.ammo = W.e.mag; W.rl = 0; W.cd = 0;
   setFpGun();
@@ -1313,10 +1314,10 @@ function tick(dt) {
   if (G.shake > 0) camera.position.add(V1.set((Math.random() - 0.5) * G.shake * 0.3, (Math.random() - 0.5) * G.shake * 0.3, 0));
   camera.updateMatrixWorld(true);
   // compañero
-  for (let i = 0; i < G.n; i++) {
+  for (let i = 0; i < 4; i++) {
     if (i === li) continue;
     const P = G.players[i], av = view.av[i];
-    if (!P) continue;
+    if (!P || i >= G.n) { av.visible = false; continue; }
     av.visible = !P.gone && !G.hideMates;
     av.userData.yaw.rotation.set(P.alive ? 0 : 0.7, (P.ly || 0) + (isRear(i, G.n) ? Math.PI : 0), 0);
     av.userData.rig.armR.rotation.x = P.lp || 0;
@@ -1405,16 +1406,17 @@ function tick(dt) {
   ENV.hi = lerp(ENV.hi, B.hemi[2] * (inTun ? 0.75 : 1), k * 2);
   ENV.sc.lerp(TC.setHex(B.sun[0]), k);
   ENV.si = lerp(ENV.si, B.sun[1] * (inTun ? 0.45 : 1), k * 2);
-  ENV.fn = lerp(ENV.fn, B.fogNear, k); ENV.ff = lerp(ENV.ff, B.fogFar, k);
+  // la niebla acaba antes de donde termina el decorado construido y la zona con sombras: nada aparece de golpe
+  ENV.fn = lerp(ENV.fn, Math.min(B.fogNear, 120), k); ENV.ff = lerp(ENV.ff, Math.min(B.fogFar, 215), k);
   scene.background.copy(ENV.sky); scene.fog.color.copy(ENV.sky);
   scene.fog.near = ENV.fn; scene.fog.far = ENV.ff;
   seaMat.color.copy(ENV.sea);
   hemi.color.copy(ENV.hs); hemi.groundColor.copy(ENV.hg); hemi.intensity = ENV.hi * 0.72;
   sun.color.copy(ENV.sc); sun.intensity = ENV.si * 1.35; // el sol marca más las caras de los edificios
   // el sol sigue al coche; la zona con sombras va un poco por delante de la cámara
-  G.road.toWorld(G.carD + 100, 0, 0, V2);
+  G.road.toWorld(G.carD + (G.n > 2 ? 60 : 95), 0, 0, V2);
   // se recoloca en saltos de ~40 m que son un número exacto de píxeles del mapa: los bordes no bailan
-  { const px = 240 / sun.shadow.mapSize.x, tx = Math.round(40 / px) * px, a = Math.round(V2.dot(SUNX) / tx) * tx, b = Math.round(V2.dot(SUNY) / tx) * tx, c = Math.round(V2.dot(SUNZ) / tx) * tx;
+  { const px = 290 / sun.shadow.mapSize.x, tx = Math.round(40 / px) * px, a = Math.round(V2.dot(SUNX) / tx) * tx, b = Math.round(V2.dot(SUNY) / tx) * tx, c = Math.round(V2.dot(SUNZ) / tx) * tx;
     const key = a + ',' + b + ',' + c;
     if (key !== SHC.key || SHC.dirty) { SHC.key = key; SHC.dirty = false; renderer.shadowMap.needsUpdate = true; }
     sun.target.position.copy(SUNX).multiplyScalar(a).addScaledVector(SUNY, b).addScaledVector(SUNZ, c); }
