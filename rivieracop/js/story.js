@@ -43,4 +43,11 @@ export const STORY = [
     radio: [[['pixel', 'Leed los paneles del túnel: avisan de lo que viene en cada tramo.']], [['duval', 'Bajada a tope. Motoristas por detrás y lanzacohetes en los lados.'], ['pixel', '¡Los misiles se pueden derribar!']], [['viuda', 'Llegó la hora. Cuando os ciegue el humo, ni sabréis dónde estoy.'], ['baron', '¡Acabad con ellos!']]],
     outro: [['viuda', 'Imposible...'], ['duval', 'El Barón ha caído con su helicóptero. La Riviera vuelve a ser libre.'], ['pixel', 'Y yo me quedo sus cuentas para reconstruir la costa. ¡Gracias, agentes!']],
   },
+  // PRUEBA (siempre desbloqueado, no cuenta para el progreso): la ciudad zombi suelta
+  {
+    t: 'PRUEBA: CIUDAD ZOMBI', z: ['zombi'], test: true, zd: 2,
+    intro: [['pixel', 'Algo ha pasado en la ciudad. Los vecinos... ya no son vecinos.'], ['duval', 'Hay un hospital en la avenida principal. Bajad, buscad la llave de la salida y salid por detrás.'], ['pixel', 'Cuidado con los gordos: si llegan al coche, os paran en seco.']],
+    radio: [[['pixel', 'El hospital está más adelante. Aguantad las hordas hasta llegar.']]],
+    outro: [['duval', 'Habéis salido del hospital con vida. Buen trabajo, agentes.']],
+  },
 ];

@@ -704,7 +704,7 @@ function begin(seed, n, li, mode) {
   G.mode = mode; G.n = n; G.li = li; G.seed = seed >>> 0;
   const qb = BIOME_KEYS.indexOf(Q.get('zona') || ''); // TODO-TESTEO: empezar en una zona concreta
   const SC = G.story != null ? STORY[G.story] : null;
-  if (SC) G.road = new Road(G.seed, BIOME_KEYS.indexOf(SC.z[0]), BIOMES[SC.z[0]].lv + G.story);
+  if (SC) G.road = new Road(G.seed, BIOME_KEYS.indexOf(SC.z[0]), SC.zd || BIOMES[SC.z[0]].lv + G.story);
   else G.road = new Road(G.seed, qb > 0 && mode === 'solo' ? qb : 0, +Q.get('zd') || 1);
   G.road.extend(520);
   G.sim = mode === 'guest' ? null : new Sim(G.road, n, G.seed, { story: SC ? { ch: G.story, z: SC.z.map(k => BIOME_KEYS.indexOf(k)) } : null, speed: G.speedIdx, metas: [0, 1, 2, 3].map(i => (i === 0 ? metaOf(PROG) : G.peerMetas[i] || {})) });
@@ -771,8 +771,8 @@ function gameOver(ev) {
     G.nextStory = null;
     if (G.story != null && ev.win) {
       const ch = ev.ch | 0;
-      if ((PROG.story | 0) < ch + 1) { PROG.story = ch + 1; saveProg(PROG); }
-      if (ch + 1 < STORY.length) G.nextStory = ch + 1;
+      if (!STORY[ch].test && (PROG.story | 0) < ch + 1) { PROG.story = ch + 1; saveProg(PROG); }
+      if (ch + 1 < STORY.length && !STORY[ch].test && !STORY[ch + 1].test) G.nextStory = ch + 1;
       if (STORY[ch].outro) setTimeout(() => dialog(STORY[ch].outro), 300);
     }
     $('btnNext').hidden = G.nextStory == null || G.mode === 'guest';
@@ -1260,15 +1260,19 @@ function uiRadio(dt) {
   el.hidden = false; RADIO.t = 4.6;
   SFX.tone(1200, 900, 0.08, 'square', 0.08);
 }
-function storyLabel() { const n = Math.min(STORY.length, (PROG.story | 0) + 1); return (PROG.story | 0) >= STORY.length ? 'Completada' : 'Capítulo ' + n + ' de ' + STORY.length; }
+const STORY_N = STORY.filter(s => !s.test).length;
+function storyLabel() { const n = Math.min(STORY_N, (PROG.story | 0) + 1); return (PROG.story | 0) >= STORY_N ? 'Completada' : 'Capítulo ' + n + ' de ' + STORY_N; }
 function paintStory() {
   const L = $('storyList'); L.innerHTML = '';
-  STORY.forEach((S, i) => {
-    const unlocked = i <= (PROG.story | 0), done = i < (PROG.story | 0);
+  // la prueba sale la primera (así se ve sin bajar)
+  const ord = STORY.map((S, i) => i).sort((a, b) => (STORY[b].test ? 1 : 0) - (STORY[a].test ? 1 : 0));
+  ord.forEach(i => {
+    const S = STORY[i];
+    const unlocked = S.test || i <= (PROG.story | 0), done = !S.test && i < (PROG.story | 0);
     const c = document.createElement('button');
     c.className = 'chap' + (unlocked ? '' : ' lock') + (done ? ' done' : '');
     c.style.setProperty('--c', BIOMES[S.z[S.z.length - 1]].color);
-    c.innerHTML = `<span class="cn">CAPÍTULO ${i + 1}</span><span class="cs">${done ? '✔ HECHO' : unlocked ? '▶ JUGAR' : '🔒'}</span><b class="ct">${S.t}</b><div class="cz">${S.z.map(z => `<span>${BIOMES[z].name}</span>`).join('')}</div>`;
+    c.innerHTML = `<span class="cn">${S.test ? 'PRUEBA' : 'CAPÍTULO ' + (i + 1)}</span><span class="cs">${done ? '✔ HECHO' : unlocked ? '▶ JUGAR' : '🔒'}</span><b class="ct">${S.t}</b><div class="cz">${S.z.map(z => `<span>${BIOMES[z].name}</span>`).join('')}</div>`;
     c.onclick = async () => {
       if (!unlocked) { SFX.empty(); return; }
       await prep();
@@ -1288,8 +1292,9 @@ $('btnStory').onclick = () => { for (const sc of document.querySelectorAll('.scr
 $('storyBack').onclick = () => { $('storyScr').hidden = true; $('menu').hidden = false; };
 // en la sala, el anfitrión elige arcade o un capítulo de la historia para todos
 $('btnMode').onclick = () => {
-  const max = Math.min(STORY.length - 1, PROG.story | 0);
-  G.story = G.story == null ? 0 : G.story + 1 > max ? null : G.story + 1;
+  const opts = STORY.map((S, i) => i).filter(i => STORY[i].test || i <= (PROG.story | 0));
+  const k = G.story == null ? 0 : opts.indexOf(G.story) + 1;
+  G.story = k < opts.length ? opts[k] : null;
   $('btnMode').textContent = 'MODO: ' + (G.story == null ? 'ARCADE' : 'HISTORIA ' + (G.story + 1) + ' · ' + STORY[G.story].t);
 };
 // ---------------- poción (se consigue viendo un anuncio) ----------------
