@@ -50,13 +50,15 @@ export function makeMats() {
     // luces que parpadean (pilotos LED) y fluorescentes que titilan: main.js les cambia el brillo
     E: new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }),
     Y: new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }),
+    // haces de luz (suman luz, no tapan)
+    V: new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }),
     N: new THREE.MeshBasicMaterial({ vertexColors: true, map: mk(true) }),
     A: T('asphalt'), P: T('pave'), C: T('conc', { side: THREE.DoubleSide }), K: T('rock', { side: THREE.DoubleSide }),
     Q: T('corr'), U: T('rust'), S: T('steel'), T: T('tile', { side: THREE.DoubleSide }), D: T('wood'), B: T('brick'),
     F: T('graff'), M: T('mural'),
   };
 }
-const LIST_KEYS = ['L', 'W', 'G', 'E', 'Y', 'N', 'A', 'P', 'C', 'K', 'Q', 'U', 'S', 'T', 'D', 'B', 'F', 'M'];
+const LIST_KEYS = ['L', 'W', 'G', 'E', 'Y', 'V', 'N', 'A', 'P', 'C', 'K', 'Q', 'U', 'S', 'T', 'D', 'B', 'F', 'M'];
 const LIGHT = (hex, k) => { _c.setHex(hex); _c.lerp(_w.setHex(0xffffff), k); return _c.getHex(); };
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(1, 1, 1);
@@ -745,6 +747,30 @@ function pChurch(R, road, d, r) {
 // ---------- ciudad zombi ----------
 // hospital: se entra a pie. u = metros desde la puerta (a lo largo de la carretera), v = lateral
 const i2 = u => Math.round(u) % 2 === 0;
+// cuadrilátero de luz: pts = 4 puntos [u, v, h] y su brillo (0..1) en cada esquina
+function lightQuad(L, road, H, pts, col, k) {
+  const pos = [], cl = [];
+  _c.setHex(col);
+  for (let i = 0; i < 4; i++) { road.toWorld(H + pts[i][0], pts[i][1], pts[i][2], _p); pos.push(_p.x, _p.y, _p.z); cl.push(_c.r * k[i], _c.g * k[i], _c.b * k[i]); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(cl, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 1], 2));
+  g.setIndex([0, 1, 2, 0, 2, 3]);
+  g.computeVertexNormals();
+  L.push(g);
+}
+// luz fuerte que sale por una puerta: mancha en el suelo y haz en el aire, cortados por el marco
+// (u = centro de la puerta, v = pared, dir = hacia dónde sale, w = medio ancho del hueco)
+function doorLight(RI, road, H, u, v, dir, w, len, col) {
+  const f = v + dir * len, sp = w + len * 0.45, hf = 0.205;
+  lightQuad(RI.V, road, H, [[u - w, v, hf], [u + w, v, hf], [u + sp, f, hf], [u - sp, f, hf]], col, [0.75, 0.75, 0, 0]);
+  // el haz baja desde lo alto del hueco hasta el suelo, abriéndose
+  lightQuad(RI.V, road, H, [[u - w, v, 2.55], [u + w, v, 2.55], [u + sp * 0.9, f * 0.35 + v * 0.65 + dir * 0.6, hf], [u - sp * 0.9, f * 0.35 + v * 0.65 + dir * 0.6, hf]], col, [0.32, 0.32, 0, 0]);
+  for (const s of [-1, 1]) lightQuad(RI.V, road, H, [[u + s * w, v, 2.55], [u + s * w, v, hf], [u + s * sp * 0.9, f * 0.35 + v * 0.65 + dir * 0.6, hf], [u + s * sp * 0.9, f * 0.35 + v * 0.65 + dir * 0.6, hf]], col, [0.2, 0.2, 0, 0]);
+  // la luz también lava la pared de enfrente
+  lightQuad(RI.V, road, H, [[u - sp, f - dir * 0.12, 0.2], [u + sp, f - dir * 0.12, 0.2], [u + sp * 0.8, f - dir * 0.12, 2.0], [u - sp * 0.8, f - dir * 0.12, 2.0]], col, [0.28, 0.28, 0, 0]);
+}
 function hospital(R, RI, road, H) {
   const B = (L, u0, u1, v0, v1, h0, h1, col, o = {}) => addBox(L, v1 - v0, h1 - h0, u1 - u0, col, frame(road, H + (u0 + u1) / 2, (v0 + v1) / 2, (h0 + h1) / 2), o);
   // pared interior en dos tonos (zócalo verde de hospital y pintura clara arriba)
@@ -818,13 +844,25 @@ function hospital(R, RI, road, H) {
   // fluorescentes (alguno fundido) y rejillas de ventilación en el techo
   for (let u = 2; u < 55; u += 4) for (const v of [-6, 0, 8.5]) {
     if ((v === 8.5 && u > 47) || (v === -6 && u > 13) || (v === 0 && u > 4 && u < 14)) continue;
-    const q = (u * 7 + v * 3 + 50) % 5;
+    let q = (u * 7 + v * 3 + 50) % 5;
+    if (v !== -6 && q === 0) q = 2; // pasillos casi a oscuras: la luz llega de las habitaciones
     // pocas encendidas: el resto fundidas o titilando (los pasillos quedan en penumbra)
     B(q === 0 ? RI.G : q === 1 ? RI.Y : RI.L, u - 0.6, u + 0.6, v - 0.18, v + 0.18, 3.3, 3.4, q <= 1 ? 0xd8fffa : 0x3a4a4e);
     B(RI.L, u - 0.65, u + 0.65, v - 0.22, v + 0.22, 3.38, 3.4, 0x8aa0a4);
   }
   for (const [u, v] of [[22, 8.5], [30, 8.5], [38, 8.5], [26, 0], [38, 0], [47, 0]]) { B(RI.L, u - 0.45, u + 0.45, v - 0.45, v + 0.45, 3.32, 3.4, 0x1a1a1e); for (let k = -2; k <= 2; k++) B(RI.S, u - 0.4, u + 0.4, v + k * 0.16 - 0.03, v + k * 0.16 + 0.03, 3.31, 3.33, 0x8a9098); }
   for (const u of doors) B(RI.L, u - 0.3, u + 0.3, 13.6, 14.2, 3.32, 3.4, 0x1a1a1e);
+  // habitaciones muy iluminadas: la luz sale al pasillo en penumbra (corte duro y mucho contraste)
+  doors.forEach((dc, i) => {
+    const col = [0xd8fff4, 0xfff0c8, 0xd8fff4, 0xc8f0ff][i];
+    B(RI.G, dc - 1.2, dc + 1.2, 14, 15.4, 3.3, 3.4, col);
+    lightQuad(RI.V, road, H, [[dc - 3.2, 11, 0.205], [dc + 3.2, 11, 0.205], [dc + 3.2, 18.6, 0.205], [dc - 3.2, 18.6, 0.205]], col, [0.25, 0.25, 0.35, 0.35]);
+    doorLight(RI, road, H, dc, 9.95, -1, 0.8, 2.75, col);
+  });
+  // puertas del pasillo principal: una sala con luz roja de emergencia y otra blanca
+  B(RI.L, 29.2, 30.8, -2.15, -2.05, 0.2, 2.5, 0x0a0a0c);
+  doorLight(RI, road, H, 30, -2.05, 1, 0.8, 3.95, 0xff3a2a);
+  doorLight(RI, road, H, 44, -2.05, 1, 0.8, 3.95, 0xd8fff4);
   // tuberías por el techo de los pasillos
   for (const [v, c] of [[7.5, 0x8a9a92], [9.6, 0x3a6e78], [-1.6, 0x8a9a92], [1.6, 0xb8a050]]) {
     const ua = v > 5 ? 4 : 14, ub = v > 5 ? 48 : 56;
