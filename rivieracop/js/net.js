@@ -114,6 +114,7 @@ export class Net {
     this.onmsg = null; this.onclose = null; this.onjoin = null; this.onwelcome = null;
     this.isHost = false; this.via = ''; this.myIdx = 0;
     this.gid = Math.random().toString(36).slice(2, 10); // identifica al invitado aunque cambie de vía
+    this.reserve = new Map(); // anfitrión: plaza guardada de quien se ha caído (gid -> índice) para que pueda volver
   }
   get open() { return this.isHost ? this.links.size > 0 : !!this.link; }
   get count() { return this.links.size; }
@@ -166,18 +167,21 @@ export class Net {
       return L;
     }
     let idx = 0;
-    for (let i = 1; i < MAXP; i++) if (![...this.links.values()].some(x => x.idx === i)) { idx = i; break; }
+    // vuelve alguien que se cayó: recupera su plaza
+    if (gid && this.reserve.has(gid)) { const r = this.reserve.get(gid); if (![...this.links.values()].some(x => x.idx === r)) idx = r; this.reserve.delete(gid); L.back = !!idx; }
+    if (!idx) for (let i = 1; i < MAXP; i++) if (![...this.links.values()].some(x => x.idx === i) && ![...this.reserve.values()].includes(i)) { idx = i; break; }
     if (!idx) { L.send({ t: 'full' }); return null; }
     L.idx = idx; L.key = key; L.gid = gid;
     this.links.set(key, L);
     this.via = L.kind;
     L.send({ t: 'welcome', i: idx });
-    this.onjoin && this.onjoin(idx);
+    this.onjoin && this.onjoin(idx, L.back);
     return L;
   }
   drop(L) {
     if (!this.links.has(L.key)) return;
     this.links.delete(L.key);
+    if (L.gid) this.reserve.set(L.gid, L.idx);
     this.onclose && this.onclose(L.idx);
   }
   recvHost(d, L) { if (d.t !== 'welcome' && !(d.t === 'hello' && d.up) && this.onmsg) this.onmsg(d, L.idx); }
@@ -334,6 +338,7 @@ export class Net {
     this.peer = null;
     for (const m of this.mq || []) m.close();
     this.mq = null; clearInterval(this.mqGc);
+    this.reserve.clear();
   }
 }
 

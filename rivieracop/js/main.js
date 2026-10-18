@@ -654,6 +654,10 @@ net.onmsg = (m, from) => {
         G.story = m.st != null && STORY[m.st] ? m.st | 0 : null;
         if (Array.isArray(m.pf)) for (const q of m.pf) if (q && typeof q.id === 'string') addRecent(q.id, q.name);
         begin(m.seed, m.n, net.myIdx || 1, 'guest');
+        // reconexión a una partida empezada: se repiten las rutas que ya se eligieron
+        if (Array.isArray(m.rj)) { m.rj.forEach((c, k) => { if (c && c[0] != null) G.road.setChoice(k, c[0], c[1] || 1); }); G.road.extend(600); }
+        // por si se cae: se guarda cómo volver
+        try { localStorage.setItem('rc_rejoin', JSON.stringify({ code: G.joinCode, gid: net.gid, t: Date.now() })); } catch (e) { }
         break;
       }
       case 's': if (G.mir) G.mir.push(m); break;
@@ -669,8 +673,19 @@ function lobbyPlayers() {
   const idx = [...net.links.values()].map(L => L.idx).sort();
   return 'Jugadores: ' + (1 + idx.length) + '/5 (' + ['J1'].concat(idx.map(i => 'J' + (i + 1))).join(', ') + ')';
 }
-net.onjoin = idx => {
-  if (G.running) { net.sendTo(idx, { t: 'busy' }); return; }
+net.onjoin = (idx, back) => {
+  if (G.running) {
+    // reconexión: el que se cayó vuelve a su sitio en la partida en curso
+    const P = G.sim && G.sim.players[idx];
+    if (back && P) {
+      P.gone = false; if (P.hp > 0) { P.alive = true; P.inv = 3; }
+      const gone = G.sim.players.map((q, i) => (q.gone ? i : -1)).filter(i => i > 0);
+      net.sendTo(idx, { t: 'start', seed: G.seed, n: G.n, chars: G.chars, sp: G.speedIdx, gone, st: G.story, veh: G.veh, rj: G.road.forks.map(f => [f.choice, f.zd]) });
+      G.sim.emit('banner', { txt: 'J' + (idx + 1) + ' HA VUELTO', sub: '', c: '#7dff8a' });
+      return;
+    }
+    net.sendTo(idx, { t: 'busy' }); return;
+  }
   lobbyMsg('¡Ha entrado J' + (idx + 1) + '! ' + lobbyPlayers() + ' · Pulsa EMPEZAR cuando estéis todos');
   if (LAN.beacon) LAN.beacon.update({ n: 1 + net.links.size });
   $('btnStart').disabled = false;
@@ -684,11 +699,16 @@ net.onclose = idx => {
       G.sim.emit('banner', { txt: 'J' + (idx + 1) + ' SE HA DESCONECTADO', sub: '', c: '#ff8040' });
       G.sim.checkOver();
     } else {
+      for (const [g, i] of net.reserve) if (i === idx) net.reserve.delete(g); // en la sala no se guarda plaza
       lobbyMsg('J' + (idx + 1) + ' se ha ido. ' + lobbyPlayers());
       if (LAN.beacon) LAN.beacon.update({ n: 1 + net.links.size });
       $('btnStart').disabled = !net.open;
     }
-  } else if (G.mode === 'guest') toMenu('Se ha perdido la conexión con el anfitrión');
+  } else if (G.mode === 'guest') {
+    const wasRunning = G.running;
+    toMenu('Se ha perdido la conexión con el anfitrión');
+    if (wasRunning) setTimeout(() => tryRejoin(true), 600);
+  }
 };
 // el anfitrión arranca con los que haya en la sala (huecos = jugadores que no están)
 function hostStart() {
@@ -753,6 +773,7 @@ function begin(seed, n, li, mode) {
   uiWeapon(true);
 }
 function gameOver(ev) {
+  try { localStorage.removeItem('rc_rejoin'); } catch (e) { }
   G.over = true;
   if (W.xpDirty) { saveProg(PROG); W.xpDirty = false; }
   look.fire = false;
@@ -1862,8 +1883,23 @@ $('btnJoin').onclick = () => {
   lanList([], null);
   LAN.scan = new LanScan(lanList);
 };
+// volver a la partida tras caerse (mismo código y misma identidad: el anfitrión te guarda la plaza)
+function rejoinInfo() { try { const r = JSON.parse(localStorage.getItem('rc_rejoin') || 'null'); if (r && r.code && r.gid && Date.now() - r.t < 10 * 60000) return r; } catch (e) { } return null; }
+function updRejoin() { const r = rejoinInfo(); $('btnRejoin').hidden = !r; if (r) $('btnRejoin').textContent = '↻ VOLVER A LA PARTIDA ' + r.code; }
+async function tryRejoin(auto) {
+  const r = rejoinInfo();
+  if (!r || G.running || G.joining) return;
+  net.gid = r.gid;
+  $('btnJoin').onclick();
+  $('codeIn').value = r.code;
+  lobbyMsg(auto ? 'Reconectando con la partida…' : 'Volviendo a la partida…');
+  $('btnGo').click();
+}
+$('btnRejoin').onclick = () => tryRejoin(false);
+setInterval(() => { if (!G.running) updRejoin(); }, 2000); setTimeout(updRejoin, 500);
 $('btnGo').onclick = async () => {
   const code = $('codeIn').value.trim().toUpperCase();
+  G.joinCode = code;
   if (code.length !== 4) { lobbyMsg('El código tiene 4 letras'); return; }
   // ya conectando o conectado: un segundo toque abría otra conexión que luego cortaba la buena
   if (G.joining || net.open) return;
@@ -1895,7 +1931,7 @@ $('btnAgain').onclick = () => {
 };
 $('btnNext').onclick = () => { G.story = G.nextStory; $('btnAgain').onclick(); };
 $('btnMenu').onclick = () => toMenu('');
-$('btnQuit').onclick = () => { if (confirm('¿Salir de la partida?')) toMenu(''); };
+$('btnQuit').onclick = () => { if (confirm('¿Salir de la partida?')) { try { localStorage.removeItem('rc_rejoin'); } catch (e) { } toMenu(''); } };
 $('btnReload').addEventListener('pointerdown', e => { e.stopPropagation(); startReload(); });
 $('btnFlip').addEventListener('pointerdown', e => { e.stopPropagation(); look.flip = look.flip ? 0 : Math.PI; $('btnFlip').classList.toggle('on', !!look.flip); SFX.tone(500, 300, 0.08, 'square', 0.1); });
 window.addEventListener('keydown', e => { if (e.code === 'KeyV') $('btnFlip').dispatchEvent(new PointerEvent('pointerdown')); });
