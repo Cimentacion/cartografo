@@ -70,7 +70,7 @@ const skyMat = new THREE.ShaderMaterial({
 });
 const SKYT = {
   // día al estilo Crazy Taxi: azul intenso y nubes blancas alargadas, deshilachadas por el viento
-  dia: { top: 0x1450d0, bands: ['#0f48c8', '#1f6ae0', '#3e8cec', '#9cc8f2'], cl: [255, 255, 255], cs: [196, 214, 240], sun: '#fffbe8', n: 30, mt: '#3a6ab0', wispy: true, noMt: true },
+  dia: { top: 0x1450d0, bands: ['#0f48c8', '#1f6ae0', '#3e8cec', '#9cc8f2'], cl: [255, 255, 255], cs: [170, 192, 228], sun: '#fffbe8', n: 18, nw: 9, mt: '#3a6ab0', wispy: true, noMt: true },
   atardecer: { top: 0x3a2a6a, bands: ['#2c2a64', '#7a4a8a', '#e0788a', '#ffc890'], cl: [255, 214, 190], cs: [150, 90, 130], sun: '#ffb860', n: 20, mt: '#5a3a5a' },
   nublado: { top: 0x5a6478, bands: ['#56607a', '#7a8498', '#a0a8b6', '#b8bec8'], cl: [226, 230, 236], cs: [120, 128, 145], sun: null, n: 34, mt: '#5a6270' },
   noche: { top: 0x0a1030, bands: ['#070b24', '#141c44', '#2a3666', '#4a5a86'], cl: [110, 125, 165], cs: [40, 48, 82], sun: '#f2f6ff', n: 12, mt: '#141a32', stars: true },
@@ -115,13 +115,14 @@ function skyTex(k) {
         g.fillStyle = rg; g.beginPath(); g.arc(0, 0, h, 0, 7); g.fill(); g.restore();
       }
     };
-    for (let i = 0; i < T.n; i++) {
+    for (let i = 0; i < (T.nw || T.n); i++) {
       const yy = hz * (0.15 + Math.pow(rnd(), 0.5) * 0.8), sc = 0.35 + (1 - yy / hz) * 1.2, cx = rnd() * W, len = (200 + rnd() * 380) * sc;
       for (let j = 0; j < 10; j++) { const t = rnd() - 0.5; wisp(cx + t * len, yy + (rnd() - 0.5) * 18 * sc, (60 + rnd() * 140) * sc, (8 + rnd() * 14) * sc, 0.45); }
       for (let j = 0; j < 4; j++) { const t = (rnd() - 0.5) * 0.6; wisp(cx + t * len, yy + (rnd() - 0.5) * 8 * sc, (40 + rnd() * 60) * sc, (14 + rnd() * 10) * sc, 0.55); }
     }
   }
-  for (let i = 0; i < (T.wispy ? 0 : T.n); i++) {
+  // cúmulos esponjosos (en el cielo de día conviven con los jirones, como en Crazy Taxi)
+  for (let i = 0; i < T.n; i++) {
     const yy = hz * (0.18 + Math.pow(rnd(), 0.55) * 0.72), sc = 0.4 + (1 - yy / hz) * 1.1, cx = rnd() * W, len = (180 + rnd() * 260) * sc;
     for (let j = 0; j < 14; j++) { const t = rnd() - 0.5; blob(cx + t * len, yy + 10 * sc + rnd() * 10 * sc, (40 + rnd() * 40) * sc, T.cs, 0.35); }
     for (let j = 0; j < 18; j++) { const t = rnd() - 0.5; blob(cx + t * len, yy - Math.cos(t * Math.PI) * 22 * sc + rnd() * 8 * sc, (34 + rnd() * 44) * sc * (1 - Math.abs(t) * 0.6), T.cl, 0.45); }
