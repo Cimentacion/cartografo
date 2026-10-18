@@ -163,7 +163,8 @@ skyDome.renderOrder = -10; skyDome.frustumCulled = false;
 scene.add(skyDome);
 scene.fog = new THREE.Fog(0x8fd3ff, 70, 200);
 scene.background = new THREE.Color(0x8fd3ff);
-const seaMat = toon({ color: 0x1d7ec8 });
+// el mar no se funde con la niebla: azul intenso hasta el horizonte (como en Crazy Taxi)
+const seaMat = toon({ color: 0x1d7ec8, fog: false });
 const sea = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000).rotateX(-Math.PI / 2), seaMat);
 scene.add(sea);
 const MATS = makeMats();
