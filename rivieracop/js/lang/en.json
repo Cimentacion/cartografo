@@ -760,5 +760,8 @@
  " disponibles": " available",
  "Cargando anuncio…": "Loading ad…",
  "No hay anuncio disponible ahora mismo": "No ad available right now",
- ". Los bloques nuevos de AdMob pueden tardar en empezar a servir anuncios.": ". New AdMob ad units can take a while to start serving ads."
+ ". Los bloques nuevos de AdMob pueden tardar en empezar a servir anuncios.": ". New AdMob ad units can take a while to start serving ads.",
+ "OCLUSIÓN: SÍ": "OCCLUSION: ON",
+ "OCLUSIÓN: NO": "OCCLUSION: OFF",
+ "OCLUSIÓN:": "OCCLUSION:"
 }

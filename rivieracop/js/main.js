@@ -1679,11 +1679,15 @@ $('btnNoHud').onclick = () => { NOHUD = !NOHUD; applyStyle(); paintStyle(); };
 $('btnStyle').onclick = () => { for (const sc of document.querySelectorAll('.screen')) sc.hidden = true; $('styleScr').hidden = false; paintStyle(); };
 $('styleBack').onclick = () => { $('styleScr').hidden = true; $('menu').hidden = false; };
 applyStyle();
+// oclusión ambiental (rincones más oscuros): se puede quitar aparte de las sombras
+let AOON = (localStorage.getItem('rc_ao') ?? '1') === '1';
+function setAO(v) { AOON = v; try { localStorage.setItem('rc_ao', v ? '1' : '0'); } catch (e) { } outline.mat.uniforms.aoOn.value = v && qIdx > 0 ? 1 : 0; $('btnAO').textContent = 'OCLUSIÓN: ' + (v ? 'SÍ' : 'NO'); }
+$('btnAO').onclick = () => setAO(!AOON);
 function setQuality(i) {
   qIdx = i;
   try { localStorage.setItem('rc_q', i); } catch (e) { }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, QUAL[i][1]));
-  outline.mat.uniforms.aoOn.value = i > 0 ? 1 : 0;
+  outline.mat.uniforms.aoOn.value = i > 0 && AOON ? 1 : 0;
   renderer.shadowMap.enabled = i > 0 && SHADOWS; renderer.shadowMap.needsUpdate = true;
   outline.mat.uniforms.aoN.value = i > 1 ? 12 : 8;
   sun.shadow.mapSize.set(i > 1 ? 3072 : 2048, i > 1 ? 3072 : 2048);
@@ -1694,6 +1698,7 @@ function setQuality(i) {
 $('btnQuality').onclick = () => setQuality((qIdx + 1) % QUAL.length);
 setQuality(qIdx);
 setShadows(SHADOWS);
+setAO(AOON);
 setOutline((localStorage.getItem('rc_outline') ?? '1') === '1');
 // ---------------- editor de personaje ----------------
 let edR = null, edScene, edCam, edModel = null, edOn = false;

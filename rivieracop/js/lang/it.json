@@ -760,5 +760,8 @@
  " disponibles": " disponibili",
  "Cargando anuncio…": "Caricamento annuncio…",
  "No hay anuncio disponible ahora mismo": "Nessun annuncio disponibile ora",
- ". Los bloques nuevos de AdMob pueden tardar en empezar a servir anuncios.": ". I nuovi blocchi AdMob possono metterci un po' a mostrare annunci."
+ ". Los bloques nuevos de AdMob pueden tardar en empezar a servir anuncios.": ". I nuovi blocchi AdMob possono metterci un po' a mostrare annunci.",
+ "OCLUSIÓN: SÍ": "OCCLUSIONE: SÌ",
+ "OCLUSIÓN: NO": "OCCLUSIONE: NO",
+ "OCLUSIÓN:": "OCCLUSIONE:"
 }

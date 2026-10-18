@@ -760,5 +760,8 @@
  " disponibles": " disponibile",
  "Cargando anuncio…": "Se încarcă reclama…",
  "No hay anuncio disponible ahora mismo": "Nicio reclamă disponibilă acum",
- ". Los bloques nuevos de AdMob pueden tardar en empezar a servir anuncios.": ". Blocurile noi AdMob pot întârzia să afișeze reclame."
+ ". Los bloques nuevos de AdMob pueden tardar en empezar a servir anuncios.": ". Blocurile noi AdMob pot întârzia să afișeze reclame.",
+ "OCLUSIÓN: SÍ": "OCLUZIE: DA",
+ "OCLUSIÓN: NO": "OCLUZIE: NU",
+ "OCLUSIÓN:": "OCLUZIE:"
 }
