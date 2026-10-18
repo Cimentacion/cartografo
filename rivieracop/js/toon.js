@@ -101,15 +101,19 @@ export class Outline {
           // oclusión ambiental barata: rincones y bases de las cosas más oscuros
           float ao = 0.0;
           if (aoOn > 0.5 && raw < 0.99999) {
-            // radio en píxeles de ~0,9 m de mundo, dos anillos de 8 muestras
+            // radio en píxeles de ~0,9 m de mundo. Muestras por PAREJAS opuestas: en una superficie plana 1/z es lineal,
+            // así que la media de las dos coincide con el centro y no oscurece (antes salían bandas en paredes inclinadas)
             float rad = clamp(0.9 * res.y / (d * 1.1), 3.0, 40.0);
-            for (int k = 0; k < 12; k++) {
-              if (float(k) >= aoN) break;
-              float a = float(k) * 1.0472 + nz * 1.3 + float(k / 6) * 0.52;
-              vec2 o2 = vec2(cos(a), sin(a)) * px * rad * (k < 6 ? 0.45 : 1.0);
-              float dn = lin(texture2D(tDepth, vUv + o2).r);
-              float dd2 = d - dn;
-              ao += smoothstep(0.03, 0.35, dd2) * (1.0 - smoothstep(1.2, 3.0, dd2));
+            for (int k = 0; k < 6; k++) {
+              if (float(k * 2) >= aoN) break;
+              float a = float(k) * 0.5236 + nz * 1.3;
+              vec2 o2 = vec2(cos(a), sin(a)) * px * rad * (k < 3 ? 0.5 : 1.0);
+              float da = lin(texture2D(tDepth, vUv + o2).r), db = lin(texture2D(tDepth, vUv - o2).r);
+              // profundidad del plano que pasa por las dos muestras, en el centro
+              float dp = 2.0 / (1.0 / da + 1.0 / db);
+              float dd2 = d - dp;
+              // solo rincones (concavidad); si una muestra está mucho más cerca es un objeto delante: no cuenta
+              ao += smoothstep(0.03 + d * 0.004, 0.35 + d * 0.01, dd2) * (1.0 - smoothstep(1.5, 3.5, max(d - da, d - db))) * 2.0;
             }
             ao = clamp(ao / (aoN * 0.6), 0.0, 1.0) * (1.0 - smoothstep(35.0, 90.0, d));
           }

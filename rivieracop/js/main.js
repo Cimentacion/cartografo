@@ -50,7 +50,7 @@ sun.shadow.mapSize.set(1024, 1024);
 // sombras de los edificios y el decorado hasta lo lejos: un mapa grande que solo se vuelve a calcular cada ~30 m
 // (lo que se mueve lleva su sombra suave debajo); así no tiemblan y casi no cuestan
 Object.assign(sun.shadow.camera, { left: -170, right: 170, top: 170, bottom: -170, near: 1, far: 700 });
-sun.shadow.bias = -0.0025; sun.shadow.normalBias = 0.35; sun.shadow.radius = 2;
+sun.shadow.bias = -0.004; sun.shadow.normalBias = 0.6; sun.shadow.radius = 2;
 renderer.shadowMap.autoUpdate = false;
 sun.shadow.camera.updateProjectionMatrix();
 const SHC = { key: '' };
@@ -1546,44 +1546,73 @@ paintSpeed();
 
 // ---------------- tienda de mejoras ----------------
 G.shopCat = 'salud';
-function paintShop() {
-  $('shopCoins').textContent = 'MONEDAS: ' + PROG.coins + '  (ganas 1 por cada 10 puntos)';
+// categorías de la tienda: icono, color y de qué va cada una
+const CATI = {
+  salud: ['❤', '#ff5a6a', 'Vida, curación y salvarte de morir'], defensa: ['🛡', '#5ad0ff', 'Recibir menos daño'],
+  botin: ['💰', '#ffd23f', 'Más puntos, monedas y mejores armas'], dano: ['💥', '#ff7a3a', 'Más daño con cada disparo'],
+  muni: ['🔫', '#d8c070', 'Balas, recarga y cadencia'], punt: ['🎯', '#7dff8a', 'Apuntar mejor y ver de lejos'],
+  objet: ['🚁', '#ff5ad0', 'Daño extra contra vehículos, jefes, aire y animales'], explo: ['💣', '#ffb020', 'Explosiones y granadas'],
+  coche: ['🚗', '#4a9aff', 'Mejoras del descapotable'], poder: ['⚡', '#c48cff', 'Botones de poder: escudo, tiempo bala…'],
+  espec: ['🌟', '#ff2a6a', 'Poderes especiales (muy caros)'], _w: ['🏆', '#9ad0ff', 'Suben al usarlas y se guardan para la próxima vez que las cojas'],
+};
+function paintShop(boughtId) {
+  $('shopCoins').textContent = PROG.coins.toLocaleString('es-ES');
   const tabs = $('shopTabs'); tabs.innerHTML = '';
-  for (const [c, name] of UCAT) {
+  const cats = UCAT.concat([['_w', 'NIVEL DE ARMAS']]);
+  for (const [c, name] of cats) {
+    const [ic, col] = CATI[c];
+    const list = UPGRADES.filter(u => u.cat === c);
+    const own = list.filter(u => PROG.upg[u.id] | 0).length;
+    // puntito verde: hay algo que puedes comprar ya
+    const can = list.some(u => (PROG.upg[u.id] | 0) < u.max && PROG.coins >= upgCost(u, PROG.upg[u.id] | 0, PROG));
     const b = document.createElement('button');
-    b.textContent = name + ' (' + UPGRADES.filter(u => u.cat === c).length + ')';
+    b.style.setProperty('--c', col);
     b.className = c === G.shopCat ? 'sel' : '';
-    b.onclick = () => { G.shopCat = c; paintShop(); };
+    b.innerHTML = `<span class="ic">${ic}</span><span class="tx">${name}<small>${c === '_w' ? '' : own + '/' + list.length}</small></span>${can && c !== G.shopCat ? '<i class="dot"></i>' : ''}`;
+    b.onclick = () => { G.shopCat = c; paintShop(); $('shopList').parentNode.scrollTop = 0; };
     tabs.appendChild(b);
   }
-  // los niveles de las armas van en su propia pestaña
-  { const b = document.createElement('button'); b.textContent = 'NIVEL DE ARMAS'; b.className = 'wtab' + (G.shopCat === '_w' ? ' sel' : ''); b.onclick = () => { G.shopCat = '_w'; paintShop(); }; tabs.appendChild(b); }
-  $('shopWrap').hidden = G.shopCat !== '_w'; $('shopList').hidden = G.shopCat === '_w';
+  const [, col, cdesc] = CATI[G.shopCat] || CATI.salud;
+  const head = $('shopCatN').parentNode;
+  head.style.setProperty('--c', col);
+  $('shopCatN').textContent = (cats.find(x => x[0] === G.shopCat) || cats[0])[1];
+  $('shopCatD').textContent = cdesc;
+  const isW = G.shopCat === '_w';
+  $('shopW').hidden = !isW; $('shopList').hidden = isW;
   const L = $('shopList'); L.innerHTML = '';
-  for (const u of UPGRADES) {
+  if (!isW) for (const u of UPGRADES) {
     if (u.cat !== G.shopCat) continue;
-    const lv = PROG.upg[u.id] | 0, cost = upgCost(u, lv, PROG);
-    const d = document.createElement('div'); d.className = 'upg';
-    let pips = '';
-    if (u.max > 20) pips = `<div class="wxp"><div style="width:${Math.round(lv / u.max * 100)}%"></div></div>`;
-    else for (let i = 0; i < u.max; i++) pips += `<i class="${i < lv ? 'on' : ''}"></i>`;
-    d.innerHTML = `<b>${tr(u.name).toUpperCase()} <em>${lv}/${u.max}</em></b><p>${u.desc}</p><div class="lvpips">${pips}</div>`;
-    const b = document.createElement('button');
-    b.textContent = lv >= u.max ? 'MÁXIMO' : (lv ? 'SUBIR' : 'COMPRAR') + ' · ' + cost;
-    b.disabled = lv >= u.max || PROG.coins < cost;
-    b.onclick = () => {
-      if (PROG.coins < cost || lv >= u.max) return;
-      PROG.coins -= cost; PROG.upg[u.id] = lv + 1; saveProg(PROG);
-      recalcWeapon(); SFX.unlock(); SFX.pickup(); paintShop();
-    };
-    d.appendChild(b); L.appendChild(d);
+    const lv = PROG.upg[u.id] | 0, cost = upgCost(u, lv, PROG), max = lv >= u.max, can = !max && PROG.coins >= cost;
+    const d = document.createElement('div');
+    d.className = 'upg' + (max ? ' max' : '') + (can ? ' can' : '') + (boughtId === u.id ? ' bought' : '');
+    d.style.setProperty('--c', col);
+    let prog = '';
+    if (u.max > 12) prog = `<div class="bar"><i style="width:${Math.round(lv / u.max * 100)}%"></i></div>`;
+    else if (u.max > 1) { prog = '<div class="pips">'; for (let i = 0; i < u.max; i++) prog += `<i class="${i < lv ? 'on' : ''}"></i>`; prog += '</div>'; }
+    d.innerHTML = `${!lv && can ? '<span class="new">¡NUEVA!</span>' : ''}<div class="uh"><span class="un">${tr(u.name).toUpperCase()}</span><span class="ul">${u.max > 1 ? 'NV ' + lv + '/' + u.max : lv ? 'TUYA' : '—'}</span></div>
+      <p>${u.desc}</p>${prog}
+      <div class="uf">${max ? '<span class="price">MÁXIMO</span>' : `<span class="price${can ? '' : ' no'}"><i class="coin"></i>${cost.toLocaleString('es-ES')}</span>`}</div>`;
+    if (!max) {
+      const b = document.createElement('button');
+      b.textContent = lv ? 'SUBIR' : 'COMPRAR';
+      b.disabled = !can;
+      b.onclick = () => {
+        if (PROG.coins < cost || lv >= u.max) return;
+        PROG.coins -= cost; PROG.upg[u.id] = lv + 1; saveProg(PROG);
+        recalcWeapon(); SFX.unlock(); SFX.pickup(); paintShop(u.id);
+      };
+      d.querySelector('.uf').appendChild(b);
+    }
+    L.appendChild(d);
   }
   const W2 = $('shopW'); W2.innerHTML = '';
-  for (const [id, name] of Object.entries(WEAPON_NAMES)) {
+  if (isW) for (const [id, name] of Object.entries(WEAPON_NAMES)) {
     const w = weaponLevel(PROG, id);
-    const e = document.createElement('div'); e.className = 'wl';
     const nx = w.lv >= WMAX ? 1 : Math.min(1, (w.xp || 0) / xpNeed(w.lv));
-    e.innerHTML = `${tr(name).toUpperCase()} <em>NV ${w.lv}</em><div class="wxp"><div style="width:${Math.round(nx * 100)}%"></div></div>`;
+    const e = document.createElement('div'); e.className = 'upg' + (w.lv > 1 ? ' can' : '');
+    e.style.setProperty('--c', col);
+    e.innerHTML = `<div class="uh"><span class="un">${tr(name).toUpperCase()}</span><span class="ul">NV ${w.lv}/${WMAX}</span></div>
+      <p>${w.lv >= WMAX ? 'Nivel máximo' : 'Experiencia para el nivel ' + (w.lv + 1)}</p><div class="bar"><i style="width:${Math.round(nx * 100)}%"></i></div>`;
     W2.appendChild(e);
   }
 }
