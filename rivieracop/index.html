@@ -138,7 +138,22 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
 .help b{color:var(--gold)}
 #menuMsg{color:#ff8a6a;font-weight:700;min-height:1em;margin-top:8px}
 #best{color:var(--gold);font:14px var(--f-title);margin-top:6px}
-#lobbyCode{font:clamp(50px,13vw,90px) var(--f-title);letter-spacing:.15em;color:var(--gold);text-shadow:0 4px 0 rgba(0,0,0,.6)}
+#lobbyCode{font:clamp(40px,9vw,72px) var(--f-title);letter-spacing:.15em;color:var(--gold);text-shadow:0 4px 0 rgba(0,0,0,.6);line-height:1.1}
+#lobby{flex-direction:column;align-items:center;justify-content:center;gap:10px;background:radial-gradient(ellipse at center,rgba(10,8,24,.55),rgba(10,8,24,.85))}
+.lbWrap{display:flex;gap:12px;width:min(980px,100%);align-items:stretch;flex-wrap:wrap;justify-content:center}
+.lbP{background:rgba(16,12,32,.88);border:3px solid #3a3266;box-shadow:5px 5px 0 rgba(0,0,0,.5);padding:12px 14px;text-align:center;flex:1 1 300px;min-width:0}
+.lbR{text-align:left;max-height:62vh;overflow:auto}
+.lbType{display:flex;gap:8px;margin-bottom:10px}
+.lbType button{flex:1;background:#221c3e;border:2px solid #3a3266;color:#cfc8ff;padding:7px 6px;text-align:center;cursor:pointer}
+.lbType button b{display:block;font:12px var(--f-title)}.lbType button small{display:block;font:600 10px var(--f-ui);opacity:.8;margin-top:2px}
+.lbType button.sel{background:var(--gold);border-color:#fff;color:#111}
+.lbH{font:11px var(--f-px);color:#9a90d8;margin:6px 0 6px;display:flex;align-items:center;justify-content:space-between}
+.lbSlot{display:flex;align-items:center;gap:8px;padding:5px 8px;margin-bottom:4px;background:#1c1830;border-left:5px solid currentColor;font:700 13px var(--f-ui)}
+.lbSlot i{font:9px var(--f-px);opacity:.9;min-width:24px}.lbSlot.empty{opacity:.45}.lbSlot small{margin-left:auto;font:600 11px var(--f-ui);opacity:.75}
+#lbFriends .fr{padding:5px 8px;margin-bottom:4px}
+.lbBtns{margin:0}
+.lbBtns .big{min-width:180px}
+#lobbyMsg{margin:8px 0 0}
 #lobbyMsg{font:700 15px var(--f-ui);margin:8px 0 14px;background:rgba(0,0,0,.5);padding:8px;border-radius:6px}
 #codeIn{font:34px var(--f-title);width:170px;text-align:center;text-transform:uppercase;letter-spacing:.2em;padding:8px;border-radius:8px;border:3px solid var(--gold);background:#111;color:var(--gold)}
 #over .card{background:rgba(0,0,0,.6);padding:18px;border-radius:12px}
@@ -693,15 +708,24 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
   </div>
 
   <div id="lobby" class="screen" hidden>
-    <div class="card">
-      <div class="lbl">CÓDIGO DE SALA</div>
-      <div id="lobbyCode">····</div>
-      <div id="lanList" hidden></div>
-      <div id="joinRow" class="row" hidden><input id="codeIn" maxlength="4" autocomplete="off" spellcheck="false" placeholder="ABCD"><button id="btnGo" class="big">ENTRAR</button></div>
-      <div id="lobbyMsg"></div>
-      <div class="row"><button id="btnMode" class="mini" hidden>MODO: ARCADE</button> <button id="btnInvite" class="mini" hidden>👥 INVITAR AMIGOS</button></div>
-      <div class="btns"><button id="btnStart" class="big" disabled>EMPEZAR</button><button id="btnBack" class="big alt2">VOLVER</button></div>
+    <div class="lbWrap">
+      <div class="lbP lbL">
+        <div id="lbType" class="lbType"><button data-t="online"><b>🌍 ONLINE</b><small>Cualquier red, desde casa de cada uno</small></button><button data-t="lan"><b>🏠 WIFI LOCAL</b><small>Todos en la misma wifi: sin retraso</small></button></div>
+        <div class="lbl" id="lbCodeLbl">CÓDIGO DE SALA</div>
+        <div id="lobbyCode">····</div>
+        <div id="lbShareRow" class="row"><button id="lbCopy" class="mini">📋 COPIAR</button> <button id="lbShare" class="mini">📤 ENVIAR</button> <button id="btnMode" class="mini" hidden>MODO: ARCADE</button></div>
+        <div id="lanList" hidden></div>
+        <div id="joinRow" class="row" hidden><input id="codeIn" maxlength="4" autocomplete="off" spellcheck="false" placeholder="ABCD"><button id="btnGo" class="big">ENTRAR</button></div>
+        <div id="lobbyMsg"></div>
+      </div>
+      <div class="lbP lbR">
+        <div id="lbSlotsBox"><div class="lbH">JUGADORES</div><div id="lbSlots"></div></div>
+        <div class="lbH">AMIGOS <button id="lbAddFr" class="mini">+ AÑADIR</button></div>
+        <div id="lbFriends"></div>
+        <button id="btnInvite" hidden></button>
+      </div>
     </div>
+    <div class="btns lbBtns"><button id="btnStart" class="big" disabled>EMPEZAR</button><button id="btnBack" class="big alt2">VOLVER</button></div>
   </div>
 
   <div id="over" class="screen" hidden>

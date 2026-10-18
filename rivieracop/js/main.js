@@ -9,7 +9,7 @@ import { View, Fx } from './view.js';
 import { Hud } from './hud.js';
 import { Look } from './input.js';
 import { SFX } from './audio.js';
-import { Net, makeCode, NETV, LanBeacon, LanScan, Presence } from './net.js';
+import { Net, makeCode, NETV, LanBeacon, LanScan, Presence, MAXP } from './net.js';
 import { showRewarded, showInterstitial, adsReal, lastAdErr } from './ads.js';
 import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME, BOSS } from './defs.js';
 import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES } from './weapons.js';
@@ -679,6 +679,50 @@ net.onmsg = (m, from) => {
     }
   }
 };
+// ---- sala: tipo (online / wifi local), jugadores y amigos para invitar ----
+G.roomType = localStorage.getItem('rc_rt') === 'lan' ? 'lan' : 'online';
+function lobbyView(kind) {
+  $('lbType').hidden = kind !== 'host'; $('lbShareRow').hidden = kind !== 'host'; $('lbSlotsBox').hidden = kind !== 'host';
+  $('lbCodeLbl').textContent = kind === 'host' ? 'CÓDIGO DE SALA' : 'ENTRAR EN UNA SALA';
+  document.querySelectorAll('#lbType button').forEach(b => b.classList.toggle('sel', b.dataset.t === G.roomType));
+  paintLobby();
+}
+document.querySelectorAll('#lbType button').forEach(b => (b.onclick = () => {
+  if (G.mode !== 'host' || G.running) return;
+  G.roomType = b.dataset.t; try { localStorage.setItem('rc_rt', G.roomType); } catch (e) { }
+  document.querySelectorAll('#lbType button').forEach(x => x.classList.toggle('sel', x.dataset.t === G.roomType));
+  if (G.roomCode) { if (G.roomType === 'lan') net.stopRelay(); else if (!net.mq) net.startRelay(G.roomCode); }
+  lobbyMsg(G.roomType === 'lan' ? 'Sala de WIFI LOCAL: tus amigos la verán en UNIRSE si están en tu misma wifi' : 'Sala ONLINE: pásales el código desde cualquier sitio');
+}));
+const shareTxt = () => 'Únete a mi partida de Riviera Cop: abre el juego, pulsa UNIRSE y escribe ' + G.roomCode;
+$('lbCopy').onclick = () => { if (!G.roomCode) return; try { navigator.clipboard.writeText(G.roomCode); lobbyMsg('Código copiado: ' + G.roomCode); } catch (e) { } };
+$('lbShare').onclick = async () => {
+  if (!G.roomCode) return;
+  try { if (navigator.share) { await navigator.share({ text: shareTxt() }); return; } } catch (e) { }
+  location.href = 'https://wa.me/?text=' + encodeURIComponent(shareTxt());
+};
+$('lbAddFr').onclick = () => $('btnFriends').onclick();
+function paintLobby() {
+  if ($('lobby').hidden) return;
+  // huecos de jugadores
+  if (G.mode === 'host') {
+    const S = $('lbSlots'); S.innerHTML = '';
+    for (let i = 0; i < MAXP; i++) {
+      const L = [...net.links.values()].find(x => x.idx === i), on = i === 0 || !!L;
+      const nm = i === 0 ? PROF.name + ' (tú)' : L ? ((G.peerProf && G.peerProf[i] && G.peerProf[i].name) || 'Jugador') : 'Libre';
+      const d = document.createElement('div'); d.className = 'lbSlot' + (on ? '' : ' empty'); d.style.color = PCOL[i];
+      d.innerHTML = `<i>J${i + 1}</i><span></span><small>${i === 0 ? 'anfitrión' : L ? (L.kind === 'mqtt' ? '🛰 servidor' : '📶 directo') : ''}</small>`;
+      d.querySelector('span').textContent = nm; d.querySelector('span').style.color = '#fff';
+      S.appendChild(d);
+    }
+  }
+  // amigos: los conectados primero, con INVITAR (anfitrión) o UNIRSE (si tienen sala)
+  const F = $('lbFriends'); F.innerHTML = '';
+  if (!FRIENDS.length) { F.innerHTML = '<div class="frEmpty">Aún no tienes amigos. Pulsa + AÑADIR y pon su código.</div>'; return; }
+  const sorted = FRIENDS.slice().sort((a, b) => (PRES && PRES.peers.has(b.id) ? 1 : 0) - (PRES && PRES.peers.has(a.id) ? 1 : 0));
+  for (const f of sorted) F.appendChild(frRow(f, false, true));
+}
+setInterval(paintLobby, 2000);
 function lobbyPlayers() {
   const idx = [...net.links.values()].map(L => L.idx).sort();
   return 'Jugadores: ' + (1 + idx.length) + '/5 (' + ['J1'].concat(idx.map(i => 'J' + (i + 1))).join(', ') + ')';
@@ -697,6 +741,7 @@ net.onjoin = (idx, back) => {
     net.sendTo(idx, { t: 'busy' }); return;
   }
   lobbyMsg('¡Ha entrado J' + (idx + 1) + '! ' + lobbyPlayers() + ' · Pulsa EMPEZAR cuando estéis todos');
+  setTimeout(paintLobby, 300);
   if (LAN.beacon) LAN.beacon.update({ n: 1 + net.links.size });
   $('btnStart').disabled = false;
 };
@@ -710,7 +755,7 @@ net.onclose = idx => {
       G.sim.checkOver();
     } else {
       for (const [g, i] of net.reserve) if (i === idx) net.reserve.delete(g); // en la sala no se guarda plaza
-      lobbyMsg('J' + (idx + 1) + ' se ha ido. ' + lobbyPlayers());
+      lobbyMsg('J' + (idx + 1) + ' se ha ido. ' + lobbyPlayers()); setTimeout(paintLobby, 100);
       if (LAN.beacon) LAN.beacon.update({ n: 1 + net.links.size });
       $('btnStart').disabled = !net.open;
     }
@@ -1223,7 +1268,7 @@ function joinCode(code) {
   $('codeIn').value = code;
   $('btnGo').click();
 }
-function frRow(f, recent) {
+function frRow(f, recent, compact) {
   const p = PRES && PRES.peers.get(f.id), d = document.createElement('div');
   d.className = 'fr';
   const st = !p ? 'Desconectado' : p.st === 'sala' && p.code ? 'En su sala ' + p.code : p.st === 'jugando' ? 'Jugando' : 'En el menú';
@@ -1233,8 +1278,8 @@ function frRow(f, recent) {
   if (recent) btn('ad', 'AÑADIR', () => { addFriend(f.id, f.name); paintFriends(); });
   else {
     if (p && p.st === 'sala' && p.code) btn('j', 'UNIRSE', () => joinCode(p.code));
-    if (p && G.mode === 'host' && G.roomCode) btn('iv', 'INVITAR', () => { PRES.invite(f.id, G.roomCode); $('frMsg').textContent = 'Invitación enviada a ' + ((p && p.name) || f.name); });
-    btn('x', '✕', () => { FRIENDS = FRIENDS.filter(x => x.id !== f.id); saveFriends(); paintFriends(); });
+    if (p && G.mode === 'host' && G.roomCode) btn('iv', 'INVITAR', () => { PRES.invite(f.id, G.roomCode); const t = 'Invitación enviada a ' + ((p && p.name) || f.name); $('frMsg').textContent = t; if (!$('lobby').hidden) lobbyMsg(t); });
+    if (!compact) btn('x', '✕', () => { FRIENDS = FRIENDS.filter(x => x.id !== f.id); saveFriends(); paintFriends(); });
   }
   return d;
 }
@@ -1916,13 +1961,15 @@ $('btnHost').onclick = async () => {
   $('lobbyCode').textContent = '····';
   lobbyMsg('Creando sala…');
   G.mode = 'host';
+  lobbyView('host');
   try {
-    await net.host(code);
+    await net.host(code, G.roomType === 'lan');
     $('lobbyCode').textContent = code;
     lanStop();
     LAN.beacon = new LanBeacon({ code, n: 1 });
     G.roomCode = code; presSet('sala', code);
-    lobbyMsg('Pásales este código a tus amigos (hasta 3 más) y espera a que se unan');
+    lobbyMsg(G.roomType === 'lan' ? 'Sala de WIFI LOCAL: tus amigos la verán en UNIRSE si están en tu misma wifi' : 'Pásales el código (hasta 4 más) o invítalos desde la lista de amigos');
+    paintLobby();
   } catch (e) { lobbyMsg('Error: ' + (e.message || e.type || e)); }
 };
 $('btnJoin').onclick = () => {
@@ -1932,6 +1979,7 @@ $('btnJoin').onclick = () => {
   $('btnMode').hidden = true; $('btnInvite').hidden = true;
   $('joinRow').hidden = false;
   $('lobbyCode').textContent = '';
+  lobbyView('guest');
   lobbyMsg('Toca una sala de tu red o escribe el código de tu amigo');
   $('lanList').hidden = false;
   lanStop();

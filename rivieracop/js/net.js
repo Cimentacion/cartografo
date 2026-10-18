@@ -217,10 +217,12 @@ export class Net {
     // invitado por relé que deja de hablar: fuera
     this.mqGc = setInterval(() => { for (const L of [...this.links.values()]) if (L.kind === 'mqtt' && performance.now() - (L.seen || 0) > 15000) this.drop(L); }, 3000);
   }
-  host(code) {
+  stopRelay() { for (const m of this.mq || []) m.close(); this.mq = null; clearInterval(this.mqGc); }
+  host(code, lan) {
     this.isHost = true; this.closed = false;
     this.startRooms(code);
-    this.startRelay(code);
+    // sala de wifi local: sin servidor intermedio (solo conexión directa, sin retraso)
+    if (!lan) this.startRelay(code);
     return new Promise(res => {
       let done = false;
       const ok = () => { if (!done) { done = true; res(); } };
