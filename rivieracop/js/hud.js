@@ -32,11 +32,12 @@ export class Hud {
     // líneas de velocidad (cuesta abajo, turbo)
     if (o.wind > 0) {
       g.lineCap = 'round';
-      for (let i = 0; i < 26 * o.wind; i++) {
-        const a = Math.random() * Math.PI * 2, r0 = (0.35 + Math.random() * 0.4) * Math.max(W, H) * 0.5, len = 30 + Math.random() * 90 * o.wind;
+      const nL = o.turbo ? 55 : 26 * o.wind, kL = o.turbo ? 1.8 : 1;
+      for (let i = 0; i < nL; i++) {
+        const a = Math.random() * Math.PI * 2, r0 = (0.3 + Math.random() * 0.45) * Math.max(W, H) * 0.5, len = (30 + Math.random() * 90 * o.wind) * kL;
         const x0 = cx + Math.cos(a) * r0, y0 = cy + Math.sin(a) * r0 * 0.75;
-        g.strokeStyle = `rgba(255,255,255,${0.12 + Math.random() * 0.25 * o.wind})`;
-        g.lineWidth = 1 + Math.random() * 2;
+        g.strokeStyle = o.turbo && Math.random() < 0.4 ? `rgba(255,${150 + Math.random() * 80 | 0},60,${0.25 + Math.random() * 0.35})` : `rgba(255,255,255,${0.12 + Math.random() * 0.25 * o.wind})`;
+        g.lineWidth = (1 + Math.random() * 2) * (o.turbo ? 1.4 : 1);
         g.beginPath(); g.moveTo(x0, y0); g.lineTo(x0 + Math.cos(a) * len, y0 + Math.sin(a) * len * 0.75); g.stroke();
       }
     }

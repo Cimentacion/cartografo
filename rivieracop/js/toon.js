@@ -4,8 +4,9 @@ import * as THREE from 'three';
 let GRAD = null;
 export function toonGrad() {
   if (!GRAD) {
-    const d = new Uint8Array([150, 150, 150, 255, 210, 210, 210, 255, 255, 255, 255, 255]);
-    GRAD = new THREE.DataTexture(d, 3, 1, THREE.RGBAFormat);
+    // sombreado suave en 4 tonos (estilo dibujos: la parte en sombra no se va a negro)
+    const d = new Uint8Array([168, 168, 176, 255, 205, 205, 210, 255, 236, 236, 238, 255, 255, 255, 255, 255]);
+    GRAD = new THREE.DataTexture(d, 4, 1, THREE.RGBAFormat);
     GRAD.minFilter = GRAD.magFilter = THREE.NearestFilter;
     GRAD.generateMipmaps = false;
     GRAD.needsUpdate = true;
@@ -100,15 +101,16 @@ export class Outline {
           // oclusión ambiental barata: rincones y bases de las cosas más oscuros
           float ao = 0.0;
           if (aoOn > 0.5 && raw < 0.99999) {
-            float rad = clamp(14.0 / d, 1.5, 9.0);
-            for (int k = 0; k < 8; k++) {
-              float a = float(k) * 0.785398 + nz * 0.8;
-              vec2 o2 = vec2(cos(a), sin(a)) * px * rad * (1.0 + float(k / 4));
+            // radio en píxeles de ~0,9 m de mundo, dos anillos de 8 muestras
+            float rad = clamp(0.9 * res.y / (d * 1.1), 3.0, 40.0);
+            for (int k = 0; k < 16; k++) {
+              float a = float(k) * 0.785398 + nz * 1.3 + float(k / 8) * 0.39;
+              vec2 o2 = vec2(cos(a), sin(a)) * px * rad * (k < 8 ? 0.45 : 1.0);
               float dn = lin(texture2D(tDepth, vUv + o2).r);
               float dd2 = d - dn;
-              ao += smoothstep(0.04, 0.6, dd2) * (1.0 - smoothstep(1.5, 4.0, dd2));
+              ao += smoothstep(0.03, 0.35, dd2) * (1.0 - smoothstep(1.2, 3.0, dd2));
             }
-            ao = clamp(ao / 8.0, 0.0, 1.0) * (1.0 - smoothstep(25.0, 70.0, d));
+            ao = clamp(ao / 9.0, 0.0, 1.0) * (1.0 - smoothstep(35.0, 90.0, d));
           }
           vec4 mk = texture2D(tMask, vUv);
           // contorno rojo: píxel fuera del enemigo con un vecino dentro
@@ -127,11 +129,16 @@ export class Outline {
           float sky = step(0.99999, raw);
           float keep = max(mk.r, mk.g);
           float lum = dot(c, vec3(0.299, 0.587, 0.114));
-          c = mix(c, vec3(lum), smoothstep(28.0, 115.0, d) * 0.6 * (1.0 - keep) * (1.0 - sky));
-          // enemigos más saturados que el fondo, y lo cercano con más color que lo lejano
+          c = mix(c, vec3(lum), smoothstep(40.0, 140.0, d) * 0.3 * (1.0 - keep) * (1.0 - sky));
+          // colores vivos de dibujo animado: todo más saturado, lo cercano y los enemigos aún más
           float near = 1.0 - smoothstep(4.0, 30.0, d);
-          c = clamp(mix(vec3(lum), c, 1.0 + 0.35 * mk.r + 0.22 * near * (1.0 - sky)), 0.0, 1.0);
-          c *= 1.0 - ao * 0.45;
+          c = clamp(mix(vec3(lum), c, 1.28 + 0.35 * mk.r + 0.25 * near * (1.0 - sky)), 0.0, 1.0);
+          // oclusión ambiental teñida de azul-violeta (como las sombras de los juegos de móvil coloridos)
+          c *= mix(vec3(1.0), vec3(0.42, 0.44, 0.62), ao * 0.85);
+          // luces cálidas y sombras frías, con un poco más de contraste
+          lum = dot(c, vec3(0.299, 0.587, 0.114));
+          c *= mix(vec3(0.9, 0.94, 1.08), vec3(1.05, 1.01, 0.93), smoothstep(0.15, 0.85, lum));
+          c = clamp((c - 0.5) * 1.08 + 0.52, 0.0, 1.0);
           c = mix(c, ink * (0.8 + 0.5 * nz), clamp(edge, 0.0, 1.0) * 0.9);
           c = mix(c, red, redE);
           gl_FragColor = vec4(c, 1.0);

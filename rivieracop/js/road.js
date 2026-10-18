@@ -83,6 +83,15 @@ export class Road {
       slopeT = s.slope;
       const BB = BIOMES[BIOME_KEYS[b.bio]];
       if (BB.descent) slopeT = BB.slope;
+      else if (BB.hills) {
+        // lomas: la pendiente sigue una onda (se sube y se baja sin parar); la longitud de cada loma varía
+        if (b.ph == null) { b.ph = 0; b.hr = rng(hash(this.seed, b.start, 77)); b.hp = 120 + b.hr() * 60; }
+        b.ph += (Math.PI * 2) / b.hp;
+        if (b.ph >= Math.PI * 2) { b.ph -= Math.PI * 2; b.hp = 110 + b.hr() * 70; }
+        const ramp = Math.min(1, b.pos / 60, (b.len - b.pos) / 60);
+        c.slope = BB.hills * (0.75 + 0.25 * Math.sin(b.pos * 0.013)) * Math.sin(b.ph) * Math.max(0, ramp);
+        slopeT = c.slope;
+      }
       else if (BB.cliff) {
         // acantilados: primero se sube por la ladera y luego se va cayendo en picado hacia el mar
         slopeT = b.pos < b.len * 0.28 ? (this.y[this.len] < 85 ? 0.07 : 0) : (this.y[this.len] > 12 ? -0.085 : 0);

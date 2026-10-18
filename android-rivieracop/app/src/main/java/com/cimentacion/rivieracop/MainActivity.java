@@ -1,6 +1,26 @@
 package com.cimentacion.rivieracop;
 
 import android.app.Activity;
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.content.pm.PackageInstaller;
+import android.net.Uri;
+import android.provider.Settings;
+import android.webkit.JavascriptInterface;
+import com.google.android.gms.ads.AdError;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.FullScreenContentCallback;
+import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
+import com.google.android.gms.ads.rewarded.RewardedAd;
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -23,7 +43,16 @@ import java.util.Map;
 // Se sirve desde un origen https falso para que funcionen los módulos JS, los sensores y WebRTC.
 public class MainActivity extends Activity {
     private static final String HOST = "rivieracop.app.local";
+    // ANUNCIOS: estos son los identificadores DE PRUEBA de Google (no pagan).
+    // Para cobrar, cambia estos dos por los de tu cuenta de AdMob, y el APPLICATION_ID en AndroidManifest.xml
+    private static final String REWARDED_ID = "ca-app-pub-3940256099942544/5224354917";
+    private static final String INTER_ID = "ca-app-pub-3940256099942544/1033173712";
+    // ACTUALIZACIONES: número de compilación de la última versión publicada en GitHub
+    private static final String VERSION_URL = "https://github.com/Cimentacion/cartografo/releases/download/rivieracop/version.txt";
+    private static final String APK_URL = "https://github.com/Cimentacion/cartografo/releases/download/rivieracop/rivieracop.apk";
     private WebView web;
+    private RewardedAd rewarded; private InterstitialAd inter;
+    private boolean wantRewarded = false, earned = false, checked = false, updating = false;
 
     @Override
     protected void onCreate(Bundle b) {
@@ -43,7 +72,13 @@ public class MainActivity extends Activity {
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setBuiltInZoomControls(false);
 
+        web.addJavascriptInterface(new Bridge(), "RCApp");
+        try { MobileAds.initialize(this, st -> { loadRewarded(); loadInter(); }); } catch (Throwable t) { }
         web.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView v, String url) {
+                if (!checked) { checked = true; v.postDelayed(MainActivity.this::checkUpdate, 2500); }
+            }
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView v, WebResourceRequest r) {
                 if (!HOST.equals(r.getUrl().getHost())) return null;
@@ -68,6 +103,118 @@ public class MainActivity extends Activity {
         immersive();
         if (b != null) web.restoreState(b);
         else web.loadUrl("https://" + HOST + "/index.html");
+    }
+
+    // ---------- puente con el juego ----------
+    private void js(String code) { runOnUiThread(() -> { try { web.evaluateJavascript(code, null); } catch (Throwable t) { } }); }
+    class Bridge {
+        @JavascriptInterface public void showRewarded() { runOnUiThread(MainActivity.this::doRewarded); }
+        @JavascriptInterface public void showInterstitial() { runOnUiThread(MainActivity.this::doInter); }
+        @JavascriptInterface public int version() { return myVersion(); }
+        @JavascriptInterface public void update() { runOnUiThread(MainActivity.this::startUpdate); }
+    }
+
+    // ---------- anuncios (AdMob) ----------
+    private void loadRewarded() {
+        try {
+            RewardedAd.load(this, REWARDED_ID, new AdRequest.Builder().build(), new RewardedAdLoadCallback() {
+                @Override public void onAdLoaded(RewardedAd ad) { rewarded = ad; if (wantRewarded) doRewarded(); }
+                @Override public void onAdFailedToLoad(LoadAdError e) { rewarded = null; if (wantRewarded) { wantRewarded = false; js("window.rcAdDone&&window.rcAdDone(false)"); } }
+            });
+        } catch (Throwable t) { }
+    }
+    private void doRewarded() {
+        if (rewarded == null) { wantRewarded = true; loadRewarded(); return; }
+        wantRewarded = false; earned = false;
+        RewardedAd ad = rewarded; rewarded = null;
+        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
+            @Override public void onAdDismissedFullScreenContent() { js("window.rcAdDone&&window.rcAdDone(" + earned + ")"); loadRewarded(); immersive(); }
+            @Override public void onAdFailedToShowFullScreenContent(AdError e) { js("window.rcAdDone&&window.rcAdDone(false)"); loadRewarded(); }
+        });
+        ad.show(this, item -> earned = true);
+    }
+    private void loadInter() {
+        try {
+            InterstitialAd.load(this, INTER_ID, new AdRequest.Builder().build(), new InterstitialAdLoadCallback() {
+                @Override public void onAdLoaded(InterstitialAd ad) { inter = ad; }
+                @Override public void onAdFailedToLoad(LoadAdError e) { inter = null; }
+            });
+        } catch (Throwable t) { }
+    }
+    private void doInter() {
+        if (inter == null) { loadInter(); return; }
+        InterstitialAd ad = inter; inter = null;
+        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
+            @Override public void onAdDismissedFullScreenContent() { loadInter(); immersive(); }
+        });
+        ad.show(this);
+    }
+
+    // ---------- actualizador ----------
+    private int myVersion() {
+        try {
+            android.content.pm.PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
+            return Build.VERSION.SDK_INT >= 28 ? (int) pi.getLongVersionCode() : pi.versionCode;
+        } catch (Exception e) { return 0; }
+    }
+    private void checkUpdate() {
+        new Thread(() -> {
+            try {
+                HttpURLConnection c = (HttpURLConnection) new URL(VERSION_URL + "?t=" + System.currentTimeMillis()).openConnection();
+                c.setInstanceFollowRedirects(true); c.setConnectTimeout(8000); c.setReadTimeout(8000);
+                BufferedReader r = new BufferedReader(new InputStreamReader(c.getInputStream()));
+                int remote = Integer.parseInt(r.readLine().trim());
+                r.close();
+                if (remote > myVersion()) js("window.rcUpdate&&window.rcUpdate(" + remote + "," + myVersion() + ")");
+            } catch (Exception e) { }
+        }).start();
+    }
+    private void startUpdate() {
+        if (updating) return;
+        if (Build.VERSION.SDK_INT >= 26 && !getPackageManager().canRequestPackageInstalls()) {
+            js("window.rcUpdateMsg&&window.rcUpdateMsg('perm')");
+            try { startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getPackageName()))); } catch (Exception e) { }
+            return;
+        }
+        updating = true;
+        new Thread(() -> {
+            try {
+                HttpURLConnection c = (HttpURLConnection) new URL(APK_URL).openConnection();
+                c.setInstanceFollowRedirects(true); c.setConnectTimeout(15000); c.setReadTimeout(30000);
+                long total = c.getContentLengthLong();
+                PackageInstaller pi = getPackageManager().getPackageInstaller();
+                PackageInstaller.SessionParams sp = new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL);
+                int id = pi.createSession(sp);
+                PackageInstaller.Session ses = pi.openSession(id);
+                try (InputStream in = c.getInputStream(); OutputStream out = ses.openWrite("rivieracop", 0, total > 0 ? total : -1)) {
+                    byte[] buf = new byte[65536]; long done = 0; int n, last = -1;
+                    while ((n = in.read(buf)) > 0) {
+                        out.write(buf, 0, n); done += n;
+                        int pct = total > 0 ? (int) (done * 100 / total) : -1;
+                        if (pct != last && pct % 5 == 0) { last = pct; js("window.rcUpdateMsg&&window.rcUpdateMsg('prog'," + pct + ")"); }
+                    }
+                    ses.fsync(out);
+                }
+                Intent i = new Intent(this, MainActivity.class).setAction("RC_INSTALL");
+                PendingIntent p = PendingIntent.getActivity(this, 7, i, PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 31 ? PendingIntent.FLAG_MUTABLE : 0));
+                ses.commit(p.getIntentSender());
+                ses.close();
+                js("window.rcUpdateMsg&&window.rcUpdateMsg('install')");
+            } catch (Exception e) {
+                js("window.rcUpdateMsg&&window.rcUpdateMsg('err')");
+            }
+            updating = false;
+        }).start();
+    }
+    @Override
+    protected void onNewIntent(Intent it) {
+        super.onNewIntent(it);
+        if (!"RC_INSTALL".equals(it.getAction())) return;
+        int st = it.getIntExtra(PackageInstaller.EXTRA_STATUS, -999);
+        if (st == PackageInstaller.STATUS_PENDING_USER_ACTION) {
+            Intent confirm = it.getParcelableExtra(Intent.EXTRA_INTENT);
+            if (confirm != null) { confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); startActivity(confirm); }
+        } else if (st != PackageInstaller.STATUS_SUCCESS) js("window.rcUpdateMsg&&window.rcUpdateMsg('err')");
     }
 
     private static String mime(String p) {

@@ -7,7 +7,8 @@ import { View, Fx } from './view.js';
 import { Hud } from './hud.js';
 import { Look } from './input.js';
 import { SFX } from './audio.js';
-import { Net, makeCode, NETV } from './net.js';
+import { Net, makeCode, NETV, LanBeacon, LanScan } from './net.js';
+import { showRewarded, showInterstitial, adsReal } from './ads.js';
 import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME, BOSS } from './defs.js';
 import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES } from './weapons.js';
 import { UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd, turboDur, turboCd, POWERS } from './progress.js';
@@ -31,6 +32,9 @@ const QUAL = [['BAJA', 1], ['MEDIA', 1.5], ['ALTA', 2]];
 let qIdx = Math.max(0, Math.min(2, +(localStorage.getItem('rc_q') ?? 1)));
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.get('hq') ? 2 : QUAL[qIdx][1]));
 renderer.setSize(vw(), vh());
+// sombras suaves del sol (se quitan en calidad BAJA)
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const outline = new Outline(renderer);
 outline.enabled = !Q.get('nooutline'); // TODO-TESTEO
 outline.setSize(vw(), vh());
@@ -40,7 +44,21 @@ scene.add(camera);
 const hemi = new THREE.HemisphereLight(0xffffff, 0x777766, 1.1);
 scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+Object.assign(sun.shadow.camera, { left: -38, right: 38, top: 38, bottom: -38, near: 1, far: 260 });
+sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.06; sun.shadow.radius = 4;
 scene.add(sun); scene.add(sun.target);
+// cielo con degradado: azul intenso arriba y claro en el horizonte
+const skyMat = new THREE.ShaderMaterial({
+  uniforms: { hz: { value: new THREE.Color(0x9ae0ff) }, top: { value: new THREE.Color(0x2a8aff) } },
+  vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: 'uniform vec3 hz; uniform vec3 top; varying vec3 vP; void main(){ float t = clamp(normalize(vP).y * 2.2, 0.0, 1.0); gl_FragColor = vec4(mix(hz, top, pow(t, 0.8)), 1.0); \n#include <colorspace_fragment>\n }',
+  side: THREE.BackSide, depthWrite: false, fog: false,
+});
+const skyDome = new THREE.Mesh(new THREE.SphereGeometry(240, 24, 12), skyMat);
+skyDome.renderOrder = -10; skyDome.frustumCulled = false;
+scene.add(skyDome);
 scene.fog = new THREE.Fog(0x8fd3ff, 70, 200);
 scene.background = new THREE.Color(0x8fd3ff);
 const seaMat = toon({ color: 0x1d7ec8 });
@@ -201,7 +219,8 @@ function weaponXp(n) {
 }
 function startReload() {
   if (W.rl > 0 || W.ammo >= W.e.mag || !G.running || W.def.once) return;
-  W.rl = W.e.reload;
+  // recargar a tiempo es algo más rápido; vaciar el cargador hasta el final cuesta un 25 % más
+  W.rl = W.rlMax = W.e.reload * (W.ammo > 0 ? 0.85 : 1.25);
   // recarga táctica: a veces es instantánea
   if (Math.random() < (W.e.tactP || 0)) { W.rl = 0; W.ammo = W.e.mag; SFX.pickup(); return; }
   SFX.reload();
@@ -291,6 +310,7 @@ function fire() {
     if (ent0 && ANIMAL.has(ent0.type)) dm *= E.animM || 1;
     if (h.part === 'shield') dm *= E.shieldM || 1;
     if (W.contraT > 0) dm *= 1 + 0.25 * (PROG.upg.contra | 0);
+    if (PW.fuerzaT > 0) dm *= PW.fuerzaM || 2;
     add(h, dm);
     // bala explosiva (mejora)
     if (!E.boom && Math.random() < (E.expP || 0)) boomAt = h.point.clone();
@@ -315,7 +335,7 @@ function fire() {
     const reps = ent && (ent.type === 'sign' || ent.type === 'weapon' || ent.type === 'truck') ? k.n : 1;
     for (let i = 0; i < reps; i++) hits.push([id, k.part, Math.round(k.dmg * 100) / 100]);
     if (ent && ent.type === 'sign') SFX.vote();
-    if (ent && !['sign', 'weapon', 'truck', 'civilian', 'civcar', 'medkit'].includes(ent.type)) nHits += k.n;
+    if (ent && !['sign', 'weapon', 'truck', 'civilian', 'civcar', 'police', 'medkit'].includes(ent.type)) nHits += k.n;
   }
   if (anyHit) hud.hitT = 0.12;
   if (nHits) weaponXp(nHits);
@@ -327,6 +347,7 @@ function fire() {
     for (const h of hits) G.sim.hit(G.li, h[0], h[1], h[2]);
     if (boomAt) G.sim.boomWorld(G.li, boomAt.x, boomAt.y, boomAt.z, E.boom || 2.2, E.dmg);
     G.sim.emit('pf', { p: G.li });
+    G.sim.fired(G.li);
   }
   if (boomAt) weaponXp(2);
   // la pistola de rayos no se recarga: cuando se gasta, vuelves a la pistola
@@ -436,6 +457,7 @@ function handleEvent(ev) {
       }
       break;
     case 'heal': if (ev.p === li) { flash('heal'); SFX.heal(); } break;
+    case 'potion': if (ev.p === li) { G.potUsed = true; PROG.pot = Math.max(0, (PROG.pot | 0) - 1); saveProg(PROG); updPot(); } break;
     case 'pop': view.pop(ev.w, ev.txt, ev.c || PCOL[ev.p]); break;
     case 'banner': showBanner(ev.txt, ev.sub, ev.c); break;
     case 'weapon': if (ev.p === li) giveWeapon(ev.w); break;
@@ -454,6 +476,7 @@ function handleEvent(ev) {
       try { navigator.vibrate && navigator.vibrate([200, 80, 200]); } catch (e) { }
       break;
     case 'pz': if (ev.p === li) flash('poison'); break;
+    case 'siren': for (let i = 0; i < 3; i++) setTimeout(() => { SFX.tone(700, 1100, 0.22, 'square', 0.12); setTimeout(() => SFX.tone(1100, 700, 0.22, 'square', 0.12), 230); }, i * 470); break;
     case 'smoke': G.smokeT = ev.dur || 4; SFX.tone(300, 80, 0.6, 'sawtooth', 0.2); break;
     case 'power': {
       const D = POWERS[ev.a];
@@ -495,13 +518,14 @@ net.onmsg = (m, from) => {
       case 'hello': if (m.v !== NETV) lobbyMsg('Alguien tiene otra versión: recargad todos la página'); if (m.c) G.peerChars[from] = sanitize(m.c, from); if (m.m) G.peerMetas[from] = m.m; break;
       case 'ab': if (S && G.running && (m.k === 'shield' || m.k === 'bullet' || m.k === 'turbo')) S.useAbility(from, m.k, clamp(m.lv | 0, 1, ABMAX), clamp(m.l2 | 0, 0, 5)); break;
       case 'rv': if (S && G.running) S.revive(from); break;
+      case 'pot': if (S && G.running && P) { if (m.fresh) P.pot = 1; S.usePotion(from); } break;
       case 'pw': if (S && G.running && POWERS[m.k] && m.k !== 'furia') S.power(from, m.k, clamp(m.lv | 0, 1, 3)); break;
       case 'sf': if (P) P.spdF = clamp(+m.v || 1, 0.3, 1); break;
       case 'char': G.peerChars[from] = sanitize(m.c, from); break;
       case 'l': if (P) { P.ly = m.y; P.lp = m.p; } break;
       case 'h': if (S && G.running) for (const h of m.h) S.hit(from, h[0], h[1], h[2]); break;
       case 'b': if (S && G.running) S.boomWorld(from, m.x, m.y, m.z, m.r, m.dmg); break;
-      case 'f': if (S && G.running) S.emit('pf', { p: from }); break;
+      case 'f': if (S && G.running) { S.emit('pf', { p: from }); S.fired(from); } break;
     }
   } else {
     switch (m.t) {
@@ -527,6 +551,7 @@ function lobbyPlayers() {
 net.onjoin = idx => {
   if (G.running) { net.sendTo(idx, { t: 'busy' }); return; }
   lobbyMsg('¡Ha entrado J' + (idx + 1) + '! ' + lobbyPlayers() + ' · Pulsa EMPEZAR cuando estéis todos');
+  if (LAN.beacon) LAN.beacon.update({ n: 1 + net.links.size });
   $('btnStart').disabled = false;
 };
 net.onwelcome = i => { lobbyMsg('¡Conectado como J' + (i + 1) + '! Esperando a que el anfitrión empiece…'); };
@@ -539,12 +564,14 @@ net.onclose = idx => {
       G.sim.checkOver();
     } else {
       lobbyMsg('J' + (idx + 1) + ' se ha ido. ' + lobbyPlayers());
+      if (LAN.beacon) LAN.beacon.update({ n: 1 + net.links.size });
       $('btnStart').disabled = !net.open;
     }
   } else if (G.mode === 'guest') toMenu('Se ha perdido la conexión con el anfitrión');
 };
 // el anfitrión arranca con los que haya en la sala (huecos = jugadores que no están)
 function hostStart() {
+  lanStop();
   const seed = (Math.random() * 4294967296) >>> 0;
   const idx = [...net.links.values()].map(L => L.idx);
   const n = 1 + Math.max(0, ...idx);
@@ -573,7 +600,7 @@ function begin(seed, n, li, mode) {
   AB.shield.cd = 0; AB.bullet.cd = 0;
   GR.n = PROG.upg.gren | 0; for (const g of GR.list) scene.remove(g.m); GR.list.length = 0;
   CAN.t = 0; CAN.cd = 0; CAN.saved = null;
-  TB.cd = 0; TB.rv = 0; W.contraT = 0; PW.furiaT = 0; PW.cd = {}; G.smokeT = 0; G.zoomT = 1; G.zoom = 1; G.lay = 0;
+  G.potUsed = false; TB.cd = 0; TB.rv = 0; W.contraT = 0; PW.furiaT = 0; PW.fuerzaT = 0; LENS.on = false; PW.cd = {}; G.smokeT = 0; G.zoomT = 1; G.zoom = 1; G.lay = 0;
   $('regulIn').value = 100; G.spdF = 1;
   outline.red = (PROG.upg.aura | 0) > 0;
   $('btnHide').hidden = n < 2;
@@ -620,6 +647,10 @@ function gameOver(ev) {
     $('overStats').innerHTML = h;
     try { drawRouteMap($('routeMap'), ev.dist); } catch (e) { console.warn(e); }
     $('btnAgain').hidden = G.mode === 'guest';
+    $('btnOverAd').hidden = (PROG.pot | 0) >= 3;
+    // en la app, un anuncio a pantalla completa cada 3 partidas
+    G.overs = (G.overs || 0) + 1;
+    if (adsReal() && G.overs % 3 === 0) setTimeout(showInterstitial, 600);
     $('overWait').hidden = G.mode !== 'guest';
   }, 1600);
 }
@@ -671,7 +702,23 @@ function drawRouteMap(cv, dist) {
   g.beginPath(); g.moveTo(ex - 7, ey - 7); g.lineTo(ex + 7, ey + 7); g.moveTo(ex + 7, ey - 7); g.lineTo(ex - 7, ey + 7); g.stroke();
   g.fillStyle = '#fff'; g.textAlign = 'left'; g.fillText('VUESTRO RECORRIDO', 10, 16);
 }
+// buscador de salas de tu misma red
+const LAN = { beacon: null, scan: null };
+function lanStop() {
+  if (LAN.beacon) { LAN.beacon.stop(); LAN.beacon = null; }
+  if (LAN.scan) { LAN.scan.stop(); LAN.scan = null; }
+}
+function lanList(list, key) {
+  const el = $('lanList');
+  if (!el) return;
+  const head = key === 'mundo' ? 'SALAS ABIERTAS (no se ha podido saber tu red: salen las de cualquier sitio)' : 'SALAS EN TU RED';
+  if (!list.length) { el.innerHTML = `<div class="lbl">${head}</div><div class="lanEmpty">${key ? 'Buscando… (tu amigo tiene que haber pulsado CREAR SALA en el mismo wifi)' : 'Preparando el buscador…'}</div>`; return; }
+  el.innerHTML = `<div class="lbl">${head}</div>` + list.map(r => `<button class="lanRoom" data-c="${r.code}"${r.v !== NETV ? ' disabled' : ''}><b>${r.code}</b> <span>${r.n}/4 jugadores${r.v !== NETV ? ' · otra versión del juego' : ''}</span></button>`).join('');
+  for (const b of el.querySelectorAll('.lanRoom')) b.onclick = () => { $('codeIn').value = b.dataset.c; $('btnGo').click(); };
+}
 function toMenu(msg) {
+  lanStop();
+  if (G.updPending) { const u = G.updPending; G.updPending = null; setTimeout(() => window.rcUpdate(u[0], u[1]), 500); }
   G.running = false; G.over = false; look.enabled = false; look.fire = false;
   if (G.mode === 'host' && net.open) net.send({ t: 'menu' });
   net.close();
@@ -723,7 +770,7 @@ function uiWeapon(force) {
   let pips = '';
   if (E.mag <= 24) for (let i = 0; i < E.mag; i++) pips += `<i class="${i < W.ammo ? 'b' : 'x'}"></i>`;
   else pips = `<span class="num">${W.ammo}/${E.mag}</span>`;
-  const rl = W.rl > 0 ? `<div class="rlbar"><div style="width:${(1 - W.rl / E.reload) * 100}%"></div></div>` : (W.ammo === 0 ? '<div class="rlmsg">¡RECARGA!</div>' : '');
+  const rl = W.rl > 0 ? `<div class="rlbar"><div style="width:${(1 - W.rl / (W.rlMax || E.reload)) * 100}%"></div></div>` : (W.ammo === 0 ? '<div class="rlmsg">¡RECARGA!</div>' : '');
   const wl = weaponLevel(PROG, d.id), need = xpNeed(wl.lv);
   const xp = wl.lv >= WMAX ? 100 : Math.round(wl.xp / need * 100);
   setHTML('wep', `<div class="wn" style="color:${RARITY[d.rar].color}">${d.name}</div><div class="wlv">NV ${wl.lv}<span class="xpb"><i style="width:${xp}%"></i></span></div><div class="pips">${pips}</div>${rl}`);
@@ -793,12 +840,13 @@ function usePower(k) {
   const me = G.players[G.li];
   if (!me || !me.alive) return;
   PW.cd[k] = PW.max[k] = D.cd(lv);
+  if (k === 'fuerza') { PW.fuerzaT = D.dur(lv); PW.fuerzaM = D.mul(lv); showBanner('¡FUERZA BRUTA!', 'x' + D.mul(lv).toFixed(1) + ' de daño', D.col); SFX.tone(90, 400, 0.5, 'square', 0.3); return; }
   if (k === 'furia') { PW.furiaT = D.dur(lv); W.ammo = Math.max(W.ammo, 1); W.rl = 0; showBanner('¡FURIA!', 'Doble ritmo y sin gastar balas', D.col); SFX.tone(150, 600, 0.4, 'sawtooth', 0.3); return; }
   if (G.mode === 'guest') net.send({ t: 'pw', k, lv });
   else G.sim.power(G.li, k, lv);
 }
 // coloca los botones de poderes que tengas en columnas, sin pisarse
-const ABTN = ['btnShield', 'btnBullet', 'btnGrenade', 'btnCannon', 'btnTurbo', 'btnRevive', 'btnP_furia', 'btnP_emp', 'btnP_aereo', 'btnP_cura', 'btnP_iman'];
+const ABTN = ['btnPot', 'btnShield', 'btnBullet', 'btnGrenade', 'btnCannon', 'btnTurbo', 'btnRevive', 'btnP_furia', 'btnP_emp', 'btnP_aereo', 'btnP_cura', 'btnP_iman', 'btnP_fuerza', 'btnScope'];
 // colocación elegida por el jugador en el editor de interfaz (centro en fracción de pantalla)
 let HUDL = {};
 try { HUDL = JSON.parse(localStorage.getItem('rc_hud') || '{}') || {}; } catch (e) { HUDL = {}; }
@@ -829,6 +877,88 @@ function layoutAbilities() {
     b.style.bottom = base + row * step + 'px';
     n++;
   }
+}
+// ---------------- actualizador (solo en la app de Android) ----------------
+window.rcUpdate = (n, mine) => {
+  if (G.running) { G.updPending = [n, mine]; return; } // no molestar en plena partida
+  $('upd').hidden = false;
+  $('updMsg').textContent = 'Hay una actualización del juego (versión ' + n + ', tienes la ' + mine + '). Se descarga e instala sola: tus mejoras y monedas se mantienen.';
+  $('updGo').disabled = false;
+};
+window.rcUpdateMsg = (k, v) => {
+  $('upd').hidden = false;
+  if (k === 'prog') { $('updMsg').textContent = 'Descargando… ' + (v >= 0 ? v + ' %' : ''); $('updGo').disabled = true; }
+  else if (k === 'install') $('updMsg').textContent = 'Descargado. Acepta la instalación en la ventana de Android.';
+  else if (k === 'perm') { $('updMsg').textContent = 'Android pide permiso: activa «Permitir de esta fuente» para Riviera Cop, vuelve y pulsa ACTUALIZAR otra vez.'; $('updGo').disabled = false; }
+  else if (k === 'err') { $('updMsg').textContent = 'No se ha podido actualizar. Prueba otra vez o descarga el APK desde GitHub.'; $('updGo').disabled = false; }
+};
+$('updGo').onclick = () => { try { window.RCApp.update(); } catch (e) { } };
+$('updLater').onclick = () => { $('upd').hidden = true; };
+// ---------------- poción (se consigue viendo un anuncio) ----------------
+function updPot() { $('potN').textContent = (PROG.pot | 0) ? 'tienes ' + PROG.pot + ' · máx 3' : 'ver un anuncio'; }
+updPot();
+async function adForPotion() {
+  if ((PROG.pot | 0) >= 3) { $('menuMsg').textContent = 'Ya tienes 3 pociones (el máximo)'; return false; }
+  const ok = await showRewarded();
+  if (ok) { PROG.pot = Math.min(3, (PROG.pot | 0) + 1); saveProg(PROG); updPot(); SFX.pickup(); }
+  return ok;
+}
+$('btnAdPot').onclick = async () => { if (await adForPotion()) $('menuMsg').textContent = '¡Poción conseguida! Te salva una vez por partida: si te matan vuelves con toda la vida (o úsala para curarte entero)'; };
+$('btnOverAd').onclick = async () => { if (await adForPotion()) { $('btnOverAd').hidden = (PROG.pot | 0) >= 3; $('btnOverAd').textContent = '¡+1 POCIÓN! (tienes ' + PROG.pot + ')'; } };
+function usePot(fresh) {
+  if (G.mode === 'guest') net.send({ t: 'pot', fresh: fresh ? 1 : 0 });
+  else if (G.sim) { const P = G.sim.players[G.li]; if (fresh) P.pot = 1; G.sim.usePotion(G.li); }
+}
+$('btnPot').addEventListener('pointerdown', e => { e.stopPropagation(); if ((PROG.pot | 0) > 0 && !G.potUsed) usePot(false); });
+$('btnDeadAd').addEventListener('pointerdown', async e => {
+  e.stopPropagation();
+  if (G.potUsed) return;
+  if ((PROG.pot | 0) > 0) { usePot(true); return; }
+  if (await showRewarded()) { PROG.pot = 1; saveProg(PROG); usePot(true); }
+});
+// ---------------- mira telescópica: círculo ampliado en el centro de la pantalla ----------------
+const LENS = { on: false, rt: new THREE.WebGLRenderTarget(512, 512), cam: new THREE.PerspectiveCamera(20, 1, 0.2, 400) };
+LENS.rt.texture.colorSpace = THREE.SRGBColorSpace;
+LENS.mat = new THREE.ShaderMaterial({
+  uniforms: { tMap: { value: LENS.rt.texture }, res: { value: new THREE.Vector2(1, 1) }, rad: { value: 100 } },
+  vertexShader: 'void main(){ gl_Position = vec4(position.xy, 0.0, 1.0); }',
+  fragmentShader: `uniform sampler2D tMap; uniform vec2 res; uniform float rad;
+    void main(){
+      vec2 p = gl_FragCoord.xy - res * 0.5; float l = length(p);
+      if (l > rad + 6.0) discard;
+      vec3 c = texture2D(tMap, p / (2.0 * rad) + 0.5).rgb;
+      // borde de la lente y retícula fina
+      float ring = smoothstep(rad - 7.0, rad - 4.0, l);
+      float cross = (abs(p.x) < 1.2 || abs(p.y) < 1.2) && l > 10.0 && l < rad * 0.85 ? 0.75 : 0.0;
+      c = mix(c, vec3(0.02, 0.03, 0.06), max(ring, cross));
+      c *= 1.0 - 0.35 * smoothstep(rad * 0.6, rad, l);
+      gl_FragColor = vec4(c, 1.0);
+      #include <colorspace_fragment>
+    }`,
+  depthTest: false, depthWrite: false,
+});
+LENS.scene = new THREE.Scene();
+{ const q = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), LENS.mat); q.frustumCulled = false; LENS.scene.add(q); }
+LENS.oc = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+function renderLens() {
+  const me = G.players[G.li];
+  if (!me || !me.alive) return;
+  const zoom = 2.5 + 0.75 * ((PROG.upg.mira | 0) - 1);
+  camera.updateMatrixWorld();
+  LENS.cam.position.setFromMatrixPosition(camera.matrixWorld);
+  LENS.cam.quaternion.setFromRotationMatrix(camera.matrixWorld);
+  // el círculo ocupa el 60 % del alto: ese trozo del campo de visión ampliado
+  const half = Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * 0.6) / zoom;
+  LENS.cam.fov = THREE.MathUtils.radToDeg(half * 2); LENS.cam.aspect = 1; LENS.cam.far = camera.far; LENS.cam.updateProjectionMatrix();
+  const au = renderer.shadowMap.autoUpdate;
+  renderer.shadowMap.autoUpdate = false;
+  renderer.setRenderTarget(LENS.rt); renderer.render(scene, LENS.cam); renderer.setRenderTarget(null);
+  renderer.shadowMap.autoUpdate = au;
+  const sz = renderer.getDrawingBufferSize(V3);
+  LENS.mat.uniforms.res.value.set(sz.x, sz.y); LENS.mat.uniforms.rad.value = sz.y * 0.3;
+  const ac = renderer.autoClear; renderer.autoClear = false;
+  renderer.render(LENS.scene, LENS.oc);
+  renderer.autoClear = ac;
 }
 // ---------------- turbo, reanimar y regulador de velocidad ----------------
 const TB = { cd: 0, max: 1, rv: 0 };
@@ -868,6 +998,14 @@ function useAbility(k) {
 }
 function uiAbilities(dt) {
   if (PW.furiaT > 0) PW.furiaT -= dt;
+  if (PW.fuerzaT > 0) PW.fuerzaT -= dt;
+  { const me = G.players[G.li]; $('btnPot').hidden = !((PROG.pot | 0) > 0) || G.potUsed || !me || !me.alive || me.hp >= me.maxHp; $('btnDeadAd').hidden = G.potUsed || !me || me.alive || G.over; }
+  document.body.classList.toggle('fuerza', PW.fuerzaT > 0);
+  // mira telescópica: con rifles no (tienen su zoom con pellizco)
+  const sb = $('btnScope'), sl = PROG.upg.mira | 0;
+  sb.hidden = !sl || W.def.model === 'rifle' || W.def === CANNON;
+  if (sb.hidden) LENS.on = false;
+  sb.classList.toggle('on', LENS.on);
   for (const k of Object.keys(POWERS)) {
     const b = $('btnP_' + k), lv = PROG.upg[k] | 0;
     b.hidden = !lv;
@@ -924,10 +1062,10 @@ function frame(now) {
   if ((G.gs = (G.gs || 0) - dt) <= 0) { G.gs = 0.4; gyroStatus(); updRot(); }
   if (G.running) tick(dt);
   fx.update(dt);
-  if (NR === 1 || (++G.fr % NR) === 0) outline.render(scene, camera);
+  if (NR === 1 || (++G.fr % NR) === 0) { outline.render(scene, camera); if (LENS.on && G.running) renderLens(); }
   if (G.running && view) {
     const me = G.players[G.li];
-    hud.draw(camera, view, G.li, G.t, dt, { dead: !me || !me.alive || G.over, wind: G.wind || 0 });
+    hud.draw(camera, view, G.li, G.t, dt, { dead: !me || !me.alive || G.over, wind: G.wind || 0, turbo: !!G.turbo });
   }
 }
 function tick(dt) {
@@ -947,7 +1085,7 @@ function tick(dt) {
     G.acc += dt * TS;
     let n = 0;
     // red de seguridad: un fallo en un enemigo no debe congelar la partida
-    while (G.acc >= 1 / 60 && n++ < 8) { try { S.step(1 / 60); } catch (err) { if (!G.errOnce) { G.errOnce = 1; console.error(err); } } G.acc -= 1 / 60; }
+    while (G.acc >= 1 / 60 && n++ < (TS > 1 ? 40 : 8)) { try { S.step(1 / 60); } catch (err) { if (!G.errOnce) { G.errOnce = 1; console.error(err); } } G.acc -= 1 / 60; }
     const evs = S.events.splice(0);
     for (const e of evs) { try { handleEvent(e); } catch (err) { console.error(err); } }
     if (G.mode === 'host' && net.open) {
@@ -1028,7 +1166,7 @@ function tick(dt) {
     else if (!G.prevFire) { if (W.ammo <= 0) startReload(); else fire(); }
   }
   G.prevFire = look.fire;
-  look.slow = (hud.hot ? 0.4 / (1 + 0.35 * (PROG.upg.halcon | 0)) : 1) / (G.zoom || 1);
+  look.slow = (hud.hot ? 0.4 / (1 + 0.35 * (PROG.upg.halcon | 0)) : 1) / (G.zoom || 1) / (LENS.on ? 2 : 1);
   updGrenades(dt);
   W.recoil = Math.max(0, W.recoil - dt * 9);
   if (W.contraT > 0) W.contraT -= dt;
@@ -1038,12 +1176,17 @@ function tick(dt) {
   const rifle = W.def.model === 'rifle';
   if (!rifle) G.zoomT = 1;
   G.zoom = lerp(G.zoom || 1, G.zoomT || 1, Math.min(1, dt * 10));
-  const fov = (72 + (G.turbo ? 10 : 0) + (fast && !G.turbo ? 7 : 0)) / G.zoom;
+  // al arrancar el turbo, golpe de campo de visión que luego se asienta
+  if (G.turbo && !G.turboPrev) G.kick = 1;
+  G.turboPrev = G.turbo;
+  G.kick = Math.max(0, (G.kick || 0) - dt * 1.4);
+  const fov = (72 + (G.turbo ? 16 + 10 * G.kick : 0) + (fast && !G.turbo ? 7 : 0)) / G.zoom;
   if (Math.abs(camera.fov - fov) > 0.05) { camera.fov += (fov - camera.fov) * Math.min(1, dt * 6); camera.updateProjectionMatrix(); }
   $('scope').hidden = !(rifle && G.zoom > 1.3);
-  G.wind = fast ? Math.min(1, (G.speed || 0) / 16) : 0;
+  G.wind = G.turbo ? 1 : fast ? Math.min(1, (G.speed || 0) / 16) : 0;
+  document.body.classList.toggle('turbo', !!G.turbo);
   // viento: polvo y hojas pasando a toda velocidad
-  if (G.wind > 0 && Math.random() < dt * 40 * G.wind) {
+  for (let k = G.turbo ? 3 : 1; k > 0; k--) if (G.wind > 0 && Math.random() < dt * 40 * G.wind) {
     V1.set((Math.random() - 0.5) * 14, Math.random() * 4, -25 - Math.random() * 15); car.localToWorld(V1);
     V2.set(0, 0, 40 + Math.random() * 20).applyQuaternion(car.quaternion);
     fx.part(V1, V2.clone(), 0.9, 0.05 + Math.random() * 0.06, fx.m.dust, 0, 0);
@@ -1053,7 +1196,7 @@ function tick(dt) {
   W.flash -= dt;
   if (fpg) {
     fpg.visible = !!(me && me.alive) && !(W.def.model === 'rifle' && G.zoom > 1.3);
-    const rlk = W.rl > 0 ? Math.sin(Math.min(1, 1 - W.rl / W.e.reload) * Math.PI) : 0;
+    const rlk = W.rl > 0 ? Math.sin(Math.min(1, 1 - W.rl / (W.rlMax || W.e.reload)) * Math.PI) : 0;
     const big = W.def.model === 'cannon';
     fpg.position.set(big ? 0.16 : 0.13, (big ? -0.34 : -0.19) - rlk * 0.18, (big ? -0.62 : -0.5) + W.recoil * 0.06);
     fpg.rotation.set(W.recoil * 0.25 - rlk * 0.6, 0.18, rlk * 0.4);
@@ -1082,8 +1225,14 @@ function tick(dt) {
   seaMat.color.copy(ENV.sea);
   hemi.color.copy(ENV.hs); hemi.groundColor.copy(ENV.hg); hemi.intensity = ENV.hi;
   sun.color.copy(ENV.sc); sun.intensity = ENV.si;
-  sun.position.copy(camera.position).add(V1.set(40, 80, 25));
-  sun.target.position.copy(camera.position);
+  // el sol sigue al coche; la zona con sombras va un poco por delante de la cámara
+  V2.set(0, 0, -16).applyQuaternion(camera.quaternion); V2.y = 0;
+  sun.target.position.copy(camera.position).add(V2);
+  sun.position.copy(sun.target.position).add(V1.set(30, 70, 22));
+  skyDome.position.copy(camera.position);
+  skyMat.uniforms.hz.value.copy(ENV.sky).lerp(TC.setHex(0xffffff), 0.18);
+  skyMat.uniforms.top.value.copy(ENV.sky).multiplyScalar(0.62).lerp(TC.setHex(0x1a6aff), inTun ? 0 : 0.35);
+  hemi.groundColor.lerp(TC.setHex(0x7a86c8), 0.35);
   sea.position.set(camera.position.x, G.road.seaAt(G.carD), camera.position.z);
   // --- interfaz ---
   uiPlayers(); uiWeapon(); uiRoute(); uiWcard(); uiAbilities(dt); uiBoss();
@@ -1121,7 +1270,7 @@ function botAim() {
   }
   if (!best) for (const o of view.hit) {
     const ty = o.userData.type;
-    if (['civilian', 'civcar'].includes(ty)) continue;
+    if (['civilian', 'civcar', 'police'].includes(ty)) continue;
     const p = o.getWorldPosition(new THREE.Vector3());
     if (ty === 'gunman' || ty === 'sniper') p.y += 1.2;
     if (ty === 'truck') p.y += 2;
@@ -1156,7 +1305,7 @@ $('btnHost').onclick = async () => {
   for (const s of document.querySelectorAll('.screen')) s.hidden = true;
   $('lobby').hidden = false;
   $('btnStart').hidden = false; $('btnStart').disabled = true;
-  $('joinRow').hidden = true;
+  $('joinRow').hidden = true; $('lanList').hidden = true;
   const code = makeCode();
   $('lobbyCode').textContent = '····';
   lobbyMsg('Creando sala…');
@@ -1164,6 +1313,8 @@ $('btnHost').onclick = async () => {
   try {
     await net.host(code);
     $('lobbyCode').textContent = code;
+    lanStop();
+    LAN.beacon = new LanBeacon({ code, n: 1 });
     lobbyMsg('Pásales este código a tus amigos (hasta 3 más) y espera a que se unan');
   } catch (e) { lobbyMsg('Error: ' + (e.message || e.type || e)); }
 };
@@ -1173,8 +1324,11 @@ $('btnJoin').onclick = () => {
   $('btnStart').hidden = true;
   $('joinRow').hidden = false;
   $('lobbyCode').textContent = '';
-  lobbyMsg('Escribe el código de la sala de tu amigo');
-  $('codeIn').focus();
+  lobbyMsg('Toca una sala de tu red o escribe el código de tu amigo');
+  $('lanList').hidden = false;
+  lanStop();
+  lanList([], null);
+  LAN.scan = new LanScan(lanList);
 };
 $('btnGo').onclick = async () => {
   const code = $('codeIn').value.trim().toUpperCase();
@@ -1182,13 +1336,17 @@ $('btnGo').onclick = async () => {
   await prep();
   lobbyMsg('Conectando…');
   G.mode = 'guest';
+  lanStop(); $('lanList').hidden = true;
   try {
     await net.join(code);
     net.send({ t: 'hello', v: NETV, c: MYCHAR, m: metaOf(PROG) });
     $('joinRow').hidden = true;
     $('lobbyCode').textContent = code;
     lobbyMsg('¡Conectado! Esperando a que el anfitrión empiece…');
-  } catch (e) { lobbyMsg('Error: ' + (e.message || e.type || e)); }
+  } catch (e) {
+    lobbyMsg('Error: ' + (e.message || e.type || e));
+    G.mode = null; $('lanList').hidden = false; lanStop(); LAN.scan = new LanScan(lanList);
+  }
 };
 $('btnStart').onclick = () => { if (net.open) hostStart(); };
 $('btnBack').onclick = () => toMenu('');
@@ -1271,6 +1429,9 @@ function setQuality(i) {
   try { localStorage.setItem('rc_q', i); } catch (e) { }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, QUAL[i][1]));
   outline.mat.uniforms.aoOn.value = i > 0 ? 1 : 0;
+  renderer.shadowMap.enabled = i > 0;
+  sun.shadow.mapSize.set(i > 1 ? 2048 : 1024, i > 1 ? 2048 : 1024);
+  if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
   applyView();
   $('btnQuality').textContent = 'CALIDAD: ' + QUAL[i][0];
 }
@@ -1354,7 +1515,7 @@ function paintSpeed() {
 paintSpeed();
 
 // ---------------- tienda de mejoras ----------------
-G.shopCat = 'pj';
+G.shopCat = 'salud';
 function paintShop() {
   $('shopCoins').textContent = 'MONEDAS: ' + PROG.coins + '  (ganas 1 por cada 10 puntos)';
   const tabs = $('shopTabs'); tabs.innerHTML = '';
@@ -1365,6 +1526,9 @@ function paintShop() {
     b.onclick = () => { G.shopCat = c; paintShop(); };
     tabs.appendChild(b);
   }
+  // los niveles de las armas van en su propia pestaña
+  { const b = document.createElement('button'); b.textContent = 'NIVEL DE ARMAS'; b.className = 'wtab' + (G.shopCat === '_w' ? ' sel' : ''); b.onclick = () => { G.shopCat = '_w'; paintShop(); }; tabs.appendChild(b); }
+  $('shopWrap').hidden = G.shopCat !== '_w'; $('shopList').hidden = G.shopCat === '_w';
   const L = $('shopList'); L.innerHTML = '';
   for (const u of UPGRADES) {
     if (u.cat !== G.shopCat) continue;
@@ -1386,7 +1550,8 @@ function paintShop() {
   for (const [id, name] of Object.entries(WEAPON_NAMES)) {
     const w = weaponLevel(PROG, id);
     const e = document.createElement('div'); e.className = 'wl';
-    e.innerHTML = `${name.toUpperCase()} <em>NV ${w.lv}</em>`;
+    const nx = w.lv >= WMAX ? 1 : Math.min(1, (w.xp || 0) / xpNeed(w.lv));
+    e.innerHTML = `${name.toUpperCase()} <em>NV ${w.lv}</em><div class="wxp"><div style="width:${Math.round(nx * 100)}%"></div></div>`;
     W2.appendChild(e);
   }
 }
@@ -1402,6 +1567,8 @@ const HUD_ITEMS = [
   ['btnCannon', 'CAÑÓN', 46, '#ffb020', 'canon'], ['btnTurbo', 'TURBO', 46, '#ff8a3d', 'turbo'], ['btnRevive', 'REANIMAR', 46, '#40ff80', 'reviv'],
   ['btnP_furia', 'FURIA', 46, '#ff5a3a', 'furia'], ['btnP_emp', 'EMP', 46, '#5ad0ff', 'emp'], ['btnP_aereo', 'AÉREO', 46, '#ffb020', 'aereo'],
   ['btnP_cura', '+VIDA', 46, '#40ff80', 'cura'], ['btnP_iman', 'IMÁN', 46, '#ffe14a', 'iman'],
+  ['btnPot', 'POCIÓN', 46, '#ff5ad0'],
+  ['btnP_fuerza', 'FUERZA', 46, '#ff2a6a', 'fuerza'], ['btnScope', 'MIRA', 46, '#9ad0ff', 'mira'],
 ];
 function openHudEd() {
   for (const sc of document.querySelectorAll('.screen')) sc.hidden = true;
@@ -1451,6 +1618,8 @@ $('btnShield').addEventListener('pointerdown', e => { e.stopPropagation(); useAb
 $('btnGrenade').addEventListener('pointerdown', e => { e.stopPropagation(); throwGrenade(); });
 $('btnCannon').addEventListener('pointerdown', e => { e.stopPropagation(); useCannon(); });
 $('btnTurbo').addEventListener('pointerdown', e => { e.stopPropagation(); useTurbo(); });
+$('btnScope').addEventListener('pointerdown', e => { e.stopPropagation(); LENS.on = !LENS.on; SFX.tone(900, 1300, 0.06, 'square', 0.12); });
+window.addEventListener('keydown', e => { if (e.code === 'KeyZ' && !$('btnScope').hidden) LENS.on = !LENS.on; });
 for (const k of Object.keys(POWERS)) $('btnP_' + k).addEventListener('pointerdown', e => { e.stopPropagation(); usePower(k); });
 // zoom de los rifles: pellizcar con dos dedos (o la rueda del ratón)
 const PZ = { d0: 0, z0: 1 };

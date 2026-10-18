@@ -440,6 +440,19 @@ export function civCar(col) {
   return g;
 }
 
+// coche patrulla (va por el otro carril; si disparas cuando pasa, multa)
+export function police() {
+  const g = new THREE.Group();
+  sedan(g, 0xf4f4f4, 'civ');
+  box(g, 1.92, 0.3, 2.6, 0x1a3aa0, 0, 0.7, 0.1, 'civ');
+  box(g, 1.2, 0.18, 0.4, 0x222222, 0, 1.6, 0.2, 'civ');
+  const red = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.18, 0.36), new THREE.MeshBasicMaterial({ color: 0xff2020 }));
+  const blu = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.18, 0.36), new THREE.MeshBasicMaterial({ color: 0x2050ff }));
+  red.position.set(-0.32, 1.72, 0.2); blu.position.set(0.32, 1.72, 0.2);
+  g.add(red, blu);
+  g.userData.siren = [red, blu];
+  return g;
+}
 export function ambulance() {
   const g = new THREE.Group();
   box(g, 2.2, 2.4, 3.8, 0xf4f4f4, 0, 1.6, 0.8, 'body');
@@ -1146,6 +1159,53 @@ export function bus() {
     sh.push(a.p.userData.rig.muzzle); aim.push(a.pv);
   });
   g.userData.shooters = sh; g.userData.aimers = aim;
+  return g;
+}
+// camión (v 0) o furgoneta (v 1) con tiradores de pie encima. Las ruedas se pueden reventar (partes w0..w3)
+export function crew(v = 0) {
+  const g = new THREE.Group();
+  const sh = [], aim = [];
+  let spots;
+  if (v === 0) {
+    const col = 0x6a7a4a;
+    box(g, 2.3, 1.5, 1.9, col, 0, 1.45, -2.4, 'body');
+    box(g, 2.1, 0.6, 0.05, GLASS, 0, 1.75, -3.36, 'body');
+    box(g, 2.4, 0.35, 0.3, 0x2a2a2a, 0, 0.75, -3.4, 'body');
+    box(g, 2.4, 0.25, 5.0, 0x3a3a36, 0, 0.85, 0.6, 'body');
+    box(g, 2.4, 0.18, 4.8, tmat('wood', 0x8a6a40), 0, 1.06, 0.7, 'body');
+    for (const sx of [-1, 1]) box(g, 0.08, 0.6, 4.8, 0x5a5a50, sx * 1.16, 1.45, 0.7, 'body');
+    box(g, 2.4, 0.6, 0.08, 0x5a5a50, 0, 1.45, 3.08, 'body');
+    // bidones y cajas en la caja
+    box(g, 0.6, 0.7, 0.6, 0x8a3a2a, 0.75, 1.5, 2.5, 'body');
+    box(g, 0.7, 0.5, 0.6, tmat('wood', 0x9a7a4a), -0.7, 1.4, -0.9, 'body');
+    spots = [[-0.55, 1.15, -0.3], [0.55, 1.15, 1.0], [-0.3, 1.15, 2.4]];
+  } else {
+    const col = 0xe8e0d0;
+    box(g, 2.2, 2.1, 5.2, col, 0, 1.45, 0, 'body');
+    box(g, 2.0, 0.6, 0.05, GLASS, 0, 1.9, -2.62, 'body');
+    box(g, 2.22, 0.35, 5.22, 0x2a5aa0, 0, 1.2, 0, 'body');
+    // baca y escalerilla
+    for (const sx of [-1, 1]) box(g, 0.06, 0.25, 4.6, 0x3a3a3a, sx * 1.0, 2.62, 0.2, 'body');
+    for (const z of [-1.8, 0, 1.8]) box(g, 2.0, 0.06, 0.06, 0x3a3a3a, 0, 2.72, z, 'body');
+    box(g, 0.06, 1.8, 0.4, 0x3a3a3a, -0.6, 1.5, 2.64, 'body');
+    spots = [[-0.45, 2.52, -0.6], [0.5, 2.52, 1.2]];
+  }
+  // ruedas grandes con llanta de color: el sitio donde disparar
+  const W0 = v === 0 ? [[-1.1, -2.2], [1.1, -2.2], [-1.1, 1.8], [1.1, 1.8]] : [[-1.05, -1.7], [1.05, -1.7], [-1.05, 1.7], [1.05, 1.7]];
+  const tires = [];
+  W0.forEach(([x, z], i) => {
+    const t = wheel(g, x, 0.55, z, 0.55, 0.4, 'w' + i);
+    box(g, 0.44, 0.3, 0.3, 0xffb020, x + Math.sign(x) * 0.01, 0.55, z, 'w' + i);
+    tires.push(t);
+  });
+  spots.forEach(([x, y, z], i) => {
+    const pv = new THREE.Group(); pv.position.set(x, y, z); g.add(pv);
+    const p = person({ shirt: [0x4a3a2a, 0x2a3a4a, 0x3a2a2a][i], pants: 0x2a2a20, gun: i === 1 ? 'mg' : 'rifle', part: 'g' + i, bandana: i !== 1, cap: i === 1 ? 0x2a2a2a : undefined, mask: null });
+    pv.add(p);
+    sh.push(p.userData.rig.muzzle); aim.push(pv);
+  });
+  if (spots.length < 3) { const n = new THREE.Object3D(); g.add(n); sh.push(n); const pv = new THREE.Group(); g.add(pv); aim.push(pv); }
+  g.userData.shooters = sh; g.userData.aimers = aim; g.userData.tires = tires;
   return g;
 }
 export function canoe() {

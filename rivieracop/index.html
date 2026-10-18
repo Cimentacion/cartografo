@@ -222,8 +222,12 @@ body.many #wcard{top:calc(max(8px,env(safe-area-inset-top)) + 130px)}
 .wcl i.up{color:#7dff8a}.wcl i.dn{color:#ff5a5a}.wcl i.eq{color:#888}
 #grenN{position:absolute;right:-4px;bottom:-4px;font:8px var(--f-px);color:#fff;background:#000;padding:2px 3px;border:1px solid #7dff5a}
 #btnHide.on{background:#ffe14a;color:#111}
+#shop .card.shop{position:relative}
+.shopBack{position:absolute;top:10px;right:10px;z-index:2}
 #shopTabs{display:flex;gap:6px;margin:4px 0 10px;flex-wrap:wrap}
 #shopTabs button{font:9px var(--f-px);padding:8px 10px;background:#2a2d38;color:#fff;box-shadow:3px 3px 0 #000}
+#shopTabs button.wtab{background:#3a2a4a}
+.wxp{height:5px;background:#222;margin-top:4px}.wxp div{height:100%;background:#7dff8a}
 #shopTabs button.sel{background:#ffe14a;color:#111}
 #btnShield,#btnBullet{font-size:6px!important}
 /* barra de vida */
@@ -276,6 +280,27 @@ body.shielded #shieldfx{opacity:1}
 #spd button{font:13px var(--f-title);padding:7px 10px;border-radius:5px;background:#2a2d38;color:var(--ink)}
 #spd button.sel{background:var(--gold);color:#111}
 .big.alt4{background:#7dff8a;box-shadow:0 4px 0 #2a7a3a}
+/* turbo: viñeta caliente en los bordes */
+body.fuerza #hudwrap::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 60%,rgba(255,30,90,.3) 100%)}
+#btnScope.on span{background:#1a3a5a}
+body.turbo #hudwrap::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at center,transparent 55%,rgba(255,120,30,.28) 100%);animation:tbpulse .25s infinite alternate}
+@keyframes tbpulse{from{opacity:.7}to{opacity:1}}
+/* anuncio de prueba (navegador) */
+#fakeAd{position:fixed;inset:0;z-index:99;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center}
+#fakeAd .fa{background:#0c0a18;border:3px solid #ff5ad0;padding:18px 24px;text-align:center;max-width:90vw;font:600 13px var(--f-ui);color:#fff}
+#fakeAd b{font:12px var(--f-px);color:#ff5ad0}
+#fakeAd .fan{font:48px var(--f-title);color:#ffe14a;margin:8px}
+#dead button{display:block;margin:8px auto 0;pointer-events:auto}
+#btnAdPot small{display:block;font-size:10px;opacity:.85}
+#upd{position:fixed;inset:0;z-index:98;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center}
+#upd .card{max-width:min(520px,92vw);text-align:center}
+#upd[hidden]{display:none}
+/* buscador de salas */
+#lanList{margin:6px 0 10px;display:flex;flex-direction:column;gap:6px;align-items:center}
+.lanRoom{font:600 14px var(--f-ui);background:#0c0a18;color:#fff;border:3px solid var(--gold);padding:8px 16px;min-width:240px;box-shadow:3px 3px 0 #000}
+.lanRoom b{font:22px var(--f-title);color:var(--gold);letter-spacing:.15em;margin-right:8px}
+.lanRoom:disabled{opacity:.45}
+.lanEmpty{font:600 12px var(--f-ui);opacity:.75}
 /* editor de interfaz */
 .hudoff{display:none!important}
 #hudEd{padding:0;background:rgba(6,8,14,.55)}
@@ -326,6 +351,9 @@ body.shielded #shieldfx{opacity:1}
     <button id="btnP_aereo" class="ui ability pw" hidden style="--c:#ffb020" aria-label="Ataque aéreo"><span>AIR</span></button>
     <button id="btnP_cura" class="ui ability pw" hidden style="--c:#40ff80" aria-label="Botiquín de equipo"><span>+HP</span></button>
     <button id="btnP_iman" class="ui ability pw" hidden style="--c:#ffe14a" aria-label="Imán"><span>IMÁN</span></button>
+    <button id="btnP_fuerza" class="ui ability pw" hidden style="--c:#ff2a6a" aria-label="Fuerza bruta"><span>x2</span></button>
+    <button id="btnPot" class="ui ability ready" hidden style="--c:#ff5ad0" aria-label="Poción"><span><svg viewBox="0 0 16 16" width="20" height="20" shape-rendering="crispEdges"><path fill="#c0c0c0" d="M6 1h4v2H6z"/><path fill="#ff5ad0" d="M6 3h4v2h2v1h1v7h-1v1H4v-1H3V6h1V5h2z"/><path fill="#ffd0f0" d="M5 7h2v3H5z"/></svg></span></button>
+    <button id="btnScope" class="ui ability ready" hidden style="--c:#9ad0ff" aria-label="Mira"><span><svg viewBox="0 0 16 16" width="20" height="20" shape-rendering="crispEdges"><path fill="#9ad0ff" d="M5 1h6v1h2v2h1v2h1v4h-1v2h-1v2h-2v1H5v-1H3v-2H2v-2H1V6h1V4h1V2h2zm1 2v1H5v1H4v6h1v1h1v1h4v-1h1v-1h1V5h-1V4h-1V3z"/><path fill="#ff4040" d="M7 7h2v2H7z"/></svg></span></button>
     <button id="btnTurbo" class="ui ability" hidden aria-label="Turbo"><span><svg viewBox="0 0 16 16" width="20" height="20" shape-rendering="crispEdges"><path fill="#ff8a3d" d="M9 1h3L9 6h4l-8 9 2-6H3z"/></svg></span></button>
     <button id="btnRevive" class="ui ability ready" hidden aria-label="Reanimar"><span><svg viewBox="0 0 16 16" width="20" height="20" shape-rendering="crispEdges"><path fill="#40ff80" d="M6 2h4v4h4v4h-4v4H6v-4H2V6h4z"/></svg></span></button>
     <div id="regul" class="ui" hidden><span>VEL</span><input id="regulIn" type="range" min="30" max="100" value="100" aria-label="Regulador de velocidad"></div>
@@ -334,7 +362,7 @@ body.shielded #shieldfx{opacity:1}
     <div id="slowfx"></div><div id="shieldfx"></div>
     <div id="banner"><b></b><span></span></div>
     <div id="count" hidden><div id="countN">3</div><p>Pon el móvil en horizontal</p><p id="gyroSt2"></p></div>
-    <div id="dead" hidden>ESTÁS FUERA<small>Tu compañero puede revivirte con un botiquín</small></div>
+    <div id="dead" hidden>ESTÁS FUERA<small>Tu compañero puede revivirte con un botiquín</small><button id="btnDeadAd" class="mini ui" hidden>VER ANUNCIO Y VOLVER CON TODA LA VIDA</button></div>
   </div>
 
   <div id="menu" class="screen">
@@ -348,6 +376,7 @@ body.shielded #shieldfx{opacity:1}
         <button id="btnChar" class="big alt3">PERSONAJE</button>
         <button id="btnShop" class="big alt4">MEJORAS</button>
         <button id="btnHudEd" class="big alt">INTERFAZ</button>
+        <button id="btnAdPot" class="big alt3">POCIÓN GRATIS <small id="potN"></small></button>
       </div>
       <div class="row"><span class="lbl">SENSIBILIDAD GIROSCOPIO</span><span id="sens"><button>1</button> <button>1.5</button> <button>2</button> <button>2.6</button></span></div>
       <div class="row"><span class="lbl">VELOCIDAD INICIAL</span><span id="spd"></span></div>
@@ -383,16 +412,20 @@ body.shielded #shieldfx{opacity:1}
 
   <div id="shop" class="screen" hidden>
     <div class="card shop">
+      <button id="shopBack" class="big shopBack">VOLVER</button>
       <h2>MEJORAS</h2>
       <div class="coins" id="shopCoins"></div>
       <div id="shopTabs"></div>
       <div class="ulist" id="shopList"></div>
-      <div class="lbl" style="margin-top:12px">NIVEL DE TUS ARMAS (suben al usarlas y se guardan para la próxima vez que las cojas)</div>
-      <div class="wlist" id="shopW"></div>
-      <div class="btns" style="justify-content:flex-start;margin-top:12px"><button id="shopBack" class="big">VOLVER</button></div>
+      <div id="shopWrap" hidden>
+        <div class="lbl">NIVEL DE TUS ARMAS (suben al usarlas y se guardan para la próxima vez que las cojas)</div>
+        <div class="wlist" id="shopW"></div>
+      </div>
     </div>
   </div>
 
+  <div id="upd" hidden><div class="card"><h2>¡VERSIÓN NUEVA!</h2><p id="updMsg">Hay una actualización del juego. Se descarga e instala sola (tus mejoras y monedas se mantienen).</p>
+    <div class="btns"><button id="updGo" class="big">ACTUALIZAR</button><button id="updLater" class="big alt2">LUEGO</button></div></div></div>
   <div id="hudEd" class="screen" hidden>
     <div id="hudEdArea"></div>
     <div class="hudEdBar">
@@ -405,6 +438,7 @@ body.shielded #shieldfx{opacity:1}
     <div class="card">
       <div class="lbl">CÓDIGO DE SALA</div>
       <div id="lobbyCode">····</div>
+      <div id="lanList" hidden></div>
       <div id="joinRow" class="row" hidden><input id="codeIn" maxlength="4" autocomplete="off" spellcheck="false" placeholder="ABCD"><button id="btnGo" class="big">ENTRAR</button></div>
       <div id="lobbyMsg"></div>
       <div class="btns"><button id="btnStart" class="big" disabled>EMPEZAR</button><button id="btnBack" class="big alt2">VOLVER</button></div>
@@ -416,6 +450,7 @@ body.shielded #shieldfx{opacity:1}
       <h2>FIN DE LA PARTIDA</h2>
       <div id="overStats"></div>
       <div class="btns" style="margin-top:14px"><button id="btnAgain" class="big">OTRA PARTIDA</button><button id="btnMenu" class="big alt2">MENÚ</button></div>
+      <div class="btns" style="margin-top:8px"><button id="btnOverAd" class="mini">VER ANUNCIO: +1 POCIÓN PARA LA PRÓXIMA</button></div>
       <div id="overWait" class="lbl" style="margin-top:10px" hidden>Esperando a que el anfitrión empiece otra…</div>
     </div>
   </div>

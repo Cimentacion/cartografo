@@ -164,15 +164,16 @@ const SCALE = { gunman: 1.35, civilian: 1.3, sniper: 1.5, moto: 1.2, drone: 1.8,
   sign: 1.45, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2, beast: 1.35, bear: 1.5, jelly: 1.4, mine: 1.2 };
 // cosas que no paran las balas
 const NOHIT = new Set(['tlight', 'preview', 'whale']);
+const PITCH = new Set(['ecar', 'truck', 'amb', 'jeep', 'civcar', 'tank', 'rig', 'fuel', 'pickup', 'van', 'bus', 'quad', 'rammer', 'moto', 'crew']);
 // capa de la máscara: enemigos con contorno rojo / cosas importantes que no se desaturan
 const MASK = {
   gunman: LAYER_ENEMY, sniper: LAYER_ENEMY, moto: LAYER_ENEMY, ecar: LAYER_ENEMY, heli: LAYER_ENEMY, drone: LAYER_ENEMY, jeep: LAYER_ENEMY,
   grenade: LAYER_ENEMY, rocket: LAYER_ENEMY, rock: LAYER_ENEMY, wall: LAYER_ENEMY, train: LAYER_ENEMY,
   turret: LAYER_ENEMY, gunship: LAYER_ENEMY,
   beast: LAYER_ENEMY, bear: LAYER_ENEMY, mine: LAYER_ENEMY, jet: LAYER_ENEMY, blimp: LAYER_ENEMY, rammer: LAYER_ENEMY, junk: LAYER_ENEMY, jelly: LAYER_ENEMY,
-  quad: LAYER_ENEMY, pickup: LAYER_ENEMY, van: LAYER_ENEMY, bus: LAYER_ENEMY, canoe: LAYER_ENEMY,
+  quad: LAYER_ENEMY, crew: LAYER_ENEMY, pickup: LAYER_ENEMY, van: LAYER_ENEMY, bus: LAYER_ENEMY, canoe: LAYER_ENEMY,
   jumper: LAYER_ENEMY, tank: LAYER_ENEMY, rig: LAYER_ENEMY, rioter: LAYER_ENEMY, thrown: LAYER_ENEMY, chef: LAYER_ENEMY, boat: LAYER_ENEMY, mtrain: LAYER_ENEMY,
-  preview: LAYER_KEEP, tlight: LAYER_KEEP, fuel: LAYER_KEEP, float: LAYER_KEEP,
+  preview: LAYER_KEEP, police: LAYER_KEEP, tlight: LAYER_KEEP, fuel: LAYER_KEEP, float: LAYER_KEEP,
   sign: LAYER_KEEP, weapon: LAYER_KEEP, medkit: LAYER_KEEP, amb: LAYER_KEEP, truck: LAYER_KEEP, barrel: LAYER_KEEP, lady: LAYER_KEEP, civilian: LAYER_KEEP, chicken: LAYER_KEEP,
 };
 const CARC = [0x2a6ad0, 0xe8e8e8, 0xd0a020, 0x30a050, 0x8a2a8a, 0xd06020];
@@ -182,6 +183,7 @@ export class View {
     this.scene = scene; this.road = road; this.fx = fx;
     this.objs = new Map(); this.hit = []; this.tele = []; this.pops = [];
     this.car = M.convertible();
+    this.car.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
     scene.add(this.car);
     this.av = [0, 1, 2, 3].map(i => M.seatedPlayer(i));
     this.av.forEach((a, i) => { a.position.set(SEATS[i][0], 1.4, SEATS[i][1]); this.car.add(a); a.visible = false; });
@@ -221,6 +223,10 @@ export class View {
       // botes: de vez en cuando pilla un bache y salta un poco
       C.hop -= dt;
       if (C.hop <= 0 && speed > 6 && C.y <= 0.001) { C.vy = 1.2 + Math.random() * 1.4; C.hop = 1.2 + Math.random() * 2.8; }
+      // cambio de rasante: al coronar una loma rápido, el coche despega un poco
+      const ya = R.toWorld(d + 6, LANE_ME, 0, V1).y, yb = R.toWorld(d - 6, LANE_ME, 0, V2).y, y00 = this.carPos.y;
+      const crest = (ya + yb - 2 * y00) / 36;
+      if (crest < -0.004 && speed > 10 && C.y <= 0.001 && C.vy <= 0) { C.vy = Math.min(4.5, -crest * 600 * Math.min(1.5, speed / 18)); C.hop = Math.max(C.hop, 1); }
       C.vy -= 14 * dt; C.y += C.vy * dt;
       if (C.y < 0) { C.y = 0; C.vy = C.vy < -1.5 ? -C.vy * 0.3 : 0; }
     }
@@ -283,6 +289,7 @@ export class View {
       case 'truck': g = M.truck(); break;
       case 'chicken': g = M.chicken(); break;
       case 'civcar': g = M.civCar(CARC[(x.c || 0) % CARC.length]); break;
+      case 'police': g = M.police(); break;
       case 'amb': g = M.ambulance(); break;
       case 'medkit': g = M.medkit(); break;
       case 'jeep': g = M.jeep(); break;
@@ -308,6 +315,7 @@ export class View {
       case 'quad': g = M.quad(); break;
       case 'pickup': g = M.pickup(); break;
       case 'van': g = M.van(); break;
+      case 'crew': g = M.crew(e.x ? e.x.v | 0 : 0); break;
       case 'bus': g = M.bus(); break;
       case 'canoe': g = M.canoe(); break;
       case 'beast': g = M.beast(x.an || 0); break;
@@ -334,6 +342,7 @@ export class View {
     });
     const sc = SCALE[e.type];
     if (sc) g.scale.setScalar(sc);
+    g.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
     g.userData.eid = e.id;
     g.userData.type = e.type;
     this.scene.add(g);
@@ -353,6 +362,8 @@ export class View {
       const ud = o.userData;
       R.toWorld(e.d, e.lat, e.h, o.position);
       o.rotation.set(0, -R.yawAt(e.d) + e.ry, 0);
+      // los vehículos se inclinan con la cuesta
+      if (PITCH.has(e.type)) { o.rotation.order = 'YXZ'; o.rotation.x = Math.atan2(R.toWorld(e.d + 2, 0, 0, V1).y - R.toWorld(e.d - 2, 0, 0, V2).y, 4) * (Math.abs(e.ry) > 2 ? -1 : 1); if (e.type === 'crew' && e.x && e.x.out) o.rotation.z = e.x.out * Math.min(1.3, (ud.dt || 0) * 0.9); }
       ud.dt = e.st === ST.DEAD ? (ud.dt || 0) + dt : 0;
       const A = ANIM[e.type];
       if (A) A(o, e, dt, ctx, this);
@@ -379,7 +390,7 @@ export class View {
   aim(o, e) {
     const ud = o.userData;
     ud.aimers.forEach((pv, i) => {
-      if ((e.type === 'ecar' || e.type === 'bus') && e.x && e.x.gd && e.x.gd[i]) { pv.rotation.set(0.9, 0, 0.5); return; }
+      if ((e.type === 'ecar' || e.type === 'bus' || e.type === 'crew') && e.x && e.x.gd && e.x.gd[i]) { pv.rotation.set(0.9, 0, 0.5); return; }
       if (e.type === 'mtrain' && e.x && e.x.wh && !(e.x.wh[i] > 0)) { pv.visible = false; return; }
       if (e.st === ST.DEAD) { pv.rotation.set(1.0, 0, 0.4); return; }
       pv.lookAt(this.aimT);
@@ -447,6 +458,21 @@ function personAnim(o, e, dt, ctx, V) {
 }
 
 const ANIM = {
+  police(o, e, dt, ctx) {
+    const s = o.userData.siren, on = (ctx.t * 6 | 0) % 2;
+    s[0].visible = !!on; s[1].visible = !on;
+  },
+  // ruedas reventadas: desaparece la goma y sale humo
+  crew(o, e, dt, ctx, V) {
+    const T = o.userData.tires;
+    if (!T || !e.x || !e.x.td) return;
+    e.x.td.forEach((b, i) => {
+      if (!b || !T[i].visible) return;
+      T[i].visible = false;
+      V.fx.sparks && V.fx.sparks(T[i].getWorldPosition(new THREE.Vector3()), 14);
+    });
+    if (e.st === ST.DEAD && Math.random() < dt * 12) V.fx.smoke(o.getWorldPosition(new THREE.Vector3()).setY(o.position.y + 1.5), true);
+  },
   gunman(o, e, dt, ctx, V) {
     personAnim(o, e, dt, ctx, V);
     if (o.userData.shield) o.userData.shield.visible = !!(e.x && e.x.shd > 0) && e.st !== ST.DEAD;

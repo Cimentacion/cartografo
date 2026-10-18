@@ -197,3 +197,81 @@ export class Net {
     this.peer = null;
   }
 }
+
+// ---------------- buscador de salas en tu misma red ----------------
+// Todos los que salen a internet por la misma IP pública (mismo wifi) entran en una "sala de anuncios"
+// de Trystero cuyo nombre sale de esa IP. Los anfitriones anuncian su código ahí y los demás lo ven.
+let ipKeyP = null;
+function lanKey() {
+  if (ipKeyP) return ipKeyP;
+  const tm = (u, f) => Promise.race([fetch(u, { cache: 'no-store' }).then(f), new Promise((_, r) => setTimeout(() => r(new Error('t')), 4000))]);
+  const tries = [
+    () => tm('https://api.ipify.org?format=json', r => r.json()).then(j => j.ip),
+    () => tm('https://www.cloudflare.com/cdn-cgi/trace', r => r.text()).then(t => (t.match(/ip=([^\n]+)/) || [])[1]),
+    () => tm('https://api64.ipify.org?format=json', r => r.json()).then(j => j.ip),
+  ];
+  ipKeyP = (async () => {
+    for (const f of tries) { try { const ip = await f(); if (ip) return hashStr(ip.trim()); } catch (e) { } }
+    ipKeyP = null; // reintentar la próxima vez
+    return 'mundo';
+  })();
+  return ipKeyP;
+}
+function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); }
+async function lanRooms(onData, onJoin) {
+  await trReady;
+  if (!TR || NO_TRYSTERO) return { rooms: [], key: null };
+  const key = new URLSearchParams(location.search).get('lan') || await lanKey(); // TODO-TESTEO: ?lan=x fuerza la red
+  const rooms = [];
+  for (const join of [TR.joinNostr, TR.joinTorrent]) {
+    try {
+      const cfg = { appId: APP + '-lan' };
+      const trk = new URLSearchParams(location.search).get('trk');
+      if (trk) { if (join !== TR.joinTorrent) continue; cfg.relayUrls = [trk]; }
+      const room = join(cfg, 'red-' + key);
+      const [send, get] = room.makeAction('a');
+      get((d, id) => onData && onData(d, id));
+      room.onPeerJoin(id => onJoin && onJoin(send, id));
+      rooms.push({ room, send });
+    } catch (e) { console.warn('lan', e); }
+  }
+  return { rooms, key };
+}
+// anfitrión: anuncia su sala
+export class LanBeacon {
+  constructor(info) {
+    this.info = info; this.stopped = false; this.rooms = [];
+    lanRooms(null, (send, id) => { try { send(this.msg(), id); } catch (e) { } }).then(r => {
+      if (this.stopped) { for (const x of r.rooms) try { x.room.leave(); } catch (e) { } return; }
+      this.rooms = r.rooms;
+      this.iv = setInterval(() => this.ping(), 2500);
+      this.ping();
+    });
+  }
+  msg() { return Object.assign({ t: 'sala', v: NETV }, this.info); }
+  update(o) { Object.assign(this.info, o); this.ping(); }
+  ping() { for (const R of this.rooms) try { R.send(this.msg()); } catch (e) { } }
+  stop() {
+    this.stopped = true; clearInterval(this.iv);
+    for (const R of this.rooms) { try { R.send({ t: 'cerrada', code: this.info.code }); } catch (e) { } try { R.room.leave(); } catch (e) { } }
+    this.rooms = [];
+  }
+}
+// buscador: lista las salas anunciadas en tu red
+export class LanScan {
+  constructor(onList) {
+    this.list = new Map(); this.stopped = false; this.rooms = []; this.key = null;
+    const emit = () => onList && onList([...this.list.values()].sort((a, b) => a.code < b.code ? -1 : 1), this.key);
+    lanRooms(d => {
+      if (!d || typeof d !== 'object' || typeof d.code !== 'string' || !/^[A-Z0-9]{4}$/.test(d.code)) return;
+      if (d.t === 'cerrada') this.list.delete(d.code);
+      else if (d.t === 'sala') this.list.set(d.code, { code: d.code, n: d.n | 0, name: String(d.name || '').slice(0, 18), v: d.v | 0, seen: performance.now() });
+      emit();
+    }).then(r => {
+      if (this.stopped) { for (const x of r.rooms) try { x.room.leave(); } catch (e) { } return; }
+      this.rooms = r.rooms; this.key = r.key; emit();
+    });
+    this.iv = setInterval(() => { const t = performance.now(); let ch = false; for (const [k, v] of this.list) if (t - v.seen > 9000) { this.list.delete(k); ch = true; } if (ch) emit(); }, 1500);
+  }
+  stop() { this.stopped = true; clearInterval(this.iv); for (const R of this.rooms) try { R.room.leave(); } catch (e) { } this.rooms = []; }
+}

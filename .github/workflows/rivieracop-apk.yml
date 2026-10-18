@@ -26,12 +26,16 @@ jobs:
         working-directory: android-rivieracop
         run: gradle assembleRelease --no-daemon --stacktrace
       - name: Renombrar
-        run: cp android-rivieracop/app/build/outputs/apk/release/app-release.apk rivieracop.apk
+        run: |
+          cp android-rivieracop/app/build/outputs/apk/release/app-release.apk rivieracop.apk
+          echo "${{ github.run_number }}" > version.txt
       - name: Publicar en Releases
         uses: softprops/action-gh-release@v2
         with:
           tag_name: rivieracop
           name: "Riviera Cop (APK)"
           body: "APK de Riviera Cop compilado automáticamente. Build #${{ github.run_number }}."
-          files: rivieracop.apk
+          files: |
+            rivieracop.apk
+            version.txt
           make_latest: false
