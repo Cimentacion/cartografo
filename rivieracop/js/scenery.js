@@ -174,8 +174,8 @@ function shoulderOf(B, side) {
 export function buildChunk(road, c, M) {
   const d0 = c * CH, d1 = d0 + CH;
   if (road.len < d1 + 1) return null;
-  const R = {};
-  for (const k of LIST_KEYS) R[k] = [];
+  const R = {}, RI = {};
+  for (const k of LIST_KEYS) { R[k] = []; RI[k] = []; }
   const r = rng(hash(road.seed, c, 77));
   let s = d0;
   const cls = i => (road.kind[i] === 1 ? 1 : road.kind[i] === 3 ? 3 : 0);
@@ -184,9 +184,10 @@ export function buildChunk(road, c, M) {
     let e = s;
     while (e < d1 && cls(e) === c0) e++;
     const B = BIOMES[BIOME_KEYS[road.bio[s]]];
-    if (c0 === 1) tunnelRun(R, road, B, s, e);
-    else if (c0 === 3) interiorRun(R, road, B, s, e, r);
-    else outsideRun(R, road, B, s, e, r);
+    // lo de dentro de túneles e interiores va aparte: no recibe sombras del sol (salían rayas y puntos)
+    if (c0 === 1) tunnelRun(RI, road, B, s, e);
+    else if (c0 === 3) interiorRun(RI, road, B, s, e, r);
+    else outsideRun(B.deco === 'tuneles' ? RI : R, road, B, s, e, r);
     s = e;
   }
   for (const t of road.tunnels) {
@@ -205,20 +206,18 @@ export function buildChunk(road, c, M) {
       addBox(R.L, 19, 0.6, 0.6, 0x8a8f96, frame(road, f.gantry, 0, 8.4));
     }
   }
-  const mid = Math.min(road.len, d0 + CH / 2);
-  const indoor = road.kind[mid] === 1 || road.kind[mid] === 3 || BIOMES[BIOME_KEYS[road.bio[mid]]].deco === 'tuneles';
   const grp = new THREE.Group();
-  for (const k of LIST_KEYS) {
-    if (!R[k].length) continue;
-    const g = mergeGeometries(R[k], false);
-    for (const x of R[k]) x.dispose();
+  for (const [L, indoor] of [[R, false], [RI, true]]) for (const k of LIST_KEYS) {
+    if (!L[k].length) continue;
+    const g = mergeGeometries(L[k], false);
+    for (const x of L[k]) x.dispose();
     if (!g) continue;
     g.computeBoundingSphere();
     const me = new THREE.Mesh(g, M[k]);
-    me.receiveShadow = !indoor; me.castShadow = k !== 'A' && k !== 'P';
+    me.receiveShadow = !indoor; me.castShadow = !indoor && k !== 'A' && k !== 'P';
     grp.add(me);
   }
-  for (const m of R.X || []) grp.add(m);
+  for (const m of (R.X || []).concat(RI.X || [])) grp.add(m);
   return grp;
 }
 

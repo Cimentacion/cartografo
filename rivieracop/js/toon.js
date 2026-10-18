@@ -100,7 +100,7 @@ export class Outline {
           float edge = smoothstep(0.06, 0.14, e) * smoothstep(0.35, 0.7, e / max(g1, 1e-4)) * sil * (1.0 - smoothstep(30.0, 60.0, d)) * inkOn;
           // trazo irregular, como dibujado a mano
           float nz = vnoise(gl_FragCoord.xy / 5.0);
-          edge *= 0.45 + 0.75 * nz;
+          edge *= 0.85 + 0.15 * nz;
           // oclusión ambiental barata: rincones y bases de las cosas más oscuros
           float ao = 0.0;
           if (aoOn > 0.5 && raw < 0.99999) {
@@ -165,7 +165,7 @@ export class Outline {
             c *= mix(vec3(0.9, 0.94, 1.08), vec3(1.05, 1.01, 0.93), smoothstep(0.15, 0.85, lum));
             c = clamp((c - 0.5) * 1.08 + 0.52, 0.0, 1.0);
           }
-          c = mix(c, ink * (0.8 + 0.5 * nz), clamp(edge, 0.0, 1.0) * 0.9);
+          c = mix(c, ink, clamp(edge, 0.0, 1.0) * 0.9);
           c = mix(c, red, redE);
           gl_FragColor = vec4(c, 1.0);
           #include <colorspace_fragment>

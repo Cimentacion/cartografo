@@ -51,7 +51,7 @@ sun.castShadow = true;
 sun.shadow.mapSize.set(1024, 1024);
 // sombras de los edificios y el decorado hasta lo lejos: un mapa grande que solo se vuelve a calcular cada ~30 m
 // (lo que se mueve lleva su sombra suave debajo); así no tiemblan y casi no cuestan
-Object.assign(sun.shadow.camera, { left: -170, right: 170, top: 170, bottom: -170, near: 1, far: 700 });
+Object.assign(sun.shadow.camera, { left: -120, right: 120, top: 120, bottom: -120, near: 1, far: 700 });
 sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.05; sun.shadow.radius = 10; sun.shadow.blurSamples = 16;
 renderer.shadowMap.autoUpdate = false;
 sun.shadow.camera.updateProjectionMatrix();
@@ -1414,7 +1414,7 @@ function tick(dt) {
   // el sol sigue al coche; la zona con sombras va un poco por delante de la cámara
   G.road.toWorld(G.carD + 100, 0, 0, V2);
   // se recoloca en saltos de ~40 m que son un número exacto de píxeles del mapa: los bordes no bailan
-  { const px = 340 / sun.shadow.mapSize.x, tx = Math.round(40 / px) * px, a = Math.round(V2.dot(SUNX) / tx) * tx, b = Math.round(V2.dot(SUNY) / tx) * tx, c = Math.round(V2.dot(SUNZ) / tx) * tx;
+  { const px = 240 / sun.shadow.mapSize.x, tx = Math.round(40 / px) * px, a = Math.round(V2.dot(SUNX) / tx) * tx, b = Math.round(V2.dot(SUNY) / tx) * tx, c = Math.round(V2.dot(SUNZ) / tx) * tx;
     const key = a + ',' + b + ',' + c;
     if (key !== SHC.key || SHC.dirty) { SHC.key = key; SHC.dirty = false; renderer.shadowMap.needsUpdate = true; }
     sun.target.position.copy(SUNX).multiplyScalar(a).addScaledVector(SUNY, b).addScaledVector(SUNZ, c); }
@@ -1680,8 +1680,8 @@ $('btnStyle').onclick = () => { for (const sc of document.querySelectorAll('.scr
 $('styleBack').onclick = () => { $('styleScr').hidden = true; $('menu').hidden = false; };
 applyStyle();
 // oclusión ambiental (rincones más oscuros): se puede quitar aparte de las sombras
-let AOON = (localStorage.getItem('rc_ao') ?? '1') === '1';
-function setAO(v) { AOON = v; try { localStorage.setItem('rc_ao', v ? '1' : '0'); } catch (e) { } outline.mat.uniforms.aoOn.value = v && qIdx > 0 ? 1 : 0; $('btnAO').textContent = 'OCLUSIÓN: ' + (v ? 'SÍ' : 'NO'); }
+let AOON = (localStorage.getItem('rc_ao2') ?? '0') === '1';
+function setAO(v) { AOON = v; try { localStorage.setItem('rc_ao2', v ? '1' : '0'); } catch (e) { } outline.mat.uniforms.aoOn.value = v && qIdx > 0 ? 1 : 0; $('btnAO').textContent = 'OCLUSIÓN: ' + (v ? 'SÍ' : 'NO'); }
 $('btnAO').onclick = () => setAO(!AOON);
 function setQuality(i) {
   qIdx = i;
