@@ -295,6 +295,7 @@ body.turbo #hudwrap::after{content:'';position:absolute;inset:0;pointer-events:n
 #upd{position:fixed;inset:0;z-index:98;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center}
 #upd .card{max-width:min(520px,92vw);text-align:center}
 #upd[hidden]{display:none}
+#langSel{font:9px var(--f-px);background:#2a2d38;color:#fff;border:0;padding:6px;box-shadow:3px 3px 0 #000}
 /* buscador de salas */
 #lanList{margin:6px 0 10px;display:flex;flex-direction:column;gap:6px;align-items:center}
 .lanRoom{font:600 14px var(--f-ui);background:#0c0a18;color:#fff;border:3px solid var(--gold);padding:8px 16px;min-width:240px;box-shadow:3px 3px 0 #000}
@@ -380,7 +381,7 @@ body.turbo #hudwrap::after{content:'';position:absolute;inset:0;pointer-events:n
       </div>
       <div class="row"><span class="lbl">SENSIBILIDAD GIROSCOPIO</span><span id="sens"><button>1</button> <button>1.5</button> <button>2</button> <button>2.6</button></span></div>
       <div class="row"><span class="lbl">VELOCIDAD INICIAL</span><span id="spd"></span></div>
-      <div class="row"><span class="lbl">APUNTAR CON</span><span id="ctl"><button data-m="joy">JOYSTICK</button> <button data-m="gyro">GIROSCOPIO</button> <button data-m="dedo">DEDO</button></span> <button id="btnDiag" class="mini">PROBAR GIROSCOPIO</button> <button id="btnOutline" class="mini">CONTORNO: SÍ</button> <button id="btnQuality" class="mini">CALIDAD: MEDIA</button></div>
+      <div class="row"><span class="lbl">APUNTAR CON</span><span id="ctl"><button data-m="joy">JOYSTICK</button> <button data-m="gyro">GIROSCOPIO</button> <button data-m="dedo">DEDO</button></span> <button id="btnDiag" class="mini">PROBAR GIROSCOPIO</button> <button id="btnOutline" class="mini">CONTORNO: SÍ</button> <button id="btnQuality" class="mini">CALIDAD: MEDIA</button> <select id="langSel" class="mini" aria-label="Idioma"></select></div>
       <div id="gyroSt" class="lbl"></div>
       <div id="best"></div>
       <div id="menuMsg"></div>

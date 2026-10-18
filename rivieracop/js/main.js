@@ -1,5 +1,6 @@
 // RIVIERA COP — roguelike de disparos sobre raíles, cooperativo, con giroscopio
 import * as THREE from 'three';
+import { initI18n, LANGS, getLang, setLang } from './i18n.js';
 import { Road, LANE_ME } from './road.js';
 import { buildChunk, makeMats, CH } from './scenery.js';
 import { Sim, SEATS, isRear, AIR, ANIMAL } from './sim.js';
@@ -1424,6 +1425,12 @@ function setOutline(on) {
   $('btnOutline').textContent = 'CONTORNO: ' + (on ? 'SÍ' : 'NO');
 }
 $('btnOutline').onclick = () => setOutline(!outline.enabled);
+// idioma
+initI18n().then(() => {
+  const sel = $('langSel');
+  sel.innerHTML = LANGS.map(([k, n]) => `<option value="${k}"${k === getLang() ? ' selected' : ''}>${n}</option>`).join('');
+  sel.onchange = () => setLang(sel.value);
+});
 function setQuality(i) {
   qIdx = i;
   try { localStorage.setItem('rc_q', i); } catch (e) { }
