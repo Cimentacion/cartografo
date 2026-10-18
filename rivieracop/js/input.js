@@ -61,7 +61,8 @@ export class Look {
       g.addEventListener('reading', () => {
         this.diag.sensor++;
         // el sensor nativo es el más fiable: si llega, manda él
-        if (this.src !== 'sensor' && this.diag.sensor > 5) { this.src = 'ninguno'; this.rateSeen = 0; }
+        // (antes esto se repetía en cada lectura y el contador nunca llegaba: el giroscopio no se activaba nunca)
+        if (this.src !== 'sensor' && this.diag.sensor === 6) { this.src = 'ninguno'; this.rateSeen = 0; }
         this.mapOk = true;
         this.integrate(g.x, g.y, g.z, 'sensor');
       });
