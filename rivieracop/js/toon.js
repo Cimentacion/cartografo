@@ -113,9 +113,9 @@ export class Outline {
               float dp = 2.0 / (1.0 / da + 1.0 / db);
               float dd2 = d - dp;
               // solo rincones (concavidad); si una muestra está mucho más cerca es un objeto delante: no cuenta
-              ao += smoothstep(0.03 + d * 0.004, 0.35 + d * 0.01, dd2) * (1.0 - smoothstep(1.5, 3.5, max(d - da, d - db))) * 2.0;
+              ao += smoothstep(0.05 + d * 0.012, 0.4 + d * 0.03, dd2) * (1.0 - smoothstep(1.5, 3.5, max(d - da, d - db))) * 2.0;
             }
-            ao = clamp(ao / (aoN * 0.6), 0.0, 1.0) * (1.0 - smoothstep(35.0, 90.0, d));
+            ao = clamp(ao / (aoN * 0.6), 0.0, 1.0) * (1.0 - smoothstep(18.0, 45.0, d));
           }
           vec4 mk = texture2D(tMask, vUv);
           // contorno rojo: píxel fuera del enemigo con un vecino dentro
