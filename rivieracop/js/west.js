@@ -263,7 +263,6 @@ export function mansion() {
   // tejado a cuatro aguas (pizarra) con buhardillas y dos chimeneas
   const slate = tmat('wood', 0x3a3a46);
   for (const sd of [-1, 1]) { const r = box(body, W + 1.6, 0.3, D / 2 + 1.6, slate, 0, 2 * FH + 1.6, D / 2 + sd * (D / 4 + 0.3), 'body'); r.rotation.x = sd * 0.55; }
-  for (const sd of [-1, 1]) { const r = box(body, D / 2 + 1.6, 0.3, D + 1.4, slate, sd * (W / 2 - 0.6), 2 * FH + 1.5, D / 2, 'body'); r.rotation.z = -sd * 0.7; r.scale.x = 0.9; }
   box(body, W + 1.2, 0.35, 0.6, white, 0, 2 * FH + 0.35, -0.5, 'body'); // cornisa grande
   for (let k = 0; k < 14; k++) box(body, 0.2, 0.25, 0.3, white, -W / 2 + 0.5 + k * (W - 1) / 13, 2 * FH + 0.12, -0.6); // dentículos
   for (const x of [-6.5, 6.5]) {

@@ -705,6 +705,18 @@ function trough(R, m) {
 // lats = columnas laterales; hf(i, lat) = altura; cf(lat) = color
 function sandGrid(list, road, i0, i1, lats, hf, cf, step = 2) {
   const rows = []; for (let i = i0; i < i1; i += step) rows.push(i); rows.push(i1);
+  // en una curva cerrada, las columnas de la parte de dentro más allá del radio se cruzan entre sí y la malla
+  // se dobla en paredes gigantes: se recortan a un poco menos del radio de la curva
+  { let kp = 0, kn = 0; for (let i = Math.max(1, i0 - 2); i <= Math.min(road.len, i1 + 2); i++) { const k = road.yaw[i] - road.yaw[i - 1]; if (k > kp) kp = k; if (-k > kn) kn = -k; }
+    const lp = kp > 1e-4 ? 0.8 / kp : 1e9, ln = kn > 1e-4 ? 0.8 / kn : 1e9;
+    if (lats.some(la => la > lp || -la > ln)) {
+      const ok = lats.filter(la => la <= lp && -la <= ln);
+      if (lats.some(la => la > lp)) ok.push(lp);
+      if (lats.some(la => -la > ln)) ok.unshift(-ln);
+      lats = ok.sort((a, b) => a - b);
+      if (lats.length < 2) return;
+    }
+  }
   const nc = lats.length, pos = new Float32Array(rows.length * nc * 3), col = new Float32Array(rows.length * nc * 3), idx = [];
   rows.forEach((i, k) => {
     const cy = Math.cos(road.yaw[i]), sy = Math.sin(road.yaw[i]);
@@ -852,12 +864,17 @@ function westRun(R, road, B, i0, i1, r) {
   { const a = Math.max(i0, W.mansion + 20), b = Math.min(i1, W.church - 6);
     if (b > a) {
       for (const sd of [-1, 1]) {
-        const fl = sd * 8.6;
-        for (let d = Math.ceil(a / 1.1) * 1.1; d < b; d += 1.1) if (sd > 0 || Math.abs(d - W.mh) > 4.4) addBox(R.L, 0.1, 1.05, 0.1, 0xf6f6f2, frame(road, d, fl, 0), { y: 0.52 });
-        strip(R.L, road, a, b, C(fl - 0.06, 0.85), C(fl + 0.06, 0.85), 0xf6f6f2); strip(R.L, road, a, b, C(fl - 0.06, 0.45), C(fl + 0.06, 0.45), 0xf6f6f2);
-        strip(R.L, road, a, b, C(sd * (HALF + 0.4), 0.01), C(sd * 46, 0.01), sd < 0 ? 0x5a8a34 : 0x6a9a3a);
+        // farolas a lo largo de la calle
         each(a, b, r, 14, 14, d => { const m = frame(road, d, sd * 7.6, 0); addBox(R.S, 0.14, 4, 0.14, 0x1a1a1a, m, { y: 2 }); addBox(R.G, 0.4, 0.5, 0.4, 0xffe0a0, m, { y: 4.1 }); addBox(R.L, 0.55, 0.12, 0.55, 0x1a1a1a, m, { y: 4.42 }); });
-        each(a, b, r, 9, 16, d => { if (sd < 0 && Math.abs(d - W.mh) < 16) return; const m = frame(road, d, sd * (11 + r() * 8), 0); const h = 5 + r() * 3; addBox(R.L, 0.3, 1, 0.3, 0x5a3a20, m, { y: 0.5 }); addCyl(R.L, 0.1, 1.1, h, 8, 0x2a5a2a, m, { y: 0.9 + h / 2 }); });
+      }
+      // el jardín (césped, valla blanca y cipreses) solo alrededor de la casa
+      const g0 = Math.max(a, Math.floor(W.mh - 17)), g1 = Math.min(b, Math.ceil(W.mh + 17));
+      if (g1 > g0) {
+        strip(R.L, road, g0, g1, C(-8.6, 0.02), C(-34, 0.02), 0x5a8a34);
+        for (let d = Math.ceil(g0 / 1.1) * 1.1; d < g1; d += 1.1) if (Math.abs(d - W.mh) > 4.4) addBox(R.L, 0.1, 1.05, 0.1, 0xf6f6f2, frame(road, d, -8.6, 0), { y: 0.52 });
+        strip(R.L, road, g0, g1, C(-8.66, 0.85), C(-8.54, 0.85), 0xf6f6f2); strip(R.L, road, g0, g1, C(-8.66, 0.45), C(-8.54, 0.45), 0xf6f6f2);
+        for (const e of [g0, g1]) if (e === Math.floor(W.mh - 17) || e === Math.ceil(W.mh + 17)) { const m = frame(road, e, -21.3, 0); addBox(R.L, 0.1, 1.05, 25.4, 0xf6f6f2, m, { y: 0.52, ry: Math.PI / 2 }); }
+        for (const dd of [-15, 15]) if (W.mh + dd >= g0 && W.mh + dd < g1) for (const lat of [-11, -28]) { const m = frame(road, W.mh + dd, lat, 0), h = 6 + ((dd + lat) & 3); addBox(R.L, 0.3, 1, 0.3, 0x5a3a20, m, { y: 0.5 }); addCyl(R.L, 0.1, 1.1, h, 8, 0x2a5a2a, m, { y: 0.9 + h / 2 }); }
       }
       if (W.mh >= i0 && W.mh < i1) {
         strip(R.L, road, Math.max(i0, Math.floor(W.mh - 1.4)), Math.min(i1, Math.ceil(W.mh + 1.4)), C(-HALF - 0.4, 0.02), C(-9.4, 0.02), 0xd8d0c0);
