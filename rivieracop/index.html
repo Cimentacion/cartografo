@@ -90,6 +90,10 @@ body.ctl-joy #joyZone{display:block}
 body.ctl-joy #btnReload{left:auto;right:max(150px,calc(env(safe-area-inset-right) + 140px));width:84px;height:84px;font-size:11px}
 body.ctl-joy #btnFire{bottom:max(18px,env(safe-area-inset-bottom));width:116px;height:116px;font-size:17px}
 body.ctl-joy #wep{right:auto;left:50%;transform:translateX(-50%);bottom:max(8px,env(safe-area-inset-bottom))}
+#btnFlip{position:absolute;right:max(130px,calc(env(safe-area-inset-right) + 120px));bottom:210px;width:58px;height:58px;border-radius:50%;background:rgba(10,12,20,.7);color:#fff;border:2px solid rgba(255,255,255,.6);font:20px/1 var(--f-title);pointer-events:auto;touch-action:none;z-index:6;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#btnFlip small{font:9px var(--f-ui);font-weight:800}
+#btnFlip.on{background:#ffe14a;color:#111}
+body.ctl-joy #btnFlip{right:max(160px,calc(env(safe-area-inset-right) + 150px));bottom:120px}
 #btnFire{position:absolute;right:max(14px,env(safe-area-inset-right));bottom:96px;width:100px;height:100px;border-radius:50%;
   background:radial-gradient(circle at 35% 30%,#ff8a8a,#d81e1e 70%);color:#fff;font-size:15px;box-shadow:0 4px 0 #7a0a0a;pointer-events:auto}
 #wcard{position:absolute;right:max(10px,env(safe-area-inset-right));top:96px;width:170px;background:rgba(8,10,18,.85);border-radius:6px;overflow:hidden;font:600 12px var(--f-ui)}
@@ -244,6 +248,8 @@ body.ctl-joy #btnCannon{bottom:146px;right:calc(max(12px,env(safe-area-inset-rig
 #smokefx{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .6s;
   background:radial-gradient(ellipse at 40% 45%,rgba(190,190,190,.97),rgba(150,150,150,.93) 55%,rgba(110,110,110,.88))}
 body.smoked #smokefx{opacity:1}
+#wetfx{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .25s;background:radial-gradient(ellipse at 50% 55%,rgba(200,236,255,0) 30%,rgba(170,215,255,.55) 75%),radial-gradient(circle at 30% 40%,rgba(255,255,255,.35) 0 3%,transparent 4%),radial-gradient(circle at 62% 30%,rgba(255,255,255,.3) 0 2.5%,transparent 3.5%),radial-gradient(circle at 70% 66%,rgba(255,255,255,.3) 0 3%,transparent 4%),radial-gradient(circle at 40% 72%,rgba(255,255,255,.25) 0 2%,transparent 3%)}
+body.wet #wetfx{opacity:1}
 #btnTurbo{--c:#ff8a3d;right:calc(max(10px,env(safe-area-inset-right)) + 54px);bottom:258px}
 body.ctl-joy #btnTurbo{bottom:198px;right:calc(max(12px,env(safe-area-inset-right)) + 54px)}
 #btnRevive{--c:#40ff80;right:calc(max(10px,env(safe-area-inset-right)) + 54px);bottom:310px}
@@ -564,7 +570,7 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
     <div id="netTag" hidden></div>
     <div id="style" hidden><div class="styTop"><b id="styR">D</b><span id="styN"></span></div><div class="styBar"><i id="styB"></i></div><small id="styM"></small><div id="styF"></div></div>
     <div id="scope" hidden></div>
-    <div id="smokefx"></div>
+    <div id="smokefx"></div><div id="wetfx"></div>
     <div id="p0" class="pbox"></div>
     <div id="p1" class="pbox"></div>
     <div id="p2" class="pbox" hidden></div>
@@ -644,7 +650,7 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
     <div class="stBody setBody">
       <div class="row"><span class="lbl">SENSIBILIDAD GIROSCOPIO</span><span id="sens"><button>1</button> <button>1.5</button> <button>2</button> <button>2.6</button></span></div>
       <div class="row"><span class="lbl">VELOCIDAD INICIAL</span><span id="spd"></span></div>
-      <div class="row"><span class="lbl">APUNTAR CON</span><span id="ctl"><button data-m="joy">JOYSTICK</button> <button data-m="gyro">GIROSCOPIO</button> <button data-m="dedo">DEDO</button></span> <button id="btnDiag" class="mini">PROBAR GIROSCOPIO</button> <button id="btnOutline" class="mini">CONTORNO: SÍ</button> <button id="btnQuality" class="mini">CALIDAD: MEDIA</button> <button id="btnShadow" class="mini">SOMBRAS: NO</button> <button id="btnAO" class="mini">OCLUSIÓN: SÍ</button> <button id="btnFov" class="mini">CAMPO DE VISIÓN: 72°</button> <select id="langSel" class="mini" aria-label="Idioma"></select></div>
+      <div class="row"><span class="lbl">APUNTAR CON</span><span id="ctl"><button data-m="joy">JOYSTICK</button> <button data-m="gyro">GIROSCOPIO</button> <button data-m="dedo">DEDO</button></span> <button id="btnDiag" class="mini">PROBAR GIROSCOPIO</button> <button id="btnOutline" class="mini">CONTORNO: SÍ</button> <button id="btnQuality" class="mini">CALIDAD: MEDIA</button> <button id="btnShadow" class="mini">SOMBRAS: NO</button> <button id="btnAO" class="mini">OCLUSIÓN: SÍ</button> <button id="btnFov" class="mini">CAMPO DE VISIÓN: 72°</button> <button id="btnGv" class="mini">ARMA: NORMAL</button> <select id="langSel" class="mini" aria-label="Idioma"></select></div>
       <div id="gyroSt" class="lbl"></div>
     </div>
   </div>

@@ -1126,6 +1126,10 @@ export function jumper(kf, sk) {
   const p = person(o);
   if (kf) box(p.userData.rig.torso, 0.58, 0.08, 0.36, 0xc01818, 0, 0.1, 0, 'body');
   g.add(p);
+  // arma cuerpo a cuerpo: katana (karateka) o machete
+  const a = p.userData.rig.armR;
+  if (kf) { box(a, 0.05, 0.07, 1.0, 0xe0e4e8, 0, 0.02, -1.15, 'body'); box(a, 0.16, 0.1, 0.06, 0xd4af37, 0, 0.02, -0.64, 'body'); box(a, 0.06, 0.08, 0.26, 0x1a1a1a, 0, 0.0, -0.5, 'body'); }
+  else { box(a, 0.05, 0.16, 0.62, 0xb8bcc0, 0, 0.05, -0.95, 'body'); box(a, 0.06, 0.09, 0.22, 0x3a2410, 0, 0.0, -0.6, 'body'); }
   // brazos en guardia
   p.userData.rig.armR.rotation.x = 1.2; p.userData.rig.armL.rotation.set(1.0, -0.3, 0);
   g.userData.p = p;
@@ -2037,5 +2041,62 @@ export function casinoTower(k = 0) {
   const rub = new THREE.Group(); g.add(rub); rub.visible = false;
   for (let q = 0; q < 14; q++) { const s = 2 + (q * 37 % 5); const b = box(rub, s, s * 0.7, s, q % 3 ? col : 0x5a5060, ((q * 53) % 22) - 11, 6 + s * 0.3, ((q * 29) % 18) - 9); b.rotation.set(q * 0.7, q * 1.3, q * 0.4); }
   g.userData.top = top; g.userData.rub = rub;
+  return g;
+}
+
+// camión de bomberos: cabina, cisterna, escalera y cañón de agua en el techo (por el otro carril del túnel)
+export function fireTruck() {
+  const g = new THREE.Group(), R = 0xc81818;
+  box(g, 2.4, 2.3, 2.4, R, 0, 1.65, -3.6, 'body');
+  box(g, 2.2, 0.9, 0.1, GLASS, 0, 2.15, -4.82, 'body');
+  box(g, 2.42, 0.25, 2.42, 0xf2f2f2, 0, 1.0, -3.6, 'body');
+  box(g, 2.5, 2.0, 6.2, R, 0, 1.6, 1.0, 'body');
+  for (const x of [-1.26, 1.26]) { box(g, 0.04, 0.2, 6.2, 0xf2f2f2, x, 1.25, 1.0, 'body'); for (let k = 0; k < 4; k++) box(g, 0.04, 1.2, 1.2, 0xa8a8b0, x, 1.7, -1.2 + k * 1.5, 'body'); }
+  box(g, 2.5, 0.5, 9.0, 0x2a2a2a, 0, 0.6, -0.4, 'body');
+  for (const z of [-3.6, 0.4, 2.8]) for (const x of [-1.1, 1.1]) wheel(g, x, 0.5, z, 0.5, 0.4, 'body');
+  // escalera
+  for (const x of [-0.5, 0.5]) box(g, 0.08, 0.1, 6.4, 0xd8d8e0, x, 2.75, 0.8);
+  for (let z = -2.2; z <= 3.8; z += 0.5) box(g, 1.0, 0.06, 0.06, 0xd8d8e0, 0, 2.75, z);
+  // sirenas
+  const L = [box(g, 0.5, 0.2, 0.3, glow(0xff2020), -0.5, 2.9, -3.7), box(g, 0.5, 0.2, 0.3, glow(0x3060ff), 0.5, 2.9, -3.7)];
+  // cañón de agua
+  const can = new THREE.Group(); can.position.set(0, 2.85, -1.6); g.add(can);
+  box(can, 0.5, 0.5, 0.5, 0xb8b8c0, 0, 0, 0, 'body');
+  const nz = box(can, 0.22, 0.22, 1.4, 0xd8a020, 0, 0.15, -0.7, 'body'); nz.rotation.x = 0.15;
+  g.userData.siren = L; g.userData.can = can;
+  g.userData.shooters = [node(can, 0, 0.25, -1.45)];
+  return g;
+}
+// peaje del túnel: caseta (se rompe y deja ver la palanca) y barrera a rayas que cruza el carril
+export function tollGate() {
+  const g = new THREE.Group();
+  // isleta y caseta a la derecha
+  box(g, 2.2, 0.3, 4.2, 0xe8d040, 6.4, 0.15, 0);
+  const booth = new THREE.Group(); booth.position.set(6.4, 0.3, 0); g.add(booth);
+  box(booth, 1.7, 0.9, 2.4, 0xd8dcd8, 0, 0.45, 0, 'booth');
+  box(booth, 1.9, 0.18, 2.6, 0x2a5aa8, 0, 2.55, 0, 'booth');
+  for (const z of [-1.15, 1.15]) for (const x of [-0.8, 0.8]) box(booth, 0.1, 1.6, 0.1, 0x8a9094, x, 1.7, z, 'booth');
+  const front = new THREE.Group(); booth.add(front);
+  box(front, 0.06, 1.5, 2.2, toon({ color: 0x9ad8f0, transparent: true, opacity: 0.55 }), -0.82, 1.65, 0, 'booth');
+  box(front, 1.6, 1.5, 0.06, toon({ color: 0x9ad8f0, transparent: true, opacity: 0.55 }), 0, 1.65, -1.15, 'booth');
+  box(front, 0.7, 0.5, 0.04, 0xffe14a, -0.4, 2.15, -1.2, 'booth');
+  // palanca (dentro, se ve al romper la caseta)
+  const lever = new THREE.Group(); lever.position.set(-0.4, 1.0, 0.2); booth.add(lever); lever.visible = false;
+  box(lever, 0.3, 0.3, 0.3, 0x3a3a3e, 0, 0, 0, 'lever');
+  const arm = box(lever, 0.08, 0.7, 0.08, 0xc81818, 0, 0.35, 0, 'lever');
+  box(lever, 0.18, 0.18, 0.18, glow(0xff3020), 0, 0.72, 0, 'lever');
+  // barrera
+  const bar = new THREE.Group(); bar.position.set(5.5, 1.05, -1.6); g.add(bar);
+  box(g, 0.4, 1.0, 0.4, 0xe8d040, 5.5, 0.5, -1.6, 'bar');
+  for (let k = 0; k < 8; k++) box(bar, 0.85, 0.3, 0.22, k % 2 ? 0xf2f2f2 : 0xd81818, -0.45 - k * 0.85, 0, 0, 'bar');
+  box(bar, 0.9, 0.9, 0.06, 0xd81818, -3.4, 0.55, 0, 'bar'); box(bar, 0.7, 0.25, 0.07, 0xf2f2f2, -3.4, 0.55, 0, 'bar');
+  box(bar, 0.16, 0.16, 0.16, glow(0xff2020), -6.9, 0.12, 0, 'bar');
+  // trozos de barrera rota (salen al romperla)
+  const broken = new THREE.Group(); g.add(broken); broken.visible = false;
+  for (let k = 0; k < 4; k++) { const b = box(broken, 1.6, 0.16, 0.16, k % 2 ? 0xf2f2f2 : 0xd81818, 4 - k * 1.7, 0.12, -1.0 + (k % 2) * 0.8); b.rotation.y = (k - 1.5) * 0.4; }
+  // señal y luz de peaje
+  box(g, 0.12, 4.2, 0.12, 0x5a5e60, 7.6, 2.1, -2.3); box(g, 0.1, 0.9, 2.2, 0x1a3a7a, 7.55, 4.0, -2.3); box(g, 0.08, 0.3, 1.6, 0xf2f2f2, 7.5, 4.1, -2.3);
+  const lt = [box(g, 0.3, 0.3, 0.1, glow(0xff2020), 7.45, 3.3, -2.0), box(g, 0.3, 0.3, 0.1, glow(0x20ff40), 7.45, 3.3, -2.6)];
+  g.userData.bar = bar; g.userData.front = front; g.userData.lever = lever; g.userData.arm = arm; g.userData.broken = broken; g.userData.lt = lt;
   return g;
 }

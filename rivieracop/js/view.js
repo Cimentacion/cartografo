@@ -31,7 +31,7 @@ export class Fx {
       fire: M.glow(0xff9a2a), hot: M.glow(0xffe070), spark: M.glow(0xfff2a0),
       smoke: new THREE.MeshLambertMaterial({ color: 0x5a5a5a, transparent: true, opacity: 0.75 }),
       dsmoke: new THREE.MeshLambertMaterial({ color: 0x222222, transparent: true, opacity: 0.8 }),
-      debris: M.mat(0x2a2a2a), feather: M.mat(0xf6f6f0), heal: M.glow(0x50ff90), zap: M.glow(0xc8b4ff), acid: M.glow(0x8aff3a), acid2: M.glow(0x4ac81a), dust: M.mat(0xb0a890),
+      debris: M.mat(0x2a2a2a), feather: M.mat(0xf6f6f0), heal: M.glow(0x50ff90), zap: M.glow(0xc8b4ff), water: M.glow(0xc8ecff), acid: M.glow(0x8aff3a), acid2: M.glow(0x4ac81a), dust: M.mat(0xb0a890),
       shell: M.mat(0xd8a830), shellR: M.mat(0xc02a20),
     };
   }
@@ -164,7 +164,7 @@ const OUTFIT = [
 const CIV = [0xf0c040, 0x40a0f0, 0xf06080, 0x60d080, 0xffffff, 0xff8030, 0xa070f0, 0x30c0c0];
 const SKIN = [0xd9a476, 0xb27a4e, 0xf0c8a0, 0x7a5030];
 // enemigos más grandes: más fáciles de ver y de acertar en el móvil
-const SCALE = { gunman: 1.35, civilian: 1.3, sniper: 1.5, moto: 1.2, drone: 1.8, chicken: 1.4, grenade: 1.7, rocket: 1.5, medkit: 1.3, barrel: 1.2, jeep: 1.1, lady: 1.3, rock: 1.3,
+const SCALE = { gunman: 1.35, civilian: 1.3, victim: 1.3, slasher: 1.35, sniper: 1.5, moto: 1.2, drone: 1.8, chicken: 1.4, grenade: 1.7, rocket: 1.5, medkit: 1.3, barrel: 1.2, jeep: 1.1, lady: 1.3, rock: 1.3,
   sign: 1.45, harvester: 1.9, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2, beast: 1.35, bear: 1.5, jelly: 1.4, mine: 1.2, zombie: 1.3, bat: 1.5, key: 2.2 };
 // cosas que no paran las balas
 const NOHIT = new Set(['tlight', 'preview', 'whale', 'casinob']);
@@ -178,7 +178,7 @@ const BLOBT = (() => {
 })();
 const BLOBM = new THREE.MeshBasicMaterial({ map: BLOBT, transparent: true, depthWrite: false, opacity: 0.8, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
 const BLOBG = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
-const NOBLOB = new Set(['obelisk', 'casinob', 'megalodon', 'bat', 'key', 'hdoor', 'prop', 'sign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
+const NOBLOB = new Set(['toll', 'obelisk', 'casinob', 'megalodon', 'bat', 'key', 'hdoor', 'prop', 'sign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
 const _bb = new THREE.Box3(), _bs = new THREE.Vector3();
 export function addBlob(g, k = 1.15) {
   _bb.setFromObject(g); _bb.getSize(_bs);
@@ -198,7 +198,7 @@ const MASK = {
   beast: LAYER_ENEMY, bear: LAYER_ENEMY, mine: LAYER_ENEMY, jet: LAYER_ENEMY, blimp: LAYER_ENEMY, rammer: LAYER_ENEMY, junk: LAYER_ENEMY, jelly: LAYER_ENEMY,
   quad: LAYER_ENEMY, crew: LAYER_ENEMY, harvester: LAYER_ENEMY, xcar: LAYER_KEEP, pickup: LAYER_ENEMY, van: LAYER_ENEMY, bus: LAYER_ENEMY, canoe: LAYER_ENEMY,
   jumper: LAYER_ENEMY, tank: LAYER_ENEMY, rig: LAYER_ENEMY, rioter: LAYER_ENEMY, thrown: LAYER_ENEMY, chef: LAYER_ENEMY, boat: LAYER_ENEMY, mtrain: LAYER_ENEMY,
-  obelisk: LAYER_KEEP, megalodon: LAYER_ENEMY, zombie: LAYER_ENEMY, bat: LAYER_ENEMY, brute: LAYER_ENEMY, key: LAYER_KEEP, hdoor: LAYER_KEEP, prop: LAYER_KEEP,
+  obelisk: LAYER_KEEP, toll: LAYER_KEEP, victim: LAYER_KEEP, slasher: LAYER_ENEMY, firetruck: LAYER_ENEMY, megalodon: LAYER_ENEMY, zombie: LAYER_ENEMY, bat: LAYER_ENEMY, brute: LAYER_ENEMY, key: LAYER_KEEP, hdoor: LAYER_KEEP, prop: LAYER_KEEP,
   preview: LAYER_KEEP, police: LAYER_KEEP, tlight: LAYER_KEEP, fuel: LAYER_KEEP, float: LAYER_KEEP,
   sign: LAYER_KEEP, weapon: LAYER_KEEP, medkit: LAYER_KEEP, amb: LAYER_KEEP, truck: LAYER_KEEP, barrel: LAYER_KEEP, lady: LAYER_KEEP, civilian: LAYER_KEEP, chicken: LAYER_KEEP,
 };
@@ -422,6 +422,23 @@ export class View {
       case 'megalodon': g = M.megalodon(); break;
       case 'obelisk': g = M.obelisk(); break;
       case 'casinob': g = M.casinoTower(x.k || 0); break;
+      case 'firetruck': g = M.fireTruck(); break;
+      case 'toll': g = M.tollGate(); break;
+      case 'victim': {
+        g = new THREE.Group();
+        const p = M.person({ shirt: [0xff5aa0, 0xffd23f, 0x5ad0ff, 0xffffff][(x.sk || 0) % 4], pants: [0x2a4a8a, 0x1a1a1a, 0xc83a3a, 0x3a2a5a][(x.sk || 0) % 4], hairStyle: 'largo', hair: [0x2a1a10, 0xe0c060, 0x5a3a1a, 0x111111][(x.sk || 0) % 4], skin: SKIN[(x.sk || 0) % SKIN.length], part: 'body' });
+        g.add(p); g.userData.p = p; g.userData.civ = true;
+        break;
+      }
+      case 'slasher': {
+        g = new THREE.Group();
+        const o = x.z ? { shirt: 0x4a4a3a, pants: 0x2a2a22, skin: 0x7a9a6a, hairStyle: 'rapado', hair: 0x1a1a1a } : { shirt: 0x1a1a1e, pants: 0x1a1a1e, skin: SKIN[(x.sk || 0) % SKIN.length], mask: 0xe8e4d8, hairStyle: 'rapado', hair: 0x1a1a1a };
+        const p = M.person(o);
+        g.add(p); g.userData.p = p;
+        // cuchillo en la mano
+        M.box(p.userData.rig.armR, 0.05, 0.08, 0.36, 0xd8dce0, 0, 0.02, -0.82, 'body'); M.box(p.userData.rig.armR, 0.06, 0.1, 0.14, 0x2a1a10, 0, 0.0, -0.62, 'body');
+        break;
+      }
       default: g = new THREE.Group();
     }
     const L = MASK[e.type];
@@ -668,6 +685,27 @@ const ANIM = {
     ud.body.rotation.x = Math.min(1.5, 0.08 * t + 0.5 * t * t);
     if (t < 3 && Math.random() < dt * 10) { o.getWorldPosition(V2); V2.y += 2; V.fx.smoke(V2, true); }
   },
+  victim: personAnim,
+  slasher(o, e, dt, ctx, V) {
+    personAnim(o, e, dt, ctx, V);
+    if (e.st === ST.DEAD) return;
+    const rig = o.userData.p.userData.rig, w = ctx.t * 9 + e.id;
+    rig.armR.rotation.set(2.5 + Math.sin(w) * 0.6, 0, 0); rig.armL.rotation.set(1.1 + Math.sin(w * 0.5) * 0.2, -0.3, 0);
+  },
+  toll(o, e, dt, ctx) {
+    const ud = o.userData, x = e.x || {}, s = x.s | 0;
+    ud.front.visible = s === 0; ud.lever.visible = s >= 1;
+    ud.arm.rotation.z = s === 2 && !x.br ? Math.min(1.2, (ud.la = (ud.la || 0) + dt * 4)) : 0;
+    ud.bar.visible = !(s === 2 && x.br); ud.broken.visible = s === 2 && !!x.br;
+    if (s === 2 && !x.br) ud.bar.rotation.z = Math.max(-1.45, ud.bar.rotation.z - dt * 2.2);
+    const on = Math.floor(ctx.t * 2) % 2 === 0;
+    ud.lt[0].visible = s < 2 && on; ud.lt[1].visible = s === 2;
+  },
+  firetruck(o, e, dt, ctx) {
+    const ud = o.userData, on = Math.floor(ctx.t * 6) % 2 === 0;
+    ud.siren[0].visible = on; ud.siren[1].visible = !on;
+    if (e.st === ST.DEAD) o.rotation.z = Math.min(0.3, (ud.dt || 0) * 0.3);
+  },
   casinob(o, e, dt, ctx, V) {
     const ud = o.userData, x = e.x || {};
     if (x.td != null) { V.road.toWorld(x.td, x.tl, 0, V1); o.rotation.y = Math.atan2(V1.x - o.position.x, V1.z - o.position.z); }
@@ -846,15 +884,46 @@ const ANIM = {
   },
   rock(o, e, dt) { o.rotation.x = e.ry; o.rotation.z = e.ry * 0.7; },
   jumper(o, e, dt, ctx, V) {
-    const rig = o.userData.p.userData.rig, ph = e.x ? e.x.ph : 0;
-    if (e.st === ST.DEAD) { rig.body.rotation.x = Math.min(1.5, (o.userData.dt || 0) * 4); return; }
-    if (ph === 0) { rig.body.position.y = -0.25; rig.body.rotation.x = 0.3; rig.armR.rotation.set(1.2, 0, 0); rig.armL.rotation.set(1.0, -0.3, 0); }
-    else if (ph === 1) { rig.body.position.y = 0; rig.body.rotation.x = -0.5; rig.armR.rotation.set(2.6, 0, 0); rig.armL.rotation.set(2.6, 0, 0); }
-    else {
-      // encima del coche: puñetazos
-      rig.body.position.y = -0.55; rig.body.rotation.x = 0.35;
-      const k = Math.sin(ctx.t * 14);
-      rig.armR.rotation.set(1.4 + k * 0.6, 0, 0); rig.armL.rotation.set(1.4 - k * 0.6, -0.2, 0);
+    const ud = o.userData, rig = ud.p.userData.rig, x = e.x || {}, ph = x.ph | 0, L = rig.legs || [], T = rig.torso, w = ctx.t + e.id;
+    // golpe recibido: se encoge un instante
+    if (ud.hp0 != null && e.hp < ud.hp0) ud.fl = 1; ud.hp0 = e.hp; ud.fl = Math.max(0, (ud.fl || 0) - dt * 6);
+    if (e.st === ST.DEAD) {
+      // lo tiran del coche: sale despedido dando vueltas
+      const t = ud.dt || 0;
+      rig.body.rotation.set(-Math.min(2.6, t * 6), 0, Math.min(1.2, t * 3) * (e.id % 2 ? 1 : -1)); rig.body.position.set(0, 0, 0);
+      rig.armR.rotation.set(2.8, 0, 0.6); rig.armL.rotation.set(2.8, 0, -0.6); L.forEach((l, i) => l.rotation.set(i ? 0.8 : -0.3, 0, 0));
+      return;
+    }
+    if (ph !== ud.ph0) { ud.ph0 = ph; ud.pt = 0; } ud.pt = (ud.pt || 0) + dt;
+    if (ph === 0) {
+      // corre agachado con el arma preparada, mirando al coche
+      const st = w * 11, run = x.run ? 1 : 0.6;
+      rig.body.position.set(0, -0.18 + Math.abs(Math.sin(st)) * 0.08 * run, 0); rig.body.rotation.set(0.35, 0, Math.sin(st) * 0.05);
+      L.forEach((l, i) => l.rotation.set(Math.sin(st + i * Math.PI) * 0.8 * run - 0.2, 0, 0));
+      T.rotation.set(0, Math.sin(st) * 0.15, 0);
+      rig.armR.rotation.set(2.2 + Math.sin(st) * 0.2, 0, -0.2); rig.armL.rotation.set(0.9 - Math.sin(st) * 0.4, -0.3, 0);
+    } else if (ph === 1) {
+      // salto: se agacha, se estira, encoge las piernas en el aire y levanta el arma
+      const u = Math.min(1, (x.jt || ud.pt) / 0.9);
+      const tuck = Math.sin(u * Math.PI);
+      rig.body.position.set(0, u < 0.12 ? -0.35 * (u / 0.12) : 0, 0);
+      rig.body.rotation.set(-0.35 * tuck + (u > 0.85 ? 0.4 : 0), 0, Math.sin(u * Math.PI * 2) * 0.15);
+      L.forEach(l => l.rotation.set(-1.4 * tuck, 0, 0));
+      T.rotation.set(0, 0, 0);
+      rig.armR.rotation.set(2.9, 0, 0.1); rig.armL.rotation.set(2.4 - tuck, 0, -0.3);
+    } else {
+      // encima del coche: de rodillas agarrado con una mano y dando tajos con la otra
+      const s = e.sh && e.sh[0], r = s && s.on ? s.r : 0;
+      if (ud.r0 > 0.6 && r < ud.r0 - 0.3) ud.sw = 1;
+      ud.r0 = r; ud.sw = Math.max(0, (ud.sw || 0) - dt * 4);
+      const land = Math.max(0, 1 - ud.pt / 0.25);
+      rig.body.position.set(0, -0.62 - land * 0.15, 0);
+      L.forEach(l => l.rotation.set(1.45, 0, 0));
+      rig.body.rotation.set(0.3 + ud.sw * 0.35 - ud.fl * 0.3, 0, Math.sin(w * 3) * 0.06);
+      T.rotation.set(-r * 0.25 + ud.sw * 0.3, Math.sin(w * 2) * 0.1, 0);
+      // brazo del arma: sube según carga y baja de golpe al pegar
+      rig.armR.rotation.set(ud.sw > 0 ? 0.6 + (1 - ud.sw) * 2.6 : 1.6 + r * 1.6 + Math.sin(w * 7) * 0.1, 0, -0.15);
+      rig.armL.rotation.set(0.9 + Math.sin(w * 5) * 0.08, -0.2, 0.2);
     }
   },
   rioter(o, e, dt, ctx) {

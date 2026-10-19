@@ -288,6 +288,23 @@ export class Road {
     }
     return L;
   }
+  // ciudad y zona zombi: calles que cruzan la carretera (cruce normal); a veces hay un suceso en el cruce
+  xstreets(d0, d1) {
+    const L = [];
+    for (let c = Math.floor(d0 / 260) - 1; c <= Math.floor(d1 / 260) + 1; c++) {
+      const d = c * 260 + 120 + (hash(this.seed, c, 919) % 60);
+      if (d < d0 - 12 || d > d1 + 12 || d < 0 || d > this.len - 20) continue;
+      const i = Math.floor(d), dc = BIOMES[BIOME_KEYS[this.bio[i]]].deco;
+      if (!(CITY.has(dc) || dc === 'zombi') || dc === 'semaforos' || this.kind[i] !== 0) continue;
+      let bad = false;
+      for (let k = -24; k <= 24; k += 4) { const j = clamp(i + k, 0, this.len); if (this.kind[j] !== 0 || this.bio[j] !== this.bio[i]) bad = true; }
+      for (const f of this.forks) if (Math.abs(d - f.gantry) < 40 || Math.abs(d - (f.gantry - 140)) < 24 || Math.abs(d - (f.gantry - 128)) < 20) bad = true;
+      if (this.hospAt(d, 30)) bad = true;
+      if (dc === 'casino') for (const rb of this.roundabouts(d - 80, d + 80)) if (Math.abs(rb - d) < 70) bad = true;
+      if (!bad) L.push(d);
+    }
+    return L;
+  }
   isPlaza(d) { return hash(this.seed, Math.round(d), 717) % 4 === 0; }
   nearBridge(d, r) { for (const b of this.bridges(d - r, d + r)) if (Math.abs(b - d) < r) return b; return null; }
   // semáforos de la zona de semáforos

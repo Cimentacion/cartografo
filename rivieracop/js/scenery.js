@@ -249,6 +249,7 @@ export function buildChunk(road, c, M) {
   }
   if (c === 0) addBox(R.L, 14.6, 7.6, 1, 0x2a2a2a, frame(road, 0.5, 0, 3.8));
   for (const h of road.hosp) if (Math.floor((h.H + 12) / CH) === c) hospital(R, RI, road, h.H);
+  for (const x of road.xstreets(d0 - 12, d1 + 12)) if (x >= d0 && x < d1) xstreet(R, road, x);
   for (const f of road.forks) {
     // "20" pintado en el asfalto antes de los carteles (allí se va despacio para leerlos)
     for (const at of [f.gantry - 128]) if (at >= d0 && at < d1 && road.kind[Math.floor(at)] !== 1) speedMark(R, road, at);
@@ -614,6 +615,7 @@ function ok(road, d, lat, rad, edificio = false) {
   const k = road.kindAt(d);
   if (k === 1) return false;
   if (road.hospAt(d, rad) && Math.abs(lat) < 24 + rad) return false;
+  if (Math.abs(lat) > HALF - 0.5) for (const x of road.xstreets(d - 30, d + 30)) if (Math.abs(x - d) < 7 + rad && xSides(BIOMES[BIOME_KEYS[road.bio[Math.floor(x)]]].deco).includes(Math.sign(lat))) return false;
   if (lat < 6 + rad && BIOMES[BIOME_KEYS[road.bio[Math.max(0, Math.min(road.len, Math.floor(d)))]]].deco === 'casino') for (const rb of road.roundabouts(d - 60, d + 100)) if (d > rb - 38 - rad && d < rb + 66 + rad) return false;
   for (const t of road.tunnels) if (d > t.start - 18 - rad && d < t.end + 18 + rad) return false;
   // nada se mete en el pórtico de los carteles ni en los carteles de aviso
@@ -1129,6 +1131,59 @@ function hospital(R, RI, road, H) {
   }
   for (let v = -6; v <= 6; v += 1.3) if (Math.abs(v) > 1.6) addBox(R.L, 1.2, 0.8, 0.5, 0xb8a878, frame(road, H - 2.5, v, 0.18, 0.2), { y: 0.4 });
 }
+// cruce: una calle que corta la carretera, con su asfalto, aceras, edificios a los dos lados, parada de bus,
+// árboles y un muro con grafitis al fondo. Si en un lado no hay suelo (el mar en Mónaco), solo se hace el otro
+export const xSides = dc => (dc === 'monaco' ? [1] : [-1, 1]);
+function xstreet(R, road, d) {
+  const B = BIOMES[BIOME_KEYS[road.bio[Math.floor(d)]]], dc = B.deco, zb = dc === 'zombi', r = rng(hash(road.seed, Math.round(d), 77));
+  const asp = LIGHT(B.asphalt, 0.08), XL = 46, SW = 4.5;
+  for (const sd of xSides(dc)) {
+    const F = (dd, lat, h, ry) => frame(road, d + dd, sd * lat, h, ry);
+    // calzada (mismo asfalto que la carretera) y línea central
+    addBox(R.A, XL, 0.19, SW * 2, asp, F(0, HALF + XL / 2, 0), { y: 0.095, uvs: 4 });
+    for (let k = 0; k < 9; k++) addBox(R.L, 2.4, 0.02, 0.15, B.line || 0xf0f0f0, F(0, HALF + 3 + k * 4.6, 0.19));
+    // aceras de la calle con bordillo
+    for (const z of [-1, 1]) {
+      addBox(R.P, XL - 2.5, 0.37, 2.6, B.walk, F(z * (SW + 1.3), WALK + (XL - 2.5) / 2, 0), { y: 0.185, uvs: 2 });
+      addBox(R.L, XL - 2.5, 0.37, 0.15, 0x8a857c, F(z * (SW + 0.05), WALK + (XL - 2.5) / 2, 0), { y: 0.185 });
+      // edificios a lo largo de la calle (dejan ver el cruce, no un hueco vacío)
+      let L = WALK + 3;
+      while (L < XL - 2) {
+        const w = Math.min(XL - L, 7 + r() * 7), dep = 10, top = (zb ? 8 : 10) + r() * (zb ? 14 : 18);
+        const col = pick(r, B.build || [0xd8c8a8, 0xc8b8a0, 0xe0d0b8]);
+        const m = F(z * (SW + 2.6 + dep / 2), L + w / 2, 0);
+        addBox(R.N, w, top + 3, dep, col, m, { y: (top - 3) / 2, win: true });
+        addBox(R.L, w + 0.3, 0.4, dep + 0.3, 0x3a3a3e, m, { y: top + 0.2 });
+        // bajos: escaparate o persiana
+        addBox(r() < 0.5 ? R.G : R.L, w * 0.7, 2.2, 0.08, r() < 0.5 ? 0x8ab8d0 : 0x5a5e66, m, { y: 1.3, z: -z * (dep / 2 + 0.05) });
+        L += w + 0.2;
+      }
+      // árboles en la acera
+      for (let q = 0; q < 5; q++) {
+        const lt = WALK + 4 + q * 8 + r() * 2;
+        if (dc === 'monaco' || dc === 'casino') palm(R, road, d + z * (SW + 1.6), sd * lt, r);
+        else { const tm = F(z * (SW + 1.6), lt, 0.37); addCyl(R.L, 0.12, 0.18, 2.6, 6, zb ? 0x2a2420 : 0x6a5a40, tm, { y: 1.3 }); if (!zb) { addCyl(R.L, 1.3, 1.6, 2.0, 7, 0x3a7a32, tm, { y: 3.2 }); addCyl(R.L, 0.9, 1.2, 1.2, 7, 0x4a8a3a, tm, { y: 4.4 }); } else for (let k = 0; k < 3; k++) addBox(R.L, 0.08, 1.0, 0.08, 0x2a2420, tm, { y: 2.8, x: (k - 1) * 0.3, rz: (k - 1) * 0.6 }); }
+      }
+    }
+    // muro bajo con grafitis cerrando el fondo de la calle
+    addBox(R.L, 0.6, 2.4, SW * 2 + 5, zb ? 0x4a4a4e : 0xb8b0a0, F(0, XL - 0.3, 0), { y: 1.2 });
+    decal(r() < 0.5 ? R.M : R.F, SW * 2 + 4, 2.1, F(0, XL - 0.62, 1.2), sd);
+    // parada de bus en la esquina
+    { const m = F(-12, WALK - 1.0, 0.18), sg = -1;
+      addBox(R.L, 1.6, 0.08, 4.0, 0x2a2a30, m, { y: 2.5 }); addBox(R.G, 0.06, 1.8, 3.8, 0x9ad0e8, m, { y: 1.4, x: sg * -0.75 });
+      for (const z of [-1.9, 1.9]) addBox(R.S, 0.08, 2.5, 0.08, 0x8a9094, m, { y: 1.25, x: 0.7, z });
+      addBox(R.D, 0.45, 0.08, 2.6, 0x8a6a4a, m, { y: 0.5, x: -0.4 }); addBox(R.L, 0.06, 1.6, 1.0, zb ? 0x3a2a2a : 0xd0402a, m, { y: 1.5, x: -0.72, z: 1.2 });
+      const pm = F(-15, WALK - 0.4, 0.18); addBox(R.S, 0.08, 2.8, 0.08, 0x8a9094, pm, { y: 1.4 }); addBox(R.L, 0.06, 0.6, 0.6, 0x1a6ad0, pm, { y: 2.6 }); addBox(R.G, 0.07, 0.25, 0.4, 0xf2f2f2, pm, { y: 2.65 }); }
+    // señal y semáforo en las esquinas
+    const m = F(-6.6, WALK - 0.3, 0.18);
+    addBox(R.S, 0.12, 3.2, 0.12, 0x5a5e60, m, { y: 1.6 }); addBox(R.L, 0.05, 0.45, 1.6, 0x1a4aa0, m, { y: 3.0 }); addBox(R.L, 0.06, 0.12, 1.3, 0xf2f2f2, m, { y: 3.0 });
+    const t = F(6.6, WALK - 0.3, 0.18);
+    addBox(R.S, 0.14, 3.6, 0.14, 0x2a2a2e, t, { y: 1.8 }); addBox(R.L, 0.4, 1.0, 0.35, 0x1a1a1e, t, { y: 3.3 });
+    for (const [y, c] of [[3.6, 0x5a1010], [3.3, 0x5a4a10], [3.0, zb ? 0x103a10 : 0x20d040]]) addBox(R.L, 0.42, 0.18, 0.2, c, t, { y });
+  }
+  // pasos de cebra a los dos lados del cruce
+  for (const z of [-7.6, 7.6]) for (let k = -5; k <= 5; k++) addBox(R.L, 0.6, 0.03, 2.6, 0xf2f2f2, frame(road, d + z, k * 1.1, 0.025));
+}
 // mancha de luz en el suelo (abanico: brillante en el centro y nada en el borde)
 function lightPool(L, road, d, lat, h, rad, col, k = 0.7) {
   const pos = [], cl = [], idx = [], n = 14;
@@ -1628,6 +1683,8 @@ const DECO = {
     each(i0, i1, r, 10, 18, d => lightPool(R.V, road, d, (r() - 0.5) * 9, 0.025, 2 + r() * 2.5, pick(r, [0xa040ff, 0xff40c0, 0x40c0ff]), 0.3));
   },
   autopista(R, road, B, i0, i1, r) {
+    // quitamiedos a trozos (no en toda la zona)
+    for (const sd of [-1, 1]) for (let a = i0; a < i1; a += 40) if (hash(road.seed, Math.floor(a / 40), sd > 0 ? 881 : 882) % 3 === 0) guardrail(R, road, a, Math.min(i1, a + 40), sd, 0xd9dde0);
     for (const sd of [-1, 1]) for (let i = i0; i < i1; i += 4) addBox(R.C, 0.5, 0.9, 4.02, 0xe8e8e0, frame(road, i + 2, sd * 6.6, 0.45), { uvs: 2 });
     each(i0, i1, r, 28, 36, d => lamp(R, road, d, r() < 0.5 ? -1 : 1, true));
     each(i0, i1, r, 60, 90, d => {
@@ -1722,6 +1779,8 @@ const DECO = {
     each(i0, i1, r, 30, 44, d => lamp(R, road, d, r() < 0.5 ? -1 : 1));
   },
   desierto(R, road, B, i0, i1, r) {
+    // quitamiedos a trozos (no en toda la zona)
+    for (const sd of [-1, 1]) for (let a = i0; a < i1; a += 40) if (hash(road.seed, Math.floor(a / 40), sd > 0 ? 881 : 882) % 3 === 0) guardrail(R, road, a, Math.min(i1, a + 40), sd, 0xc8c0b0);
     each(i0, i1, r, 8, 15, d => cactus(R, road, d, (r() < 0.5 ? -1 : 1) * (WALK + 2 + r() * 9), r));
     // postes de telégrafo
     each(i0, i1, r, 24, 28, d => {
@@ -2186,6 +2245,31 @@ const DECO = {
       addCyl(R.D, 0.72, 0.72, 2.24, 12, 0x1a1a1a, m, { rx: Math.PI / 2 });
       addBox(R.L, 0.12, 0.9, 0.12, 0x555555, m, { y: 1.1 });
     }
+    // coches averiados con los intermitentes, bidones y conos, y vallas de obra
+  for (let i = i0; i < i1; i++) {
+      if (i % 100 === 50) for (const sd of [-1]) {
+        const m = frame(road, i, sd * 7.1, 0.25);
+        addBox(R.L, 0.3, 1.4, 0.9, 0xf07a10, m, { y: 1.0 }); addBox(R.L, 0.32, 0.25, 0.7, 0xf2f2f2, m, { y: 1.45 }); addBox(R.G, 0.34, 0.12, 0.12, 0x30ff60, m, { y: 1.85 });
+      }
+      const h = hash(road.seed, i, 4242) % 1000;
+      if (i % 23 === 7 && h < 260) {
+        // coche averiado en el arcén izquierdo con los intermitentes
+        const m = frame(road, i, -5.0, 0, (h % 7 - 3) * 0.05), c = [0xf2f2f2, 0x1a1a1a, 0xb02020, 0x3a5aa8, 0x8a8a90][h % 5];
+        addBox(R.L, 1.8, 0.7, 4.2, c, m, { y: 0.6 }); addBox(R.L, 1.7, 0.6, 2.2, c, m, { y: 1.2, z: 0.2 }); addBox(R.L, 1.72, 0.45, 2.0, 0x2a3a4a, m, { y: 1.2, z: 0.2 });
+        for (const x of [-0.75, 0.75]) for (const z of [-2.1, 2.1]) addBox(R.E, 0.25, 0.14, 0.06, 0xffa020, m, { x, y: 0.75, z });
+        for (let q = 0; q < 3; q++) { const cm = frame(road, i - 4 - q * 2.2, -5.2 + q * 0.7, 0); addCyl(R.L, 0.08, 0.3, 0.75, 6, 0xff6a10, cm, { y: 0.38 }); addCyl(R.L, 0.17, 0.2, 0.1, 6, 0xf2f2f2, cm, { y: 0.45 }); }
+      }
+      if (i % 31 === 13 && h > 700) for (let q = 0; q < 3; q++) {
+        // bidones de obra naranjas y blancos junto a la pared
+        const sd = -1, m = frame(road, i + q * 1.1, sd * 5.7, 0);
+        addCyl(R.L, 0.32, 0.36, 1.0, 8, 0xf07a10, m, { y: 0.5 }); for (const y of [0.35, 0.7]) addCyl(R.L, 0.37, 0.37, 0.12, 8, 0xf2f2f2, m, { y });
+      }
+      if (i % 47 === 21 && h > 450 && h < 700) {
+        // vallas de obra en la acera
+        const sd = -1;
+        for (let q = 0; q < 3; q++) { const m = frame(road, i + q * 2.1, sd * 6.6, 0.25); addBox(R.L, 0.06, 1.1, 2.0, 0x8a9094, m, { y: 0.75 }); addBox(R.L, 0.07, 0.25, 2.02, 0xd81818, m, { y: 1.15 }); for (const z of [-1, 1]) addBox(R.L, 0.4, 0.12, 0.25, 0x2a2a2a, m, { y: 0.06, z }); }
+      }
+    }
     // nichos de emergencia
     for (let i = Math.ceil(i0 / 60) * 60; i < i1; i += 60) {
       const m = frame(road, i, -WALK + 0.06, 0);
@@ -2203,6 +2287,8 @@ const DECO = {
     }
   },
   lomas(R, road, B, i0, i1, r) {
+    // quitamiedos a trozos (no en toda la zona)
+    for (const sd of [-1, 1]) for (let a = i0; a < i1; a += 40) if (hash(road.seed, Math.floor(a / 40), sd > 0 ? 881 : 882) % 3 === 0) guardrail(R, road, a, Math.min(i1, a + 40), sd, 0xd0d4d0);
     // terreno ondulado a los lados: cuanto más lejos, lomas más altas (tapan el horizonte en cada bajada)
     const b1 = (i, sd) => 1.2 * Math.sin(i * 0.05 + sd);
     const b2 = (i, sd) => 3 + 6 * Math.sin(i * 0.021 + sd * 2);
@@ -2261,6 +2347,8 @@ const DECO = {
     });
   },
   llanura(R, road, B, i0, i1, r) {
+    // quitamiedos a trozos (no en toda la zona)
+    for (const sd of [-1, 1]) for (let a = i0; a < i1; a += 40) if (hash(road.seed, Math.floor(a / 40), sd > 0 ? 881 : 882) % 3 === 0) guardrail(R, road, a, Math.min(i1, a + 40), sd, 0xd8dcd8);
     // campo abierto enorme: hierba, árboles sueltos, molinos, pacas y montañas a lo lejos
     for (const sd of [-1, 1]) strip(R.L, road, i0, i1, C(sd * 22.5, 0.18), C(sd * 220, 0.18), 0x7aa84a);
     each(i0, i1, r, 20, 40, d => {

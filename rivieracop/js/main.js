@@ -39,8 +39,8 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.get('hq') ? 2 : 
 renderer.setSize(vw(), vh());
 // sombras suaves del sol (se quitan en calidad BAJA)
 renderer.shadowMap.enabled = true;
-// VSM: bordes suaves y difuminados (no dientes de sierra); como el mapa casi nunca se recalcula, el difuminado sale gratis
-renderer.shadowMap.type = THREE.VSMShadowMap;
+// PCF: en móvil el VSM iba a media precisión y pintaba rayas (acné) en todas las superficies lisas
+renderer.shadowMap.type = THREE.PCFShadowMap;
 const outline = new Outline(renderer); window.__ol = outline; // TODO-TESTEO
 outline.enabled = !Q.get('nooutline'); // TODO-TESTEO
 outline.setSize(vw(), vh());
@@ -54,9 +54,9 @@ sun.castShadow = true;
 sun.shadow.mapSize.set(1024, 1024);
 // sombras de los edificios y el decorado hasta lo lejos: un mapa grande que solo se vuelve a calcular cada ~30 m
 // (lo que se mueve lleva su sombra suave debajo); así no tiemblan y casi no cuestan
-Object.assign(sun.shadow.camera, { left: -145, right: 145, top: 145, bottom: -145, near: 1, far: 700 });
+Object.assign(sun.shadow.camera, { left: -145, right: 145, top: 145, bottom: -145, near: 20, far: 460 });
 // sombras duras (poco difuminado)
-sun.shadow.bias = -0.0005; sun.shadow.normalBias = 0.05; sun.shadow.radius = 1.5; sun.shadow.blurSamples = 4;
+sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.16;
 renderer.shadowMap.autoUpdate = false;
 sun.shadow.camera.updateProjectionMatrix();
 const SHC = { key: '' };
@@ -318,7 +318,7 @@ function setFpGun() {
   fpg = fpGun(W.def.model, W.def.rar, G.chars ? G.chars[G.li] : MYCHAR, W.lv || 1);
   // más cerca de la cámara y más pequeña (se ve igual) para que no se meta en los compañeros ni en las paredes
   fpg.position.set(0.073, -0.106, -0.28);
-  fpg.scale.setScalar(W.def.model === 'cannon' ? 0.31 : 0.45);
+  fpg.scale.setScalar(gunScale());
   camera.add(fpg);
 }
 // arma efectiva: la base + el nivel guardado de ese tipo de arma + las mejoras compradas
@@ -584,6 +584,13 @@ function handleEvent(ev) {
       const b = view.seatWorld(ev.p, V2);
       if (!ev.hit) b.add(V3.set((Math.random() - 0.5) * 3, Math.random() * 1.5, (Math.random() - 0.5) * 3));
       const sht = G.ents.find(x => x.id === ev.id);
+      if (sht && sht.type === 'firetruck') {
+        // chorro de agua en arco (si te da, te ciega un momento)
+        for (let i = 0; i < 18; i++) { const k = i / 17; V3.copy(a).lerp(b, k); V3.y += Math.sin(k * Math.PI) * 1.6; fx.part(V3.clone(), V2.set((Math.random() - 0.5) * 2, -1 - Math.random() * 2, (Math.random() - 0.5) * 2).clone(), 0.45 + Math.random() * 0.2, 0.28 + Math.random() * 0.2, fx.m.water, -4, 1); }
+        if (ev.hit && ev.p === li) G.wetT = 1.2;
+        SFX.tone(220, 120, 0.35, 'sawtooth', 0.12);
+        break;
+      }
       const elec = sht && sht.type === 'jelly';
       fx.tracer(a, b, elec ? 0x8ae0ff : ev.g ? 0xffa030 : 0xff4a30, elec ? 0.14 : 0.09, elec ? 0.06 : ev.g ? 0.06 : 0.035);
       SFX.eshot(a.distanceTo(camera.position));
@@ -1002,7 +1009,7 @@ let bannerT = 0;
 const STY = {
   pts: 0, feed: [], coins: 0, lastK: -9, chain: 0, rank: 0,
   R: [['D', 'DESTRUCTIVO', '#6ab0ff', 0], ['C', 'CAÓTICO', '#5aff9a', 100], ['B', 'BRUTAL', '#ffe14a', 200], ['A', 'ANÁRQUICO', '#ff9a3a', 320],
-    ['S', 'SUPREMO', '#ff4a4a', 460], ['SS', 'SÁDICO', '#ff3aa0', 620], ['SSS', 'SANGUINARIO', '#c040ff', 800], ['¡RIVIERAKILL!', '', '#ffffff', 980]],
+    ['S', 'SUPREMO', '#ff4a4a', 460], ['SS', 'SÁDICO', '#ff3aa0', 620], ['SSS', 'SANGUINARIO', '#c040ff', 800], ['RK', '¡RIVIERAKILL!', '#ffffff', 980]],
   DM: [1, 1.05, 1.1, 1.17, 1.25, 1.34, 1.45, 1.6], CN: [0, 1, 1, 2, 3, 4, 5, 8],
   reset() { this.pts = 0; this.feed = []; this.coins = 0; this.chain = 0; this.rank = 0; this.lastK = -9; },
   dmgM() { return this.DM[this.rank]; },
@@ -1658,6 +1665,7 @@ function frame(now) {
   if ((G.gs = (G.gs || 0) - dt) <= 0) { G.gs = 0.4; gyroStatus(); updRot(); }
   if (G.running) tick(dt);
   fx.update(dt);
+  { const hv = !$('vsel').hidden; if (hv !== G.hudHid) { G.hudHid = hv; $('hud').style.visibility = hv ? 'hidden' : ''; } }
   let vsOk = false;
   if (!$('vsel').hidden && VPREV.ready && !VPREV.bad) { try { VPREV.render(dt); vsOk = true; } catch (e) { VPREV.bad = 1; console.error(e); $('vsMsg').textContent = 'Error: ' + (e && e.message); } }
   if (vsOk) { } else if (NR === 1 || (++G.fr % NR) === 0) { outline.render(scene, camera); if (LENS.on && G.running) renderLens(); }
@@ -1830,12 +1838,15 @@ function tick(dt) {
   }
   if (G.smokeT > 0) G.smokeT -= dt;
   document.body.classList.toggle('smoked', G.smokeT > 0 || !!G.smoked);
+  if (G.wetT > 0) G.wetT -= dt;
+  document.body.classList.toggle('wet', G.wetT > 0);
   W.flash -= dt;
   if (fpg) {
-    fpg.visible = !!(me && me.alive) && !(W.def.model === 'rifle' && G.zoom > 1.3);
+    fpg.visible = !!(me && me.alive) && !(W.def.model === 'rifle' && G.zoom > 1.3) && GV !== 'x';
     const rlk = W.rl > 0 ? Math.sin(Math.min(1, 1 - W.rl / (W.rlMax || W.e.reload)) * Math.PI) : 0;
     const big = W.def.model === 'cannon';
-    fpg.position.set(big ? 0.16 : 0.13, (big ? -0.34 : -0.19) - rlk * 0.18, (big ? -0.62 : -0.5) + W.recoil * 0.06);
+    if (GV === 'g') fpg.position.set(big ? 0.3 : 0.24, (big ? -0.46 : -0.3) - rlk * 0.25, (big ? -0.66 : -0.52) + W.recoil * 0.1);
+    else fpg.position.set(big ? 0.16 : 0.13, (big ? -0.34 : -0.19) - rlk * 0.18, (big ? -0.62 : -0.5) + W.recoil * 0.06);
     fpg.rotation.set(W.recoil * 0.25 - rlk * 0.6, 0.18, rlk * 0.4);
     fpg.userData.flash.visible = W.flash > 0;
   }
@@ -1851,7 +1862,9 @@ function tick(dt) {
   // el túnel del principio va casi a oscuras: la salida se ve como un fogonazo de luz
   const T0 = G.road.tunnels[0], dark = inTun && T0 && T0.start < 20 && G.carD < T0.end - 2;
   outline.mat.uniforms.dim.value = dark ? 1 : 0; outline.mat.uniforms.dimD.value = dark ? T0.end - G.carD : 0;
-  const B = BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]];
+  // dentro de un túnel ya se ve el cielo y la niebla de la zona a la que se sale (no de golpe al salir)
+  const TT = inTun && !dark ? G.road.tunnels.find(t => G.carD >= t.start - 4 && G.carD <= t.end + 4) : null;
+  const B = BIOMES[BIOME_KEYS[G.road.bioAt(TT ? TT.end + 15 : G.carD)]];
   outline.red = outline.aura ? 1 : B.deco === 'zombi' || G.foot ? 0.45 : 0;
   const k = SHOT ? 1 : 1 - Math.exp(-dt * 1.2);
   ENV.sky.lerp(TC.setHex(B.sky), k);
@@ -2273,12 +2286,18 @@ $('styleBack').onclick = () => { $('styleScr').hidden = true; $('menu').hidden =
 applyStyle();
 // oclusión ambiental (rincones más oscuros): se puede quitar aparte de las sombras
 let AOON = (localStorage.getItem('rc_ao2') ?? '0') === '1';
+// cómo se ve el arma: normal, grande en la esquina o sin arma (solo la mira)
+const GVS = [['n', 'NORMAL'], ['g', 'GRANDE'], ['x', 'SIN ARMA']];
+let GV = localStorage.getItem('rc_gv') || 'n'; if (!GVS.some(g => g[0] === GV)) GV = 'n';
+function setGv(v) { GV = v; try { localStorage.setItem('rc_gv', v); } catch (e) { } $('btnGv').textContent = 'ARMA: ' + GVS.find(g => g[0] === v)[1]; if (fpg) fpg.scale.setScalar(gunScale()); }
+const gunScale = () => (W.def && W.def.model === 'cannon' ? 0.31 : 0.45) * (GV === 'g' ? 1.75 : 1);
+$('btnGv').onclick = () => setGv(GVS[(GVS.findIndex(g => g[0] === GV) + 1) % GVS.length][0]);
 // campo de visión (ajustes)
 const FOVS = [60, 66, 72, 80, 90, 100];
 let FOV = +(localStorage.getItem('rc_fov') || 72); if (!FOVS.includes(FOV)) FOV = 72;
 function setFov(v) { FOV = v; try { localStorage.setItem('rc_fov', v); } catch (e) { } $('btnFov').textContent = 'CAMPO DE VISIÓN: ' + v + '°'; }
 $('btnFov').onclick = () => setFov(FOVS[(FOVS.indexOf(FOV) + 1) % FOVS.length]);
-setFov(FOV);
+setFov(FOV); setGv(GV);
 function setAO(v) { AOON = v; try { localStorage.setItem('rc_ao2', v ? '1' : '0'); } catch (e) { } outline.mat.uniforms.aoOn.value = v && qIdx > 0 ? 1 : 0; $('btnAO').textContent = 'OCLUSIÓN: ' + (v ? 'SÍ' : 'NO'); }
 $('btnAO').onclick = () => setAO(!AOON);
 function setQuality(i) {
