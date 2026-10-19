@@ -56,7 +56,7 @@ sun.shadow.mapSize.set(1024, 1024);
 // (lo que se mueve lleva su sombra suave debajo); así no tiemblan y casi no cuestan
 Object.assign(sun.shadow.camera, { left: -145, right: 145, top: 145, bottom: -145, near: 20, far: 460 });
 // sombras duras (poco difuminado)
-sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.06;
+sun.shadow.bias = -0.002; sun.shadow.normalBias = 0.35;
 // rayas en las fachadas (acné): donde el sol llega muy de canto la superficie ya está en sombra por el toon,
 // así que ahí la sombra proyectada se ignora (y no salen las bandas diagonales en los edificios)
 { const k = 'directLight.color *= ( directLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;';
