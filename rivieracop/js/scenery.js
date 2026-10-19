@@ -743,15 +743,17 @@ function duneRun(R, road, B, i0, i1, r) {
   for (const l of [LANE_ME_ - 0.8, LANE_ME_ + 0.8, -LANE_ME_ - 0.8, -LANE_ME_ + 0.8]) strip(R.L, road, i0, i1, C(l - 0.18, 0.012), C(l + 0.18, 0.012), 0xc8803e);
   const D = road.dunesAt(i0);
   for (const sd of [-1, 1]) {
-    sandGrid(R.L, road, i0, i1, (sd < 0 ? SANDL.slice().reverse() : SANDL).map(a => sd * a), (i, la) => duneH(i, la), SANDC);
+    // de camino a OLD TOWN las dunas se van allanando hasta el llano del pueblo (no acaba en una duna de golpe)
+    const WW = road.westAt(i0) || road.westAt(i1), fade = i => !WW ? 1 : Math.min(1, Math.max(0, (WW.town - 15 - i) / 110));
+    sandGrid(R.L, road, i0, i1, (sd < 0 ? SANDL.slice().reverse() : SANDL).map(a => sd * a), (i, la) => duneH(i, la) * fade(i), SANDC);
     // cactus, piedras y huesos
     each(i0, i1, r, 9, 16, d => {
-      const lat = sd * (8 + r() * 22), m = frame(road, d, lat, duneH(d, lat), r() * 6);
+      const lat = sd * (8 + r() * 22), m = frame(road, d, lat, duneH(d, lat) * fade(d), r() * 6);
       if (r() < 0.6) cactus2(R, m, 0.6 + r() * 0.7);
       else addBox(R.L, 0.8 + r(), 0.5 + r() * 0.5, 0.8 + r(), 0xb89060, m, { y: 0.2, rx: r(), ry: r() });
     });
     // palmeras sueltas
-    each(i0, i1, r, 60, 110, d => { const lat = sd * (12 + r() * 20); palm2(R, road, d, lat, r, duneH(d, lat)); });
+    each(i0, i1, r, 60, 110, d => { const lat = sd * (12 + r() * 20); palm2(R, road, d, lat, r, duneH(d, lat) * fade(d)); });
   }
   // la pista vieja que sale a la derecha junto al cartel de OLD TOWN (si nadie le dispara, se queda ahí)
   for (const W of road.west) if (W.choice !== 1 && W.sign + 24 >= i0 && W.sign + 24 < i1) {

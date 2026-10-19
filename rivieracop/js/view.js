@@ -801,12 +801,14 @@ const ANIM = {
   },
   victim: personAnim,
   tower(o, e, dt, ctx, V) {
-    const ud = o.userData, x = e.x || {}, fl = x.fl | 0;
+    const ud = o.userData, x = e.x || {}, fl = x.fl | 0, K = 4;
+    // la torre es enorme (x4): en la arena se pelea pegados a ella
+    ud.body.scale.setScalar(K); ud.rub.scale.setScalar(K);
     ud.ground.visible = x.m === 1;
     // los pisos caídos se hunden con humo y temblando
-    const ty = -fl * ud.FH;
+    const ty = -fl * ud.FH * K;
     if (ud.body.position.y > ty + 0.01) {
-      ud.body.position.y = Math.max(ty, ud.body.position.y - dt * 9);
+      ud.body.position.y = Math.max(ty, ud.body.position.y - dt * 30);
       ud.body.position.x = (Math.random() - 0.5) * 0.6;
       if (Math.random() < dt * 30) { o.getWorldPosition(V1); V1.x += (Math.random() - 0.5) * 22; V1.z += (Math.random() - 0.5) * 22; V1.y += 2 + Math.random() * 10; V.fx.smoke(V1, true); }
     } else ud.body.position.x = 0;

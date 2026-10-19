@@ -1032,7 +1032,7 @@ export class Sim {
   }
   // salva de la torre: anillos y espirales de misiles que caen alrededor del coche
   salvo(e, w, pat) {
-    const T = 3.3, dC = this.carD + this.speed * T, h0 = Math.max(18, 62 - e.x.fl * 14);
+    const T = 3.3, dC = this.carD + this.speed * T, h0 = Math.max(40, (62 - e.x.fl * 14) * 4 - e.x.fl * 56); // torre a x4
     for (let j = 0; j < 5; j++) {
       const a = j / 5 * Math.PI * 2 + (pat === 1 ? w * 0.45 : 0);
       const rr = pat === 0 ? 10 - w * 2 : pat === 1 ? 3 + w * 1.6 : (w % 2 ? 7 : 2.5);
@@ -1041,14 +1041,14 @@ export class Sim {
     }
   }
   colW(e, i) {
-    const C = this.wpos(e.d, e.lat, 0), a = i / 6 * Math.PI * 2, x = Math.cos(a) * 9, z = Math.sin(a) * 9, b = -(e.x.y0 || 0);
-    return [C[0] + x * Math.cos(b) + z * Math.sin(b), C[1] + 2.5, C[2] - x * Math.sin(b) + z * Math.cos(b)];
+    const C = this.wpos(e.d, e.lat, 0), a = i / 6 * Math.PI * 2, x = Math.cos(a) * 36, z = Math.sin(a) * 36, b = -(e.x.y0 || 0);
+    return [C[0] + x * Math.cos(b) + z * Math.sin(b), C[1] + 10, C[2] - x * Math.sin(b) + z * Math.cos(b)];
   }
   // tiradores en el piso que queda abajo (puntos fijos alrededor de la torre)
   spawnFloor() {
     const r = this.r, n = 2 + Math.ceil(this.nAlive() / 2);
     for (let i = 0; i < n; i++) {
-      const g = this.add('gunman', { d: this.carD + 8 + i * 9 + r() * 4, lat: ARENA_R - 12 - r() * 3, h: 0.2, hp: 3, st: ST.ALIVE });
+      const g = this.add('gunman', { d: this.carD + 8 + i * 9 + r() * 4, lat: ARENA_R - 45 - r() * 3, h: 0.2, hp: 3, st: ST.ALIVE });
       g.x = { cv: -1, gr: 0, pop: 999, sk: Math.floor(r() * 6), tb: 1, fix: 1 };
       g.sh = [this.shooter(2.6 + r() * 0.8, 'shot', i * 0.5)];
     }
@@ -1207,7 +1207,7 @@ export class Sim {
     if (!W.houses) W.houses = westHouses(this.road.seed, W);
     // casas de la calle (todas revientan): aparecen por delante
     W.houses.forEach((h, i) => {
-      if (h.d < c + 250 && h.d > c - 15 && once0(this, 'wh' + W.k + ':' + i)) {
+      if (h.d < c + 175 && h.d > c - 15 && once0(this, 'wh' + W.k + ':' + i)) {
         const e = this.add('whouse', { d: h.d, lat: h.sd * 10.4, h: 0, hp: 10 + 3 * this.nAlive(), ry: h.sd * Math.PI / 2 });
         e.x = { k: h.k, w: h.w, sd: h.sd, sg: h.sg };
       }
@@ -2367,7 +2367,7 @@ const U = {
     }
     if (rel < -20) e.rm = true;
   },
-  whouse(e, dt, S) { e.vd = 0; if (S.rel(e) < -45) e.rm = true; },
+  whouse(e, dt, S) { e.vd = 0; if (S.rel(e) < -30) e.rm = true; },
   warch(e, dt, S) { e.vd = 0; if (S.rel(e) < -40 || (e.st === ST.DEAD && e.deadT > 6 && S.rel(e) < -10)) e.rm = true; },
   // bola de matojo: cruza rodando y dando botes
   tumble(e, dt, S) {
@@ -2995,6 +2995,8 @@ const U = {
   tower(e, dt, S) {
     const x = e.x, D = S.road.dunes.find(q => q.k === x.k);
     e.vd = 0;
+    // OLD TOWN: quieta donde estaba, sin disparar; se quita al llegar al pueblo
+    if (x.m === 2) { const W = S.road.west.find(q => q.k === x.k); if (!W || S.carD > W.town + 40) e.rm = true; return; }
     if (!D) { e.rm = true; return; }
     if (x.m === 0) {
       // siempre a la misma distancia, al fondo a la derecha
@@ -3106,7 +3108,10 @@ const HIT = {
     const W = S.road.west.find(q => q.k === e.x.k);
     if (!W || W.choice != null) return;
     e.x.s = 1; S.road.setWest(W.k, 1); S.emit('west', { kk: W.k, c: 1 });
-    S.emit('banner', { txt: '¡A OLD TOWN!', sub: 'Más adelante giráis a la derecha', c: '#e8a050' });
+    S.emit('banner', { txt: '¡A OLD TOWN!', sub: '¡Giro a la derecha!', c: '#e8a050' });
+    // la torre se queda donde estaba (al girar a la derecha, queda a la izquierda) y se va perdiendo de vista
+    const tw = S.ents.find(q => q.type === 'tower' && q.x.k === W.k);
+    if (tw) { const R = W.tr / (Math.PI / 2), F = S.carD + 195 - W.cut; tw.x.m = 2; tw.d = W.turn + W.tr - R; tw.lat = -(F - R); tw.ry = 0; }
     S.addPts(p, 500, e, '¡OLD TOWN!');
   },
   whouse(e, p, part, dmg, S) { e.x.kp = p; S.damage(e, p, dmg); },
@@ -3258,7 +3263,7 @@ const HIT = {
     else {
       e.hp = 0; S.addPts(p, PTS.tower, e); S.emit('kill', { p, t: 'tower', boss: 1, big: 1, air: 0 });
       S.emit('banner', { txt: '¡LA TORRE HA CAÍDO!', sub: 'Se rinden...', c: '#7dff8a' });
-      const f = S.add('fatman', { d: S.carD + 14, lat: ARENA_R - 13, h: 0.2, hp: 999 }); f.x = { ph: 0 };
+      const f = S.add('fatman', { d: S.carD + 14, lat: ARENA_R - 45, h: 0.2, hp: 999 }); f.x = { ph: 0 };
       x.surT = 10;
     }
   },

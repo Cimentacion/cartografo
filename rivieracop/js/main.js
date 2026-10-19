@@ -1242,6 +1242,8 @@ function uiBoss() {
   let best = null, bd = 1e9;
   for (const e of G.ents) {
     if (!BOSS[e.type] || e.st !== ST.ALIVE || (e.x && e.x.dv)) continue;
+    // la torre no enseña su vida hasta que se pelea con ella (en la arena)
+    if (e.type === 'tower' && !(e.x && e.x.m === 1)) continue;
     const hm = e.hm || (e.x && e.x.hm);
     if (!hm || e.hp <= 0) continue;
     const d = Math.abs(e.d - G.carD);

@@ -172,7 +172,8 @@ export class Road {
     const i = this.dunes.findIndex(q => q.k === k); if (i >= 0) this.dunes.splice(i, 1);
     // giro brusco a la derecha justo en el cartel, un trozo de dunas hasta el pueblo, la calle mayor hasta la plaza
     // (saloon y pozo), giro brusco a la izquierda y la calle de la mansión
-    W.turn = this._q({ type: 'wturn', len: 26, bio, zd }).start;
+    W.tr = 14;
+    W.turn = this._q({ type: 'wturn', len: W.tr, bio, zd }).start;
     this._q({ type: 'wdune', len: 150, bio, zd });
     W.town = this._q({ type: 'town', len: 300, bio: OE, zd }).start;
     W.lturn = this._q({ type: 'wlturn', len: 24, bio: OE, zd }).start;
