@@ -147,7 +147,9 @@ export const SLOT_AB = [['btnShield', 'shield', 'ESCUDO'], ['btnBullet', 'bullet
   ['btnP_cura', 'cura', 'BOTIQUÍN DE EQUIPO'], ['btnP_iman', 'iman', 'IMÁN'], ['btnP_rayo', 'rayo', 'TORMENTA'], ['btnP_fuerza', 'fuerza', 'FUERZA BRUTA']];
 export const SLOT_MAX = 6;
 // empiezas con 1 ranura; los retos dan más (hasta 6)
-export const slotCount = p => Math.min(SLOT_MAX, 1 + (p.unl || []).filter(u => u.startsWith('slot:')).length);
+// 2.ª y 3.ª fáciles (3 partidas, 5 casas de OLD TOWN); 4.ª y 5.ª difíciles (30 jefes, 12 veces rango SSS); la 6.ª se compra
+export const SLOT_PRICE = 1000000;
+export const slotCount = p => Math.min(SLOT_MAX, 1 + (p.unl || []).filter(u => /^slot:[2-5]$/.test(u)).length + (p.slotBuy ? 1 : 0));
 // las puestas (solo las que tienes compradas y caben); si no hay ninguna, la primera que tengas
 export function slotsOf(p) {
   const own = SLOT_AB.map(a => a[1]).filter(k => (p.upg[k] | 0) > 0), n = slotCount(p);

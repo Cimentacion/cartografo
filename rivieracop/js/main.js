@@ -14,7 +14,7 @@ import { Net, makeCode, NETV, LanBeacon, LanScan, Presence, MAXP } from './net.j
 import { showRewarded, showInterstitial, adsReal, lastAdErr } from './ads.js';
 import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME, BOSS } from './defs.js';
 import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES, rangeMul, rollWeaponId, uniqueWeapon } from './weapons.js';
-import { SLOT_AB, SLOT_MAX, slotCount, slotsOf, UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd, turboDur, turboCd, POWERS } from './progress.js';
+import { SLOT_AB, SLOT_MAX, SLOT_PRICE, slotCount, slotsOf, UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd, turboDur, turboCd, POWERS } from './progress.js';
 import { fpGun, VEHICLES, VCOLORS, convertible } from './models.js';
 import { Outline, toon } from './toon.js';
 import { CHAL, chInit, chAdd, claimable, claim, goal, reward, text as chText, UNLOCKS, UNL_NAME, locked, lockedBy } from './challenges.js';
@@ -2691,8 +2691,14 @@ function paintShop(boughtId) {
     const eq = slotsOf(PROG), n = slotCount(PROG), own = SLOT_AB.filter(a => (PROG.upg[a[1]] | 0) > 0);
     const h = document.createElement('div'); h.className = 'upg can'; h.style.setProperty('--c', col);
     let pips = '<div class="pips">'; for (let i = 0; i < SLOT_MAX; i++) pips += `<i class="${i < eq.length ? 'on' : ''}" style="${i >= n ? 'opacity:.25' : ''}"></i>`; pips += '</div>';
-    h.innerHTML = `<div class="uh"><span class="un">RANURAS ${eq.length}/${n}</span><span class="ul">MÁX ${SLOT_MAX}</span></div><p>${n < SLOT_MAX ? 'Consigue más ranuras completando RETOS (destruir casas de OLD TOWN, jefes, rangos…)' : 'Tienes todas las ranuras'}</p>${pips}`;
+    h.innerHTML = `<div class="uh"><span class="un">RANURAS ${eq.length}/${n}</span><span class="ul">MÁX ${SLOT_MAX}</span></div><p>${n < SLOT_MAX ? 'Más ranuras con RETOS: 3 partidas, 5 casas de OLD TOWN, 30 jefes y 12 veces rango SSS. La última se compra' : 'Tienes todas las ranuras'}</p>${pips}`;
     W2.appendChild(h);
+    // la ranura que se compra
+    { const e = document.createElement('div'), got = !!PROG.slotBuy, can = !got && PROG.coins >= SLOT_PRICE;
+      e.className = 'upg' + (got ? ' max' : can ? ' can' : ''); e.style.setProperty('--c', col);
+      e.innerHTML = `<div class="uh"><span class="un">RANURA DE LUJO</span><span class="ul">${got ? 'TUYA' : ''}</span></div><p>Una ranura más, pagando</p><div class="uf">${got ? '<span class="price">COMPRADA</span>' : `<span class="price${can ? '' : ' no'}"><i class="coin"></i>${SLOT_PRICE.toLocaleString('es-ES')}</span>`}</div>`;
+      if (!got) { const b = document.createElement('button'); b.textContent = 'COMPRAR'; b.disabled = !can; b.onclick = () => { if (PROG.slotBuy || PROG.coins < SLOT_PRICE) return; PROG.coins -= SLOT_PRICE; PROG.slotBuy = 1; saveProg(PROG); SFX.unlock(); paintShop(); }; e.querySelector('.uf').appendChild(b); }
+      W2.appendChild(e); }
     if (!own.length) { const e = document.createElement('div'); e.className = 'upg'; e.innerHTML = '<p>Aún no tienes habilidades: cómpralas en PODERES y ESPECIALES.</p>'; W2.appendChild(e); }
     for (const [, k, name] of own) {
       const on = eq.includes(k), full = eq.length >= n;

@@ -58,15 +58,15 @@ export const UNLOCKS = {
   runs: { 4: 'shirt:camuflaje' }, rkSSS: { 1: 'shirt:llamas' }, hosp: { 1: 'hat:halo' }, k_bat: { 3: 'hairCol:10' }, air: { 5: 'hairCol:9' },
   coins: { 5: 'shirtCol:11' }, kills: { 6: 'shirt:oro' },
   // ranuras de habilidades (empiezas con 1)
-  runs: { 1: 'slot:2', 4: 'shirt:camuflaje' }, k_whouse: { 2: 'slot:3', 4: 'back:espada' }, boss: { 2: 'pw:rayo1', 3: 'slot:4', 4: 'back:alasn', 5: 'pw:rayo2', 8: 'pw:rayo3' },
-  zones: { 5: 'slot:5' }, rkSSS: { 1: 'shirt:llamas', 2: 'slot:6' }, k_outlaw: { 0: 'hat:kabuto' }, k_skel: { 3: 'hat:yelmo' }, k_tower: { 0: 'shirt:samurai' },
+  runs: { 1: 'slot:2', 4: 'shirt:camuflaje' }, k_whouse: { 2: 'slot:3', 4: 'back:espada' }, boss: { 2: 'pw:rayo1', 4: 'back:alasn', 5: 'pw:rayo2', 7: 'slot:4', 8: 'pw:rayo3' },
+  rkSSS: { 1: 'shirt:llamas', 5: 'slot:5' }, k_outlaw: { 0: 'hat:kabuto' }, k_skel: { 3: 'hat:yelmo' }, k_tower: { 0: 'shirt:samurai' },
 };
 export const UNL_NAME = {
   'shirt:cazador': 'Camiseta Cazazombis', 'hat:cuernos': 'Cuernos', 'shirt:hawaiana': 'Camisa hawaiana', 'shirtCol:10': 'Color dorado',
   'pw:rayo1': 'Poder: TORMENTA', 'pw:rayo2': 'TORMENTA nivel 2', 'pw:rayo3': 'TORMENTA nivel 3', 'back:alasn': 'Alas de demonio', 'hat:casco': 'Casco SWAT',
   'back:katana': 'Katana', 'shirt:camuflaje': 'Camuflaje', 'shirt:llamas': 'Camiseta de llamas', 'hat:halo': 'Halo', 'hairCol:10': 'Pelo cian',
   'hairCol:9': 'Pelo platino', 'shirtCol:11': 'Color neón', 'shirt:oro': 'Camiseta de oro',
-  'slot:2': '2.ª ranura de habilidad', 'slot:3': '3.ª ranura de habilidad', 'slot:4': '4.ª ranura de habilidad', 'slot:5': '5.ª ranura de habilidad', 'slot:6': '6.ª ranura de habilidad',
+  'slot:2': '2.ª ranura de habilidad', 'slot:3': '3.ª ranura de habilidad', 'slot:4': '4.ª ranura de habilidad', 'slot:5': '5.ª ranura de habilidad',
   'back:espada': 'Espadón medieval', 'hat:kabuto': 'Kabuto samurái', 'hat:yelmo': 'Yelmo de caballero', 'shirt:samurai': 'Armadura samurái',
 };
 export const CHAL = [];
