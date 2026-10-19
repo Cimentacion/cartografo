@@ -105,8 +105,11 @@ export function claim(P, id) {
   return { coins, unl: u || null };
 }
 // ¿está bloqueado este objeto del personaje?
-export function locked(P, key) { return !!UNL_NAME[key] && !key.startsWith('pw:') && !key.startsWith('slot:') && !P.unl.includes(key); }
+// la katana en la boca sale con la misma katana desbloqueada
+const ALIAS = { 'face:katanab': 'back:katana' };
+export function locked(P, key) { key = ALIAS[key] || key; return !!UNL_NAME[key] && !key.startsWith('pw:') && !key.startsWith('slot:') && !P.unl.includes(key); }
 export function lockedBy(key) {
+  key = ALIAS[key] || key;
   for (const id in UNLOCKS) for (const t in UNLOCKS[id]) if (UNLOCKS[id][t] === key) { const c = CHAL.find(q => q.id === id); return c ? text(c, +t) + ' (nivel ' + (+t + 1) + ')' : ''; }
   return '';
 }

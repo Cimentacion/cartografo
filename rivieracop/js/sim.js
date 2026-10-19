@@ -619,6 +619,8 @@ export class Sim {
     if (this.voting) return;
     // si la carretera de delante aún no existe (antes del desvío), no sale nada: aparecería fuera del mapa
     if (!this.canAhead(130)) return;
+    // la cosechadora del pueblo: mientras está, no sale nada más
+    if (this.has('harvester')) return;
     if (this.foot || this.has('brute') || BIOMES[BIOME_KEYS[this.road.bioAt(this.carD + 80)]].deco === 'zombi') { this.zombieDir(dt); return; }
     this.waveT -= dt;
     // ritmo Virtua Cop: pocos a la vez (2-3 en solitario, algo más en grupo) para poder ir limpiando la pantalla
@@ -626,6 +628,8 @@ export class Sim {
     const full = this.hostileCount(this.n > 2 ? false : null) >= cap + 1;
     const TT = this.road.titanicAt(this.carD);
     const inT = TT && this.carD < TT.out - 20;
+    // calles de un solo carril (pueblo): sin ambulancias, jeeps, camiones ni traficantes que se monten encima de los tractores
+    const narrowN = !!BIOMES[BIOME_KEYS[this.road.bioAt(this.carD + 80)]].narrow || !!BIOMES[BIOME_KEYS[this.road.bioAt(this.carD)]].narrow, solo1 = inT || narrowN;
     if (this.waveT <= 0) {
       if (!inT && this.hostileCount(this.n > 2 ? false : null) < cap) this.spawnWave();
       // en solitario salen menos: más tiempo entre oleadas
@@ -634,7 +638,7 @@ export class Sim {
     const deco = BIOMES[BIOME_KEYS[this.road.bioAt(this.carD + 80)]].deco;
     const inTun = this.road.inTunnel(this.carD + 120);
     this.civT -= dt;
-    if (['rio', 'bosque', 'submarino', 'ruinas', 'guerra', 'llanura', 'bajada', 'tuneles', 'dunas', 'zombi', 'oeste', 'titanic', 'tsub', 'tmar'].includes(deco) || inT) this.civT = Math.max(this.civT, 1);
+    if (['rio', 'bosque', 'submarino', 'ruinas', 'guerra', 'llanura', 'bajada', 'tuneles', 'dunas', 'zombi', 'oeste', 'titanic', 'tsub', 'tmar', 'pueblo'].includes(deco) || solo1) this.civT = Math.max(this.civT, 1);
     if (this.civT <= 0) {
       this.civT = deco === 'manifa' ? 2.5 + this.r() * 2 : 6 + this.r() * 6;
       const w = { truck: rt > 10 ? 1.4 * this.wMult('truck') : 0, civcar: 1.5 * this.wMult('civcar'), civ: this.road.inTunnel(this.carD + 70) ? 0 : deco === 'manifa' ? 20 : 1.2 };
@@ -647,13 +651,13 @@ export class Sim {
     if (needy && this.ambT > 22 && this.runT - this.lastAmb > 40 && !this.has('amb') && !this.has('medkit')) this.ambT = 22;
     this.ambT -= dt;
     if (this.ambT <= 0) {
-      if (inT) this.ambT = 3; // el Titanic es de una sola carretera: sin ambulancias
+      if (solo1) this.ambT = 3; // Titanic y pueblo: una sola carretera, sin ambulancias
       else if (this.laneFree(-50, 40) && !this.has('amb')) { this.spawnAmb(); this.lastAmb = this.runT; this.ambT = (75 + this.r() * 30) * (this.bonus.amb ? 0.55 : 1) * Math.max(0.5, 1 - 0.08 * this.maxMeta('ambu')); }
       else this.ambT = 2;
     }
     this.terrT -= dt;
     if (this.terrT <= 0) {
-      if (inT) this.terrT = 5;
+      if (solo1) this.terrT = 5;
       else if (this.laneFree(-45, 40) && !this.has('jeep')) { this.spawnJeep(); this.terrT = (180 + (this.r() - 0.5) * 40) * Math.max(0.6, 1 - 0.06 * (this.zd() - 1)); }
       else this.terrT = 2;
     }
@@ -677,7 +681,7 @@ export class Sim {
     }
     if (deco === 'industrial' && !inTun && free && this.timer('wall', dt, 60) && !this.has('wall')) this.spawnWall(2);
     // una vez por zona: el traficante de armas (lento, con su música); al reventarlo suelta un arma especial
-    if (!inTun && !this.foot && Z.f && prog > 0.2 + (hash(this.seed, kz, 77) % 40) / 100 && deco !== 'submarino' && !inT && once('dealer')) this.spawnDealer();
+    if (!inTun && !this.foot && Z.f && prog > 0.2 + (hash(this.seed, kz, 77) % 40) / 100 && deco !== 'submarino' && !solo1 && once('dealer')) this.spawnDealer();
     // casino: limusinas de la mafia con dos tiradores en las ventanillas
     if (deco === 'casino' && !inTun && this.timer('limo', dt, this.n === 1 ? 22 : 15) && !this.ents.some(e => e.type === 'ecar' && e.x.limo && e.st !== ST.DEAD) && this.laneFree(-40, 30)) {
       this.spawnECar();
@@ -820,8 +824,9 @@ export class Sim {
       // en la bajada de la ermita todavía no hay casas: allí salen a pie entre los árboles
       const inTown = Z.f && Z.prog * (Z.f.slen || 720) > 200;
       if (inTown && !full && this.timer('win', dt, 4.6) && this.count('gunman') < 3 + this.n) this.spawnWindowGunmen();
-      for (const c of this.road.crossings(this.carD + 35, this.carD + 85)) if (once('x' + Math.round(c)) && this.r() < 0.75) this.spawnXCar(c);
-      if (this.timer('trac', dt, 24) && !this.has('crew') && this.canAhead(100)) this.spawnTractor();
+      const trac = this.ents.find(e => e.type === 'crew' && e.st !== ST.DEAD);
+      for (const c of this.road.crossings(this.carD + 35, this.carD + 85)) if (once('x' + Math.round(c)) && this.r() < 0.75 && !(trac && Math.abs(trac.d - c) < 25) && !this.ents.some(e => e.type === 'xcar' && e.st !== ST.DEAD)) this.spawnXCar(c);
+      if (this.timer('trac', dt, 24) && !trac && this.canAhead(100) && !this.road.crossings(this.carD + 55, this.carD + 100).length && !this.ents.some(e => VEH.has(e.type) && e.st !== ST.DEAD && Math.abs(e.d - this.carD - 75) < 30)) this.spawnTractor();
       if (this.zt.pt > 60 && once('harv')) this.spawnHarvester();
     }
     if (deco === 'bajada' && !inTun) {

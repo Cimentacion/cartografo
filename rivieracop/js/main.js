@@ -2673,7 +2673,7 @@ function edLockMsg(k) { showToast('🔒 ' + (UNL_NAME[k] || '') + ' — se consi
 // si lo puesto está bloqueado (p. ej. de otra versión), se quita
 function edFixLocks(c) {
   const d = defaultChar(0);
-  for (const k of ['hat', 'back', 'shirt']) if (locked(PROG, k + ':' + c[k])) c[k] = d[k] || 'no';
+  for (const k of ['hat', 'back', 'shirt', 'face']) if (locked(PROG, k + ':' + c[k])) c[k] = d[k] || 'no';
   for (const k of ['shirtCol', 'hairCol']) if (locked(PROG, k + ':' + c[k])) c[k] = d[k];
   return c;
 }

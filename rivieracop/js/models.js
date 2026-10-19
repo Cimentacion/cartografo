@@ -216,6 +216,12 @@ function accessories(t, o, hp, bp) {
       box(t, 0.14, 0.03, 0.01, 0x101010, 0, 0.77, -0.178, hp); break;
     case 'ninjam': // tela negra que tapa la boca y la nariz
       box(t, 0.3, 0.13, 0.03, 0x16161c, 0, 0.78, -0.148, hp); for (const sd of [-1, 1]) box(t, 0.01, 0.12, 0.3, 0x16161c, sd * 0.152, 0.78, 0, hp); break;
+    case 'katanab': { // katana sujeta con los dientes, cruzada delante de la boca (hoja a la derecha)
+      const q = new THREE.Group(); q.position.set(0, 0.765, -0.17); q.rotation.z = -0.08; t.add(q);
+      box(q, 0.95, 0.03, 0.012, 0xd8dde4, 0.56, 0, 0, hp); box(q, 0.95, 0.008, 0.014, 0xf6f8fa, 0.56, -0.012, 0, hp);
+      box(q, 0.035, 0.08, 0.07, 0xb08a30, 0.07, 0, 0, hp);
+      box(q, 0.26, 0.045, 0.04, 0x1a1a1a, -0.07, 0, 0, hp); for (let k = 0; k < 4; k++) box(q, 0.02, 0.05, 0.045, 0xf2f2f2, -0.16 + k * 0.06, 0, 0, hp);
+      break; }
     case 'pecas': for (const [x, y] of [[-0.09, 0.82], [-0.06, 0.8], [-0.1, 0.79], [0.09, 0.82], [0.06, 0.8], [0.1, 0.79]]) box(t, 0.015, 0.015, 0.005, 0x8a4a2a, x, y, -0.157, hp); break;
     case 'mascarilla': box(t, 0.26, 0.12, 0.03, 0xf2f2f2, 0, 0.76, -0.145, hp); for (const sd of [-1, 1]) box(t, 0.01, 0.015, 0.14, 0xf2f2f2, sd * 0.137, 0.8, -0.08, hp); break;
     case 'monoculo': { const m = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.01, 6, 14), mat(0xd4af37)); m.position.set(0.07, 0.865, -0.15); t.add(m); box(t, 0.07, 0.05, 0.004, glow(0xd8f0ff, 0.45), 0.07, 0.865, -0.152, hp); box(t, 0.008, 0.16, 0.008, 0xd4af37, 0.115, 0.78, -0.145, hp); } break;

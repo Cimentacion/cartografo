@@ -708,8 +708,10 @@ function outsideRun(R, road, B, i0, i1, r) {
   if (B.deco === 'titanic') { titanicRun(R, road, B, i0, i1, r); return; }
   if (B.deco === 'tsub') { tsubRun(R, road, B, i0, i1, r); return; }
   if (B.deco === 'tmar') { tmarRun(R, road, B, i0, i1, r); return; }
+  // el pueblo: un solo suelo de adoquín de fachada a fachada (sin asfalto, aceras, bordillos ni rayas que se solapen)
+  if (B.deco === 'pueblo') { strip(R.P, road, i0, i1, C(-8, 0), C(PR + 0.6, 0), 0x7a746c, 2); DECO.pueblo(R, road, B, i0, i1, r); return; }
   strip(R.A, road, i0, i1, C(-HALF, 0), C(HALF, 0), LIGHT(B.asphalt, 0.08), 4);
-  if (B.deco !== 'pueblo') dashes(R, road, i0, i1, B.line);
+  dashes(R, road, i0, i1, B.line);
   // en los cruces la acera, el bordillo y el talud de ese lado se cortan: la calle entra a ras de la carretera
   const XS = road.xstreets(i0 - 12, i1 + 12).filter(x => xSides(BIOMES[BIOME_KEYS[road.bio[Math.floor(x)]]].deco).length);
   const runs = sd => {
@@ -1514,6 +1516,16 @@ function mirador(R, road, B, i0, i1, r, into) {
 // ---------- pueblo de callejuelas ----------
 // fachada izquierda a lat -1.2 (la calle es de un solo carril) y derecha a lat 7.2
 const PL = -1.2, PR = 6.0;
+// tejado a dos aguas de verdad (prisma): cumbrera a lo largo de la calle, faldones hasta el alero y los hastiales del color de la casa
+function gable(list, m, dep, w, y0, rh, col, endCol, over = 0.5, zo = 0.15) {
+  const X = dep / 2 + over, Z = w / 2 + zo, yr = y0 + rh, ye = y0 - rh * over / (dep / 2);
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute([-X, ye, -Z, 0, yr, -Z, 0, yr, Z, -X, ye, Z, X, ye, -Z, X, ye, Z, 0, yr, Z, 0, yr, -Z], 3));
+  g.setIndex([0, 2, 1, 0, 3, 2, 4, 7, 6, 4, 6, 5]); g.computeVertexNormals(); colorize(g, col, false); g.applyMatrix4(m); list.push(g);
+  const e = new THREE.BufferGeometry(), h = w / 2 - 0.01, x = dep / 2;
+  e.setAttribute('position', new THREE.Float32BufferAttribute([-x, y0, -h, x, y0, -h, 0, y0 + rh, -h, -x, y0, h, 0, y0 + rh, h, x, y0, h], 3));
+  e.setIndex([0, 1, 2, 3, 4, 5]); e.computeVertexNormals(); colorize(e, endCol, false); e.applyMatrix4(m); list.push(e);
+}
 function pHouse(R, road, B, d, sd, w, r, off = 0) {
   // casa medieval: planta baja de piedra, pisos de entramado de madera (vigas oscuras, cruces y riostras sobre el revoque),
   // galería de madera corrida en el primer piso, ventanas pequeñas con contraventanas y tejado empinado con chimenea
@@ -1540,7 +1552,7 @@ function pHouse(R, road, B, d, sd, w, r, off = 0) {
     const z = -w / 2 + (k + 0.5) * (w / n);
     if (k === 0 || r() < 0.3) {
       addBox(R.D, 0.12, 2.2, 1.2, pick(r, [0x4a2e18, 0x5a3418, 0x3a2412]), m, { x: fx + o * 0.04, y: 1.1, z });
-      for (let q = 0; q < 5; q++) { const a = (q / 4 - 0.5) * 2.2; addBox(R.L, 0.08, 0.22, 0.34, LIGHT(stone, 0.1), m, { x: fx + o * 0.05, y: 2.25 + Math.cos(a) * 0.3, z: z + Math.sin(a) * 0.62, rx: -a }); }
+      addBox(R.K, 0.1, 0.32, 1.6, LIGHT(stone, 0.15), m, { x: fx + o * 0.05, y: 2.36, z, uvs: 1 }); for (const s2 of [-1, 1]) addBox(R.K, 0.1, 2.2, 0.2, LIGHT(stone, 0.15), m, { x: fx + o * 0.05, y: 1.1, z: z + s2 * 0.7, uvs: 1 });
       for (const q of [-0.4, 0.4]) addBox(R.L, 0.16, 0.06, 0.06, 0x1a1a1a, m, { x: fx + o * 0.1, y: 1.2 + q, z: z + 0.3 });
     } else { addBox(R.L, 0.08, 0.9, 0.8, 0x2a2620, m, { x: fx + o * 0.03, y: 1.7, z }); for (let q = 0; q < 3; q++) addBox(R.L, 0.12, 1.0, 0.05, 0x1a1a1a, m, { x: fx + o * 0.1, y: 1.7, z: z - 0.25 + q * 0.25 }); }
     for (let f = 1; f < nf; f++) {
@@ -1559,9 +1571,10 @@ function pHouse(R, road, B, d, sd, w, r, off = 0) {
   for (let z = -w / 2 + 0.2; z < w / 2 - 0.1; z += 0.35) addBox(R.L, 0.06, 0.95, 0.06, 0x5a3a20, m, { x: fx + o * 0.83, y: 3.65, z });
   // tejado empinado de teja oscura con alero y chimenea de piedra
   const rc = pick(r, [0x6a3a24, 0x7a4028, 0x5a4a44, 0x8a4a2a]);
-  for (const s2 of [-1, 1]) addBox(R.L, dep / 2 + 0.9, 0.24, w + 0.35, rc, m, { x: s2 * (dep / 4 + 0.05), y: top + dep * 0.21, rz: -s2 * 0.72 });
-  addBox(R.L, 0.3, 0.3, w + 0.4, 0x3a2418, m, { y: top + dep * 0.42 + 0.08 });
-  if (r() < 0.6) addBox(R.K, 0.8, 2.4, 0.8, stone, m, { x: (r() - 0.5) * dep * 0.4, y: top + dep * 0.32 + 0.6, z: (r() - 0.5) * (w - 1.4), uvs: 1 });
+  const rh = dep * 0.42;
+  gable(R.L, m, dep, w, top, rh, rc, plaster, 0.55, 0.12);
+  addBox(R.L, 0.25, 0.22, w + 0.3, LIGHT(rc, 0.08), m, { y: top + rh });
+  if (r() < 0.6) addBox(R.K, 0.8, rh * 0.75 + 1.2, 0.8, stone, m, { x: (r() < 0.5 ? -1 : 1) * dep * 0.18, y: top + rh * 0.4 + 0.3, z: (r() - 0.5) * (w - 1.4), uvs: 1 });
   // farol de hierro en la pared de alguna casa
   if (r() < 0.25) { addBox(R.L, 0.5, 0.05, 0.05, 0x1a1a1a, m, { x: fx + o * 0.25, y: 2.7, z: w / 2 - 0.6 }); addBox(R.G, 0.22, 0.32, 0.22, 0xffc870, m, { x: fx + o * 0.48, y: 2.5, z: w / 2 - 0.6 }); }
   return w;
@@ -2216,7 +2229,7 @@ const DECO = {
               continue;
             }
             addBox(mk2 < 0.5 ? R.K : R.L, dep2, top2 + dn, w2, mk2 < 0.5 ? 0xb8a888 : pick(r, B.build), m2, { y: (top2 - dn) / 2, uvs: 3 });
-            { const rc2 = pick(r, [0x6a3a24, 0x7a4028, 0x5a4a44, 0x8a4a2a]); for (const s2 of [-1, 1]) addBox(R.L, dep2 / 2 + 0.8, 0.22, w2 + 0.3, rc2, m2, { x: s2 * (dep2 / 4 + 0.05), y: top2 + 1.7, rz: -s2 * 0.72 }); }
+            gable(R.L, m2, dep2, w2, top2, dep2 * 0.42, pick(r, [0x6a3a24, 0x7a4028, 0x5a4a44, 0x8a4a2a]), mk2 < 0.5 ? 0xb8a888 : 0xe8dcc0, 0.5, 0.1);
             if (mk2 >= 0.5) for (let q = 0; q <= Math.round(w2 / 1.8); q++) addBox(R.L, 0.08, top2 - 3, 0.2, 0x3a2414, m2, { x: -sd * (dep2 / 2 + 0.04), y: 3 + (top2 - 3) / 2, z: -w2 / 2 + 0.1 + q * (w2 - 0.2) / Math.round(w2 / 1.8) });
             if (r() < 0.45) addBox(R.L, 0.6, 1.4, 0.6, 0xd8c8b0, m2, { x: (r() - 0.5) * 3, y: top2 + 1.4, z: (r() - 0.5) * (w2 - 1) });
             // ventanas en la fachada que mira a la calle
@@ -2227,8 +2240,6 @@ const DECO = {
           d2 += w2 + 0.1;
         }
       }
-      // sin aceras: el empedrado llega hasta las fachadas
-      strip(R.P, road, i0, i1, C(HALF, 0.03), C(PR + 0.5, 0.03), 0x7a746c, 2);
     }
     for (let d = i0; d < i1; d++) {
       if (!terr(d) || terr(d - 1)) continue;
@@ -2255,13 +2266,11 @@ const DECO = {
       addBox(R.G, 0.24, 0.3, 0.24, 0xfff0c0, m, { x: -sd * 0.7, y: 3.3 });
       if ((d / 14) % 3 === 0) addBox(R.L, 0.03, 0.03, PR - PL, 0x1a1a1a, frame(road, d + 2, (PL + PR) / 2, 5.6 + Math.sin(d) * 0.4, Math.PI / 2));
     }
-    // línea amarilla de no aparcar junto al bordillo derecho
-    strip(R.L, road, i0, i1, C(HALF - 0.45, 0.02), C(HALF - 0.25, 0.02), 0xf0d040);
     // callejuelas que cruzan: suelo adoquinado hacia los dos lados
     for (const c of cr) {
       if (c < i0 || c >= i1) continue;
       if (road.isPlaza(c)) { pChurch(R, road, c, r); addBox(R.P, 5, 0.1, 30, 0x7a746c, frame(road, c, PR + 15, 0.02), { uvs: 2 }); continue; }
-      for (const sd of [-1, 1]) addBox(R.P, 5.5, 0.1, 30, 0x7a808a, frame(road, c, sd < 0 ? PL - 15 : PR + 15, 0.02), { uvs: 2 });
+      for (const sd of [-1, 1]) addBox(R.P, 5.5, 0.1, 30, 0x7a746c, frame(road, c, sd < 0 ? PL - 15 : PR + 15, 0.02), { uvs: 2 });
       // balas de heno en algunas esquinas
       if (r() < 0.5) { const hm = frame(road, c + 4.5, PR - 0.6, 0.18); for (let q = 0; q < 3; q++) addBox(R.L, 1.1, 0.8, 1.6, 0xd8b850, hm, { y: 0.4 + (q === 2 ? 0.8 : 0), z: q === 2 ? 0.5 : q * 1.1 - 0.5 }); }
     }
