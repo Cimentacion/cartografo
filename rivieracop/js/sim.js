@@ -704,6 +704,8 @@ export class Sim {
       if (WW) this.westDir(WW, dt, cap, full);
     }
     // dunas: la torre (siempre a lo lejos, y luego en el centro de la arena), tuk-tuks, buitres y tiradores con turbante
+    // los dobles: siempre que no se haya ido a OLD TOWN, justo después de pasar el cartel
+    for (const W of this.road.west) if (W.choice === 0 && this.carD > W.sign + 25 && this.carD < W.sign + 400 && once0(this, 'cl' + W.k)) this.spawnTuktuk(true);
     { const D = this.road.dunesAt(this.carD);
       if (D) {
         if (!this.has('tower') && once0(this, 'tw' + D.k)) this.spawnTower(D);
@@ -711,7 +713,6 @@ export class Sim {
         const pre = this.carD < D.drop - 40, arena = this.carD > D.arena + 20 && (D.out == null || this.carD < D.out);
         if (pre || arena) {
           if (!full && this.timer('tuk', dt, this.n === 1 ? 16 : 11) && this.count('tuktuk') < 1 + (this.n > 2 ? 1 : 0)) this.spawnTuktuk(false);
-          if (pre && prog > 0.42 && once('clone')) this.spawnTuktuk(true);
           if (!full && this.timer('vult', dt, 18) && this.count('bat') < 2) for (let i = 0; i < 2; i++) this.spawnBat(i, 1);
           if (pre && !full && this.timer('turb', dt, 14)) this.spawnTurbans();
         }
