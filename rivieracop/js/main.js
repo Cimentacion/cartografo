@@ -57,10 +57,12 @@ sun.shadow.mapSize.set(1024, 1024);
 Object.assign(sun.shadow.camera, { left: -145, right: 145, top: 145, bottom: -145, near: 60, far: 390 });
 // sombras duras (poco difuminado)
 sun.shadow.bias = -0.002; sun.shadow.normalBias = 0.35;
+// solo reciben la sombra del sol las superficies que miran hacia arriba (suelo, aceras, tejados, balcones):
+// en las paredes, el mapa de sombras del móvil pintaba líneas en zigzag y cuadros que cambiaban al girar la cámara
 // rayas en las fachadas (acné): donde el sol llega muy de canto la superficie ya está en sombra por el toon,
 // así que ahí la sombra proyectada se ignora (y no salen las bandas diagonales en los edificios)
 { const k = 'directLight.color *= ( directLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;';
-  const C = THREE.ShaderChunk; if (C.lights_fragment_begin.includes(k)) C.lights_fragment_begin = C.lights_fragment_begin.replace(k, k.replace('directLight.color *= ', 'directLight.color *= mix( 1.0, ').replace(' : 1.0;', ' : 1.0, smoothstep( 0.08, 0.4, dot( normal, directLight.direction ) ) * ( 1.0 - smoothstep( 55.0, 85.0, length( vViewPosition ) ) ) );')); else console.warn('shadow patch'); }
+  const C = THREE.ShaderChunk; if (C.lights_fragment_begin.includes(k)) C.lights_fragment_begin = C.lights_fragment_begin.replace(k, k.replace('directLight.color *= ', 'directLight.color *= mix( 1.0, ').replace(' : 1.0;', ' : 1.0, smoothstep( 0.08, 0.4, dot( normal, directLight.direction ) ) * ( 1.0 - smoothstep( 55.0, 85.0, length( vViewPosition ) ) ) * smoothstep( 0.45, 0.75, ( vec4( normal, 0.0 ) * viewMatrix ).y ) );')); else console.warn('shadow patch'); }
 renderer.shadowMap.autoUpdate = false;
 sun.shadow.camera.updateProjectionMatrix();
 const SHC = { key: '' };
