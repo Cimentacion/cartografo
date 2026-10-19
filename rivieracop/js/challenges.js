@@ -74,6 +74,37 @@ for (const [t, nm, T, f] of KILLS) CHAL.push({ id: 'k_' + t, txt: 'Mata ' + nm +
 for (const [id, txt, T, f] of GEN) CHAL.push({ id, txt, T, f, cat: 'General' });
 for (const k of BIOME_KEYS) CHAL.push({ id: 'z_' + k, txt: 'Llega a ' + BIOMES[k].name + ' {n} veces', T: RARE, f: 3, cat: 'Zonas', col: BIOMES[k].color });
 CHAL.length = Math.min(CHAL.length, 200);
+// la ropa nueva (todo bloqueado): cada prenda va a un nivel libre de un reto de su tema
+const NEWWEAR = [
+  // [clave, nombre, retos donde puede salir]
+  ...[['monje', 'Hábito de monje'], ['monjeb', 'Túnica azafrán'], ['lamelar', 'Armadura lamelar'], ['cuero', 'Cuero tachonado'], ['dorada', 'Armadura dorada'], ['romana', 'Lorica romana'],
+    ['militar', 'Uniforme de gala'], ['tactico', 'Chaleco táctico'], ['aviador', 'Cazadora de aviador'], ['vestido', 'Vestido de flores'], ['vestidon', 'Vestido de noche'], ['corse', 'Corsé y falda'],
+    ['kimonof', 'Kimono de flores'], ['blusa', 'Blusa de volantes'], ['princesa', 'Vestido de princesa']].map(([k, n]) => ['shirt:' + k, n]),
+  ...[['panuelo', 'Pañuelo pirata'], ['panuelof', 'Pañuelo de flores'], ['boina', 'Boina'], ['gorramil', 'Gorra de plato'], ['cascomil', 'Casco militar'], ['capucha', 'Capucha de monje'], ['tiara', 'Tiara'],
+    ['diadema', 'Diadema de flores'], ['velo', 'Velo'], ['pamela', 'Pamela'], ['nasal', 'Casco normando'], ['coronam', 'Corona de plata'], ['ushanka', 'Gorro de piel'], ['espartano', 'Casco de hoplita'], ['cofia', 'Cofia']].map(([k, n]) => ['hat:' + k, n]),
+  ...[['lanza', 'Lanza'], ['alabarda', 'Alabarda'], ['tridente', 'Tridente'], ['naginata', 'Naginata'], ['hacha', 'Hacha de guerra'], ['martillo', 'Martillo de guerra'], ['rifle', 'Fusil'], ['radio', 'Radio militar'],
+    ['mochilam', 'Mochila de combate'], ['paraca', 'Paracaídas'], ['estandarte', 'Estandarte medieval'], ['escudor', 'Escudo redondo'], ['abanico', 'Abanico gigante'], ['alash', 'Alas de hada'], ['bazuca', 'Bazuca']].map(([k, n]) => ['back:' + k, n]),
+  ...[['panueloc', 'Pañuelo vaquero'], ['shemagh', 'Pañuelo militar'], ['chapas', 'Chapas militares'], ['gargantilla', 'Gargantilla'], ['colgante', 'Colgante de corazón'], ['amuleto', 'Amuleto de jade'], ['boa', 'Boa de plumas'],
+    ['gorguera', 'Gorguera'], ['cuellopiel', 'Cuello de piel'], ['lazoc', 'Lazo al cuello'], ['condecor', 'Condecoraciones'], ['gorjal', 'Gorjal de armadura'], ['pinchos', 'Collar de pinchos'], ['cadenaplata', 'Cadena de plata'], ['estola', 'Estola de seda']].map(([k, n]) => ['neck:' + k, n]),
+  ...[['labios', 'Labios rojos'], ['sombra', 'Sombra de ojos'], ['lunar', 'Lunar'], ['pestanas', 'Pestañas largas'], ['camuf', 'Pintura de camuflaje'], ['venda', 'Venda en la frente'], ['velof', 'Velo de seda'], ['nocturnas', 'Gafas de visión nocturna'],
+    ['gas', 'Máscara de gas'], ['tatuaje', 'Tatuaje en la cara'], ['purpurina', 'Purpurina'], ['cicatrizo', 'Cicatriz en el ojo'], ['payaso', 'Nariz de payaso'], ['esqui', 'Gafas de esquí'], ['piercing', 'Piercings']].map(([k, n]) => ['face:' + k, n]),
+  ...[['trenzal', 'Trenza larga'], ['dosmonos', 'Dos moños'], ['rizos', 'Rizos'], ['ondas', 'Melena ondulada'], ['pixie', 'Pixie'], ['colabaja', 'Coleta baja'], ['hime', 'Corte princesa'], ['tupe', 'Tupé'],
+    ['chonmage', 'Moño samurái'], ['tonsura', 'Tonsura de monje'], ['vikingas', 'Trenzas vikingas'], ['lado', 'Rapado a un lado'], ['palillos', 'Recogido con palillos'], ['cintura', 'Hasta la cintura'], ['flequillol', 'Flequillo de lado']].map(([k, n]) => ['hair:' + k, n]),
+];
+{
+  // reparto fijo: va recorriendo los retos (saltando de 7 en 7) y los niveles 2..8 que estén libres
+  let ci = 3;
+  for (const [key, nm] of NEWWEAR) {
+    UNL_NAME[key] = nm;
+    for (let guard = 0; guard < 2000; guard++) {
+      ci = (ci + 7) % CHAL.length;
+      const c = CHAL[ci], U = UNLOCKS[c.id] || (UNLOCKS[c.id] = {});
+      const tier = 2 + ((ci * 3 + guard) % 7);
+      if (U[tier]) continue;
+      U[tier] = key; break;
+    }
+  }
+}
 export const reward = (c, t) => Math.round(REW[t] * c.f);
 export const goal = (c, t) => c.T[t];
 export const text = (c, t) => c.txt.replace('{n}', goal(c, Math.min(9, t)).toLocaleString('es-ES'));
@@ -83,6 +114,8 @@ export function chInit(P) {
   P.st = P.st && typeof P.st === 'object' ? P.st : {};
   P.ch = P.ch && typeof P.ch === 'object' ? P.ch : {};
   P.unl = Array.isArray(P.unl) ? P.unl : [];
+  // lo que se añade a niveles ya reclamados se da igualmente (para no perderlo)
+  for (const id in UNLOCKS) { const t = P.ch[id] | 0; for (const k in UNLOCKS[id]) if (+k < t) { const u = UNLOCKS[id][k]; if (!u.startsWith('pw:') && !P.unl.includes(u)) P.unl.push(u); } }
 }
 export function chAdd(P, k, n = 1) { P.st[k] = (P.st[k] || 0) + n; }
 // cuántas recompensas hay listas para reclamar

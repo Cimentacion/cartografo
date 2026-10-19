@@ -2579,15 +2579,22 @@ setAO(AOON);
 setOutline((localStorage.getItem('rc_outline') ?? '1') === '1');
 // ---------------- editor de personaje ----------------
 let edR = null, edScene, edCam, edModel = null, edOn = false;
+const edRot = { y: 0, drag: false, t: 0 };
 function edRebuild() {
   if (!edR) {
     edR = new THREE.WebGLRenderer({ canvas: $('edCanvas'), antialias: true, alpha: true });
     edR.setPixelRatio(Math.min(2, devicePixelRatio || 1));
-    edR.setSize(200, 233, false);
+    edR.setSize(360, 460, false);
+    // arrastrar para girar el muñeco
+    const st = $('edCanvas').parentElement; let dx = null;
+    st.addEventListener('pointerdown', e => { dx = e.clientX; edRot.drag = true; st.setPointerCapture(e.pointerId); });
+    st.addEventListener('pointermove', e => { if (dx == null) return; edRot.y += (e.clientX - dx) * 0.012; dx = e.clientX; });
+    const up = () => { dx = null; edRot.drag = false; edRot.t = performance.now(); };
+    st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
     edScene = new THREE.Scene();
     edScene.add(new THREE.HemisphereLight(0xffffff, 0x556677, 1.4));
     const dl = new THREE.DirectionalLight(0xffffff, 1.8); dl.position.set(2, 3, -3); edScene.add(dl);
-    edCam = new THREE.PerspectiveCamera(32, 200 / 233, 0.1, 20);
+    edCam = new THREE.PerspectiveCamera(30, 360 / 460, 0.1, 20);
     edCam.position.set(0, 0.6, -3.2); edCam.lookAt(0, 0.3, 0);
   }
   if (edModel) edScene.remove(edModel);
@@ -2600,35 +2607,66 @@ function edRebuild() {
   edModel.userData.rig.armR.rotation.x = -0.3;
   edScene.add(edModel);
 }
+// pestañas del editor: cada una con sus secciones (paletas de color o rejillas de prendas)
+const ED_TABS = [['cuerpo', '🧍', 'Cuerpo'], ['pelo', '💇', 'Pelo'], ['ropa', '👕', 'Ropa'], ['cabeza', '🎩', 'Cabeza'], ['cara', '🎭', 'Cara'], ['cuello', '🧣', 'Cuello'], ['espalda', '🎒', 'Espalda']];
+const ED_SECS = {
+  cuerpo: [['sw', 'Piel', SKINS, 'skin'], ['ch', 'Complexión', BODIES, 'body'], ['ch', 'Barba', BEARDS, 'beard'], ['x', 'Extras']],
+  pelo: [['ch', 'Peinado', HAIRS, 'hair'], ['sw', 'Color del pelo', HAIR_COLORS, 'hairCol']],
+  ropa: [['ch', 'Prenda', SHIRTS, 'shirt'], ['sw', 'Color de la camiseta', SHIRT_COLORS, 'shirtCol'], ['sw', 'Pantalón', PANTS_COLORS, 'pants']],
+  cabeza: [['ch', 'En la cabeza', HATS, 'hat']], cara: [['ch', 'En la cara', FACES, 'face']], cuello: [['ch', 'Al cuello', NECKS, 'neck']], espalda: [['ch', 'A la espalda', BACKS, 'back']],
+};
+// color de la tira de cada prenda según su tipo (armaduras, militar, de mujer, fantasía...)
+const ED_TINT = k => /^(armadura|caballero|samurai|lamelar|dorada|romana|yelmo|cimera|kabuto|nasal|espartano|gorjal|espada|escudo|alabarda|lanza|hacha|martillo|tridente|naginata|katana)$/.test(k) ? '#9aa0b0'
+  : /^(militar|tactico|camuflaje|cascomil|gorramil|boina|rifle|radio|mochilam|paraca|bazuca|chapas|shemagh|condecor|nocturnas|gas|camuf|piloto|aviador)$/.test(k) ? '#6a8a3a'
+  : /^(vestido|corse|kimonof|blusa|princesa|tiara|diadema|velo|pamela|coronam|cofia|panuelof|boa|colgante|gargantilla|estola|lazo|labios|sombra|pestanas|purpurina|trenzal|dosmonos|rizos|ondas|hime|cintura|palillos|abanico|alash|flor)$/.test(k) ? '#e070a8'
+  : /^(monje|tonsura|capucha|mago|templario|ninja)$/.test(k) ? '#b07a3a' : '#3a3e50';
+let ED_TAB = 'cuerpo', ED_F = 'todo';
 function edPaint() {
   const c = MYCHAR;
-  const sw = (id, cols, key) => {
-    const el = $(id); el.innerHTML = '';
-    cols.forEach((col, i) => {
-      const b = document.createElement('button');
-      b.style.background = '#' + col.toString(16).padStart(6, '0');
-      const lk = locked(PROG, key + ':' + i);
-      b.className = (c[key] === i ? 'sel' : '') + (lk ? ' lock' : '');
-      b.setAttribute('aria-label', key + ' ' + i);
-      b.onclick = () => { if (lk) { edLockMsg(key + ':' + i); return; } c[key] = i; edChanged(); };
-      el.appendChild(b);
-    });
-  };
-  const ch = (id, opts, key) => {
-    const el = $(id); el.innerHTML = '';
-    opts.forEach(([v, label]) => {
-      const b = document.createElement('button');
-      const lk = locked(PROG, key + ':' + v);
-      b.textContent = (lk ? '🔒 ' : '') + label; b.className = (c[key] === v ? 'sel' : '') + (lk ? ' lock' : '');
-      b.onclick = () => { if (lk) { edLockMsg(key + ':' + v); return; } c[key] = v; edChanged(); };
-      el.appendChild(b);
-    });
-  };
-  sw('edSkin', SKINS, 'skin'); ch('edBody', BODIES, 'body'); ch('edHair', HAIRS, 'hair'); sw('edHairCol', HAIR_COLORS, 'hairCol');
-  ch('edHat', HATS, 'hat'); ch('edBack', BACKS, 'back'); ch('edNeck', NECKS, 'neck'); ch('edFace', FACES, 'face');
-  ch('edBeard', BEARDS, 'beard'); ch('edShirt', SHIRTS, 'shirt'); sw('edShirtCol', SHIRT_COLORS, 'shirtCol'); sw('edPants', PANTS_COLORS, 'pants');
-  $('edShirtColRow').hidden = c.shirt !== 'lisa';
-  $('edGlasses').className = c.glasses ? 'sel' : ''; $('edChair').className = c.chair ? 'sel' : '';
+  // contador de desbloqueos (todo lo que tiene reto)
+  { let n = 0, t = 0; for (const [L, key] of [[SHIRTS, 'shirt'], [HATS, 'hat'], [BACKS, 'back'], [NECKS, 'neck'], [FACES, 'face'], [HAIRS, 'hair']]) for (const [v] of L) if (UNL_NAME[key + ':' + v] || (key === 'face' && v === 'katanab')) { t++; if (!locked(PROG, key + ':' + v)) n++; }
+    $('edCount').innerHTML = `Desbloqueado <b>${n}</b> / ${t}<i><u style="width:${t ? n / t * 100 : 0}%"></u></i>`; }
+  $('edFilt').innerHTML = [['todo', 'Todo'], ['tengo', 'Tengo'], ['bloq', '🔒 Bloqueado']].map(([k, l]) => `<button data-f="${k}" class="${ED_F === k ? 'sel' : ''}">${l}</button>`).join('');
+  $('edFilt').querySelectorAll('button').forEach(b => (b.onclick = () => { ED_F = b.dataset.f; edPaint(); }));
+  const cnt = (L, key) => L.filter(([v]) => !locked(PROG, key + ':' + v)).length + '/' + L.length;
+  $('edTabs').innerHTML = ED_TABS.map(([k, ic, l]) => { const s0 = ED_SECS[k].find(q => q[0] === 'ch'); return `<button data-t="${k}" class="${ED_TAB === k ? 'sel' : ''}"><span>${ic}</span>${l.toUpperCase()}${s0 ? `<em>${cnt(s0[2], s0[3])}</em>` : ''}</button>`; }).join('');
+  $('edTabs').querySelectorAll('button').forEach(b => (b.onclick = () => { ED_TAB = b.dataset.t; edPaint(); $('edPane').scrollTop = 0; }));
+  const pane = $('edPane'); pane.innerHTML = '';
+  for (const [kind, title, L, key] of ED_SECS[ED_TAB]) {
+    if (key === 'shirtCol' && c.shirt !== 'lisa') continue;
+    const sec = document.createElement('div'); sec.className = 'edSec';
+    const h = document.createElement('h4'); h.textContent = title; sec.appendChild(h);
+    if (kind === 'sw') {
+      const g = document.createElement('div'); g.className = 'sws';
+      L.forEach((col, i) => {
+        const b = document.createElement('button'), lk = locked(PROG, key + ':' + i);
+        b.style.background = '#' + col.toString(16).padStart(6, '0'); b.className = (c[key] === i ? 'sel' : '') + (lk ? ' lock' : '');
+        b.onclick = () => { if (lk) { edLockMsg(key + ':' + i); return; } c[key] = i; edChanged(); };
+        g.appendChild(b);
+      });
+      sec.appendChild(g);
+    } else if (kind === 'x') {
+      const g = document.createElement('div'); g.className = 'edGrid';
+      for (const [k, l] of [['glasses', '👓 Gafas'], ['chair', '♿ Silla de ruedas']]) { const b = document.createElement('button'); b.className = 'tile' + (c[k] ? ' sel' : ''); b.textContent = l; b.onclick = () => { c[k] = !c[k]; edChanged(); }; g.appendChild(b); }
+      sec.appendChild(g);
+    } else {
+      const items = L.map(([v, label]) => ({ v, label, lk: locked(PROG, key + ':' + v), has: !!UNL_NAME[key + ':' + v] }))
+        .filter(it => ED_F === 'todo' || (ED_F === 'tengo' ? !it.lk : it.lk));
+      h.innerHTML = `${title}<small>${L.filter(([v]) => !locked(PROG, key + ':' + v)).length} de ${L.length}</small>`;
+      const g = document.createElement('div'); g.className = 'edGrid';
+      for (const it of items) {
+        const b = document.createElement('button');
+        b.className = 'tile' + (c[key] === it.v ? ' sel' : '') + (it.lk ? ' lock' : '');
+        b.style.setProperty('--tc', ED_TINT(it.v));
+        b.innerHTML = it.label + (it.lk ? `<small>${(lockedBy(key + ':' + it.v) || 'Reto').replace(/ \(nivel.*$/, '')}</small>` : '');
+        b.onclick = () => { if (it.lk) { edLockMsg(key + ':' + it.v); return; } c[key] = it.v; edChanged(); };
+        g.appendChild(b);
+      }
+      if (!items.length) { const e = document.createElement('div'); e.style.cssText = 'color:#6a6d7a;font:12px var(--f-ui)'; e.textContent = ED_F === 'bloq' ? '¡Lo tienes todo!' : 'Nada desbloqueado todavía: mira en RETOS'; g.appendChild(e); }
+      sec.appendChild(g);
+    }
+    pane.appendChild(sec);
+  }
 }
 // ---------------- retos ----------------
 function showToast(t) {
@@ -2673,7 +2711,7 @@ function edLockMsg(k) { showToast('🔒 ' + (UNL_NAME[k] || '') + ' — se consi
 // si lo puesto está bloqueado (p. ej. de otra versión), se quita
 function edFixLocks(c) {
   const d = defaultChar(0);
-  for (const k of ['hat', 'back', 'shirt', 'face']) if (locked(PROG, k + ':' + c[k])) c[k] = d[k] || 'no';
+  for (const k of ['hat', 'back', 'shirt', 'face', 'neck', 'hair']) if (locked(PROG, k + ':' + c[k])) c[k] = d[k] || 'no';
   for (const k of ['shirtCol', 'hairCol']) if (locked(PROG, k + ':' + c[k])) c[k] = d[k];
   return c;
 }
@@ -2683,13 +2721,11 @@ function edChanged() {
   if (net.open && G.mode === 'guest') net.send({ t: 'char', c: MYCHAR });
   if (!G.running) { view.setAvatars([MYCHAR, defaultChar(1), defaultChar(2), defaultChar(3)]); view.av.forEach((a, i) => (a.visible = i < 2)); }
 }
-$('edGlasses').onclick = () => { MYCHAR.glasses = !MYCHAR.glasses; edChanged(); };
-$('edChair').onclick = () => { MYCHAR.chair = !MYCHAR.chair; edChanged(); };
 $('btnChar').onclick = () => {
   for (const s of document.querySelectorAll('.screen')) s.hidden = true;
   $('editor').hidden = false; edOn = true;
   edPaint(); edRebuild();
-  const spin = () => { if (!edOn) return; requestAnimationFrame(spin); edModel.rotation.y = Math.sin(performance.now() / 1400) * 0.9; edR.render(edScene, edCam); };
+  const spin = () => { if (!edOn) return; requestAnimationFrame(spin); if (!edRot.drag && performance.now() - edRot.t > 2500) edRot.y += 0.006; edModel.rotation.y = edRot.y; edR.render(edScene, edCam); };
   spin();
 };
 $('edOk').onclick = () => { edOn = false; $('editor').hidden = true; $('menu').hidden = false; };

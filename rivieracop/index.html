@@ -177,17 +177,49 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
 #diagDot{position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px;border-radius:50%;background:var(--gold)}
 #diagTxt{font:12px/1.4 monospace;text-align:left;white-space:pre-wrap;color:#ddd;margin:6px 0 10px}
 .big.alt3{background:#b98cff;box-shadow:0 4px 0 #5a3a8a}
-.ed{display:flex;gap:14px;width:min(900px,100%);text-align:left;background:rgba(6,8,14,.82);padding:14px;border-radius:12px;flex-wrap:wrap}
-.edl{display:flex;flex-direction:column;align-items:center;gap:6px}
-#edCanvas{width:200px;height:233px;border-radius:10px;background:#1a1d28}
-.edr{flex:1;min-width:260px}
-.erow{display:flex;gap:8px;align-items:center;margin:5px 0}
-.erow>span{width:78px;flex:none;font:700 12px var(--f-ui);color:var(--dim)}
-.sw,.ch{display:flex;gap:5px;flex-wrap:wrap}
-.sw button{width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,255,255,.15);padding:0}
-.sw button.sel{border-color:var(--gold);transform:scale(1.15)}
-.ch button{font:12px var(--f-title);padding:6px 9px;border-radius:5px;background:#2a2d38;color:var(--ink)}
-.ch button.sel{background:var(--gold);color:#111}
+.sw{display:flex;gap:5px;flex-wrap:wrap}
+/* ======== editor de personaje ======== */
+#editor{padding:10px}
+.edWrap{display:flex;gap:12px;width:min(1100px,100%);height:min(100%,640px);background:linear-gradient(160deg,rgba(20,22,34,.94),rgba(8,9,15,.94));border:1px solid rgba(255,225,74,.18);border-radius:16px;padding:12px;box-shadow:0 20px 60px rgba(0,0,0,.6);text-align:left}
+.edL{flex:0 0 min(30%,300px);display:flex;flex-direction:column;gap:8px;min-height:0}
+.edStage{position:relative;flex:1;min-height:0;border-radius:12px;overflow:hidden;background:radial-gradient(ellipse at 50% 85%,rgba(255,225,74,.18),transparent 55%),linear-gradient(#232740,#12141f);border:1px solid rgba(255,255,255,.08);touch-action:none;cursor:grab}
+.edStage:after{content:'';position:absolute;left:18%;right:18%;bottom:7%;height:10px;border-radius:50%;background:rgba(0,0,0,.45);filter:blur(4px)}
+#edCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+.edHint{position:absolute;left:0;right:0;top:8px;text-align:center;font:700 10px var(--f-ui);letter-spacing:.12em;color:rgba(255,255,255,.45);z-index:2;pointer-events:none}
+.edCount{font:700 12px var(--f-ui);color:var(--dim);text-align:center}
+.edCount b{color:var(--gold)}
+.edCount i{display:block;height:5px;border-radius:3px;background:#2a2d38;margin-top:4px;overflow:hidden}
+.edCount i u{display:block;height:100%;background:linear-gradient(90deg,#ffb020,var(--gold))}
+#edOk{width:100%}
+.edR{flex:1;min-width:0;display:flex;flex-direction:column;min-height:0}
+.edHead{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.edTitle{font:18px var(--f-title);letter-spacing:.08em;color:var(--gold);flex:1}
+.edFilt{display:flex;gap:4px;background:#14161f;border-radius:20px;padding:3px}
+.edFilt button{font:700 11px var(--f-ui);padding:5px 10px;border-radius:16px;background:transparent;color:var(--dim)}
+.edFilt button.sel{background:#2f3344;color:var(--ink)}
+.edTabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin-bottom:8px;flex:none}
+.edTabs button{flex:1 0 auto;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;border-radius:10px;background:#1a1d28;color:var(--dim);font:700 10px var(--f-ui);letter-spacing:.06em;border:1px solid transparent}
+.edTabs button span{font-size:18px;line-height:1}
+.edTabs button.sel{background:linear-gradient(#3a3320,#262013);color:var(--gold);border-color:rgba(255,225,74,.45)}
+.edTabs button em{font-style:normal;font-size:9px;color:#7a7d8a}
+.edPane{flex:1;min-height:0;overflow-y:auto;padding-right:4px;scrollbar-width:thin}
+.edSec{margin:2px 0 12px}
+.edSec h4{margin:0 0 6px;font:700 11px var(--f-ui);letter-spacing:.14em;color:var(--dim);text-transform:uppercase;display:flex;justify-content:space-between}
+.edSec h4 small{color:#6a6d7a;letter-spacing:.04em}
+.edGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:6px}
+.tile{position:relative;text-align:left;padding:8px 9px 8px 12px;border-radius:9px;background:#1e2130;color:var(--ink);font:12px var(--f-title);line-height:1.15;border:1px solid rgba(255,255,255,.06);min-height:40px;overflow:hidden}
+.tile:before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--tc,#3a3e50)}
+.tile.sel{background:linear-gradient(#4a4020,#2e2814);border-color:var(--gold);color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.tile.lock{background:#15171f;color:#6a6d7a}
+.tile.lock:after{content:'🔒';position:absolute;right:6px;top:6px;font-size:11px;opacity:.8}
+.tile small{display:block;font:700 9px var(--f-ui);color:#8a7a3a;margin-top:3px;letter-spacing:.02em}
+.tile.new{--tc:#b98cff}
+.sws{display:flex;flex-wrap:wrap;gap:7px}
+.sws button{width:30px;height:30px;border-radius:50%;border:3px solid rgba(255,255,255,.12);padding:0;position:relative}
+.sws button.sel{border-color:var(--gold);transform:scale(1.12);box-shadow:0 0 10px rgba(255,225,74,.5)}
+.sws button.lock{opacity:.35}
+.sws button.lock:after{content:'🔒';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px}
+@media (max-height:480px){.edWrap{height:100%;padding:8px}.edTabs button{padding:4px 8px}.edTabs button span{font-size:15px}.edTitle{font-size:15px}}
 /* ======== HUD retro (recreativa de los 90) ======== */
 .pbox{background:#0c0a18;border:3px solid currentColor;border-radius:0;box-shadow:0 0 0 2px #000,5px 5px 0 rgba(0,0,0,.55);padding:7px 10px 8px;min-width:140px}
 .pn{font:9px var(--f-px);letter-spacing:.05em;margin-bottom:5px}
@@ -668,24 +700,16 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
   </div>
 
   <div id="editor" class="screen" hidden>
-    <div class="card ed">
-      <div class="edl"><canvas id="edCanvas" width="240" height="280"></canvas><div class="lbl">Así te verá tu compañero</div></div>
-      <div class="edr">
-        <div class="lbl">TU PERSONAJE</div>
-        <div class="erow"><span>Piel</span><div id="edSkin" class="sw"></div></div>
-        <div class="erow"><span>Cuerpo</span><div id="edBody" class="ch"></div></div>
-        <div class="erow"><span>Pelo</span><div id="edHair" class="ch"></div></div>
-        <div class="erow"><span>Color pelo</span><div id="edHairCol" class="sw"></div></div>
-        <div class="erow"><span>Barba</span><div id="edBeard" class="ch"></div></div>
-        <div class="erow"><span>Camiseta</span><div id="edShirt" class="ch"></div></div>
-        <div class="erow" id="edShirtColRow"><span>Color</span><div id="edShirtCol" class="sw"></div></div>
-        <div class="erow"><span>Pantalón</span><div id="edPants" class="sw"></div></div>
-        <div class="erow"><span>Sombrero</span><div id="edHat" class="ch"></div></div>
-        <div class="erow"><span>Espalda</span><div id="edBack" class="ch"></div></div>
-        <div class="erow"><span>Cuello</span><div id="edNeck" class="ch"></div></div>
-        <div class="erow"><span>Cara</span><div id="edFace" class="ch"></div></div>
-        <div class="erow"><span>Extras</span><div class="ch"><button id="edGlasses">Gafas</button> <button id="edChair">Silla de ruedas</button></div></div>
-        <div class="btns" style="justify-content:flex-start;margin-top:8px"><button id="edOk" class="big">LISTO</button></div>
+    <div class="edWrap">
+      <div class="edL">
+        <div class="edStage"><canvas id="edCanvas" width="360" height="460"></canvas><div class="edHint">↔ Arrastra para girar</div></div>
+        <div class="edCount" id="edCount"></div>
+        <button id="edOk" class="big">LISTO</button>
+      </div>
+      <div class="edR">
+        <div class="edHead"><div class="edTitle">TU PERSONAJE</div><div class="edFilt" id="edFilt"></div></div>
+        <nav class="edTabs" id="edTabs"></nav>
+        <div class="edPane" id="edPane"></div>
       </div>
     </div>
   </div>
