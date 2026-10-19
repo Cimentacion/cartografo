@@ -1063,21 +1063,36 @@ export function fpGun(model, rar = 0, cfg = null, lv = 1, fp = true) {
     case 'revolver': case 'colt': {
       // revólver: cañón con costilla, tambor que gira, martillo que se monta, varilla expulsora y cachas
       const colt = model === 'colt', mt = colt ? M.ni : M.st, md = colt ? fpMat('chrome', 0xb8bcc6) : M.dk;
-      CY(g, 0.015, 0.2, mt, 0, 0.03, -0.16, 14); hole(g, 0.008, 0, 0.03, -0.261);
-      B(g, 0.012, 0.012, 0.19, mt, 0, 0.048, -0.15);
-      B(g, 0.006, 0.016, 0.014, md, 0, 0.062, -0.25);
-      CY(g, 0.006, 0.12, md, 0, 0.007, -0.14, 8); // varilla expulsora
+      // el Garrett se va currando con el nivel: cañón cada vez más largo, mira telescópica antigua y detalles dorados
+      const bl = colt ? 0.2 + 0.024 * (Math.min(10, lv) - 1) : 0.2, gl = colt ? lv : 0, zb = -0.06 - bl / 2, ze = -0.06 - bl;
+      CY(g, 0.015, bl, mt, 0, 0.03, zb, 14); hole(g, 0.008, 0, 0.03, ze - 0.001);
+      B(g, 0.012, 0.012, bl - 0.01, mt, 0, 0.048, zb + 0.01);
+      B(g, 0.006, 0.016, 0.014, gl >= 6 ? M.br : md, 0, 0.062, ze + 0.01);
+      CY(g, 0.006, bl * 0.6, md, 0, 0.007, -0.08 - bl * 0.3, 8); // varilla expulsora
+      if (gl >= 8) for (const t of [0.15, 0.55, 0.95]) CY(g, 0.0165, 0.008, M.br, 0, 0.03, -0.06 - bl * t, 14); // anillas doradas
+      CY(g, 0.017, 0.012, gl >= 4 ? M.br : mt, 0, 0.03, ze + 0.006, 14); // boca
+      if (gl >= 3) {
+        // mira telescópica de latón, antigua: tubo largo y fino con anillas y lentes
+        const sc = grp(g, 0, 0.088, zb + 0.03), sl = Math.min(0.26, bl * 0.85);
+        CY(sc, 0.011, sl, M.br, 0, 0, 0, 12);
+        CY(sc, 0.016, 0.03, M.br, 0, 0, -sl / 2, 12); CY(sc, 0.014, 0.025, M.br, 0, 0, sl / 2, 12);
+        B(sc, 0.022, 0.022, 0.003, glow(0x9ad0ff, 0.7), 0, 0, -sl / 2 - 0.016);
+        for (const t of [-0.25, 0.25]) { B(sc, 0.008, 0.03, 0.01, M.br, 0, -0.026, sl * t); CY(sc, 0.0125, 0.008, M.dk, 0, 0, sl * t, 12); }
+        B(sc, 0.006, 0.008, 0.02, M.br, 0.013, 0, 0.02);
+      }
       const drum = grp(g, 0, 0.012, -0.03); U.drum = drum;
       CY(drum, 0.036, 0.058, mt, 0, 0, 0, 18);
-      for (let k = 0; k < 6; k++) { const a2 = k * Math.PI / 3; B(drum, 0.007, 0.012, 0.052, md, Math.cos(a2) * 0.036, Math.sin(a2) * 0.036, 0); CY(drum, 0.009, 0.004, M.br, Math.cos(a2 + 0.52) * 0.022, Math.sin(a2 + 0.52) * 0.022, 0.03, 8); }
+      for (let k = 0; k < 6; k++) { const a2 = k * Math.PI / 3; B(drum, 0.007, 0.012, 0.052, gl >= 4 ? M.br : md, Math.cos(a2) * 0.036, Math.sin(a2) * 0.036, 0); CY(drum, 0.009, 0.004, M.br, Math.cos(a2 + 0.52) * 0.022, Math.sin(a2 + 0.52) * 0.022, 0.03, 8); }
       B(g, 0.032, 0.066, 0.05, mt, 0, 0.008, 0.016);
-      const hm = grp(g, 0, 0.04, 0.04); U.hammer = hm; B(hm, 0.014, 0.03, 0.016, md, 0, 0.014, 0); B(hm, 0.016, 0.008, 0.02, md, 0, 0.03, 0.008);
-      B(g, 0.02, 0.008, 0.05, mt, 0, -0.03, -0.018); B(g, 0.006, 0.024, 0.006, M.br, 0, -0.014, -0.01);
+      if (gl >= 10) for (const sx of [-1, 1]) { B(g, 0.002, 0.05, 0.035, M.br, sx * 0.0165, 0.008, 0.016); B(g, 0.003, 0.003, bl * 0.9, M.br, sx * 0.0155, 0.04, zb); } // marco dorado
+      const hm = grp(g, 0, 0.04, 0.04); U.hammer = hm; B(hm, 0.014, 0.03, 0.016, gl >= 6 ? M.br : md, 0, 0.014, 0); B(hm, 0.016, 0.008, 0.02, gl >= 6 ? M.br : md, 0, 0.03, 0.008);
+      B(g, 0.02, 0.008, 0.05, gl >= 6 ? M.br : mt, 0, -0.03, -0.018); B(g, 0.006, 0.024, 0.006, M.br, 0, -0.014, -0.01);
       { const gp = B(g, 0.036, 0.105, 0.046, colt ? M.iv : M.wd, 0, -0.064, 0.05, 0.38); for (let k = 0; k < 4; k++) B(g, 0.038, 0.004, 0.03, colt ? fpMat('wood', 0xcbbf9e) : M.wd2, 0, -0.04 - k * 0.022, 0.044 + k * 0.009, 0.38); }
       CY(g, 0.006, 0.04, M.br, 0.019, -0.06, 0.05, 8).rotation.set(0, 0, Math.PI / 2);
-      if (colt) for (let k = 0; k < 5; k++) B(g, 0.0025, 0.003, 0.03, M.br, 0.0165, 0.03, -0.24 + k * 0.035); // grabado dorado
+      if (colt && gl >= 2) for (let k = 0; k < Math.min(12, 3 + gl); k++) for (const sx of [-1, 1]) B(g, 0.0025, 0.003, 0.025, M.br, sx * 0.0165, 0.03, -0.07 - k * (bl / 13)); // grabado dorado
+      if (colt && gl >= 7) for (const sx of [-1, 1]) CY(g, 0.012, 0.004, M.br, sx * 0.02, -0.06, 0.05, 12).rotation.set(0, Math.PI / 2, 0); // medallón en las cachas
       U.kind = 'pistol'; U.grip = [0, -0.068, 0.05];
-      L = 0.26; break;
+      L = 0.06 + bl; break;
     }
     case 'smg': {
       B(g, 0.05, 0.07, 0.24, M.po, 0, 0, -0.08);
@@ -1214,20 +1229,21 @@ export function fpGun(model, rar = 0, cfg = null, lv = 1, fp = true) {
   }
   // el arma se va currando al subir de nivel: mira, bocacha, láser, cargador largo y acabados dorados
   const longGun = ['rifle', 'mg', 'smg', 'shotgun'].includes(model);
-  if (lv >= 3 && model !== 'cannon') {
+  const plain = model === 'cannon' || model === 'colt'; // el Garrett tiene sus propias mejoras (arriba)
+  if (lv >= 3 && !plain) {
     if (longGun) {
       CY(g, 0.03, 0.2, M.dk, 0, 0.085, -L * 0.45, 12);
       B(g, 0.05, 0.05, 0.02, glow(0x6ad0ff, 0.8), 0, 0.085, -L * 0.45 - 0.11);
       B(g, 0.02, 0.04, 0.02, M.bk, 0, 0.055, -L * 0.45);
     } else { B(g, 0.035, 0.035, 0.05, M.bk, 0, 0.075, -0.06); B(g, 0.025, 0.025, 0.01, glow(0xff2020, 0.9), 0, 0.075, -0.088); }
   }
-  if (lv >= 5 && model !== 'cannon') {
+  if (lv >= 5 && !plain) {
     CY(g, 0.032, 0.09, M.dk, 0, 0.01, -L - 0.04, 12);
     B(g, 0.03, 0.03, 0.08, M.bk, 0, -0.035, -L * 0.6);
     B(g, 0.012, 0.012, 0.012, glow(0xff2020), 0, -0.035, -L * 0.6 - 0.045);
     L += 0.08;
   }
-  if (lv >= 8 && model !== 'cannon') {
+  if (lv >= 8 && !plain) {
     for (const sx of [-1, 1]) B(g, 0.005, 0.012, L * 0.7, M.br, sx * 0.028, 0, -L * 0.42);
     B(g, 0.045, 0.006, L * 0.5, glow(0x5affff, 0.9), 0, 0.045, -L * 0.4);
   }

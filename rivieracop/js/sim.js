@@ -989,10 +989,11 @@ export class Sim {
     if (!C) return;
     C.t += dt;
     const v = this.map.get(C.v);
+    if (!C.warn && v && Math.abs(v.lat) < 20) { C.warn = 1; this.emit('banner', { txt: '¡SOCORRO!', sub: C.zb ? 'Los zombis persiguen a una chica: ¡sálvala!' : 'Unos asesinos persiguen a una chica: ¡sálvala!', c: '#ffe14a' }); }
     if (!C.done) {
       if (!v || v.st === ST.DEAD) { C.done = 2; this.emit('banner', { txt: '¡LA HAN ALCANZADO!', sub: '', c: '#ff4040' }); }
       else if (C.s.every(id => { const e = this.map.get(id); return !e || e.st === ST.DEAD; })) { C.done = 1; this.rescue(v, C.lp | 0); }
-      else if (C.t > 32 || Math.abs(v.lat) > 40) C.done = 3;
+      else if (C.t > 40 || (Math.abs(v.lat) > 40 && C.t > 10)) C.done = 3;
     } else {
       C.endT += dt;
       if (C.endT > 3 && this.carD > C.xd + 25) this.chase = null;
@@ -1001,16 +1002,16 @@ export class Sim {
   startChase(xd) {
     const dc = BIOMES[BIOME_KEYS[this.road.bioAt(xd)]].deco, one = dc === 'monaco';
     const r = this.r, side = one ? 1 : r() < 0.5 ? -1 : 1, zb = dc === 'zombi';
-    const v = this.add('victim', { d: xd + (r() - 0.5) * 2, lat: side * 30, h: 0.27, hp: 1 });
-    v.x = { dir: -side, sp: 2.3, sk: Math.floor(r() * 4), saved: 0, stop: one ? side * 7.2 : null };
+    const v = this.add('victim', { d: xd + (r() - 0.5) * 2, lat: side * 42, h: 0.27, hp: 1 });
+    v.x = { dir: -side, sp: 2.7, sk: Math.floor(r() * 4), saved: 0, stop: one ? side * 7.2 : null };
     const n = 1 + (this.nAlive() > 1 ? 1 : 0) + (this.diff > 3 ? 1 : 0), ids = [];
     for (let i = 0; i < n; i++) {
-      const s = this.add('slasher', { d: v.d + (i - (n - 1) / 2) * 1.4, lat: side * (37 + i * 1.6), h: 0.27, hp: 3 });
-      s.x = { sp: 2.65 + i * 0.12, z: zb ? 1 : 0, sk: Math.floor(r() * 4) };
+      const s = this.add('slasher', { d: v.d + (i - (n - 1) / 2) * 1.4, lat: side * (47 + i * 1.6), h: 0.27, hp: 3 });
+      s.x = { sp: 2.75 + i * 0.1, z: zb ? 1 : 0, sk: Math.floor(r() * 4) };
       ids.push(s.id);
     }
-    this.chase = { xd, v: v.id, s: ids, t: 0, done: 0, endT: 0, lp: 0 };
-    this.emit('banner', { txt: '¡SOCORRO!', sub: zb ? 'Los zombis persiguen a una chica: ¡sálvala!' : 'Unos asesinos persiguen a una chica: ¡sálvala!', c: '#ffe14a' });
+    // el aviso sale cuando ya están a punto de llegar a la carretera (antes salía demasiado pronto)
+    this.chase = { xd, v: v.id, s: ids, t: 0, done: 0, endT: 0, lp: 0, zb, warn: 0 };
   }
   rescue(v, p) {
     v.x.saved = 1;
@@ -1032,7 +1033,7 @@ export class Sim {
   }
   // salva de la torre: anillos y espirales de misiles que caen alrededor del coche
   salvo(e, w, pat) {
-    const T = 3.3, dC = this.carD + this.speed * T, h0 = Math.max(40, (62 - e.x.fl * 14) * 4 - e.x.fl * 56); // torre a x4
+    const K = e.x.m === 1 ? 4 : 1, T = 3.3, dC = this.carD + this.speed * T, h0 = Math.max(18, (62 - e.x.fl * 14) * K); // la torre es x4 solo en la arena
     for (let j = 0; j < 5; j++) {
       const a = j / 5 * Math.PI * 2 + (pat === 1 ? w * 0.45 : 0);
       const rr = pat === 0 ? 10 - w * 2 : pat === 1 ? 3 + w * 1.6 : (w % 2 ? 7 : 2.5);
@@ -1041,8 +1042,8 @@ export class Sim {
     }
   }
   colW(e, i) {
-    const C = this.wpos(e.d, e.lat, 0), a = i / 6 * Math.PI * 2, x = Math.cos(a) * 36, z = Math.sin(a) * 36, b = -(e.x.y0 || 0);
-    return [C[0] + x * Math.cos(b) + z * Math.sin(b), C[1] + 10, C[2] - x * Math.sin(b) + z * Math.cos(b)];
+    const C = this.wpos(e.d, e.lat, 0), K = e.x.m === 1 ? 4 : 1, a = i / 6 * Math.PI * 2, x = Math.cos(a) * 9 * K, z = Math.sin(a) * 9 * K, b = -(e.x.y0 || 0);
+    return [C[0] + x * Math.cos(b) + z * Math.sin(b), C[1] + 2.5 * K, C[2] - x * Math.sin(b) + z * Math.cos(b)];
   }
   // tiradores en el piso que queda abajo (puntos fijos alrededor de la torre)
   spawnFloor() {
@@ -3253,11 +3254,13 @@ const HIT = {
     if (x.ch[i] > 0) return;
     x.cm |= 1 << i;
     S.addPts(p, 600, e);
-    S.emit('fx', { f: 'boom', w: S.colW(e, i), s: 1.2 });
+    // la columna revienta de arriba abajo: varias explosiones y cascotes
+    { const w = S.colW(e, i); for (let k = 0; k < 5; k++) { S.emit('fx', { f: 'boom', w: [w[0] + (S.r() - 0.5) * 6, w[1] - 6 + k * 11, w[2] + (S.r() - 0.5) * 6], s: 2.6 }); S.emit('fx', { f: 'rock', w: [w[0], w[1] + k * 9, w[2]] }); } }
+    S.emit('crash', { soft: 1 });
     if (x.cm !== 63) return;
     // caen todas las columnas: se desploma el piso
     x.fl++; x.cm = 0; x.ch = x.ch.map(() => x.chp);
-    for (let k = 0; k < 6; k++) S.emit('fx', { f: 'boom', w: S.colW(e, k), s: 2 });
+    for (let k = 0; k < 6; k++) for (let q = 0; q < 3; q++) { const w = S.colW(e, k); S.emit('fx', { f: 'boom', w: [w[0], w[1] + q * 16, w[2]], s: 3.2 }); }
     S.emit('crash', { soft: 1 });
     if (x.fl < x.F) { S.emit('banner', { txt: '¡CAE UN PISO!', sub: 'Quedan ' + (x.F - x.fl), c: '#ffb060' }); S.spawnFloor(); }
     else {

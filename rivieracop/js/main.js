@@ -2032,7 +2032,7 @@ function tick(dt) {
   // bajo el agua (Titanic): niebla y cielo del fondo del mar
   if (TFX.under) B = BIOMES.tsub;
   outline.red = outline.aura ? 1 : B.deco === 'zombi' || G.foot ? 0.45 : 0;
-  outline.mat.uniforms.heat.value = B.deco === 'dunas' && !inTun ? 1 : 0; outline.mat.uniforms.time.value = G.t;
+  outline.mat.uniforms.heat.value = B.deco === 'dunas' && !inTun && G.road.kindAt(G.carD) !== 4 ? 1 : 0; outline.mat.uniforms.time.value = G.t;
   if (G.stormT > 0) G.stormT -= dt;
   { const so = G.stormT > 1.2 ? 1 : Math.max(0, (G.stormT || 0) / 1.2); if (so !== G.stormO) { G.stormO = so; $('sandfx').style.opacity = so; } }
   // arena que vuela a ras de suelo
@@ -2047,7 +2047,9 @@ function tick(dt) {
   ENV.sc.lerp(TC.setHex(B.sun[0]), k);
   ENV.si = lerp(ENV.si, indoor || dark ? 0 : B.sun[1] * (inTun ? 0.45 : 1), dark ? 1 : Math.min(1, k * (indoor ? 4 : 2)));
   // la niebla acaba antes de donde termina el decorado construido y la zona con sombras: nada aparece de golpe
-  ENV.fn = lerp(ENV.fn, indoor ? 1.5 : Math.min(B.fogNear, 120), Math.min(1, k * (indoor ? 3 : 1))); ENV.ff = lerp(ENV.ff, indoor ? 17 : Math.min(B.fogFar, 215), Math.min(1, k * (indoor ? 3 : 1)));
+  // en la arena de la torre, sin bruma (se ve la torre entera)
+  const arenaF = G.road.kindAt(G.carD) === 4;
+  ENV.fn = lerp(ENV.fn, indoor ? 1.5 : arenaF ? 160 : Math.min(B.fogNear, 120), Math.min(1, k * (indoor ? 3 : 1))); ENV.ff = lerp(ENV.ff, indoor ? 17 : arenaF ? 420 : Math.min(B.fogFar, 215), Math.min(1, k * (indoor ? 3 : 1)));
   // pasillos en penumbra: la niebla oscura no deja ver el fondo
   G.fogIn = lerp(G.fogIn || 0, indoor ? 1 : 0, Math.min(1, k * 3));
   scene.background.copy(ENV.sky); scene.fog.color.copy(ENV.sky).lerp(TC.setHex(0x06161c), G.fogIn);
@@ -2699,7 +2701,7 @@ function paintShop(boughtId) {
         const c = it ? it[3] : '#5a5a7a', d = document.createElement('div');
         d.style.cssText = `width:74px;height:84px;border:3px ${i < n ? 'solid' : 'dashed'} ${i < n ? c : '#3a3a52'};background:${k ? '#141226' : '#0c0a18'};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:${k ? '0 0 12px ' + c + '66' : 'none'};font-family:var(--f-px);font-size:8px;color:${k ? c : '#5a5a7a'};text-align:center`;
         const ic = A && $(A[0]) ? $(A[0]).querySelector('span') : null;
-        d.innerHTML = k ? `<div style="width:42px;height:42px;border-radius:50%;background:#0c0a18;border:3px solid ${c};display:flex;align-items:center;justify-content:center;color:${c};font-family:var(--f-px);font-size:9px">${ic ? ic.innerHTML : ''}</div><span>${A[2]}</span>` : i < n ? '<span style="font-size:22px">—</span><span>LIBRE</span>' : '<span style="font-size:22px">🔒</span>';
+        d.innerHTML = k ? `<div style="width:42px;height:42px;border-radius:50%;background:#0c0a18;border:3px solid ${c};display:flex;align-items:center;justify-content:center;color:${c};font-family:var(--f-px);font-size:9px">${ic && ic.querySelector('svg') ? ic.innerHTML : '<span style="font-size:7px">' + A[2].slice(0, 5) + '</span>'}</div><span>${A[2]}</span>` : i < n ? '<span style="font-size:22px">—</span><span>LIBRE</span>' : '<span style="font-size:22px">🔒</span>';
         bar.appendChild(d);
       }
       W2.appendChild(bar); }

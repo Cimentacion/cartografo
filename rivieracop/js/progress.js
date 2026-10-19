@@ -154,7 +154,8 @@ export const slotCount = p => Math.min(SLOT_MAX, 1 + (p.unl || []).filter(u => /
 export function slotsOf(p) {
   const own = SLOT_AB.map(a => a[1]).filter(k => (p.upg[k] | 0) > 0), n = slotCount(p);
   let L = (Array.isArray(p.slots) ? p.slots : []).filter((k, i, A) => own.includes(k) && A.indexOf(k) === i).slice(0, n);
-  if (!L.length && own.length) L = own.slice(0, n);
+  // solo se rellena sola si nunca has tocado las ranuras (si las vacías tú, se quedan vacías)
+  if (!Array.isArray(p.slots) && !L.length && own.length) L = own.slice(0, n);
   return L;
 }
 export const canonCd = lv => Math.max(28, 52 - lv * 4);

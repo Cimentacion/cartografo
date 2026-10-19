@@ -241,7 +241,10 @@ export function buildChunk(road, c, M) {
     // lo de dentro de túneles e interiores va aparte: no recibe sombras del sol (salían rayas y puntos)
     if (c0 === 1) tunnelRun(RI, road, B, s, e);
     else if (c0 === 3) (B.deco === 'titanic' ? ballroomRun : interiorRun)(RI, road, B, s, e, r);
-    else if (c0 === 4) { } // arena de las dunas: el suelo va con la torre
+    else if (c0 === 4) { // arena de las dunas: el suelo va con la torre; aquí solo la pista con sus rodadas (sigue a la de llegada)
+      strip(R.L, road, s, e, C(-HALF - 1, 0.02), C(HALF + 1, 0.02), 0xe2984e);
+      for (const l of [LANE_ME_ - 0.8, LANE_ME_ + 0.8, -LANE_ME_ - 0.8, -LANE_ME_ + 0.8]) strip(R.L, road, s, e, C(l - 0.18, 0.03), C(l + 0.18, 0.03), 0xc8803e);
+    }
     else outsideRun(B.deco === 'tuneles' ? RI : R, road, B, s, e, r);
     s = e;
   }
