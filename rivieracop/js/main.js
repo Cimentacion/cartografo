@@ -47,7 +47,7 @@ renderer.setSize(vw(), vh());
 // sombras suaves del sol (se quitan en calidad BAJA)
 renderer.shadowMap.enabled = true;
 // PCF: en móvil el VSM iba a media precisión y pintaba rayas (acné) en todas las superficies lisas
-renderer.shadowMap.type = Q0 < 2 ? THREE.BasicShadowMap : THREE.PCFShadowMap; // en BAJA/MEDIA, sombras de borde duro (más baratas)
+renderer.shadowMap.type = THREE.PCFShadowMap; // (con sombras de borde duro volvían las rayas en las fachadas)
 const outline = new Outline(renderer); window.__ol = outline; // TODO-TESTEO
 outline.enabled = !Q.get('nooutline'); // TODO-TESTEO
 outline.setSize(vw(), vh());
