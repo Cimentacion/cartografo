@@ -17,8 +17,8 @@ import { UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLeve
 import { fpGun, VEHICLES, VCOLORS, convertible } from './models.js';
 import { Outline, toon } from './toon.js';
 import { CHAL, chInit, chAdd, claimable, claim, goal, reward, text as chText, UNLOCKS, UNL_NAME, locked, lockedBy } from './challenges.js';
-import { loadChar, saveChar, sanitize, defaultChar, SKINS, HAIRS, HAIR_COLORS, BEARDS, SHIRTS, SHIRT_COLORS, PANTS_COLORS, HATS, BACKS, NECKS, FACES } from './character.js';
-import { seatedPlayer } from './models.js';
+import { loadChar, saveChar, sanitize, defaultChar, SKINS, HAIRS, HAIR_COLORS, BEARDS, SHIRTS, SHIRT_COLORS, PANTS_COLORS, HATS, BACKS, NECKS, FACES, BODIES, personOpts } from './character.js';
+import { seatedPlayer, person } from './models.js';
 import { clamp, lerp, lerpAng, VP, vw, vh } from './util.js';
 
 const Q = new URLSearchParams(location.search);
@@ -2369,7 +2369,12 @@ function edRebuild() {
     edCam.position.set(0, 0.6, -3.2); edCam.lookAt(0, 0.3, 0);
   }
   if (edModel) edScene.remove(edModel);
-  edModel = seatedPlayer(0, MYCHAR);
+  // de pie (para que se vea la complexión y la altura); en silla de ruedas, sentado
+  if (MYCHAR.chair) { edModel = seatedPlayer(0, MYCHAR); edCam.position.set(0, 0.6, -3.2); edCam.lookAt(0, 0.3, 0); }
+  else {
+    edModel = new THREE.Group(); const p = person(Object.assign({ gun: 'pistol' }, personOpts(MYCHAR))); p.position.y = -1.12; edModel.add(p); edModel.userData.rig = p.userData.rig;
+    edCam.position.set(0, 0.3, -5.0); edCam.lookAt(0, -0.02, 0);
+  }
   edModel.userData.rig.armR.rotation.x = -0.3;
   edScene.add(edModel);
 }
@@ -2397,7 +2402,7 @@ function edPaint() {
       el.appendChild(b);
     });
   };
-  sw('edSkin', SKINS, 'skin'); ch('edHair', HAIRS, 'hair'); sw('edHairCol', HAIR_COLORS, 'hairCol');
+  sw('edSkin', SKINS, 'skin'); ch('edBody', BODIES, 'body'); ch('edHair', HAIRS, 'hair'); sw('edHairCol', HAIR_COLORS, 'hairCol');
   ch('edHat', HATS, 'hat'); ch('edBack', BACKS, 'back'); ch('edNeck', NECKS, 'neck'); ch('edFace', FACES, 'face');
   ch('edBeard', BEARDS, 'beard'); ch('edShirt', SHIRTS, 'shirt'); sw('edShirtCol', SHIRT_COLORS, 'shirtCol'); sw('edPants', PANTS_COLORS, 'pants');
   $('edShirtColRow').hidden = c.shirt !== 'lisa';

@@ -86,6 +86,7 @@ export function canvasTex(w, h) {
 
 // ---------- complementos del personaje: sombreros, espalda, cuello y cara ----------
 function accessories(t, o, hp, bp) {
+  const T0 = t, sub = z => { const q = new THREE.Group(); q.position.z = z; T0.add(q); return q; };
   const G = 0xffc531, GL = glow(0xffe680);
   switch (o.hat) {
     case 'paja':
@@ -129,7 +130,20 @@ function accessories(t, o, hp, bp) {
       box(t, 0.34, 0.16, 0.35, 0x1a2230, 0, 1.0, 0, hp); box(t, 0.35, 0.06, 0.36, 0x10161e, 0, 0.92, 0, hp);
       box(t, 0.3, 0.09, 0.03, glow(0x40c0ff, 0.7), 0, 0.88, -0.17, hp); box(t, 0.2, 0.05, 0.02, 0xf2f2f2, 0, 1.0, 0.18, hp);
       break;
+    case 'bombin': box(t, 0.42, 0.025, 0.42, 0x1a1410, 0, 1.0, 0, hp); box(t, 0.3, 0.16, 0.3, 0x221a14, 0, 1.08, 0, hp); box(t, 0.24, 0.05, 0.24, 0x221a14, 0, 1.18, 0, hp); box(t, 0.31, 0.035, 0.31, 0x0a0806, 0, 1.03, 0, hp); break;
+    case 'detective':
+      box(t, 0.32, 0.14, 0.33, 0x8a7a5a, 0, 1.03, 0, hp);
+      for (let k = 0; k < 3; k++) box(t, 0.325, 0.01, 0.335, 0x5a4a30, 0, 0.98 + k * 0.05, 0, hp);
+      box(t, 0.26, 0.03, 0.12, 0x8a7a5a, 0, 0.97, -0.21, hp); box(t, 0.26, 0.03, 0.12, 0x8a7a5a, 0, 0.97, 0.21, hp);
+      for (const sd of [-1, 1]) box(t, 0.03, 0.12, 0.14, 0x8a7a5a, sd * 0.17, 0.93, 0, hp);
+      break;
+    case 'hachimaki':
+      box(t, 0.3, 0.07, 0.31, 0xf4f4f0, 0, 0.94, 0.005, hp); { const c = new THREE.Mesh(cgeo(0.035, 0.01, 10), mat(0xd02020)); c.rotation.x = Math.PI / 2; c.position.set(0, 0.94, -0.162); t.add(c); }
+      for (const sd of [-1, 1]) { const r = box(t, 0.05, 0.2, 0.02, 0xf4f4f0, sd * 0.05, 0.86, 0.17, hp); r.rotation.z = sd * 0.35; }
+      break;
+    case 'orejas': for (const sd of [-1, 1]) { const e = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.14, 4), mat(o.hair ?? 0x2a1a10)); e.position.set(sd * 0.1, 1.1, 0); e.rotation.y = Math.PI / 4; t.add(e); const n = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.08, 4), mat(0xf090b0)); n.position.set(sd * 0.1, 1.09, -0.03); n.rotation.y = Math.PI / 4; t.add(n); } break;
   }
+  t = sub(o.dz || 0);
   const CAPE = { capa: 0xc81818, capan: 0x141418, capaz: 0x1a3aa0, capad: 0xd8a020 };
   if (CAPE[o.back]) {
     box(t, 0.6, 0.06, 0.08, CAPE[o.back], 0, 0.66, 0.12, bp);
@@ -140,6 +154,7 @@ function accessories(t, o, hp, bp) {
   else if (o.back === 'alasn') for (const s of [-1, 1]) for (let k = 0; k < 4; k++) { const w = box(t, 0.55 - k * 0.08, 0.1, 0.03, k % 2 ? 0x2a0a10 : 0x141418, s * (0.32 + k * 0.03), 0.62 - k * 0.12, 0.22, bp); w.rotation.z = s * (0.65 - k * 0.12); }
   else if (o.back === 'katana') { const k1 = box(t, 0.04, 0.95, 0.03, 0xd8dce0, 0, 0.45, 0.2, bp); k1.rotation.z = 0.7; const k2 = box(t, 0.05, 0.28, 0.05, 0x1a1a1a, 0.33, 0.8, 0.2, bp); k2.rotation.z = 0.7; const k3 = box(t, 0.14, 0.03, 0.07, 0xd4af37, 0.26, 0.72, 0.2, bp); k3.rotation.z = 0.7; }
   else if (o.back === 'jet') { for (const x of [-0.11, 0.11]) { const c = new THREE.Mesh(cgeo(0.08, 0.42, 8), mat(0xb8b8c0)); c.position.set(x, 0.36, 0.26); t.add(c); box(t, 0.1, 0.06, 0.1, GL, x, 0.12, 0.26, bp); } box(t, 0.36, 0.14, 0.06, 0x3a3a40, 0, 0.5, 0.2, bp); }
+  t = sub(-(o.dz || 0));
   switch (o.neck) {
     case 'cadena': for (let k = 0; k < 7; k++) { const a = -1.2 + k * 0.4; box(t, 0.04, 0.03, 0.03, G, Math.sin(a) * 0.15, 0.6 - Math.cos(a) * 0.08 + 0.04, -0.17, bp); } box(t, 0.08, 0.08, 0.02, G, 0, 0.5, -0.175, bp); break;
     case 'perlas': for (let k = 0; k < 9; k++) { const a = -1.3 + k * 0.325, s = new THREE.Mesh(sgeo(0.025), mat(0xf4f0e8)); s.position.set(Math.sin(a) * 0.16, 0.64 - Math.cos(a) * 0.09 + 0.04, -0.17); t.add(s); } break;
@@ -149,11 +164,15 @@ function accessories(t, o, hp, bp) {
     case 'flores': for (let k = 0; k < 10; k++) { const a = -1.4 + k * 0.31; box(t, 0.06, 0.06, 0.04, [0xff5ad0, 0xffe14a, 0xff7a3a, 0xf2f2f2][k % 4], Math.sin(a) * 0.18, 0.64 - Math.cos(a) * 0.1 + 0.05, -0.17, bp); } break;
     case 'corbata': box(t, 0.06, 0.05, 0.03, 0xc81818, 0, 0.6, -0.17, bp); box(t, 0.07, 0.34, 0.025, 0xc81818, 0, 0.4, -0.168, bp); break;
   }
+  t = T0;
   switch (o.face) {
     case 'gafas': box(t, 0.29, 0.07, 0.04, 0x050505, 0, 0.86, -0.15, hp); box(t, 0.1, 0.04, 0.005, glow(0x6ad0ff, 0.6), -0.07, 0.865, -0.172, hp); box(t, 0.1, 0.04, 0.005, glow(0x6ad0ff, 0.6), 0.07, 0.865, -0.172, hp); break;
     case 'antifaz': box(t, 0.3, 0.08, 0.04, 0x111111, 0, 0.87, -0.145, hp); for (const x of [-0.07, 0.07]) box(t, 0.06, 0.03, 0.01, 0xf2f2f2, x, 0.87, -0.168, hp); break;
     case 'parche': box(t, 0.3, 0.015, 0.29, 0x111111, 0, 0.9, 0, hp); box(t, 0.08, 0.08, 0.03, 0x111111, -0.07, 0.86, -0.15, hp); break;
     case 'pintura': for (const x of [-0.08, 0.08]) { box(t, 0.1, 0.025, 0.01, 0x2050e0, x, 0.82, -0.142, hp); box(t, 0.1, 0.025, 0.01, 0xe02020, x, 0.79, -0.142, hp); } break;
+    case 'monoculo': { const m = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.01, 6, 14), mat(0xd4af37)); m.position.set(0.07, 0.865, -0.15); t.add(m); box(t, 0.07, 0.05, 0.004, glow(0xd8f0ff, 0.45), 0.07, 0.865, -0.152, hp); box(t, 0.008, 0.16, 0.008, 0xd4af37, 0.115, 0.78, -0.145, hp); } break;
+    case 'redondas': for (const x of [-0.07, 0.07]) { const m = new THREE.Mesh(new THREE.TorusGeometry(0.048, 0.011, 6, 14), mat(0x2a1a10)); m.position.set(x, 0.865, -0.155); t.add(m); } box(t, 0.05, 0.012, 0.012, 0x2a1a10, 0, 0.87, -0.155, hp); break;
+    case 'tirita': { const a = box(t, 0.1, 0.035, 0.01, 0xf0d0a8, 0.07, 0.8, -0.143, hp); a.rotation.z = 0.3; const b2 = box(t, 0.035, 0.035, 0.012, 0xe0b890, 0.07, 0.8, -0.144, hp); b2.rotation.z = 0.3; } break;
     case 'pendientes': for (const x of [-0.145, 0.145]) { const s = new THREE.Mesh(sgeo(0.025), mat(G)); s.position.set(x, 0.76, -0.02); t.add(s); } break;
   }
 }
@@ -165,45 +184,76 @@ export function person(o = {}) {
   g.add(body);
   const sk = o.skin ?? 0xd9a476, sh = o.shirt ?? 0x333333, pa = o.pants ?? 0x222233;
   const bp = P || 'body', hp = P || 'head';
+  // complexión: ancho y fondo del torso, grosor de brazos y piernas, y largo de piernas (altura)
+  const BT = { normal: [0.54, 0.32, 0.13, 0.2, 1], delgado: [0.44, 0.26, 0.11, 0.17, 1.04], fuerte: [0.68, 0.38, 0.18, 0.24, 1], grande: [0.7, 0.46, 0.17, 0.26, 0.96], alto: [0.54, 0.32, 0.13, 0.2, 1.2], bajo: [0.52, 0.32, 0.13, 0.2, 0.78] }[o.body] || [0.54, 0.32, 0.13, 0.2, 1];
+  const [tw0, td, aw, lw, ls] = BT, tw = tw0 * (o.big ? 1.15 : 1);
+  o.dz = (td - 0.32) / 2;
   // piernas articuladas en la cadera (para andar, correr y caer)
   const legs = [-1, 1].map(sd => {
-    const l = new THREE.Group(); l.position.set(sd * 0.12, 0.9, 0); body.add(l);
-    box(l, 0.2, 0.9, 0.22, pa, 0, -0.45, 0, bp);
-    box(l, 0.22, 0.1, 0.32, 0x111111, 0, -0.85, -0.05, bp);
+    const l = new THREE.Group(); l.position.set(sd * Math.max(0.12, tw * 0.22), 0.9 * ls, 0); body.add(l);
+    box(l, lw, 0.9 * ls, lw + 0.02, pa, 0, -0.45 * ls, 0, bp);
+    box(l, lw + 0.02, 0.1, 0.32, 0x111111, 0, -0.9 * ls + 0.05, -0.05, bp);
     return l;
   });
   const torso = new THREE.Group();
-  torso.position.y = 0.92;
+  torso.position.y = 0.92 + 0.9 * (ls - 1);
   body.add(torso);
-  box(torso, 0.54 * (o.big ? 1.15 : 1), 0.64, 0.32, sh, 0, 0.32, 0, bp);
-  if (o.vest) box(torso, 0.58, 0.4, 0.36, o.vest, 0, 0.36, 0, bp);
+  box(torso, tw, 0.64, td, sh, 0, 0.32, 0, bp);
+  if (o.body === 'grande') { box(torso, tw - 0.08, 0.34, 0.08, sh, 0, 0.2, -td / 2 - 0.03, bp); box(torso, tw + 0.02, 0.06, td + 0.02, pa, 0, 0.01, 0, bp); }
+  if (o.body === 'fuerte') for (const sd of [-1, 1]) box(torso, 0.2, 0.14, td + 0.02, sh, sd * (tw / 2 - 0.06), 0.6, 0, bp);
+  if (o.vest) box(torso, tw + 0.04, 0.4, td + 0.04, o.vest, 0, 0.36, 0, bp);
   box(torso, 0.27, 0.3, 0.28, sk, 0, 0.83, 0, hp);
+  if (td > 0.32) box(torso, 0.16, 0.1, 0.16, sk, 0, 0.66, 0, hp);
   const hc = o.hair ?? 0x2a1a10;
+  // el pelo es una "carcasa" algo mayor que la cabeza (sin caras en el mismo plano: no parpadea)
+  // y si lleva sombrero que tapa la cabeza, lo de arriba no se pinta (no asoma por el sombrero)
+  const capH = !!o.hat && !['no', 'halo', 'cuernos', 'fiesta', 'orejas'].includes(o.hat);
+  const top = (h = 0.1, y = 1.0) => { if (!capH) box(torso, 0.3, h, 0.31, hc, 0, y, 0.005, hp); };
   switch (o.hairStyle || 'corto') {
     case 'calvo': break;
-    case 'rapado': box(torso, 0.28, 0.03, 0.29, hc, 0, 0.985, 0.005, hp); break;
-    case 'afro': box(torso, 0.42, 0.3, 0.42, hc, 0, 1.03, 0.03, hp); break;
+    case 'rapado': if (!capH) box(torso, 0.29, 0.025, 0.295, hc, 0, 0.99, 0.005, hp); break;
+    case 'afro': if (capH) box(torso, 0.36, 0.14, 0.36, hc, 0, 0.92, 0.03, hp); else box(torso, 0.42, 0.3, 0.42, hc, 0, 1.03, 0.03, hp); break;
     case 'rastas':
-      box(torso, 0.3, 0.08, 0.31, hc, 0, 1.0, 0.01, hp);
-      for (const [x, z] of [[-0.15, 0.06], [-0.15, 0.15], [-0.05, 0.16], [0.05, 0.16], [0.15, 0.15], [0.15, 0.06]]) box(torso, 0.055, 0.34, 0.055, hc, x, 0.82, z, hp);
+      top(0.08);
+      for (const [x, z] of [[-0.155, 0.06], [-0.155, 0.15], [-0.05, 0.165], [0.05, 0.165], [0.155, 0.15], [0.155, 0.06]]) box(torso, 0.055, 0.34, 0.055, hc, x, 0.82, z, hp);
       break;
     case 'trenzas':
-      box(torso, 0.29, 0.08, 0.3, hc, 0, 1.0, 0.01, hp);
-      for (const x of [-0.09, 0.09]) box(torso, 0.07, 0.42, 0.07, hc, x, 0.74, 0.17, hp);
+      top(0.08);
+      for (const x of [-0.09, 0.09]) box(torso, 0.07, 0.42, 0.07, hc, x, 0.74, 0.18, hp);
       break;
-    case 'cresta': box(torso, 0.06, 0.16, 0.3, hc, 0, 1.06, 0.01, hp); break;
+    case 'cresta': if (!capH) box(torso, 0.06, 0.16, 0.3, hc, 0, 1.06, 0.01, hp); break;
     case 'largo':
-      box(torso, 0.3, 0.09, 0.31, hc, 0, 1.0, 0.01, hp);
-      box(torso, 0.31, 0.42, 0.08, hc, 0, 0.8, 0.16, hp);
+      top(0.09);
+      box(torso, 0.31, 0.42, 0.07, hc, 0, 0.8, 0.175, hp);
       break;
     case 'mono':
-      box(torso, 0.29, 0.08, 0.3, hc, 0, 1.0, 0.01, hp);
-      box(torso, 0.14, 0.14, 0.14, hc, 0, 1.08, 0.1, hp);
+      top(0.08);
+      if (!capH) box(torso, 0.14, 0.14, 0.14, hc, 0, 1.08, 0.1, hp);
       break;
     case 'gorra':
-      box(torso, 0.3, 0.1, 0.31, hc, 0, 1.02, 0, hp); box(torso, 0.26, 0.04, 0.18, hc, 0, 0.98, -0.2, hp);
+      if (!capH) { box(torso, 0.3, 0.1, 0.31, hc, 0, 1.02, 0, hp); box(torso, 0.26, 0.04, 0.18, hc, 0, 0.98, -0.2, hp); }
       break;
-    default: box(torso, 0.29, 0.1, 0.3, hc, 0, 1.0, 0.01, hp);
+    case 'pinchos':
+      // pelo de punta, de dibujo animado
+      top(0.08);
+      if (!capH) for (const [x, z, h, rx, rz] of [[0, -0.08, 0.2, -0.5, 0], [-0.1, -0.02, 0.18, -0.2, 0.5], [0.1, -0.02, 0.18, -0.2, -0.5], [0, 0.07, 0.22, 0.3, 0], [-0.11, 0.1, 0.16, 0.4, 0.6], [0.11, 0.1, 0.16, 0.4, -0.6]]) { const p = box(torso, 0.09, h, 0.09, hc, x, 1.05 + h * 0.3, z, hp); p.rotation.set(rx, 0, rz); }
+      box(torso, 0.3, 0.06, 0.04, hc, 0, 0.93, -0.155, hp);
+      break;
+    case 'coletas':
+      top(0.08);
+      for (const sd of [-1, 1]) { box(torso, 0.08, 0.08, 0.08, 0xe03060, sd * 0.17, 0.98, 0.04, hp); const c = box(torso, 0.1, 0.4, 0.1, hc, sd * 0.22, 0.8, 0.06, hp); c.rotation.z = sd * 0.25; }
+      break;
+    case 'flequillo':
+      top(0.09);
+      box(torso, 0.3, 0.1, 0.04, hc, 0.02, 0.92, -0.16, hp); { const f = box(torso, 0.08, 0.18, 0.04, hc, -0.08, 0.86, -0.16, hp); f.rotation.z = -0.3; }
+      for (const sd of [-1, 1]) box(torso, 0.04, 0.2, 0.26, hc, sd * 0.155, 0.86, 0.02, hp);
+      break;
+    case 'melena':
+      top(0.1);
+      for (const sd of [-1, 1]) box(torso, 0.05, 0.36, 0.3, hc, sd * 0.16, 0.8, 0.02, hp);
+      box(torso, 0.34, 0.4, 0.06, hc, 0, 0.8, 0.17, hp);
+      break;
+    default: top(0.1);
   }
   if (o.beard === 'barba') { box(torso, 0.28, 0.13, 0.06, hc, 0, 0.73, -0.13, hp); box(torso, 0.04, 0.16, 0.24, hc, -0.14, 0.78, -0.03, hp); box(torso, 0.04, 0.16, 0.24, hc, 0.14, 0.78, -0.03, hp); }
   if (o.beard === 'perilla') box(torso, 0.1, 0.09, 0.05, hc, 0, 0.71, -0.14, hp);
@@ -215,10 +265,10 @@ export function person(o = {}) {
   accessories(torso, o, hp, bp);
   const mkArm = side => {
     const a = new THREE.Group();
-    a.position.set(side * 0.34, 0.56, 0);
+    a.position.set(side * (tw / 2 + aw / 2 + 0.005), 0.56, 0);
     torso.add(a);
-    box(a, 0.13, 0.13, 0.55, o.sleeve ?? sh, 0, 0, -0.25, bp);
-    box(a, 0.12, 0.12, 0.12, sk, 0, 0, -0.56, bp);
+    box(a, aw, aw, 0.55, o.sleeve ?? sh, 0, 0, -0.25, bp);
+    box(a, aw - 0.01, aw - 0.01, 0.12, sk, 0, 0, -0.56, bp);
     return a;
   };
   const armR = mkArm(1), armL = mkArm(-1);
@@ -468,7 +518,7 @@ export function seatedPlayer(i, cfg) {
   g.add(yaw);
   const o = cfg ? personOpts(cfg) : { shirt: [0x2f6fd0, 0xd03040, 0x30a050, 0xd0a020, 0x9040d0][i], pants: 0x222222, hair: i === 0 ? 0x3a2a1a : 0x111111, glasses: i === 1 };
   const p = person(Object.assign({ gun: 'pistol' }, o));
-  p.position.y = -0.92;
+  p.position.y = -p.userData.rig.torso.position.y;
   yaw.add(p);
   p.userData.rig.legs.forEach(m => (m.visible = false));
   if (o.chair) { const wc = wheelchair(); wc.position.y = 0.25; g.add(wc); }
