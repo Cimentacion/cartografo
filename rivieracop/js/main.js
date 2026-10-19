@@ -6,6 +6,7 @@ import { Road, LANE_ME, WALK } from './road.js';
 import { buildChunk, makeMats, CH } from './scenery.js';
 import { Sim, SEATS, isRear, AIR, ANIMAL } from './sim.js';
 import { View, Fx } from './view.js';
+import { TitanicFX } from './tfx.js';
 import { Hud } from './hud.js';
 import { Look } from './input.js';
 import { SFX } from './audio.js';
@@ -93,6 +94,8 @@ const SKYT = {
   infierno: { top: 0x0a0320, bands: ['#08031a', '#1c0838', '#36125e', '#5e2280'], cl: [112, 66, 156], cs: [34, 14, 58], sun: null, n: 46, mt: '#12061e', stars: false },
   // dunas: amanecer naranja con el sol bajo y las dunas recortadas en el horizonte
   amanecer: { top: 0x4a3a7a, bands: ['#4a3a7a', '#b8607a', '#ff9a5a', '#ffd08a'], cl: [255, 205, 160], cs: [190, 110, 90], sun: '#fff0b0', n: 10, mt: '#b0703a' },
+  // noche polar con aurora boreal (cortinas verdes y moradas) y montañas nevadas
+  aurora: { top: 0x040a24, bands: ['#030820', '#0a1640', '#1a2a5a', '#3a4a7a'], cl: [90, 110, 160], cs: [30, 40, 72], sun: '#eef4ff', n: 5, mt: '#c8d8f0', stars: true, aurora: true },
   noche: { top: 0x0a1030, bands: ['#070b24', '#141c44', '#2a3666', '#4a5a86'], cl: [110, 125, 165], cs: [40, 48, 82], sun: '#f2f6ff', n: 12, mt: '#141a32', stars: true },
 };
 const SKYTEX = {};
@@ -109,6 +112,19 @@ function skyTex(k) {
   g.fillStyle = gr; g.fillRect(0, 0, W, hz + 4);
   g.fillStyle = T.bands[T.bands.length - 1]; g.fillRect(0, hz, W, H - hz);
   if (T.stars) for (let i = 0; i < 700; i++) { const y = rnd() * hz * 0.85; g.fillStyle = `rgba(255,255,255,${0.25 + rnd() * 0.7})`; const r = rnd() < 0.08 ? 2.4 : 1.2; g.beginPath(); g.arc(rnd() * W, y, r, 0, 7); g.fill(); }
+  // aurora boreal: cortinas verticales que ondulan, verdes abajo y moradas arriba
+  if (T.aurora) {
+    g.globalCompositeOperation = 'lighter';
+    for (const [y0, amp, col, ph] of [[hz * 0.42, 60, [60, 255, 150], 0.7], [hz * 0.3, 45, [90, 255, 190], 2.1], [hz * 0.55, 35, [170, 90, 255], 4.0]]) {
+      for (let x = 0; x < W; x += 3) {
+        const u = x / W * Math.PI * 2, y = y0 + Math.sin(u * 3 + ph) * amp + Math.sin(u * 7 + ph * 2) * amp * 0.35, a = 0.1 + 0.1 * Math.max(0, Math.sin(u * 5 + ph * 3)) + 0.06 * Math.sin(u * 23);
+        const gr = g.createLinearGradient(0, y - 140, 0, y + 30);
+        gr.addColorStop(0, `rgba(${col[0]},${col[1] * 0.4 | 0},${col[2]},0)`); gr.addColorStop(0.7, `rgba(${col[0]},${col[1]},${col[2]},${a})`); gr.addColorStop(1, `rgba(${col[0]},${col[1]},${col[2]},0)`);
+        g.fillStyle = gr; g.fillRect(x, y - 140, 3, 170);
+      }
+    }
+    g.globalCompositeOperation = 'source-over';
+  }
   if (T.sun) {
     const sx = W * 0.62, sy = hz * 0.55, R = T.stars ? 30 : 40, ex = 1 / Math.cos((1 - sy / hz) * Math.PI / 2);
     g.save(); g.translate(sx, sy); g.scale(ex, 1); g.translate(-sx, -sy);
@@ -173,6 +189,8 @@ const cloudDomes = [0, 1].map(i => {
 cloudDomes[0].material.map = skyTex('dia'); cloudDomes[0].userData.k = 'dia';
 const SKYST = { k: 'dia', fade: 1 };
 function skyTypeOf(B) {
+  if (B.deco === 'titanic' || B.deco === 'tmar') return 'aurora';
+  if (B.deco === 'tsub') return 'mar';
   if (B.deco === 'zombi') return 'infierno';
   if (B.deco === 'submarino') return 'mar';
   if (B.deco === 'dunas') return 'amanecer';
@@ -193,6 +211,7 @@ const sea = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000).rotateX(-Math.PI 
 scene.add(sea);
 const MATS = makeMats();
 const fx = new Fx(scene);
+const TFX = new TitanicFX(scene, fx);
 const hud = new Hud($('hud'));
 const look = new Look();
 look.attach($('game'));
@@ -699,7 +718,14 @@ function handleEvent(ev) {
       break;
     case 'pz': if (ev.p === li) flash('poison'); break;
     case 'arenaX': if (G.mode === 'guest') G.road.setArenaExit(ev.g); break;
-    case 'west': if (G.mode === 'guest') G.road.setWest(ev.kk, ev.c); break;
+    case 'west': {
+      if (G.mode === 'guest') G.road.setWest(ev.kk, ev.c);
+      // la carretera se ha cortado en el cartel: fuera los trozos de decorado de la carretera vieja
+      const W = G.road.west.find(q => q.k === ev.kk);
+      if (ev.c && W && W.cut != null) for (const [c, g] of G.chunks) if ((c + 1) * CH > W.cut - 2) { scene.remove(g); g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); G.chunks.delete(c); SHC.dirty = true; }
+      if (ev.c) { G.shake = Math.max(G.shake, 0.4); SFX.tone(220, 120, 0.4, 'square', 0.15); }
+      break;
+    }
     case 'unlockW':
       if (!PROG.wpUnl.includes(ev.id)) { PROG.wpUnl.push(ev.id); saveProg(PROG); G.secretNew = 1; }
       showBanner('¡' + (WEAPON_NAMES[ev.id] || ev.id).toUpperCase() + ' DESBLOQUEADO!', 'Ya es tuyo para siempre (Mejoras → Alforjas)', '#ffc531');
@@ -1838,6 +1864,8 @@ function tick(dt) {
   // --- coche, cámara ---
   G.shake = Math.max(0, G.shake - dt);
   view.placeCar(G.carD, G.t, G.shake * 0.15, dt, G.speed, G.carLat || 0, G.carYo || 0);
+  // Titanic: el coche se escora con el barco que se hunde y cabecea al flotar
+  if (TFX.on && (TFX.tilt || TFX.bob || TFX.roll)) { view.car.rotation.z += TFX.tilt + TFX.roll; view.car.position.y += TFX.bob; view.car.updateMatrixWorld(true); }
   updateChunks(G.carD, false);
   const car = view.car;
   // horizonte siempre recto (no copia la cuesta ni el traqueteo del coche)
@@ -1850,7 +1878,7 @@ function tick(dt) {
   // a pie (hospital de la ciudad zombi): la cámara va con el grupo, a la altura de los ojos
   const FO = footPose(li, dt);
   if (FO) EA.set(0, -G.road.yawAt(FO[0]) - FO[2], 0, 'YXZ');
-  else EA.set(0, G.camYaw + (mySeat[2] != null ? mySeat[2] : isRear(li, G.n) ? Math.PI : 0), 0, 'YXZ');
+  else EA.set(0, G.camYaw + (mySeat[2] != null ? mySeat[2] : isRear(li, G.n) ? Math.PI : 0), TFX.on ? TFX.tilt + TFX.roll : 0, 'YXZ');
   QCAR.setFromEuler(EA);
   if (FO) { G.road.toWorld(FO[0], FO[1], 1.82 + (FO[3] || 0), camera.position); }
   if (BOT) botAim();
@@ -1988,7 +2016,9 @@ function tick(dt) {
   // (se mira por la posición del coche, no por "estar dentro": en los últimos metros del túnel volvía un instante al cielo
   // de antes y el fundido de nubes se reiniciaba: salía el cielo azul un segundo)
   const TT = !dark ? G.road.tunnels.find(t => G.carD >= t.start - 4 && G.carD <= t.end + 15) : null;
-  const B = BIOMES[BIOME_KEYS[G.road.bioAt(TT ? TT.end + 15 : G.carD)]];
+  let B = BIOMES[BIOME_KEYS[G.road.bioAt(TT ? TT.end + 15 : G.carD)]];
+  // bajo el agua (Titanic): niebla y cielo del fondo del mar
+  if (TFX.under) B = BIOMES.tsub;
   outline.red = outline.aura ? 1 : B.deco === 'zombi' || G.foot ? 0.45 : 0;
   outline.mat.uniforms.heat.value = B.deco === 'dunas' && !inTun ? 1 : 0; outline.mat.uniforms.time.value = G.t;
   if (G.stormT > 0) G.stormT -= dt;
@@ -2039,6 +2069,7 @@ function tick(dt) {
   hemi.color.lerp(TC.setHex(0x8aa4ff), 0.45);
   hemi.groundColor.lerp(TC.setHex(0x5a6ac8), 0.5);
   sea.position.set(camera.position.x, G.road.seaAt(G.carD), camera.position.z);
+  TFX.update(G, dt, camera, B, sea, G.chunks, () => { G.shake = Math.max(G.shake, 1.4); G.road.toWorld(G.carD + 30, -6, 2, V1); for (let k = 0; k < 5; k++) fx.boom(V1.clone().add(V2.set((Math.random() - 0.5) * 20, Math.random() * 6, (Math.random() - 0.5) * 20)), 2.4); showBanner('¡EL TITANIC CHOCA CONTRA EL ICEBERG!', '¡Agarraos!', '#ff6a4a'); SFX.tone(70, 40, 1.8, 'sawtooth', 0.3); });
   // --- interfaz ---
   uiPlayers(); uiWeapon(); uiRoute(); uiWcard(); uiAbilities(dt); uiBoss(); uiRadio(dt);
   setHTML('mult', `x${(G.mult || 1).toFixed(1)} · ${Math.round((G.speed || 0) * 3.6)} km/h`);

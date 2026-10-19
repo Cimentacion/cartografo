@@ -2,13 +2,13 @@
 // Cartel de madera, casas que revientan (y quedan en palos negros), la mansión por dentro, la iglesia con campanario,
 // esqueletos bailones, el forajido del duelo, el caballo con jinete y el pozo
 import * as THREE from 'three';
-import { box, mat, glow, person, cgeo, tmat, canvasTex } from './models.js';
+import { box, mat, glow, person, cgeo, tmat, canvasTex, proxy } from './models.js';
 import { WHOUSE, WSIGNS, MANSION, mansionWall } from './defs.js';
 import { mergeGeometries } from '../lib/BufferGeometryUtils.js';
 
 // junta las piezas fijas de un grupo en una malla por material (cientos de cajas -> unas pocas llamadas de dibujo)
 // keep = grupos que se animan aparte y no se tocan
-function collapse(root, keep = []) {
+export function collapse(root, keep = []) {
   root.updateMatrixWorld(true);
   const inv = new THREE.Matrix4().copy(root.matrixWorld).invert(), by = new Map(), dead = [];
   root.traverse(o => {
@@ -53,17 +53,58 @@ function signPlane(txt, w, h, bg = '#e8d6a8', fg = '#3a1a0a', font = 'bold 54px 
 
 // ---------- cartel de OLD TOWN en las dunas ----------
 export function wSign() {
-  const g = new THREE.Group(), wd = tmat('wood', 0x9a6a3a);
-  box(g, 0.22, 3.4, 0.22, wd, 0, 1.7, 0, 'body');
-  const arm = new THREE.Group(); arm.position.set(0, 2.55, 0); g.add(arm); g.userData.arm = arm;
-  box(arm, 3.2, 0.95, 0.12, wd, 1.15, 0, 0.08, 'body');
-  // punta de flecha a la derecha
-  { const t = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.12, 3), wd); t.rotation.set(Math.PI / 2, 0, -Math.PI / 2); t.position.set(2.95, 0, 0.08); t.userData.part = 'body'; arm.add(t); }
-  const s = signPlane('OLD TOWN →', 3.0, 0.8, '#e2c890', '#5a1a0a'); s.position.set(1.15, 0, 0.015); arm.add(s); s.userData.part = 'body';
-  box(g, 1.6, 0.5, 0.1, wd, -0.5, 1.6, 0.08, 'body').rotation.z = -0.12;
-  const s2 = signPlane('1 MILLA', 1.5, 0.42, '#d8b880', '#3a1a0a', 'bold 70px serif'); s2.position.set(-0.5, 1.6, 0.025); s2.rotation.z = -0.12; g.add(s2);
-  // calavera de vaca colgada
-  box(g, 0.34, 0.26, 0.2, 0xf0e8d6, 0, 3.1, -0.12, 'body'); for (const x of [-0.24, 0.24]) box(g, 0.24, 0.06, 0.06, 0xf0e8d6, x, 3.2, -0.12, 'body').rotation.z = x > 0 ? -0.5 : 0.5;
+  // cartel viejo y roto: poste torcido, tabla astillada en forma de flecha hacia la derecha, solo "OLD TOWN"
+  const g = new THREE.Group(), wd = tmat('wood', 0x8a6a46), wd2 = tmat('wood', 0x6a4a2c);
+  const post = box(g, 0.24, 3.3, 0.24, wd2, 0, 1.6, 0, 'body'); post.rotation.z = -0.07;
+  box(g, 0.3, 0.5, 0.3, 0x8a6a4a, 0, 0.2, 0); // piedras al pie
+  const arm = new THREE.Group(); arm.position.set(0.12, 2.5, 0); arm.rotation.z = -0.1; g.add(arm); g.userData.arm = arm;
+  box(arm, 3.0, 0.9, 0.12, wd, 1.2, 0, 0.1, 'body');
+  // punta de flecha
+  { const t = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.12, 3), wd); t.rotation.set(Math.PI / 2, 0, -Math.PI / 2); t.position.set(2.9, 0, 0.1); t.userData.part = 'body'; arm.add(t); }
+  // el otro extremo, roto en astillas
+  for (let k = 0; k < 4; k++) { const sp = box(arm, 0.35 + (k % 2) * 0.25, 0.2, 0.12, wd, -0.35 - (k % 2) * 0.12, -0.33 + k * 0.22, 0.1, 'body'); sp.rotation.z = (k % 2 ? 0.3 : -0.2); }
+  // agujeros de bala y una grieta
+  for (const [x, y] of [[0.4, 0.25], [1.9, -0.2], [2.3, 0.28]]) box(arm, 0.08, 0.08, 0.02, 0x1a1008, x, y, 0.02);
+  box(arm, 1.2, 0.03, 0.02, 0x3a2414, 1.5, -0.05, 0.02).rotation.z = 0.15;
+  const s = signPlane('OLD TOWN', 2.4, 0.62, '#c8a870', '#4a1a08', 'bold 76px serif'); s.position.set(1.05, 0.02, 0.035); arm.add(s); s.userData.part = 'body';
+  // clavo y la otra tabla caída a los pies
+  box(arm, 0.08, 0.08, 0.2, 0x3a3a3a, 0, 0, 0.12);
+  const fallen = box(g, 1.6, 0.4, 0.1, wd, 0.9, 0.12, 0.5); fallen.rotation.set(-1.4, 0.5, 0);
+  return g;
+}
+// el gran cartel en arco de la entrada del pueblo: dos troncos, el travesaño con el letrero, una calavera de vaca
+// y dos faroles. Se puede reventar (el travesaño cae)
+export function wArch() {
+  const g = new THREE.Group(), lg = tmat('wood', 0x6a4426), lg2 = tmat('wood', 0x5a3a1e);
+  const posts = [];
+  for (const sd of [-1, 1]) {
+    const p = new THREE.Group(); p.position.x = sd * 7.6; g.add(p); posts.push(p);
+    const c = new THREE.Mesh(cgeo(0.32, 7.6, 8), lg); c.position.y = 3.8; c.userData.part = 'body'; p.add(c);
+    const br = box(p, 0.18, 2.6, 0.18, lg2, -sd * 0.9, 5.6, 0, 'body'); br.rotation.z = sd * 0.75; // jabalcón
+    box(p, 0.9, 0.5, 0.9, 0x8a6a4a, 0, 0.25, 0);
+  }
+  const top = new THREE.Group(); top.position.y = 6.6; g.add(top);
+  const beam = new THREE.Mesh(cgeo(0.28, 17.2, 8), lg); beam.rotation.z = Math.PI / 2; beam.userData.part = 'body'; top.add(beam);
+  box(top, 9.6, 2.0, 0.18, lg2, 0, -1.25, 0, 'body');
+  for (const x of [-4.9, 4.9]) box(top, 0.12, 1.0, 0.12, 0x2a2a2a, x * 0.8, -0.3, 0);
+  for (const z of [-0.1, 0.1]) { const s = signPlane('OLD TOWN', 9.0, 1.7, '#d8b47a', '#5a1a06', 'bold 92px serif'); s.position.set(0, -1.25, z * 1); if (z > 0) s.rotation.y = 0; top.add(s); s.userData.part = 'body'; }
+  // calavera de vaca en el centro, arriba
+  box(top, 0.6, 0.5, 0.35, 0xf0e8d6, 0, 0.55, -0.1, 'body'); for (const x of [-0.45, 0.45]) box(top, 0.5, 0.1, 0.1, 0xf0e8d6, x, 0.72, -0.1, 'body').rotation.z = x > 0 ? -0.5 : 0.5;
+  box(top, 0.12, 0.12, 0.02, 0x1a1a1a, -0.12, 0.6, -0.28); box(top, 0.12, 0.12, 0.02, 0x1a1a1a, 0.12, 0.6, -0.28);
+  // faroles colgando
+  for (const x of [-6.6, 6.6]) { box(top, 0.04, 0.6, 0.04, 0x2a2a2a, x, -0.3, 0); box(top, 0.34, 0.45, 0.34, glow(0xffc860), x, -0.8, 0); box(top, 0.4, 0.08, 0.4, 0x2a2a2a, x, -0.55, 0); }
+  g.userData.top = top; g.userData.posts = posts;
+  return g;
+}
+// bola de matojo seco (rueda por el desierto)
+export function tumbleweed() {
+  const g = new THREE.Group(), b = new THREE.Group(); b.position.y = 0; g.add(b);
+  const C = [0x9a7a4a, 0x8a6a3a, 0xb08a54];
+  let s = 11; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let k = 0; k < 22; k++) { const m = box(b, 0.05, 0.05, 0.9 + rnd() * 0.4, C[k % 3], (rnd() - 0.5) * 0.5, (rnd() - 0.5) * 0.5, (rnd() - 0.5) * 0.5); m.rotation.set(rnd() * 3, rnd() * 3, rnd() * 3); }
+  for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; const m = box(b, 0.04, 0.04, 0.7, C[k % 3], Math.cos(a) * 0.45, Math.sin(a) * 0.45, 0); m.rotation.z = a; }
+  proxy(b, 0.55, 0, 0, 0);
+  g.userData.b = b;
   return g;
 }
 
@@ -163,24 +204,82 @@ export function mansion() {
   box(body, 2.2, 0.1, 1.0, wood, x2, y1 + 0.9, D / 2, 'body'); for (const sx of [-1, 1]) box(body, 0.1, 0.9, 0.9, wood, x2 + sx * 1.0, y1 + 0.45, D / 2, 'body'); // escritorio
   box(body, 0.9, 0.9, 0.8, 0x3a3a40, x2 + 2.1, y1 + 0.45, D - 0.8, 'body'); { const c = new THREE.Mesh(cgeo(0.15, 0.05, 10), mat(0xd4af37)); c.rotation.x = Math.PI / 2; c.position.set(x2 + 2.1, y1 + 0.55, D - 1.22); body.add(c); } // caja fuerte
   box(body, 2.6, 2.4, 0.4, wood, x2 - 0.6, y1 + 1.2, D - 0.35, 'body'); for (let k = 0; k < 4; k++) for (let q = 0; q < 6; q++) box(body, 0.3, 0.45, 0.3, [0x8a2a2a, 0x2a4a8a, 0x2a6a3a, 0xc8a040][(k + q) % 4], x2 - 1.6 + q * 0.4, y1 + 0.4 + k * 0.55, D - 0.6); // libros
-  // --- paredes que se rompen: cada una con sus ventanas grandes ---
-  const walls = [];
+  // --- paredes que se rompen: fachada con ventanales de cristal (se ve el interior), contraventanas verdes,
+  // molduras blancas y frontoncitos sobre las ventanas ---
+  const walls = [], glassM = new THREE.MeshLambertMaterial({ color: 0xbfe4f4, transparent: true, opacity: 0.32, depthWrite: false });
+  const white = 0xf6f2ea, shut = 0x2e6a4a;
   for (let i = 0; i < 8; i++) {
-    const [x, y, z] = mansionWall(i), side = i >= 6, ww = side ? D : W / 3;
+    const [x, y, z] = mansionWall(i), side = i >= 6, ww = side ? D : W / 3, P = 'w' + i;
     const w = new THREE.Group(); w.position.set(x, y, z); if (side) w.rotation.y = Math.PI / 2; body.add(w);
-    box(w, ww - 0.04, FH - 0.04, 0.3, cream, 0, 0, 0, 'w' + i);
-    box(w, ww * 0.55, FH * 0.5, 0.06, 0x2a3a48, 0, 0.1, -0.17, 'w' + i);
-    box(w, ww * 0.55 + 0.3, 0.14, 0.12, wood, 0, -FH * 0.17, -0.2, 'w' + i); box(w, ww * 0.55 + 0.3, 0.14, 0.12, wood, 0, FH * 0.37, -0.2, 'w' + i);
-    box(w, 0.1, FH * 0.5, 0.1, wood, 0, 0.1, -0.2, 'w' + i);
-    box(w, ww, 0.18, 0.36, tmat('wood', 0x8a5a34), 0, -FH / 2 + 0.09, -0.02, 'w' + i);
+    // pared con dos huecos de ventana (marco de piezas: arriba, abajo, lados y el machón del centro)
+    const wh = FH * 0.5, wy = 0.15, wn = side ? 3 : 2, gap = ww / wn, wwin = Math.min(1.7, gap * 0.5);
+    box(w, ww - 0.04, (FH - wh) / 2 - wy + 0.02, 0.3, cream, 0, -FH / 2 + ((FH - wh) / 2 + wy) / 2, 0, P);
+    box(w, ww - 0.04, (FH - wh) / 2 - 0.15, 0.3, cream, 0, FH / 2 - ((FH - wh) / 2 - 0.15) / 2, 0, P);
+    for (let q = 0; q <= wn; q++) {
+      const xa = -ww / 2 + q * gap, wpier = q === 0 || q === wn ? (gap - wwin) / 2 : gap - wwin;
+      const cx = q === 0 ? -ww / 2 + wpier / 2 : q === wn ? ww / 2 - wpier / 2 : xa;
+      box(w, wpier, wh + 0.02, 0.3, cream, cx, wy, 0, P);
+    }
+    for (let q = 0; q < wn; q++) {
+      const cx = -ww / 2 + gap / 2 + q * gap;
+      const gl = new THREE.Mesh(new THREE.BoxGeometry(wwin, wh, 0.04), glassM); gl.position.set(cx, wy, -0.05); gl.userData.part = P; w.add(gl);
+      box(w, wwin + 0.3, 0.14, 0.2, white, cx, wy - wh / 2 - 0.05, -0.2, P);            // alféizar
+      box(w, wwin + 0.4, 0.16, 0.22, white, cx, wy + wh / 2 + 0.1, -0.2, P);            // dintel
+      { const pd = box(w, wwin + 0.5, 0.12, 0.2, white, cx, wy + wh / 2 + 0.35, -0.2, P); pd.rotation.z = 0; } // frontoncito
+      for (const sd of [-1, 1]) {
+        box(w, 0.1, wh, 0.12, white, cx + sd * wwin / 2, wy, -0.18, P);                 // jambas
+        const sh = box(w, wwin * 0.45, wh, 0.06, shut, cx + sd * (wwin / 2 + wwin * 0.25 + 0.05), wy, -0.22, P); // contraventanas
+        for (let k = 0; k < 5; k++) box(sh, wwin * 0.4, 0.03, 0.03, 0x1e4a32, 0, -wh / 2 + 0.2 + k * (wh - 0.3) / 4, -0.04);
+      }
+      box(w, 0.05, wh, 0.06, white, cx, wy, -0.08); box(w, wwin, 0.05, 0.06, white, cx, wy, -0.08); // cruz del cristal
+    }
+    // zócalo y cornisa
+    box(w, ww, 0.18, 0.36, tmat('wood', 0x8a5a34), 0, -FH / 2 + 0.09, -0.02, P);
+    box(w, ww + 0.02, 0.2, 0.42, white, 0, FH / 2 - 0.1, -0.06, P);
     walls.push(w);
   }
   g.userData.walls = walls;
-  // porche con columnas y escalones
-  for (const x of [-W / 2 + 0.4, -2.4, 2.4, W / 2 - 0.4]) box(body, 0.4, FH, 0.4, 0xf4f4f4, x, FH / 2, -2.2, 'body');
-  box(body, W + 0.6, 0.3, 2.8, tmat('plaster', 0xe8dcc4), 0, FH + 0.1, -1.2, 'body');
-  for (let k = 0; k < 3; k++) box(body, 5, 0.18, 0.5, 0xd8d0c0, 0, 0.09 + k * 0.18, -3.2 + k * 0.5);
-  const s = signPlane('VILLA GARRETT', 5, 0.9, '#1a1410', '#e8c040', 'bold 64px serif'); s.position.set(0, 2 * FH + 0.95, -0.85); body.add(s);
+  // pilastras blancas entre las paredes y en las esquinas
+  for (let k = 0; k <= 3; k++) box(body, 0.5, 2 * FH, 0.5, white, -W / 2 + k * W / 3, FH, -0.15, 'body');
+  // --- pórtico de dos alturas: cuatro columnas, frontón triangular y balcón con balaustrada ---
+  for (const x of [-3.6, -1.3, 1.3, 3.6]) {
+    const c = new THREE.Mesh(cgeo(0.26, 2 * FH - 0.3, 12), mat(white)); c.position.set(x, FH, -3.0); c.userData.part = 'body'; body.add(c);
+    box(body, 0.7, 0.25, 0.7, white, x, 0.45, -3.0, 'body'); box(body, 0.7, 0.3, 0.7, white, x, 2 * FH - 0.1, -3.0, 'body');
+  }
+  box(body, 8.6, 0.5, 3.6, white, 0, 2 * FH + 0.2, -1.6, 'body');
+  for (const sd of [-1, 1]) { const p = box(body, 4.9, 0.3, 3.8, tmat('wood', 0x4a3a34), sd * 2.2, 2 * FH + 1.5, -1.6, 'body'); p.rotation.z = -sd * 0.45; }
+  box(body, 7.6, 1.6, 0.2, white, 0, 2 * FH + 1.0, -3.4, 'body');
+  { const o = new THREE.Mesh(new THREE.CircleGeometry(0.55, 16), mat(0xd4af37)); o.position.set(0, 2 * FH + 1.0, -3.52); o.rotation.y = Math.PI; body.add(o); }
+  // balcón del primer piso
+  box(body, 8.2, 0.2, 2.8, white, 0, FH + 0.1, -1.6, 'body');
+  box(body, 8.2, 0.12, 0.16, white, 0, FH + 1.15, -2.95);
+  for (let x = -3.9; x <= 3.9; x += 0.35) box(body, 0.1, 0.9, 0.1, white, x, FH + 0.65, -2.95);
+  // puerta doble con montante y faroles
+  box(body, 2.2, 2.7, 0.1, tmat('wood', 0x4a2414), 0, 1.6, -0.2, 'body'); box(body, 0.04, 2.7, 0.12, 0xd4af37, 0, 1.6, -0.26);
+  { const fan = new THREE.Mesh(new THREE.CircleGeometry(1.1, 16, 0, Math.PI), glow(0xfff0b0, 0.8)); fan.position.set(0, 2.95, -0.22); fan.rotation.y = Math.PI; body.add(fan); }
+  for (const x of [-1.6, 1.6]) { box(body, 0.3, 0.45, 0.3, glow(0xffd070), x, 2.3, -0.4); box(body, 0.36, 0.08, 0.36, 0x1a1a1a, x, 2.56, -0.4); }
+  // escalinata
+  for (let k = 0; k < 4; k++) box(body, 7.6 - k * 0.4, 0.18, 0.6, 0xe8e0d0, 0, 0.09 + k * 0.18, -4.5 + k * 0.5);
+  // tejado a cuatro aguas (pizarra) con buhardillas y dos chimeneas
+  const slate = tmat('wood', 0x3a3a46);
+  for (const sd of [-1, 1]) { const r = box(body, W + 1.6, 0.3, D / 2 + 1.6, slate, 0, 2 * FH + 1.6, D / 2 + sd * (D / 4 + 0.3), 'body'); r.rotation.x = sd * 0.55; }
+  for (const sd of [-1, 1]) { const r = box(body, D / 2 + 1.6, 0.3, D + 1.4, slate, sd * (W / 2 - 0.6), 2 * FH + 1.5, D / 2, 'body'); r.rotation.z = -sd * 0.7; r.scale.x = 0.9; }
+  box(body, W + 1.2, 0.35, 0.6, white, 0, 2 * FH + 0.35, -0.5, 'body'); // cornisa grande
+  for (let k = 0; k < 14; k++) box(body, 0.2, 0.25, 0.3, white, -W / 2 + 0.5 + k * (W - 1) / 13, 2 * FH + 0.12, -0.6); // dentículos
+  for (const x of [-6.5, 6.5]) {
+    box(body, 1.6, 1.5, 1.4, white, x, 2 * FH + 1.9, 1.6, 'body');
+    const gl = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.8, 0.05), glow(0xffe0a0, 0.85)); gl.position.set(x, 2 * FH + 1.9, 0.88); body.add(gl);
+    for (const sd of [-1, 1]) { const r = box(body, 1.1, 0.12, 1.6, slate, x + sd * 0.45, 2 * FH + 2.85, 1.6); r.rotation.z = -sd * 0.6; }
+  }
+  for (const x of [-W / 2 + 2, W / 2 - 2]) { box(body, 1.0, 3.6, 1.0, tmat('brick', 0x9a4a32), x, 2 * FH + 2.6, D - 2, 'body'); box(body, 1.2, 0.2, 1.2, 0x2a2a2a, x, 2 * FH + 4.5, D - 2); }
+  // torreón redondo en la esquina con su chapitel
+  { const tw = new THREE.Group(); tw.position.set(W / 2 + 0.6, 0, 0.8); body.add(tw);
+    const c = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.0, 2 * FH + 2.4, 14), cream); c.position.y = FH + 1.2; c.userData.part = 'body'; tw.add(c);
+    for (const y of [1.7, 1.7 + FH, 1.7 + 2 * FH]) for (let k = 0; k < 4; k++) { const a = -Math.PI / 2 + (k - 1.5) * 0.55, wb = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.3, 0.1), glow(0xffe0a0, 0.85)); wb.position.set(Math.cos(a) * 2.02, y, Math.sin(a) * 2.02); wb.rotation.y = -a + Math.PI / 2; tw.add(wb); }
+    for (const y of [FH, 2 * FH]) { const r = new THREE.Mesh(new THREE.CylinderGeometry(2.15, 2.15, 0.2, 14), mat(white)); r.position.y = y; tw.add(r); }
+    const sp = new THREE.Mesh(new THREE.ConeGeometry(2.5, 4.4, 14), slate); sp.position.y = 2 * FH + 4.6; sp.userData.part = 'body'; tw.add(sp);
+    box(tw, 0.1, 1.4, 0.1, 0xd4af37, 0, 2 * FH + 7.4, 0); }
+  const s = signPlane('VILLA GARRETT', 4.6, 0.8, '#1a1410', '#e8c040', 'bold 64px serif'); s.position.set(0, FH + 1.6, -3.0); body.add(s);
   for (const w of walls) collapse(w);
   collapse(body, walls);
   return g;

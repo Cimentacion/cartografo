@@ -33,6 +33,8 @@ export class Road {
     this.dunes = []; this.cap = Infinity; this.gates = 0; this.exitGate = null;
     // desvío secreto del desierto: el cartel de OLD TOWN (si se le dispara, se gira a la derecha hacia el pueblo del Oeste)
     this.west = [];
+    // el Titanic: tramos del recorrido (nieve, iceberg, salto, cubiertas, salón, buceo, mar y playa)
+    this.titanic = [];
     this.planEnd = 0;
     this.cur = { yaw: 0, slope: 0 };
     this.baseYaw = 0; this.lastHair = 0;
@@ -45,7 +47,7 @@ export class Road {
     b.start = this.planEnd; b.pos = 0;
     this.planEnd += b.len || 0;
     this.queue.push(b);
-    if (b.type === 'tunnel' || b.type === 'interior') this.tunnels.push({ start: b.start, end: b.start + b.len, fork: b.fork, interior: b.type === 'interior' });
+    if (b.type === 'tunnel' || b.type === 'interior') this.tunnels.push({ start: b.start, end: b.start + b.len, fork: b.fork, interior: b.type === 'interior', ball: !!b.ball });
     return b;
   }
   // zd = dificultad de la zona (el número que sale en el cartel)
@@ -64,6 +66,9 @@ export class Road {
       const hb = this._q({ type: 'hosp', len: 240, bio, zd });
       this.hosp.push({ H: hb.start + 70, k });
       this._q({ type: 'section', len: 420, bio, zd, sub: null });
+    } else if (BIOMES[BIOME_KEYS[bio]].titanic) {
+      this._queueTitanic(bio, zd, k, secStart);
+      return;
     } else if (BIOMES[BIOME_KEYS[bio]].dunes) {
       // dunas: dunas suaves, bajada brutal al oasis, tormenta de arena y la arena circular (la salida se decide luego).
       // A mitad, el cartel de OLD TOWN: si alguien le dispara, el resto cambia por el pueblo del Oeste
@@ -80,6 +85,66 @@ export class Road {
     this.forks.push({ k, gantry: tn.start - 40, tStart: tn.start, tEnd: tn.start + TUN, choice: null, from: bio, zd: null, secStart, bio, slen });
     this._q({ type: 'wait', len: 0, fork: k });
   }
+  // EL TITANIC: nieve, la vuelta al iceberg con el mar a la derecha, el salto a la proa, las dos cubiertas de los botes
+  // (ida hasta la popa, curva y vuelta mientras se hunde), el salón de baile, el buceo junto al casco, el mar helado
+  // con el iceberg gigante (jefe) y la playa con la montaña helada
+  _queueTitanic(bio, zd, k, secStart) {
+    const TS = BIOME_KEYS.indexOf('tsub'), TM = BIOME_KEYS.indexOf('tmar');
+    const T = { k, secStart, S: null };
+    const q = (type, len, b = bio, o = {}) => this._q(Object.assign({ type, len, bio: b, zd, T }, o));
+    T.snow = q('tsnow', 260).start;
+    T.berg = q('tberg', 340).start;
+    T.jump = q('tjump', 46).start;
+    T.deck1 = q('tdeck', 250).start;
+    T.stern = q('tstern', 32).start;
+    T.deck2 = q('tdeck', 110, bio, { sink: 1 }).start;
+    T.ball = q('interior', 70, bio, { fork: -3, ball: 1 }).start;
+    T.deck3 = q('tdeck', 25, bio, { sink: 1 }).start;
+    T.dive = q('tdive', 70).start;
+    T.under = q('tunder', 320, TS).start;
+    T.rise = q('trise', 50, TM).start;
+    T.float = q('tfloat', 420, TM).start;
+    T.boss = T.float + 250;
+    T.beach = q('tbeach', 150, TM).start;
+    T.out = T.beach + 150;
+    this.titanic.push(T);
+    this._q({ type: 'approach', len: APPROACH, bio: TM, zd });
+    const tn = this._q({ type: 'tunnel', len: TUN, fork: k, bio: TM, zd });
+    this.forks.push({ k, gantry: tn.start - 40, tStart: tn.start, tEnd: tn.start + TUN, choice: null, from: bio, zd: null, secStart, bio, slen: T.out - secStart });
+    this._q({ type: 'wait', len: 0, fork: k });
+  }
+  titanicAt(d) { for (const T of this.titanic) if (d >= T.secStart - 60 && d < T.out + 300) return T; return null; }
+  // un tramo del Titanic: curva y altura fijadas (sobre el nivel del mar del sitio, S)
+  _stepT(b) {
+    const T = b.T, c = this.cur, i = this.len, u = (b.pos + 0.5) / b.len, ez = x => x * x * (3 - 2 * x);
+    if (T.S == null) T.S = this.y[i] - 6;
+    const S = T.S;
+    let k = 0, y = S + 18;
+    switch (b.type) {
+      case 'tsnow': y = S + 6 + Math.sin(b.pos * 0.03) * 0.6 * Math.min(1, b.pos / 40, (b.len - b.pos) / 40); break;
+      case 'tberg': { const r = Math.min(1, b.pos / 25, (b.len - b.pos) / 25); k = -2.5 / (b.len - 25) * r; y = S + 6 + 10 * ez(u); break; }
+      case 'tjump': y = S + 16 + 2 * u + 5 * Math.sin(Math.PI * u); break;
+      case 'tstern': k = -Math.PI / b.len; break;
+      case 'tdive': y = S + 18 - 42 * ez(u); break;
+      case 'tunder': y = S - 24 + Math.sin(b.pos * 0.02) * 1.5; k = Math.sin(b.pos * 0.012) * 0.004; break;
+      case 'trise': y = S - 24 + 24.4 * ez(u); break;
+      case 'tfloat': y = S + 0.4; k = Math.sin(b.pos * 0.009) * 0.003; break;
+      case 'tbeach': y = S + 0.4 + 3 * ez(u); break;
+      default: y = S + 18;
+    }
+    c.yaw += k; c.slope = 0;
+    const yaw = c.yaw;
+    this.x.push(this.x[i] + Math.sin(yaw));
+    this.z.push(this.z[i] - Math.cos(yaw));
+    this.y.push(y);
+    this.sea.push(S);
+    this.gy.push(y - S);
+    this.yaw.push(yaw);
+    this.kind.push(b.type === 'interior' ? 3 : 0);
+    this.bio.push(b.bio);
+    this.zd.push(b.zd || 1);
+    this._addGrid(i + 1);
+  }
   // sin disparar al cartel: sigue el desierto de siempre (bajada, oasis, tormenta y la torre)
   _dunesRest(W) {
     const { bio, zd, slen, k } = W;
@@ -95,9 +160,14 @@ export class Road {
   _queueWest(W) {
     const { bio, zd, k } = W, OE = BIOME_KEYS.indexOf('oeste'), f = this.forks[k];
     const i = this.dunes.findIndex(q => q.k === k); if (i >= 0) this.dunes.splice(i, 1);
-    W.turn = this._q({ type: 'wturn', len: 170, bio, zd }).start;
-    W.town = this._q({ type: 'town', len: 600, bio: OE, zd }).start;
-    W.mansion = this._q({ type: 'town', len: 90, bio: OE, zd }).start;
+    // giro brusco a la derecha justo en el cartel, un trozo de dunas hasta el pueblo, la calle mayor hasta la plaza
+    // (saloon y pozo), giro brusco a la izquierda y la calle de la mansión
+    W.turn = this._q({ type: 'wturn', len: 26, bio, zd }).start;
+    this._q({ type: 'wdune', len: 150, bio, zd });
+    W.town = this._q({ type: 'town', len: 300, bio: OE, zd }).start;
+    W.lturn = this._q({ type: 'wlturn', len: 24, bio: OE, zd }).start;
+    W.mansion = this._q({ type: 'town', len: 170, bio: OE, zd }).start;
+    W.mh = W.mansion + 120;
     W.church = this._q({ type: 'town', len: 300, bio: OE, zd }).start;
     W.plain = this._q({ type: 'town', len: 430, bio: OE, zd }).start;
     W.duel = W.plain + 245;
@@ -107,7 +177,29 @@ export class Road {
     f.gantry = tn.start - 40; f.tStart = tn.start; f.tEnd = tn.start + TUN;
     this._q({ type: 'wait', len: 0, fork: k });
   }
-  setWest(k, c) { const W = this.west.find(q => q.k === k); if (W && W.choice == null) W.choice = c ? 1 : 0; }
+  setWest(k, c) {
+    const W = this.west.find(q => q.k === k);
+    if (!W || W.choice != null) return;
+    W.choice = c ? 1 : 0;
+    if (c) this._rebaseWest(W);
+  }
+  // le han disparado al cartel: la carretera ya hecha por delante se corta justo en el cartel y desde ahí sale
+  // el giro brusco a la derecha (igual en todos los jugadores: el corte es siempre en el mismo punto)
+  _rebaseWest(W) {
+    const cut = W.cut = Math.round(W.sign + 24);
+    if (this.len > cut) {
+      for (const k of ['x', 'y', 'z', 'yaw', 'kind', 'bio', 'zd', 'sea', 'gy']) this[k].length = cut + 1;
+      for (const [key, L] of this.grid) { const f = L.filter(i => i <= cut); if (f.length) this.grid.set(key, f); else this.grid.delete(key); }
+      this.cur.yaw = this.yaw[cut]; this.cur.slope = this.y[cut] - this.y[cut - 1];
+      this.queue = [];
+    } else {
+      let p = this.len; const nq = [];
+      for (const b of this.queue) { const rem = (b.len || 0) - b.pos; if (b.type === 'wtwait') break; if (p + rem >= cut) { b.len = b.pos + (cut - p); nq.push(b); break; } nq.push(b); p += rem; }
+      this.queue = nq;
+    }
+    this.planEnd = cut;
+    this._queueWest(W);
+  }
   westAt(d) { for (const W of this.west) if (W.choice === 1 && W.turn != null && d >= W.turn - 60 && d < W.out + 260) return W; return null; }
   // el cartel de OLD TOWN que aún se puede elegir
   westSign(d) { for (const W of this.west) if (W.choice == null && d > W.sign - 320 && d < W.sign + 40) return W; return null; }
@@ -165,6 +257,7 @@ export class Road {
   }
 
   _step(b) {
+    if (b.T) return this._stepT(b);
     const c = this.cur;
     let k = 0, slopeT = 0;
     if (b.type === 'section') {
@@ -195,9 +288,12 @@ export class Road {
       k = 0; slopeT = b.pos < 120 ? -0.17 : 0;
     } else if (b.type === 'oasis' || b.type === 'storm' || b.type === 'arenaOut' || b.type === 'town') {
       k = 0; slopeT = 0;
-    } else if (b.type === 'wturn') {
-      // giro de ~65° a la derecha por las dunas, bajando suave hasta el llano del pueblo
-      k = 1.15 * Math.PI / (2 * b.len) * Math.sin(Math.PI * (b.pos + 0.5) / b.len); slopeT = 0;
+    } else if (b.type === 'wturn' || b.type === 'wlturn') {
+      // giros bruscos de 90°: a la derecha en el cartel y a la izquierda en la plaza del pueblo
+      k = (b.type === 'wturn' ? 1 : -1) * Math.PI / 2 / b.len; slopeT = 0;
+    } else if (b.type === 'wdune') {
+      // por las dunas hasta el pueblo (una curva suave)
+      k = 0.35 / b.len * Math.sin(Math.PI * 2 * (b.pos + 0.5) / b.len); slopeT = 0;
     } else if (b.type === 'loop') {
       k = 2 * Math.PI / ARENA_L; slopeT = 0;
     } else if (b.type === 'tunnel' || b.type === 'interior') {

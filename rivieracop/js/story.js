@@ -50,6 +50,13 @@ export const STORY = [
     radio: [[['pixel', 'La tormenta de arena os llevará hasta la torre. ¡Agarraos!']]],
     outro: [['duval', 'La torre ha caído. Buen trabajo, agentes.']],
   },
+  // PRUEBA: el Titanic (zona larguísima con el iceberg gigante al final)
+  {
+    t: 'PRUEBA: TITANIC', z: ['titanic'], test: true, zd: 2,
+    intro: [['pixel', 'Noche polar, aurora boreal. Un transatlántico enorme navega directo hacia el iceberg por el que vais.'], ['duval', 'Aguantad el choque, recorred las cubiertas mientras se hunde y salid de ahí como sea.']],
+    radio: [[['pixel', '¡Agarraos! ¡Ese barco no va a frenar!']]],
+    outro: [['duval', 'Habéis sobrevivido al Titanic. Y al iceberg. Increíble, agentes.']],
+  },
   // PRUEBA: el pueblo del Oeste (como si hubierais disparado al cartel de OLD TOWN)
   {
     t: 'PRUEBA: OLD TOWN', z: ['dunas'], test: true, zd: 2, west: true,

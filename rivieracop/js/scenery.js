@@ -240,12 +240,17 @@ export function buildChunk(road, c, M) {
     const B = BIOMES[BIOME_KEYS[road.bio[s]]];
     // lo de dentro de túneles e interiores va aparte: no recibe sombras del sol (salían rayas y puntos)
     if (c0 === 1) tunnelRun(RI, road, B, s, e);
-    else if (c0 === 3) interiorRun(RI, road, B, s, e, r);
+    else if (c0 === 3) (B.deco === 'titanic' ? ballroomRun : interiorRun)(RI, road, B, s, e, r);
     else if (c0 === 4) { } // arena de las dunas: el suelo va con la torre
     else outsideRun(B.deco === 'tuneles' ? RI : R, road, B, s, e, r);
     s = e;
   }
   for (const t of road.tunnels) {
+    if (t.interior && t.ball) {
+      // salón de baile del Titanic: pared blanca con una gran puerta a la entrada y a la salida
+      for (const at of [t.start + 0.5, t.end - 0.5]) if (at >= d0 && at < d1) shipWall(R, road, at);
+      continue;
+    }
     if (t.interior) {
       if (t.start >= d0 && t.start < d1) restFacade(R, road, t.start + 1.5);
       if (t.end >= d0 && t.end < d1) restFacade(R, road, t.end - 1.5);
@@ -270,8 +275,8 @@ export function buildChunk(road, c, M) {
   // las cajas sí, con sus caras de detrás (ver toon.js)
   for (const [L, indoor] of [[R, false], [RI, true]]) for (const k of LIST_KEYS) {
     if (!L[k].length) continue;
-    for (const flat of [false, true]) {
-      const part = L[k].filter(x => !!x.userData.flat === flat);
+    for (const flat of [false, true]) for (const ship of [false, true]) {
+      const part = L[k].filter(x => !!x.userData.flat === flat && !!x.userData.ship === ship);
       if (!part.length) continue;
       const g = mergeGeometries(part, false);
       for (const x of part) x.dispose();
@@ -279,6 +284,8 @@ export function buildChunk(road, c, M) {
       g.computeBoundingSphere();
       const me = new THREE.Mesh(g, M[k]);
       me.receiveShadow = !indoor; me.castShadow = !flat && !indoor && !'APVGEY'.includes(k);
+      // el Titanic quieto (el de las cubiertas) no se ve hasta que choca contra el iceberg
+      if (ship) { me.userData.ship = 1; grp.userData.hasShip = 1; }
       grp.add(me);
     }
   }
@@ -289,7 +296,7 @@ export function buildChunk(road, c, M) {
 // boca del túnel tematizada según la zona (antes era siempre un muro blanco que parecía un edificio)
 // out = 1 en la salida del túnel (la cara que se ve es la de delante)
 const PSTY = {
-  rock: ['bosque', 'llanura', 'lomas', 'desierto', 'acantilados', 'costa', 'cornisa', 'rio', 'barro', 'bajada', 'curva', 'pueblo', 'ruinas', 'puerto'],
+  rock: ['tmar', 'titanic', 'bosque', 'llanura', 'lomas', 'desierto', 'acantilados', 'costa', 'cornisa', 'rio', 'barro', 'bajada', 'curva', 'pueblo', 'ruinas', 'puerto'],
   tech: ['autopista', 'industrial', 'trenes', 'trenmil', 'tuneles', 'semaforos'],
   mil: ['militar', 'guerra'], city: ['monaco', 'policia', 'detroit', 'manifa', 'orgullo'],
   casino: ['casino'], chino: ['chino'], zombi: ['zombi'], sea: ['submarino'],
@@ -607,6 +614,9 @@ function outsideRun(R, road, B, i0, i1, r) {
   if (B.deco === 'submarino') { seaRun(R, road, B, i0, i1, r); return; }
   if (B.deco === 'dunas') { duneRun(R, road, B, i0, i1, r); return; }
   if (B.deco === 'oeste') { westRun(R, road, B, i0, i1, r); return; }
+  if (B.deco === 'titanic') { titanicRun(R, road, B, i0, i1, r); return; }
+  if (B.deco === 'tsub') { tsubRun(R, road, B, i0, i1, r); return; }
+  if (B.deco === 'tmar') { tmarRun(R, road, B, i0, i1, r); return; }
   strip(R.A, road, i0, i1, C(-HALF, 0), C(HALF, 0), LIGHT(B.asphalt, 0.08), 4);
   if (B.deco !== 'pueblo') dashes(R, road, i0, i1, B.line);
   // en los cruces la acera, el bordillo y el talud de ese lado se cortan: la calle entra a ras de la carretera
@@ -682,6 +692,15 @@ function cactus2(R, m, s) {
   addBox(R.L, 0.22 * s, 0.6 * s, 0.22 * s, 0x3a7a32, m, { y: 0.8 * s, x: -0.3 * s });
 }
 const LANE_ME_ = 3;
+// abrevadero de caballos: pila de tablones con agua, bomba de mano y un cubo
+function trough(R, m) {
+  addBox(R.D, 2.6, 0.75, 0.95, 0x6a4424, m, { y: 0.38 });
+  for (const x of [-1.25, 1.25]) addBox(R.D, 0.14, 0.85, 1.05, 0x4a2a14, m, { x, y: 0.42 });
+  addBox(R.L, 2.64, 0.08, 0.08, 0x2a2a2a, m, { y: 0.55, z: 0.5 }); addBox(R.L, 2.64, 0.08, 0.08, 0x2a2a2a, m, { y: 0.55, z: -0.5 });
+  addBox(R.G, 2.35, 0.03, 0.75, 0x4a8ab0, m, { y: 0.7 });
+  addBox(R.S, 0.16, 1.4, 0.16, 0x3a3a3a, m, { x: 1.5, y: 0.7 }); addBox(R.S, 0.5, 0.1, 0.1, 0x3a3a3a, m, { x: 1.3, y: 1.35 }); addBox(R.S, 0.08, 0.5, 0.08, 0x3a3a3a, m, { x: 1.6, y: 1.55, rz: 0.6 });
+  addCyl(R.D, 0.22, 0.18, 0.4, 8, 0x8a8a8a, m, { x: -1.7, y: 0.2 });
+}
 // malla de arena de una pieza (vértices compartidos: normales suaves, sin aristas entre franjas)
 // lats = columnas laterales; hf(i, lat) = altura; cf(lat) = color
 function sandGrid(list, road, i0, i1, lats, hf, cf, step = 2) {
@@ -726,6 +745,12 @@ function duneRun(R, road, B, i0, i1, r) {
     // palmeras sueltas
     each(i0, i1, r, 60, 110, d => { const lat = sd * (12 + r() * 20); palm2(R, road, d, lat, r, duneH(d, lat)); });
   }
+  // la pista vieja que sale a la derecha junto al cartel de OLD TOWN (si nadie le dispara, se queda ahí)
+  for (const W of road.west) if (W.choice !== 1 && W.sign + 24 >= i0 && W.sign + 24 < i1) {
+    const m = frame(road, W.sign + 24, 0, 0);
+    for (let k = 0; k < 12; k++) addBox(R.L, 5, 0.04, 4.6, 0xd28a48, m, { x: 9 + k * 4.6, y: duneH(W.sign + 24, 9 + k * 4.6) * 0.7 + 0.02, rz: 0 });
+    for (const z of [-0.9, 0.9]) addBox(R.L, 55, 0.05, 0.35, 0xb8783a, m, { x: 34, y: 0.06, z });
+  }
   // pirámides al fondo a la derecha
   for (let c = Math.floor(i0 / 380); c <= Math.floor(i1 / 380); c++) {
     const d = c * 380 + 150 + (hash(road.seed, c, 3131) % 120);
@@ -749,7 +774,7 @@ function duneRun(R, road, B, i0, i1, r) {
 const WGL = [6.5, 9, 12, 16, 21, 27, 34, 43, 55, 70, 90, 115, 150, 200, 260];
 function westRun(R, road, B, i0, i1, r) {
   const W = road.westAt(i0) || road.westAt(i1);
-  const zone = d => !W ? 'x' : d < W.town - 10 ? 'in' : d < W.mansion ? 'town' : d < W.church ? 'mans' : d < W.plain ? 'church' : d < W.out ? 'plain' : 'x';
+  const zone = d => !W ? 'x' : d < W.town - 10 ? 'in' : d < W.mansion + 10 ? 'town' : d < W.church ? 'mans' : d < W.plain ? 'church' : d < W.out ? 'plain' : 'x';
   const plain = d => W && d >= W.plain - 20;
   // la calle de tierra con rodadas
   strip(R.L, road, i0, i1, C(-HALF - 0.5, 0.0), C(HALF + 0.5, 0.0), 0xb07a46);
@@ -783,18 +808,18 @@ function westRun(R, road, B, i0, i1, r) {
   });
   if (!W) return;
   // --- el pueblo ---
-  const t0 = Math.max(i0, W.town - 6), t1 = Math.min(i1, W.mansion - 4);
+  const t0 = Math.max(i0, W.town - 6), t1 = Math.min(i1, W.lturn);
   if (t1 > t0) {
     for (const sd of [-1, 1]) {
       // acera de tablones, con su borde
       strip(R.D, road, t0, t1, C(sd * (HALF + 0.5), 0.32), C(sd * 10.5, 0.32), 0x8a5a32, 2);
       strip(R.L, road, t0, t1, C(sd * (HALF + 0.5), 0), C(sd * (HALF + 0.5), 0.32), 0x5a3a20);
       each(t0, t1, r, 9, 16, d => {
-        if (d > W.town + 278 && d < W.town + 347) return;
+        if (d > W.town + 262) return;
         const m = frame(road, d, sd * (HALF + 0.9), 0.32);
         const k = r();
-        if (k < 0.4) { for (const z of [-1.2, 1.2]) addBox(R.D, 0.14, 1.0, 0.14, 0x6a4424, m, { y: 0.5, z }); addBox(R.D, 0.12, 0.12, 2.6, 0x6a4424, m, { y: 0.95 }); } // barra de atar caballos
-        else if (k < 0.6) { addBox(R.D, 0.8, 0.5, 2.0, 0x6a4424, m, { y: 0.25 }); addBox(R.G, 0.7, 0.02, 1.9, 0x3a6a8a, m, { y: 0.48 }); } // abrevadero
+        if (k < 0.3) { for (const z of [-1.2, 1.2]) addBox(R.D, 0.14, 1.0, 0.14, 0x6a4424, m, { y: 0.5, z }); addBox(R.D, 0.12, 0.12, 2.6, 0x6a4424, m, { y: 0.95 }); } // barra de atar caballos
+        else if (k < 0.6) trough(R, frame(road, d, sd * (HALF + 1.3), 0.32, Math.PI / 2)); // abrevadero de caballos
         else if (k < 0.8) { addCyl(R.D, 0.35, 0.35, 0.9, 10, 0x7a4a24, m, { y: 0.45 }); addCyl(R.D, 0.3, 0.3, 0.8, 10, 0x6a3a1a, m, { y: 0.4, z: 0.75 }); }
         else { addBox(R.S, 0.1, 3.2, 0.1, 0x2a2a2a, m, { y: 1.6 }); addBox(R.L, 0.6, 0.06, 0.06, 0x2a2a2a, m, { y: 3.1, x: -sd * 0.3 }); addBox(R.G, 0.28, 0.4, 0.28, 0xffd070, m, { y: 2.85, x: -sd * 0.55 }); } // farol
       });
@@ -808,21 +833,42 @@ function westRun(R, road, B, i0, i1, r) {
         else { for (let q = 0; q < 6; q++) addBox(R.D, 0.14, 1.2, 0.14, 0x6a4424, m, { x: -3 + q * 1.2, y: 0.6 }); addBox(R.D, 7, 0.1, 0.1, 0x6a4424, m, { y: 1.0 }); addBox(R.D, 7, 0.1, 0.1, 0x6a4424, m, { y: 0.55 }); }
       });
     }
-    // la plaza: tierra más clara y el pozo
-    const p0 = Math.max(t0, W.town + 282), p1 = Math.min(t1, W.town + 343);
+  }
+  // --- la plaza al final de la calle mayor (con el saloon en la esquina y el pozo): giro brusco a la izquierda ---
+  { const p0 = Math.max(i0, W.town + 262), p1 = Math.min(i1, W.mansion + 18);
     if (p1 > p0) {
-      strip(R.L, road, p0, p1, C(-22, 0.015), C(22, 0.015), 0xc8925a);
-      if (W.town + 312 >= i0 && W.town + 312 < i1) {
-        const g = wWell(); road.toWorld(W.town + 312, 13, 0, g.position); g.rotation.y = -road.yawAt(W.town + 312); (R.X || (R.X = [])).push(g);
-        const m = frame(road, W.town + 312, -14, 0);
+      strip(R.L, road, p0, p1, C(-14, 0.015), C(26, 0.015), 0xc8925a);
+      const wd = W.lturn + 10;
+      if (wd >= i0 && wd < i1) {
+        const g = wWell(); road.toWorld(wd, 14, 0, g.position); g.rotation.y = -road.yawAt(wd); (R.X || (R.X = [])).push(g);
+        for (const z of [-5, 5]) trough(R, frame(road, wd + z, 18.5, 0, Math.PI / 2));
+        const m = frame(road, W.town + 268, -12, 0);
         addBox(R.D, 0.2, 9, 0.2, 0x8a8a8a, m, { y: 4.5 }); addBox(R.L, 0.05, 1.2, 1.8, 0xc83030, m, { y: 8.2, z: 0.9 }); // mástil con bandera
-        for (const z of [-6, 6]) { addBox(R.D, 0.5, 0.45, 2.2, 0x6a4424, frame(road, W.town + 312 + z, 11, 0), { y: 0.23 }); }
+        for (const z of [-4, 4]) addBox(R.D, 0.5, 0.45, 2.2, 0x6a4424, frame(road, W.town + 290 + z, 12, 0), { y: 0.23 }); // bancos
       }
     }
   }
-  // --- la mansión: valla blanca y jardín ---
-  { const a = Math.max(i0, W.mansion + 12), b = Math.min(i1, W.mansion + 80);
-    if (b > a) { for (let d = a; d < b; d += 1.2) if (Math.abs(d - W.mansion - 45) > 2.2) addBox(R.L, 0.08, 1.0, 0.08, 0xf2f2f2, frame(road, d, -13.5, 0), { y: 0.5 }); strip(R.L, road, a, b, C(-13.6, 0.85), C(-13.4, 0.85), 0xf2f2f2); strip(R.L, road, a, b, C(-46, 0.01), C(-14.5, 0.01), 0x6a8a3a); } }
+  // --- la calle de la mansión: vallas blancas, jardines con césped, farolas, cipreses y el camino de baldosas ---
+  { const a = Math.max(i0, W.mansion + 20), b = Math.min(i1, W.church - 6);
+    if (b > a) {
+      for (const sd of [-1, 1]) {
+        const fl = sd * 8.6;
+        for (let d = Math.ceil(a / 1.1) * 1.1; d < b; d += 1.1) if (sd > 0 || Math.abs(d - W.mh) > 4.4) addBox(R.L, 0.1, 1.05, 0.1, 0xf6f6f2, frame(road, d, fl, 0), { y: 0.52 });
+        strip(R.L, road, a, b, C(fl - 0.06, 0.85), C(fl + 0.06, 0.85), 0xf6f6f2); strip(R.L, road, a, b, C(fl - 0.06, 0.45), C(fl + 0.06, 0.45), 0xf6f6f2);
+        strip(R.L, road, a, b, C(sd * (HALF + 0.4), 0.01), C(sd * 46, 0.01), sd < 0 ? 0x5a8a34 : 0x6a9a3a);
+        each(a, b, r, 14, 14, d => { const m = frame(road, d, sd * 7.6, 0); addBox(R.S, 0.14, 4, 0.14, 0x1a1a1a, m, { y: 2 }); addBox(R.G, 0.4, 0.5, 0.4, 0xffe0a0, m, { y: 4.1 }); addBox(R.L, 0.55, 0.12, 0.55, 0x1a1a1a, m, { y: 4.42 }); });
+        each(a, b, r, 9, 16, d => { if (sd < 0 && Math.abs(d - W.mh) < 16) return; const m = frame(road, d, sd * (11 + r() * 8), 0); const h = 5 + r() * 3; addBox(R.L, 0.3, 1, 0.3, 0x5a3a20, m, { y: 0.5 }); addCyl(R.L, 0.1, 1.1, h, 8, 0x2a5a2a, m, { y: 0.9 + h / 2 }); });
+      }
+      if (W.mh >= i0 && W.mh < i1) {
+        strip(R.L, road, Math.max(i0, Math.floor(W.mh - 1.4)), Math.min(i1, Math.ceil(W.mh + 1.4)), C(-HALF - 0.4, 0.02), C(-9.4, 0.02), 0xd8d0c0);
+        const m = frame(road, W.mh, -8.6, 0);
+        for (const z of [-4.5, 4.5]) { addBox(R.L, 0.45, 1.6, 0.45, 0xf6f6f2, m, { y: 0.8, z }); addBox(R.L, 0.55, 0.3, 0.55, 0xd8d0c0, m, { y: 1.75, z }); addBox(R.L, 0.35, 0.35, 0.35, 0xd4af37, m, { y: 2.05, z }); }
+        // fuente en el jardín, a un lado
+        const f = frame(road, W.mh - 13, -15, 0);
+        addCyl(R.L, 2.4, 2.6, 0.6, 14, 0xe8e0d0, f, { y: 0.3 }); addCyl(R.G, 2.1, 2.1, 0.05, 14, 0x5ab0d8, f, { y: 0.58 }); addCyl(R.L, 0.3, 0.45, 1.6, 8, 0xe8e0d0, f, { y: 1.2 }); addCyl(R.L, 0.9, 0.6, 0.3, 10, 0xe8e0d0, f, { y: 2.0 });
+      }
+    }
+  }
   // --- el cerro de la iglesia (a la izquierda) y el cementerio (a la derecha) ---
   if (W.church + 230 >= i0 && W.church + 70 < i1) {
     const cd = W.church + 150;
@@ -853,6 +899,203 @@ function westRun(R, road, B, i0, i1, r) {
       each(a, b, r, 30, 55, d => { const sd = r() < 0.5 ? -1 : 1, m = frame(road, d, sd * (12 + r() * 18), 0, r() * 6); addBox(R.L, 0.3, 3.4, 0.3, 0x4a3a2a, m, { y: 1.7, rz: 0.1 }); addBox(R.L, 0.16, 1.6, 0.16, 0x4a3a2a, m, { y: 3, x: 0.5, rz: -0.7 }); addBox(R.L, 0.14, 1.2, 0.14, 0x4a3a2a, m, { y: 2.6, x: -0.4, rz: 0.8 }); });
       each(a, b, r, 18, 30, d => { const m = frame(road, d, (r() < 0.5 ? -1 : 1) * (8 + r() * 6), 0.1, r() * 6); addBox(R.L, 0.4, 0.3, 0.5, 0xf0e8d6, m, { y: 0.15 }); for (const x of [-0.35, 0.35]) addBox(R.L, 0.35, 0.08, 0.08, 0xf0e8d6, m, { y: 0.25, x, rz: x > 0 ? -0.4 : 0.4 }); });
     }
+  }
+}
+// ---------- EL TITANIC ----------
+// todo lo que se añade a una lista entre mark() y ship() queda marcado como parte del barco (oculto hasta el choque)
+const mark = R => { const m = {}; for (const k of LIST_KEYS) m[k] = R[k].length; return m; };
+const shipTag = (R, m) => { for (const k of LIST_KEYS) for (let i = m[k]; i < R[k].length; i++) R[k][i].userData.ship = 1; };
+const SNOWC = la => { const a = Math.abs(la); return a < 9 ? 0xdde8f4 : a < 40 ? 0xeef4fc : 0xe2ecf8; };
+const SNOWL = [6.5, 8, 10, 13, 17, 22, 28, 36, 46, 58, 74, 95, 125, 165, 215, 260];
+function titanicRun(R, road, B, i0, i1, r) {
+  const T = road.titanicAt(i0);
+  if (!T || T.S == null) return;
+  const seg = (a, b, fn) => { const s = Math.max(i0, a), e = Math.min(i1, b); if (e > s) fn(s, e); };
+  seg(T.secStart - 80, T.berg, (a, b) => snowRun(R, road, a, b, r));
+  seg(T.berg, T.jump, (a, b) => bergRun(R, road, T, a, b, r));
+  // el iceberg (la colina puntiaguda) se levanta una vez, en el trozo de la mitad de la curva
+  const mid = T.berg + 170;
+  if (mid >= i0 && mid < i1) bergHill(R, road, T, mid);
+  seg(T.jump, T.under, (a, b) => { const m = mark(R); deckRun(R, road, T, a, b, r); shipTag(R, m); });
+  if (T.deck1 >= i0 && T.deck1 < i1) { const m = mark(R); shipBow(R, road, T); shipTag(R, m); }
+}
+// la nieve del principio: llano, montones de nieve y ni un árbol
+function snowRun(R, road, i0, i1, r) {
+  strip(R.L, road, i0, i1, C(-HALF - 0.5, 0), C(HALF + 0.5, 0), 0xd4e0ee);
+  for (const l of [LANE_ME_ - 0.8, LANE_ME_ + 0.8, -LANE_ME_ - 0.8, -LANE_ME_ + 0.8]) strip(R.L, road, i0, i1, C(l - 0.2, 0.01), C(l + 0.2, 0.01), 0xb0c2d8);
+  const hf = (i, la) => { const a = Math.abs(la); return a < 8 ? 0 : Math.min(1, (a - 8) / 10) * (0.9 + 0.7 * Math.sin(i * 0.05 + la * 0.1)) + (a > 40 ? Math.min(1, (a - 40) / 60) * (5 + 4 * Math.sin(i * 0.02 + la * 0.02)) : 0); };
+  for (const sd of [-1, 1]) sandGrid(R.L, road, i0, i1, (sd < 0 ? SNOWL.slice().reverse() : SNOWL).map(a => sd * a), hf, SNOWC);
+  // montones de nieve acumulada y bloques de hielo
+  for (const sd of [-1, 1]) each(i0, i1, r, 5, 11, d => {
+    const lat = sd * (7.5 + r() * 30), m = frame(road, d, lat, hf(d, lat) - 0.2, r() * 6), s = 0.8 + r() * 1.8;
+    if (r() < 0.75) { addCyl(R.L, 0.1, s * 1.4, s * 0.8, 7, 0xf4f8ff, m, { y: s * 0.35 }); addCyl(R.L, 0.1, s * 0.8, s * 0.6, 6, 0xffffff, m, { y: s * 0.55, x: s * 0.5 }); }
+    else addBox(R.L, s, s * 0.7, s * 1.2, 0xb8dcf4, m, { y: s * 0.3, ry: r(), rz: (r() - 0.5) * 0.4 });
+  });
+}
+// la vuelta al iceberg: a la izquierda la ladera; a la derecha, sin arcén, el acantilado de hielo hasta el mar
+function bergRun(R, road, T, i0, i1, r) {
+  strip(R.L, road, i0, i1, C(-HALF - 0.5, 0), C(HALF + 0.5, 0), 0xd4e0ee);
+  for (const l of [LANE_ME_ - 0.8, LANE_ME_ + 0.8]) strip(R.L, road, i0, i1, C(l - 0.2, 0.01), C(l + 0.2, 0.01), 0xb0c2d8);
+  strip(R.L, road, i0, i1, C(-HALF - 0.5, 0), C(-14, 3.5), 0xeef4fc);
+  strip(R.L, road, i0, i1, C(-14, 3.5), C(-24, 11), 0xe4eefa);
+  strip(R.L, road, i0, i1, C(HALF + 0.5, 0), C(HALF + 1.2, -0.2), 0xf4f8ff);
+  strip(R.L, road, i0, i1, C(HALF + 1.2, -0.2), i => [HALF + 2.4, -(road.gy[i] + 1)], 0x9ac0e0);
+  // salientes y grietas en el acantilado de hielo, y témpanos abajo
+  each(i0, i1, r, 6, 12, d => {
+    const g = road.gy[Math.floor(d)] || 10, m = frame(road, d, HALF + 1.6, -g * (0.2 + r() * 0.6));
+    addBox(R.L, 1 + r() * 1.5, 1.5 + r() * 3, 1.5 + r() * 3, pick(r, [0xc8e4f8, 0x9ad0f0, 0xe8f4ff]), m, { ry: r(), rz: (r() - 0.5) * 0.5 });
+  });
+  each(i0, i1, r, 9, 18, d => { const g = road.gy[Math.floor(d)] || 10, m = frame(road, d, HALF + 6 + r() * 20, -g + 0.2, r() * 6); addBox(R.L, 2 + r() * 4, 1 + r() * 1.5, 2 + r() * 4, 0xe8f4ff, m, { y: 0.2 }); });
+  // nieve en polvo amontonada en el borde de la ladera
+  each(i0, i1, r, 4, 8, d => { const m = frame(road, d, -HALF - 1.5 - r() * 3, 0.4, r() * 6); addCyl(R.L, 0.1, 1 + r(), 0.7 + r() * 0.5, 7, 0xf8fbff, m, { y: 0.2 }); });
+}
+// la colina puntiaguda de hielo (el iceberg) dentro de la curva
+function bergHill(R, road, T, mid) {
+  const Rc = (340 - 25) / 2.5, y = road.gy[Math.floor(mid)] || 10;
+  const m = frame(road, mid, -Rc, -y + 2);
+  addCyl(R.L, 2, Rc - 14, 95, 14, 0xe8f2fc, m, { y: 47.5 });
+  addCyl(R.L, 0.5, Rc * 0.55, 60, 9, 0xf4f8ff, m, { y: 70, x: 10, z: -8 });
+  addCyl(R.L, 0.5, Rc * 0.4, 45, 7, 0xd8ecfa, m, { y: 60, x: -30, z: 25 });
+  for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; addBox(R.L, 14, 30, 10, k % 2 ? 0xb8dcf4 : 0xd0e8fa, m, { x: Math.cos(a) * (Rc - 22), z: Math.sin(a) * (Rc - 22), y: 18, ry: a, rz: 0.3 }); }
+}
+// la proa del Titanic (escalonada, en voxel) delante de la primera cubierta, encima del mar
+function shipBow(R, road, T) {
+  const d = T.deck1, g = road.gy[Math.floor(d)] || 18, m = frame(road, d, -10.2, 0), H = g + 11;
+  for (let k = 0; k < 8; k++) {
+    const w = 33.6 * (1 - k / 8.4), z = 2.5 + k * 4.5; // +z = hacia atrás en la carretera (hacia el iceberg)
+    addBox(R.D, w, 0.3, 4.6, 0xb8865a, m, { y: -0.15, z, uvs: 1.5 });
+    addBox(R.L, w + 0.1, 6.4, 4.5, 0xf2f2ee, m, { y: -3.4, z });
+    addBox(R.L, w, H - 6.5 - 12, 4.4, 0x141414, m, { y: -6.6 - (H - 6.5 - 12) / 2, z });
+    addBox(R.L, w - 0.4, 12, 4.3, 0x8a1a14, m, { y: -H + 6, z });
+    // borda con barandilla
+    for (const sx of [-1, 1]) addBox(R.L, 0.12, 1.1, 4.5, 0xf2f2ee, m, { x: sx * w / 2, y: 0.55, z });
+  }
+  // cabrestantes, cadenas del ancla y el palo de proa
+  for (const sx of [-2, 2]) { addCyl(R.S, 0.6, 0.7, 0.9, 10, 0x2a2a2a, m, { x: sx, y: 0.45, z: 12 }); addBox(R.S, 0.3, 0.2, 9, 0x3a3a3a, m, { x: sx, y: 0.15, z: 20 }); }
+  addCyl(R.L, 0.35, 0.45, 32, 8, 0x8a6a4a, m, { y: 16, z: 6 });
+  addBox(R.L, 10, 0.25, 0.25, 0x8a6a4a, m, { y: 22, z: 6 });
+  addBox(R.L, 3, 1.4, 2, 0xf2f2ee, m, { y: 0.7, z: 26 });
+}
+// las cubiertas: madera, barandilla, casco blanco y negro con ojos de buey, botes en sus pescantes y las casetas;
+// en la primera, las cuatro chimeneas, el puente y el palo de popa
+function deckRun(R, road, T, i0, i1, r) {
+  const D = (i, k) => C(k, 0)(i);
+  strip(R.D, road, i0, i1, C(-10.2, 0.02), C(6.8, 0.02), 0xb8865a, 1.4);
+  // juntas de los tablones
+  for (let l = -9; l < 6.5; l += 1.6) strip(R.L, road, i0, i1, C(l, 0.03), C(l + 0.05, 0.03), 0x6a4a2a);
+  // borda y barandilla
+  strip(R.L, road, i0, i1, C(6.8, 0), C(6.8, 0.35), 0xf2f2ee);
+  strip(R.L, road, i0, i1, C(6.8, 1.05), C(6.8, 1.15), 0x8a6a4a);
+  for (let d = Math.ceil(i0 / 1.6) * 1.6; d < i1; d += 1.6) addBox(R.L, 0.06, 1.1, 0.06, 0xd8d8d0, frame(road, d, 6.8, 0), { y: 0.55 });
+  // casco: superestructura blanca, casco negro, franja dorada y la obra viva roja (que se ve desde debajo del agua)
+  strip(R.L, road, i0, i1, C(6.85, 0), C(6.85, -6.5), 0xf2f2ee);
+  strip(R.L, road, i0, i1, C(6.85, -6.5), i => [6.85, -(road.gy[i] - 1)], 0x141414);
+  strip(R.L, road, i0, i1, C(6.86, -6.7), C(6.86, -6.9), 0xd4af37);
+  strip(R.L, road, i0, i1, i => [6.85, -(road.gy[i] - 1)], i => [6.85, -(road.gy[i] + 11)], 0x8a1a14);
+  strip(R.L, road, i0, i1, i => [6.85, -(road.gy[i] + 11)], i => [-10.2, -(road.gy[i] + 11)], 0x6a140e);
+  for (let d = Math.ceil(i0 / 2.2) * 2.2; d < i1; d += 2.2) {
+    const m = frame(road, d, 6.9, 0), g = road.gy[Math.floor(d)] || 18;
+    addBox(R.G, 0.05, 0.7, 0.9, 0xffe8a8, m, { y: -2.4 }); addBox(R.L, 0.05, 0.7, 0.9, 0x2a3a4a, m, { y: -4.8 });
+    if (g > 9) { addBox(R.G, 0.05, 0.4, 0.4, 0xffe8a8, m, { y: -8.2 }); addBox(R.L, 0.05, 0.4, 0.4, 0x3a3a3a, m, { y: -10.6 }); }
+  }
+  const inD1 = d => d >= T.deck1 && d < T.stern, straight = d => (d >= T.deck1 + 6 && d < T.stern - 6) || (d >= T.deck2 + 6 && d < T.dive);
+  // botes salvavidas en sus pescantes, junto a la borda
+  for (let d = Math.ceil(i0 / 13) * 13; d < i1; d += 13) {
+    if (!straight(d)) continue;
+    const m = frame(road, d, 5.6, 0);
+    addBox(R.L, 1.9, 0.9, 7, 0xf4f4f0, m, { y: 1.6 }); addBox(R.L, 2.0, 0.12, 7.1, 0x8a6a4a, m, { y: 2.08 }); addBox(R.L, 1.7, 0.25, 6.4, 0xd8d4c8, m, { y: 2.2 });
+    for (const z of [-3.6, 3.6]) { addBox(R.S, 0.16, 3.2, 0.16, 0x2a2a2a, m, { x: 0.9, y: 1.6, z }); addBox(R.S, 1.1, 0.16, 0.16, 0x2a2a2a, m, { x: 0.4, y: 3.2, z }); }
+  }
+  // casetas blancas por dentro (con ventanas, puertas y ventiladores), tumbonas delante
+  for (let d = Math.ceil((i0 - 4) / 26) * 26 + 4; d < i1; d += 26) {
+    if (!straight(d) || !straight(d + 19)) continue;
+    const m = frame(road, d + 9.5, -5.8, 0);
+    addBox(R.L, 8.8, 3.2, 19, 0xf2f0ea, m, { y: 1.6 }); addBox(R.L, 9.2, 0.25, 19.4, 0xd8d4c8, m, { y: 3.3 });
+    for (let z = -8; z <= 8; z += 2.6) addBox(R.L, 0.06, 1.2, 1.4, 0x2a3a58, m, { x: 4.43, y: 1.9, z });
+    addBox(R.L, 0.08, 2.2, 1.1, 0x6a4424, m, { x: 4.44, y: 1.1, z: 0 });
+    for (let q = 0; q < 2; q++) { const vz = -6 + q * 12; addCyl(R.L, 0.35, 0.35, 1.8, 8, 0xf2f2ee, m, { x: 1, y: 4.2, z: vz }); addBox(R.L, 0.9, 0.9, 0.5, 0xf2f2ee, m, { x: 1.4, y: 5.1, z: vz }); }
+    for (let q = 0; q < 3; q++) addBox(R.D, 0.7, 0.45, 1.8, 0x8a5a32, frame(road, d + 4 + q * 5, 0.2, 0), { y: 0.25 });
+  }
+  if (i0 < T.stern && i1 > T.deck1) {
+    // chimeneas (color crema con la parte de arriba negra), el puente y el palo de popa
+    for (const off of [58, 102, 146, 190]) {
+      const d = T.deck1 + off;
+      if (d < i0 || d >= i1) continue;
+      const m = frame(road, d, -10.2, 0);
+      addBox(R.L, 9, 2.5, 12, 0xf2f0ea, m, { y: 4.4 });
+      addCyl(R.L, 3, 3.2, 16, 14, 0xd8a040, m, { y: 13.5, rx: 0.12 });
+      addCyl(R.L, 3.05, 3.05, 3.2, 14, 0x141414, m, { y: 22.4, z: -1, rx: 0.12 });
+      for (const sx of [-2.4, 2.4]) addCyl(R.S, 0.25, 0.25, 15, 6, 0xd8d0c0, m, { x: sx, y: 12, z: 3.2 });
+    }
+    if (T.deck1 + 12 >= i0 && T.deck1 + 12 < i1) { const m = frame(road, T.deck1 + 12, -10.2, 0); addBox(R.L, 15, 3.6, 6, 0xf2f0ea, m, { y: 1.8 }); addBox(R.L, 15.6, 0.3, 6.6, 0xd8d4c8, m, { y: 3.75 }); for (let x = -6; x <= 6; x += 1.5) addBox(R.G, 1.0, 0.8, 0.06, 0xffe8a8, m, { x, y: 2.5, z: -3.02 }); }
+    if (T.deck1 + 228 >= i0 && T.deck1 + 228 < i1) { const m = frame(road, T.deck1 + 228, -10.2, 0); addCyl(R.L, 0.35, 0.45, 30, 8, 0x8a6a4a, m, { y: 15 }); addBox(R.L, 9, 0.25, 0.25, 0x8a6a4a, m, { y: 22 }); }
+  }
+}
+// pared del salón de baile con la gran puerta (entrada y salida)
+function shipWall(R, road, d) {
+  const m = frame(road, d, 0, 0);
+  for (const sd of [-1, 1]) addBox(R.L, 9, 6, 0.6, 0xf2f0ea, m, { x: sd * 11.5, y: 3 });
+  addBox(R.L, 14, 2, 0.6, 0xf2f0ea, m, { y: 5 });
+  addBox(R.L, 14.4, 0.4, 0.8, 0xd4af37, m, { y: 4 });
+}
+// el gran salón de baile: parqué, columnas, arañas de luz, cúpula de cristal, la gran escalera y mesas con mantel
+function ballroomRun(R, road, B, i0, i1, r) {
+  strip(R.D, road, i0, i1, C(-15, 0.01), C(9, 0.01), 0xc89a6a, 1.2);
+  strip(R.L, road, i0, i1, C(-4, 0.02), C(4, 0.02), 0x8a2a3a);
+  for (const sd of [-1, 1]) { const L = sd < 0 ? -15 : 9; strip(R.L, road, i0, i1, C(L, 0), C(L, 6), 0xf2ece0); strip(R.L, road, i0, i1, C(L, 1.0), C(L, 1.15), 0xd4af37); strip(R.L, road, i0, i1, C(L, 4.8), C(L, 4.95), 0xd4af37); }
+  strip(R.L, road, i0, i1, C(-15, 6), C(9, 6), 0xf6f0e4);
+  strip(R.G, road, i0, i1, C(-8, 5.95), C(2, 5.95), 0xbfe0f0);
+  for (let d = Math.ceil(i0 / 8) * 8; d < i1; d += 8) {
+    for (const lat of [-12.5, 6.8]) { const m = frame(road, d, lat, 0); addCyl(R.L, 0.45, 0.5, 6, 10, 0xf6f0e4, m, { y: 3 }); addBox(R.L, 1.2, 0.4, 1.2, 0xd4af37, m, { y: 5.8 }); addBox(R.L, 1.2, 0.3, 1.2, 0xd4af37, m, { y: 0.15 }); }
+    const c = frame(road, d + 4, -3, 0);
+    addBox(R.S, 0.05, 1.2, 0.05, 0xd4af37, c, { y: 5.3 });
+    for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; addBox(R.G, 0.18, 0.3, 0.18, 0xfff0b8, c, { x: Math.cos(a) * 0.9, z: Math.sin(a) * 0.9, y: 4.6 }); }
+    addBox(R.G, 0.4, 0.6, 0.4, 0xfff6d0, c, { y: 4.5 });
+  }
+  // la gran escalera a la izquierda (con su barandilla dorada y el reloj arriba)
+  const mid = Math.floor((i0 + i1) / 2);
+  if (mid >= i0 && mid < i1 && i1 - i0 > 30) {
+    const m = frame(road, mid, -12, 0);
+    for (let k = 0; k < 10; k++) addBox(R.D, 2.6 - k * 0.05, 0.3, 6, 0x8a5a32, m, { x: -k * 0.0 + 1.2 - k * 0.25, y: 0.15 + k * 0.3, z: 0 });
+    for (const z of [-3.1, 3.1]) addBox(R.L, 0.12, 1, 6, 0xd4af37, m, { x: -0.6, y: 2.2, z, rz: 0.55 });
+    addBox(R.L, 1.2, 1.2, 0.2, 0x8a5a32, m, { x: -2.6, y: 4.6 }); addCyl(R.L, 0.45, 0.45, 0.1, 14, 0xf2f2f2, m, { x: -2.5, y: 4.6, rz: Math.PI / 2 });
+  }
+  // mesas redondas con mantel (las que no se deslizan)
+  each(i0 + 3, i1 - 3, r, 4, 7, d => {
+    const lat = -10 + r() * 3, m = frame(road, d, lat, 0, r() * 6);
+    addCyl(R.L, 0.9, 0.9, 0.1, 12, 0xf6f6f2, m, { y: 0.78 }); addCyl(R.L, 0.95, 1.0, 0.7, 12, 0xf0f0ea, m, { y: 0.4 });
+    addCyl(R.G, 0.06, 0.06, 0.25, 6, 0xffe8a0, m, { y: 0.95 });
+    for (let q = 0; q < 4; q++) { const a = q * Math.PI / 2; addBox(R.D, 0.45, 0.9, 0.45, 0x6a3a1a, m, { x: Math.cos(a) * 1.3, z: Math.sin(a) * 1.3, y: 0.45 }); }
+  });
+}
+// bajo el agua: fondo oscuro, rocas, algas, restos del barco y burbujas
+function tsubRun(R, road, B, i0, i1, r) {
+  strip(R.L, road, i0, i1, C(-90, -0.02), C(90, -0.02), 0x4a5a5e);
+  strip(R.L, road, i0, i1, C(-HALF, 0.01), C(HALF, 0.01), 0x5a6a6a);
+  for (const sd of [-1, 1]) strip(R.K, road, i0, i1, C(sd * 90, -0.02), C(sd * 120, 14), 0x2a3a4a, 8);
+  each(i0, i1, r, 2, 4.5, d => {
+    const lat = (r() < 0.5 ? -1 : 1) * (HALF + 1 + r() * 40), m = frame(road, d, lat, 0, r() * 6), k = r();
+    if (k < 0.4) { const h = 2 + r() * 5; for (let q = 0; q < 3; q++) addBox(R.L, 0.12, h, 0.25, pick(r, [0x2a6a4a, 0x1a5a3a]), m, { x: q * 0.3 - 0.3, y: h / 2, rz: (r() - 0.5) * 0.3 }); }
+    else if (k < 0.75) addBox(R.K, 1.5 + r() * 3, 1 + r() * 2, 1.5 + r() * 3, pick(r, [0x4a5a6a, 0x3a4a5a]), m, { y: 0.5, uvs: 3 });
+    else if (k < 0.88) { addBox(R.U, 1.2, 0.8, 0.8, 0x6a4a3a, m, { y: 0.4, ry: r() }); addBox(R.U, 0.4, 0.25, 0.6, 0x8a3a2a, m, { y: 0.95, x: 0.2 }); } // maleta
+    else { addCyl(R.U, 1.4, 1.4, 4, 10, 0x5a3a2a, m, { y: 1.4, rz: Math.PI / 2 }); } // caldera
+  });
+  each(i0, i1, r, 6, 12, d => { for (let q = 0; q < 5; q++) addBox(R.G, 0.15, 0.15, 0.15, 0xc8f0ff, frame(road, d, (r() - 0.5) * 30, 1 + q * 2 + r())); });
+}
+// el mar helado: el coche flota; témpanos, icebergs y, al final, la playa con la montaña helada
+function tmarRun(R, road, B, i0, i1, r) {
+  const T = road.titanicAt(i0), beach = T ? T.beach : 1e9;
+  for (const sd of [-1, 1]) each(i0, i1, r, 6, 14, d => {
+    const lat = sd * (8 + r() * 70), m = frame(road, d, lat, -0.5, r() * 6), s = 1.5 + r() * 4;
+    addBox(R.L, s, 0.9, s * (0.7 + r() * 0.6), pick(r, [0xf2f8ff, 0xd8ecfa, 0xc0e0f8]), m, { y: 0.3 });
+  });
+  each(i0, i1, r, 40, 80, d => { const sd = r() < 0.5 ? -1 : 1, m = frame(road, d, sd * (60 + r() * 80), -1, r() * 6), h = 10 + r() * 22; addCyl(R.L, 1, 8 + r() * 10, h, 6, pick(r, [0xe8f4ff, 0xc8e4f8]), m, { y: h / 2 }); });
+  // la playa al final: nieve que sube desde el agua y la montaña helada detrás
+  const a = Math.max(i0, beach - 20), b = i1;
+  if (b > a) {
+    const hf = (i, la) => Math.max(0, (i - beach) * 0.03) + (Math.abs(la) > 10 ? Math.min(8, (Math.abs(la) - 10) * 0.2) : 0);
+    for (const sd of [-1, 1]) sandGrid(R.L, road, a, b, (sd < 0 ? SNOWL.slice().reverse() : SNOWL).map(x => sd * x), (i, la) => hf(i, la) - 0.6, SNOWC);
+    strip(R.L, road, a, b, C(-HALF - 0.5, 0.0), C(HALF + 0.5, 0.0), 0xd4e0ee);
   }
 }
 function palm(R, road, d, lat, r) {

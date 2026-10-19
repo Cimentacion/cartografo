@@ -34,7 +34,7 @@ export const SEAT_H = 1.75, SEAT_D = -0.8;
 const VEH = new Set(['xcar', 'harvester', 'police', 'ecar', 'truck', 'amb', 'jeep', 'civcar', 'tank', 'rig', 'fuel', 'float', 'pickup', 'van', 'bus', 'crew']);
 const HOSTILE = new Set(['gunman', 'sniper', 'moto', 'ecar', 'heli', 'drone', 'jeep', 'grenade', 'rocket', 'rock', 'wall', 'train',
   'jumper', 'tank', 'rig', 'rioter', 'thrown', 'chef', 'boat', 'mtrain', 'quad', 'pickup', 'van', 'bus', 'canoe',
-  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'turret', 'gunship', 'crew', 'xcar', 'harvester', 'zombie', 'bat', 'brute', 'megalodon', 'firetruck', 'slasher', 'tuktuk']);
+  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'turret', 'gunship', 'crew', 'xcar', 'harvester', 'zombie', 'bat', 'brute', 'megalodon', 'firetruck', 'slasher', 'tuktuk', 'gatcart', 'iceberg']);
 export const AIR = new Set(['heli', 'drone', 'jet', 'blimp', 'gunship']);
 export const ANIMAL = new Set(['beast', 'bear', 'jelly', 'chicken']);
 const PROJ = new Set(['grenade', 'rocket', 'rock', 'thrown']);
@@ -46,7 +46,7 @@ const PTS = {
   barrel: 50, wall: 600, train: 900, jumper: 180, tank: 2000, rig: 1200, rioter: 80, thrown: 30, chef: 3000, boat: 450, mtrain: 2500,
   quad: 150, pickup: 400, van: 600, bus: 1200, canoe: 120,
   beast: 160, bear: 3500, mine: 60, jet: 500, blimp: 5000, rammer: 500, junk: 20, jelly: 90, turret: 300, gunship: 6000, crew: 500, xcar: 150, harvester: 8000, zombie: 60, bat: 80, brute: 9000, key: 500, prop: 30, megalodon: 8000, obelisk: 3000, casinob: 10000, firetruck: 1800, toll: 400, slasher: 400, tower: 20000, mbomb: 40, tuktuk: 500,
-  whouse: 400, mansion: 6000, skel: 150, outlaw: 5000, goblin: 3000,
+  whouse: 400, warch: 1500, tumble: 120, mansion: 6000, skel: 150, outlaw: 5000, goblin: 3000, lboat: 250, gatcart: 3000, ttable: 80, iceberg: 25000,
 };
 
 // los enemigos normales se van desbloqueando a lo largo de la partida (segundos de partida)
@@ -184,7 +184,10 @@ export class Sim {
       if (e.type === 'brute' && e.st === ST.ALIVE) this.hold = true;
       if (e.type === 'toll' && e.x.s < 2 && rel < 24 && rel > -2) this.hold = true;
       // OLD TOWN: parada delante de la mansión (hasta que se hunde) y en el duelo
-      if (e.type === 'mansion' && e.x.s < 3 && rel < 7 && rel > -12) this.hold = true;
+      if (e.type === 'mansion' && e.x.s < 3 && rel < 1.5 && rel > -12) this.hold = true;
+      // EL TITANIC: botes salvavidas cruzados en la cubierta (hay que reventarlos) y el iceberg gigante
+      if (e.type === 'lboat' && e.st !== ST.DEAD && rel < 9 && rel > 0) this.hold = true;
+      if (e.type === 'iceberg' && e.st !== ST.DEAD) this.hold = true;
       if (e.type === 'outlaw' && (e.st !== ST.DEAD || e.deadT < 1.6) && rel < 21 && rel > -5) this.hold = true;
     }
     if (this.foot) this.hold = true;
@@ -205,6 +208,7 @@ export class Sim {
       if (BZ.vf && this.road.kindAt(this.carD) === 0) tgt *= BZ.vf;
       // OLD TOWN: por el pueblo se va algo más despacio y por la iglesia y el cementerio, más aún
       { const WW = this.road.westAt(this.carD); if (WW && this.carD > WW.town - 20) tgt *= this.carD > WW.church - 40 && this.carD < WW.plain + 40 ? 0.6 : 0.82; }
+      { const T = this.road.titanicAt(this.carD); if (T && this.carD > T.jump + 20 && this.carD < T.out) tgt *= this.carD < T.dive ? 0.7 : this.carD < T.rise ? 0.75 : 0.85; }
       // regulador de velocidad: manda el que lo tenga más bajo
       let rf = 1;
       for (const p of this.players) if (p.alive && !p.gone) rf = Math.min(rf, p.spdF || 1);
@@ -619,15 +623,17 @@ export class Sim {
     // ritmo Virtua Cop: pocos a la vez (2-3 en solitario, algo más en grupo) para poder ir limpiando la pantalla
     const front = Math.min(2, this.n), cap = clamp(Math.floor(1.5 + this.diff * 0.35) + (front - 1) + (this.stunT > 0 || this.hold ? 1 : 0) - (this.n === 1 ? 1 : 0), 2, this.n === 1 ? 4 : 6);
     const full = this.hostileCount(this.n > 2 ? false : null) >= cap + 1;
+    const TT = this.road.titanicAt(this.carD);
+    const inT = TT && this.carD < TT.out - 20;
     if (this.waveT <= 0) {
-      if (this.hostileCount(this.n > 2 ? false : null) < cap) this.spawnWave();
+      if (!inT && this.hostileCount(this.n > 2 ? false : null) < cap) this.spawnWave();
       // en solitario salen menos: más tiempo entre oleadas
       this.waveT = Math.max(2.0, 7 - this.diff * 0.7) * (0.8 + this.r() * 0.5) * (this.n === 1 ? 1.4 : 1);
     }
     const deco = BIOMES[BIOME_KEYS[this.road.bioAt(this.carD + 80)]].deco;
     const inTun = this.road.inTunnel(this.carD + 120);
     this.civT -= dt;
-    if (['rio', 'bosque', 'submarino', 'ruinas', 'guerra', 'llanura', 'bajada', 'tuneles', 'dunas', 'zombi', 'oeste'].includes(deco)) this.civT = Math.max(this.civT, 1);
+    if (['rio', 'bosque', 'submarino', 'ruinas', 'guerra', 'llanura', 'bajada', 'tuneles', 'dunas', 'zombi', 'oeste', 'titanic', 'tsub', 'tmar'].includes(deco) || inT) this.civT = Math.max(this.civT, 1);
     if (this.civT <= 0) {
       this.civT = deco === 'manifa' ? 2.5 + this.r() * 2 : 6 + this.r() * 6;
       const w = { truck: rt > 10 ? 1.4 * this.wMult('truck') : 0, civcar: 1.5 * this.wMult('civcar'), civ: this.road.inTunnel(this.carD + 70) ? 0 : deco === 'manifa' ? 20 : 1.2 };
@@ -640,12 +646,14 @@ export class Sim {
     if (needy && this.ambT > 22 && this.runT - this.lastAmb > 40 && !this.has('amb') && !this.has('medkit')) this.ambT = 22;
     this.ambT -= dt;
     if (this.ambT <= 0) {
-      if (this.laneFree(-50, 40) && !this.has('amb')) { this.spawnAmb(); this.lastAmb = this.runT; this.ambT = (75 + this.r() * 30) * (this.bonus.amb ? 0.55 : 1) * Math.max(0.5, 1 - 0.08 * this.maxMeta('ambu')); }
+      if (inT && this.carD > TT.dive - 40) this.ambT = 3;
+      else if (this.laneFree(-50, 40) && !this.has('amb')) { this.spawnAmb(); this.lastAmb = this.runT; this.ambT = (75 + this.r() * 30) * (this.bonus.amb ? 0.55 : 1) * Math.max(0.5, 1 - 0.08 * this.maxMeta('ambu')); }
       else this.ambT = 2;
     }
     this.terrT -= dt;
     if (this.terrT <= 0) {
-      if (this.laneFree(-45, 40) && !this.has('jeep')) { this.spawnJeep(); this.terrT = (180 + (this.r() - 0.5) * 40) * Math.max(0.6, 1 - 0.06 * (this.zd() - 1)); }
+      if (inT) this.terrT = 5;
+      else if (this.laneFree(-45, 40) && !this.has('jeep')) { this.spawnJeep(); this.terrT = (180 + (this.r() - 0.5) * 40) * Math.max(0.6, 1 - 0.06 * (this.zd() - 1)); }
       else this.terrT = 2;
     }
     // hordas por detrás para los artilleros traseros (J3-J4)
@@ -668,7 +676,7 @@ export class Sim {
     }
     if (deco === 'industrial' && !inTun && free && this.timer('wall', dt, 60) && !this.has('wall')) this.spawnWall(2);
     // una vez por zona: el traficante de armas (lento, con su música); al reventarlo suelta un arma especial
-    if (!inTun && !this.foot && Z.f && prog > 0.2 + (hash(this.seed, kz, 77) % 40) / 100 && deco !== 'submarino' && once('dealer')) this.spawnDealer();
+    if (!inTun && !this.foot && Z.f && prog > 0.2 + (hash(this.seed, kz, 77) % 40) / 100 && deco !== 'submarino' && !inT && once('dealer')) this.spawnDealer();
     // casino: limusinas de la mafia con dos tiradores en las ventanillas
     if (deco === 'casino' && !inTun && this.timer('limo', dt, this.n === 1 ? 22 : 15) && !this.ents.some(e => e.type === 'ecar' && e.x.limo && e.st !== ST.DEAD) && this.laneFree(-40, 30)) {
       this.spawnECar();
@@ -677,7 +685,8 @@ export class Sim {
       if (once0(this, 'limo')) this.emit('banner', { txt: '¡LA MAFIA!', sub: 'Limusinas con tiradores', c: '#ff40c0' });
     }
     // el goblin del saco: a partir del tercer mapa de la partida, uno cada tres mapas (el 3.º, el 6.º, el 9.º...)
-    if (kz >= 2 && (kz - 2) % 3 === 0 && !inTun && !this.foot && prog > 0.25 + (hash(this.seed, kz, 333) % 35) / 100 && once('gob')) this.spawnGoblin();
+    if (inT) this.titanicDir(TT, dt, cap, full);
+    if (kz >= 2 && (kz - 2) % 3 === 0 && !inTun && !this.foot && !(inT && this.carD > TT.jump - 40) && prog > 0.25 + (hash(this.seed, kz, 333) % 35) / 100 && once('gob')) this.spawnGoblin();
     // OLD TOWN: el cartel en las dunas (si nadie le dispara, se sigue por el desierto) y el pueblo del Oeste
     { const WS = this.road.westSign(this.carD);
       if (WS) {
@@ -824,7 +833,7 @@ export class Sim {
       if (prog > 0.35 && once('gunship')) this.spawnGunship();
     }
     // coches que embisten (por detrás si hay artilleros traseros; si no, de lado)
-    if (this.ok('rammer') && !inTun && deco !== 'rio' && deco !== 'submarino' && deco !== 'bosque' && deco !== 'ruinas') {
+    if (this.ok('rammer') && !inTun && !inT && deco !== 'rio' && deco !== 'submarino' && deco !== 'bosque' && deco !== 'ruinas') {
       this.ramT -= dt;
       if (this.ramT <= 0) { this.ramT = 26 + this.r() * 14; if (!this.has('rammer') && (this.n > 2 || this.laneFree(-30, 100))) this.spawnRammer(); }
     }
@@ -1079,6 +1088,100 @@ export class Sim {
       }
     }
   }
+  // ---------------- EL TITANIC ----------------
+  titanicDir(T, dt, cap, full) {
+    const r = this.r, c = this.carD, n = this.n, ban = (k, txt, sub, col) => { if (once0(this, 'tb' + T.k + k)) this.emit('banner', { txt, sub, c: col || '#9ad8ff' }); };
+    if (c > T.snow) ban('s', 'EL TITANIC', 'Noche polar. Seguid hacia el iceberg', '#9ad8ff');
+    // nieve y la vuelta al iceberg (en la vuelta solo por la ladera de la izquierda: a la derecha está el acantilado)
+    if (c < T.jump - 40 && !full && this.timer('tg', dt, n === 1 ? 3.4 : 2.6)) {
+      if (c < T.berg - 20) this.spawnGunmen(1 + (r() < 0.4 ? 1 : 0), r() < 0.4);
+      else this.titanSnipe(c);
+    }
+    if (c > T.berg + 120) ban('b', '¡UN TRASATLÁNTICO!', 'Va directo contra vuestro iceberg…', '#ffd060');
+    if (c > T.jump - 25 && once0(this, 'tcr' + T.k)) this.emit('tcrash', { k: T.k });
+    // las cubiertas: botes salvavidas cruzados, marineros y el carro con la ametralladora
+    if (c > T.deck1 - 120 && once0(this, 'tlb' + T.k)) {
+      for (const at of [T.deck1 + 50, T.deck1 + 110, T.deck1 + 170, T.deck1 + 222, T.deck2 + 35, T.deck2 + 85]) { const e = this.add('lboat', { d: at, lat: LANE_ME + (r() - 0.5), h: 0, hp: 5 + 2 * this.nAlive(), ry: (r() - 0.5) * 0.5 }); e.x = {}; }
+    }
+    if (c > T.deck1 - 10) ban('d', '¡A BORDO!', 'Revienta los botes salvavidas que cortan el paso', '#ffd060');
+    if (c > T.deck1 + 10 && once0(this, 'tgc' + T.k)) {
+      const e = this.add('gatcart', { d: c + 45, lat: 1.6, h: 0, hp: 22 + 8 * this.nAlive(), vd: this.speed });
+      e.x = { rel: 45 };
+      e.sh = [this.shooter(2.4, 'gat', 2.5)];
+      this.emit('banner', { txt: '¡LA AMETRALLADORA!', sub: 'Un carro de caballos con una ametralladora de manivela', c: '#ff8a4a' });
+    }
+    const onDeck = (c > T.deck1 && c < T.ball - 20) || (c > T.deck3 - 10 && c < T.dive);
+    if (onDeck && !full && this.timer('sail', dt, n === 1 ? 2.8 : 2.1)) this.sailors(c);
+    if (c > T.stern - 5) ban('p', 'LA POPA', 'Dad la vuelta por el otro lado', '#ffd060');
+    if (c > T.deck2 + 5) ban('k', '¡SE HUNDE!', 'El barco se inclina hacia un lado…', '#ff6a4a');
+    // maletas y cosas que se rompen por las cubiertas del hundimiento y por el salón
+    if (c > T.deck2 - 100 && once0(this, 'tlg' + T.k)) {
+      for (let d = T.deck2 + 12; d < T.ball - 6; d += 7 + r() * 8) { const e = this.add('prop', { d, lat: -0.8 + r() * 5.6, h: 0, hp: 2, ry: r() * 6 }); e.x = { k: 5 + Math.floor(r() * 3) }; }
+    }
+    if (c > T.ball - 60 && once0(this, 'tlb2' + T.k)) {
+      for (let d = T.ball + 4; d < T.ball + 66; d += 2.5 + r() * 3) { const lat = (r() < 0.5 ? -1 : 1) * (5.5 + r() * 2.5); const e = this.add('prop', { d, lat, h: 0, hp: 2, ry: r() * 6 }); e.x = { k: 5 + Math.floor(r() * 3) }; }
+    }
+    if (c > T.ball - 15) ban('g', 'EL GRAN SALÓN', 'Las mesas resbalan hacia el lado que se hunde', '#ffd060');
+    if (c > T.ball - 30 && c < T.ball + 55) {
+      if (this.timer('ttab', dt, 1.1) && this.count('ttable') < 4) { const e = this.add('ttable', { d: c + 22 + r() * 22, lat: -8.5, h: 0, hp: 3, ry: r() * 6 }); e.x = { v: 2.2 + r() * 2.2, hitd: 0 }; }
+      if (!full && this.timer('tbg', dt, n === 1 ? 2.0 : 1.5)) {
+        const d = c + 30 + r() * 25, sd = r() < 0.6 ? -1 : 1, e = this.add('gunman', { d, lat: sd < 0 ? -6.8 : 6.2, h: 0.1, hp: 2 + (this.diff > 3 ? 1 : 0), st: ST.HIDDEN });
+        e.x = { cv: -1, gr: 0, pop: 34 + r() * 20, sk: Math.floor(r() * 6) };
+        e.sh = [this.shooter(2.8 + r() * 0.8, 'shot', 0.3)];
+      }
+    }
+    if (c > T.dive - 15) ban('w', '¡AL AGUA!', 'Aguantad la respiración', '#5ac8ff');
+    // bajo el agua: tiburones, medusas y los náufragos que disparan desde la superficie como una lluvia de balas
+    if (c > T.dive + 30 && c < T.rise) {
+      ban('u', 'BAJO EL MAR', 'Tiburones… y náufragos disparando desde arriba', '#5ac8ff');
+      if (this.timer('tsh', dt, 6) && this.count('beast') < 1 + n) this.spawnBeasts(2);
+      if (this.timer('tje', dt, 10) && this.count('jelly') < 10) this.spawnJellies();
+      if (!full && this.timer('tsw', dt, n === 1 ? 3.0 : 2.2) && this.count('gunman') < 3 + n) {
+        const k = 2 + (r() < 0.4 ? 1 : 0), d0 = c + 26 + r() * 20;
+        for (let i = 0; i < k; i++) {
+          const d = d0 + i * 4, g = this.road.gy[Math.floor(d)] ?? -24, e = this.add('gunman', { d, lat: (r() - 0.5) * 18, h: -g - 0.6, hp: 1 + (this.diff > 4 ? 1 : 0), st: ST.ALIVE });
+          e.x = { cv: -1, gr: 0, pop: 999, sk: Math.floor(r() * 6), swim: 1 };
+          e.sh = [this.shooter(2.2 + r() * 0.6, 'shot', 0.4 + i * 0.35)];
+        }
+      }
+    }
+    // el mar helado: tiradores sobre témpanos y, a lo lejos, el Titanic que se parte en dos
+    if (c > T.rise + 30 && c < T.boss - 80 && !full && this.timer('tfl', dt, n === 1 ? 3.2 : 2.4)) {
+      const d = c + 45 + r() * 25, sd = r() < 0.5 ? -1 : 1, e = this.add('gunman', { d, lat: sd * (8 + r() * 6), h: 0.35, hp: 2, st: ST.ALIVE });
+      e.x = { cv: -1, gr: 0, pop: 999, sk: Math.floor(r() * 6), floe: 1 };
+      e.sh = [this.shooter(2.8 + r() * 0.6, 'shot', 0.5)];
+    }
+    if (c > T.float + 40) ban('f', 'EL MAR HELADO', 'Mirad a la derecha: el Titanic se parte en dos', '#9ad8ff');
+    // jefe: EL ICEBERG gigante (al menos 300 balazos)
+    if (c > T.boss - 100 && once0(this, 'tib' + T.k)) {
+      const e = this.add('iceberg', { d: c + 110, lat: LANE_ME, h: 0, hp: 300 + 100 * (this.nAlive() - 1) });
+      e.hm = e.hp;
+      e.x = { rel: 110 };
+      e.sh = [this.shooter(2.6, 'thrown', 2, 6), this.shooter(3.2, 'thrown', 3.5, 6)];
+      this.emit('banner', { txt: '¡EL ICEBERG!', sub: 'Viene a por vosotros: reventadlo a balazos', c: '#40c8ff' });
+    }
+    if (c > T.beach - 10) ban('y', 'LA PLAYA', 'Salid por la montaña helada', '#ffd060');
+  }
+  // en la ladera del iceberg (a la izquierda, a veces subidos en lo alto)
+  titanSnipe(c) {
+    const r = this.r, k = 1 + (r() < 0.35 ? 1 : 0);
+    for (let i = 0; i < k; i++) {
+      const d = c + (55 + r() * 25) * this.spk() + i * 6, hi = r() < 0.4, e = this.add('gunman', { d, lat: hi ? -15 : -(WALK - 0.9), h: hi ? 3.9 : 0.18, hp: 2 + (this.diff > 3 ? 1 : 0), st: ST.HIDDEN });
+      e.x = { cv: hi ? -1 : Math.floor(r() * 3), gr: 0, pop: (30 + r() * 30) * this.spk(), sk: Math.floor(r() * 6) };
+      e.sh = [this.shooter(3.0 + r() * 0.8, 'shot', i * 0.5)];
+    }
+  }
+  // marineros armados: salen por las puertas de las casetas, se asoman en los tejados o detrás de los botes
+  sailors(c) {
+    const r = this.r, k = 1 + (r() < 0.35 ? 1 : 0);
+    for (let i = 0; i < k; i++) {
+      const d = c + (42 + r() * 28) * this.spk() + i * 5, q = r();
+      const [lat, h] = q < 0.45 ? [-1.0, 0.1] : q < 0.75 ? [-4.5, 3.4] : [5.0, 0.1];
+      const e = this.add('gunman', { d, lat, h, hp: 2 + (this.diff > 3 ? 1 : 0), st: ST.HIDDEN });
+      e.x = { cv: -1, gr: 0, pop: (28 + r() * 30) * this.spk(), sk: Math.floor(r() * 6) };
+      e.sh = [this.shooter(2.9 + r() * 0.8, 'shot', i * 0.5)];
+    }
+  }
   // ---------------- OLD TOWN ----------------
   westDir(W, dt, cap, full) {
     const r = this.r, c = this.carD;
@@ -1091,13 +1194,23 @@ export class Sim {
       }
     });
     if (c > W.town - 70 && once0(this, 'wtown' + W.k)) this.emit('banner', { txt: 'OLD TOWN', sub: 'Todas las casas se pueden reventar', c: '#e8a050' });
-    const inTown = c > W.town - 30 && c < W.mansion - 30;
+    const inTown = c > W.town - 30 && c < W.lturn;
     if (inTown && !full && this.timer('wgun', dt, this.n === 1 ? 3.0 : 2.3)) this.westGunmen();
     if (inTown && !full && this.timer('wride', dt, 12) && this.count('moto') < 2) {
       for (let i = 0, n = this.n > 1 ? 2 : 1; i < n; i++) { this.spawnMoto(i, r() < 0.4); const m = this.ents[this.ents.length - 1]; if (m.type === 'moto') m.x.horse = 1; }
       if (once0(this, 'wrd' + W.k)) this.emit('banner', { txt: '¡JINETES!', sub: '', c: '#e8a050' });
     }
-    if (c > W.mansion - 230 && once0(this, 'wm' + W.k)) this.spawnMansion(W);
+    // el saloon de la esquina de la plaza (justo delante al llegar; el coche gira a la izquierda delante de él)
+    if (c > W.town + 60 && once0(this, 'wsal' + W.k)) { const e = this.add('whouse', { d: W.mansion + 2, lat: 15, h: 0, hp: 14 + 3 * this.nAlive(), ry: Math.PI / 2 }); e.x = { k: 0, w: 14, sd: 1, sg: 3 }; }
+    // el gran cartel en arco de la entrada del pueblo (se puede reventar)
+    if (c > W.town - 200 && once0(this, 'warc' + W.k)) { const e = this.add('warch', { d: W.town + 4, lat: 0, h: 0, hp: 10 + 3 * this.nAlive(), ry: Math.PI }); e.x = {}; }
+    // bolas de matojo rodando por la calle y por las dunas
+    if (c > W.turn && c < W.plain + 300 && this.timer('tumb', dt, 2.6) && this.count('tumble') < 4) {
+      const sd = r() < 0.5 ? -1 : 1, e = this.add('tumble', { d: c + 30 + r() * 50, lat: sd * (12 + r() * 6), h: 0.5, hp: 1, vd: 1 + r() * 2 });
+      e.x = { v: -sd * (3 + r() * 3), ph: r() * 6 };
+    }
+    if (c > W.mansion - 60 && once0(this, 'wm' + W.k)) this.spawnMansion(W);
+    if (c > W.lturn - 20 && c < W.lturn + 10 && once0(this, 'wlt' + W.k)) this.emit('banner', { txt: '¡A LA IZQUIERDA!', sub: 'La mansión está al final de esta calle', c: '#e8a050' });
     // iglesia en lo alto del cerro y el cementerio de los esqueletos
     if (c > W.church - 220 && once0(this, 'wc' + W.k)) { const e = this.add('church', { d: W.church + 150, lat: -31, h: 7, hp: 999, ry: -Math.PI / 2 }); e.x = { tw: 16 + 4 * this.nAlive(), bc: 0, fall: 0 }; }
     if (c > W.church - 30 && once0(this, 'wcb' + W.k)) this.emit('banner', { txt: 'EL CEMENTERIO', sub: 'Los muertos se levantan a bailar… y tiran huesos', c: '#d8d0ff' });
@@ -1119,8 +1232,8 @@ export class Sim {
     }
   }
   spawnMansion(W) {
-    const e = this.add('mansion', { d: W.mansion + 45, lat: -20, h: 0, hp: 1, ry: -Math.PI / 2 });
-    const hw = 8 + 3 * this.nAlive();
+    const e = this.add('mansion', { d: W.mh, lat: -12.5, h: 0, hp: 1, ry: -Math.PI / 2 });
+    const hw = 5 + 2 * this.nAlive();
     e.x = { w: [hw, hw, hw, hw, hw, hw, hw, hw], s: 0, t: 0, gT: 1.5, told: 0 };
     e.hp = e.hm = hw * 8;
   }
@@ -1922,6 +2035,7 @@ function ser(e) {
     case 'outlaw': x = { ph: X.ph }; break;
     case 'goblin': x = { ph: X.ph }; break;
   }
+  if (e.type === 'gunman' && (X.swim || X.floe)) { x = x || {}; x.swim = X.swim; x.floe = X.floe; }
   if (e.hm) { x = x || {}; x.hm = e.hm; }
   if (X.mk > 0) { x = x || {}; x.mk = 1; }
   return [e.id, TI[e.type], r2(e.d), r2(e.lat), r2(e.h), r2(e.ry), Math.round(e.hp * 10) / 10, e.st, sh, x];
@@ -2233,6 +2347,49 @@ const U = {
     if (rel < -20) e.rm = true;
   },
   whouse(e, dt, S) { e.vd = 0; if (S.rel(e) < -45) e.rm = true; },
+  warch(e, dt, S) { e.vd = 0; if (S.rel(e) < -40 || (e.st === ST.DEAD && e.deadT > 6 && S.rel(e) < -10)) e.rm = true; },
+  // bola de matojo: cruza rodando y dando botes
+  tumble(e, dt, S) {
+    const x = e.x;
+    if (e.st === ST.DEAD) { e.rm = true; return; }
+    e.lat += x.v * dt; e.h = 0.5 + Math.abs(Math.sin(e.age * 3 + x.ph)) * 0.9;
+    if (Math.abs(e.lat) > 30 || S.rel(e) < -20) e.rm = true;
+  },
+  lboat(e, dt, S) { e.vd = 0; if (S.rel(e) < -30 || (e.st === ST.DEAD && e.deadT > 4)) e.rm = true; },
+  // el carro con la ametralladora va siempre por delante; al llegar a la popa se escapa
+  gatcart(e, dt, S) {
+    const x = e.x, T = S.road.titanicAt(S.carD);
+    if (e.st === ST.DEAD) { e.vd = 0; if (e.deadT > 5 || S.rel(e) < -30) e.rm = true; return; }
+    const flee = !T || e.d > T.stern - 20;
+    if (flee) { e.vd = S.speed + 9; if (S.rel(e) > 95) e.rm = true; }
+    else { x.rel += ((S.speed < 0.5 ? 30 : 24) - x.rel) * Math.min(1, dt * 0.6); e.d = S.carD + x.rel; e.vd = 0; e.lat = 1.6 + Math.sin(e.age * 0.6) * 0.8; }
+    e.ry = 0;
+    S.tick(e, dt, !S.voting && !flee && e.age > 1.2);
+  },
+  // mesa del salón que resbala hacia el lado que se hunde (si llega al coche, golpe)
+  ttable(e, dt, S) {
+    const x = e.x, rel = S.rel(e);
+    e.vd = 0;
+    if (e.st === ST.DEAD) { if (e.deadT > 3) e.rm = true; return; }
+    e.lat += x.v * dt; e.ry += dt * 0.6 * x.v;
+    if (!x.hitd && Math.abs(e.lat - LANE_ME) < 1.9 && Math.abs(rel) < 2.4) { x.hitd = 1; S.emit('crash', {}); for (const i of S.alivePlayers()) S.hurt(i, 0, 'crash'); }
+    if (e.lat > 9 || rel < -15) e.rm = true;
+  },
+  // EL ICEBERG: se acerca hacia vosotros; si llega, embiste y retrocede. Tira trozos de hielo
+  iceberg(e, dt, S) {
+    const x = e.x;
+    e.vd = 0;
+    if (e.st === ST.DEAD) { e.d = S.carD + x.rel; e.h = Math.max(-30, e.h - dt * 3); if (e.deadT > 8) e.rm = true; return; }
+    const sp = 2.2 + (1 - e.hp / e.hm) * 2.5;
+    x.rel = Math.max(14, x.rel - sp * dt);
+    if (x.rel <= 16) {
+      S.emit('crash', {}); S.emit('banner', { txt: '¡EMBESTIDA!', sub: '', c: '#40c8ff' });
+      for (const i of S.alivePlayers()) { S.players[i].inv = 0; S.hurt(i, 1, 'crash'); }
+      x.rel = 55;
+    }
+    e.d = S.carD + x.rel; e.lat = LANE_ME + Math.sin(e.age * 0.4) * 2; e.ry = Math.sin(e.age * 0.3) * 0.2;
+    S.tick(e, dt, !S.voting && x.rel < 90);
+  },
   mansion(e, dt, S) {
     const x = e.x, rel = S.rel(e);
     e.vd = 0;
@@ -2897,6 +3054,16 @@ const HIT = {
     S.addPts(p, 500, e, '¡OLD TOWN!');
   },
   whouse(e, p, part, dmg, S) { e.x.kp = p; S.damage(e, p, dmg); },
+  warch(e, p, part, dmg, S) { e.x.kp = p; S.emit('fx', { f: 'rock', w: S.wpos(e.d, e.lat + (S.r() - 0.5) * 8, 6) }); S.damage(e, p, dmg); },
+  tumble(e, p, part, dmg, S) { S.kill(e, p); },
+  lboat(e, p, part, dmg, S) { S.emit('fx', { f: 'rock', w: S.wpos(e.d, e.lat, 1) }); S.damage(e, p, dmg); },
+  gatcart(e, p, part, dmg, S) { S.damage(e, p, dmg * (part === 'gunner' ? 1.5 : 1)); },
+  ttable(e, p, part, dmg, S) { S.emit('fx', { f: 'rock', w: S.wpos(e.d, e.lat, 0.8) }); S.damage(e, p, dmg); },
+  // el iceberg: como mucho un punto por bala (hacen falta cientos)
+  iceberg(e, p, part, dmg, S) {
+    S.damage(e, p, Math.min(1, dmg));
+    if (e.st !== ST.DEAD && S.r() < 0.25) S.emit('fx', { f: 'spark', w: S.wpos(e.d + (S.r() - 0.5) * 6, e.lat + (S.r() - 0.5) * 8, 4 + S.r() * 12) });
+  },
   mansion(e, p, part, dmg, S) {
     const x = e.x, m = /^w(\d)$/.exec(part || '');
     if (x.s || !m) return;
@@ -3249,9 +3416,10 @@ function westHouses(seed, W) {
   const r = rng(hash(seed, W.k, 6161)), L = [];
   for (const sd of [-1, 1]) {
     let d = W.town + 6 + r() * 6;
-    while (d < W.mansion - 14) {
+    // la calle mayor hasta la plaza (en la plaza, el saloon de la esquina va aparte)
+    while (d < W.town + 262) {
       const k = Math.floor(r() * 5), w = k === 3 ? 6 + r() * 2 : 8.5 + r() * 4;
-      if (d + w > W.town + 280 && d < W.town + 345) { d = W.town + 345; continue; }
+      if (d + w > W.town + 262) break;
       L.push({ d: d + w / 2, sd, w, k, sg: Math.floor(r() * 97) });
       d += w + 0.8 + r() * 2.5;
     }
@@ -3267,6 +3435,17 @@ function dropWeapon(e, S, extraTier = 0, rare = false) {
 
 const KILL = {
   goblin(e, p, S) { S.emit('fx', { f: 'heal', w: S.wpos(e.d, e.lat, e.h + 1) }); S.goblinPower(p); },
+  warch(e, p, S) { for (const l of [-6, 0, 6]) S.emit('fx', { f: 'boom', w: S.wpos(e.d, l, 6), s: 1.4 }); S.emit('banner', { txt: '¡ADIÓS, OLD TOWN!', sub: 'El cartel de la entrada se viene abajo', c: '#e8a050' }); },
+  tumble(e, p, S) { S.emit('fx', { f: 'rock', w: S.wpos(e.d, e.lat, e.h) }); },
+  lboat(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 1), s: 1.2 }); },
+  gatcart(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 1.5), s: 1.6 }); S.emit('banner', { txt: '¡AMETRALLADORA FUERA!', sub: '', c: '#7dff8a' }); dropWeapon(e, S, 1); },
+  ttable(e, p, S) { S.emit('fx', { f: 'rock', w: S.wpos(e.d, e.lat, 0.8) }); },
+  iceberg(e, p, S) {
+    for (let k = 0; k < 6; k++) S.emit('fx', { f: 'boom', w: S.wpos(e.d + (S.r() - 0.5) * 10, e.lat + (S.r() - 0.5) * 12, 3 + S.r() * 14), s: 2.4 });
+    S.emit('banner', { txt: '¡EL ICEBERG SE DESHACE!', sub: 'Rumbo a la playa', c: '#7dff8a' });
+    dropWeapon(e, S, 1);
+    for (let i = 0; i < 2; i++) { const k = S.add('medkit', { d: S.carD + 10 + i * 2.5, lat: LANE_ME, h: 2, hp: 1, vd: S.speed }); k.x = { tr: 10 + i * 2.5, tl: LANE_ME + (i ? 1.8 : -1.8), life: 14 }; }
+  },
   whouse(e, p, S) {
     // explota y queda en palos negros
     for (let k = 0; k < 3; k++) S.emit('fx', { f: 'boom', w: S.wpos(e.d + (S.r() - 0.5) * e.x.w * 0.6, e.lat + e.x.sd * (2 + S.r() * 5), 1.5 + S.r() * 3), s: 1.6 });

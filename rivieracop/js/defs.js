@@ -2,7 +2,7 @@
 
 export const BIOME_KEYS = ['monaco', 'puerto', 'casino', 'autopista', 'industrial', 'cornisa', 'detroit', 'desierto', 'costa', 'trenes', 'acantilados', 'orgullo',
   'militar', 'manifa', 'barro', 'chino', 'rio', 'semaforos', 'trenmil',
-  'bosque', 'guerra', 'llanura', 'ruinas', 'submarino', 'bajada', 'curva', 'lomas', 'policia', 'tuneles', 'pueblo', 'zombi', 'dunas', 'oeste'];
+  'bosque', 'guerra', 'llanura', 'ruinas', 'submarino', 'bajada', 'curva', 'lomas', 'policia', 'tuneles', 'pueblo', 'zombi', 'dunas', 'oeste', 'titanic', 'tsub', 'tmar'];
 // zonas de ciudad: más edificios detrás, rascacielos y pasarelas elevadas
 export const CITY = new Set(['policia', 'monaco', 'casino', 'detroit', 'manifa', 'semaforos', 'orgullo', 'chino']);
 
@@ -318,6 +318,34 @@ export const BIOMES = {
     build: [0xb8865a, 0xa8744a, 0xc89a68, 0x9a6a42, 0xd0a878], roof: 0x6a4428,
     w: { gunman: 1.2, cover: 0.6, moto: 0, ecar: 0, drone: 0, heli: 0, sniper: 0.5, barrels: 0.6, jumper: 0, grenadier: 0.3, quad: 0, pickup: 0, van: 0, bus: 0, truck: 0, civcar: 0, rammer: 0 }, pts: 2.4, deco: 'oeste', lv: 6,
   },
+  titanic: {
+    name: 'EL TITANIC', color: '#9ad8ff', hidden: true, // oculto hasta terminarlo (se prueba en PRUEBA: TITANIC)
+    sky: 0x0a1030, fogNear: 70, fogFar: 235, sea: 0x0a1a3a,
+    asphalt: 0xe8f0f8, walk: 0xf0f6ff, skirt: 0xdde8f4, line: 0xe8f0f8,
+    hemi: [0x9ab8f0, 0x2a3a6a, 1.0], sun: [0xb8d0ff, 1.0], night: true,
+    // de noche, con aurora boreal: nieve, la vuelta al iceberg, el Titanic que choca, sus cubiertas mientras se hunde,
+    // el salón de baile, el buceo, el mar helado y el iceberg gigante (jefe). Zona larguísima
+    titanic: true, slope: 0, floor: -1e9, len: 2300,
+    hmin: 0, hmax: 0, hair: 0,
+    build: [0xf2f2f2, 0xe8e4dc], roof: 0x8a6a4a,
+    w: { gunman: 1, cover: 0.5, moto: 0, ecar: 0, drone: 0, heli: 0, sniper: 0, barrels: 0, jumper: 0, grenadier: 0.3, quad: 0, pickup: 0, van: 0, bus: 0, truck: 0, civcar: 0, rammer: 0 }, pts: 2.6, deco: 'titanic', lv: 6,
+  },
+  tsub: {
+    name: 'BAJO EL MAR HELADO', color: '#3a8ac8', hidden: true,
+    sky: 0x06243a, fogNear: 12, fogFar: 95, sea: 0x041a2a,
+    asphalt: 0x3a4a5a, walk: 0x3a4a5a, skirt: 0x2a3a4a, line: 0x3a4a5a,
+    hemi: [0x6ab8e8, 0x0a2030, 0.85], sun: [0x8ad8ff, 0.7], night: false,
+    slope: 0, floor: -1e9, len: 320, hmin: 0, hmax: 0, hair: 0, build: [0x3a5a6a], roof: 0x2a4a4a,
+    w: { gunman: 0, moto: 0, ecar: 0, drone: 0, heli: 0, sniper: 0, barrels: 0, jumper: 0, grenadier: 0, quad: 0, pickup: 0, van: 0, bus: 0, truck: 0, civcar: 0, rammer: 0 }, pts: 2.6, deco: 'tsub', lv: 6,
+  },
+  tmar: {
+    name: 'EL MAR HELADO', color: '#9ad8ff', hidden: true,
+    sky: 0x0a1030, fogNear: 70, fogFar: 235, sea: 0x0a1a3a,
+    asphalt: 0xe8f0f8, walk: 0xf0f6ff, skirt: 0xdde8f4, line: 0xe8f0f8,
+    hemi: [0x9ab8f0, 0x2a3a6a, 1.0], sun: [0xb8d0ff, 1.0], night: true,
+    slope: 0, floor: -1e9, len: 620, hmin: 0, hmax: 0, hair: 0, build: [0xf2f2f2], roof: 0x8a6a4a,
+    w: { gunman: 0, moto: 0, ecar: 0, drone: 0, heli: 0, sniper: 0, barrels: 0, jumper: 0, grenadier: 0, quad: 0, pickup: 0, van: 0, bus: 0, truck: 0, civcar: 0, rammer: 0 }, pts: 2.6, deco: 'tmar', lv: 6,
+  },
   lomas: {
     name: 'LAS LOMAS', color: '#9ad84a',
     sky: 0x9ac8f0, fogNear: 90, fogFar: 280, sea: 0x4a7a3a,
@@ -346,9 +374,10 @@ export const TYPES = ['gunman', 'civilian', 'moto', 'ecar', 'heli', 'drone', 'tr
   'jumper', 'tank', 'rig', 'rioter', 'thrown', 'fuel', 'chef', 'boat', 'tlight', 'mtrain', 'preview', 'float',
   'quad', 'pickup', 'van', 'bus', 'canoe',
   'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'whale', 'turret', 'gunship', 'crew', 'police', 'xcar', 'harvester', 'zombie', 'bat', 'brute', 'key', 'hdoor', 'prop', 'megalodon', 'obelisk', 'casinob', 'firetruck', 'toll', 'victim', 'slasher', 'tower', 'mbomb', 'tuktuk', 'fatman', 'dunegate',
-  'wsign', 'whouse', 'mansion', 'church', 'skel', 'outlaw', 'goblin'];
+  'wsign', 'whouse', 'mansion', 'church', 'skel', 'outlaw', 'goblin',
+  'lboat', 'gatcart', 'ttable', 'tsink', 'iceberg', 'warch', 'tumble'];
 // jefes: llevan barra de vida en pantalla
-export const BOSS = { tower: 'LA TORRE', obelisk: 'EL OBELISCO', megalodon: 'EL MEGALODÓN', brute: 'EL CARNICERO', harvester: 'LA COSECHADORA', gunship: 'EL CAÑONERO', bear: 'OSO GRIZZLY', blimp: 'DIRIGIBLE', bus: 'AUTOBÚS', jeep: 'TERRORISTA', heli: 'HELICÓPTERO', wall: 'MURO', train: 'TREN', tank: 'TANQUE', rig: 'CAMIÓN', chef: 'EL CHEF DEL BUFFET', mtrain: 'TREN MILITAR', mansion: 'LA MANSIÓN' };
+export const BOSS = { tower: 'LA TORRE', obelisk: 'EL OBELISCO', megalodon: 'EL MEGALODÓN', brute: 'EL CARNICERO', harvester: 'LA COSECHADORA', gunship: 'EL CAÑONERO', bear: 'OSO GRIZZLY', blimp: 'DIRIGIBLE', bus: 'AUTOBÚS', jeep: 'TERRORISTA', heli: 'HELICÓPTERO', wall: 'MURO', train: 'TREN', tank: 'TANQUE', rig: 'CAMIÓN', chef: 'EL CHEF DEL BUFFET', mtrain: 'TREN MILITAR', mansion: 'LA MANSIÓN', iceberg: 'EL ICEBERG' };
 export const TI = Object.fromEntries(TYPES.map((t, i) => [t, i]));
 
 // Estados de entidad

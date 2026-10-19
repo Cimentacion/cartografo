@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import * as M from './models.js';
 import * as WM from './west.js';
+import * as TM from './titanic.js';
 import { ST, BIOMES, BIOME_KEYS } from './defs.js';
 import { LANE_ME } from './road.js';
 import { SEATS } from './sim.js';
@@ -179,7 +180,7 @@ const BLOBT = (() => {
 })();
 const BLOBM = new THREE.MeshBasicMaterial({ map: BLOBT, transparent: true, depthWrite: false, opacity: 0.8, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
 const BLOBG = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
-const NOBLOB = new Set(['wsign', 'whouse', 'mansion', 'church', 'tower', 'mbomb', 'dunegate', 'fatman', 'toll', 'obelisk', 'casinob', 'megalodon', 'bat', 'key', 'hdoor', 'prop', 'sign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
+const NOBLOB = new Set(['warch', 'iceberg', 'lboat', 'wsign', 'whouse', 'mansion', 'church', 'tower', 'mbomb', 'dunegate', 'fatman', 'toll', 'obelisk', 'casinob', 'megalodon', 'bat', 'key', 'hdoor', 'prop', 'sign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
 const _bb = new THREE.Box3(), _bs = new THREE.Vector3();
 export function addBlob(g, k = 1.15) {
   _bb.setFromObject(g); _bb.getSize(_bs);
@@ -199,6 +200,8 @@ const MASK = {
   beast: LAYER_ENEMY, bear: LAYER_ENEMY, mine: LAYER_ENEMY, jet: LAYER_ENEMY, blimp: LAYER_ENEMY, rammer: LAYER_ENEMY, junk: LAYER_ENEMY, jelly: LAYER_ENEMY,
   quad: LAYER_ENEMY, crew: LAYER_ENEMY, harvester: LAYER_ENEMY, xcar: LAYER_KEEP, pickup: LAYER_ENEMY, van: LAYER_ENEMY, bus: LAYER_ENEMY, canoe: LAYER_ENEMY,
   jumper: LAYER_ENEMY, tank: LAYER_ENEMY, rig: LAYER_ENEMY, rioter: LAYER_ENEMY, thrown: LAYER_ENEMY, chef: LAYER_ENEMY, boat: LAYER_ENEMY, mtrain: LAYER_ENEMY,
+  warch: LAYER_KEEP, tumble: LAYER_KEEP,
+  lboat: LAYER_ENEMY, gatcart: LAYER_ENEMY, ttable: LAYER_KEEP, iceberg: LAYER_ENEMY,
   goblin: LAYER_ENEMY, wsign: LAYER_KEEP, whouse: LAYER_KEEP, mansion: LAYER_KEEP, church: LAYER_KEEP, skel: LAYER_ENEMY, outlaw: LAYER_ENEMY,
   obelisk: LAYER_KEEP, toll: LAYER_KEEP, victim: LAYER_KEEP, slasher: LAYER_ENEMY, mbomb: LAYER_ENEMY, tuktuk: LAYER_ENEMY, fatman: LAYER_KEEP, firetruck: LAYER_ENEMY, megalodon: LAYER_ENEMY, zombie: LAYER_ENEMY, bat: LAYER_ENEMY, brute: LAYER_ENEMY, key: LAYER_KEEP, hdoor: LAYER_KEEP, prop: LAYER_KEEP,
   preview: LAYER_KEEP, police: LAYER_KEEP, tlight: LAYER_KEEP, fuel: LAYER_KEEP, float: LAYER_KEEP,
@@ -323,6 +326,9 @@ export class View {
         // OLD TOWN: vaqueros con sombrero, pañuelo, chaleco y bigote
         const cb = x.cb || BIOMES[BIOME_KEYS[this.road.bioAt(e.d)]].deco === 'oeste';
         if (cb) { o.shirt = [0x8a3a2a, 0x3a5a7a, 0xc8b890, 0x5a6a3a, 0x7a2a4a, 0xd8d0c0][((x.sk || 0) + e.id) % 6]; o.pants = [0x3a2a1a, 0x2a3a5a, 0x5a4a3a][e.id % 3]; o.vest = [0x2a1a10, 0x5a3a20, 0x1a1a1a, null][e.id % 4]; o.hat = 'vaquero'; o.neck = e.id % 2 ? 'bufanda' : null; o.beard = ['bigote', 'barba', 'no'][e.id % 3]; o.cap = null; o.mask = null; o.glasses = false; o.hair = 0x2a1a10; }
+        // EL TITANIC: marineros y oficiales (camisa blanca, pantalón azul marino y gorra); los náufragos con chaleco salvavidas
+        const tz = BIOMES[BIOME_KEYS[this.road.bioAt(e.d)]].deco;
+        if (tz === 'titanic' || tz === 'tsub' || tz === 'tmar' || x.swim) { o.shirt = [0xf2f2f2, 0x1a2a5a, 0xf2f2f2][((x.sk || 0) + e.id) % 3]; o.pants = 0x1a2a5a; o.vest = x.swim || x.floe ? 0xff6a1a : [0x1a2a5a, null, 0x2a2a2a][e.id % 3]; o.hat = x.swim ? null : 'poli'; o.cap = null; o.mask = null; o.glasses = false; o.beard = ['bigote', 'no', 'barba'][e.id % 3]; o.hair = 0x2a1a10; }
         // del desierto: túnica, turbante y fusil
         if (x.tb) { o.shirt = [0xe8dcc0, 0x8a7a5a, 0x3a3a3a, 0x6a2a2a][(x.sk || 0) % 4]; o.pants = 0x5a4a3a; o.gun = 'rifle'; o.cap = null; o.mask = null; o.glasses = false; o.hairStyle = 'calvo'; }
         const p = M.person(o);
@@ -332,6 +338,9 @@ export class View {
         // lanzacohetes al hombro
         if (x.rk) { M.box(p.userData.rig.armR, 0.22, 0.22, 1.3, 0x3a4a2a, -0.05, 0.12, -0.4, 'gun'); M.box(p.userData.rig.armR, 0.26, 0.26, 0.2, 0x1a1a1a, -0.05, 0.12, -1.05, 'gun'); }
         if (x.cv >= 0) { const c = M.cover(x.cv); c.position.z = -0.85; g.add(c); }
+        // náufrago: solo asoma del agua (el cuerpo va hundido); en el mar helado, de pie sobre un témpano
+        if (x.swim) { p.userData.rig.body.position.y = -1.0; g.userData.swim = 1; }
+        if (x.floe) { const f = M.box(g, 3.2, 0.7, 2.6, 0xeef6ff, 0, -0.4, 0); f.raycast = () => { }; }
         // pueblo: asomado a un balcón (se queda alineado con la fachada aunque él gire)
         if (x.win) {
           const b = new THREE.Group(), s = x.win; g.add(b); g.userData.balc = b;
@@ -379,6 +388,12 @@ export class View {
       case 'skel': { g = WM.skeleton(); g.userData.shooters = [g.userData.rig.bone]; break; }
       case 'outlaw': g = WM.outlaw(); break;
       case 'goblin': g = WM.goblin(); break;
+      case 'warch': g = WM.wArch(); break;
+      case 'tumble': g = WM.tumbleweed(); break;
+      case 'lboat': g = TM.lifeboat(); break;
+      case 'gatcart': g = TM.gatCart(); break;
+      case 'ttable': g = TM.table(); break;
+      case 'iceberg': g = TM.iceberg(); break;
       case 'ecar': g = x.limo ? M.limo() : M.enemyCar(x.suv ? 0x2a3a24 : 0x16161a); break;
       case 'heli': g = M.heli(); break;
       case 'drone': g = M.drone(); break;
@@ -402,7 +417,7 @@ export class View {
       case 'tank': g = M.tank(); break;
       case 'rig': g = M.rig(); break;
       case 'rioter': g = M.rioter(x.sk || 0, x.tx || 0); break;
-      case 'thrown': g = x.v === 5 ? WM.boneProj() : M.thrown(x.v || 0); break;
+      case 'thrown': g = x.v === 6 ? TM.iceChunk() : x.v === 5 ? WM.boneProj() : M.thrown(x.v || 0); break;
       case 'fuel': g = M.fuel(); break;
       case 'chef': g = M.chef(); break;
       case 'boat': g = M.boat(); break;
@@ -439,7 +454,7 @@ export class View {
       case 'brute': g = M.brute(); break;
       case 'key': g = M.keyItem(); break;
       case 'hdoor': g = M.hdoor(); break;
-      case 'prop': g = M.prop(x.k || 0); break;
+      case 'prop': g = (x.k || 0) >= 5 ? TM.luggage(x.k - 5 + e.id) : M.prop(x.k || 0); break;
       case 'megalodon': g = M.megalodon(); break;
       case 'obelisk': g = M.obelisk(); break;
       case 'casinob': g = M.casinoTower(x.k || 0); break;
@@ -842,6 +857,37 @@ const ANIM = {
     if (t < 6 && Math.random() < dt * 22) { o.getWorldPosition(V2); V2.x += (Math.random() - 0.5) * 18; V2.z += (Math.random() - 0.5) * 16; V2.y += 3 + Math.random() * Math.max(4, 30 - t * 6); V.fx.smoke(V2, Math.random() < 0.4); }
   },
   key(o, e, dt) { o.userData.k.rotation.y += dt * 2.5; },
+  // el arco de la entrada: al reventarlo, el travesaño se parte y cae y los troncos se tuercen
+  warch(o, e, dt, ctx, V) {
+    const ud = o.userData;
+    if (e.st !== ST.DEAD) { ud.top.rotation.z = Math.sin(ctx.t * 1.3) * 0.006; return; }
+    const t = ud.dt || 0, k = Math.min(1, t * t * 1.4);
+    ud.top.rotation.x = -k * 1.3; ud.top.position.y = 6.6 - k * 6.0; ud.top.rotation.z = k * 0.25;
+    ud.posts[0].rotation.z = k * 0.35; ud.posts[1].rotation.z = -k * 0.2;
+    if (t < 1.4 && Math.random() < dt * 12) { o.getWorldPosition(V1); V1.y += 1 + Math.random() * 3; V1.x += (Math.random() - 0.5) * 10; V.fx.smoke(V1, true); }
+  },
+  tumble(o, e, dt) { const b = o.userData.b; b.rotation.x += dt * 5; b.rotation.z += dt * 2; },
+  lboat(o, e, dt) { if (e.st === ST.DEAD) { const t = o.userData.dt || 0; o.children[0].rotation.x = Math.min(0.6, t * 2); o.children[0].position.y = -Math.min(0.5, t); } },
+  gatcart(o, e, dt, ctx) {
+    const ud = o.userData, t = ctx.t * 9;
+    if (e.st === ST.DEAD) { o.children[0].rotation.z = Math.min(1.2, (ud.dt || 0) * 1.5); return; }
+    ud.wheels.forEach(w => (w.rotation.x -= dt * 6));
+    ud.legs.forEach((l, i) => (l.rotation.x = Math.sin(t + (i % 2) * Math.PI + (i > 1 ? 1 : 0)) * 0.7));
+    const s = e.sh && e.sh[0];
+    if (s && s.on && s.r > 0.6) ud.barrels.rotation.z += dt * 25;
+  },
+  ttable(o, e, dt, ctx) { const b = o.userData.b; if (e.st === ST.DEAD) { b.rotation.z = Math.min(1.5, (o.userData.dt || 0) * 4); return; } b.rotation.z = Math.sin(ctx.t * 7 + e.id) * 0.05; },
+  // el iceberg encoge según pierde vida y los trozos se le van cayendo
+  iceberg(o, e, dt, ctx, V) {
+    const ud = o.userData, hm = (e.x && e.x.hm) || e.hm || 300, k = Math.max(0, e.hp) / hm;
+    const s = 0.45 + 0.55 * k;
+    ud.body.scale.setScalar(ud.sc = (ud.sc || 1) + (s - (ud.sc || 1)) * Math.min(1, dt * 3));
+    const lost = Math.floor((1 - k) * ud.chunks.length);
+    ud.chunks.forEach((c, i) => { if (i < lost && c.visible) { c.userData.f = (c.userData.f || 0) + dt; c.position.y -= dt * c.userData.f * 12; c.position.x *= 1 + dt; if (c.userData.f > 1.4) c.visible = false; } });
+    ud.body.rotation.y = Math.sin(ctx.t * 0.5) * 0.1;
+    ud.foam.scale.setScalar(1 + Math.sin(ctx.t * 3) * 0.05);
+    if (e.st === ST.DEAD) { ud.body.rotation.z = Math.min(1, (ud.dt || 0) * 0.3); if (Math.random() < dt * 12) { o.getWorldPosition(V1); V1.x += (Math.random() - 0.5) * 14; V1.y += Math.random() * 10; V.fx.smoke(V1, true); } }
+  },
   megalodon(o, e, dt, ctx) {
     const ud = o.userData;
     if (e.st === ST.DEAD) { ud.body.rotation.z = Math.min(Math.PI, (ud.dt || 0) * 0.8); return; }
