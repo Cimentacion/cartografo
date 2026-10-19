@@ -97,10 +97,13 @@ export class Road {
     T.jump = q('tjump', 46).start;
     T.deck1 = q('tdeck', 250).start;
     T.stern = q('tstern', 32).start;
-    T.deck2 = q('tdeck', 110, bio, { sink: 1 }).start;
-    T.ball = q('interior', 70, bio, { fork: -3, ball: 1 }).start;
-    T.deck3 = q('tdeck', 25, bio, { sink: 1 }).start;
-    T.dive = q('tdive', 70).start;
+    // vuelta por el otro costado mientras se hunde: bajada girando a la izquierda hacia dentro del barco, el salón de baile
+    // bajo la cubierta y la salida por una brecha del casco directo al agua
+    T.deck2 = q('tdeck', 60, bio, { sink: 1 }).start;
+    T.down = q('tdown', 40).start;
+    T.ball = q('interior', 80, bio, { fork: -3, ball: 1 }).start;
+    T.exit = q('texit', 80).start;
+    T.dive = T.exit;
     T.under = q('tunder', 320, TS).start;
     T.rise = q('trise', 50, TM).start;
     T.float = q('tfloat', 420, TM).start;
@@ -125,7 +128,11 @@ export class Road {
       case 'tberg': { const r = Math.min(1, b.pos / 25, (b.len - b.pos) / 25); k = -2.5 / (b.len - 25) * r; y = S + 6 + 10 * ez(u); break; }
       case 'tjump': y = S + 16 + 2 * u + 5 * Math.sin(Math.PI * u); break;
       case 'tstern': k = -Math.PI / b.len; break;
-      case 'tdive': y = S + 18 - 42 * ez(u); break;
+      // bajada a la cubierta de abajo: curva en S hacia la izquierda (unos 9 m hacia dentro del barco)
+      case 'tdown': y = S + 18 - 8 * ez(u); k = -0.0118 * Math.sin(2 * Math.PI * u); break; // 3 m a la izquierda (el salón no pasa del eje del barco)
+      case 'interior': y = S + 10; break;
+      // salida por la brecha del casco: curva en S a la derecha (unos 24 m) bajando hasta el fondo
+      case 'texit': y = S + 10 - 34 * ez(u); k = 0.0175 * Math.sin(2 * Math.PI * u); break;
       case 'tunder': y = S - 24 + Math.sin(b.pos * 0.02) * 1.5; k = Math.sin(b.pos * 0.012) * 0.004; break;
       case 'trise': y = S - 24 + 24.4 * ez(u); break;
       case 'tfloat': y = S + 0.4; k = Math.sin(b.pos * 0.009) * 0.003; break;
@@ -139,6 +146,9 @@ export class Road {
     this.y.push(y);
     this.sea.push(S);
     this.gy.push(y - S);
+    // desplazamiento lateral respecto a la línea de la segunda cubierta (+ = hacia la izquierda, hacia dentro del barco)
+    if (b.type === 'tdeck' && b.sink && b.pos === b.len - 1) T.o0 = [this.x[i + 1], this.z[i + 1], yaw];
+    if (T.o0 && i + 1 >= T.down) { (T.off || (T.off = {}))[i + 1] = -((this.x[i + 1] - T.o0[0]) * Math.cos(T.o0[2]) + (this.z[i + 1] - T.o0[1]) * Math.sin(T.o0[2])); }
     this.yaw.push(yaw);
     this.kind.push(b.type === 'interior' ? 3 : 0);
     this.bio.push(b.bio);

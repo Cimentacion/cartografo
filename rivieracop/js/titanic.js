@@ -9,16 +9,18 @@ const WHITE = 0xf2f2ee, BLACK = 0x141414, RED = 0x8a1a14, BUFF = 0xd8a040, WOOD 
 const nohit = g => g.traverse(o => { if (o.isMesh) o.raycast = () => { }; });
 
 // un trozo del casco entre z0 y z1 (z crece hacia popa); w(z) = manga en ese punto
-function hullPart(g, z0, z1, beam, H, wl, inset = 0) {
+function hullPart(g, z0, z1, beam, H, wl, inset = 0, port = false) {
   const n = Math.max(1, Math.round((z1 - z0) / 6));
   for (let i = 0; i < n; i++) {
     const za = z0 + (z1 - z0) * i / n, zb = z0 + (z1 - z0) * (i + 1) / n, z = (za + zb) / 2, w = beam(z) - inset * 2, L = zb - za + 0.05;
     if (w < 0.5) continue;
-    box(g, w, 6.4, L, WHITE, 0, -3.3, z);
-    box(g, w, wl - 6.4, L, BLACK, 0, -6.4 - (wl - 6.4) / 2, z);
-    box(g, w + 0.05, 0.22, L, GOLD, 0, -6.6, z);
-    box(g, w * 0.92, H - wl, L, RED, 0, -wl - (H - wl) / 2, z);
-    box(g, w - 0.2, 0.2, L, WOOD, 0, -0.12, z);
+    // port: solo la mitad de x < 0 (la otra mitad la ponen las cubiertas de la carretera)
+    const k = port ? 0.5 : 1, x = port ? -w / 4 : 0;
+    box(g, w * k, 6.4, L, WHITE, x, -3.3, z);
+    box(g, w * k, wl - 6.4, L, BLACK, x, -6.4 - (wl - 6.4) / 2, z);
+    box(g, w * k + 0.05, 0.22, L, GOLD, x, -6.6, z);
+    box(g, w * 0.92 * k, H - wl, L, RED, port ? -w * 0.23 : 0, -wl - (H - wl) / 2, z);
+    box(g, w * k - 0.2, 0.2, L, WOOD, x, -0.12, z);
   }
 }
 // el barco entero. o.half: 0 = entero, 1 = solo la mitad de proa, 2 = solo la de popa (se parte por z = split)
@@ -28,24 +30,25 @@ export function ship(o = {}) {
   const Z0 = half === 2 ? split : -36, Z1 = half === 1 ? split : 282;
   const beam = z => z < 0 ? 33.6 * Math.min(1, (z + 37.8) / 37.8) ** 0.7 : z > 250 ? 33.6 * Math.max(0.15, 1 - ((z - 250) / 34) ** 2) : 33.6;
   const H = 29, wl = 18;
-  hullPart(g, Z0, Z1, beam, H, wl, inset);
+  const port = !!o.port;
+  hullPart(g, Z0, Z1, beam, H, wl, inset, port);
   const inR = (a, b) => a >= Z0 && b <= Z1;
   // portillas iluminadas (filas a lo largo de los dos costados)
   for (let z = Math.max(Z0, -28); z < Math.min(Z1, 276); z += 2.4) {
     const w = beam(z) / 2 - inset + 0.04;
-    for (const sd of [-1, 1]) {
+    for (const sd of port ? [-1] : [-1, 1]) {
       box(g, 0.06, 0.5, 0.7, glow(0xffe8a8), sd * w, -2.4, z);
       if ((z | 0) % 3) box(g, 0.06, 0.4, 0.4, glow(0xffd890), sd * w, -8.2, z);
       box(g, 0.06, 0.35, 0.35, 0x2a2a2a, sd * w, -11.4, z);
     }
   }
   // casetas, bote salvavidas, chimeneas, puente y mástiles
-  for (let z = 4; z < 236; z += 26) if (inR(z, z + 19)) for (const sd of [-1, 1]) {
+  if (!port) for (let z = 4; z < 236; z += 26) if (inR(z, z + 19)) for (const sd of [-1, 1]) {
     box(g, 8.6 - inset, 3.1, 18.8, 0xefece4, sd * 4.4, 1.55, z + 9.5);
     box(g, 9.0, 0.25, 19.2, 0xd8d4c8, sd * 4.4, 3.25, z + 9.5);
     for (let q = -8; q <= 8; q += 2.6) box(g, 0.06, 1.2, 1.4, glow(0xffe0a0, 0.95), sd * 8.72, 1.9, z + 9.5 + q);
   }
-  for (let z = 13; z < 236; z += 13) if (inR(z - 4, z + 4)) for (const sd of [-1, 1]) {
+  if (!port) for (let z = 13; z < 236; z += 13) if (inR(z - 4, z + 4)) for (const sd of [-1, 1]) {
     box(g, 1.8, 0.9, 7, 0xf4f4f0, sd * (16.8 - 1.2 - inset), 1.5, z); box(g, 1.9, 0.12, 7.1, 0x8a6a4a, sd * (16.8 - 1.2 - inset), 1.98, z);
   }
   for (const z of [58, 102, 146, 190]) if (inR(z - 6, z + 6)) {
@@ -184,5 +187,47 @@ export function iceberg() {
   proxy(body, 7, 0, 8, 0); proxy(body, 5, 0, 16, 0);
   g.userData.body = body; g.userData.chunks = chunks; g.userData.foam = foam;
   g.userData.shooters = [chunks[0]];
+  return g;
+}
+// trozo del barco que cae bajo el agua: tablones de cubierta, chapa del casco, una tumbona o un ventilador
+export function debris(k = 0) {
+  const g = new THREE.Group(), b = new THREE.Group(); g.add(b); g.userData.b = b;
+  if (k === 0) { for (let q = 0; q < 5; q++) box(b, 0.5, 0.12, 3.2, WOOD, -1 + q * 0.5, 0, (q % 2) * 0.3, 'body'); box(b, 2.6, 0.12, 0.3, 0x6a4a2a, 0, -0.1, 0.8, 'body'); }
+  else if (k === 1) { box(b, 3, 2.2, 0.15, BLACK, 0, 0, 0, 'body'); box(b, 3, 0.7, 0.16, RED, 0, -1.3, 0, 'body'); for (let q = 0; q < 6; q++) box(b, 0.12, 0.12, 0.2, 0x5a5a5a, -1.2 + q * 0.48, 0.9, 0); }
+  else if (k === 2) { box(b, 0.7, 0.1, 1.9, 0x8a5a32, 0, 0, 0, 'body'); box(b, 0.7, 0.9, 0.1, 0x8a5a32, 0, 0.4, 0.9, 'body'); for (const x of [-0.3, 0.3]) box(b, 0.06, 0.5, 1.6, 0x6a3a1a, x, -0.25, 0, 'body'); }
+  else { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 2.2, 10), mat(WHITE)); c.userData.part = 'body'; b.add(c); box(b, 1.4, 1.2, 0.8, WHITE, 0, 1.3, 0.3, 'body'); }
+  return g;
+}
+// una de las chimeneas, cayendo de punta hacia el fondo
+export function funnel() {
+  const g = new THREE.Group(), b = new THREE.Group(); g.add(b); g.userData.b = b;
+  const c = new THREE.Mesh(new THREE.CylinderGeometry(3, 3.2, 16, 14), mat(BUFF)); c.scale.z = 1.25; c.userData.part = 'body'; b.add(c);
+  const t = new THREE.Mesh(new THREE.CylinderGeometry(3.05, 3.05, 3.2, 14), mat(BLACK)); t.position.y = 9.6; t.scale.z = 1.25; t.userData.part = 'body'; b.add(t);
+  for (const y of [-4, 0, 4]) { const r = new THREE.Mesh(new THREE.CylinderGeometry(3.25, 3.25, 0.25, 14), mat(0xb88830)); r.position.y = y; r.scale.z = 1.25; b.add(r); }
+  for (const sd of [-1, 1]) box(b, 0.3, 15, 0.3, 0xd8d0c0, sd * 2.4, 0, 3.6);
+  // trozo de la base arrancado
+  for (let k = 0; k < 5; k++) box(b, 1.6, 1.2, 1.2, k % 2 ? 0x3a2a24 : WHITE, -3 + k * 1.5, -8.6, (k % 3) - 1);
+  return g;
+}
+// barco de vapor: pequeño (lancha con chimenea y un tirador) o grande (con tres tiradores en cubierta)
+export function steamer(big = 0) {
+  const g = new THREE.Group(), b = new THREE.Group(); g.add(b); g.userData.b = b;
+  const s = big ? 2.4 : 1, shooters = [];
+  box(b, 3.2 * s, 1.6 * s, 10 * s, BLACK, 0, 0.3 * s, 0, 'body');
+  box(b, 3.0 * s, 0.6 * s, 9.6 * s, RED, 0, -0.6 * s, 0, 'body');
+  for (let k = 0; k < 3; k++) box(b, 2.4 * s * (1 - k * 0.3), 1.6 * s, 1.5 * s, BLACK, 0, 0.3 * s, -5.6 * s - k * 0.7 * s, 'body');
+  box(b, 3.3 * s, 0.15 * s, 10 * s, WOOD, 0, 1.15 * s, 0, 'body');
+  box(b, 2.2 * s, 1.4 * s, 4 * s, WHITE, 0, 1.9 * s, 1.2 * s, 'body');
+  for (let k = 0; k < 4; k++) box(b, 0.06, 0.5 * s, 0.6 * s, glow(0xffe8a8), 1.12 * s, 2.0 * s, -0.4 * s + k * 1.0 * s);
+  const f = new THREE.Mesh(new THREE.CylinderGeometry(0.45 * s, 0.5 * s, 3 * s, 10), mat(big ? BUFF : 0x2a2a2a)); f.position.set(0, 4 * s, 0.6 * s); f.userData.part = 'body'; b.add(f);
+  box(b, 0.95 * s, 0.6 * s, 0.95 * s, BLACK, 0, 5.4 * s, 0.6 * s);
+  { const sm = new THREE.Mesh(new THREE.SphereGeometry(0.9 * s, 8, 6), mat(0x5a5a62)); sm.position.set(0, 6.6 * s, 1.6 * s); sm.scale.set(1, 0.7, 1.8); sm.raycast = () => { }; b.add(sm); g.userData.smoke = sm; }
+  const spots = big ? [[-0.9, -3], [0.9, -2.2], [0, 3.6]] : [[0, -2.6]];
+  for (const [x, z] of spots) {
+    const p = person({ shirt: [0x3a3a4a, 0x6a2a2a, 0x2a4a3a][shooters.length % 3], pants: 0x1a1a2a, gun: 'rifle', hat: 'bombin', part: 'body', hair: 0x2a1a10, beard: 'barba' });
+    p.position.set(x * s, 1.2 * s, z * s); b.add(p);
+    shooters.push(p.userData.rig.muzzle || p);
+  }
+  g.userData.shooters = shooters;
   return g;
 }

@@ -166,7 +166,7 @@ const OUTFIT = [
 const CIV = [0xf0c040, 0x40a0f0, 0xf06080, 0x60d080, 0xffffff, 0xff8030, 0xa070f0, 0x30c0c0];
 const SKIN = [0xd9a476, 0xb27a4e, 0xf0c8a0, 0x7a5030];
 // enemigos más grandes: más fáciles de ver y de acertar en el móvil
-const SCALE = { gunman: 1.35, civilian: 1.3, victim: 1.3, slasher: 1.35, sniper: 1.5, moto: 1.2, drone: 1.8, chicken: 1.4, grenade: 1.7, rocket: 1.5, medkit: 1.3, barrel: 1.2, jeep: 1.1, lady: 1.3, rock: 1.3,
+const SCALE = { iceberg: 2.3, gunman: 1.35, civilian: 1.3, victim: 1.3, slasher: 1.35, sniper: 1.5, moto: 1.2, drone: 1.8, chicken: 1.4, grenade: 1.7, rocket: 1.5, medkit: 1.3, barrel: 1.2, jeep: 1.1, lady: 1.3, rock: 1.3,
   sign: 1.45, harvester: 1.9, skel: 1.3, outlaw: 1.35, wsign: 2, goblin: 1.5, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2, beast: 1.35, bear: 1.5, jelly: 1.4, mine: 1.2, zombie: 1.3, bat: 1.5, key: 2.2 };
 // cosas que no paran las balas
 const NOHIT = new Set(['tlight', 'preview', 'whale', 'casinob']);
@@ -180,7 +180,7 @@ const BLOBT = (() => {
 })();
 const BLOBM = new THREE.MeshBasicMaterial({ map: BLOBT, transparent: true, depthWrite: false, opacity: 0.8, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
 const BLOBG = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
-const NOBLOB = new Set(['warch', 'iceberg', 'lboat', 'wsign', 'whouse', 'mansion', 'church', 'tower', 'mbomb', 'dunegate', 'fatman', 'toll', 'obelisk', 'casinob', 'megalodon', 'bat', 'key', 'hdoor', 'prop', 'sign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
+const NOBLOB = new Set(['tdebris', 'tfunnel', 'steamer', 'warch', 'iceberg', 'lboat', 'wsign', 'whouse', 'mansion', 'church', 'tower', 'mbomb', 'dunegate', 'fatman', 'toll', 'obelisk', 'casinob', 'megalodon', 'bat', 'key', 'hdoor', 'prop', 'sign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
 const _bb = new THREE.Box3(), _bs = new THREE.Vector3();
 export function addBlob(g, k = 1.15) {
   _bb.setFromObject(g); _bb.getSize(_bs);
@@ -201,6 +201,7 @@ const MASK = {
   quad: LAYER_ENEMY, crew: LAYER_ENEMY, harvester: LAYER_ENEMY, xcar: LAYER_KEEP, pickup: LAYER_ENEMY, van: LAYER_ENEMY, bus: LAYER_ENEMY, canoe: LAYER_ENEMY,
   jumper: LAYER_ENEMY, tank: LAYER_ENEMY, rig: LAYER_ENEMY, rioter: LAYER_ENEMY, thrown: LAYER_ENEMY, chef: LAYER_ENEMY, boat: LAYER_ENEMY, mtrain: LAYER_ENEMY,
   warch: LAYER_KEEP, tumble: LAYER_KEEP,
+  tdebris: LAYER_ENEMY, tfunnel: LAYER_ENEMY, steamer: LAYER_ENEMY,
   lboat: LAYER_ENEMY, gatcart: LAYER_ENEMY, ttable: LAYER_KEEP, iceberg: LAYER_ENEMY,
   goblin: LAYER_ENEMY, wsign: LAYER_KEEP, whouse: LAYER_KEEP, mansion: LAYER_KEEP, church: LAYER_KEEP, skel: LAYER_ENEMY, outlaw: LAYER_ENEMY,
   obelisk: LAYER_KEEP, toll: LAYER_KEEP, victim: LAYER_KEEP, slasher: LAYER_ENEMY, mbomb: LAYER_ENEMY, tuktuk: LAYER_ENEMY, fatman: LAYER_KEEP, firetruck: LAYER_ENEMY, megalodon: LAYER_ENEMY, zombie: LAYER_ENEMY, bat: LAYER_ENEMY, brute: LAYER_ENEMY, key: LAYER_KEEP, hdoor: LAYER_KEEP, prop: LAYER_KEEP,
@@ -391,6 +392,9 @@ export class View {
       case 'warch': g = WM.wArch(); break;
       case 'tumble': g = WM.tumbleweed(); break;
       case 'lboat': g = TM.lifeboat(); break;
+      case 'tdebris': g = TM.debris(x.k || 0); break;
+      case 'tfunnel': g = TM.funnel(); break;
+      case 'steamer': g = TM.steamer(x.big || 0); break;
       case 'gatcart': g = TM.gatCart(); break;
       case 'ttable': g = TM.table(); break;
       case 'iceberg': g = TM.iceberg(); break;
@@ -865,6 +869,15 @@ const ANIM = {
     ud.top.rotation.x = -k * 1.3; ud.top.position.y = 6.6 - k * 6.0; ud.top.rotation.z = k * 0.25;
     ud.posts[0].rotation.z = k * 0.35; ud.posts[1].rotation.z = -k * 0.2;
     if (t < 1.4 && Math.random() < dt * 12) { o.getWorldPosition(V1); V1.y += 1 + Math.random() * 3; V1.x += (Math.random() - 0.5) * 10; V.fx.smoke(V1, true); }
+  },
+  tdebris(o, e, dt) { const b = o.userData.b; b.rotation.x += dt * 0.4; b.rotation.z = Math.sin(e.age * 0.7) * 0.5; },
+  // la chimenea se va inclinando mientras cae
+  tfunnel(o, e, dt) { const b = o.userData.b, t = Math.min(1, e.age / 20); b.rotation.z = 0.25 + t * 0.9; b.rotation.x = Math.sin(e.age * 0.4) * 0.08; if (e.st === ST.DEAD) b.rotation.z += (o.userData.dt || 0) * 0.6; },
+  steamer(o, e, dt, ctx) {
+    const ud = o.userData;
+    ud.b.rotation.z = Math.sin(ctx.t * 1.1 + e.id) * 0.04; ud.b.position.y = Math.sin(ctx.t * 1.4 + e.id) * 0.2;
+    if (ud.smoke) { const k = (ctx.t * 0.6 + e.id) % 1; ud.smoke.position.y = ud.smoke.userData.y0 ?? (ud.smoke.userData.y0 = ud.smoke.position.y); ud.smoke.scale.setScalar(1 + k * 0.4); }
+    if (e.st === ST.DEAD) { ud.b.rotation.x = Math.min(0.5, (ud.dt || 0) * 0.15); ud.b.rotation.z = Math.min(0.6, (ud.dt || 0) * 0.12); }
   },
   tumble(o, e, dt) { const b = o.userData.b; b.rotation.x += dt * 5; b.rotation.z += dt * 2; },
   lboat(o, e, dt) { if (e.st === ST.DEAD) { const t = o.userData.dt || 0; o.children[0].rotation.x = Math.min(0.6, t * 2); o.children[0].position.y = -Math.min(0.5, t); } },

@@ -34,19 +34,19 @@ export const SEAT_H = 1.75, SEAT_D = -0.8;
 const VEH = new Set(['xcar', 'harvester', 'police', 'ecar', 'truck', 'amb', 'jeep', 'civcar', 'tank', 'rig', 'fuel', 'float', 'pickup', 'van', 'bus', 'crew']);
 const HOSTILE = new Set(['gunman', 'sniper', 'moto', 'ecar', 'heli', 'drone', 'jeep', 'grenade', 'rocket', 'rock', 'wall', 'train',
   'jumper', 'tank', 'rig', 'rioter', 'thrown', 'chef', 'boat', 'mtrain', 'quad', 'pickup', 'van', 'bus', 'canoe',
-  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'turret', 'gunship', 'crew', 'xcar', 'harvester', 'zombie', 'bat', 'brute', 'megalodon', 'firetruck', 'slasher', 'tuktuk', 'gatcart', 'iceberg']);
+  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'turret', 'gunship', 'crew', 'xcar', 'harvester', 'zombie', 'bat', 'brute', 'megalodon', 'firetruck', 'slasher', 'tuktuk', 'gatcart', 'iceberg', 'tdebris', 'tfunnel', 'steamer']);
 export const AIR = new Set(['heli', 'drone', 'jet', 'blimp', 'gunship']);
 export const ANIMAL = new Set(['beast', 'bear', 'jelly', 'chicken']);
 const PROJ = new Set(['grenade', 'rocket', 'rock', 'thrown']);
 const VEHICLE_DMG = new Set(['firetruck', 'moto', 'ecar', 'heli', 'jeep', 'tank', 'rig', 'boat', 'mtrain', 'train', 'wall', 'drone', 'crew', 'xcar', 'harvester']);
-const OFFH = { gunman: 1.5, sniper: 1.5, moto: 1.6, ecar: 1.6, heli: -0.4, drone: 0, jeep: 2.6, rioter: 1.6, chef: 2.2, boat: 1.4, tank: 2.4, mtrain: 2.5,
+const OFFH = { iceberg: 16, steamer: 3, tfunnel: 0, gunman: 1.5, sniper: 1.5, moto: 1.6, ecar: 1.6, heli: -0.4, drone: 0, jeep: 2.6, rioter: 1.6, chef: 2.2, boat: 1.4, tank: 2.4, mtrain: 2.5,
   quad: 1.4, pickup: 2.2, van: 1.6, bus: 2.4, canoe: 0.8, bear: 2.2, blimp: -3, jet: 0, rammer: 1.4, jelly: 0, turret: 0.6, gunship: 0, crew: 2.4, xcar: 1.4, harvester: 4, zombie: 1.3, bat: 0, brute: 3.5, megalodon: 0, firetruck: 2.4, slasher: 1.5, tuktuk: 1.6, skel: 1.9, outlaw: 1.5 };
 const PTS = {
   gunman: 100, sniper: 200, moto: 150, ecar: 300, heli: 1000, drone: 150, jeep: 1500, grenade: 60, rocket: 80, rock: 60, chicken: 50, amb: 200,
   barrel: 50, wall: 600, train: 900, jumper: 180, tank: 2000, rig: 1200, rioter: 80, thrown: 30, chef: 3000, boat: 450, mtrain: 2500,
   quad: 150, pickup: 400, van: 600, bus: 1200, canoe: 120,
   beast: 160, bear: 3500, mine: 60, jet: 500, blimp: 5000, rammer: 500, junk: 20, jelly: 90, turret: 300, gunship: 6000, crew: 500, xcar: 150, harvester: 8000, zombie: 60, bat: 80, brute: 9000, key: 500, prop: 30, megalodon: 8000, obelisk: 3000, casinob: 10000, firetruck: 1800, toll: 400, slasher: 400, tower: 20000, mbomb: 40, tuktuk: 500,
-  whouse: 400, warch: 1500, tumble: 120, mansion: 6000, skel: 150, outlaw: 5000, goblin: 3000, lboat: 250, gatcart: 3000, ttable: 80, iceberg: 25000,
+  whouse: 400, warch: 1500, tumble: 120, mansion: 6000, skel: 150, outlaw: 5000, goblin: 3000, lboat: 250, gatcart: 3000, ttable: 80, iceberg: 25000, tdebris: 60, tfunnel: 4000, steamer: 600,
 };
 
 // los enemigos normales se van desbloqueando a lo largo de la partida (segundos de partida)
@@ -188,6 +188,7 @@ export class Sim {
       // EL TITANIC: botes salvavidas cruzados en la cubierta (hay que reventarlos) y el iceberg gigante
       if (e.type === 'lboat' && e.st !== ST.DEAD && rel < 9 && rel > 0) this.hold = true;
       if (e.type === 'iceberg' && e.st !== ST.DEAD) this.hold = true;
+      if (e.type === 'tfunnel' && e.st !== ST.DEAD) this.hold = true;
       if (e.type === 'outlaw' && (e.st !== ST.DEAD || e.deadT < 1.6) && rel < 21 && rel > -5) this.hold = true;
     }
     if (this.foot) this.hold = true;
@@ -208,7 +209,7 @@ export class Sim {
       if (BZ.vf && this.road.kindAt(this.carD) === 0) tgt *= BZ.vf;
       // OLD TOWN: por el pueblo se va algo más despacio y por la iglesia y el cementerio, más aún
       { const WW = this.road.westAt(this.carD); if (WW && this.carD > WW.town - 20) tgt *= this.carD > WW.church - 40 && this.carD < WW.plain + 40 ? 0.6 : 0.82; }
-      { const T = this.road.titanicAt(this.carD); if (T && this.carD > T.jump + 20 && this.carD < T.out) tgt *= this.carD < T.dive ? 0.7 : this.carD < T.rise ? 0.75 : 0.85; }
+      { const T = this.road.titanicAt(this.carD); if (T && this.carD > T.jump + 20 && this.carD < T.out) tgt *= this.carD < T.exit ? 0.7 : this.carD < T.rise ? 0.75 : 0.85; }
       // regulador de velocidad: manda el que lo tenga más bajo
       let rf = 1;
       for (const p of this.players) if (p.alive && !p.gone) rf = Math.min(rf, p.spdF || 1);
@@ -646,7 +647,7 @@ export class Sim {
     if (needy && this.ambT > 22 && this.runT - this.lastAmb > 40 && !this.has('amb') && !this.has('medkit')) this.ambT = 22;
     this.ambT -= dt;
     if (this.ambT <= 0) {
-      if (inT && this.carD > TT.dive - 40) this.ambT = 3;
+      if (inT) this.ambT = 3; // el Titanic es de una sola carretera: sin ambulancias
       else if (this.laneFree(-50, 40) && !this.has('amb')) { this.spawnAmb(); this.lastAmb = this.runT; this.ambT = (75 + this.r() * 30) * (this.bonus.amb ? 0.55 : 1) * Math.max(0.5, 1 - 0.08 * this.maxMeta('ambu')); }
       else this.ambT = 2;
     }
@@ -1097,11 +1098,11 @@ export class Sim {
       if (c < T.berg - 20) this.spawnGunmen(1 + (r() < 0.4 ? 1 : 0), r() < 0.4);
       else this.titanSnipe(c);
     }
-    if (c > T.berg + 120) ban('b', '¡UN TRASATLÁNTICO!', 'Va directo contra vuestro iceberg…', '#ffd060');
+    if (c > T.jump - 150) ban('b', '¡UN TRASATLÁNTICO!', 'Va directo contra vuestro iceberg…', '#ffd060');
     if (c > T.jump - 25 && once0(this, 'tcr' + T.k)) this.emit('tcrash', { k: T.k });
     // las cubiertas: botes salvavidas cruzados, marineros y el carro con la ametralladora
     if (c > T.deck1 - 120 && once0(this, 'tlb' + T.k)) {
-      for (const at of [T.deck1 + 50, T.deck1 + 110, T.deck1 + 170, T.deck1 + 222, T.deck2 + 35, T.deck2 + 85]) { const e = this.add('lboat', { d: at, lat: LANE_ME + (r() - 0.5), h: 0, hp: 5 + 2 * this.nAlive(), ry: (r() - 0.5) * 0.5 }); e.x = {}; }
+      for (const at of [T.deck1 + 50, T.deck1 + 110, T.deck1 + 170, T.deck1 + 222, T.deck2 + 35]) { const e = this.add('lboat', { d: at, lat: LANE_ME + (r() - 0.5), h: 0, hp: 5 + 2 * this.nAlive(), ry: (r() - 0.5) * 0.5 }); e.x = {}; }
     }
     if (c > T.deck1 - 10) ban('d', '¡A BORDO!', 'Revienta los botes salvavidas que cortan el paso', '#ffd060');
     if (c > T.deck1 + 10 && once0(this, 'tgc' + T.k)) {
@@ -1110,33 +1111,42 @@ export class Sim {
       e.sh = [this.shooter(2.4, 'gat', 2.5)];
       this.emit('banner', { txt: '¡LA AMETRALLADORA!', sub: 'Un carro de caballos con una ametralladora de manivela', c: '#ff8a4a' });
     }
-    const onDeck = (c > T.deck1 && c < T.ball - 20) || (c > T.deck3 - 10 && c < T.dive);
+    const onDeck = c > T.deck1 && c < T.down - 10;
     if (onDeck && !full && this.timer('sail', dt, n === 1 ? 2.8 : 2.1)) this.sailors(c);
     if (c > T.stern - 5) ban('p', 'LA POPA', 'Dad la vuelta por el otro lado', '#ffd060');
     if (c > T.deck2 + 5) ban('k', '¡SE HUNDE!', 'El barco se inclina hacia un lado…', '#ff6a4a');
     // maletas y cosas que se rompen por las cubiertas del hundimiento y por el salón
     if (c > T.deck2 - 100 && once0(this, 'tlg' + T.k)) {
-      for (let d = T.deck2 + 12; d < T.ball - 6; d += 7 + r() * 8) { const e = this.add('prop', { d, lat: -0.8 + r() * 5.6, h: 0, hp: 2, ry: r() * 6 }); e.x = { k: 5 + Math.floor(r() * 3) }; }
+      for (let d = T.deck2 + 12; d < T.down - 4; d += 7 + r() * 8) { const e = this.add('prop', { d, lat: -0.8 + r() * 5.6, h: 0, hp: 2, ry: r() * 6 }); e.x = { k: 5 + Math.floor(r() * 3) }; }
     }
     if (c > T.ball - 60 && once0(this, 'tlb2' + T.k)) {
-      for (let d = T.ball + 4; d < T.ball + 66; d += 2.5 + r() * 3) { const lat = (r() < 0.5 ? -1 : 1) * (5.5 + r() * 2.5); const e = this.add('prop', { d, lat, h: 0, hp: 2, ry: r() * 6 }); e.x = { k: 5 + Math.floor(r() * 3) }; }
+      for (let d = T.ball + 4; d < T.ball + 76; d += 2.5 + r() * 3) { const lat = r() < 0.5 ? -(4.6 + r() * 1.6) : 4.8 + r() * 0.8; const e = this.add('prop', { d, lat, h: 0, hp: 2, ry: r() * 6 }); e.x = { k: 5 + Math.floor(r() * 3) }; }
     }
-    if (c > T.ball - 15) ban('g', 'EL GRAN SALÓN', 'Las mesas resbalan hacia el lado que se hunde', '#ffd060');
-    if (c > T.ball - 30 && c < T.ball + 55) {
-      if (this.timer('ttab', dt, 1.1) && this.count('ttable') < 4) { const e = this.add('ttable', { d: c + 22 + r() * 22, lat: -8.5, h: 0, hp: 3, ry: r() * 6 }); e.x = { v: 2.2 + r() * 2.2, hitd: 0 }; }
+    if (c > T.down + 5) ban('g', 'EL GRAN SALÓN', 'Las mesas resbalan hacia el lado que se hunde', '#ffd060');
+    if (c > T.ball - 25 && c < T.ball + 65) {
+      if (this.timer('ttab', dt, 1.1) && this.count('ttable') < 4) { const e = this.add('ttable', { d: c + 22 + r() * 22, lat: -5.8, h: 0, hp: 3, ry: r() * 6 }); e.x = { v: 2.2 + r() * 2.2, hitd: 0 }; }
       if (!full && this.timer('tbg', dt, n === 1 ? 2.0 : 1.5)) {
-        const d = c + 30 + r() * 25, sd = r() < 0.6 ? -1 : 1, e = this.add('gunman', { d, lat: sd < 0 ? -6.8 : 6.2, h: 0.1, hp: 2 + (this.diff > 3 ? 1 : 0), st: ST.HIDDEN });
+        const d = c + 30 + r() * 25, sd = r() < 0.6 ? -1 : 1, e = this.add('gunman', { d, lat: sd < 0 ? -5.6 : 5.2, h: 0.1, hp: 2 + (this.diff > 3 ? 1 : 0), st: ST.HIDDEN });
         e.x = { cv: -1, gr: 0, pop: 34 + r() * 20, sk: Math.floor(r() * 6) };
         e.sh = [this.shooter(2.8 + r() * 0.8, 'shot', 0.3)];
       }
     }
-    if (c > T.dive - 15) ban('w', '¡AL AGUA!', 'Aguantad la respiración', '#5ac8ff');
-    // bajo el agua: tiburones, medusas y los náufragos que disparan desde la superficie como una lluvia de balas
-    if (c > T.dive + 30 && c < T.rise) {
-      ban('u', 'BAJO EL MAR', 'Tiburones… y náufragos disparando desde arriba', '#5ac8ff');
-      if (this.timer('tsh', dt, 6) && this.count('beast') < 1 + n) this.spawnBeasts(2);
-      if (this.timer('tje', dt, 10) && this.count('jelly') < 10) this.spawnJellies();
-      if (!full && this.timer('tsw', dt, n === 1 ? 3.0 : 2.2) && this.count('gunman') < 3 + n) {
+    if (c > T.exit + 5) ban('w', '¡AL AGUA!', 'Salid por la brecha del casco', '#5ac8ff');
+    // bajo el agua: tiburones, medusas, trozos del barco que caen despacio, la chimenea y los náufragos que disparan desde arriba
+    if (c > T.exit + 50 && c < T.rise) {
+      ban('u', 'BAJO EL MAR', 'Caen trozos del barco: reventadlos antes de que os den', '#5ac8ff');
+      if (this.timer('tsh', dt, 7) && this.count('beast') < 1 + n) this.spawnBeasts(2);
+      if (this.timer('tje', dt, 11) && this.count('jelly') < 8) this.spawnJellies();
+      if (this.timer('tdb', dt, 1.5) && this.count('tdebris') < 5 + n) {
+        const e = this.add('tdebris', { d: c + 22 + r() * 30, lat: LANE_ME + (r() - 0.5) * 9, h: 24 + r() * 6, hp: 2 + (r() < 0.3 ? 2 : 0), ry: r() * 6 });
+        e.x = { k: Math.floor(r() * 4), v: 1.3 + r() * 0.8, sp: (r() - 0.5) * 1.2, hitd: 0 };
+      }
+      if (c > T.under + 70 && once0(this, 'tfn' + T.k)) {
+        const e = this.add('tfunnel', { d: c + 40, lat: LANE_ME - 1, h: 26, hp: 45 + 15 * this.nAlive(), ry: 0 });
+        e.hm = e.hp; e.x = { t: 0 };
+        this.emit('banner', { txt: '¡CAE UNA CHIMENEA!', sub: 'Tardará 20 segundos en llegar abajo: ¡reventadla!', c: '#ffb020' });
+      }
+      if (!full && this.timer('tsw', dt, n === 1 ? 4.2 : 3.0) && this.count('gunman') < 2 + n) {
         const k = 2 + (r() < 0.4 ? 1 : 0), d0 = c + 26 + r() * 20;
         for (let i = 0; i < k; i++) {
           const d = d0 + i * 4, g = this.road.gy[Math.floor(d)] ?? -24, e = this.add('gunman', { d, lat: (r() - 0.5) * 18, h: -g - 0.6, hp: 1 + (this.diff > 4 ? 1 : 0), st: ST.ALIVE });
@@ -1145,8 +1155,17 @@ export class Sim {
         }
       }
     }
+    // fuera del agua ya no hay peces ni medusas
+    if (c > T.rise + 10 && once0(this, 'tcl' + T.k)) for (const e of this.ents) if ((e.type === 'beast' || e.type === 'jelly' || e.type === 'tdebris' || (e.type === 'gunman' && e.x.swim))) e.rm = true;
+    // barcos de vapor (pequeños y grandes) con tiradores a los lados
+    if (c > T.rise + 30 && c < T.boss - 60 && !full && this.timer('tst', dt, n === 1 ? 6 : 4.5) && this.count('steamer') < 1 + Math.ceil(n / 2)) {
+      const big = r() < 0.35, sd = r() < 0.5 ? -1 : 1;
+      const e = this.add('steamer', { d: c + 70 + r() * 30, lat: sd * (big ? 32 + r() * 8 : 15 + r() * 8), h: 0, hp: big ? 24 + 6 * this.nAlive() : 6 + 2 * this.nAlive(), vd: this.speed * (0.45 + r() * 0.35), ry: 0 });
+      e.x = { big: big ? 1 : 0 };
+      e.sh = big ? [this.shooter(2.6, 'shot', 1), this.shooter(3.0, 'shot', 1.8), this.shooter(3.4, 'grenade', 2.6)] : [this.shooter(2.8, 'shot', 1)];
+    }
     // el mar helado: tiradores sobre témpanos y, a lo lejos, el Titanic que se parte en dos
-    if (c > T.rise + 30 && c < T.boss - 80 && !full && this.timer('tfl', dt, n === 1 ? 3.2 : 2.4)) {
+    if (c > T.rise + 30 && c < T.boss - 80 && !full && this.timer('tfl', dt, n === 1 ? 4.2 : 3.2)) {
       const d = c + 45 + r() * 25, sd = r() < 0.5 ? -1 : 1, e = this.add('gunman', { d, lat: sd * (8 + r() * 6), h: 0.35, hp: 2, st: ST.ALIVE });
       e.x = { cv: -1, gr: 0, pop: 999, sk: Math.floor(r() * 6), floe: 1 };
       e.sh = [this.shooter(2.8 + r() * 0.6, 'shot', 0.5)];
@@ -1154,9 +1173,9 @@ export class Sim {
     if (c > T.float + 40) ban('f', 'EL MAR HELADO', 'Mirad a la derecha: el Titanic se parte en dos', '#9ad8ff');
     // jefe: EL ICEBERG gigante (al menos 300 balazos)
     if (c > T.boss - 100 && once0(this, 'tib' + T.k)) {
-      const e = this.add('iceberg', { d: c + 110, lat: LANE_ME, h: 0, hp: 300 + 100 * (this.nAlive() - 1) });
+      const e = this.add('iceberg', { d: c + 80, lat: 0, h: 0, hp: 300 + 100 * (this.nAlive() - 1) });
       e.hm = e.hp;
-      e.x = { rel: 110 };
+      e.x = { rel: 80 };
       e.sh = [this.shooter(2.6, 'thrown', 2, 6), this.shooter(3.2, 'thrown', 3.5, 6)];
       this.emit('banner', { txt: '¡EL ICEBERG!', sub: 'Viene a por vosotros: reventadlo a balazos', c: '#40c8ff' });
     }
@@ -2034,6 +2053,8 @@ function ser(e) {
     case 'skel': x = { sk: X.sk }; break;
     case 'outlaw': x = { ph: X.ph }; break;
     case 'goblin': x = { ph: X.ph }; break;
+    case 'steamer': x = { big: X.big }; break;
+    case 'tdebris': x = { k: X.k }; break;
   }
   if (e.type === 'gunman' && (X.swim || X.floe)) { x = x || {}; x.swim = X.swim; x.floe = X.floe; }
   if (e.hm) { x = x || {}; x.hm = e.hm; }
@@ -2355,13 +2376,47 @@ const U = {
     e.lat += x.v * dt; e.h = 0.5 + Math.abs(Math.sin(e.age * 3 + x.ph)) * 0.9;
     if (Math.abs(e.lat) > 30 || S.rel(e) < -20) e.rm = true;
   },
+  // trozos del barco que caen despacio bajo el agua
+  tdebris(e, dt, S) {
+    const x = e.x;
+    e.vd = 0;
+    if (e.st === ST.DEAD) { e.rm = true; return; }
+    e.h = Math.max(0.3, e.h - x.v * dt); e.ry += x.sp * dt;
+    if (!x.hitd && e.h < 2.2 && Math.abs(S.rel(e)) < 3.5 && Math.abs(e.lat - LANE_ME) < 3) { x.hitd = 1; S.emit('crash', {}); for (const i of S.alivePlayers()) S.hurt(i, 0, 'crash'); S.emit('fx', { f: 'rock', w: S.wpos(e.d, e.lat, 1) }); e.rm = true; }
+    if (S.rel(e) < -20 || (e.h <= 0.3 && e.age > 30)) e.rm = true;
+  },
+  // la chimenea que cae: 20 s hasta el fondo; si llega, aplasta el coche
+  tfunnel(e, dt, S) {
+    const x = e.x;
+    e.vd = 0;
+    if (e.st === ST.DEAD) { e.h = Math.max(-6, e.h - dt * 4); if (e.deadT > 4) e.rm = true; return; }
+    x.t += dt;
+    e.d = Math.max(e.d, S.carD + 14);
+    if (S.rel(e) < -30) { e.rm = true; return; }
+    e.h = 26 - 23 * Math.min(1, x.t / 20);
+    if (x.t >= 20) {
+      S.emit('crash', {}); S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 3), s: 2.5 });
+      S.emit('banner', { txt: '¡APLASTADOS!', sub: '', c: '#ff4a4a' });
+      for (const i of S.alivePlayers()) { S.players[i].inv = 0; S.hurt(i, 1, 'crash'); }
+      S.kill(e, -1, true);
+    }
+  },
+  // barco de vapor (pequeño o grande) con tiradores
+  steamer(e, dt, S) {
+    const rel = S.rel(e);
+    if (e.st === ST.DEAD) { e.vd = 0; e.h = Math.max(-12, e.h - dt * 1.5); if (e.deadT > 8) e.rm = true; return; }
+    e.ry = Math.sin(e.age * 0.5) * 0.05;
+    if (rel < 25) e.vd = S.speed * 1.05;
+    S.tick(e, dt, !S.voting && rel < 110 && rel > -10 && e.age > 1);
+    if (rel < -40) e.rm = true;
+  },
   lboat(e, dt, S) { e.vd = 0; if (S.rel(e) < -30 || (e.st === ST.DEAD && e.deadT > 4)) e.rm = true; },
   // el carro con la ametralladora va siempre por delante; al llegar a la popa se escapa
   gatcart(e, dt, S) {
     const x = e.x, T = S.road.titanicAt(S.carD);
     if (e.st === ST.DEAD) { e.vd = 0; if (e.deadT > 5 || S.rel(e) < -30) e.rm = true; return; }
     const flee = !T || e.d > T.stern - 20;
-    if (flee) { e.vd = S.speed + 9; if (S.rel(e) > 95) e.rm = true; }
+    if (flee) { e.vd = S.speed + 9; if (S.rel(e) > 95 || S.rel(e) < -30) e.rm = true; }
     else { x.rel += ((S.speed < 0.5 ? 30 : 24) - x.rel) * Math.min(1, dt * 0.6); e.d = S.carD + x.rel; e.vd = 0; e.lat = 1.6 + Math.sin(e.age * 0.6) * 0.8; }
     e.ry = 0;
     S.tick(e, dt, !S.voting && !flee && e.age > 1.2);
@@ -2373,21 +2428,22 @@ const U = {
     if (e.st === ST.DEAD) { if (e.deadT > 3) e.rm = true; return; }
     e.lat += x.v * dt; e.ry += dt * 0.6 * x.v;
     if (!x.hitd && Math.abs(e.lat - LANE_ME) < 1.9 && Math.abs(rel) < 2.4) { x.hitd = 1; S.emit('crash', {}); for (const i of S.alivePlayers()) S.hurt(i, 0, 'crash'); }
-    if (e.lat > 9 || rel < -15) e.rm = true;
+    if (e.lat > 5.6) { e.lat = 5.6; x.v = 0; }
+    if (rel < -15) e.rm = true;
   },
   // EL ICEBERG: se acerca hacia vosotros; si llega, embiste y retrocede. Tira trozos de hielo
   iceberg(e, dt, S) {
     const x = e.x;
     e.vd = 0;
     if (e.st === ST.DEAD) { e.d = S.carD + x.rel; e.h = Math.max(-30, e.h - dt * 3); if (e.deadT > 8) e.rm = true; return; }
-    const sp = 2.2 + (1 - e.hp / e.hm) * 2.5;
-    x.rel = Math.max(14, x.rel - sp * dt);
-    if (x.rel <= 16) {
+    const sp = 1.6 + (1 - e.hp / e.hm) * 2.0;
+    x.rel = Math.max(30, x.rel - sp * dt);
+    if (x.rel <= 31) {
       S.emit('crash', {}); S.emit('banner', { txt: '¡EMBESTIDA!', sub: '', c: '#40c8ff' });
       for (const i of S.alivePlayers()) { S.players[i].inv = 0; S.hurt(i, 1, 'crash'); }
-      x.rel = 55;
+      x.rel = 70;
     }
-    e.d = S.carD + x.rel; e.lat = LANE_ME + Math.sin(e.age * 0.4) * 2; e.ry = Math.sin(e.age * 0.3) * 0.2;
+    e.d = S.carD + x.rel; e.lat = Math.sin(e.age * 0.4) * 3; e.ry = Math.sin(e.age * 0.3) * 0.2;
     S.tick(e, dt, !S.voting && x.rel < 90);
   },
   mansion(e, dt, S) {
@@ -3056,6 +3112,9 @@ const HIT = {
   whouse(e, p, part, dmg, S) { e.x.kp = p; S.damage(e, p, dmg); },
   warch(e, p, part, dmg, S) { e.x.kp = p; S.emit('fx', { f: 'rock', w: S.wpos(e.d, e.lat + (S.r() - 0.5) * 8, 6) }); S.damage(e, p, dmg); },
   tumble(e, p, part, dmg, S) { S.kill(e, p); },
+  tdebris(e, p, part, dmg, S) { S.emit('fx', { f: 'rock', w: S.wpos(e.d, e.lat, e.h) }); S.damage(e, p, dmg); },
+  tfunnel(e, p, part, dmg, S) { if (S.r() < 0.3) S.emit('fx', { f: 'spark', w: S.wpos(e.d, e.lat, e.h + (S.r() - 0.5) * 8) }); S.damage(e, p, dmg); },
+  steamer(e, p, part, dmg, S) { S.damage(e, p, dmg); },
   lboat(e, p, part, dmg, S) { S.emit('fx', { f: 'rock', w: S.wpos(e.d, e.lat, 1) }); S.damage(e, p, dmg); },
   gatcart(e, p, part, dmg, S) { S.damage(e, p, dmg * (part === 'gunner' ? 1.5 : 1)); },
   ttable(e, p, part, dmg, S) { S.emit('fx', { f: 'rock', w: S.wpos(e.d, e.lat, 0.8) }); S.damage(e, p, dmg); },
@@ -3437,6 +3496,9 @@ const KILL = {
   goblin(e, p, S) { S.emit('fx', { f: 'heal', w: S.wpos(e.d, e.lat, e.h + 1) }); S.goblinPower(p); },
   warch(e, p, S) { for (const l of [-6, 0, 6]) S.emit('fx', { f: 'boom', w: S.wpos(e.d, l, 6), s: 1.4 }); S.emit('banner', { txt: '¡ADIÓS, OLD TOWN!', sub: 'El cartel de la entrada se viene abajo', c: '#e8a050' }); },
   tumble(e, p, S) { S.emit('fx', { f: 'rock', w: S.wpos(e.d, e.lat, e.h) }); },
+  tdebris(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, e.h), s: 0.6 }); },
+  tfunnel(e, p, S) { if (p < 0) return; for (let k = 0; k < 4; k++) S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, e.h + (k - 1.5) * 4), s: 1.8 }); S.emit('banner', { txt: '¡CHIMENEA DESTROZADA!', sub: '', c: '#7dff8a' }); },
+  steamer(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 2), s: e.x.big ? 2.4 : 1.2 }); if (e.x.big) S.emit('banner', { txt: '¡VAPOR HUNDIDO!', sub: '', c: '#7dff8a' }); },
   lboat(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 1), s: 1.2 }); },
   gatcart(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 1.5), s: 1.6 }); S.emit('banner', { txt: '¡AMETRALLADORA FUERA!', sub: '', c: '#7dff8a' }); dropWeapon(e, S, 1); },
   ttable(e, p, S) { S.emit('fx', { f: 'rock', w: S.wpos(e.d, e.lat, 0.8) }); },

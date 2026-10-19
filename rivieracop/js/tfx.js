@@ -69,6 +69,25 @@ export class TitanicFX {
     if (!this.ship) { this.ship = TM.ship({ inset: 0.12, smoke: true }); this.ship.visible = false; this.scene.add(this.ship); this.ship.position.y = -1e4; }
     return this.ship;
   }
+  // el medio barco del lado de la primera cubierta (el otro lado lo ponen las cubiertas de la carretera)
+  mkPort() {
+    if (!this.port) { this.port = TM.ship({ inset: 0.12, smoke: true, port: true }); this.port.visible = false; this.scene.add(this.port); }
+    return this.port;
+  }
+  // la colina puntiaguda de hielo dentro de la curva del iceberg: una sola pieza que se ve desde lejos (no aparece de golpe)
+  mkHill(road, T) {
+    if (this.hill || road.len < T.berg + 2) return this.hill;
+    const g = new THREE.Group(), Rc = (340 - 25) / 2.5;
+    road.toWorld(T.berg, -Rc, 0, g.position); g.position.y = T.S + 1;
+    const M = c => new THREE.MeshLambertMaterial({ color: c, flatShading: true });
+    const add = (geo, c, x, y, z, ry = 0) => { const m = new THREE.Mesh(geo, M(c)); m.position.set(x, y, z); m.rotation.y = ry; g.add(m); return m; };
+    add(new THREE.CylinderGeometry(3, Rc - 13, 92, 16, 3), 0xe8f2fc, 0, 46, 0);
+    add(new THREE.CylinderGeometry(0.5, Rc * 0.5, 62, 9), 0xf4f8ff, 10, 70, -8, 0.4);
+    add(new THREE.CylinderGeometry(0.5, Rc * 0.38, 44, 7), 0xd8ecfa, -30, 56, 25, 1);
+    for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2, m = add(new THREE.BoxGeometry(14, 26 + (k % 3) * 8, 10), k % 2 ? 0xb8dcf4 : 0xd0e8fa, Math.cos(a) * (Rc - 24), 14, Math.sin(a) * (Rc - 24), -a); m.rotation.z = 0.25; }
+    this.scene.add(g); this.hill = g;
+    return g;
+  }
   mkHalves() {
     if (!this.halves) { this.halves = new THREE.Group(); const a = TM.ship({ half: 1 }), b = TM.ship({ half: 2 }); this.halves.add(a, b); this.halves.userData.a = a; this.halves.userData.b = b; this.halves.visible = false; this.scene.add(this.halves); }
     return this.halves;
@@ -90,7 +109,9 @@ export class TitanicFX {
     }
     const S = T.S, t = G.t;
     // nivel del agua: sube mientras se hunde el barco (hasta casi la cubierta) y vuelve a su sitio bajo el agua
-    const lvl = S + (c < T.under ? 14 * ss(T.deck2, T.dive, c) : 0);
+    const lvl = S + (c < T.under ? 8 * ss(T.deck2, T.down, c) : 0);
+    this.mkHill(road, T);
+    if (this.hill) this.hill.visible = c < T.deck1 + 120;
     this.lvl = lvl;
     sea0.visible = false;
     const M = this.sea, U = M.material.uniforms;
@@ -98,7 +119,7 @@ export class TitanicFX {
     U.time.value = t;
     const car = road.toWorld(c, 3, 0, new THREE.Vector3());
     const floating = c > T.rise + 20 && c < T.beach;
-    U.calm.value.set(car.x, car.z, floating || c > T.dive ? 1 : 0);
+    U.calm.value.set(car.x, car.z, floating || c > T.down ? 1 : 0);
     this.under = camera.position.y < lvl - 0.3;
     U.under.value = this.under ? 1 : 0;
     U.fogColor.value.copy(this.scene.fog.color); U.fogNear.value = this.scene.fog.near; U.fogFar.value = this.scene.fog.far;
@@ -107,16 +128,20 @@ export class TitanicFX {
     if (crashed && !this.crashed) { this.crashed = 1; if (onCrash) onCrash(); }
     if (!crashed) this.crashed = 0;
     for (const g of chunks.values()) if (g.userData.hasShip) for (const m of g.children) if (m.userData.ship) m.visible = crashed;
-    const sh = this.mkShip();
-    if (c > T.berg - 60 && c < T.under - 10) {
+    const sh = this.mkShip(), po = this.mkPort();
+    po.visible = false;
+    if (c > T.jump - 320 && !crashed) {
+      // se acerca de lado hasta clavarse en el iceberg
       sh.visible = true;
       const X = Math.min(700, Math.max(0, (crash - c) * 2.4));
       this.pose(sh, road, T.deck1, -10.2, -0.1);
       const fw = new THREE.Vector3(0, 0, 1).applyEuler(sh.rotation);
       sh.position.addScaledVector(fw, X);
-      // ya chocado: se escora un poco al hundirse (lo justo para que no asome por las cubiertas)
-      sh.rotation.z = 0;
-    } else if (c >= T.under - 10 && c < T.rise + 20) {
+    } else if (crashed && c < T.exit + 40) {
+      // ya chocado: medio barco fijo (el otro medio son las cubiertas por donde se va)
+      sh.visible = false; po.visible = true;
+      this.pose(po, road, T.deck1, -10.2, -0.1);
+    } else if (c >= T.exit + 40 && c < T.rise + 20) {
       // bajo el agua: el Titanic hundido al lado, ladeado, con la proa clavada hacia el fondo
       sh.visible = true;
       this.pose(sh, road, T.under + 170, -48, 6, 0.25);
@@ -132,7 +157,7 @@ export class TitanicFX {
       b.position.z = 150 * (1 - Math.cos(b.rotation.x)) * 0.3;
     } else if (this.halves) this.halves.visible = false;
     // inclinación: todo se va de lado mientras se hunde (y se endereza al caer al agua)
-    const tl = c < T.deck2 ? 0 : c < T.dive ? 0.13 * ss(T.deck2, T.ball, c) : 0.13 * (1 - ss(T.dive, T.dive + 40, c));
+    const tl = c < T.deck2 ? 0 : c < T.exit ? 0.13 * ss(T.deck2, T.down + 20, c) : 0.13 * (1 - ss(T.exit, T.exit + 60, c));
     this.tilt += (tl - this.tilt) * Math.min(1, dt * 2);
     // flotando en el mar helado: el coche cabecea con las olas
     this.bob = floating ? Math.sin(t * 1.6) * 0.18 : 0;
