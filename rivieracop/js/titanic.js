@@ -9,17 +9,18 @@ const WHITE = 0xf2f2ee, BLACK = 0x141414, RED = 0x8a1a14, BUFF = 0xd8a040, WOOD 
 const nohit = g => g.traverse(o => { if (o.isMesh) o.raycast = () => { }; });
 
 // un trozo del casco entre z0 y z1 (z crece hacia popa); w(z) = manga en ese punto
-function hullPart(g, z0, z1, beam, H, wl, inset = 0, port = false) {
+function hullPart(g, z0, z1, beam, H, wl, inset = 0, side = 0) {
   const n = Math.max(1, Math.round((z1 - z0) / 6));
   for (let i = 0; i < n; i++) {
     const za = z0 + (z1 - z0) * i / n, zb = z0 + (z1 - z0) * (i + 1) / n, z = (za + zb) / 2, w = beam(z) - inset * 2, L = zb - za + 0.05;
     if (w < 0.5) continue;
     // port: solo la mitad de x < 0 (la otra mitad la ponen las cubiertas de la carretera)
-    const k = port ? 0.5 : 1, x = port ? -w / 4 : 0;
+    // side: solo media manga (-1: x < 0, lado de la primera cubierta; +1: x > 0, lado de la vuelta)
+    const k = side ? 0.5 : 1, x = side * w / 4;
     box(g, w * k, 6.4, L, WHITE, x, -3.3, z);
     box(g, w * k, wl - 6.4, L, BLACK, x, -6.4 - (wl - 6.4) / 2, z);
     box(g, w * k + 0.05, 0.22, L, GOLD, x, -6.6, z);
-    box(g, w * 0.92 * k, H - wl, L, RED, port ? -w * 0.23 : 0, -wl - (H - wl) / 2, z);
+    box(g, w * 0.92 * k, H - wl, L, RED, side * w * 0.23, -wl - (H - wl) / 2, z);
     box(g, w * k - 0.2, 0.2, L, WOOD, x, -0.12, z);
   }
 }
@@ -30,25 +31,25 @@ export function ship(o = {}) {
   const Z0 = half === 2 ? split : -36, Z1 = half === 1 ? split : 282;
   const beam = z => z < 0 ? 33.6 * Math.min(1, (z + 37.8) / 37.8) ** 0.7 : z > 250 ? 33.6 * Math.max(0.15, 1 - ((z - 250) / 34) ** 2) : 33.6;
   const H = 29, wl = 18;
-  const port = !!o.port;
-  hullPart(g, Z0, Z1, beam, H, wl, inset, port);
+  const side = o.side || 0, sides = side ? [side] : [-1, 1];
+  hullPart(g, Z0, Z1, beam, H, wl, inset, side);
   const inR = (a, b) => a >= Z0 && b <= Z1;
   // portillas iluminadas (filas a lo largo de los dos costados)
   for (let z = Math.max(Z0, -28); z < Math.min(Z1, 276); z += 2.4) {
     const w = beam(z) / 2 - inset + 0.04;
-    for (const sd of port ? [-1] : [-1, 1]) {
+    for (const sd of sides) {
       box(g, 0.06, 0.5, 0.7, glow(0xffe8a8), sd * w, -2.4, z);
       if ((z | 0) % 3) box(g, 0.06, 0.4, 0.4, glow(0xffd890), sd * w, -8.2, z);
       box(g, 0.06, 0.35, 0.35, 0x2a2a2a, sd * w, -11.4, z);
     }
   }
   // casetas, bote salvavidas, chimeneas, puente y mástiles
-  if (!port) for (let z = 4; z < 236; z += 26) if (inR(z, z + 19)) for (const sd of [-1, 1]) {
+  for (let z = 4; z < 236; z += 26) if (inR(z, z + 19)) for (const sd of sides) {
     box(g, 8.6 - inset, 3.1, 18.8, 0xefece4, sd * 4.4, 1.55, z + 9.5);
     box(g, 9.0, 0.25, 19.2, 0xd8d4c8, sd * 4.4, 3.25, z + 9.5);
     for (let q = -8; q <= 8; q += 2.6) box(g, 0.06, 1.2, 1.4, glow(0xffe0a0, 0.95), sd * 8.72, 1.9, z + 9.5 + q);
   }
-  if (!port) for (let z = 13; z < 236; z += 13) if (inR(z - 4, z + 4)) for (const sd of [-1, 1]) {
+  for (let z = 13; z < 236; z += 13) if (inR(z - 4, z + 4)) for (const sd of sides) {
     box(g, 1.8, 0.9, 7, 0xf4f4f0, sd * (16.8 - 1.2 - inset), 1.5, z); box(g, 1.9, 0.12, 7.1, 0x8a6a4a, sd * (16.8 - 1.2 - inset), 1.98, z);
   }
   for (const z of [58, 102, 146, 190]) if (inR(z - 6, z + 6)) {

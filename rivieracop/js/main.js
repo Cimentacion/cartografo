@@ -42,7 +42,7 @@ const QUAL = [['BAJA', 1], ['MEDIA', 1.25], ['ALTA', 1.6], ['ULTRA', 2.25], ['NA
 // distancia de visión según la calidad (decorado generado por delante y niebla un poco antes)
 const VIEWD = [180, 225, 262, 262, 262], FOGD = [160, 195, 215, 215, 215];
 let qIdx = Math.max(0, Math.min(QUAL.length - 1, +(localStorage.getItem('rc_q') ?? 1)));
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.get('hq') ? 2 : QUAL[qIdx][1]));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, QUAL[qIdx][1]));
 renderer.setSize(vw(), vh());
 // sombras suaves del sol (se quitan en calidad BAJA)
 renderer.shadowMap.enabled = true;
@@ -354,13 +354,15 @@ function updateChunks(d, all) {
   const c0 = Math.floor((d - (G.n > 2 && G.running ? 200 : 60)) / CH), c1 = Math.floor((d + VIEWD[qIdx]) / CH);
   let built = 0;
   // en partida, los trozos nuevos los hace el hilo de fondo (de uno en uno, en orden)
+  // si el hilo de fondo no contesta en 3 s (p. ej. el móvil no lo admite), se vuelve a hacer aquí
+  if (CW.ok) for (const t0 of CW.pend.values()) if (performance.now() - t0 > 3000) { console.warn('chunkworker sin respuesta'); CW.ok = false; CW.pend.clear(); break; }
   if (!all && CW.ok && G.road) {
     if (CW.pend.size < 2) for (let c = Math.max(0, c0); c <= c1; c++) {
       if (G.chunks.has(c) || CW.pend.has(c)) continue;
       if (G.road.len < (c + 1) * CH + 1) break;
       cwSync(G.road);
       CW.w.postMessage({ t: 'build', c, ver: G.road.ver || 0 });
-      CW.pend.set(c, 1);
+      CW.pend.set(c, performance.now());
       break;
     }
   }
@@ -1880,7 +1882,7 @@ function perfGovern(raw) {
   let k = PERF.k;
   if (PERF.ema > 1 / 28 && k > 0.6) k = Math.max(0.6, k - 0.1);
   else if (PERF.ema < 1 / 50 && k < 1) k = Math.min(1, k + 0.05);
-  if (k !== PERF.k) { PERF.k = k; PERF.t = 0; renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, QUAL[qIdx][1]) * k); applyView(); }
+  if (k !== PERF.k) { PERF.k = k; PERF.t = 0; renderer.setPixelRatio(pxr()); applyView(); }
   else PERF.t = 3;
 }
 function frame(now) {
@@ -2544,12 +2546,20 @@ try { setTap(localStorage.getItem('rc_tap') === '1'); } catch (e) { }
 function setFov(v) { FOV = v; try { localStorage.setItem('rc_fov', v); } catch (e) { } $('btnFov').textContent = 'CAMPO DE VISIÓN: ' + v + '°'; }
 $('btnFov').onclick = () => setFov(FOVS[(FOVS.indexOf(FOV) + 1) % FOVS.length]);
 setFov(FOV); setGv(GV);
-function setAO(v) { AOON = v; try { localStorage.setItem('rc_ao2', v ? '1' : '0'); } catch (e) { } outline.mat.uniforms.aoOn.value = v && qIdx > 0 ? 1 : 0; $('btnAO').textContent = 'OCLUSIÓN: ' + (v ? 'SÍ' : 'NO'); }
+function setAO(v) { AOON = v; try { localStorage.setItem('rc_ao2', v ? '1' : '0'); } catch (e) { } outline.mat.uniforms.aoOn.value = v && qIdx > 1 ? 1 : 0; $('btnAO').textContent = 'OCLUSIÓN: ' + (v ? 'SÍ' : 'NO'); }
 $('btnAO').onclick = () => setAO(!AOON);
+// resolución (aparte de la calidad): 50 % … 100 % de la resolución de la calidad elegida
+const RESS = [0.5, 0.65, 0.8, 1];
+let RES = (() => { try { const v = +localStorage.getItem('rc_res'); return RESS.includes(v) ? v : 1; } catch (e) { return 1; } })();
+const pxr = () => Math.min(window.devicePixelRatio || 1, QUAL[qIdx][1]) * RES * (PERF.k || 1);
+function setRes(v) { RES = v; try { localStorage.setItem('rc_res', v); } catch (e) { } renderer.setPixelRatio(pxr()); applyView(); $('btnRes').textContent = 'RESOLUCIÓN: ' + Math.round(v * 100) + '%'; }
+$('btnRes').onclick = () => setRes(RESS[(RESS.indexOf(RES) + 1) % RESS.length]);
 function setQuality(i) {
   qIdx = i;
   try { localStorage.setItem('rc_q', i); } catch (e) { }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, QUAL[i][1]) * (PERF.k || 1));
+  renderer.setPixelRatio(pxr());
+  // BAJA: sin la pasada de contorno (se pinta la escena directa a la pantalla: lo más rápido)
+  outline.fast = i === 0;
   outline.mat.uniforms.aoOn.value = i > 1 && AOON ? 1 : 0; // el oscurecido de esquinas solo en ALTA o más (es lo más caro)
   renderer.shadowMap.enabled = i > 0 && SHADOWS; renderer.shadowMap.needsUpdate = true;
   outline.mat.uniforms.aoN.value = i > 1 ? 12 : 8;
@@ -2559,7 +2569,7 @@ function setQuality(i) {
   $('btnQuality').textContent = 'CALIDAD: ' + QUAL[i][0];
 }
 $('btnQuality').onclick = () => setQuality((qIdx + 1) % QUAL.length);
-setQuality(qIdx);
+setQuality(qIdx); setRes(RES);
 setShadows(SHADOWS);
 setAO(AOON);
 setOutline((localStorage.getItem('rc_outline') ?? '1') === '1');

@@ -71,8 +71,13 @@ export class TitanicFX {
   }
   // el medio barco del lado de la primera cubierta (el otro lado lo ponen las cubiertas de la carretera)
   mkPort() {
-    if (!this.port) { this.port = TM.ship({ inset: 0.12, smoke: true, port: true }); this.port.visible = false; this.scene.add(this.port); }
+    if (!this.port) { this.port = TM.ship({ inset: 0.12, smoke: true, side: -1 }); this.port.visible = false; this.scene.add(this.port); }
     return this.port;
+  }
+  // el medio barco del otro lado (el de la vuelta): mientras se va por la primera cubierta
+  mkStar() {
+    if (!this.star) { this.star = TM.ship({ inset: 0.12, smoke: true, side: 1 }); this.star.visible = false; this.scene.add(this.star); }
+    return this.star;
   }
   // la colina puntiaguda de hielo dentro de la curva del iceberg: una sola pieza que se ve desde lejos (no aparece de golpe)
   mkHill(road, T) {
@@ -128,8 +133,8 @@ export class TitanicFX {
     if (crashed && !this.crashed) { this.crashed = 1; if (onCrash) onCrash(); }
     if (!crashed) this.crashed = 0;
     for (const g of chunks.values()) if (g.userData.hasShip) for (const m of g.children) if (m.userData.ship) m.visible = crashed;
-    const sh = this.mkShip(), po = this.mkPort();
-    po.visible = false;
+    const sh = this.mkShip(), po = this.mkPort(), st = this.mkStar();
+    po.visible = false; st.visible = false;
     if (c > T.jump - 320 && !crashed) {
       // se acerca de lado hasta clavarse en el iceberg
       sh.visible = true;
@@ -138,9 +143,10 @@ export class TitanicFX {
       const fw = new THREE.Vector3(0, 0, 1).applyEuler(sh.rotation);
       sh.position.addScaledVector(fw, X);
     } else if (crashed && c < T.exit + 40) {
-      // ya chocado: medio barco fijo (el otro medio son las cubiertas por donde se va)
-      sh.visible = false; po.visible = true;
-      this.pose(po, road, T.deck1, -10.2, -0.1);
+      // ya chocado: el medio barco del lado por donde NO se va (el otro medio son las cubiertas de la carretera)
+      sh.visible = false;
+      const q = c < T.deck2 + 8 ? st : po; q.visible = true;
+      this.pose(q, road, T.deck1, -10.2, -0.1);
     } else if (c >= T.exit + 40 && c < T.rise + 20) {
       // bajo el agua: el Titanic hundido al lado, ladeado, con la proa clavada hacia el fondo
       sh.visible = true;

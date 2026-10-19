@@ -210,6 +210,8 @@ export class Outline {
   }
   render(scene, camera) {
     const R = this.renderer, U = this.mat.uniforms;
+    // modo rápido (calidad BAJA): la escena directa a la pantalla, sin contorno ni retoques
+    if (this.fast) { R.setRenderTarget(null); R.render(scene, camera); return; }
     U.near.value = camera.near;
     U.far.value = camera.far;
     U.inkOn.value = this.enabled ? 1 : 0;
