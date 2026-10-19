@@ -14,7 +14,7 @@ import { Net, makeCode, NETV, LanBeacon, LanScan, Presence, MAXP } from './net.j
 import { showRewarded, showInterstitial, adsReal, lastAdErr } from './ads.js';
 import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME, BOSS } from './defs.js';
 import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES, rangeMul, rollWeaponId, uniqueWeapon } from './weapons.js';
-import { UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd, turboDur, turboCd, POWERS } from './progress.js';
+import { SLOT_AB, SLOT_MAX, slotCount, slotsOf, UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd, turboDur, turboCd, POWERS } from './progress.js';
 import { fpGun, VEHICLES, VCOLORS, convertible } from './models.js';
 import { Outline, toon } from './toon.js';
 import { CHAL, chInit, chAdd, claimable, claim, goal, reward, text as chText, UNLOCKS, UNL_NAME, locked, lockedBy } from './challenges.js';
@@ -366,7 +366,7 @@ function giveWeapon(def) {
 function weaponXp(n) {
   const up = addWeaponXp(PROG, W.def.id, n * (1 + 0.15 * (PROG.upg.veter | 0)));
   W.xpDirty = true;
-  if (up) {
+  if (up) { CHC('wlv'); if (up >= WMAX) CHC('wmax');
     recalcWeapon();
     saveProg(PROG); W.xpDirty = false;
     showBanner(tr(W.def.name).toUpperCase() + ' NIVEL ' + up, W.e.perks.length && up >= 5 ? 'Nuevo: ' + W.e.perks.join(', ') : 'Más daño, recarga y puntería', '#7dff8a');
@@ -584,12 +584,13 @@ const VEHT = new Set(['moto', 'ecar', 'heli', 'jeep', 'tank', 'rig', 'boat', 'mt
 // ---------------- cañón del coche (poder) ----------------
 const CANNON = { id: 'canon', name: 'Cañón del coche', model: 'cannon', mag: 999, dmg: 4, rate: 7, auto: true, reload: 0.1, pellets: 1, spread: 0.012, boom: 2.8, rar: 3 };
 const CAN = { t: 0, cd: 0, max: 1, saved: null };
+const EQ = k => slotsOf(PROG).includes(k);
 function useCannon() {
-  const lv = PROG.upg.canon | 0;
+  const lv = EQ('canon') ? PROG.upg.canon | 0 : 0;
   if (!lv || CAN.t > 0 || CAN.cd > 0 || !G.running || G.over || G.cd > 0) return;
   const me = G.players[G.li];
   if (!me || !me.alive) return;
-  CAN.t = canonDur(lv); CAN.cd = canonCd(lv); CAN.max = CAN.cd;
+  CAN.t = canonDur(lv); CAN.cd = canonCd(lv); CAN.max = CAN.cd; CHC('ab_canon');
   CAN.saved = { def: W.def, ammo: W.ammo };
   W.def = CANNON; recalcWeapon(); W.ammo = 999; W.rl = 0;
   setFpGun(); uiWeapon(true);
@@ -608,10 +609,10 @@ const GR = { n: 0, list: [] };
 const grenMat = toon({ color: 0x2a4a1a });
 const grenGeo = new THREE.SphereGeometry(0.16, 8, 6);
 function throwGrenade() {
-  if (!(PROG.upg.gren | 0) || GR.n <= 0 || !G.running || G.over || G.cd > 0) return;
+  if (!(PROG.upg.gren | 0) || !EQ('gren') || GR.n <= 0 || !G.running || G.over || G.cd > 0) return;
   const me = G.players[G.li];
   if (!me || !me.alive) return;
-  GR.n--;
+  GR.n--; CHC('ab_gren');
   const origin = camera.getWorldPosition(new THREE.Vector3());
   const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
   ray.set(origin, dir);
@@ -700,7 +701,7 @@ function handleEvent(ev) {
     case 'pop': view.pop(ev.w, ev.txt, ev.c || PCOL[ev.p]); break;
     case 'banner': showBanner(ev.txt, ev.sub, ev.c); break;
     case 'radio': { const S2 = STORY[ev.ch]; if (S2 && S2.radio[ev.z]) for (const l of S2.radio[ev.z]) RADIO.q.push(l); break; }
-    case 'weapon': if (ev.p === li) { giveWeapon(ev.w); CHC('weapon'); } break;
+    case 'weapon': if (ev.p === li) { giveWeapon(ev.w); CHC('weapon'); if (ev.w && ev.w.rar >= 3) CHC('wgold'); } break;
     case 'foot': if (!ev.on) CHC('hosp'); break;
     case 'fork': if (G.mode === 'guest') G.road.setChoice(ev.kk, ev.b, ev.zd || 1); break;
     case 'turret': {
@@ -723,7 +724,7 @@ function handleEvent(ev) {
       // la carretera se ha cortado en el cartel: fuera los trozos de decorado de la carretera vieja
       const W = G.road.west.find(q => q.k === ev.kk);
       if (ev.c && W && W.cut != null) for (const [c, g] of G.chunks) if ((c + 1) * CH > W.cut - 2) { scene.remove(g); g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); G.chunks.delete(c); SHC.dirty = true; }
-      if (ev.c) { G.shake = Math.max(G.shake, 0.4); SFX.tone(220, 120, 0.4, 'square', 0.15); }
+      if (ev.c) { G.shake = Math.max(G.shake, 0.4); SFX.tone(220, 120, 0.4, 'square', 0.15); CHC('westin'); }
       break;
     }
     case 'unlockW':
@@ -737,6 +738,7 @@ function handleEvent(ev) {
       break;
     case 'bell': SFX.tone(660, 650, 0.9, 'sine', 0.3); setTimeout(() => SFX.tone(990, 980, 0.6, 'sine', 0.15), 30); break;
     case 'gobp': {
+      CHC('gob'); if (ev.k === 'nuke') CHC('nuke');
       // poder del goblin (para todo el grupo, 15 s)
       const N = { x2: ['¡DAÑO X2!', 'Todo el grupo, 15 segundos'], speed: ['¡ULTRAVELOCIDAD!', 'Disparo al doble y recarga al instante, 15 s'], nuke: ['¡BOMBA ATÓMICA!', 'Todos los enemigos a la vista, fuera'] }[ev.k];
       if (ev.k === 'x2') PW.gx2 = 15; else if (ev.k === 'speed') PW.gsp = 15;
@@ -744,8 +746,8 @@ function handleEvent(ev) {
       showBanner(N[0], N[1], '#8aff4a'); SFX.tone(200, 1200, 0.5, 'sawtooth', 0.3);
       break;
     }
-    case 'mono': SFX.tone(1300, 900, 0.09, 'square', 0.12); setTimeout(() => SFX.tone(1500, 1000, 0.08, 'square', 0.1), 110); break;
-    case 'storm': G.stormT = ev.dur || 5; SFX.tone(120, 60, 2.5, 'sawtooth', 0.15); break;
+    case 'mono': CHC('mono'); SFX.tone(1300, 900, 0.09, 'square', 0.12); setTimeout(() => SFX.tone(1500, 1000, 0.08, 'square', 0.1), 110); break;
+    case 'storm': CHC('storm'); G.stormT = ev.dur || 5; SFX.tone(120, 60, 2.5, 'sawtooth', 0.15); break;
     case 'siren': for (let i = 0; i < 3; i++) setTimeout(() => { SFX.tone(700, 1100, 0.22, 'square', 0.12); setTimeout(() => SFX.tone(1100, 700, 0.22, 'square', 0.12), 230); }, i * 470); break;
     case 'smoke': G.smokeT = ev.dur || 4; SFX.tone(300, 80, 0.6, 'sawtooth', 0.2); break;
     case 'power': {
@@ -775,6 +777,7 @@ function handleEvent(ev) {
       STY.kill(ev);
       CHC('kills'); if (ev.t) CHC('k_' + ev.t); if (ev.boss) CHC('boss'); if (ev.air) CHC('air'); if (ev.big) CHC('big'); if (ev.dl) CHC('dealer');
       if (STY.chain === 3) CHC('multi');
+      if (STY.chain === 10) CHC('multi10');
     } break;
     case 'ability':
       if (ev.a === 'shield') { showBanner(ev.p === li ? '¡ESCUDO!' : (PNAME[ev.p] + ' USA ESCUDO'), '', '#5ae0ff'); SFX.heal(); }
@@ -1151,7 +1154,7 @@ const STY = {
     this.pts = Math.max(0, this.pts - (6 + this.rank * 7) * dt);
     let r = 0; for (let i = 0; i < this.R.length; i++) if (this.pts >= this.R[i][3]) r = i;
     if (r > this.rank && r >= 2) SFX.tone(500 + r * 120, 900 + r * 160, 0.12, 'square', 0.12);
-    if (r > this.rank && this.pts > 0) { if (r === 4) CHC('rkS'); if (r === 6) CHC('rkSSS'); if (r === 7) CHC('rkRK'); }
+    if (r > this.rank && this.pts > 0) { if (r === 4) CHC('rkS'); if (r === 5) CHC('rkSS'); if (r === 6) CHC('rkSSS'); if (r === 7) CHC('rkRK'); }
     this.rank = this.pts > 0 ? r : 0;
     for (const f of this.feed) f.t -= dt;
     this.feed = this.feed.filter(f => f.t > 0);
@@ -1233,6 +1236,7 @@ function uiRoute() {
   const b = G.road.bioAt(G.carD), z = G.road.zdAt(G.carD);
   if (b === G.lastBio && z === G.lastZd) return;
   if (b !== G.lastBio && G.running) { CHC('z_' + BIOME_KEYS[b]); CHC('zones'); }
+  if (z !== G.lastZd && G.running && G.lastZd > 0) { if (z === 5) CHC('zd5'); if (z === 10) CHC('zd10'); }
   G.lastBio = b; G.lastZd = z;
   const B = BIOMES[BIOME_KEYS[b]];
   $('route').innerHTML = `<span style="color:${B.color}">${B.name}</span> <small class="zd">DIF ${z}</small>`;
@@ -1271,12 +1275,12 @@ function gyroStatus() {
 // ---------------- poderes de apoyo: furia, EMP, ataque aéreo, botiquín de equipo, imán ----------------
 const PW = { furiaT: 0, cd: {}, max: {} };
 function usePower(k) {
-  const lv = PROG.upg[k] | 0, D = POWERS[k];
+  const lv = EQ(k) ? PROG.upg[k] | 0 : 0, D = POWERS[k];
   if (!lv || (PW.cd[k] || 0) > 0 || !G.running || G.over || G.cd > 0) return;
   const me = G.players[G.li];
   if (!me || !me.alive) return;
   PW.cd[k] = PW.max[k] = D.cd(lv);
-  CHC('power');
+  CHC('power'); CHC('pw_' + k);
   if (k === 'fuerza') { PW.fuerzaT = D.dur(lv); PW.fuerzaM = D.mul(lv); showBanner('¡FUERZA BRUTA!', 'x' + D.mul(lv).toFixed(1) + ' de daño', D.col); SFX.tone(90, 400, 0.5, 'square', 0.3); return; }
   if (k === 'furia') { PW.furiaT = D.dur(lv); W.ammo = Math.max(W.ammo, 1); W.rl = 0; showBanner('¡FURIA!', 'Doble ritmo y sin gastar balas', D.col); SFX.tone(150, 600, 0.4, 'sawtooth', 0.3); return; }
   if (G.mode === 'guest') net.send({ t: 'pw', k, lv });
@@ -1305,6 +1309,9 @@ function layoutAbilities() {
   const rg = $('regul'), topLim = !rg.hidden ? rg.getBoundingClientRect().height + rg.offsetTop + 10 : 64;
   const rows = Math.max(2, Math.floor((vh() - base - topLim) / step));
   let n = 0;
+  // ranuras: las habilidades que no llevas puestas no salen
+  const eq = slotsOf(PROG);
+  for (const [bid, k] of SLOT_AB) if (!eq.includes(k)) $(bid).hidden = true;
   for (const id of ABTN) {
     const b = $(id);
     b.classList.toggle('hudoff', !!(HUDL[id] && HUDL[id].off));
@@ -1646,6 +1653,7 @@ $('btnX2').onclick = async () => {
 };
 $('btnOverAd').onclick = async () => { if (await adForPotion()) { $('btnOverAd').hidden = (PROG.pot | 0) >= 3; $('btnOverAd').textContent = '¡+1 POCIÓN! (tienes ' + PROG.pot + ')'; } };
 function usePot(fresh) {
+  CHC('potion');
   if (G.mode === 'guest') net.send({ t: 'pot', fresh: fresh ? 1 : 0 });
   else if (G.sim) { const P = G.sim.players[G.li]; if (fresh) P.pot = 1; G.sim.usePotion(G.li); }
 }
@@ -1707,19 +1715,19 @@ function renderLens() {
 // ---------------- turbo, reanimar y regulador de velocidad ----------------
 const TB = { cd: 0, max: 1, rv: 0 };
 function useTurbo() {
-  const lv = PROG.upg.turbo | 0;
+  const lv = EQ('turbo') ? PROG.upg.turbo | 0 : 0;
   if (!lv || TB.cd > 0 || !G.running || G.over || G.cd > 0) return;
   if (G.stun) { showBanner('EL TURBO NO SIRVE AHORA', 'Estáis parados', '#aaaaaa'); return; }
-  TB.cd = turboCd(lv); TB.max = TB.cd;
+  TB.cd = turboCd(lv); TB.max = TB.cd; CHC('ab_turbo');
   const l2 = PROG.upg.turbo2 | 0;
   if (G.mode === 'guest') net.send({ t: 'ab', k: 'turbo', lv, l2 });
   else G.sim.useAbility(G.li, 'turbo', lv, l2);
 }
 function useRevive() {
-  if (!(PROG.upg.reviv | 0) || TB.rv || !G.running || G.over) return;
+  if (!(PROG.upg.reviv | 0) || !EQ('reviv') || TB.rv || !G.running || G.over) return;
   const me = G.players[G.li];
   if (!me || !me.alive || !G.players.some(p => !p.alive && !p.gone)) return;
-  TB.rv = 1;
+  TB.rv = 1; CHC('revive');
   if (G.mode === 'guest') net.send({ t: 'rv' });
   else G.sim.revive(G.li);
 }
@@ -1730,13 +1738,13 @@ function setSpeedF(v) {
 }
 // ---------------- habilidades: escudo y tiempo bala ----------------
 function useAbility(k) {
-  const lv = PROG.upg[k] | 0;
+  const lv = EQ(k) ? PROG.upg[k] | 0 : 0;
   if (!lv || AB[k].cd > 0 || !G.running || G.over || G.cd > 0) return;
   const me = G.players[G.li];
   if (!me || !me.alive) return;
   const l2 = k === 'shield' ? PROG.upg.escudo2 | 0 : PROG.upg.bala2 | 0;
   AB[k].cd = k === 'shield' ? shieldCd(lv, l2) : bulletCd(lv);
-  CHC('ability');
+  CHC('ability'); CHC('ab_' + k);
   AB[k].max = AB[k].cd;
   if (G.mode === 'guest') net.send({ t: 'ab', k, lv, l2 });
   else G.sim.useAbility(G.li, k, lv, l2);
@@ -2071,7 +2079,7 @@ function tick(dt) {
   hemi.color.lerp(TC.setHex(0x8aa4ff), 0.45);
   hemi.groundColor.lerp(TC.setHex(0x5a6ac8), 0.5);
   sea.position.set(camera.position.x, G.road.seaAt(G.carD), camera.position.z);
-  TFX.update(G, dt, camera, B, sea, G.chunks, () => { G.shake = Math.max(G.shake, 1.4); G.road.toWorld(G.carD + 30, -6, 2, V1); for (let k = 0; k < 5; k++) fx.boom(V1.clone().add(V2.set((Math.random() - 0.5) * 20, Math.random() * 6, (Math.random() - 0.5) * 20)), 2.4); showBanner('¡EL TITANIC CHOCA CONTRA EL ICEBERG!', '¡Agarraos!', '#ff6a4a'); SFX.tone(70, 40, 1.8, 'sawtooth', 0.3); });
+  TFX.update(G, dt, camera, B, sea, G.chunks, () => { G.shake = Math.max(G.shake, 1.4); G.road.toWorld(G.carD + 30, -6, 2, V1); for (let k = 0; k < 5; k++) fx.boom(V1.clone().add(V2.set((Math.random() - 0.5) * 20, Math.random() * 6, (Math.random() - 0.5) * 20)), 2.4); showBanner('¡EL TITANIC CHOCA CONTRA EL ICEBERG!', '¡Agarraos!', '#ff6a4a'); CHC('tcrash'); SFX.tone(70, 40, 1.8, 'sawtooth', 0.3); });
   // --- interfaz ---
   uiPlayers(); uiWeapon(); uiRoute(); uiWcard(); uiAbilities(dt); uiBoss(); uiRadio(dt);
   setHTML('mult', `x${(G.mult || 1).toFixed(1)} · ${Math.round((G.speed || 0) * 3.6)} km/h`);
@@ -2623,12 +2631,13 @@ const CATI = {
   objet: ['🚁', '#ff5ad0', 'Daño extra contra vehículos, jefes, aire y animales'], explo: ['💣', '#ffb020', 'Explosiones y granadas'],
   coche: ['🚗', '#4a9aff', 'Mejoras del descapotable'], poder: ['⚡', '#c48cff', 'Botones de poder: escudo, tiempo bala…'],
   espec: ['🌟', '#ff2a6a', 'Poderes especiales (muy caros)'], _w: ['🏆', '#9ad0ff', 'Suben al usarlas y se guardan para la próxima vez que las cojas'],
+  _s: ['🎛', '#7dffd2', 'Las habilidades que llevas en partida. Empiezas con 1 ranura y los retos dan más (hasta 6)'],
   _a: ['🤠', '#e8a050', 'Menú secreto: armas únicas que has ganado. La equipada es con la que empiezas cada partida'],
 };
 function paintShop(boughtId) {
   $('shopCoins').textContent = PROG.coins.toLocaleString('es-ES');
   const tabs = $('shopTabs'); tabs.innerHTML = '';
-  const cats = UCAT.concat([['_w', 'NIVEL DE ARMAS']]).concat(PROG.wpUnl.length ? [['_a', 'ALFORJAS']] : []);
+  const cats = [['_s', 'RANURAS']].concat(UCAT).concat([['_w', 'NIVEL DE ARMAS']]).concat(PROG.wpUnl.length ? [['_a', 'ALFORJAS']] : []);
   for (const [c, name] of cats) {
     const [ic, col] = CATI[c];
     const list = UPGRADES.filter(u => u.cat === c);
@@ -2638,7 +2647,7 @@ function paintShop(boughtId) {
     const b = document.createElement('button');
     b.style.setProperty('--c', col);
     b.className = c === G.shopCat ? 'sel' : '';
-    b.innerHTML = `<span class="ic">${ic}</span><span class="tx">${name}<small>${c === '_w' ? '' : own + '/' + list.length}</small></span>${can && c !== G.shopCat ? '<i class="dot"></i>' : ''}`;
+    b.innerHTML = `<span class="ic">${ic}</span><span class="tx">${name}<small>${c === '_s' ? slotsOf(PROG).length + '/' + slotCount(PROG) : c === '_w' ? '' : own + '/' + list.length}</small></span>${can && c !== G.shopCat ? '<i class="dot"></i>' : ''}`;
     b.onclick = () => { G.shopCat = c; paintShop(); $('shopList').parentNode.scrollTop = 0; };
     tabs.appendChild(b);
   }
@@ -2647,7 +2656,7 @@ function paintShop(boughtId) {
   head.style.setProperty('--c', col);
   $('shopCatN').textContent = (cats.find(x => x[0] === G.shopCat) || cats[0])[1];
   $('shopCatD').textContent = cdesc;
-  const isW = G.shopCat === '_w' || G.shopCat === '_a';
+  const isW = G.shopCat === '_w' || G.shopCat === '_a' || G.shopCat === '_s';
   $('shopW').hidden = !isW; $('shopList').hidden = isW;
   const L = $('shopList'); L.innerHTML = '';
   if (!isW) for (const u of UPGRADES) {
@@ -2668,14 +2677,34 @@ function paintShop(boughtId) {
       b.disabled = !can;
       b.onclick = () => {
         if (PROG.coins < cost || lv >= u.max) return;
-        PROG.coins -= cost; PROG.upg[u.id] = lv + 1; saveProg(PROG);
+        PROG.coins -= cost; PROG.upg[u.id] = lv + 1; chAdd(PROG, 'buy'); saveProg(PROG);
         recalcWeapon(); SFX.unlock(); SFX.pickup(); paintShop(u.id);
+        if (SLOT_AB.some(a => a[1] === u.id) && !slotsOf(PROG).includes(u.id)) showToast('Para llevarla en partida, ponla en una RANURA (pestaña RANURAS)');
       };
       d.querySelector('.uf').appendChild(b);
     }
     L.appendChild(d);
   }
   const W2 = $('shopW'); W2.innerHTML = '';
+  // ranuras: qué habilidades llevas a la partida (empiezas con 1; los retos dan hasta 6)
+  if (G.shopCat === '_s') {
+    const eq = slotsOf(PROG), n = slotCount(PROG), own = SLOT_AB.filter(a => (PROG.upg[a[1]] | 0) > 0);
+    const h = document.createElement('div'); h.className = 'upg can'; h.style.setProperty('--c', col);
+    let pips = '<div class="pips">'; for (let i = 0; i < SLOT_MAX; i++) pips += `<i class="${i < eq.length ? 'on' : ''}" style="${i >= n ? 'opacity:.25' : ''}"></i>`; pips += '</div>';
+    h.innerHTML = `<div class="uh"><span class="un">RANURAS ${eq.length}/${n}</span><span class="ul">MÁX ${SLOT_MAX}</span></div><p>${n < SLOT_MAX ? 'Consigue más ranuras completando RETOS (destruir casas de OLD TOWN, jefes, rangos…)' : 'Tienes todas las ranuras'}</p>${pips}`;
+    W2.appendChild(h);
+    if (!own.length) { const e = document.createElement('div'); e.className = 'upg'; e.innerHTML = '<p>Aún no tienes habilidades: cómpralas en PODERES y ESPECIALES.</p>'; W2.appendChild(e); }
+    for (const [, k, name] of own) {
+      const on = eq.includes(k), full = eq.length >= n;
+      const e = document.createElement('div'); e.className = 'upg' + (on ? ' can' : ''); e.style.setProperty('--c', col);
+      e.innerHTML = `<div class="uh"><span class="un">${name}</span><span class="ul">${on ? 'PUESTA' : ''}</span></div><p>Nivel ${PROG.upg[k] | 0}</p><div class="uf"></div>`;
+      const b = document.createElement('button');
+      b.textContent = on ? 'QUITAR' : full ? 'SIN SITIO' : 'PONER'; b.disabled = !on && full;
+      b.onclick = () => { const L = slotsOf(PROG).filter(q => q !== k); if (!on) L.push(k); PROG.slots = L; saveProg(PROG); SFX.pickup(); paintShop(); };
+      e.querySelector('.uf').appendChild(b);
+      W2.appendChild(e);
+    }
+  }
   // alforjas: equipar el arma con la que se empieza
   if (G.shopCat === '_a') for (const id of [null].concat(PROG.wpUnl)) {
     const name = id ? WEAPON_NAMES[id] : 'Pistola de serie', on = (PROG.wpEq || null) === id;

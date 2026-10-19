@@ -19,13 +19,16 @@ export const SHIRTS = [
   ['tweed', 'Chaqueta de tweed'], ['chaleco', 'Chaleco y camisa'], ['gakuran', 'Uniforme gakuran'], ['marinera', 'Uniforme marinero'],
   ['kimono', 'Kimono'], ['piloto', 'Traje de piloto'], ['karate', 'Karategi'],
   ['blazer', 'Blazer escolar'], ['chandal', 'Chándal'], ['idol', 'Chaqueta de escenario'], ['capitan', 'Casaca de capitán'], ['mecanico', 'Mono de mecánico'],
+  ['samurai', 'Armadura samurái'], ['caballero', 'Cota de caballero'], ['armadura', 'Armadura de placas'], ['templario', 'Sobreveste con cruz'], ['ninja', 'Traje ninja'], ['sheriff', 'Camisa de sheriff'], ['poncho', 'Poncho'], ['mago', 'Túnica de mago'],
 ];
 export const HATS = [['no', 'Nada'], ['paja', 'Sombrero de paja'], ['gladiador', 'Gladiador'], ['vaquero', 'Vaquero'], ['copa', 'Chistera'], ['corona', 'Corona'],
   ['vikingo', 'Vikingo'], ['gorro', 'Gorro de lana'], ['poli', 'Gorra de poli'], ['pirata', 'Pirata'], ['fiesta', 'De fiesta'], ['chef', 'Gorro de chef'],
-  ['halo', 'Halo'], ['cuernos', 'Cuernos'], ['casco', 'Casco SWAT'], ['bombin', 'Bombín'], ['detective', 'Gorro de detective'], ['hachimaki', 'Hachimaki'], ['orejas', 'Orejas de gato'], ['gafasfrente', 'Gafas de aviador'], ['lazo', 'Lazo gigante'], ['flor', 'Flor en el pelo']];
-export const BACKS = [['no', 'Nada'], ['capa', 'Capa roja'], ['capan', 'Capa negra'], ['capaz', 'Capa azul'], ['capad', 'Capa dorada'], ['mochila', 'Mochila'], ['alas', 'Alas'], ['jet', 'Jetpack'], ['alasn', 'Alas de demonio'], ['katana', 'Katana'], ['cartera', 'Mochila escolar'], ['guitarra', 'Guitarra'], ['baston', 'Bastón de combate']];
+  ['halo', 'Halo'], ['cuernos', 'Cuernos'], ['casco', 'Casco SWAT'], ['bombin', 'Bombín'], ['detective', 'Gorro de detective'], ['hachimaki', 'Hachimaki'], ['orejas', 'Orejas de gato'], ['gafasfrente', 'Gafas de aviador'], ['lazo', 'Lazo gigante'], ['flor', 'Flor en el pelo'],
+  ['yelmo', 'Yelmo de caballero'], ['cimera', 'Bacinete con penacho'], ['kabuto', 'Kabuto samurái'], ['ninja', 'Capucha ninja'], ['mago', 'Sombrero de mago'], ['laurel', 'Corona de laurel']];
+export const BACKS = [['no', 'Nada'], ['capa', 'Capa roja'], ['capan', 'Capa negra'], ['capaz', 'Capa azul'], ['capad', 'Capa dorada'], ['mochila', 'Mochila'], ['alas', 'Alas'], ['jet', 'Jetpack'], ['alasn', 'Alas de demonio'], ['katana', 'Katana'], ['cartera', 'Mochila escolar'], ['guitarra', 'Guitarra'], ['baston', 'Bastón de combate'],
+  ['espada', 'Espadón medieval'], ['escudo', 'Escudo a la espalda'], ['katanas', 'Dos katanas'], ['arco', 'Arco y carcaj'], ['sashimono', 'Estandarte samurái']];
 export const NECKS = [['no', 'Nada'], ['cadena', 'Cadena de oro'], ['perlas', 'Perlas'], ['medalla', 'Medallón'], ['bufanda', 'Bufanda'], ['pajarita', 'Pajarita'], ['flores', 'Collar de flores'], ['corbata', 'Corbata']];
-export const FACES = [['no', 'Nada'], ['gafas', 'Gafas de sol'], ['antifaz', 'Antifaz'], ['parche', 'Parche'], ['pintura', 'Pintura de guerra'], ['pendientes', 'Pendientes'], ['monoculo', 'Monóculo'], ['redondas', 'Gafas redondas'], ['tirita', 'Tirita'], ['rubor', 'Mejillas sonrojadas'], ['cicatriz', 'Cicatriz en cruz'], ['mascarilla', 'Mascarilla']];
+export const FACES = [['no', 'Nada'], ['gafas', 'Gafas de sol'], ['antifaz', 'Antifaz'], ['parche', 'Parche'], ['pintura', 'Pintura de guerra'], ['pendientes', 'Pendientes'], ['monoculo', 'Monóculo'], ['redondas', 'Gafas redondas'], ['tirita', 'Tirita'], ['rubor', 'Mejillas sonrojadas'], ['cicatriz', 'Cicatriz en cruz'], ['mascarilla', 'Mascarilla'], ['menpo', 'Máscara samurái'], ['oni', 'Máscara oni'], ['ninjam', 'Máscara ninja'], ['pecas', 'Pecas']];
 export const BODIES = [['normal', 'Normal'], ['delgado', 'Delgado'], ['fuerte', 'Fuerte'], ['grande', 'Grandote'], ['alto', 'Alto'], ['bajo', 'Bajito']];
 export const SHIRT_COLORS = [0x2f6fd0, 0xd03040, 0x2a9a4a, 0xf0c020, 0x8a3ac0, 0xf07a20, 0xf2f2f2, 0x1a1a1a, 0x30b0c0, 0xe060a0, 0xd4af37, 0x39ff14];
 export const PANTS_COLORS = [0x222222, 0x24365a, 0x6a5a40, 0x3a4a2a, 0x8a8a8a, 0x6a1a1a, 0xe8e0d0];
@@ -44,8 +47,9 @@ const FLAGS = {
   cazador: ['#2a3a1e'], hawaiana: ['#1e8ad0'], camuflaje: ['#4a5a2a'], llamas: ['#141414'], oro: ['#d4af37'],
   tweed: ['#6a4a2a'], chaleco: ['#f2f0ea'], gakuran: ['#16171e'], marinera: ['#f2f2f2'], kimono: ['#26335e'], piloto: ['#e8eef4'], karate: ['#f4f4f0'],
   blazer: ['#1e2a4a'], chandal: ['#c82838'], idol: ['#e83a9a'], capitan: ['#f2f2f2'], mecanico: ['#2a5a9a'],
+  samurai: ['#8a1a1a'], caballero: ['#8a8e96'], armadura: ['#b8bcc4'], templario: ['#f2f2ee'], ninja: ['#16161c'], sheriff: ['#c8b890'], poncho: ['#b8603a'], mago: ['#2a2a6a'],
 };
-const KITS = new Set(['diez', 'marruecos', 'sudadera', 'cazador', 'hawaiana', 'camuflaje', 'llamas', 'oro', 'tweed', 'chaleco', 'gakuran', 'marinera', 'kimono', 'piloto', 'karate', 'blazer', 'chandal', 'idol', 'capitan', 'mecanico']);
+const KITS = new Set(['diez', 'marruecos', 'sudadera', 'cazador', 'hawaiana', 'camuflaje', 'llamas', 'oro', 'tweed', 'chaleco', 'gakuran', 'marinera', 'kimono', 'piloto', 'karate', 'blazer', 'chandal', 'idol', 'capitan', 'mecanico', 'samurai', 'caballero', 'armadura', 'templario', 'ninja', 'sheriff', 'poncho', 'mago']);
 // camisetas dibujadas: degradado negro a morado con el 10 dorado, la de Marruecos (roja con detalles verdes y la estrella) y sudadera
 function drawKit(name, g) {
   if (name === 'diez') {
@@ -159,6 +163,55 @@ function drawKit(name, g) {
     g.fillStyle = '#1e4478'; g.fillRect(4, 18, 9, 9); g.fillRect(19, 18, 9, 9); g.fillRect(15, 0, 2, 64);
     g.fillStyle = '#f2f2f2'; g.fillRect(19, 10, 9, 5); g.fillStyle = '#d02020'; g.fillRect(20, 11, 7, 3);
     g.fillStyle = 'rgba(20,20,20,.45)'; g.beginPath(); g.arc(8, 44, 3, 0, 7); g.arc(24, 54, 2, 0, 7); g.fill();
+  } else if (name === 'samurai') {
+    // do (peto) de láminas lacadas rojas atadas con cordón dorado, y faldones
+    g.fillStyle = '#8a1a1a'; g.fillRect(0, 0, 32, 64);
+    for (let y = 4; y < 44; y += 6) { g.fillStyle = '#6a1010'; g.fillRect(0, y, 32, 2); g.fillStyle = '#e8b830'; for (let x = 2; x < 32; x += 5) g.fillRect(x, y - 2, 1, 3); }
+    g.fillStyle = '#1a1a22'; g.fillRect(0, 44, 32, 4);
+    for (let x = 0; x < 32; x += 8) { g.fillStyle = x % 16 ? '#8a1a1a' : '#6a1010'; g.fillRect(x, 48, 7, 16); g.fillStyle = '#e8b830'; g.fillRect(x + 3, 50, 1, 12); }
+  } else if (name === 'caballero') {
+    // cota de malla gris con sobreveste azul y león dorado
+    g.fillStyle = '#8a8e96'; g.fillRect(0, 0, 32, 64);
+    g.fillStyle = '#6a6e76'; for (let y = 0; y < 64; y += 3) for (let x = (y / 3) % 2 * 2; x < 32; x += 4) g.fillRect(x, y, 2, 1);
+    g.fillStyle = '#2a4a9a'; g.fillRect(6, 6, 20, 58);
+    g.fillStyle = '#e8c040'; g.fillRect(13, 18, 6, 8); g.fillRect(11, 22, 10, 3); g.fillRect(14, 26, 2, 5); g.fillRect(17, 26, 2, 5);
+    g.fillStyle = '#5a3a20'; g.fillRect(0, 42, 32, 3); g.fillStyle = '#c8c8c8'; g.fillRect(14, 42, 4, 3);
+  } else if (name === 'armadura') {
+    // peto de placas plateado con remaches y brillo
+    g.fillStyle = '#b8bcc4'; g.fillRect(0, 0, 32, 64);
+    g.fillStyle = '#e8ecf4'; g.fillRect(6, 4, 6, 30);
+    g.fillStyle = '#8a8e96'; for (const y of [12, 24, 36, 48]) g.fillRect(0, y, 32, 2);
+    g.fillStyle = '#5a5e66'; for (const y of [14, 26, 38, 50]) for (const x of [3, 29]) g.fillRect(x, y, 2, 2);
+    g.fillStyle = '#8a8e96'; g.fillRect(15, 2, 2, 34);
+  } else if (name === 'templario') {
+    // sobreveste blanco con la cruz roja y cinturón
+    g.fillStyle = '#f2f2ee'; g.fillRect(0, 0, 32, 64);
+    g.fillStyle = '#c01818'; g.fillRect(13, 8, 6, 28); g.fillRect(6, 16, 20, 6);
+    g.fillStyle = '#5a3a20'; g.fillRect(0, 40, 32, 3); g.fillStyle = '#8a8e96'; g.fillRect(0, 0, 32, 3);
+  } else if (name === 'ninja') {
+    // traje negro con cinta gris cruzada
+    g.fillStyle = '#16161c'; g.fillRect(0, 0, 32, 64);
+    g.strokeStyle = '#3a3a44'; g.lineWidth = 3; g.beginPath(); g.moveTo(4, 0); g.lineTo(26, 40); g.stroke();
+    g.fillStyle = '#5a5a66'; g.fillRect(0, 40, 32, 4);
+    g.fillStyle = '#26262e'; for (let y = 6; y < 40; y += 8) g.fillRect(24, y, 6, 2);
+  } else if (name === 'sheriff') {
+    // camisa beige, chaleco marrón y la estrella de sheriff
+    g.fillStyle = '#c8b890'; g.fillRect(0, 0, 32, 64);
+    g.fillStyle = '#5a3a20'; g.fillRect(0, 0, 10, 64); g.fillRect(22, 0, 10, 64);
+    g.fillStyle = '#e8c040'; g.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? 2 : 5; g.lineTo(5 + Math.cos(a) * r, 18 + Math.sin(a) * r); } g.fill();
+    g.fillStyle = '#3a2414'; g.fillRect(0, 44, 32, 4); g.fillStyle = '#c8c8c8'; g.fillRect(14, 44, 4, 4);
+  } else if (name === 'poncho') {
+    // poncho de rayas
+    const C = ['#b8603a', '#e8c070', '#3a6a5a', '#8a2a2a', '#f2e8d0'];
+    for (let y = 0; y < 64; y += 4) { g.fillStyle = C[(y / 4) % C.length]; g.fillRect(0, y, 32, 4); }
+    g.fillStyle = '#2a1a10'; g.fillRect(13, 0, 6, 8);
+    g.fillStyle = '#f2e8d0'; for (let x = 1; x < 32; x += 4) g.fillRect(x, 60, 2, 4);
+  } else if (name === 'mago') {
+    // túnica azul noche con estrellas y lunas
+    g.fillStyle = '#2a2a6a'; g.fillRect(0, 0, 32, 64);
+    g.fillStyle = '#ffe680'; for (const [x, y] of [[5, 8], [22, 14], [12, 30], [26, 40], [6, 50], [18, 56]]) { g.fillRect(x, y, 2, 2); g.fillRect(x - 1, y + 0.5, 4, 1); }
+    g.beginPath(); g.arc(16, 20, 4, 0.5, 5.2); g.fill(); g.fillStyle = '#2a2a6a'; g.beginPath(); g.arc(18, 19, 3.4, 0, 7); g.fill();
+    g.fillStyle = '#c8a040'; g.fillRect(0, 42, 32, 3);
   } else if (name === 'sudadera') {
     g.fillStyle = '#16161a'; g.fillRect(0, 0, 32, 64);
     g.fillStyle = '#e8e8e8'; g.font = 'bold 7px sans-serif'; g.textAlign = 'center'; g.fillText('CREW', 16, 22);

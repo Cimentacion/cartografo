@@ -22,6 +22,13 @@ const KILLS = [
   ['rioter', 'alborotadores', MID, 2], ['jumper', 'saltadores', MID, 2], ['grenade', 'granadas en el aire', MID, 2], ['rocket', 'cohetes en el aire', MID, 2],
   ['rock', 'rocas', MID, 2], ['thrown', 'objetos lanzados', MID, 2], ['barrel', 'bidones', MID, 2], ['prop', 'muebles del hospital', MID, 2],
   ['obelisk', 'obeliscos', RARE, 5],
+  // nuevos: OLD TOWN, dunas, Titanic y más
+  ['whouse', 'casas de OLD TOWN', MID, 2], ['mansion', 'mansiones', RARE, 5], ['skel', 'esqueletos bailones', MID, 2], ['outlaw', 'forajidos en duelo', RARE, 5],
+  ['goblin', 'goblins', RARE, 4], ['tower', 'torres del desierto', RARE, 6], ['tuktuk', 'tuk-tuks', MID, 2], ['warch', 'arcos de OLD TOWN', RARE, 3],
+  ['tumble', 'bolas de matojo', MID, 1], ['lboat', 'botes salvavidas', MID, 2], ['gatcart', 'ametralladoras de manivela', RARE, 4], ['iceberg', 'icebergs gigantes', RARE, 6],
+  ['steamer', 'barcos de vapor', MID, 3], ['tdebris', 'trozos del Titanic', MID, 2], ['tfunnel', 'chimeneas del Titanic', RARE, 5], ['ttable', 'mesas del salón', MID, 1],
+  ['slasher', 'acuchilladores', MID, 2], ['firetruck', 'camiones de bomberos', RARE, 3], ['toll', 'peajes', MID, 2], ['mbomb', 'misiles de la torre', MID, 2],
+  ['casinob', 'casinos', RARE, 5],
 ];
 // generales: [id, texto con {n}, tabla, multiplicador]
 const GEN = [
@@ -33,6 +40,16 @@ const GEN = [
   ['hosp', 'Sal del hospital {n} veces', RARE, 5], ['power', 'Usa {n} poderes', MID, 2], ['ability', 'Usa {n} habilidades', MID, 2],
   ['coop', 'Juega {n} partidas en cooperativo', RARE, 4], ['mins', 'Juega {n} minutos', MID, 2], ['ck', 'Atropella {n} gallinas', MID, 2],
   ['story', 'Completa {n} capítulos de la historia', RARE, 5], ['shots', 'Dispara {n} veces', x(COMMON, 10), 1], ['zones', 'Atraviesa {n} zonas', MID, 2],
+  ['westin', 'Entra en OLD TOWN {n} veces', RARE, 4], ['gob', 'Consigue {n} poderes de goblin', RARE, 3], ['nuke', 'Lanza {n} bombas atómicas', RARE, 4],
+  ['potion', 'Usa {n} pociones', RARE, 3], ['mono', 'Que el mono agarre a {n} enemigos', MID, 2], ['storm', 'Sobrevive a {n} tormentas de arena', RARE, 3],
+  ['tcrash', 'Sobrevive al choque del Titanic {n} veces', RARE, 5], ['revive', 'Reanima a compañeros {n} veces', RARE, 4],
+  ['ab_shield', 'Usa el escudo {n} veces', MID, 2], ['ab_bullet', 'Usa el tiempo bala {n} veces', MID, 2], ['ab_turbo', 'Usa el turbo {n} veces', MID, 2],
+  ['ab_canon', 'Usa el cañón {n} veces', MID, 2], ['ab_gren', 'Lanza {n} granadas', MID, 2],
+  ['pw_furia', 'Usa la FURIA {n} veces', MID, 2], ['pw_emp', 'Usa el PULSO EMP {n} veces', MID, 2], ['pw_aereo', 'Pide {n} ataques aéreos', MID, 2],
+  ['pw_cura', 'Usa el botiquín de equipo {n} veces', MID, 2], ['pw_iman', 'Usa el IMÁN {n} veces', MID, 2], ['pw_rayo', 'Usa la TORMENTA {n} veces', MID, 2],
+  ['pw_fuerza', 'Usa la FUERZA BRUTA {n} veces', MID, 2], ['multi10', 'Encadena {n} rachas de 10 bajas', RARE, 4], ['rkSS', 'Llega al rango SS {n} veces', RARE, 4],
+  ['wlv', 'Sube {n} niveles de armas', MID, 2], ['wmax', 'Lleva {n} armas al nivel máximo', RARE, 6], ['buy', 'Compra {n} mejoras', MID, 2],
+  ['zd5', 'Llega a una zona de dificultad 5 {n} veces', RARE, 4], ['zd10', 'Llega a una zona de dificultad 10 {n} veces', RARE, 8], ['wgold', 'Coge {n} armas legendarias', RARE, 4],
 ];
 // desbloqueos: id del reto -> { nivel (0 = el primero): clave }
 export const UNLOCKS = {
@@ -40,18 +57,23 @@ export const UNLOCKS = {
   boss: { 2: 'pw:rayo1', 4: 'back:alasn', 5: 'pw:rayo2', 8: 'pw:rayo3' }, k_gunman: { 5: 'hat:casco' }, dist: { 4: 'back:katana' },
   runs: { 4: 'shirt:camuflaje' }, rkSSS: { 1: 'shirt:llamas' }, hosp: { 1: 'hat:halo' }, k_bat: { 3: 'hairCol:10' }, air: { 5: 'hairCol:9' },
   coins: { 5: 'shirtCol:11' }, kills: { 6: 'shirt:oro' },
+  // ranuras de habilidades (empiezas con 1)
+  runs: { 1: 'slot:2', 4: 'shirt:camuflaje' }, k_whouse: { 2: 'slot:3', 4: 'back:espada' }, boss: { 2: 'pw:rayo1', 3: 'slot:4', 4: 'back:alasn', 5: 'pw:rayo2', 8: 'pw:rayo3' },
+  zones: { 5: 'slot:5' }, rkSSS: { 1: 'shirt:llamas', 2: 'slot:6' }, k_outlaw: { 0: 'hat:kabuto' }, k_skel: { 3: 'hat:yelmo' }, k_tower: { 0: 'shirt:samurai' },
 };
 export const UNL_NAME = {
   'shirt:cazador': 'Camiseta Cazazombis', 'hat:cuernos': 'Cuernos', 'shirt:hawaiana': 'Camisa hawaiana', 'shirtCol:10': 'Color dorado',
   'pw:rayo1': 'Poder: TORMENTA', 'pw:rayo2': 'TORMENTA nivel 2', 'pw:rayo3': 'TORMENTA nivel 3', 'back:alasn': 'Alas de demonio', 'hat:casco': 'Casco SWAT',
   'back:katana': 'Katana', 'shirt:camuflaje': 'Camuflaje', 'shirt:llamas': 'Camiseta de llamas', 'hat:halo': 'Halo', 'hairCol:10': 'Pelo cian',
   'hairCol:9': 'Pelo platino', 'shirtCol:11': 'Color neón', 'shirt:oro': 'Camiseta de oro',
+  'slot:2': '2.ª ranura de habilidad', 'slot:3': '3.ª ranura de habilidad', 'slot:4': '4.ª ranura de habilidad', 'slot:5': '5.ª ranura de habilidad', 'slot:6': '6.ª ranura de habilidad',
+  'back:espada': 'Espadón medieval', 'hat:kabuto': 'Kabuto samurái', 'hat:yelmo': 'Yelmo de caballero', 'shirt:samurai': 'Armadura samurái',
 };
 export const CHAL = [];
 for (const [t, nm, T, f] of KILLS) CHAL.push({ id: 'k_' + t, txt: 'Mata ' + nm + ': {n}', T, f, cat: 'Bajas' });
 for (const [id, txt, T, f] of GEN) CHAL.push({ id, txt, T, f, cat: 'General' });
 for (const k of BIOME_KEYS) CHAL.push({ id: 'z_' + k, txt: 'Llega a ' + BIOMES[k].name + ' {n} veces', T: RARE, f: 3, cat: 'Zonas', col: BIOMES[k].color });
-CHAL.length = Math.min(CHAL.length, 100);
+CHAL.length = Math.min(CHAL.length, 200);
 export const reward = (c, t) => Math.round(REW[t] * c.f);
 export const goal = (c, t) => c.T[t];
 export const text = (c, t) => c.txt.replace('{n}', goal(c, Math.min(9, t)).toLocaleString('es-ES'));
@@ -83,7 +105,7 @@ export function claim(P, id) {
   return { coins, unl: u || null };
 }
 // ¿está bloqueado este objeto del personaje?
-export function locked(P, key) { return !!UNL_NAME[key] && !key.startsWith('pw:') && !P.unl.includes(key); }
+export function locked(P, key) { return !!UNL_NAME[key] && !key.startsWith('pw:') && !key.startsWith('slot:') && !P.unl.includes(key); }
 export function lockedBy(key) {
   for (const id in UNLOCKS) for (const t in UNLOCKS[id]) if (UNLOCKS[id][t] === key) { const c = CHAL.find(q => q.id === id); return c ? text(c, +t) + ' (nivel ' + (+t + 1) + ')' : ''; }
   return '';

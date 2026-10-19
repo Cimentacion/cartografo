@@ -140,6 +140,21 @@ export const POWERS = {
   fuerza: { cd: lv => 95 - lv * 8, dur: lv => 5 + lv * 2, mul: lv => 1.6 + lv * 0.27, col: '#ff2a6a', name: 'FUERZA BRUTA' },
 };
 export const turboCd = lv => Math.max(22, 45 - lv * 4);
+// ---------- ranuras de habilidades: solo se llevan en partida las que tengas puestas ----------
+// [botón, mejora que lo da, nombre]
+export const SLOT_AB = [['btnShield', 'shield', 'ESCUDO'], ['btnBullet', 'bullet', 'TIEMPO BALA'], ['btnGrenade', 'gren', 'GRANADAS'], ['btnCannon', 'canon', 'CAÑÓN'],
+  ['btnTurbo', 'turbo', 'TURBO'], ['btnRevive', 'reviv', 'REANIMAR'], ['btnP_furia', 'furia', 'FURIA'], ['btnP_emp', 'emp', 'PULSO EMP'], ['btnP_aereo', 'aereo', 'ATAQUE AÉREO'],
+  ['btnP_cura', 'cura', 'BOTIQUÍN DE EQUIPO'], ['btnP_iman', 'iman', 'IMÁN'], ['btnP_rayo', 'rayo', 'TORMENTA'], ['btnP_fuerza', 'fuerza', 'FUERZA BRUTA']];
+export const SLOT_MAX = 6;
+// empiezas con 1 ranura; los retos dan más (hasta 6)
+export const slotCount = p => Math.min(SLOT_MAX, 1 + (p.unl || []).filter(u => u.startsWith('slot:')).length);
+// las puestas (solo las que tienes compradas y caben); si no hay ninguna, la primera que tengas
+export function slotsOf(p) {
+  const own = SLOT_AB.map(a => a[1]).filter(k => (p.upg[k] | 0) > 0), n = slotCount(p);
+  let L = (Array.isArray(p.slots) ? p.slots : []).filter((k, i, A) => own.includes(k) && A.indexOf(k) === i).slice(0, n);
+  if (!L.length && own.length) L = own.slice(0, n);
+  return L;
+}
 export const canonCd = lv => Math.max(28, 52 - lv * 4);
 
 // ---------- niveles de arma (se guardan por tipo de arma) ----------

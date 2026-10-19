@@ -137,6 +137,29 @@ function accessories(t, o, hp, bp) {
       box(t, 0.26, 0.03, 0.12, 0x8a7a5a, 0, 0.97, -0.21, hp); box(t, 0.26, 0.03, 0.12, 0x8a7a5a, 0, 0.97, 0.21, hp);
       for (const sd of [-1, 1]) box(t, 0.03, 0.12, 0.14, 0x8a7a5a, sd * 0.17, 0.93, 0, hp);
       break;
+    // medievales, samuráis y demás
+    case 'yelmo': // yelmo de caballero cerrado con la ranura de la vista y cimera
+      box(t, 0.36, 0.34, 0.36, 0xa8acb4, 0, 0.88, 0, hp); box(t, 0.37, 0.04, 0.37, 0x8a8e96, 0, 1.06, 0, hp);
+      box(t, 0.26, 0.03, 0.02, 0x101010, 0, 0.88, -0.185, hp); box(t, 0.02, 0.2, 0.02, 0x8a8e96, 0, 0.78, -0.185, hp);
+      for (let k = 0; k < 3; k++) box(t, 0.02, 0.02, 0.02, 0x101010, -0.06 + k * 0.06, 0.8, -0.185);
+      box(t, 0.05, 0.14, 0.3, 0xc02020, 0, 1.13, 0.02, hp); break;
+    case 'cimera': // bacinete con penacho de plumas
+      box(t, 0.34, 0.2, 0.35, 0xb8bcc4, 0, 0.97, 0.005, hp); box(t, 0.2, 0.1, 0.12, 0xb8bcc4, 0, 1.09, 0, hp); box(t, 0.36, 0.04, 0.03, 0x8a8e96, 0, 0.88, -0.17, hp);
+      for (let k = 0; k < 4; k++) { const p = box(t, 0.06, 0.28, 0.06, [0xf2f2f2, 0x2a5ad0, 0xf2f2f2, 0xd03030][k], 0, 1.28 + k * 0.02, 0.06 + k * 0.05, hp); p.rotation.x = 0.4 + k * 0.15; } break;
+    case 'kabuto': // casco samurái con cuernos dorados (kuwagata) y cubrenuca en láminas
+      box(t, 0.34, 0.16, 0.35, 0x1a1a22, 0, 1.0, 0.005, hp); box(t, 0.36, 0.03, 0.37, 0x8a1a1a, 0, 0.93, 0.005, hp);
+      for (let k = 0; k < 3; k++) box(t, 0.44 - k * 0.02, 0.06, 0.3, k % 2 ? 0x8a1a1a : 0x1a1a22, 0, 0.88 - k * 0.07, 0.1, hp);
+      for (const sd of [-1, 1]) { const c = box(t, 0.04, 0.3, 0.03, G, sd * 0.1, 1.15, -0.17, hp); c.rotation.z = -sd * 0.45; }
+      box(t, 0.08, 0.08, 0.03, G, 0, 1.04, -0.18, hp); break;
+    case 'ninja': // capucha negra
+      box(t, 0.34, 0.24, 0.35, 0x16161c, 0, 0.94, 0.01, hp); for (const sd of [-1, 1]) box(t, 0.04, 0.3, 0.33, 0x16161c, sd * 0.16, 0.8, 0.01, hp);
+      box(t, 0.06, 0.2, 0.03, 0x16161c, 0.06, 0.88, 0.19, hp).rotation.z = 0.5; break;
+    case 'mago': // sombrero de mago con estrellas
+      box(t, 0.48, 0.03, 0.48, 0x2a2a6a, 0, 0.99, 0, hp);
+      for (let k = 0; k < 4; k++) box(t, 0.3 - k * 0.07, 0.12, 0.3 - k * 0.07, 0x2a2a6a, k * 0.015, 1.06 + k * 0.11, k * 0.01, hp);
+      box(t, 0.05, 0.05, 0.01, GL, 0.06, 1.1, -0.15, hp); box(t, 0.04, 0.04, 0.01, GL, -0.05, 1.2, -0.12, hp); break;
+    case 'laurel': // corona de laurel
+      for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; if (Math.abs(Math.sin(a)) > 0.95 && Math.cos(a) < 0) continue; const l = box(t, 0.07, 0.03, 0.04, k % 2 ? 0x4a8a2a : 0x6aa83a, Math.sin(a) * 0.16, 0.96, Math.cos(a) * 0.16, hp); l.rotation.y = a; } break;
     case 'hachimaki':
       box(t, 0.3, 0.07, 0.31, 0xf4f4f0, 0, 0.94, 0.005, hp); { const c = new THREE.Mesh(cgeo(0.035, 0.01, 10), mat(0xd02020)); c.rotation.x = Math.PI / 2; c.position.set(0, 0.94, -0.162); t.add(c); }
       for (const sd of [-1, 1]) { const r = box(t, 0.05, 0.2, 0.02, 0xf4f4f0, sd * 0.05, 0.86, 0.17, hp); r.rotation.z = sd * 0.35; }
@@ -161,6 +184,11 @@ function accessories(t, o, hp, bp) {
   else if (o.back === 'cartera') { box(t, 0.42, 0.44, 0.2, 0xb82020, 0, 0.38, 0.27, bp); box(t, 0.43, 0.2, 0.22, 0x8a1010, 0, 0.5, 0.27, bp); box(t, 0.06, 0.06, 0.02, 0xd4a830, 0, 0.4, 0.38, bp); for (const x of [-0.15, 0.15]) box(t, 0.05, 0.5, 0.04, 0x2a2a2a, x, 0.4, -0.17, bp); }
   else if (o.back === 'guitarra') { const q = new THREE.Group(); q.position.set(0, 0.3, 0.24); q.rotation.z = 0.55; t.add(q); box(q, 0.36, 0.42, 0.08, 0xc8661e, 0, -0.1, 0, bp); box(q, 0.3, 0.2, 0.08, 0xc8661e, 0, 0.18, 0, bp); box(q, 0.06, 0.6, 0.05, 0x3a2414, 0, 0.55, 0, bp); box(q, 0.1, 0.12, 0.05, 0x1a1a1a, 0, 0.88, 0, bp); box(q, 0.1, 0.1, 0.02, 0x1a1a1a, 0, -0.05, 0.05, bp); }
   else if (o.back === 'baston') { const k1 = box(t, 0.05, 1.4, 0.05, 0x8a5a2a, 0, 0.4, 0.2, bp); k1.rotation.z = -0.6; for (const y of [-0.5, 0.5]) { const b2 = box(t, 0.06, 0.08, 0.06, 0xd4a830, Math.sin(0.6) * y, 0.4 + Math.cos(0.6) * y, 0.2, bp); b2.rotation.z = -0.6; } }
+  else if (o.back === 'espada') { const q = new THREE.Group(); q.position.set(0, 0.35, 0.22); q.rotation.z = -0.5; t.add(q); box(q, 0.07, 1.15, 0.02, 0xd8dce0, 0, 0, 0, bp); box(q, 0.3, 0.05, 0.06, 0x6a6a6a, 0, 0.6, 0, bp); box(q, 0.05, 0.22, 0.05, 0x5a3a20, 0, 0.74, 0, bp); box(q, 0.08, 0.08, 0.08, G, 0, 0.87, 0, bp); }
+  else if (o.back === 'escudo') { box(t, 0.5, 0.6, 0.06, 0x2a4a9a, 0, 0.32, 0.24, bp); box(t, 0.52, 0.06, 0.07, G, 0, 0.6, 0.24, bp); box(t, 0.06, 0.5, 0.07, G, 0, 0.32, 0.25, bp); box(t, 0.4, 0.06, 0.07, G, 0, 0.36, 0.25, bp); }
+  else if (o.back === 'katanas') for (const sd of [-1, 1]) { const q = new THREE.Group(); q.position.set(sd * 0.08, 0.4, 0.21); q.rotation.z = sd * 0.55; t.add(q); box(q, 0.04, 0.95, 0.03, 0x1a1a1a, 0, 0, 0, bp); box(q, 0.05, 0.28, 0.05, 0x8a1a1a, 0, 0.6, 0, bp); box(q, 0.12, 0.03, 0.07, G, 0, 0.47, 0, bp); }
+  else if (o.back === 'arco') { const q = new THREE.Group(); q.position.set(0, 0.35, 0.22); q.rotation.z = 0.5; t.add(q); for (let k = -3; k <= 3; k++) box(q, 0.04, 0.16, 0.04, 0x6a4424, Math.abs(k) * Math.abs(k) * 0.012, k * 0.15, 0, bp); box(q, 0.01, 0.95, 0.01, 0xe8e8e8, 0.13, 0, 0); box(t, 0.12, 0.45, 0.12, 0x5a3a20, -0.15, 0.4, 0.24, bp); for (let k = 0; k < 3; k++) box(t, 0.02, 0.15, 0.02, 0xf2f2f2, -0.18 + k * 0.03, 0.68, 0.24); }
+  else if (o.back === 'sashimono') { box(t, 0.03, 1.4, 0.03, 0x2a2a2a, 0, 0.75, 0.24, bp); box(t, 0.02, 0.7, 0.4, 0xf2f2f2, 0, 1.15, 0.45, bp); box(t, 0.02, 0.2, 0.2, 0xc02020, 0.01, 1.2, 0.45, bp); }
   else if (o.back === 'katana') { const k1 = box(t, 0.04, 0.95, 0.03, 0xd8dce0, 0, 0.45, 0.2, bp); k1.rotation.z = 0.7; const k2 = box(t, 0.05, 0.28, 0.05, 0x1a1a1a, 0.33, 0.8, 0.2, bp); k2.rotation.z = 0.7; const k3 = box(t, 0.14, 0.03, 0.07, 0xd4af37, 0.26, 0.72, 0.2, bp); k3.rotation.z = 0.7; }
   else if (o.back === 'jet') { for (const x of [-0.11, 0.11]) { const c = new THREE.Mesh(cgeo(0.08, 0.42, 8), mat(0xb8b8c0)); c.position.set(x, 0.36, 0.26); t.add(c); box(t, 0.1, 0.06, 0.1, GL, x, 0.12, 0.26, bp); } box(t, 0.36, 0.14, 0.06, 0x3a3a40, 0, 0.5, 0.2, bp); }
   t = sub(-(o.dz || 0));
@@ -181,6 +209,14 @@ function accessories(t, o, hp, bp) {
     case 'pintura': for (const x of [-0.08, 0.08]) { box(t, 0.1, 0.025, 0.01, 0x2050e0, x, 0.82, -0.142, hp); box(t, 0.1, 0.025, 0.01, 0xe02020, x, 0.79, -0.142, hp); } break;
     case 'rubor': for (const x of [-0.08, 0.08]) box(t, 0.06, 0.025, 0.01, 0xff7a9a, x, 0.81, -0.143, hp); break;
     case 'cicatriz': { const a = box(t, 0.012, 0.08, 0.01, 0xa04040, 0.07, 0.8, -0.143, hp); a.rotation.z = 0.7; const b2 = box(t, 0.012, 0.08, 0.01, 0xa04040, 0.07, 0.8, -0.144, hp); b2.rotation.z = -0.7; } break;
+    case 'menpo': // máscara samurái de la cara inferior con bigote
+      box(t, 0.28, 0.13, 0.04, 0x8a1a1a, 0, 0.76, -0.15, hp); for (const sd of [-1, 1]) box(t, 0.06, 0.02, 0.01, 0xe8e8e8, sd * 0.05, 0.8, -0.172, hp); box(t, 0.1, 0.03, 0.01, 0x101010, 0, 0.75, -0.172, hp); break;
+    case 'oni': // máscara de demonio oni (roja, con colmillos)
+      box(t, 0.3, 0.26, 0.04, 0xc02020, 0, 0.84, -0.155, hp); for (const sd of [-1, 1]) { box(t, 0.07, 0.03, 0.01, 0xffd040, sd * 0.07, 0.88, -0.178, hp); box(t, 0.02, 0.06, 0.01, 0xf2f2f2, sd * 0.05, 0.75, -0.178, hp); box(t, 0.04, 0.1, 0.04, 0xf2e8d0, sd * 0.12, 1.0, -0.12, hp); }
+      box(t, 0.14, 0.03, 0.01, 0x101010, 0, 0.77, -0.178, hp); break;
+    case 'ninjam': // tela negra que tapa la boca y la nariz
+      box(t, 0.3, 0.13, 0.03, 0x16161c, 0, 0.78, -0.148, hp); for (const sd of [-1, 1]) box(t, 0.01, 0.12, 0.3, 0x16161c, sd * 0.152, 0.78, 0, hp); break;
+    case 'pecas': for (const [x, y] of [[-0.09, 0.82], [-0.06, 0.8], [-0.1, 0.79], [0.09, 0.82], [0.06, 0.8], [0.1, 0.79]]) box(t, 0.015, 0.015, 0.005, 0x8a4a2a, x, y, -0.157, hp); break;
     case 'mascarilla': box(t, 0.26, 0.12, 0.03, 0xf2f2f2, 0, 0.76, -0.145, hp); for (const sd of [-1, 1]) box(t, 0.01, 0.015, 0.14, 0xf2f2f2, sd * 0.137, 0.8, -0.08, hp); break;
     case 'monoculo': { const m = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.01, 6, 14), mat(0xd4af37)); m.position.set(0.07, 0.865, -0.15); t.add(m); box(t, 0.07, 0.05, 0.004, glow(0xd8f0ff, 0.45), 0.07, 0.865, -0.152, hp); box(t, 0.008, 0.16, 0.008, 0xd4af37, 0.115, 0.78, -0.145, hp); } break;
     case 'redondas': for (const x of [-0.07, 0.07]) { const m = new THREE.Mesh(new THREE.TorusGeometry(0.048, 0.011, 6, 14), mat(0x2a1a10)); m.position.set(x, 0.865, -0.155); t.add(m); } box(t, 0.05, 0.012, 0.012, 0x2a1a10, 0, 0.87, -0.155, hp); break;
@@ -219,7 +255,7 @@ export function person(o = {}) {
   const hc = o.hair ?? 0x2a1a10;
   // el pelo es una "carcasa" algo mayor que la cabeza (sin caras en el mismo plano: no parpadea)
   // y si lleva sombrero que tapa la cabeza, lo de arriba no se pinta (no asoma por el sombrero)
-  const capH = !!o.hat && !['no', 'halo', 'cuernos', 'fiesta', 'orejas', 'flor', 'lazo', 'gafasfrente', 'hachimaki'].includes(o.hat);
+  const capH = !!o.hat && !['no', 'halo', 'cuernos', 'fiesta', 'orejas', 'flor', 'lazo', 'gafasfrente', 'hachimaki', 'laurel'].includes(o.hat);
   const top = (h = 0.1, y = 1.0) => { if (!capH) box(torso, 0.3, h, 0.31, hc, 0, y, 0.005, hp); };
   switch (o.hairStyle || 'corto') {
     case 'calvo': break;
