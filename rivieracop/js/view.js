@@ -1,8 +1,41 @@
 // Representación: crea/actualiza los modelos de las entidades a partir del estado (local o recibido)
-import * as THREE from 'three';
+import * as THREE from '../lib/three.module.js';
 import * as M from './models.js';
 import * as WM from './west.js';
 import * as TM from './titanic.js';
+import { mergeGeometries } from '../lib/BufferGeometryUtils.js';
+
+// rendimiento: cada persona/vehículo está hecho de decenas de cajas; dentro de cada pieza que se mueve (torso, brazo,
+// pierna...) se juntan las cajas del mismo material en una sola malla (muchas menos llamadas de dibujo).
+// No se tocan las mallas a las que se refiere algo (userData) ni las que tienen su propia forma de pintarse o de chocar.
+const _mi = new THREE.Matrix4();
+function mergeStatic(root) {
+  const keep = new Set();
+  const grab = v => { if (!v || typeof v !== 'object') return; if (v.isObject3D) { keep.add(v); return; } if (Array.isArray(v)) v.forEach(grab); else if (v.constructor === Object) Object.values(v).forEach(grab); };
+  root.traverse(o => { for (const v of Object.values(o.userData || {})) grab(v); });
+  const nodes = []; root.traverse(o => { if (!o.isMesh) nodes.push(o); });
+  for (const n of nodes) {
+    const by = new Map();
+    for (const c of n.children) {
+      if (!c.isMesh || keep.has(c) || c.children.length || Array.isArray(c.material) || !c.visible || c.userData.blob || c.isInstancedMesh || c.isSkinnedMesh) continue;
+      const g = c.geometry; if (!g || !g.attributes.position || !g.attributes.normal) continue;
+      const k = c.material.uuid + '|' + (c.userData.part || '') + '|' + (c.raycast === THREE.Mesh.prototype.raycast ? 1 : 0) + '|' + (g.index ? 1 : 0) + '|' + Object.keys(g.attributes).sort().join(',') + '|' + c.layers.mask + '|' + c.renderOrder;
+      let L = by.get(k); if (!L) by.set(k, (L = [])); L.push(c);
+    }
+    for (const L of by.values()) {
+      if (L.length < 2) continue;
+      const geos = L.map(c => { c.updateMatrix(); return c.geometry.clone().applyMatrix4(c.matrix); });
+      const g = mergeGeometries(geos, false);
+      for (const q of geos) q.dispose();
+      if (!g) continue;
+      const m = new THREE.Mesh(g, L[0].material);
+      m.userData.part = L[0].userData.part; m.raycast = L[0].raycast; m.layers.mask = L[0].layers.mask; m.renderOrder = L[0].renderOrder;
+      m.castShadow = L[0].castShadow; m.receiveShadow = L[0].receiveShadow; m.userData.mg = 1;
+      for (const c of L) n.remove(c);
+      n.add(m);
+    }
+  }
+}
 import { ST, BIOMES, BIOME_KEYS } from './defs.js';
 import { LANE_ME } from './road.js';
 import { SEATS } from './sim.js';
@@ -481,6 +514,7 @@ export class View {
       }
       default: g = new THREE.Group();
     }
+    try { mergeStatic(g); } catch (err) { console.warn('mergeStatic', e.type, err); }
     const L = MASK[e.type];
     if (L === LAYER_ENEMY) g.traverse(m => { if (m.isMesh && !m.userData.blob) m.material = satMat(m.material); });
     if (L) g.traverse(m => {
@@ -550,6 +584,8 @@ export class View {
       if (o.userData.laser) this.scene.remove(o.userData.laser);
       if (o.userData.balc && o.userData.balc.parent !== o) this.scene.remove(o.userData.balc);
       this.scene.remove(o);
+      // las mallas juntadas son propias de este modelo: se liberan
+      o.traverse(q => { if (q.userData.mg) q.geometry.dispose(); });
       this.objs.delete(id);
     }
   }

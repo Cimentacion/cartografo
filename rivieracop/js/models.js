@@ -1,6 +1,6 @@
 // Modelos low-poly estilo recreativa de los 90 (todo con cajas). Mirando hacia -Z.
 // userData.part en cada malla: qué parte recibe el disparo. userData.shooters: de dónde salen las balas.
-import * as THREE from 'three';
+import * as THREE from '../lib/three.module.js';
 import { tr } from './i18n.js';
 import { RARITY, weaponLines } from './weapons.js';
 import { PCOL } from './defs.js';

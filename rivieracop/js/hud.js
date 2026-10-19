@@ -1,5 +1,5 @@
 // Capa 2D encima del 3D: mira, avisos de "te van a disparar" y flechas para girar el móvil
-import * as THREE from 'three';
+import * as THREE from '../lib/three.module.js';
 import { vw, vh } from './util.js';
 
 const V = new THREE.Vector3(), P = new THREE.Vector3();

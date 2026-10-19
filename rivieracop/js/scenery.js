@@ -1,5 +1,5 @@
 // Decorado: se construye por trozos de 40 m y se fusiona en pocas mallas (rendimiento en Android)
-import * as THREE from 'three';
+import * as THREE from '../lib/three.module.js';
 import { mergeGeometries } from '../lib/BufferGeometryUtils.js';
 import { rng, hash, pick } from './util.js';
 import { BIOMES, BIOME_KEYS, CITY } from './defs.js';
@@ -133,8 +133,70 @@ function frame(road, d, lat, h, rot = 0) {
   return _m.compose(_p, _q, _s);
 }
 
-// caja: w = lateral, h = alto, d = a lo largo de la carretera. o: {x,y,z,ry,rx,rz,win,shade}
+// caja rápida: en vez de crear una BoxGeometry por caja (cientos por trozo: mucha basura de memoria y tirones al generar
+// la carretera), se escriben sus 24 vértices directamente en arrays y se juntan al final en buildChunk (fastMerge)
+const BT = new THREE.BoxGeometry(1, 1, 1), BTP = BT.attributes.position.array, BTN = BT.attributes.normal.array, BTU = BT.attributes.uv.array, BTI = BT.index.array;
+const _bm = new THREE.Matrix4(), _bt = new THREE.Matrix4(), _bv = new THREE.Vector3(), _bq = new THREE.Quaternion(), _be = new THREE.Euler();
 function addBox(list, w, h, d, col, m, o = {}) {
+  // matriz final = m · T(x,y,z) · Ry · Rz · Rx (igual que rotateX, rotateZ, rotateY, translate y applyMatrix4)
+  let e;
+  if (o.rx || o.rz || o.ry) {
+    _bm.makeRotationX(o.rx || 0);
+    if (o.rz) _bm.premultiply(_bt.makeRotationZ(o.rz));
+    if (o.ry) _bm.premultiply(_bt.makeRotationY(o.ry));
+    _bm.setPosition(o.x || 0, o.y || 0, o.z || 0).premultiply(m);
+    e = _bm.elements;
+  } else {
+    // sin giros: la matriz de la carretera con el desplazamiento local ya aplicado (sin multiplicar matrices)
+    const me = m.elements, x = o.x || 0, y = o.y || 0, z = o.z || 0, E = _bm.elements;
+    for (let i = 0; i < 12; i++) E[i] = me[i];
+    E[12] = me[0] * x + me[4] * y + me[8] * z + me[12]; E[13] = me[1] * x + me[5] * y + me[9] * z + me[13]; E[14] = me[2] * x + me[6] * y + me[10] * z + me[14]; E[15] = 1;
+    e = E;
+  }
+  const pos = new Float32Array(72), nor = new Float32Array(72), uv = new Float32Array(48), col3 = new Float32Array(72);
+  _c.setHex(col);
+  const shade = o.shade !== false, dims = o.uvs ? [[d, h], [d, h], [w, d], [w, d], [w, h], [w, h]] : o.win ? [[d, h], [d, h], null, null, [w, h], [w, h]] : null, ku = o.uvs || 3.4, kv = o.uvs || 3.1;
+  for (let i = 0; i < 24; i++) {
+    const lx = BTP[i * 3] * w, ly = BTP[i * 3 + 1] * h, lz = BTP[i * 3 + 2] * d;
+    pos[i * 3] = e[0] * lx + e[4] * ly + e[8] * lz + e[12];
+    pos[i * 3 + 1] = e[1] * lx + e[5] * ly + e[9] * lz + e[13];
+    pos[i * 3 + 2] = e[2] * lx + e[6] * ly + e[10] * lz + e[14];
+    const nx = BTN[i * 3], ny = BTN[i * 3 + 1], nz = BTN[i * 3 + 2];
+    nor[i * 3] = e[0] * nx + e[4] * ny + e[8] * nz; nor[i * 3 + 1] = e[1] * nx + e[5] * ny + e[9] * nz; nor[i * 3 + 2] = e[2] * nx + e[6] * ny + e[10] * nz;
+    const f = (i / 4) | 0;
+    if (dims) { const D = dims[f]; if (!D) { uv[i * 2] = 0.02; uv[i * 2 + 1] = 0.02; } else { uv[i * 2] = BTU[i * 2] * D[0] / ku; uv[i * 2 + 1] = BTU[i * 2 + 1] * D[1] / kv; } }
+    else { uv[i * 2] = BTU[i * 2]; uv[i * 2 + 1] = BTU[i * 2 + 1]; }
+    let k = shade ? SHADE[f] : 1;
+    if (h > 0.05) { const yy = ly + h / 2; k *= (0.88 + 0.22 * (yy / h)) * (1 - 0.38 * Math.exp(-yy / 1.1)); }
+    col3[i * 3] = _c.r * k; col3[i * 3 + 1] = _c.g * k; col3[i * 3 + 2] = _c.b * k;
+  }
+  list.push({ fast: 1, pos, nor, uv, col: col3, idx: BTI, userData: Math.min(w, h, d) < 0.35 ? { flat: 1 } : {}, dispose() { } });
+}
+// junta trozos (cajas rápidas y BufferGeometry indexadas con posición, normal, uv y color) en una sola geometría
+function fastMerge(parts) {
+  let nv = 0, ni = 0;
+  const P = parts.map(g => {
+    if (g.fast) return g;
+    const A = g.attributes, n = A.position.count;
+    const idx = g.index ? g.index.array : Uint32Array.from({ length: n }, (_, i) => i);
+    return { pos: A.position.array, nor: A.normal ? A.normal.array : new Float32Array(n * 3), uv: A.uv ? A.uv.array : new Float32Array(n * 2), col: A.color ? A.color.array : new Float32Array(n * 3).fill(1), idx };
+  });
+  for (const q of P) { nv += q.pos.length / 3; ni += q.idx.length; }
+  const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), uv = new Float32Array(nv * 2), col = new Float32Array(nv * 3), idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni);
+  let v = 0, k = 0;
+  for (const q of P) {
+    pos.set(q.pos, v * 3); nor.set(q.nor, v * 3); uv.set(q.uv, v * 2); col.set(q.col, v * 3);
+    for (let i = 0; i < q.idx.length; i++) idx[k + i] = q.idx[i] + v;
+    v += q.pos.length / 3; k += q.idx.length;
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  g.setIndex(new THREE.BufferAttribute(idx, 1));
+  return g;
+}
+// (versión antigua, con BoxGeometry: ya no se usa)
+function addBoxOld(list, w, h, d, col, m, o = {}) {
   const g = new THREE.BoxGeometry(w, h, d);
   if (o.uvs) {
     // textura a escala real: o.uvs = metros por repetición
@@ -224,7 +286,36 @@ function shoulderOf(B, side) {
   return 14;
 }
 
+// objetos sueltos que no se pueden hacer en el hilo de fondo (con canvas o modelos): pozos y paneles luminosos
+export function makeX(road, o) {
+  if (o.x === 'led') return ledMesh(road, o.d, o.lat, o.msg);
+  if (o.x === 'well') { const g = wWell(); road.toWorld(o.d, o.lat, 0, g.position); g.rotation.y = -road.yawAt(o.d); return g; }
+  return o;
+}
+// trozo de decorado listo para pintar: mallas de main a partir de los datos (de aquí o del hilo de fondo)
+export function chunkFromData(road, D, M) {
+  const grp = new THREE.Group();
+  for (const q of D.meshes) {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(q.pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(q.nor, 3));
+    g.setAttribute('uv', new THREE.BufferAttribute(q.uv, 2)); g.setAttribute('color', new THREE.BufferAttribute(q.col, 3));
+    g.setIndex(new THREE.BufferAttribute(q.idx, 1));
+    g.boundingSphere = new THREE.Sphere(new THREE.Vector3(q.bs[0], q.bs[1], q.bs[2]), q.bs[3]);
+    const me = new THREE.Mesh(g, M[q.k]);
+    me.receiveShadow = !q.indoor; me.castShadow = !q.flat && !q.indoor && !'APVGEY'.includes(q.k);
+    // el Titanic quieto (el de las cubiertas) no se ve hasta que choca contra el iceberg
+    if (q.ship) { me.userData.ship = 1; grp.userData.hasShip = 1; }
+    grp.add(me);
+  }
+  for (const o of D.X) grp.add(o.isObject3D ? o : makeX(road, o));
+  return grp;
+}
 export function buildChunk(road, c, M) {
+  const D = buildChunkData(road, c);
+  return D ? chunkFromData(road, D, M) : null;
+}
+// los datos de un trozo (arrays de vértices por material): se puede hacer en un hilo de fondo (chunkworker.js)
+export function buildChunkData(road, c) {
   const d0 = c * CH, d1 = d0 + CH;
   if (road.len < d1 + 1) return null;
   for (const h of road.hosp) if (Math.floor((h.H + 12) / CH) === c && road.len < h.H + 80) return null;
@@ -269,27 +360,22 @@ export function buildChunk(road, c, M) {
       addBox(R.L, 19, 0.6, 0.6, 0x8a8f96, frame(road, f.gantry, 0, 8.4));
     }
   }
-  const grp = new THREE.Group();
   // suelos y franjas planas (una sola cara) no proyectan sombra: así no se sombrean a sí mismos (rayas);
   // las cajas sí, con sus caras de detrás (ver toon.js)
+  const meshes = [];
   for (const [L, indoor] of [[R, false], [RI, true]]) for (const k of LIST_KEYS) {
     if (!L[k].length) continue;
     for (const flat of [false, true]) for (const ship of [false, true]) {
       const part = L[k].filter(x => !!x.userData.flat === flat && !!x.userData.ship === ship);
       if (!part.length) continue;
-      const g = mergeGeometries(part, false);
+      const g = fastMerge(part);
       for (const x of part) x.dispose();
-      if (!g) continue;
       g.computeBoundingSphere();
-      const me = new THREE.Mesh(g, M[k]);
-      me.receiveShadow = !indoor; me.castShadow = !flat && !indoor && !'APVGEY'.includes(k);
-      // el Titanic quieto (el de las cubiertas) no se ve hasta que choca contra el iceberg
-      if (ship) { me.userData.ship = 1; grp.userData.hasShip = 1; }
-      grp.add(me);
+      const A = g.attributes, S = g.boundingSphere;
+      meshes.push({ k, indoor, flat, ship, pos: A.position.array, nor: A.normal.array, uv: A.uv.array, col: A.color.array, idx: g.index.array, bs: [S.center.x, S.center.y, S.center.z, S.radius] });
     }
   }
-  for (const m of (R.X || []).concat(RI.X || [])) grp.add(m);
-  return grp;
+  return { meshes, X: (R.X || []).concat(RI.X || []) };
 }
 
 // boca del túnel tematizada según la zona (antes era siempre un muro blanco que parecía un edificio)
@@ -454,7 +540,7 @@ function interiorRun(R, road, B, i0, i1, r) {
 }
 
 // panel luminoso colgado del techo (texto en ámbar, señal de peligro y velocidad)
-function ledPanel(R, road, d, lat, msg) {
+function ledMesh(road, d, lat, msg) {
   // el mensaje (ya traducido) en dos líneas lo más parecidas posible
   const w = tr(msg).split(' ');
   let best = [tr(msg)], bd = 1e9;
@@ -472,7 +558,12 @@ function ledPanel(R, road, d, lat, msg) {
   const m = new THREE.Mesh(new THREE.PlaneGeometry(5.2, 1.3), new THREE.MeshBasicMaterial({ map: t, fog: true }));
   m.userData.own = 1;
   m.applyMatrix4(frame(road, d, lat, HW_T + 2.2, Math.PI));
-  (R.X || (R.X = [])).push(m);
+  return m;
+}
+// (en el hilo de fondo no hay canvas: se apunta y lo hace el hilo principal con makeX)
+const NODOM = typeof document === 'undefined';
+function ledPanel(R, road, d, lat, msg) {
+  (R.X || (R.X = [])).push(NODOM ? { x: 'led', d, lat, msg } : ledMesh(road, d, lat, msg));
   addBox(R.L, 5.5, 1.5, 0.2, 0x222222, frame(road, d, lat, HW_T + 2.2), { z: 0.12 });
   for (const x of [-2, 2]) addBox(R.L, 0.08, 1.4, 0.08, 0x555555, frame(road, d, lat, HW_T + 3.5), { x });
 }
@@ -853,7 +944,7 @@ function westRun(R, road, B, i0, i1, r) {
       strip(R.L, road, p0, p1, C(-14, 0.015), C(26, 0.015), 0xc8925a);
       const wd = W.lturn + 10;
       if (wd >= i0 && wd < i1) {
-        const g = wWell(); road.toWorld(wd, 14, 0, g.position); g.rotation.y = -road.yawAt(wd); (R.X || (R.X = [])).push(g);
+        (R.X || (R.X = [])).push(NODOM ? { x: 'well', d: wd, lat: 14 } : makeX(road, { x: 'well', d: wd, lat: 14 }));
         for (const z of [-5, 5]) trough(R, frame(road, wd + z, 18.5, 0, Math.PI / 2));
         const m = frame(road, W.town + 268, -12, 0);
         addBox(R.D, 0.2, 9, 0.2, 0x8a8a8a, m, { y: 4.5 }); addBox(R.L, 0.05, 1.2, 1.8, 0xc83030, m, { y: 8.2, z: 0.9 }); // mástil con bandera

@@ -1,5 +1,5 @@
 // Control: giroscopio (principal), arrastrar con el dedo si el móvil no tiene giroscopio, y ratón en PC
-import * as THREE from 'three';
+import * as THREE from '../lib/three.module.js';
 import { angWrap, clamp, VP } from './util.js';
 
 const ZEE = new THREE.Vector3(0, 0, 1);

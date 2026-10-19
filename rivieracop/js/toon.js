@@ -1,5 +1,5 @@
 // Estilo toon: sombreado en 3 franjas + texturas compartidas + contorno negro por post-proceso
-import * as THREE from 'three';
+import * as THREE from '../lib/three.module.js';
 
 let GRAD = null;
 export function toonGrad() {

@@ -1,5 +1,5 @@
 // Editor de personaje: piel, pelo, barba, ropa (lisa o banderas LGTBI), gafas y silla de ruedas
-import * as THREE from 'three';
+import * as THREE from '../lib/three.module.js';
 import { toon } from './toon.js';
 
 export const SKINS = [0xf6d8bf, 0xeec1a0, 0xd9a476, 0xc68a5e, 0xa8703f, 0x8f5a32, 0x76482a, 0x5e3720, 0x4a2a18, 0x3a2112, 0x2c180c];

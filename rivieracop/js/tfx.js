@@ -1,6 +1,6 @@
 // EL TITANIC (lado del cliente): el mar con oleaje, el barco que se acerca y choca contra el iceberg,
 // la inclinación mientras se hunde, el barco hundido bajo el agua, el que se parte en dos a lo lejos y la nieve
-import * as THREE from 'three';
+import * as THREE from '../lib/three.module.js';
 import * as TM from './titanic.js';
 
 const ss = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };

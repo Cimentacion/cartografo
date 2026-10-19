@@ -1,7 +1,7 @@
 // EL TITANIC: el barco entero (el que se acerca, el hundido y el partido en dos), botes salvavidas,
 // el carro de caballos con la ametralladora, las mesas del salón, maletas, trozos de hielo y el iceberg gigante (jefe).
 // Todo mira hacia -Z (la proa del barco hacia -Z)
-import * as THREE from 'three';
+import * as THREE from '../lib/three.module.js';
 import { box, mat, glow, person, proxy } from './models.js';
 import { collapse } from './west.js';
 

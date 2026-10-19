@@ -1,9 +1,9 @@
 // RIVIERA COP — roguelike de disparos sobre raíles, cooperativo, con giroscopio
-import * as THREE from 'three';
+import * as THREE from '../lib/three.module.js';
 import { initI18n, LANGS, getLang, setLang, tr } from './i18n.js';
 import { STORY, CAST } from './story.js';
 import { Road, LANE_ME, WALK } from './road.js';
-import { buildChunk, makeMats, CH } from './scenery.js';
+import { buildChunk, chunkFromData, makeMats, CH } from './scenery.js';
 import { Sim, SEATS, isRear, AIR, ANIMAL } from './sim.js';
 import { View, Fx } from './view.js';
 import { TitanicFX } from './tfx.js';
@@ -39,13 +39,15 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPrefer
 // calidad: resolución interna (BAJA 1x, MEDIA 1.5x, ALTA 2x) y oclusión ambiental
 // las dos últimas: más resolución para ver mejor a los enemigos (gasta más batería)
 const QUAL = [['BAJA', 1], ['MEDIA', 1.25], ['ALTA', 1.6], ['ULTRA', 2.25], ['NATIVA', 4]];
+// distancia de visión según la calidad (decorado generado por delante y niebla un poco antes)
+const VIEWD = [180, 225, 262, 262, 262], FOGD = [160, 195, 215, 215, 215];
 let qIdx = Math.max(0, Math.min(QUAL.length - 1, +(localStorage.getItem('rc_q') ?? 1)));
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.get('hq') ? 2 : QUAL[qIdx][1]));
 renderer.setSize(vw(), vh());
 // sombras suaves del sol (se quitan en calidad BAJA)
 renderer.shadowMap.enabled = true;
 // PCF: en móvil el VSM iba a media precisión y pintaba rayas (acné) en todas las superficies lisas
-renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.shadowMap.type = Q0 < 2 ? THREE.BasicShadowMap : THREE.PCFShadowMap; // en BAJA/MEDIA, sombras de borde duro (más baratas)
 const outline = new Outline(renderer); window.__ol = outline; // TODO-TESTEO
 outline.enabled = !Q.get('nooutline'); // TODO-TESTEO
 outline.setSize(vw(), vh());
@@ -73,7 +75,7 @@ sun.shadow.camera.updateProjectionMatrix();
 const SHC = { key: '' };
 // ejes de la luz (para encajar la sombra en su rejilla y que no tiemble al moverse)
 const SUNO = new THREE.Vector3(150, 160, 70), SUNZ = SUNO.clone().normalize(), SUNX = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), SUNZ).normalize(), SUNY = new THREE.Vector3().crossVectors(SUNZ, SUNX);
-scene.add(sun); scene.add(sun.target); window.__sun = sun; window.__hemi = hemi; // TODO-TESTEO
+scene.add(sun); scene.add(sun.target); window.__sun = sun; window.__hemi = hemi; window.__ren = renderer; // TODO-TESTEO
 // cielo con degradado: azul intenso arriba y claro en el horizonte
 // cielo de dibujo animado: un degradado suave (sin ruido) y encima una cúpula con nubes dibujadas a mano en un canvas
 // (nubes esponjosas hechas de círculos, con sombra abajo y brillo arriba), sol o luna y estrellas de noche.
@@ -317,11 +319,52 @@ class Mirror {
 }
 
 // ---------------- carretera / decorado ----------------
+// ---- hilo de fondo para el decorado (sin tirones al generar la carretera); si falla, se hace aquí como antes ----
+const CW = { w: null, ok: false, pend: new Map(), sent: -1, road: null, ver: -1 };
+try {
+  CW.w = new Worker(new URL('./chunkworker.js', import.meta.url), { type: 'module' });
+  CW.ok = true;
+  CW.w.onerror = e => { console.warn('chunkworker', e && e.message); CW.ok = false; CW.pend.clear(); };
+  CW.w.onmessage = e => {
+    const m = e.data;
+    if (m.t === 'err') { console.warn('chunkworker', m.msg); return; }
+    if (m.t !== 'chunk') return;
+    CW.pend.delete(m.c);
+    const R = G.road;
+    if (!m.D || !R || R !== CW.road || (R.ver || 0) !== m.ver || G.chunks.has(m.c)) return;
+    const g = chunkFromData(R, m.D, MATS);
+    if (m.c * CH < G.carD + 230) SHC.dirty = true;
+    scene.add(g); G.chunks.set(m.c, g);
+  };
+} catch (e) { CW.ok = false; }
+const CWA = ['x', 'y', 'z', 'yaw', 'kind', 'bio', 'zd', 'sea', 'gy'];
+function cwSync(R) {
+  let from = CW.sent + 1;
+  if (R !== CW.road || (R.ver || 0) !== CW.ver) { from = 0; CW.road = R; CW.ver = R.ver || 0; CW.pend.clear(); }
+  if (from > R.len && from !== 0) return;
+  const a = {};
+  for (const k of CWA) a[k] = R[k].slice(from, R.len + 1);
+  const meta = {};
+  for (const k of Object.keys(R)) if (!CWA.includes(k) && k !== 'grid' && k !== 'queue' && k !== 'cur') meta[k] = R[k];
+  CW.w.postMessage({ t: 'road', from, a, meta });
+  CW.sent = R.len;
+}
 function updateChunks(d, all) {
   // con artilleros traseros se ve mucho más hacia atrás
-  const c0 = Math.floor((d - (G.n > 2 && G.running ? 200 : 60)) / CH), c1 = Math.floor((d + 262) / CH);
+  const c0 = Math.floor((d - (G.n > 2 && G.running ? 200 : 60)) / CH), c1 = Math.floor((d + VIEWD[qIdx]) / CH);
   let built = 0;
-  for (let c = Math.max(0, c0); c <= c1; c++) {
+  // en partida, los trozos nuevos los hace el hilo de fondo (de uno en uno, en orden)
+  if (!all && CW.ok && G.road) {
+    if (CW.pend.size < 2) for (let c = Math.max(0, c0); c <= c1; c++) {
+      if (G.chunks.has(c) || CW.pend.has(c)) continue;
+      if (G.road.len < (c + 1) * CH + 1) break;
+      cwSync(G.road);
+      CW.w.postMessage({ t: 'build', c, ver: G.road.ver || 0 });
+      CW.pend.set(c, 1);
+      break;
+    }
+  }
+  for (let c = Math.max(0, c0); c <= c1 && (all || !CW.ok); c++) {
     if (G.chunks.has(c)) continue;
     if (!all && built >= 1) break;
     const g = buildChunk(G.road, c, MATS);
@@ -659,7 +702,7 @@ function handleEvent(ev) {
       else if (ev.f === 'zap') {
         // rayo que cae del cielo en zigzag
         let x = p.x, z = p.z;
-        for (let i = 0; i < 16; i++) { x += (Math.random() - 0.5) * 0.9; z += (Math.random() - 0.5) * 0.9; fx.part(V2.set(x, p.y + i * 1.4, z).clone(), V3.set(0, 0, 0).clone(), 0.22, 0.5, fx.m.zap, 0, 0); }
+        for (let i = 0; i < 16; i++) { x += (Math.random() - 0.5) * 0.9; z += (Math.random() - 0.5) * 0.9; fx.part(V2.set(x, p.y + i * 1.4, z), V3.set(0, 0, 0).clone(), 0.22, 0.5, fx.m.zap, 0, 0); }
         fx.sparks(p, 16, fx.m.zap); SFX.tone(1800, 120, 0.25, 'sawtooth', 0.18); G.flashZap = 0.08;
       }
       else if (ev.f === 'feathers') { fx.feathers(p); SFX.cluck(); }
@@ -681,7 +724,7 @@ function handleEvent(ev) {
       const sht = G.ents.find(x => x.id === ev.id);
       if (sht && sht.type === 'firetruck') {
         // chorro de agua en arco (si te da, te ciega un momento)
-        for (let i = 0; i < 18; i++) { const k = i / 17; V3.copy(a).lerp(b, k); V3.y += Math.sin(k * Math.PI) * 1.6; fx.part(V3.clone(), V2.set((Math.random() - 0.5) * 2, -1 - Math.random() * 2, (Math.random() - 0.5) * 2).clone(), 0.45 + Math.random() * 0.2, 0.28 + Math.random() * 0.2, fx.m.water, -4, 1); }
+        for (let i = 0; i < 18; i++) { const k = i / 17; V3.copy(a).lerp(b, k); V3.y += Math.sin(k * Math.PI) * 1.6; fx.part(V3.clone(), V2.set((Math.random() - 0.5) * 2, -1 - Math.random() * 2, (Math.random() - 0.5) * 2), 0.45 + Math.random() * 0.2, 0.28 + Math.random() * 0.2, fx.m.water, -4, 1); }
         if (ev.hit && ev.p === li) G.wetT = 1.2;
         SFX.tone(220, 120, 0.35, 'sawtooth', 0.12);
         break;
@@ -988,6 +1031,16 @@ function begin(seed, n, li, mode) {
   setFpGun();
   view.placeCar(G.carD, 0, 0);
   updateChunks(G.carD, true);
+  // preparar ya los efectos de los enemigos más comunes (si no, la primera vez que salen el móvil da un tirón)
+  try {
+    const tmp = [];
+    for (const [k, type] of ['gunman', 'moto', 'ecar', 'drone', 'heli', 'barrel', 'medkit', 'civilian', 'jeep', 'rocket', 'grenade', 'beast', 'quad', 'pickup'].entries()) {
+      const o = view.make({ id: -100 - k, type, d: G.carD + 30, lat: 0, h: 0, ry: 0, vd: 0, hp: 1, st: ST.ALIVE, sh: [], x: {} });
+      G.road.toWorld(G.carD + 30, 0, 0, o.position); tmp.push(o);
+    }
+    renderer.compile(scene, camera);
+    for (const o of tmp) { scene.remove(o); o.traverse(q => { if (q.userData.mg) q.geometry.dispose(); }); if (o.userData.laser) scene.remove(o.userData.laser); }
+  } catch (e) { console.warn('precompile', e); }
   for (const s of document.querySelectorAll('.screen')) s.hidden = true;
   $('hudwrap').hidden = false;
   for (let i = 1; i < 5; i++) $('p' + i).hidden = i >= n;
@@ -1819,6 +1872,7 @@ let last = performance.now();
 // resolución automática: si el móvil no llega a ~30 fps en partida, se baja un poco la resolución interna
 // (y se vuelve a subir si va sobrado). Cambia como mucho cada 4 s para no dar tirones al cambiar
 const PERF = { k: 1, ema: 1 / 60, t: 0 };
+
 function perfGovern(raw) {
   if (!G.running || G.over || raw > 0.25) return;
   PERF.ema += (raw - PERF.ema) * 0.05; PERF.t += raw;
@@ -1955,11 +2009,11 @@ function tick(dt) {
     for (let k = 0; k < 3; k++) if (Math.random() < dt * 14) {
       const sd = Math.random() < 0.5 ? -1 : 1;
       G.road.toWorld(G.carD + 8 + Math.random() * 60, sd * (9 + Math.random() * 7), Math.random() * 8, V1);
-      fx.part(V1, V2.set((Math.random() - 0.5) * 1.5, 2 + Math.random() * 3, (Math.random() - 0.5) * 1.5).clone(), 1.2 + Math.random(), 0.06 + Math.random() * 0.08, Math.random() < 0.6 ? fx.m.fire : fx.m.hot, -1, 0);
+      fx.part(V1, V2.set((Math.random() - 0.5) * 1.5, 2 + Math.random() * 3, (Math.random() - 0.5) * 1.5), 1.2 + Math.random(), 0.06 + Math.random() * 0.08, Math.random() < 0.6 ? fx.m.fire : fx.m.hot, -1, 0);
     }
     // gasolineras ardiendo: columna de fuego y humo negro
     for (const g of G.road.gasStations(G.carD - 30, G.carD + 160)) {
-      if (Math.random() < dt * 18) { G.road.toWorld(g.d + (Math.random() - 0.5) * 8, g.sd * (WALK + 9) + (Math.random() - 0.5) * 6, 2 + Math.random() * 3, V1); fx.part(V1, V2.set((Math.random() - 0.5) * 2, 3 + Math.random() * 3, (Math.random() - 0.5) * 2).clone(), 0.9 + Math.random() * 0.6, 0.5 + Math.random() * 0.6, Math.random() < 0.5 ? fx.m.fire : fx.m.hot, -2, 1.5); }
+      if (Math.random() < dt * 18) { G.road.toWorld(g.d + (Math.random() - 0.5) * 8, g.sd * (WALK + 9) + (Math.random() - 0.5) * 6, 2 + Math.random() * 3, V1); fx.part(V1, V2.set((Math.random() - 0.5) * 2, 3 + Math.random() * 3, (Math.random() - 0.5) * 2), 0.9 + Math.random() * 0.6, 0.5 + Math.random() * 0.6, Math.random() < 0.5 ? fx.m.fire : fx.m.hot, -2, 1.5); }
       if (Math.random() < dt * 8) { G.road.toWorld(g.d + (Math.random() - 0.5) * 6, g.sd * (WALK + 9), 7 + Math.random() * 3, V1); fx.smoke(V1, true); }
     }
   }
@@ -1968,13 +2022,13 @@ function tick(dt) {
     for (let k = 0; k < 2; k++) if (Math.random() < dt * 25) {
       const sd = Math.random() < 0.5 ? -1 : 1;
       V1.set(sd * 1.1, 0.15, 2.8 + Math.random()); car.localToWorld(V1);
-      fx.part(V1, V2.set((Math.random() - 0.5) * 2, 1.5 + Math.random() * 1.5, (Math.random() - 0.5) * 2).clone(), 0.6, 0.18, fx.m.feather, 6, 1);
+      fx.part(V1, V2.set((Math.random() - 0.5) * 2, 1.5 + Math.random() * 1.5, (Math.random() - 0.5) * 2), 0.6, 0.18, fx.m.feather, 6, 1);
     }
   }
   // burbujas bajo el agua
   if (BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]].deco === 'submarino' && G.road.kindAt(G.carD) === 0 && Math.random() < dt * 14) {
     V1.set((Math.random() - 0.5) * 6, Math.random() * 2, (Math.random() - 0.5) * 8); car.localToWorld(V1);
-    fx.part(V1, V2.set((Math.random() - 0.5) * 0.4, 1.5 + Math.random(), (Math.random() - 0.5) * 0.4).clone(), 2.2, 0.08 + Math.random() * 0.08, fx.m.feather, -0.5, 0);
+    fx.part(V1, V2.set((Math.random() - 0.5) * 0.4, 1.5 + Math.random(), (Math.random() - 0.5) * 0.4), 2.2, 0.08 + Math.random() * 0.08, fx.m.feather, -0.5, 0);
   }
   // --- entidades ---
   view.sync(G.ents, { li, t: G.t, dt });
@@ -2015,7 +2069,7 @@ function tick(dt) {
   for (let k = G.turbo ? 3 : 1; k > 0; k--) if (G.wind > 0 && Math.random() < dt * 40 * G.wind) {
     V1.set((Math.random() - 0.5) * 14, Math.random() * 4, -25 - Math.random() * 15); car.localToWorld(V1);
     V2.set(0, 0, 40 + Math.random() * 20).applyQuaternion(car.quaternion);
-    fx.part(V1, V2.clone(), 0.9, 0.05 + Math.random() * 0.06, fx.m.dust, 0, 0);
+    fx.part(V1, V2, 0.9, 0.05 + Math.random() * 0.06, fx.m.dust, 0, 0);
   }
   if (G.smokeT > 0) G.smokeT -= dt;
   document.body.classList.toggle('smoked', G.smokeT > 0 || !!G.smoked);
@@ -2051,7 +2105,7 @@ function tick(dt) {
   if (G.stormT > 0) G.stormT -= dt;
   { const so = G.stormT > 1.2 ? 1 : Math.max(0, (G.stormT || 0) / 1.2); if (so !== G.stormO) { G.stormO = so; $('sandfx').style.opacity = so; } }
   // arena que vuela a ras de suelo
-  if (B.deco === 'dunas' && !inTun && Math.random() < dt * 14) { G.road.toWorld(G.carD + 10 + Math.random() * 40, (Math.random() - 0.5) * 30, 0.3 + Math.random() * 0.8, V1); fx.part(V1.clone(), V2.set(3 + Math.random() * 3, 0.2, (Math.random() - 0.5) * 2).clone(), 1.4, 0.05 + Math.random() * 0.06, fx.m.dust, 0, 1.5); }
+  if (B.deco === 'dunas' && !inTun && Math.random() < dt * 14) { G.road.toWorld(G.carD + 10 + Math.random() * 40, (Math.random() - 0.5) * 30, 0.3 + Math.random() * 0.8, V1); fx.part(V1, V2.set(3 + Math.random() * 3, 0.2, (Math.random() - 0.5) * 2), 1.4, 0.05 + Math.random() * 0.06, fx.m.dust, 0, 1.5); }
   const k = SHOT ? 1 : 1 - Math.exp(-dt * 1.2);
   ENV.sky.lerp(TC.setHex(B.sky), k);
   ENV.sea.lerp(TC.setHex(B.sea), k);
@@ -2064,7 +2118,7 @@ function tick(dt) {
   // la niebla acaba antes de donde termina el decorado construido y la zona con sombras: nada aparece de golpe
   // en la arena de la torre, sin bruma (se ve la torre entera)
   const arenaF = G.road.kindAt(G.carD) === 4;
-  ENV.fn = lerp(ENV.fn, indoor ? 1.5 : arenaF ? 160 : Math.min(B.fogNear, 120), Math.min(1, k * (indoor ? 3 : 1))); ENV.ff = lerp(ENV.ff, indoor ? 17 : arenaF ? 420 : Math.min(B.fogFar, 215), Math.min(1, k * (indoor ? 3 : 1)));
+  ENV.fn = lerp(ENV.fn, indoor ? 1.5 : arenaF ? 160 : Math.min(B.fogNear, 120), Math.min(1, k * (indoor ? 3 : 1))); ENV.ff = lerp(ENV.ff, indoor ? 17 : arenaF ? 420 : Math.min(B.fogFar, FOGD[qIdx]), Math.min(1, k * (indoor ? 3 : 1)));
   // pasillos en penumbra: la niebla oscura no deja ver el fondo
   G.fogIn = lerp(G.fogIn || 0, indoor ? 1 : 0, Math.min(1, k * 3));
   scene.background.copy(ENV.sky); scene.fog.color.copy(ENV.sky).lerp(TC.setHex(0x06161c), G.fogIn);
@@ -2496,7 +2550,7 @@ function setQuality(i) {
   qIdx = i;
   try { localStorage.setItem('rc_q', i); } catch (e) { }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, QUAL[i][1]) * (PERF.k || 1));
-  outline.mat.uniforms.aoOn.value = i > 0 && AOON ? 1 : 0;
+  outline.mat.uniforms.aoOn.value = i > 1 && AOON ? 1 : 0; // el oscurecido de esquinas solo en ALTA o más (es lo más caro)
   renderer.shadowMap.enabled = i > 0 && SHADOWS; renderer.shadowMap.needsUpdate = true;
   outline.mat.uniforms.aoN.value = i > 1 ? 12 : 8;
   { const s = [1024, 1536, 2048, 3072, 3072][i] || 2048; sun.shadow.mapSize.set(s, s); }

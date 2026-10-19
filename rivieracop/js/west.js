@@ -1,7 +1,7 @@
 // OLD TOWN: modelos del pueblo del Oeste. Todo mira hacia -Z (la fachada da a la carretera).
 // Cartel de madera, casas que revientan (y quedan en palos negros), la mansión por dentro, la iglesia con campanario,
 // esqueletos bailones, el forajido del duelo, el caballo con jinete y el pozo
-import * as THREE from 'three';
+import * as THREE from '../lib/three.module.js';
 import { box, mat, glow, person, cgeo, tmat, canvasTex, proxy } from './models.js';
 import { WHOUSE, WSIGNS, MANSION, mansionWall } from './defs.js';
 import { mergeGeometries } from '../lib/BufferGeometryUtils.js';

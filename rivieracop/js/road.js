@@ -198,6 +198,7 @@ export class Road {
   // el giro brusco a la derecha (igual en todos los jugadores: el corte es siempre en el mismo punto)
   _rebaseWest(W) {
     const cut = W.cut = Math.round(W.sign + 24);
+    this.ver = (this.ver || 0) + 1; // los que copian la carretera (hilo de fondo) tienen que volver a copiarla
     if (this.len > cut) {
       for (const k of ['x', 'y', 'z', 'yaw', 'kind', 'bio', 'zd', 'sea', 'gy']) this[k].length = cut + 1;
       for (const [key, L] of this.grid) { const f = L.filter(i => i <= cut); if (f.length) this.grid.set(key, f); else this.grid.delete(key); }
