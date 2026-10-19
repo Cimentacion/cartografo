@@ -46,7 +46,7 @@ function waveMat() {
         float sp = pow(clamp(dot(reflect(-L, n), V), 0.0, 1.0), 40.0);
         c += vec3(0.55, 0.65, 0.85) * sp * 0.6;
         c = mix(c, vec3(0.86, 0.92, 1.0), smoothstep(0.62, 0.9, vH) * 0.8);
-        if (under > 0.5) c = mix(vec3(0.35, 0.7, 0.85), vec3(0.75, 0.95, 1.0), d);
+        if (under > 0.5) c = mix(vec3(0.05, 0.16, 0.22), vec3(0.22, 0.42, 0.52), d);
         gl_FragColor = vec4(c, 1.0);
         #include <colorspace_fragment>
         #include <fog_fragment>
@@ -54,6 +54,17 @@ function waveMat() {
   });
 }
 
+// coche/camión/autobús/carro hundido (cajas sencillas)
+const SKM = {};
+const skm = c => SKM[c] || (SKM[c] = new THREE.MeshLambertMaterial({ color: c }));
+function sunkCar(k) {
+  const g = new THREE.Group(), bx = (w, h, d, c, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), skm(c)); m.position.set(x, y, z); g.add(m); return m; };
+  const col = [0x6a1a14, 0x1a2a4a, 0x2a2a2a, 0x3a4a2a][k];
+  if (k === 0 || k === 1) { bx(2, 0.9, 4.4, col, 0, 0.6, 0); bx(1.8, 0.8, 2.2, col, 0, 1.4, -0.2); bx(1.7, 0.6, 0.06, 0x1a2a34, 0, 1.4, 0.92); for (const x of [-1, 1]) for (const z of [-1.4, 1.4]) bx(0.3, 0.8, 0.8, 0x111111, x, 0.3, z); }
+  else if (k === 2) { bx(2.4, 2.6, 5, col, 0, 1.6, -0.6); bx(2.4, 1.6, 1.8, 0x8a8a8a, 0, 1.1, 2.6); for (const x of [-1.2, 1.2]) for (const z of [-1.8, 2.4]) bx(0.3, 0.9, 0.9, 0x111111, x, 0.4, z); }
+  else { bx(2.2, 1.2, 3.6, 0x6a4a2a, 0, 1.1, 0); for (const x of [-1.2, 1.2]) for (const z of [-1.2, 1.2]) bx(0.15, 1.3, 1.3, 0x4a2a14, x, 0.6, z); bx(0.12, 0.12, 2.4, 0x4a2a14, 0, 0.8, 2.8); }
+  return g;
+}
 export class TitanicFX {
   constructor(scene, fx) {
     this.scene = scene; this.fx = fx;
@@ -114,7 +125,7 @@ export class TitanicFX {
     }
     const S = T.S, t = G.t;
     // nivel del agua: sube mientras se hunde el barco (hasta casi la cubierta) y vuelve a su sitio bajo el agua
-    const lvl = S + (c < T.under ? 8 * ss(T.deck2, T.down, c) : 0);
+    const lvl = S + (c < T.under ? 6 * ss(T.deck2, T.down, c) : 0);
     this.mkHill(road, T);
     if (this.hill) this.hill.visible = c < T.deck1 + 120;
     this.lvl = lvl;
@@ -145,7 +156,8 @@ export class TitanicFX {
     } else if (crashed && c < T.exit + 40) {
       // ya chocado: el medio barco del lado por donde NO se va (el otro medio son las cubiertas de la carretera)
       sh.visible = false;
-      const q = c < T.deck2 + 8 ? st : po; q.visible = true;
+      // (en el salón no: el salón ya llega hasta el otro costado)
+      const q = c < T.deck2 + 8 ? st : po; q.visible = !(c > T.down + 12 && c < T.exit + 10);
       this.pose(q, road, T.deck1, -10.2, -0.1);
     } else if (c >= T.exit + 40 && c < T.rise + 20) {
       // bajo el agua: el Titanic hundido al lado, ladeado, con la proa clavada hacia el fondo
@@ -176,11 +188,33 @@ export class TitanicFX {
         this.fx.part(p, new THREE.Vector3((Math.random() - 0.5) * 1.5, -2.2, (Math.random() - 0.5) * 1.5), 3, 0.06 + Math.random() * 0.05, this.snowM, 0, 0);
       }
     }
-    // burbujas bajo el agua
-    if (this.under && Math.random() < dt * 10) {
-      const p = new THREE.Vector3((Math.random() - 0.5) * 20, -3, -6 - Math.random() * 20).applyQuaternion(camera.quaternion).add(camera.position);
-      if (!this.bubM) this.bubM = new THREE.MeshBasicMaterial({ color: 0xc8f0ff, transparent: true, opacity: 0.7 });
-      this.fx.part(p, new THREE.Vector3(0, 2.5, 0), 3, 0.08 + Math.random() * 0.08, this.bubM, 0, 0);
+    // burbujas bajo el agua (muchas, de varios tamaños)
+    if (!this.bubM) this.bubM = new THREE.MeshBasicMaterial({ color: 0xc8f0ff, transparent: true, opacity: 0.7 });
+    if (this.under) for (let k = Math.floor(dt * 28 + Math.random()); k > 0; k--) {
+      const p = new THREE.Vector3((Math.random() - 0.5) * 24, -4 + Math.random() * 3, -4 - Math.random() * 24).applyQuaternion(camera.quaternion).add(camera.position);
+      this.fx.part(p, new THREE.Vector3((Math.random() - 0.5) * 0.4, 2 + Math.random() * 1.5, 0), 3.5, 0.05 + Math.random() * 0.12, this.bubM, 0, 0);
+    }
+    this.sinkers(road, T, c, dt, camera);
+  }
+  // coches y camiones que se hunden despacio desde la superficie, girando y soltando muchas burbujas
+  sinkers(road, T, c, dt, camera) {
+    const L = this.sk || (this.sk = []), act = this.under && c > T.exit + 30 && c < T.rise - 20;
+    if (act && L.length < 3 && Math.random() < dt * 0.35) {
+      const g = sunkCar(Math.floor(Math.random() * 4)), d = c + 45 + Math.random() * 40, lat = (Math.random() < 0.5 ? -1 : 1) * (7 + Math.random() * 22);
+      road.toWorld(d, lat, 0, g.position); g.position.y = this.lvl - 1;
+      g.rotation.set(Math.random() * 0.6, Math.random() * 6, Math.random() * 0.6);
+      g.userData.v = 1.3 + Math.random() * 1.2; g.userData.sp = new THREE.Vector3((Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.5);
+      g.userData.floor = road.y[Math.min(road.len - 1, Math.floor(d))] - 0.6; this.scene.add(g); L.push(g);
+    }
+    for (let i = L.length - 1; i >= 0; i--) {
+      const g = L[i], u = g.userData, far = g.position.distanceToSquared(camera.position) > 160 * 160;
+      if (!act || far) { this.scene.remove(g); g.traverse(o => o.geometry && o.geometry.dispose()); L.splice(i, 1); continue; }
+      if (g.position.y > u.floor) { g.position.y = Math.max(u.floor, g.position.y - u.v * dt); g.rotation.x += u.sp.x * dt; g.rotation.y += u.sp.y * dt; g.rotation.z += u.sp.z * dt; }
+      const nb = g.position.y > u.floor ? 7 : 1.5;
+      for (let k = Math.floor(dt * nb * 3 + Math.random()); k > 0; k--) {
+        const p = g.position.clone().add(new THREE.Vector3((Math.random() - 0.5) * 3, 0.8 + Math.random(), (Math.random() - 0.5) * 3));
+        this.fx.part(p, new THREE.Vector3((Math.random() - 0.5) * 0.6, 2.2 + Math.random() * 1.8, (Math.random() - 0.5) * 0.6), 3.2, 0.08 + Math.random() * 0.16, this.bubM, 0, 0);
+      }
     }
   }
 }

@@ -91,6 +91,7 @@ const SKYT = {
   atardecer: { top: 0x3a2a6a, bands: ['#2c2a64', '#7a4a8a', '#e0788a', '#ffc890'], cl: [255, 214, 190], cs: [150, 90, 130], sun: '#ffb860', n: 20, mt: '#5a3a5a' },
   nublado: { top: 0x5a6478, bands: ['#56607a', '#7a8498', '#a0a8b6', '#b8bec8'], cl: [226, 230, 236], cs: [120, 128, 145], sun: null, n: 34, mt: '#5a6270' },
   // fondo marino: agua azul que se aclara hacia la superficie, con el sol difuminado arriba
+  abismo: { top: 0x2a6a8a, bands: ['#2a6a8a', '#123e5a', '#082436', '#03121c'], cl: [90, 140, 170], cs: [20, 60, 90], sun: '#8ad0f0', n: 0, mt: '#020a10', stars: false },
   mar: { top: 0x6ad4f4, bands: ['#7ae0fa', '#2a9ad0', '#0e5a8a', '#06304e'], cl: [180, 230, 255], cs: [40, 120, 170], sun: '#e8ffff', n: 0, mt: '#04202e', stars: false },
   // casino: noche morada con el horizonte dorado de las luces
   casino: { top: 0x0a0420, bands: ['#0a0420', '#260c48', '#56207a', '#c8789a'], cl: [150, 100, 190], cs: [50, 24, 80], sun: null, n: 14, mt: '#1a0a2a', stars: true },
@@ -194,7 +195,7 @@ cloudDomes[0].material.map = skyTex('dia'); cloudDomes[0].userData.k = 'dia';
 const SKYST = { k: 'dia', fade: 1 };
 function skyTypeOf(B) {
   if (B.deco === 'titanic' || B.deco === 'tmar') return 'aurora';
-  if (B.deco === 'tsub') return 'mar';
+  if (B.deco === 'tsub') return 'abismo';
   if (B.deco === 'zombi') return 'infierno';
   if (B.deco === 'submarino') return 'mar';
   if (B.deco === 'dunas') return 'amanecer';
@@ -2028,7 +2029,8 @@ function tick(dt) {
     }
   }
   // burbujas bajo el agua
-  if (BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]].deco === 'submarino' && G.road.kindAt(G.carD) === 0 && Math.random() < dt * 14) {
+  const subW = BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]].deco === 'submarino' || TFX.under;
+  if (subW && G.road.kindAt(G.carD) === 0 && Math.random() < dt * (TFX.under ? 30 : 14)) {
     V1.set((Math.random() - 0.5) * 6, Math.random() * 2, (Math.random() - 0.5) * 8); car.localToWorld(V1);
     fx.part(V1, V2.set((Math.random() - 0.5) * 0.4, 1.5 + Math.random(), (Math.random() - 0.5) * 0.4), 2.2, 0.08 + Math.random() * 0.08, fx.m.feather, -0.5, 0);
   }
@@ -2149,9 +2151,12 @@ function tick(dt) {
     cloudDomes[0].material.opacity = Math.min(1, cloudDomes[0].material.opacity + (SHOT ? 1 : dt * 0.5));
     cloudDomes[1].material.opacity = Math.max(0, cloudDomes[1].material.opacity - (SHOT ? 1 : dt * 0.5));
     for (const m of cloudDomes) { m.position.copy(camera.position); m.rotation.y += dt * 0.004; }
-    scene.fog.color.copy(U.hz.value).lerp(TC.setHex(0x0a0e0c), G.fogIn || 0); }
+    scene.fog.color.copy(U.hz.value).lerp(TC.setHex(0x0a0e0c), G.fogIn || 0);
+    // bajo el agua del Titanic: oscuro, niebla azul profunda y corta
+    if (TFX.under) { scene.fog.color.setHex(0x05202c); scene.fog.near = 6; scene.fog.far = 62; } }
   // la luz ambiente (lo que queda en sombra) tira a azul
   hemi.color.lerp(TC.setHex(0x8aa4ff), 0.45);
+  if (TFX.under) { hemi.intensity *= 0.6; sun.intensity *= 0.5; }
   hemi.groundColor.lerp(TC.setHex(0x5a6ac8), 0.5);
   sea.position.set(camera.position.x, G.road.seaAt(G.carD), camera.position.z);
   TFX.update(G, dt, camera, B, sea, G.chunks, () => { G.shake = Math.max(G.shake, 1.4); G.road.toWorld(G.carD + 30, -6, 2, V1); for (let k = 0; k < 5; k++) fx.boom(V1.clone().add(V2.set((Math.random() - 0.5) * 20, Math.random() * 6, (Math.random() - 0.5) * 20)), 2.4); showBanner('¡EL TITANIC CHOCA CONTRA EL ICEBERG!', '¡Agarraos!', '#ff6a4a'); CHC('tcrash'); SFX.tone(70, 40, 1.8, 'sawtooth', 0.3); });
@@ -2205,12 +2210,12 @@ const GODR = (() => {
   return L;
 })();
 function updGodRays(t) {
-  const on = BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]].deco === 'submarino' && G.road.kindAt(G.carD) === 0;
-  const base = Math.floor((G.carD - 20) / 24);
+  const sub = BIOMES[BIOME_KEYS[G.road.bioAt(G.carD)]].deco === 'submarino', on = (sub || TFX.under) && G.road.kindAt(G.carD) === 0;
+  const base = Math.floor((G.carD - 20) / 24)
   GODR.forEach((m, i) => {
     m.visible = on; if (!on) return;
     const c = base + i, d = c * 24 + 30, sd = (c * 7919) % 2 ? 1 : -1, lat = sd * (30 + ((c * 37) % 6) * 9);
-    G.road.toWorld(d, lat, 48, m.position);
+    G.road.toWorld(d, sub ? lat : lat * 0.6, sub ? 48 : 0, m.position); if (!sub) m.position.y = TFX.lvl - 0.3;
     m.rotation.set(0.12 + Math.sin(t * 0.3 + c) * 0.05, -G.road.yawAt(d), sd * 0.18 + Math.sin(t * 0.23 + c * 1.3) * 0.06, 'YXZ');
     m.material.opacity = 0.11 + 0.05 * Math.sin(t * 0.7 + c * 2.1);
   });

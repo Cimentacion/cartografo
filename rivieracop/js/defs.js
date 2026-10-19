@@ -273,13 +273,13 @@ export const BIOMES = {
   pueblo: {
     name: 'EL PUEBLO', color: '#f0c860',
     sky: 0x9ac8ec, fogNear: 60, fogFar: 200, sea: 0x5a7a4a,
-    asphalt: 0x6a7280, walk: 0xb86a58, skirt: 0x8a7a5a, line: 0xf0d040,
+    asphalt: 0x7a746c, walk: 0x8a8276, skirt: 0x8a7a5a, line: 0x7a746c,
     hemi: [0xffffff, 0x8a7a60, 1.1], sun: [0xfff0d8, 1.6], night: false,
     // callejuelas de un solo carril cuesta abajo: tiradores en las ventanas, coches cruzando y la cosechadora detrás
     slope: -0.045, descent: true, floor: -1e9, len: 1900, narrow: true,
     hmin: 0, hmax: 0, hair: 0,
-    build: [0xf0d080, 0xf4ecd8, 0xe8c070, 0xf8f4ec, 0xe0a870, 0xd8c8a8], roof: 0xa8502e,
-    w: { gunman: 1.4, moto: 0, ecar: 0, quad: 0, pickup: 0, van: 0, bus: 0, truck: 0, civcar: 0, rammer: 0, jumper: 0.6, sniper: 0.4, heli: 0.3, drone: 0.6 }, pts: 1.9, deco: 'pueblo', lv: 4,
+    build: [0xeee4cc, 0xe0d2b0, 0xf2ead8, 0xd8c8a0, 0xe8d8b8, 0xd0c098], roof: 0x6a3a24,
+    w: { gunman: 0.8, moto: 0, ecar: 0, quad: 0, pickup: 0, van: 0, bus: 0, truck: 0, civcar: 0, rammer: 0, jumper: 0.35, sniper: 0.25, heli: 0.12, drone: 0.25 }, pts: 1.9, deco: 'pueblo', lv: 4,
   },
   zombi: {
     name: 'CIUDAD ZOMBI', color: '#8aff4a',
@@ -332,9 +332,9 @@ export const BIOMES = {
   },
   tsub: {
     name: 'BAJO EL MAR HELADO', color: '#3a8ac8', hidden: true,
-    sky: 0x06243a, fogNear: 12, fogFar: 95, sea: 0x041a2a,
+    sky: 0x021018, fogNear: 8, fogFar: 70, sea: 0x020c14,
     asphalt: 0x3a4a5a, walk: 0x3a4a5a, skirt: 0x2a3a4a, line: 0x3a4a5a,
-    hemi: [0x6ab8e8, 0x0a2030, 0.85], sun: [0x8ad8ff, 0.7], night: false,
+    hemi: [0x3a7898, 0x02080e, 0.55], sun: [0x6ab8e8, 0.35], night: false,
     slope: 0, floor: -1e9, len: 320, hmin: 0, hmax: 0, hair: 0, build: [0x3a5a6a], roof: 0x2a4a4a,
     w: { gunman: 0, moto: 0, ecar: 0, drone: 0, heli: 0, sniper: 0, barrels: 0, jumper: 0, grenadier: 0, quad: 0, pickup: 0, van: 0, bus: 0, truck: 0, civcar: 0, rammer: 0 }, pts: 2.6, deco: 'tsub', lv: 6,
   },

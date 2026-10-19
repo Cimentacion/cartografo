@@ -199,7 +199,7 @@ const OUTFIT = [
 const CIV = [0xf0c040, 0x40a0f0, 0xf06080, 0x60d080, 0xffffff, 0xff8030, 0xa070f0, 0x30c0c0];
 const SKIN = [0xd9a476, 0xb27a4e, 0xf0c8a0, 0x7a5030];
 // enemigos más grandes: más fáciles de ver y de acertar en el móvil
-const SCALE = { mbomb: 2.6, iceberg: 2.3, gunman: 1.35, civilian: 1.3, victim: 1.3, slasher: 1.35, sniper: 1.5, moto: 1.2, drone: 1.8, chicken: 1.4, grenade: 1.7, rocket: 1.5, medkit: 1.3, barrel: 1.2, jeep: 1.1, lady: 1.3, rock: 1.3,
+const SCALE = { tfunnel: 2.2, mbomb: 2.6, iceberg: 2.3, gunman: 1.35, civilian: 1.3, victim: 1.3, slasher: 1.35, sniper: 1.5, moto: 1.2, drone: 1.8, chicken: 1.4, grenade: 1.7, rocket: 1.5, medkit: 1.3, barrel: 1.2, jeep: 1.1, lady: 1.3, rock: 1.3,
   sign: 1.45, harvester: 1.9, skel: 1.3, outlaw: 1.35, wsign: 2, goblin: 1.5, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2, beast: 1.35, bear: 1.5, jelly: 1.4, mine: 1.2, zombie: 1.3, bat: 1.5, key: 2.2 };
 // cosas que no paran las balas
 const NOHIT = new Set(['tlight', 'preview', 'whale', 'casinob']);

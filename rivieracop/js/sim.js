@@ -819,7 +819,7 @@ export class Sim {
       this.zt.pt = (this.zt.pt || 0) + dt;
       // en la bajada de la ermita todavía no hay casas: allí salen a pie entre los árboles
       const inTown = Z.f && Z.prog * (Z.f.slen || 720) > 200;
-      if (inTown && !full && this.timer('win', dt, 3.0)) this.spawnWindowGunmen();
+      if (inTown && !full && this.timer('win', dt, 4.6) && this.count('gunman') < 3 + this.n) this.spawnWindowGunmen();
       for (const c of this.road.crossings(this.carD + 35, this.carD + 85)) if (once('x' + Math.round(c)) && this.r() < 0.75) this.spawnXCar(c);
       if (this.timer('trac', dt, 24) && !this.has('crew') && this.canAhead(100)) this.spawnTractor();
       if (this.zt.pt > 60 && once('harv')) this.spawnHarvester();
@@ -1118,21 +1118,22 @@ export class Sim {
     if (c > T.deck2 + 5) ban('k', '¡SE HUNDE!', 'El barco se inclina hacia un lado…', '#ff6a4a');
     // maletas y cosas que se rompen por las cubiertas del hundimiento y por el salón
     if (c > T.deck2 - 100 && once0(this, 'tlg' + T.k)) {
-      for (let d = T.deck2 + 12; d < T.down - 4; d += 7 + r() * 8) { const e = this.add('prop', { d, lat: -0.8 + r() * 5.6, h: 0, hp: 2, ry: r() * 6 }); e.x = { k: 5 + Math.floor(r() * 3) }; }
+      for (let d = T.deck2 + 10; d < T.down - 4; d += 12 + r() * 8) { const e = this.add('prop', { d, lat: -1.1, h: 0, hp: 2, ry: Math.PI / 2 }); e.x = { k: 5 + Math.floor(r() * 3) }; }
     }
     if (c > T.ball - 60 && once0(this, 'tlb2' + T.k)) {
-      for (let d = T.ball + 4; d < T.ball + 76; d += 2.5 + r() * 3) { const lat = r() < 0.5 ? -(4.6 + r() * 1.6) : 4.8 + r() * 0.8; const e = this.add('prop', { d, lat, h: 0, hp: 2, ry: r() * 6 }); e.x = { k: 5 + Math.floor(r() * 3) }; }
+      for (let d = T.ball + 4; d < T.ball + 76; d += 3 + r() * 4) { const lat = r() < 0.75 ? -(6.5 + r() * 10) : 7.5 + r() * 1.2; const e = this.add('prop', { d, lat, h: 0, hp: 2, ry: r() * 6 }); e.x = { k: 5 + Math.floor(r() * 3) }; }
     }
     if (c > T.down + 5) ban('g', 'EL GRAN SALÓN', 'Las mesas resbalan hacia el lado que se hunde', '#ffd060');
     if (c > T.ball - 25 && c < T.ball + 65) {
-      if (this.timer('ttab', dt, 1.1) && this.count('ttable') < 4) { const e = this.add('ttable', { d: c + 22 + r() * 22, lat: -5.8, h: 0, hp: 3, ry: r() * 6 }); e.x = { v: 2.2 + r() * 2.2, hitd: 0 }; }
+      if (this.timer('ttab', dt, 1.1) && this.count('ttable') < 4) { const e = this.add('ttable', { d: c + 22 + r() * 22, lat: -16, h: 0, hp: 3, ry: r() * 6 }); e.x = { v: 2.2 + r() * 2.2, hitd: 0 }; }
       if (!full && this.timer('tbg', dt, n === 1 ? 2.0 : 1.5)) {
-        const d = c + 30 + r() * 25, sd = r() < 0.6 ? -1 : 1, e = this.add('gunman', { d, lat: sd < 0 ? -5.6 : 5.2, h: 0.1, hp: 2 + (this.diff > 3 ? 1 : 0), st: ST.HIDDEN });
+        const d = c + 30 + r() * 25, sd = r() < 0.6 ? -1 : 1, e = this.add('gunman', { d, lat: sd < 0 ? -(6.5 + r() * 9) : 8, h: 0.1, hp: 2 + (this.diff > 3 ? 1 : 0), st: ST.HIDDEN });
         e.x = { cv: -1, gr: 0, pop: 34 + r() * 20, sk: Math.floor(r() * 6) };
         e.sh = [this.shooter(2.8 + r() * 0.8, 'shot', 0.3)];
       }
     }
-    if (c > T.exit + 5) ban('w', '¡AL AGUA!', 'Salid por la brecha del casco', '#5ac8ff');
+    if (c > T.exit + 2 && once0(this, 'tbrk' + T.k)) { this.emit('crash', { soft: 1 }); }
+    if (c > T.exit + 2) ban('w', '¡EL BARCO SE PARTE!', '¡Al agua!', '#5ac8ff');
     // bajo el agua: tiburones, medusas, trozos del barco que caen despacio, la chimenea y los náufragos que disparan desde arriba
     if (c > T.exit + 50 && c < T.rise) {
       ban('u', 'BAJO EL MAR', 'Caen trozos del barco: reventadlos antes de que os den', '#5ac8ff');
@@ -1445,10 +1446,14 @@ export class Sim {
   // el jefe del bosque: un oso grizzly que salta de lado a lado y se lanza a por vosotros
   // tiradores asomados a los balcones (planta 1 o 2) a los dos lados de la calle
   spawnWindowGunmen() {
-    const r = this.r, n = 1 + (r() < 0.5 ? 1 : 0) + (this.diff > 4 ? 1 : 0);
+    // solo donde hay casa (no en los cruces, ni en las plazas de la izquierda, ni en las terrazas de la derecha), en su galería
+    const r = this.r, n = 1 + (r() < 0.3 ? 1 : 0) + (this.diff > 5 ? 1 : 0), RD = this.road;
+    const cr = RD.crossings(this.carD, this.carD + 120);
+    const house = (d, side) => !cr.some(c => Math.abs(c - d) < 11 || (side < 0 && RD.isPlaza(c) && Math.abs(c - d) < 26) || (side > 0 && !RD.isPlaza(c) && d > c + 4 && d < c + 66));
     for (let i = 0; i < n; i++) {
       const side = r() < 0.5 ? -1 : 1, d = this.carD + 45 + r() * 45;
-      const e = this.add('gunman', { d, lat: side < 0 ? -0.55 : 5.35, h: r() < 0.65 ? 3.12 : 6.22, hp: 2 + (this.diff > 3 ? 1 : 0), st: ST.HIDDEN });
+      if (!house(d, side)) continue;
+      const e = this.add('gunman', { d, lat: side < 0 ? -0.6 : 5.4, h: 3.2, hp: 2 + (this.diff > 3 ? 1 : 0), st: ST.HIDDEN });
       e.x = { cv: -1, gr: 0, pop: 28 + r() * 30, sk: Math.floor(r() * 6), sol: 0, shd: 0, win: side };
       e.sh = [this.shooter(3.0 + r() * 0.8, 'shot', i * 0.5)];
     }
@@ -1470,7 +1475,7 @@ export class Sim {
   }
   // jefe: cosechadora enorme que viene por detrás para trituraros
   spawnHarvester() {
-    const e = this.add('harvester', { d: this.carD - 90, lat: LANE_ME, h: 0, hp: 110 + 35 * this.nAlive(), vd: this.speed + 8 });
+    const e = this.add('harvester', { d: this.carD - 90, lat: 2.4, h: 0, hp: 110 + 35 * this.nAlive(), vd: this.speed + 8 });
     e.x = { slowT: 0, gt: 0 };
     this.emit('banner', { txt: '¡LA COSECHADORA!', sub: 'Viene por detrás: dispara a la cabina o a las cuchillas (botón 180°)', c: '#ffb020' });
   }
@@ -2201,7 +2206,7 @@ const U = {
     if (e.st === ST.ALIVE) {
       x.slowT = Math.max(0, x.slowT - dt * 0.8);
       e.vd = S.speed + clamp((-15 - rel) * 0.9, -12, 8) - x.slowT * 6;
-      e.lat += (LANE_ME - e.lat) * Math.min(1, dt);
+      e.lat += (2.4 - e.lat) * Math.min(1, dt); // centrada en la calle (de fachada a fachada)
       // os alcanza: tritura a todos poco a poco
       if (rel > -17.5) {
         x.gt -= dt;
@@ -2429,7 +2434,7 @@ const U = {
     if (e.st === ST.DEAD) { if (e.deadT > 3) e.rm = true; return; }
     e.lat += x.v * dt; e.ry += dt * 0.6 * x.v;
     if (!x.hitd && Math.abs(e.lat - LANE_ME) < 1.9 && Math.abs(rel) < 2.4) { x.hitd = 1; S.emit('crash', {}); for (const i of S.alivePlayers()) S.hurt(i, 0, 'crash'); }
-    if (e.lat > 5.6) { e.lat = 5.6; x.v = 0; }
+    if (e.lat > 8.5) { e.lat = 8.5; x.v = 0; }
     if (rel < -15) e.rm = true;
   },
   // EL ICEBERG: se acerca hacia vosotros; si llega, embiste y retrocede. Tira trozos de hielo

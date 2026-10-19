@@ -1089,7 +1089,10 @@ function shipBow(R, road, T) {
 // por donde se sale al agua. (Las chimeneas, el puente y los mástiles los pone el barco entero, ver tfx.js)
 function deckRun(R, road, T, i0, i1, r) {
   const off = i => (T.off && T.off[i]) || 0, dh = i => (i >= T.down ? 18 - road.gy[i] : 0);
-  const DL = (X, y = 0) => i => [X + off(i), dh(i) + y];
+  // en la curva de la popa el lado de dentro se recorta antes del centro del giro (si no, la cubierta se dobla y cambia de color)
+  const kc = i => { const a = Math.max(1, i - 1), b = Math.min(road.len - 1, i + 1); return (road.yaw[b] - road.yaw[a]) / Math.max(1, b - a); };
+  const cl = (i, la) => { const k = kc(i); return k > 1e-3 && la > 0 ? Math.min(la, 0.9 / k) : k < -1e-3 && la < 0 ? Math.max(la, -0.9 / k) : la; };
+  const DL = (X, y = 0) => i => [cl(i, X + off(i)), dh(i) + y];
   const top = (a, b, L0, L1) => { if (b > a) { strip(R.D, road, a, b, L0, L1, 0xb8865a, 1.4); } };
   // cubierta: entera hasta la bajada; en la escotilla de la bajada queda abierta por encima del coche
   const hatch0 = T.down, hatch1 = T.down + 28;
@@ -1098,7 +1101,7 @@ function deckRun(R, road, T, i0, i1, r) {
   top(Math.max(i0, hatch1 - 1), i1, DL(-10.2, 0.02), DL(6.8, 0.02));
   // juntas de los tablones (solo en la cubierta por donde se va)
   const dk1 = Math.min(i1, T.down);
-  if (dk1 > i0) for (let l = -9; l < 6.5; l += 1.6) strip(R.L, road, i0, dk1, C(l, 0.03), C(l + 0.05, 0.03), 0x6a4a2a);
+  if (dk1 > i0) for (let l = -9; l < 6.5; l += 1.6) strip(R.L, road, i0, dk1, i => [cl(i, l), 0.03], i => [cl(i, l) + 0.05, 0.03], 0x6a4a2a);
   // borda, barandilla y casco
   strip(R.L, road, i0, i1, DL(6.8, 0), DL(6.8, 0.35), 0xf2f2ee);
   strip(R.L, road, i0, i1, DL(6.8, 1.05), DL(6.8, 1.15), 0x8a6a4a);
@@ -1126,6 +1129,7 @@ function deckRun(R, road, T, i0, i1, r) {
     addBox(R.G, 0.05, 0.7, 0.9, 0xffe8a8, m, { y: -2.4 }); addBox(R.L, 0.05, 0.7, 0.9, 0x2a3a4a, m, { y: -4.8 });
     addBox(R.G, 0.05, 0.4, 0.4, 0xffe8a8, m, { y: -8.2 }); addBox(R.L, 0.05, 0.4, 0.4, 0x3a3a3a, m, { y: -10.6 });
   }
+  for (let d = Math.ceil((i0 - 6) / 13) * 13 + 6.5; d < i1; d += 13) { const i = Math.floor(d); if (!breach(i) && d < T.down - 2) buoy(R.L, frame(road, d, 6.7 + off(i), dh(i), Math.PI), 0, 0.62, 0); }
   const straight = d => (d >= T.deck1 + 6 && d < T.stern - 6) || (d >= T.deck2 + 6 && d < T.down - 4);
   // botes salvavidas colgados de sus pescantes curvos, junto a la borda
   for (let d = Math.ceil(i0 / 13) * 13; d < i1; d += 13) {
@@ -1148,7 +1152,8 @@ function deckRun(R, road, T, i0, i1, r) {
     for (let z = -8; z <= 8; z += 2.6) addBox(R.L, 0.06, 1.2, 1.4, 0x2a3a58, m, { x: 4.43, y: 1.9, z });
     addBox(R.L, 0.08, 2.2, 1.1, 0x6a4424, m, { x: 4.44, y: 1.1, z: 0 });
     for (let q = 0; q < 2; q++) { const vz = -6 + q * 12; addCyl(R.L, 0.35, 0.35, 1.8, 8, 0xf2f2ee, m, { x: 1, y: 4.2, z: vz }); addBox(R.L, 0.9, 0.9, 0.5, 0xf2f2ee, m, { x: 1.4, y: 5.1, z: vz }); }
-    for (let q = 0; q < 3; q++) addBox(R.D, 0.7, 0.45, 1.8, 0x8a5a32, frame(road, d + 4 + q * 5, 0.2, 0), { y: 0.25 });
+    for (let q = 0; q < 3; q++) addBox(R.D, 0.7, 0.45, 1.8, 0x8a5a32, frame(road, d + 4 + q * 5, -1.0, 0), { y: 0.25 });
+    for (const z of [-6.7, 6.3]) buoy(R.L, m, 4.47, 1.9, z);
   }
   // la bajada hacia el salón: paredes de chapa a los lados con lámparas, y la escotilla con su brazola
   const a = Math.max(i0, T.down), b = Math.min(i1, T.ball);
@@ -1156,9 +1161,21 @@ function deckRun(R, road, T, i0, i1, r) {
     strip(R.L, road, a, b, C(sd * (HALF + 0.6), 0), i => [sd * (HALF + 0.6), dh(i)], 0xd8d4c8);
     for (let d = Math.ceil(a / 8) * 8; d < b; d += 8) addBox(R.G, 0.1, 0.3, 0.6, 0xffe0a0, frame(road, d, sd * (HALF + 0.5), 2.6));
   }
+  // suelo de la bajada (tablones) y de la salida: el suelo del salón partido, inclinado hacia el agua, con el borde roto
+  if (b > a) { strip(R.D, road, a, b, C(-HALF - 0.6, 0.02), C(HALF + 0.6, 0.02), 0x8a5a32, 1.4); for (let l = -HALF; l < HALF; l += 1.5) strip(R.L, road, a, b, C(l, 0.03), C(l + 0.05, 0.03), 0x5a3a1a); }
+  const BR = T.exit + 24, sa = Math.max(i0, T.exit), sb = Math.min(i1, BR);
+  if (sb > sa) { strip(R.D, road, sa, sb, C(-HALF - 3, 0.02), C(HALF + 1, 0.02), 0x7a2a22, 1.2); strip(R.L, road, sa, sb, C(-HALF - 3, -0.6), C(HALF + 1, -0.6), 0x3a2a24); }
+  if (BR >= i0 && BR < i1) for (let k = 0; k < 9; k++) addBox(R.L, 1.2 + (k % 3) * 0.5, 0.35, 0.8 + (k % 2) * 0.9, k % 2 ? 0x7a2a22 : 0x5a3a1a, frame(road, BR + (k % 3) * 0.4 - 0.4, -HALF - 2 + k * 1.3, -0.1, (k - 4) * 0.2), { y: -0.1, rx: 0.3 * ((k % 3) - 1), rz: 0.25 * ((k % 2) - 0.5) });
+  // el fondo del mar bajo la caída (al nivel del fondo de la parte submarina)
+  const fa = Math.max(i0, T.exit), fb = Math.min(i1, T.under + 1);
+  if (fb > fa) { strip(R.L, road, fa, fb, i => [-80, -24 - road.gy[i] - 0.02], i => [80, -24 - road.gy[i] - 0.02], 0x3a4a4e); for (let d = Math.ceil(fa / 6) * 6; d < fb; d += 6) { const i = Math.floor(d), sd = (i * 7) % 2 ? 1 : -1; addBox(R.L, 2 + (i % 4), 1 + (i % 3) * 0.6, 2 + (i % 5) * 0.5, 0x3a4a5a, frame(road, d, sd * (10 + (i * 13) % 30), -24 - road.gy[i], i), { y: 0.3 }); } }
   const ea = Math.max(i0, T.exit), eb = Math.min(i1, T.under);
   if (eb > ea) strip(R.L, road, ea, eb, C(-HALF - 0.6, 0), i => [-HALF - 0.6, Math.max(0.5, dh(i))], 0x3a2a24);
   if (hatch1 >= i0 && hatch0 < i1) for (const sd of [-1, 1]) { const at = sd < 0 ? hatch0 : hatch1; if (at >= i0 && at < i1) addBox(R.L, 2 * HALF + 2, 0.6, 0.4, 0xd8d4c8, frame(road, at, 0, dh(Math.floor(at)) + 0.3)); }
+}
+// salvavidas redondo (blanco y rojo) en un plano que mira hacia +x local
+function buoy(list, m, x, y, z) {
+  for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2 + Math.PI / 8; addBox(list, 0.12, 0.17, 0.36, k % 2 ? 0xd8281e : 0xf4f4f0, m, { x, y: y + Math.cos(a) * 0.42, z: z + Math.sin(a) * 0.42, rx: a }); }
 }
 // pared del salón de baile con la gran puerta (entrada y salida)
 function shipWall(R, road, d) {
@@ -1170,41 +1187,55 @@ function shipWall(R, road, d) {
 // el gran salón (bajo la cubierta): paredes de madera con paneles y apliques, columnas talladas con capitel dorado,
 // techo crema con molduras y arañas de cristal, moqueta roja, ventanales con luz cálida y sillones verdes con mesitas
 function ballroomRun(R, road, B, i0, i1, r) {
-  const WL = -7, WR = 6.2, CH2 = 6;
-  strip(R.D, road, i0, i1, C(WL, 0.01), C(WR, 0.01), 0x7a2a22, 1.2);
-  for (let l = WL + 1.5; l < WR; l += 3) strip(R.L, road, i0, i1, C(l, 0.02), C(l + 0.12, 0.02), 0xa8743a);
-  for (const L of [WL, WR]) {
-    strip(R.L, road, i0, i1, C(L, 0), C(L, CH2), 0xc08a50);
-    for (const y of [0.9, 1.0, 4.6, 4.75]) strip(R.L, road, i0, i1, C(L - Math.sign(L) * 0.03, y), C(L - Math.sign(L) * 0.03, y + 0.08), 0xd4af37);
+  // salón grande: el coche va por el lado derecho (pegado al casco); a la izquierda, el resto de la sala hasta el otro costado
+  const T = road.titanicAt(i0), off = i => (T && T.off && T.off[i]) || 0, CH2 = 7.5;
+  const WL = i => -22 + off(i), WR = i => 6.5 + off(i), L = (f, h) => i => [f(i), h];
+  strip(R.D, road, i0, i1, L(WL, 0.01), L(WR, 0.01), 0x7a2a22, 1.2);
+  // pista de baile de parqué en medio de la sala
+  strip(R.L, road, i0, i1, i => [-17 + off(i), 0.02], i => [-8 + off(i), 0.02], 0xa8743a);
+  for (let l = -17; l < -8; l += 1.5) strip(R.L, road, i0, i1, i => [l + off(i), 0.03], i => [l + 0.06 + off(i), 0.03], 0x7a4a22);
+  strip(R.L, road, i0, i1, L(WL, 0), L(WL, CH2), 0xc08a50);
+  strip(R.L, road, i0, i1, L(WR, 0), L(WR, CH2), 0xc08a50);
+  for (const y of [0.9, 1.0, 5.6, 5.75]) { strip(R.L, road, i0, i1, i => [WL(i) + 0.03, y], i => [WL(i) + 0.03, y + 0.08], 0xd4af37); strip(R.L, road, i0, i1, i => [WR(i) - 0.03, y], i => [WR(i) - 0.03, y + 0.08], 0xd4af37); }
+  strip(R.L, road, i0, i1, L(WL, CH2), L(WR, CH2), 0xf2e8d4);
+  for (const l of [-16, -9, -2, 4]) strip(R.L, road, i0, i1, i => [l + off(i), CH2 - 0.08], i => [l + 0.3 + off(i), CH2 - 0.08], 0xd4af37);
+  for (let d = Math.ceil(i0 / 8) * 8; d < i1; d += 8) {
+    const o = off(Math.floor(d));
+    // columnas talladas (en filas por la sala; ninguna en la carretera)
+    for (const lat of [-18.5, -12.5, -6.8, 6.5 - 1.1]) { const m = frame(road, d, lat + o, 0); addBox(R.D, 0.9, CH2, 0.9, 0xb07a44, m, { y: CH2 / 2 }); addBox(R.L, 1.2, 0.5, 1.2, 0xd4af37, m, { y: CH2 - 0.3 }); addBox(R.D, 1.1, 0.4, 1.1, 0x8a5a2a, m, { y: 0.2 }); addBox(R.L, 0.95, 0.08, 0.95, 0xd4af37, m, { y: 2.2 }); }
+    // paneles y apliques a la izquierda; a la derecha (el casco), ventanales con luz cálida
+    const ml = frame(road, d + 4, -22 + o + 0.06, 0), mr = frame(road, d + 4, 6.5 + o - 0.06, 0);
+    addBox(R.L, 0.04, 3, 3, 0x9a6232, ml, { y: 3.2 }); addBox(R.L, 0.05, 2.5, 2.5, 0xb07a44, ml, { y: 3.2, x: 0.02 }); addBox(R.G, 0.12, 0.35, 0.25, 0xffd890, ml, { y: 4.6, x: 0.1 });
+    addBox(R.G, 0.04, 3.2, 2, 0xfff0c8, mr, { y: 3.3 }); addBox(R.L, 0.06, 0.12, 2.1, 0xd4af37, mr, { y: 1.65 }); addBox(R.L, 0.06, 0.12, 2.1, 0xd4af37, mr, { y: 4.95 });
+    // arañas de cristal (una sobre la carretera y otra sobre la pista de baile)
+    for (const cl of [0, -12.5]) {
+      const c = frame(road, d + 4, cl + o, 0);
+      addBox(R.S, 0.05, 1.2, 0.05, 0xd4af37, c, { y: CH2 - 0.6 });
+      addCyl(R.L, 1.1, 0.6, 0.22, 10, 0xd4af37, c, { y: CH2 - 1.3 });
+      for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; addBox(R.G, 0.14, 0.5, 0.14, 0xfff6d8, c, { x: Math.cos(a) * 1.15, z: Math.sin(a) * 1.15, y: CH2 - 1.7 }); }
+      addBox(R.G, 0.4, 0.8, 0.4, 0xfff8e0, c, { y: CH2 - 1.9 });
+    }
   }
-  strip(R.L, road, i0, i1, C(WL, CH2), C(WR, CH2), 0xf2e8d4);
-  strip(R.L, road, i0, i1, C(-6, CH2 - 0.05), C(5, CH2 - 0.05), 0xe8d8b8);
-  for (const l of [-6, 5]) strip(R.L, road, i0, i1, C(l, CH2 - 0.1), C(l + 0.25, CH2 - 0.1), 0xd4af37);
-  for (let d = Math.ceil(i0 / 7) * 7; d < i1; d += 7) {
-    // columnas talladas
-    for (const lat of [WL + 1.2, WR - 1.2]) { const m = frame(road, d, lat, 0); addBox(R.D, 0.8, CH2, 0.8, 0xb07a44, m, { y: CH2 / 2 }); addBox(R.L, 1.1, 0.5, 1.1, 0xd4af37, m, { y: CH2 - 0.3 }); addBox(R.D, 1.0, 0.4, 1.0, 0x8a5a2a, m, { y: 0.2 }); addBox(R.L, 0.85, 0.08, 0.85, 0xd4af37, m, { y: 2.0 }); }
-    // paneles y apliques en las paredes; a la derecha, ventanales con luz cálida
-    const ml = frame(road, d + 3.5, WL + 0.06, 0), mr = frame(road, d + 3.5, WR - 0.06, 0);
-    addBox(R.L, 0.04, 2.6, 2.6, 0x9a6232, ml, { y: 2.8 }); addBox(R.L, 0.05, 2.2, 2.2, 0xb07a44, ml, { y: 2.8, x: 0.02 }); addBox(R.G, 0.12, 0.35, 0.25, 0xffd890, ml, { y: 3.9, x: 0.1 });
-    addBox(R.G, 0.04, 2.8, 1.8, 0xfff0c8, mr, { y: 2.9 }); addBox(R.L, 0.06, 0.12, 1.9, 0xd4af37, mr, { y: 1.45 }); addBox(R.L, 0.06, 0.12, 1.9, 0xd4af37, mr, { y: 4.35 });
-    // araña de cristal
-    const c = frame(road, d + 3.5, 0, 0);
-    addBox(R.S, 0.05, 0.9, 0.05, 0xd4af37, c, { y: CH2 - 0.45 });
-    addCyl(R.L, 0.9, 0.5, 0.2, 10, 0xd4af37, c, { y: CH2 - 1.0 });
-    for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; addBox(R.G, 0.12, 0.42, 0.12, 0xfff6d8, c, { x: Math.cos(a) * 0.95, z: Math.sin(a) * 0.95, y: CH2 - 1.35 }); }
-    addBox(R.G, 0.35, 0.7, 0.35, 0xfff8e0, c, { y: CH2 - 1.5 });
+  // paredes del fondo: la entrada (hueco de la rampa) y la salida (rota, por donde se parte el barco)
+  if (T) for (const at of [T.ball, T.exit]) {
+    if (at < i0 - 1 || at > i1 + 1) continue;
+    const o = off(Math.min(i1, Math.max(i0, at))), ex = at === T.exit, gl = ex ? -HALF - 3 : -HALF - 0.6, gr = ex ? HALF + 1 : HALF + 0.6;
+    const seg = (a, b, y0, y1) => addBox(R.L, b - a, y1 - y0, 0.5, 0xc08a50, frame(road, at, (a + b) / 2 + (a < 0 && b <= gl ? 0 : 0), 0), { y: (y0 + y1) / 2 });
+    seg(-22 + o, gl, 0, CH2); seg(gr, 6.5 + o, 0, CH2);
+    if (!ex) seg(gl, gr, 5, CH2);
+    else for (let k = 0; k < 7; k++) addBox(R.L, 1.2 + (k % 3) * 0.6, 1 + (k % 2) * 1.5, 0.5, k % 2 ? 0xc08a50 : 0x3a2a24, frame(road, at, gl + 0.5 + k * 1.6, 0), { y: CH2 - 0.6 - (k % 3) * 0.5, rz: (k - 3) * 0.12 });
   }
-  // la gran escalera con barandilla dorada y el reloj
+  // la gran escalera al fondo izquierdo, con barandilla dorada y el reloj
   const mid = Math.floor((i0 + i1) / 2);
-  if (mid >= i0 && mid < i1 && i1 - i0 > 30) {
-    const m = frame(road, mid, WL + 1.6, 0);
-    for (let k = 0; k < 10; k++) addBox(R.D, 2.6, 0.3, 5, 0x8a5a32, m, { x: 0.8 - k * 0.0, y: 0.15 + k * 0.3, z: -2.5 + k * 0.0 + 0 });
-    for (const z of [-2.6, 2.6]) addBox(R.L, 0.12, 1, 5, 0xd4af37, m, { x: 1.9, y: 2.2, z });
-    addBox(R.L, 1.2, 1.2, 0.2, 0x6a3a1a, m, { x: 0.2, y: 4.6, z: 0 }); addCyl(R.L, 0.45, 0.45, 0.1, 14, 0xf2f2f2, m, { x: 0.3, y: 4.6, rz: Math.PI / 2 });
+  if (i1 - i0 > 30) {
+    const m = frame(road, mid, -20 + off(mid), 0);
+    for (let k = 0; k < 12; k++) addBox(R.D, 3 - k * 0.12, 0.3, 7, 0x8a5a32, m, { x: -k * 0.12, y: 0.15 + k * 0.3 });
+    for (const z of [-3.6, 3.6]) addBox(R.L, 0.12, 1, 7, 0xd4af37, m, { x: 1.2, y: 2.6, z: z * 0.95, rz: -0.35 });
+    addBox(R.L, 1.4, 1.4, 0.2, 0x6a3a1a, m, { x: -1.6, y: 5.4, rx: 0, ry: Math.PI / 2 }); addCyl(R.L, 0.5, 0.5, 0.1, 14, 0xf2f2f2, m, { x: -1.4, y: 5.4, rz: Math.PI / 2 });
   }
-  // sillones verdes alrededor de mesitas (pegados a las paredes, fuera del paso)
-  each(i0 + 3, i1 - 3, r, 5, 8, d => {
-    const sd = r() < 0.5 ? -1 : 1, lat = sd < 0 ? WL + 2.2 : WR - 2.2, m = frame(road, d, lat, 0);
+  // sillones verdes alrededor de mesitas, repartidos por la sala (fuera del paso y de la pista)
+  each(i0 + 3, i1 - 3, r, 4, 7, d => {
+    const lat = r() < 0.5 ? -21 + r() * 3 : -7.5 - r() * 0.6, m = frame(road, d, lat + off(Math.floor(d)), 0);
     addCyl(R.L, 0.55, 0.55, 0.06, 10, 0x2a4a2a, m, { y: 0.72 }); addBox(R.D, 0.1, 0.7, 0.1, 0x4a2a14, m, { y: 0.36 });
     for (let q = 0; q < 3; q++) {
       const a = q * 2.1 + r(), x = Math.cos(a) * 1.1, z = Math.sin(a) * 1.1;
@@ -1404,8 +1435,8 @@ function pine(R, road, d, lat, r) {
 // ---------- mirador de la ermita (entrada al pueblo) ----------
 function mirador(R, road, B, i0, i1, r, into) {
   // empedrado claro con franjas de grava oscura, de lado a lado
-  strip(R.L, road, i0, i1, C(-HALF, 0.03), C(HALF, 0.03), 0xe4d8c0);
-  for (const l of [-3.6, 0.2, 3.9]) strip(R.L, road, i0, i1, C(l - 0.55, 0.045), C(l + 0.55, 0.045), 0x6a6c74);
+  strip(R.L, road, i0, i1, C(-HALF, 0.03), C(HALF, 0.03), 0x8a8276);
+  for (const l of [-3.6, 0.2, 3.9]) strip(R.L, road, i0, i1, C(l - 0.55, 0.045), C(l + 0.55, 0.045), 0x7a746c);
   // a la izquierda: tapia de piedra de la ermita, setos, pinos y cipreses
   strip(R.L, road, i0, i1, C(-HALF - 0.8, 0.18), C(-HALF - 0.8, 3.2), 0xc8a87a);
   strip(R.L, road, i0, i1, C(-HALF - 0.8, 3.2), C(-HALF - 1.2, 3.4), 0xb8986a);
@@ -1461,53 +1492,62 @@ function mirador(R, road, B, i0, i1, r, into) {
 // fachada izquierda a lat -1.2 (la calle es de un solo carril) y derecha a lat 7.2
 const PL = -1.2, PR = 6.0;
 function pHouse(R, road, B, d, sd, w, r, off = 0) {
-  const dep = 9 + r() * 4, nf = 2 + (r() < 0.55 ? 1 : 0) + (r() < 0.15 ? 1 : 0), top = nf * 3.1 + 0.4;
+  // casa medieval: planta baja de piedra, pisos de entramado de madera (vigas oscuras, cruces y riostras sobre el revoque),
+  // galería de madera corrida en el primer piso, ventanas pequeñas con contraventanas y tejado empinado con chimenea
+  const dep = 9 + r() * 4, nf = 2 + (r() < 0.45 ? 1 : 0), top = nf * 3.1 + 0.2;
   const lat = sd < 0 ? PL - dep / 2 : PR + off + dep / 2;
   const y = road.gy[Math.floor(d)], down = y + 2, m = frame(road, d, lat, off ? 1.3 : 0), fx = -sd * (dep / 2), o = -sd;
-  const col = pick(r, B.build), band = pick(r, [0xc8a050, 0xe0b040, 0xb8a080, 0x9a8a78, 0xd89060]);
-  // muros de ladrillo viejo, de piedra o encalados
-  const mk = r();
-  addBox(mk < 0.45 ? R.B : mk < 0.75 ? R.K : R.L, dep, top + down, w, mk < 0.45 ? LIGHT(col, 0.1) : mk < 0.75 ? 0xd8c4a0 : col, m, { y: (top - down) / 2, uvs: 3 });
-  // zócalo de piedra o de color, impostas y esquinas pintadas
-  if (r() < 0.5) addBox(R.K, 0.12, 1.1 + down, w, 0xb8a890, m, { x: fx + o * 0.05, y: (1.1 - down) / 2, uvs: 1.5 });
-  else addBox(R.L, 0.1, 1.0, w, band, m, { x: fx + o * 0.05, y: 0.5 });
-  for (const z of [-w / 2 + 0.2, w / 2 - 0.2]) addBox(R.L, 0.12, top - 0.2, 0.4, band, m, { x: fx + o * 0.06, y: top / 2, z });
-  for (let f = 1; f < nf; f++) addBox(R.L, 0.16, 0.2, w, band, m, { x: fx + o * 0.07, y: f * 3.1 + 0.05 });
-  // tejado de teja con alero
-  addBox(R.L, dep + 0.9, 0.22, w + 0.3, B.roof, m, { y: top + 0.1 });
-  addBox(R.L, 0.6, 0.12, w + 0.3, 0x8a3e22, m, { x: fx + o * 0.3, y: top - 0.02 });
-  // planta baja: puerta de madera y ventana con reja
+  const plaster = pick(r, B.build), beam = pick(r, [0x3a2414, 0x4a2e1a, 0x2e1e12]), stone = pick(r, [0xa89880, 0xb8a888, 0x9a8a72]);
+  // planta baja de piedra (con zócalo) y pisos de revoque
+  addBox(R.K, dep, 3.1 + down, w, stone, m, { y: (3.1 - down) / 2, uvs: 2.2 });
+  addBox(R.L, dep, top - 3.1, w, plaster, m, { y: 3.1 + (top - 3.1) / 2 });
+  // entramado de la fachada: postes, vigas en cada piso y riostras en cruz
+  const X = fx + o * 0.06, np = Math.max(2, Math.round(w / 1.6));
+  for (let k = 0; k <= np; k++) addBox(R.L, 0.1, top - 3.1, 0.22, beam, m, { x: X, y: 3.1 + (top - 3.1) / 2, z: -w / 2 + 0.11 + k * (w - 0.22) / np });
+  for (let f = 1; f <= nf; f++) addBox(R.L, 0.12, 0.24, w, beam, m, { x: X + o * 0.01, y: f * 3.1 + (f === nf ? 0 : 0.02) });
+  for (let f = 1; f < nf; f++) for (let k = 0; k < np; k++) if ((k + f) % 2 === 0 || r() < 0.3) {
+    const z0 = -w / 2 + 0.11 + k * (w - 0.22) / np, z1 = z0 + (w - 0.22) / np, zc = (z0 + z1) / 2, L = Math.hypot(z1 - z0, 3.1), a = Math.atan2(z1 - z0, 3.1);
+    addBox(R.L, 0.08, L * 0.92, 0.16, beam, m, { x: X, y: f * 3.1 + 1.55, z: zc, rx: (k % 2 ? 1 : -1) * a });
+  }
+  // dintel de piedra y esquinas talladas en la planta baja
+  for (const z of [-w / 2 + 0.25, w / 2 - 0.25]) addBox(R.K, 0.14, 3.1 + down, 0.5, LIGHT(stone, 0.12), m, { x: fx + o * 0.04, y: (3.1 - down) / 2, z, uvs: 1.2 });
+  // huecos: puerta de madera con arco de piedra o ventanuco con reja; arriba, ventanas pequeñas con contraventanas
   const n = Math.max(1, Math.floor(w / 2.6));
   for (let k = 0; k < n; k++) {
     const z = -w / 2 + (k + 0.5) * (w / n);
-    if (k === 0 || r() < 0.3) { addBox(R.D, 0.12, 2.3, 1.1, pick(r, [0x5a3418, 0x6a4020, 0x3a5a3a]), m, { x: fx + o * 0.04, y: 1.15, z }); addBox(R.L, 0.14, 0.12, 1.3, 0xd8c8a8, m, { x: fx + o * 0.06, y: 2.36, z }); }
-    else { addBox(R.L, 0.08, 1.2, 0.9, 0x3a4048, m, { x: fx + o * 0.03, y: 1.6, z }); for (let q = 0; q < 4; q++) addBox(R.L, 0.12, 1.3, 0.04, 0x1a1a1a, m, { x: fx + o * 0.12, y: 1.6, z: z - 0.36 + q * 0.24 }); }
-    // pisos de arriba: balcón con barandilla de hierro o ventana con contraventanas
+    if (k === 0 || r() < 0.3) {
+      addBox(R.D, 0.12, 2.2, 1.2, pick(r, [0x4a2e18, 0x5a3418, 0x3a2412]), m, { x: fx + o * 0.04, y: 1.1, z });
+      for (let q = 0; q < 5; q++) { const a = (q / 4 - 0.5) * 2.2; addBox(R.L, 0.08, 0.22, 0.34, LIGHT(stone, 0.1), m, { x: fx + o * 0.05, y: 2.25 + Math.cos(a) * 0.3, z: z + Math.sin(a) * 0.62, rx: -a }); }
+      for (const q of [-0.4, 0.4]) addBox(R.L, 0.16, 0.06, 0.06, 0x1a1a1a, m, { x: fx + o * 0.1, y: 1.2 + q, z: z + 0.3 });
+    } else { addBox(R.L, 0.08, 0.9, 0.8, 0x2a2620, m, { x: fx + o * 0.03, y: 1.7, z }); for (let q = 0; q < 3; q++) addBox(R.L, 0.12, 1.0, 0.05, 0x1a1a1a, m, { x: fx + o * 0.1, y: 1.7, z: z - 0.25 + q * 0.25 }); }
     for (let f = 1; f < nf; f++) {
-      const yy = f * 3.1;
-      if (r() < 0.55) {
-        addBox(R.D, 0.1, 2.1, 1.0, pick(r, [0x5a3418, 0x3a5a3a, 0x6a4020]), m, { x: fx + o * 0.03, y: yy + 1.15, z });
-        addBox(R.L, 0.6, 0.1, 1.5, 0xd8d0c0, m, { x: fx + o * 0.3, y: yy + 0.08, z });
-        addBox(R.L, 0.04, 0.05, 1.5, 0x1a1a1a, m, { x: fx + o * 0.58, y: yy + 1.0, z });
-        for (let q = 0; q < 6; q++) addBox(R.L, 0.03, 0.9, 0.03, 0x1a1a1a, m, { x: fx + o * 0.58, y: yy + 0.55, z: z - 0.7 + q * 0.28 });
-        if (r() < 0.4) addBox(R.L, 0.3, 0.3, 0.9, 0x3a8a3a, m, { x: fx + o * 0.4, y: yy + 0.3, z });
-      } else {
-        addBox(R.L, 0.08, 1.2, 0.9, 0x3a4048, m, { x: fx + o * 0.03, y: yy + 1.5, z });
-        const sh = pick(r, [0x3a6a4a, 0x5a3418, 0x2a4a7a]);
-        for (const s2 of [-1, 1]) addBox(R.L, 0.06, 1.3, 0.45, sh, m, { x: fx + o * 0.06, y: yy + 1.5, z: z + s2 * 0.7 });
-        addBox(R.L, 0.3, 0.08, 1.1, 0xd8d0c0, m, { x: fx + o * 0.12, y: yy + 0.86, z });
-      }
+      const yy = f * 3.1 + 1.55;
+      addBox(R.L, 0.08, 1.0, 0.75, 0x2a2620, m, { x: fx + o * 0.08, y: yy, z });
+      addBox(R.L, 0.1, 0.06, 0.75, 0x6a5030, m, { x: fx + o * 0.1, y: yy, z }); addBox(R.L, 0.1, 1.0, 0.06, 0x6a5030, m, { x: fx + o * 0.1, y: yy, z });
+      const sh = pick(r, [0x4a2e18, 0x2e4a2e, 0x6a2a1a, 0x2a3a5a]);
+      for (const s2 of [-1, 1]) addBox(R.L, 0.06, 1.1, 0.42, sh, m, { x: fx + o * 0.1, y: yy, z: z + s2 * 0.6 });
+      if (r() < 0.3) addBox(R.L, 0.35, 0.25, 0.75, 0x6a3a1a, m, { x: fx + o * 0.25, y: yy - 0.62, z }), addBox(R.L, 0.3, 0.2, 0.7, 0xc04a3a, m, { x: fx + o * 0.25, y: yy - 0.42, z });
     }
   }
-  // bajante y cables entre fachadas
-  addBox(R.L, 0.1, top, 0.1, 0xd8d0c0, m, { x: fx + o * 0.08, y: top / 2, z: w / 2 - 0.5 });
+  // galería de madera corrida en el primer piso (ahí se asoman los tiradores): suelo, ménsulas, barandilla y balaustres
+  addBox(R.D, 0.85, 0.14, w - 0.1, 0x5a3a20, m, { x: fx + o * 0.43, y: 3.12 });
+  for (let z = -w / 2 + 0.5; z < w / 2; z += 1.6) addBox(R.L, 0.6, 0.12, 0.12, beam, m, { x: fx + o * 0.32, y: 2.85, z, rz: o * 0.6 });
+  addBox(R.L, 0.08, 0.1, w - 0.1, 0x4a2e18, m, { x: fx + o * 0.83, y: 4.15 });
+  for (let z = -w / 2 + 0.2; z < w / 2 - 0.1; z += 0.35) addBox(R.L, 0.06, 0.95, 0.06, 0x5a3a20, m, { x: fx + o * 0.83, y: 3.65, z });
+  // tejado empinado de teja oscura con alero y chimenea de piedra
+  const rc = pick(r, [0x6a3a24, 0x7a4028, 0x5a4a44, 0x8a4a2a]);
+  for (const s2 of [-1, 1]) addBox(R.L, dep / 2 + 0.9, 0.24, w + 0.35, rc, m, { x: s2 * (dep / 4 + 0.05), y: top + dep * 0.21, rz: -s2 * 0.72 });
+  addBox(R.L, 0.3, 0.3, w + 0.4, 0x3a2418, m, { y: top + dep * 0.42 + 0.08 });
+  if (r() < 0.6) addBox(R.K, 0.8, 2.4, 0.8, stone, m, { x: (r() - 0.5) * dep * 0.4, y: top + dep * 0.32 + 0.6, z: (r() - 0.5) * (w - 1.4), uvs: 1 });
+  // farol de hierro en la pared de alguna casa
+  if (r() < 0.25) { addBox(R.L, 0.5, 0.05, 0.05, 0x1a1a1a, m, { x: fx + o * 0.25, y: 2.7, z: w / 2 - 0.6 }); addBox(R.G, 0.22, 0.32, 0.22, 0xffc870, m, { x: fx + o * 0.48, y: 2.5, z: w / 2 - 0.6 }); }
   return w;
 }
 function pChurch(R, road, d, r) {
   // plaza a la izquierda con iglesia, campanario, árboles, farolas y coches aparcados
   const y = road.gy[Math.floor(d)], down = y + 2;
   const plaza = frame(road, d, -14, 0.18);
-  addBox(R.P, 26, 0.1, 30, 0xc8b8a8, plaza, { uvs: 2 });
+  addBox(R.P, 26, 0.1, 30, 0x7a746c, plaza, { uvs: 2 });
   addBox(R.L, 0.3, 0.2, 30, 0xd8d0c0, frame(road, d, PL, 0.1));
   const m = frame(road, d, -36, 0), stone = 0xd8c4a0;
   addBox(R.L, 16, 9 + down, 22, stone, m, { y: (9 - down) / 2 });
@@ -1530,10 +1570,10 @@ function pChurch(R, road, d, r) {
   }
   for (const z of [-13, 0, 13]) { const lm = frame(road, d + z, -2.2, 0.18); addCyl(R.L, 0.08, 0.1, 4, 6, 0x2a2a30, lm, { y: 2 }); addBox(R.L, 0.4, 0.6, 0.4, 0x2a2a30, lm, { y: 4.2 }); addBox(R.G, 0.3, 0.4, 0.3, 0xfff0c0, lm, { y: 4.2 }); }
   // coches aparcados en batería
-  for (let k = 0; k < 6; k++) {
-    const cm = frame(road, d - 12 + k * 2.6, -10, 0.18, Math.PI / 2);
-    const c = pick(r, [0xf2f2f2, 0x1a1a1a, 0xb02020, 0x3a3a48, 0x8a8a90, 0x2a4a8a]);
-    addBox(R.L, 4.0, 0.7, 1.7, c, cm, { y: 0.6 }); addBox(R.L, 2.2, 0.6, 1.6, c, cm, { y: 1.2, x: 0.2 }); addBox(R.L, 2.1, 0.45, 1.62, 0x3a4a5a, cm, { y: 1.2, x: 0.2 });
+  for (let k = 0; k < 4; k++) {
+    const cm = frame(road, d - 12 + k * 7, -11, 0.18, Math.PI / 2 + (r() - 0.5) * 0.4);
+    if (k % 2 === 0) { addBox(R.L, 3.4, 0.25, 1.8, 0x6a4a2a, cm, { y: 0.9 }); for (const z of [-0.95, 0.95]) addCyl(R.L, 0.7, 0.7, 0.12, 10, 0x4a2e18, cm, { y: 0.7, z, rx: Math.PI / 2 }); addBox(R.L, 3.0, 0.9, 1.6, 0xd8b860, cm, { y: 1.5 }); addBox(R.L, 1.6, 0.08, 0.08, 0x4a2e18, cm, { x: -2.4, y: 0.9, z: 0.5 }); addBox(R.L, 1.6, 0.08, 0.08, 0x4a2e18, cm, { x: -2.4, y: 0.9, z: -0.5 }); }
+    else for (let q = 0; q < 3; q++) addCyl(R.L, 0.45, 0.4, 1.0, 10, 0x7a5030, cm, { x: q * 1.0 - 1, y: 0.5 });
   }
   // bolardos y cadena entre la plaza y la calle
   for (let z = -14; z <= 14; z += 3.5) addBox(R.L, 0.18, 0.9, 0.18, 0x1a1a1a, frame(road, d + z, -0.5, 0.18), { y: 0.45 });
@@ -2152,8 +2192,9 @@ const DECO = {
               d2 += w2 + 6;
               continue;
             }
-            addBox(mk2 < 0.5 ? R.B : mk2 < 0.8 ? R.K : R.L, dep2, top2 + dn, w2, mk2 < 0.5 ? 0xe8d0b0 : mk2 < 0.8 ? 0xd8c4a0 : pick(r, B.build), m2, { y: (top2 - dn) / 2, uvs: 3 });
-            for (const s2 of [-1, 1]) addBox(R.L, dep2 / 2 + 0.5, 0.22, w2 + 0.3, pick(r, [0xa8502e, 0x9a4a2a, 0xb8603a, 0xc06a40]), m2, { x: s2 * dep2 / 4, y: top2 + 0.8, rz: -s2 * 0.35 });
+            addBox(mk2 < 0.5 ? R.K : R.L, dep2, top2 + dn, w2, mk2 < 0.5 ? 0xb8a888 : pick(r, B.build), m2, { y: (top2 - dn) / 2, uvs: 3 });
+            { const rc2 = pick(r, [0x6a3a24, 0x7a4028, 0x5a4a44, 0x8a4a2a]); for (const s2 of [-1, 1]) addBox(R.L, dep2 / 2 + 0.8, 0.22, w2 + 0.3, rc2, m2, { x: s2 * (dep2 / 4 + 0.05), y: top2 + 1.7, rz: -s2 * 0.72 }); }
+            if (mk2 >= 0.5) for (let q = 0; q <= Math.round(w2 / 1.8); q++) addBox(R.L, 0.08, top2 - 3, 0.2, 0x3a2414, m2, { x: -sd * (dep2 / 2 + 0.04), y: 3 + (top2 - 3) / 2, z: -w2 / 2 + 0.1 + q * (w2 - 0.2) / Math.round(w2 / 1.8) });
             if (r() < 0.45) addBox(R.L, 0.6, 1.4, 0.6, 0xd8c8b0, m2, { x: (r() - 0.5) * 3, y: top2 + 1.4, z: (r() - 0.5) * (w2 - 1) });
             // ventanas en la fachada que mira a la calle
             for (let f = 1; f < top2 / 3.1; f++) for (let q = 0; q < Math.max(1, Math.floor(w2 / 2.4)); q++) if (r() < 0.7) addBox(R.L, 0.08, 1.1, 0.8, r() < 0.15 ? 0x6a5030 : 0x2a2620, m2, { x: -sd * (dep2 / 2 + 0.03), y: f * 3.1 - 0.3, z: -w2 / 2 + (q + 0.5) * (w2 / Math.max(1, Math.floor(w2 / 2.4))) });
@@ -2164,14 +2205,14 @@ const DECO = {
         }
       }
       // sin aceras: el empedrado llega hasta las fachadas
-      strip(R.P, road, i0, i1, C(HALF, 0.03), C(PR + 0.5, 0.03), 0x7a808a, 2);
+      strip(R.P, road, i0, i1, C(HALF, 0.03), C(PR + 0.5, 0.03), 0x7a746c, 2);
     }
     for (let d = i0; d < i1; d++) {
       if (!terr(d) || terr(d - 1)) continue;
       let e = d; while (e < i1 && terr(e)) e++;
-      strip(R.L, road, d, e, C(PL, 0.035), C(PR, 0.035), 0x6a3a34);
-      strip(R.L, road, d, e, C(1.9, 0.05), C(3.1, 0.05), 0xe8e0d0);
-      for (const l of [1.85, 3.15]) strip(R.L, road, d, e, C(l - 0.08, 0.055), C(l + 0.08, 0.055), 0xc8c0b0);
+      strip(R.L, road, d, e, C(PL, 0.035), C(PR, 0.035), 0x77716a);
+      strip(R.L, road, d, e, C(1.9, 0.05), C(3.1, 0.05), 0x9a9286);
+      for (const l of [1.85, 3.15]) strip(R.L, road, d, e, C(l - 0.08, 0.055), C(l + 0.08, 0.055), 0x8a8276);
       strip(R.K, road, d, e, C(PR, 0), C(PR, 1.3), 0xc8a87a, 1.5);
       strip(R.L, road, d, e, C(PR, 1.3), C(PR + 10, 1.3), 0xd8d0c0);
       strip(R.L, road, d, e, C(PR + 0.2, 1.3), C(PR + 0.2, 2.2), 0x2f6a2a);
@@ -2196,7 +2237,7 @@ const DECO = {
     // callejuelas que cruzan: suelo adoquinado hacia los dos lados
     for (const c of cr) {
       if (c < i0 || c >= i1) continue;
-      if (road.isPlaza(c)) { pChurch(R, road, c, r); addBox(R.P, 5, 0.1, 30, 0x7a808a, frame(road, c, PR + 15, 0.02), { uvs: 2 }); continue; }
+      if (road.isPlaza(c)) { pChurch(R, road, c, r); addBox(R.P, 5, 0.1, 30, 0x7a746c, frame(road, c, PR + 15, 0.02), { uvs: 2 }); continue; }
       for (const sd of [-1, 1]) addBox(R.P, 5.5, 0.1, 30, 0x7a808a, frame(road, c, sd < 0 ? PL - 15 : PR + 15, 0.02), { uvs: 2 });
       // balas de heno en algunas esquinas
       if (r() < 0.5) { const hm = frame(road, c + 4.5, PR - 0.6, 0.18); for (let q = 0; q < 3; q++) addBox(R.L, 1.1, 0.8, 1.6, 0xd8b850, hm, { y: 0.4 + (q === 2 ? 0.8 : 0), z: q === 2 ? 0.5 : q * 1.1 - 0.5 }); }

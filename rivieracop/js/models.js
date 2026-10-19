@@ -1892,7 +1892,7 @@ export function harvester() {
   box(g, 3.2, 3.0, 6.4, col, 0, 2.4, 1.0, 'body');
   box(g, 3.22, 0.3, 6.42, yel, 0, 1.0, 1.0, 'body');
   box(g, 2.6, 1.2, 2.4, col, 0, 4.4, 2.6, 'body');                     // tolva
-  for (const sx of [-1, 1]) { wheel(g, sx * 1.75, 1.1, -0.8, 1.1, 0.7, 'body'); wheel(g, sx * 1.55, 0.7, 3.6, 0.7, 0.5, 'body'); }
+  for (const sx of [-1, 1]) { wheel(g, sx * 1.5, 1.1, -0.8, 1.1, 0.45, 'body'); wheel(g, sx * 1.4, 0.7, 3.6, 0.7, 0.4, 'body'); }
   // cabina arriba delante con el conductor
   const cab = new THREE.Group(); cab.position.set(0, 3.9, -1.2); g.add(cab);
   box(cab, 2.0, 0.15, 2.0, 0xf2f2f2, 0, 1.6, 0, 'cab');
@@ -1901,17 +1901,19 @@ export function harvester() {
   const drv = person({ shirt: 0x4a6a8a, pants: 0x2a3a4a, cap: 0xc02020, part: 'cab' }); drv.position.set(0, -0.2, 0.1); cab.add(drv);
   // escalera, tubo de descarga y escape con humo
   for (let k = 0; k < 5; k++) box(g, 0.5, 0.06, 0.2, 0x2a2a2a, -1.7, 1.2 + k * 0.5, -0.4);
-  { const t = new THREE.Mesh(cgeo(0.25, 5.0, 10), mat(col)); t.rotation.z = Math.PI / 2 - 0.25; t.position.set(-3.6, 4.6, 2.6); g.add(t); }
+  { const t = new THREE.Mesh(cgeo(0.25, 5.0, 10), mat(col)); t.rotation.x = Math.PI / 2 - 0.3; t.position.set(-1.0, 5.4, 4.6); g.add(t); }
   { const ex = new THREE.Mesh(cgeo(0.14, 1.6, 8), mat(0x2a2a2a)); ex.position.set(1.0, 5.6, 2.0); g.add(ex); }
   // plataforma de corte delante: barra de cuchillas y molinete que gira
-  box(g, 6.4, 0.9, 1.8, yel, 0, 0.75, -3.0, 'cut');
-  box(g, 6.6, 0.12, 0.6, 0x8a8a8a, 0, 0.3, -3.9, 'cut');
-  for (let k = 0; k < 26; k++) { const t = box(g, 0.08, 0.06, 0.45, 0xd8d8d8, -3.1 + k * 0.248, 0.3, -4.3, 'cut'); t.rotation.y = 0.0; }
-  for (const sx of [-1, 1]) box(g, 0.15, 1.4, 1.9, yel, sx * 3.2, 1.1, -3.1, 'cut');
+  // la plataforma mide justo el ancho de la calle del pueblo (7,2 m con la escala 1,9 → 3,79)
+  const CW = 3.79;
+  box(g, CW - 0.3, 0.9, 1.8, yel, 0, 0.75, -3.0, 'cut');
+  box(g, CW - 0.2, 0.12, 0.6, 0x8a8a8a, 0, 0.3, -3.9, 'cut');
+  for (let k = 0; k < 15; k++) { const t = box(g, 0.08, 0.06, 0.45, 0xd8d8d8, -(CW - 0.4) / 2 + k * (CW - 0.4) / 14, 0.3, -4.3, 'cut'); t.rotation.y = 0.0; }
+  for (const sx of [-1, 1]) box(g, 0.15, 1.4, 1.9, yel, sx * (CW / 2 - 0.075), 1.1, -3.1, 'cut');
   const reel = new THREE.Group(); reel.position.set(0, 1.8, -3.6); g.add(reel);
-  { const ax = new THREE.Mesh(cgeo(0.1, 6.2, 8), mat(0x3a3a3a)); ax.rotation.z = Math.PI / 2; reel.add(ax); }
-  for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; const b = box(reel, 6.0, 0.1, 0.12, 0xc02020, 0, Math.sin(a) * 0.9, Math.cos(a) * 0.9, 'cut'); for (const x of [-2.8, 0, 2.8]) { const sp = box(reel, 0.06, 0.9, 0.06, 0x3a3a3a, x, Math.sin(a) * 0.45, Math.cos(a) * 0.45, 'cut'); sp.rotation.x = -a; } }
-  for (const sx of [-1, 1]) box(g, 0.08, 0.9, 0.08, 0x3a3a3a, sx * 3.0, 1.4, -3.2);
+  { const ax = new THREE.Mesh(cgeo(0.1, 3.5, 8), mat(0x3a3a3a)); ax.rotation.z = Math.PI / 2; reel.add(ax); }
+  for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; const b = box(reel, 3.4, 0.1, 0.12, 0xc02020, 0, Math.sin(a) * 0.9, Math.cos(a) * 0.9, 'cut'); for (const x of [-1.5, 0, 1.5]) { const sp = box(reel, 0.06, 0.9, 0.06, 0x3a3a3a, x, Math.sin(a) * 0.45, Math.cos(a) * 0.45, 'cut'); sp.rotation.x = -a; } }
+  for (const sx of [-1, 1]) box(g, 0.08, 0.9, 0.08, 0x3a3a3a, sx * 1.75, 1.4, -3.2);
   box(g, 0.5, 0.15, 0.05, glow(0xffb020), -1.0, 3.6, -0.21); box(g, 0.5, 0.15, 0.05, glow(0xffb020), 1.0, 3.6, -0.21);
   g.userData.reel = reel;
   return g;
