@@ -159,7 +159,9 @@ function addBox(list, w, h, d, col, m, o = {}) {
   if (o.ry) g.rotateY(o.ry);
   g.translate(o.x || 0, o.y || 0, o.z || 0);
   g.applyMatrix4(m);
-  g.userData.flat = 1;
+  // las piezas finas (barandillas, cables, postes, marcos) no proyectan sombra: con el mapa de sombras
+  // de lejos salían como rayas sueltas por las fachadas y el suelo
+  if (Math.min(w, h, d) < 0.35) g.userData.flat = 1;
   list.push(g);
 }
 function addCyl(list, rt, rb, h, seg, col, m, o = {}) {
@@ -212,6 +214,7 @@ function decal(list, w, h, m, side, o = {}) {
   g.rotateY(side < 0 ? Math.PI / 2 : -Math.PI / 2);
   g.translate(o.x || 0, o.y || 0, o.z || 0);
   g.applyMatrix4(m);
+  g.userData.flat = 1;
   list.push(g);
 }
 
