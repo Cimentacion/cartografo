@@ -33,7 +33,9 @@ const $ = id => document.getElementById(id);
 const canvas = $('gl');
 // profundidad logarítmica: con la normal, en el móvil lo lejano no tenía precisión y las piezas casi pegadas
 // (pilastras, impostas, balcones sobre la fachada) se peleaban: líneas en zigzag que cambiaban al girar la cámara
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', logarithmicDepthBuffer: !/nolog=1/.test(location.search) });
+// rendimiento: en calidad BAJA sin profundidad logarítmica (es más cara en el móvil); se aplica al volver a abrir el juego
+const Q0 = (() => { try { return +(localStorage.getItem('rc_q') ?? 1); } catch (e) { return 1; } })();
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', logarithmicDepthBuffer: !/nolog=1/.test(location.search) && Q0 > 0 });
 // calidad: resolución interna (BAJA 1x, MEDIA 1.5x, ALTA 2x) y oclusión ambiental
 // las dos últimas: más resolución para ver mejor a los enemigos (gasta más batería)
 const QUAL = [['BAJA', 1], ['MEDIA', 1.25], ['ALTA', 1.6], ['ULTRA', 2.25], ['NATIVA', 4]];
@@ -2480,7 +2482,7 @@ function setQuality(i) {
   outline.mat.uniforms.aoOn.value = i > 0 && AOON ? 1 : 0;
   renderer.shadowMap.enabled = i > 0 && SHADOWS; renderer.shadowMap.needsUpdate = true;
   outline.mat.uniforms.aoN.value = i > 1 ? 12 : 8;
-  sun.shadow.mapSize.set(i > 1 ? 3072 : 2048, i > 1 ? 3072 : 2048);
+  { const s = [1024, 1536, 2048, 3072, 3072][i] || 2048; sun.shadow.mapSize.set(s, s); }
   if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
   applyView();
   $('btnQuality').textContent = 'CALIDAD: ' + QUAL[i][0];
@@ -2689,6 +2691,18 @@ function paintShop(boughtId) {
   // ranuras: qué habilidades llevas a la partida (empiezas con 1; los retos dan hasta 6)
   if (G.shopCat === '_s') {
     const eq = slotsOf(PROG), n = slotCount(PROG), own = SLOT_AB.filter(a => (PROG.upg[a[1]] | 0) > 0);
+    // arriba: las ranuras con el icono de lo que llevas puesto (vacías con guion, bloqueadas con candado)
+    { const bar = document.createElement('div');
+      bar.style.cssText = 'grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap;padding:10px 4px 14px';
+      for (let i = 0; i < SLOT_MAX; i++) {
+        const k = eq[i], A = k && SLOT_AB.find(a => a[1] === k), it = A && HUD_ITEMS.find(h => h[0] === A[0]);
+        const c = it ? it[3] : '#5a5a7a', d = document.createElement('div');
+        d.style.cssText = `width:74px;height:84px;border:3px ${i < n ? 'solid' : 'dashed'} ${i < n ? c : '#3a3a52'};background:${k ? '#141226' : '#0c0a18'};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:${k ? '0 0 12px ' + c + '66' : 'none'};font-family:var(--f-px);font-size:8px;color:${k ? c : '#5a5a7a'};text-align:center`;
+        const ic = A && $(A[0]) ? $(A[0]).querySelector('span') : null;
+        d.innerHTML = k ? `<div style="width:42px;height:42px;border-radius:50%;background:#0c0a18;border:3px solid ${c};display:flex;align-items:center;justify-content:center;color:${c};font-family:var(--f-px);font-size:9px">${ic ? ic.innerHTML : ''}</div><span>${A[2]}</span>` : i < n ? '<span style="font-size:22px">—</span><span>LIBRE</span>' : '<span style="font-size:22px">🔒</span>';
+        bar.appendChild(d);
+      }
+      W2.appendChild(bar); }
     const h = document.createElement('div'); h.className = 'upg can'; h.style.setProperty('--c', col);
     let pips = '<div class="pips">'; for (let i = 0; i < SLOT_MAX; i++) pips += `<i class="${i < eq.length ? 'on' : ''}" style="${i >= n ? 'opacity:.25' : ''}"></i>`; pips += '</div>';
     h.innerHTML = `<div class="uh"><span class="un">RANURAS ${eq.length}/${n}</span><span class="ul">MÁX ${SLOT_MAX}</span></div><p>${n < SLOT_MAX ? 'Más ranuras con RETOS: 3 partidas, 5 casas de OLD TOWN, 30 jefes y 12 veces rango SSS. La última se compra' : 'Tienes todas las ranuras'}</p>${pips}`;
