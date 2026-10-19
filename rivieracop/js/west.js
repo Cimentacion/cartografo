@@ -222,13 +222,14 @@ export function mansion() {
     }
     for (let q = 0; q < wn; q++) {
       const cx = -ww / 2 + gap / 2 + q * gap;
-      const gl = new THREE.Mesh(new THREE.BoxGeometry(wwin, wh, 0.04), glassM); gl.position.set(cx, wy, -0.05); gl.userData.part = P; w.add(gl);
+      const gl = new THREE.Mesh(new THREE.BoxGeometry(wwin, wh, 0.04), glassM); gl.position.set(cx, wy, -0.05); gl.userData.part = P; gl.userData.glass = 1; w.add(gl);
       box(w, wwin + 0.3, 0.14, 0.2, white, cx, wy - wh / 2 - 0.05, -0.2, P);            // alféizar
       box(w, wwin + 0.4, 0.16, 0.22, white, cx, wy + wh / 2 + 0.1, -0.2, P);            // dintel
       { const pd = box(w, wwin + 0.5, 0.12, 0.2, white, cx, wy + wh / 2 + 0.35, -0.2, P); pd.rotation.z = 0; } // frontoncito
       for (const sd of [-1, 1]) {
         box(w, 0.1, wh, 0.12, white, cx + sd * wwin / 2, wy, -0.18, P);                 // jambas
-        const sh = box(w, wwin * 0.45, wh, 0.06, shut, cx + sd * (wwin / 2 + wwin * 0.25 + 0.05), wy, -0.22, P); // contraventanas
+        if (i === 1 && sd * cx < 0) continue; // junto a la puerta no hay contraventana (se metía por la puerta)
+        const sh = box(w, wwin * 0.45, wh, 0.06, shut, cx + sd * (wwin / 2 + wwin * 0.25 + 0.05), wy, -0.22, P); sh.userData.shut = sd; // contraventanas
         for (let k = 0; k < 5; k++) box(sh, wwin * 0.4, 0.03, 0.03, 0x1e4a32, 0, -wh / 2 + 0.2 + k * (wh - 0.3) / 4, -0.04);
       }
       box(w, 0.05, wh, 0.06, white, cx, wy, -0.08); box(w, wwin, 0.05, 0.06, white, cx, wy, -0.08); // cruz del cristal
@@ -255,8 +256,8 @@ export function mansion() {
   box(body, 8.2, 0.12, 0.16, white, 0, FH + 1.15, -2.95);
   for (let x = -3.9; x <= 3.9; x += 0.35) box(body, 0.1, 0.9, 0.1, white, x, FH + 0.65, -2.95);
   // puerta doble con montante y faroles
-  box(body, 2.2, 2.7, 0.1, tmat('wood', 0x4a2414), 0, 1.6, -0.2, 'body'); box(body, 0.04, 2.7, 0.12, 0xd4af37, 0, 1.6, -0.26);
-  { const fan = new THREE.Mesh(new THREE.CircleGeometry(1.1, 16, 0, Math.PI), glow(0xfff0b0, 0.8)); fan.position.set(0, 2.95, -0.22); fan.rotation.y = Math.PI; body.add(fan); }
+  box(body, 1.6, 2.7, 0.1, tmat('wood', 0x4a2414), 0, 1.6, -0.24, 'body'); box(body, 0.04, 2.7, 0.12, 0xd4af37, 0, 1.6, -0.3); for (const sd of [-1, 1]) box(body, 0.14, 2.9, 0.16, 0xf6f2ea, sd * 0.87, 1.55, -0.26);
+  { const fan = new THREE.Mesh(new THREE.CircleGeometry(0.8, 16, 0, Math.PI), glow(0xfff0b0, 0.8)); fan.position.set(0, 2.95, -0.3); fan.rotation.y = Math.PI; body.add(fan); }
   for (const x of [-1.6, 1.6]) { box(body, 0.3, 0.45, 0.3, glow(0xffd070), x, 2.3, -0.4); box(body, 0.36, 0.08, 0.36, 0x1a1a1a, x, 2.56, -0.4); }
   // escalinata
   for (let k = 0; k < 4; k++) box(body, 7.6 - k * 0.4, 0.18, 0.6, 0xe8e0d0, 0, 0.09 + k * 0.18, -4.5 + k * 0.5);

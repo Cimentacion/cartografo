@@ -735,6 +735,14 @@ const ANIM = {
     const ud = o.userData, x = e.x || {};
     // cada pared rota cae hacia fuera y desaparece
     ud.walls.forEach((w, i) => {
+      // daño parcial: al primer tiro saltan los cristales (lluvia de trozos) y las contraventanas se descuelgan; luego se ennegrece
+      const fr = x.w && x.w0 ? x.w[i] / x.w0 : 1;
+      if (fr < 0.85 && !w.userData.gb) {
+        w.userData.gb = 1;
+        w.traverse(m => { if (m.userData.glass) { m.visible = false; m.getWorldPosition(V1); V.fx.sparks(V1, 14, V.fx.m.water); } });
+      }
+      if (fr < 0.55 && !w.userData.sb) { w.userData.sb = 1; w.traverse(m => { if (m.userData.shut) { m.rotation.z = m.userData.shut * 0.5; m.position.y -= 0.25; } }); }
+      if (fr < 0.3 && !w.userData.bk) { w.userData.bk = 1; w.traverse(m => { if (m.isMesh && !m.userData.glass && m.material && m.material.color) { m.material = m.material.clone(); m.material.color.multiplyScalar(0.55); } }); }
       if (x.w && !x.w[i] && w.visible) { w.userData.f = (w.userData.f || 0) + dt; w.rotation.x = (i >= 6 ? 0 : -1) * Math.min(1.5, w.userData.f * w.userData.f * 4); if (i >= 6) w.rotation.z = Math.min(1.5, w.userData.f * w.userData.f * 4); w.position.y -= dt * w.userData.f * 6; if (w.userData.f > 0.8) w.visible = false; }
     });
     // explotando: tiembla; hundiéndose: tiembla más y se va de lado como en los dibujos

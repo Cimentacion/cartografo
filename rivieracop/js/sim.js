@@ -629,6 +629,8 @@ export class Sim {
     const TT = this.road.titanicAt(this.carD);
     const inT = TT && this.carD < TT.out - 20;
     // calles de un solo carril (pueblo): sin ambulancias, jeeps, camiones ni traficantes que se monten encima de los tractores
+    // durante el duelo no sale nada (ni ambulancias, ni jeeps, ni oleadas)
+    if (this.ents.some(e => e.type === 'outlaw' && e.st !== ST.DEAD)) { this.ambT = Math.max(this.ambT, 4); this.terrT = Math.max(this.terrT, 6); this.civT = Math.max(this.civT, 2); this.waveT = Math.max(this.waveT, 2); this.ramT = Math.max(this.ramT || 0, 6); }
     const narrowN = !!BIOMES[BIOME_KEYS[this.road.bioAt(this.carD + 80)]].narrow || !!BIOMES[BIOME_KEYS[this.road.bioAt(this.carD)]].narrow, solo1 = inT || narrowN;
     if (this.waveT <= 0) {
       if (!inT && this.hostileCount(this.n > 2 ? false : null) < cap) this.spawnWave();
@@ -1260,7 +1262,7 @@ export class Sim {
   spawnMansion(W) {
     const e = this.add('mansion', { d: W.mh, lat: -12.5, h: 0, hp: 1, ry: -Math.PI / 2 });
     const hw = 5 + 2 * this.nAlive();
-    e.x = { w: [hw, hw, hw, hw, hw, hw, hw, hw], s: 0, t: 0, gT: 1.5, told: 0 };
+    e.x = { w: [hw, hw, hw, hw, hw, hw, hw, hw], w0: hw, s: 0, t: 0, gT: 1.5, told: 0 };
     e.hp = e.hm = hw * 8;
   }
   // un pistolero asomado en una de las habitaciones de la mansión (detrás de su pared, o ya al descubierto)
@@ -1280,9 +1282,9 @@ export class Sim {
     e.sh = [this.shooter(3.0 + r() * 0.9, 'thrown', 1.4, 5)];
   }
   // disparaste antes de tiempo en el duelo: forajidos escondidos a los dos lados te acribillan a la vez
-  duelFoul(p, e) {
+  duelFoul(p, e, killed = false) {
     const x = e.x;
-    if ((x.foulT || 0) > 0 || x.ph >= 2) return;
+    if (!killed && ((x.foulT || 0) > 0 || x.ph >= 2)) return;
     x.foulT = 3; x.ph = 3; x.t = -0.8;
     const r = this.r;
     for (let i = 0; i < 8; i++) {
@@ -1292,8 +1294,9 @@ export class Sim {
       g.sh = [];
       this.emit('eshot', { id: g.id, si: 0, p, hit: 1, g: 0 });
     }
-    this.lose(p, 10, 'Disparaste antes de tiempo');
-    this.emit('banner', { txt: '¡TRAMPA!', sub: 'Había forajidos escondidos. Espera a que acabe la cuenta', c: '#ff4040' });
+    this.lose(p, 10 + Math.floor(r() * 3), killed ? 'Lo mataste a traición' : 'Disparaste antes de tiempo');
+    this.emit('crash', { soft: 1 });
+    this.emit('banner', killed ? { txt: '¡TE FUSILAN!', sub: 'Lo mataste antes de la cuenta: sus compinches no perdonan', c: '#ff4040' } : { txt: '¡TRAMPA!', sub: 'Había forajidos escondidos. Espera a que acabe la cuenta', c: '#ff4040' });
   }
   spawnToll(d) {
     const e = this.add('toll', { d, lat: 0, h: 0, hp: 999 });
@@ -3164,7 +3167,8 @@ const HIT = {
   skel(e, p, part, dmg, S) { S.damage(e, p, dmg * (part === 'head' ? 2 : 1)); },
   outlaw(e, p, part, dmg, S) {
     if (e.x.ph === 2) { S.kill(e, p); return; }
-    if (e.x.ph < 2) S.duelFoul(p, e);
+    // le has matado antes de que acabe la cuenta: cae, pero sus compinches te fusilan (si sobrevives, se sigue)
+    if (e.x.ph < 2) { e.x.foul = 1; S.duelFoul(p, e, true); S.kill(e, p); }
   },
   gunman(e, p, part, dmg, S) {
     if (e.st === ST.SURRENDER) return;
@@ -3533,6 +3537,7 @@ const KILL = {
   },
   skel(e, p, S) { S.emit('fx', { f: 'splat', w: S.wpos(e.d, e.lat, 1.2) }); },
   outlaw(e, p, S) {
+    if (e.x.foul) return; // a traición no hay premio
     S.emit('banner', { txt: '¡HAS GANADO EL DUELO!', sub: 'Suelta su revólver: el GARRETT', c: '#ffc531' });
     const k = S.add('weapon', { d: e.d - 6, lat: LANE_ME, h: 1.6, hp: 999, vd: 0 });
     k.x = { w: uniqueWeapon('garrett'), pr: S.players.map(() => 0), nd: 1, life: 40 };

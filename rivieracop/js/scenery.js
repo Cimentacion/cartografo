@@ -802,21 +802,16 @@ function sandGrid(list, road, i0, i1, lats, hf, cf, step = 2) {
   const rows = []; for (let i = i0; i < i1; i += step) rows.push(i); rows.push(i1);
   // en una curva cerrada, las columnas de la parte de dentro más allá del radio se cruzan entre sí y la malla
   // se dobla en paredes gigantes: se recortan a un poco menos del radio de la curva
-  { let kp = 0, kn = 0; for (let i = Math.max(1, i0 - 2); i <= Math.min(road.len, i1 + 2); i++) { const k = road.yaw[i] - road.yaw[i - 1]; if (k > kp) kp = k; if (-k > kn) kn = -k; }
-    const lp = kp > 1e-4 ? 0.8 / kp : 1e9, ln = kn > 1e-4 ? 0.8 / kn : 1e9;
-    if (lats.some(la => la > lp || -la > ln)) {
-      const ok = lats.filter(la => la <= lp && -la <= ln);
-      if (lats.some(la => la > lp)) ok.push(lp);
-      if (lats.some(la => -la > ln)) ok.unshift(-ln);
-      lats = ok.sort((a, b) => a - b);
-      if (lats.length < 2) return;
-    }
-  }
+  // (fila a fila: solo se recortan las filas de la curva, no todo el trozo; lo que queda fuera lo tapa el suelo de debajo)
+  const LP = new Map(), LN = new Map();
+  // el límite crece poco a poco al alejarse de la curva (si no, entre una fila recortada y la siguiente salen rampas gigantes)
+  for (const i of rows) { let lp = 1e9, ln = 1e9; for (let q = Math.max(2, i - 90); q <= Math.min(road.len, i + 90); q++) { const k = (road.yaw[q] - road.yaw[q - 2]) / 2, dd = Math.abs(i - q) * 0.9; if (k > 1e-4) lp = Math.min(lp, 0.8 / k + dd); if (-k > 1e-4) ln = Math.min(ln, 0.8 / -k + dd); } LP.set(i, lp); LN.set(i, ln); }
+  const clampL = (i, la) => la > 0 ? Math.min(la, LP.get(i)) : Math.max(la, -LN.get(i));
   const nc = lats.length, pos = new Float32Array(rows.length * nc * 3), col = new Float32Array(rows.length * nc * 3), idx = [];
   rows.forEach((i, k) => {
     const cy = Math.cos(road.yaw[i]), sy = Math.sin(road.yaw[i]);
-    lats.forEach((la, j) => {
-      const o = (k * nc + j) * 3;
+    lats.forEach((la0, j) => {
+      const o = (k * nc + j) * 3, la = clampL(i, la0);
       pos[o] = road.x[i] + cy * la; pos[o + 1] = road.y[i] + hf(i, la); pos[o + 2] = road.z[i] + sy * la;
       _c.setHex(cf(la)); col[o] = _c.r; col[o + 1] = _c.g; col[o + 2] = _c.b;
     });
@@ -864,6 +859,8 @@ function duneRun(R, road, B, i0, i1, r) {
   for (let c = Math.floor(i0 / 380); c <= Math.floor(i1 / 380); c++) {
     const d = c * 380 + 150 + (hash(road.seed, c, 3131) % 120);
     if (d < i0 || d >= i1 || hash(road.seed, c, 3132) % 3 === 0) continue;
+    // donde se puede girar a OLD TOWN (a la derecha) no hay pirámides: al girar se ponían encima de la pista
+    if (road.west.some(W => d > W.sign - 300 && d < W.sign + 3000)) continue;
     const s = 45 + (hash(road.seed, c, 3133) % 30), lat = 150 + (hash(road.seed, c, 3134) % 50);
     const t = frame(road, d, lat, duneH(d, lat) - 4);
     const g = new THREE.ConeGeometry(s, s * 0.95, 4); g.rotateY(Math.PI / 4); g.translate(0, s * 0.47, 0); colorize(g, 0xe0c080, false, true); g.applyMatrix4(t); R.L.push(g);

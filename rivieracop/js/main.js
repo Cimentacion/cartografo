@@ -658,7 +658,10 @@ const GR = { n: 0, list: [] };
 const grenMat = toon({ color: 0x2a4a1a });
 const grenGeo = new THREE.SphereGeometry(0.16, 8, 6);
 function throwGrenade() {
-  if (!(PROG.upg.gren | 0) || !EQ('gren') || GR.n <= 0 || !G.running || G.over || G.cd > 0) return;
+  if (!(PROG.upg.gren | 0) || !EQ('gren')) { showToast('GRANADAS: ' + (PROG.upg.gren | 0 ? 'no las llevas en tus ranuras' : 'cómpralas en MEJORAS')); return; }
+  if (GR.n <= 0) { showToast('GRANADAS: no te quedan en esta partida'); return; }
+  if (G.cd > 0) { showToast('GRANADAS: espera a que acabe la cuenta'); return; }
+  if (!G.running || G.over) return;
   const me = G.players[G.li];
   if (!me || !me.alive) return;
   GR.n--; CHC('ab_gren');
@@ -1798,8 +1801,12 @@ function setSpeedF(v) {
 }
 // ---------------- habilidades: escudo y tiempo bala ----------------
 function useAbility(k) {
-  const lv = EQ(k) ? PROG.upg[k] | 0 : 0;
-  if (!lv || AB[k].cd > 0 || !G.running || G.over || G.cd > 0) return;
+  const lv = EQ(k) ? PROG.upg[k] | 0 : 0, nm = k === 'shield' ? 'ESCUDO' : 'TIEMPO BALA';
+  // si no se puede, se dice por qué (antes no pasaba nada y parecía que no iba)
+  if (!lv) { showToast(nm + ': ' + (PROG.upg[k] | 0 ? 'no lo llevas en tus ranuras' : 'cómpralo en MEJORAS')); return; }
+  if (AB[k].cd > 0) { showToast(nm + ': recargando ' + Math.ceil(AB[k].cd) + ' s'); return; }
+  if (G.cd > 0) { showToast(nm + ': espera a que acabe la cuenta'); return; }
+  if (!G.running || G.over) return;
   const me = G.players[G.li];
   if (!me || !me.alive) return;
   const l2 = k === 'shield' ? PROG.upg.escudo2 | 0 : PROG.upg.bala2 | 0;
