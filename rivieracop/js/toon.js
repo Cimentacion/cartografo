@@ -58,8 +58,12 @@ export class Outline {
   constructor(renderer) {
     this.renderer = renderer;
     this.enabled = true;   // contorno negro (se puede quitar en el menú)
-    this.rt = new THREE.WebGLRenderTarget(2, 2, { depthBuffer: true });
-    this.rt.texture.colorSpace = THREE.SRGBColorSpace;
+    // color en coma flotante (16 bits) si el móvil lo admite: con 8 bits, la niebla y las sombras suaves salían en bandas
+    // (líneas que cambian de inclinación al girar la cámara) y el reajuste de colores de abajo las marcaba aún más
+    const ext = renderer.extensions;
+    const hf = !!(renderer.capabilities.isWebGL2 && (ext.has('EXT_color_buffer_float') || ext.has('EXT_color_buffer_half_float')));
+    this.rt = new THREE.WebGLRenderTarget(2, 2, { depthBuffer: true, type: hf ? THREE.HalfFloatType : THREE.UnsignedByteType });
+    this.rt.texture.colorSpace = hf ? THREE.LinearSRGBColorSpace : THREE.SRGBColorSpace;
     this.rt.depthTexture = new THREE.DepthTexture(2, 2);
     // profundidad en coma flotante: con 16/24 bits los móviles pintaban rayas en paredes y suelo
     this.rt.depthTexture.type = THREE.FloatType;
@@ -181,6 +185,8 @@ export class Outline {
           if (dim > 0.0) c *= mix(1.0, mix(0.13, 0.32, 1.0 - smoothstep(2.5, 6.0, d)), dim * (1.0 - sky) * (1.0 - smoothstep(dimD - 8.0, dimD + 3.0, d)));
           c = mix(c, ink, clamp(edge, 0.0, 1.0) * 0.9);
           c = mix(c, red, redE);
+          // tramado de medio tono: rompe las bandas que quedan al pasar a 8 bits en pantalla
+          c += (hash(gl_FragCoord.xy + fract(time) * 37.0) - 0.5) / 160.0;
           gl_FragColor = vec4(c, 1.0);
           #include <colorspace_fragment>
         }`,
