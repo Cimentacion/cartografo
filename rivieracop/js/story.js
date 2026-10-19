@@ -50,6 +50,13 @@ export const STORY = [
     radio: [[['pixel', 'La tormenta de arena os llevará hasta la torre. ¡Agarraos!']]],
     outro: [['duval', 'La torre ha caído. Buen trabajo, agentes.']],
   },
+  // PRUEBA: el pueblo del Oeste (como si hubierais disparado al cartel de OLD TOWN)
+  {
+    t: 'PRUEBA: OLD TOWN', z: ['dunas'], test: true, zd: 2, west: true,
+    intro: [['pixel', 'Hay un pueblo perdido entre las dunas: OLD TOWN. Dicen que allí vive el pistolero más rápido del Oeste.'], ['duval', 'Revienta las casas, desmonta la mansión pared a pared y, al final, gana el duelo. No dispares antes de tiempo.']],
+    radio: [[['pixel', 'Girad a la derecha por las dunas: el pueblo está detrás.']]],
+    outro: [['duval', 'Duelo ganado. Ese revólver es tuyo, agente.']],
+  },
   // PRUEBA (siempre desbloqueado, no cuenta para el progreso): la ciudad zombi suelta
   {
     t: 'PRUEBA: CIUDAD ZOMBI', z: ['zombi'], test: true, zd: 2,

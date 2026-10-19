@@ -1,7 +1,7 @@
 // Simulación autoritativa (la ejecuta quien crea la sala, o el móvil en solitario).
 // Todo va en "coordenadas de carretera": d = metros recorridos, lat = lateral, h = altura.
-import { TI, ST, BIOMES, BIOME_KEYS, BONUSES, PNAME, BOSS } from './defs.js';
-import { rollWeapon } from './weapons.js';
+import { TI, ST, BIOMES, BIOME_KEYS, BONUSES, PNAME, BOSS, WHOUSE, westSpots, MANSION, mansionWall, mansionSpot } from './defs.js';
+import { rollWeapon, uniqueWeapon } from './weapons.js';
 import { LANE_ME, LANE_OT, WALK, HALF, ARENA_R, duneH } from './road.js';
 import { rng, hash, clamp, lerp, pick, r2 } from './util.js';
 import { SPEEDS, shieldDur, bulletDur, maxHpOf, META_KEYS, turboDur } from './progress.js';
@@ -40,12 +40,13 @@ export const ANIMAL = new Set(['beast', 'bear', 'jelly', 'chicken']);
 const PROJ = new Set(['grenade', 'rocket', 'rock', 'thrown']);
 const VEHICLE_DMG = new Set(['firetruck', 'moto', 'ecar', 'heli', 'jeep', 'tank', 'rig', 'boat', 'mtrain', 'train', 'wall', 'drone', 'crew', 'xcar', 'harvester']);
 const OFFH = { gunman: 1.5, sniper: 1.5, moto: 1.6, ecar: 1.6, heli: -0.4, drone: 0, jeep: 2.6, rioter: 1.6, chef: 2.2, boat: 1.4, tank: 2.4, mtrain: 2.5,
-  quad: 1.4, pickup: 2.2, van: 1.6, bus: 2.4, canoe: 0.8, bear: 2.2, blimp: -3, jet: 0, rammer: 1.4, jelly: 0, turret: 0.6, gunship: 0, crew: 2.4, xcar: 1.4, harvester: 4, zombie: 1.3, bat: 0, brute: 3.5, megalodon: 0, firetruck: 2.4, slasher: 1.5, tuktuk: 1.6 };
+  quad: 1.4, pickup: 2.2, van: 1.6, bus: 2.4, canoe: 0.8, bear: 2.2, blimp: -3, jet: 0, rammer: 1.4, jelly: 0, turret: 0.6, gunship: 0, crew: 2.4, xcar: 1.4, harvester: 4, zombie: 1.3, bat: 0, brute: 3.5, megalodon: 0, firetruck: 2.4, slasher: 1.5, tuktuk: 1.6, skel: 1.9, outlaw: 1.5 };
 const PTS = {
   gunman: 100, sniper: 200, moto: 150, ecar: 300, heli: 1000, drone: 150, jeep: 1500, grenade: 60, rocket: 80, rock: 60, chicken: 50, amb: 200,
   barrel: 50, wall: 600, train: 900, jumper: 180, tank: 2000, rig: 1200, rioter: 80, thrown: 30, chef: 3000, boat: 450, mtrain: 2500,
   quad: 150, pickup: 400, van: 600, bus: 1200, canoe: 120,
   beast: 160, bear: 3500, mine: 60, jet: 500, blimp: 5000, rammer: 500, junk: 20, jelly: 90, turret: 300, gunship: 6000, crew: 500, xcar: 150, harvester: 8000, zombie: 60, bat: 80, brute: 9000, key: 500, prop: 30, megalodon: 8000, obelisk: 3000, casinob: 10000, firetruck: 1800, toll: 400, slasher: 400, tower: 20000, mbomb: 40, tuktuk: 500,
+  whouse: 400, mansion: 6000, skel: 150, outlaw: 5000,
 };
 
 // los enemigos normales se van desbloqueando a lo largo de la partida (segundos de partida)
@@ -182,6 +183,9 @@ export class Sim {
       if (e.type === 'junk' && e.st === ST.ALIVE && rel < 7.5 && rel > 0) this.hold = true;
       if (e.type === 'brute' && e.st === ST.ALIVE) this.hold = true;
       if (e.type === 'toll' && e.x.s < 2 && rel < 24 && rel > -2) this.hold = true;
+      // OLD TOWN: parada delante de la mansión (hasta que se hunde) y en el duelo
+      if (e.type === 'mansion' && e.x.s < 3 && rel < 7 && rel > -12) this.hold = true;
+      if (e.type === 'outlaw' && (e.st !== ST.DEAD || e.deadT < 1.6) && rel < 21 && rel > -5) this.hold = true;
     }
     if (this.foot) this.hold = true;
     // cruce con persecución: el coche para hasta que se resuelve
@@ -199,6 +203,8 @@ export class Sim {
       if (this.road.mudAt(this.carD)) tgt *= Math.min(0.9, 0.4 + 0.12 * this.maxMeta('ruedas'));
       const BZ = BIOMES[BIOME_KEYS[this.road.bioAt(this.carD)]];
       if (BZ.vf && this.road.kindAt(this.carD) === 0) tgt *= BZ.vf;
+      // OLD TOWN: por el pueblo se va algo más despacio y por la iglesia y el cementerio, más aún
+      { const WW = this.road.westAt(this.carD); if (WW && this.carD > WW.town - 20) tgt *= this.carD > WW.church - 40 && this.carD < WW.plain + 40 ? 0.6 : 0.82; }
       // regulador de velocidad: manda el que lo tenga más bajo
       let rf = 1;
       for (const p of this.players) if (p.alive && !p.gone) rf = Math.min(rf, p.spdF || 1);
@@ -414,6 +420,7 @@ export class Sim {
   }
   // alguien ha disparado: si hay una patrulla mirando, multa
   fired(p) {
+    for (const e of this.ents) if (e.type === 'outlaw' && e.st !== ST.DEAD && e.x.ph === 1 && this.rel(e) < 30) { this.duelFoul(p, e); break; }
     for (const e of this.ents) if (e.type === 'police' && e.st !== ST.DEAD) { const r = this.rel(e); if (r > -18 && r < 70) { this.fine(p, 400); return; } }
   }
   vStart(back) { return this.n > 2 ? this.carD - back : this.carD + 95; }
@@ -620,7 +627,7 @@ export class Sim {
     const deco = BIOMES[BIOME_KEYS[this.road.bioAt(this.carD + 80)]].deco;
     const inTun = this.road.inTunnel(this.carD + 120);
     this.civT -= dt;
-    if (['rio', 'bosque', 'submarino', 'ruinas', 'guerra', 'llanura', 'bajada', 'tuneles', 'dunas', 'zombi'].includes(deco)) this.civT = Math.max(this.civT, 1);
+    if (['rio', 'bosque', 'submarino', 'ruinas', 'guerra', 'llanura', 'bajada', 'tuneles', 'dunas', 'zombi', 'oeste'].includes(deco)) this.civT = Math.max(this.civT, 1);
     if (this.civT <= 0) {
       this.civT = deco === 'manifa' ? 2.5 + this.r() * 2 : 6 + this.r() * 6;
       const w = { truck: rt > 10 ? 1.4 * this.wMult('truck') : 0, civcar: 1.5 * this.wMult('civcar'), civ: this.road.inTunnel(this.carD + 70) ? 0 : deco === 'manifa' ? 20 : 1.2 };
@@ -668,6 +675,15 @@ export class Sim {
       const e = this.ents[this.ents.length - 1];
       e.x.limo = 1; e.hp = Math.ceil(e.hp * 1.4);
       if (once0(this, 'limo')) this.emit('banner', { txt: '¡LA MAFIA!', sub: 'Limusinas con tiradores', c: '#ff40c0' });
+    }
+    // OLD TOWN: el cartel en las dunas (si nadie le dispara, se sigue por el desierto) y el pueblo del Oeste
+    { const WS = this.road.westSign(this.carD);
+      if (WS) {
+        if (once0(this, 'ws' + WS.k)) { const lat = 9.5; const e = this.add('wsign', { d: WS.sign, lat, h: duneH(WS.sign, lat), hp: 999, ry: Math.PI - 0.45 }); e.x = { k: WS.k, s: 0 }; }
+        if (this.carD > WS.sign + 20) { this.road.setWest(WS.k, 0); this.emit('west', { kk: WS.k, c: 0 }); }
+      }
+      const WW = this.road.westAt(this.carD);
+      if (WW) this.westDir(WW, dt, cap, full);
     }
     // dunas: la torre (siempre a lo lejos, y luego en el centro de la arena), tuk-tuks, buitres y tiradores con turbante
     { const D = this.road.dunesAt(this.carD);
@@ -1042,6 +1058,83 @@ export class Sim {
     for (let i = 0; i < (cl ? n : 1); i++) e.sh.push(this.shooter(2.5 + r() * 0.6, 'shot', 0.3 + i * 0.5));
     if (cl) this.emit('banner', { txt: '¡SON COMO VOSOTROS!', sub: 'Un tuk-tuk con vuestros dobles', c: '#ff40c0' });
     else if (once0(this, 'tuk')) this.emit('banner', { txt: '¡TUK-TUKS!', sub: '', c: '#ffb060' });
+  }
+  // ---------------- OLD TOWN ----------------
+  westDir(W, dt, cap, full) {
+    const r = this.r, c = this.carD;
+    if (!W.houses) W.houses = westHouses(this.road.seed, W);
+    // casas de la calle (todas revientan): aparecen por delante
+    W.houses.forEach((h, i) => {
+      if (h.d < c + 250 && h.d > c - 15 && once0(this, 'wh' + W.k + ':' + i)) {
+        const e = this.add('whouse', { d: h.d, lat: h.sd * 10.4, h: 0, hp: 10 + 3 * this.nAlive(), ry: h.sd * Math.PI / 2 });
+        e.x = { k: h.k, w: h.w, sd: h.sd, sg: h.sg };
+      }
+    });
+    if (c > W.town - 70 && once0(this, 'wtown' + W.k)) this.emit('banner', { txt: 'OLD TOWN', sub: 'Todas las casas se pueden reventar', c: '#e8a050' });
+    const inTown = c > W.town - 30 && c < W.mansion - 30;
+    if (inTown && !full && this.timer('wgun', dt, this.n === 1 ? 3.0 : 2.3)) this.westGunmen();
+    if (inTown && !full && this.timer('wride', dt, 12) && this.count('moto') < 2) {
+      for (let i = 0, n = this.n > 1 ? 2 : 1; i < n; i++) { this.spawnMoto(i, r() < 0.4); const m = this.ents[this.ents.length - 1]; if (m.type === 'moto') m.x.horse = 1; }
+      if (once0(this, 'wrd' + W.k)) this.emit('banner', { txt: '¡JINETES!', sub: '', c: '#e8a050' });
+    }
+    if (c > W.mansion - 230 && once0(this, 'wm' + W.k)) this.spawnMansion(W);
+    // iglesia en lo alto del cerro y el cementerio de los esqueletos
+    if (c > W.church - 220 && once0(this, 'wc' + W.k)) { const e = this.add('church', { d: W.church + 150, lat: -31, h: 7, hp: 999, ry: -Math.PI / 2 }); e.x = { tw: 16 + 4 * this.nAlive(), bc: 0, fall: 0 }; }
+    if (c > W.church - 30 && once0(this, 'wcb' + W.k)) this.emit('banner', { txt: 'EL CEMENTERIO', sub: 'Los muertos se levantan a bailar… y tiran huesos', c: '#d8d0ff' });
+    if (c > W.church - 40 && c < W.church + 250 && !full && this.timer('skel', dt, 2.0) && this.count('skel') < 2 + this.n) this.spawnSkel();
+    // el duelo al final de la llanura
+    if (c > W.duel - 170 && once0(this, 'wd' + W.k)) { const e = this.add('outlaw', { d: W.duel + 19, lat: LANE_ME, h: 0, hp: 1, ry: Math.PI }); e.x = { ph: 0, t: 0, n: 3, win: 1.0, k: W.k }; }
+    if (c > W.plain - 20 && once0(this, 'wpl' + W.k)) this.emit('banner', { txt: 'LA LLANURA', sub: 'Alguien os espera al final…', c: '#e8a050' });
+  }
+  // pistoleros que se asoman por puertas, ventanas, balcones y tejados de las casas de delante
+  westGunmen() {
+    const r = this.r, H = this.ents.filter(e => e.type === 'whouse' && e.st !== ST.DEAD && this.rel(e) > 30 && this.rel(e) < 90);
+    if (!H.length) { this.spawnGunmen(1 + (r() < 0.4 ? 1 : 0), r() < 0.4); return; }
+    const n = 1 + (r() < 0.35 ? 1 : 0);
+    for (let i = 0; i < n; i++) {
+      const h = H[Math.floor(r() * H.length)], L = westSpots(h.x.k, h.x.w), sp = L[Math.floor(r() * L.length)];
+      const e = this.add('gunman', { d: h.d - h.x.sd * sp[0], lat: h.lat + h.x.sd * sp[2], h: sp[1], hp: 2 + (this.diff > 3 ? 1 : 0), st: ST.HIDDEN });
+      e.x = { cv: -1, gr: 0, pop: 26 + r() * 34, sk: Math.floor(r() * 6), cb: 1, hs: h.id };
+      e.sh = [this.shooter(2.8 + r() * 0.8, 'shot', 0.3 + i * 0.5)];
+    }
+  }
+  spawnMansion(W) {
+    const e = this.add('mansion', { d: W.mansion + 45, lat: -20, h: 0, hp: 1, ry: -Math.PI / 2 });
+    const hw = 8 + 3 * this.nAlive();
+    e.x = { w: [hw, hw, hw, hw, hw, hw, hw, hw], s: 0, t: 0, gT: 1.5, told: 0 };
+    e.hp = e.hm = hw * 8;
+  }
+  // un pistolero asomado en una de las habitaciones de la mansión (detrás de su pared, o ya al descubierto)
+  mansionGunman(e) {
+    const r = this.r, open = e.x.w.map((v, i) => i).filter(i => e.x.w[i] <= 0), all = [0, 1, 2, 3, 4, 5, 6, 7];
+    const i = open.length && r() < 0.6 ? open[Math.floor(r() * open.length)] : all[Math.floor(r() * 8)];
+    const [x, y, z] = mansionSpot(i);
+    // fachada mirando a la carretera desde la izquierda: x local va a lo largo de la carretera, z hacia dentro (más a la izquierda)
+    const g = this.add('gunman', { d: e.d + x + (r() - 0.5) * 2, lat: e.lat - z - (e.x.w[i] > 0 ? 0 : 0.6), h: y + 0.3, hp: 2 + (this.diff > 3 ? 1 : 0), st: ST.ALIVE });
+    g.x = { cv: -1, gr: 0, pop: 999, sk: Math.floor(r() * 6), cb: 1, hs: e.id, mw: i };
+    g.sh = [this.shooter(2.6 + r() * 0.8, 'shot', 0.6)];
+  }
+  spawnSkel() {
+    const r = this.r, d = this.carD + (28 + r() * 40) * this.spk(), lat = r() < 0.8 ? 11 + r() * 12 : -(9 + r() * 4);
+    const e = this.add('skel', { d, lat, h: 0, hp: 2, st: ST.ALIVE });
+    e.x = { sk: Math.floor(r() * 4), ph: r() * 6 };
+    e.sh = [this.shooter(3.0 + r() * 0.9, 'thrown', 1.4, 5)];
+  }
+  // disparaste antes de tiempo en el duelo: forajidos escondidos a los dos lados te acribillan a la vez
+  duelFoul(p, e) {
+    const x = e.x;
+    if ((x.foulT || 0) > 0 || x.ph >= 2) return;
+    x.foulT = 3; x.ph = 3; x.t = -0.8;
+    const r = this.r;
+    for (let i = 0; i < 8; i++) {
+      const sd = i % 2 ? -1 : 1, d = this.carD + 2 + Math.floor(i / 2) * 3.5 + r() * 2, lat = sd > 0 ? LANE_ME + 7 + r() * 3 : LANE_ME - 9 - r() * 3;
+      const g = this.add('gunman', { d, lat, h: 0, hp: 2, st: ST.ALIVE });
+      g.x = { cv: -1, gr: 0, pop: 999, sk: Math.floor(r() * 6), cb: 1, amb: 1.6 + r() * 0.4 };
+      g.sh = [];
+      this.emit('eshot', { id: g.id, si: 0, p, hit: 1, g: 0 });
+    }
+    this.lose(p, 10, 'Disparaste antes de tiempo');
+    this.emit('banner', { txt: '¡TRAMPA!', sub: 'Había forajidos escondidos. Espera a que acabe la cuenta', c: '#ff4040' });
   }
   spawnToll(d) {
     const e = this.add('toll', { d, lat: 0, h: 0, hp: 999 });
@@ -1757,7 +1850,7 @@ function ser(e) {
   let x = 0;
   const X = e.x;
   switch (e.type) {
-    case 'gunman': x = { cv: X.cv, gr: X.gr, sk: X.sk, sol: X.sol, shd: X.shd, rk: X.rk, win: X.win, tb: X.tb }; break;
+    case 'gunman': x = { cv: X.cv, gr: X.gr, sk: X.sk, sol: X.sol, shd: X.shd, rk: X.rk, win: X.win, tb: X.tb, cb: X.cb }; break;
     case 'civilian': x = { sk: X.sk, sg: X.sg }; break;
     case 'ecar': x = { gd: X.gd, suv: X.suv, limo: X.limo }; break;
     case 'civcar': x = { c: X.c }; break;
@@ -1800,6 +1893,13 @@ function ser(e) {
     case 'victim': x = { sk: X.sk, sv: X.saved ? 1 : 0 }; break;
     case 'slasher': x = { z: X.z, sk: X.sk }; break;
     case 'casinob': x = { k: X.k, td: X.td, tl: X.tl }; break;
+    case 'wsign': x = { s: X.s }; break;
+    case 'moto': x = X.horse ? { horse: 1 } : 0; break;
+    case 'whouse': x = { k: X.k, w: X.w, sd: X.sd, sg: X.sg }; break;
+    case 'mansion': x = { w: X.w.map(v => (v > 0 ? 1 : 0)), s: X.s, t: r2(X.t) }; break;
+    case 'church': x = { bc: X.bc, fall: X.fall }; break;
+    case 'skel': x = { sk: X.sk }; break;
+    case 'outlaw': x = { ph: X.ph }; break;
   }
   if (e.hm) { x = x || {}; x.hm = e.hm; }
   if (X.mk > 0) { x = x || {}; x.mk = 1; }
@@ -1836,6 +1936,9 @@ function gveh(e, dt, S, sway, swayF) {
 // los enemigos con base en el suelo se quedan a la altura del suelo (para los que van por el agua)
 const U = {
   gunman(e, dt, S) {
+    // OLD TOWN: los de una casa que revienta caen con ella; los de la emboscada del duelo desaparecen enseguida
+    if (e.x.hs && e.st !== ST.DEAD) { const H = S.map.get(e.x.hs); if (!H || H.st === ST.DEAD || (H.type === 'mansion' && H.x.s > 0)) S.kill(e, H && H.x.kp != null ? H.x.kp : 0, !H || H.x.kp == null); }
+    if (e.x.amb) { e.x.amb -= dt; if (e.x.amb <= 0) { e.rm = true; return; } e.ry = faceCar(e, S); return; }
     if (e.x.fix) { const L = 2 * Math.PI * ARENA_R; while (e.d < S.carD - L / 2) e.d += L; if (S.road.dunes.some(D => D.out != null && S.carD > D.out - 5)) { e.rm = true; return; } }
     const rel = S.rel(e);
     if (e.st === ST.HIDDEN && rel < e.x.pop) e.st = ST.ALIVE;
@@ -2089,6 +2192,62 @@ const U = {
     if (x.life <= 0) { e.rm = true; S.emit('banner', { txt: 'EL ARMA SE HA PERDIDO', sub: '', c: '#aaaaaa' }); }
   },
   sign(e, dt, S) { if (S.rel(e) < -15) e.rm = true; },
+  wsign(e, dt, S) { e.vd = 0; if (S.rel(e) < -40) e.rm = true; },
+  whouse(e, dt, S) { e.vd = 0; if (S.rel(e) < -45) e.rm = true; },
+  mansion(e, dt, S) {
+    const x = e.x, rel = S.rel(e);
+    e.vd = 0;
+    if (x.s === 0) {
+      if (!x.told && S.speed < 0.6 && rel < 12) { x.told = 1; S.emit('banner', { txt: '¡LA MANSIÓN!', sub: 'Mira a la izquierda: revienta las paredes una a una', c: '#e8a050' }); S.emit('look', { dir: -1 }); }
+      x.gT -= dt;
+      if (rel < 70 && x.gT <= 0 && S.hostileCount() < 2 + S.n) { S.mansionGunman(e); x.gT = Math.max(1.2, 2.6 - 0.3 * S.n); }
+      if (x.w.every(v => v <= 0)) { x.s = 1; x.t = 0; S.emit('banner', { txt: '¡SE VIENE ABAJO!', sub: '', c: '#ffb020' }); S.addPts(x.kp ?? 0, PTS.mansion, e, '¡MANSIÓN!'); S.emit('kill', { p: x.kp ?? 0, t: 'mansion', boss: 1, big: 1, air: 0, dl: 0 }); e.st = ST.SURRENDER; }
+    } else if (x.s === 1) {
+      x.t += dt;
+      if (S.timer('mboom', dt, 0.3)) { const i = Math.floor(S.r() * 8), [lx, ly, lz] = mansionWall(i); S.emit('fx', { f: 'boom', w: S.wpos(e.d + lx, e.lat - lz, ly + 1), s: 1.6 }); }
+      if (x.t > 2.4) { x.s = 2; x.t = 0; }
+    } else if (x.s === 2) {
+      // se hunde como en los dibujos: tiembla y se va metiendo en el suelo
+      x.t += dt; e.h = -Math.pow(x.t, 2) * 1.6;
+      if (S.timer('mdust', dt, 0.25)) S.emit('fx', { f: 'boom', w: S.wpos(e.d + (S.r() - 0.5) * 18, e.lat + 1, 0.5), s: 0.8 });
+      if (x.t > 3.2) { x.s = 3; e.st = ST.DEAD; S.emit('banner', { txt: '¡EN MARCHA!', sub: '', c: '#7dff8a' }); }
+    }
+    if (rel < -80) e.rm = true;
+  },
+  church(e, dt, S) { e.vd = 0; if (S.rel(e) < -70) e.rm = true; },
+  skel(e, dt, S) {
+    const rel = S.rel(e);
+    e.vd = 0;
+    if (e.st !== ST.DEAD) e.ry = faceCar(e, S);
+    // primero sale de la tumba (1,4 s) y luego baila y tira huesos
+    S.tick(e, dt, !S.voting && e.st === ST.ALIVE && e.age > 1.4 && rel < 70 && rel > -4);
+    if (rel < -20 || (e.st === ST.DEAD && e.deadT > 3)) e.rm = true;
+  },
+  outlaw(e, dt, S) {
+    const x = e.x, rel = S.rel(e);
+    e.vd = 0;
+    if (x.foulT > 0) x.foulT -= dt;
+    if (e.st === ST.DEAD) { if (rel < -40) e.rm = true; return; }
+    e.ry = faceCar(e, S);
+    if (x.ph === 0) {
+      if (S.speed < 0.4 && rel < 23) { x.ph = 1; x.t = 0; x.n = 3; S.emit('banner', { txt: 'DUELO', sub: 'No dispares hasta que acabe la cuenta… y entonces sé el más rápido', c: '#e8a050' }); }
+    } else if (x.ph === 1) {
+      x.t += dt;
+      if (x.t >= 1.5) { x.t = 0; if (x.n > 0) { S.emit('duel', { n: x.n }); x.n--; } else { x.ph = 2; x.t = 0; S.emit('duel', { n: 0 }); } }
+    } else if (x.ph === 2) {
+      // un segundo de ventaja: si no le dais antes, dispara él
+      x.t += dt;
+      if (x.t >= x.win) {
+        x.ph = 3; x.t = 0;
+        const tg = S.pickTgt(e);
+        if (tg >= 0) { S.emit('eshot', { id: e.id, si: 0, p: tg, hit: 1, g: 0 }); S.lose(tg, 2 + S.zd(), 'El forajido fue más rápido'); }
+        S.emit('banner', { txt: '¡FUE MÁS RÁPIDO!', sub: 'Otra vez: espera a que acabe la cuenta', c: '#ff4040' });
+      }
+    } else if (x.ph === 3) {
+      x.t += dt;
+      if (x.t > 2.4) { x.ph = 1; x.t = 0; x.n = 3; }
+    }
+  },
   lady(e, dt, S) {
     e.ry = faceCar(e, S);
     if (S.rel(e) < -30 || (e.st === ST.DEAD && e.deadT > 5)) e.rm = true;
@@ -2689,6 +2848,42 @@ function proj(e, dt, S) {
 
 // --------- qué pasa al dar a cada cosa ---------
 const HIT = {
+  wsign(e, p, part, dmg, S) {
+    if (e.x.s) return;
+    const W = S.road.west.find(q => q.k === e.x.k);
+    if (!W || W.choice != null) return;
+    e.x.s = 1; S.road.setWest(W.k, 1); S.emit('west', { kk: W.k, c: 1 });
+    S.emit('banner', { txt: '¡A OLD TOWN!', sub: 'Más adelante giráis a la derecha', c: '#e8a050' });
+    S.addPts(p, 500, e, '¡OLD TOWN!');
+  },
+  whouse(e, p, part, dmg, S) { e.x.kp = p; S.damage(e, p, dmg); },
+  mansion(e, p, part, dmg, S) {
+    const x = e.x, m = /^w(\d)$/.exec(part || '');
+    if (x.s || !m) return;
+    const i = +m[1];
+    if (x.w[i] <= 0) return;
+    x.kp = p; x.w[i] -= dmg;
+    e.hp = Math.max(0, x.w.reduce((a, v) => a + Math.max(0, v), 0));
+    if (x.w[i] <= 0) {
+      const [lx, ly, lz] = mansionWall(i);
+      S.emit('fx', { f: 'boom', w: S.wpos(e.d + lx, e.lat - lz, ly), s: 1.4 });
+      S.addPts(p, 300, e, '¡PARED!');
+      // lo que había detrás de la pared queda al descubierto: alguien se asoma
+      if (S.r() < 0.7) S.mansionGunman(e);
+    } else S.addPts(p, 10, null, '');
+  },
+  church(e, p, part, dmg, S) {
+    const x = e.x;
+    if (part === 'bell') { x.bc++; S.emit('bell', {}); S.addPts(p, 50, e, '¡DONG!'); }
+    if (x.fall) return;
+    x.tw -= part === 'tower' ? dmg : part === 'bell' ? dmg * 0.6 : 0;
+    if (x.tw <= 0) { x.fall = 1; S.emit('fx', { f: 'boom', w: S.wpos(e.d - 1.2, e.lat, e.h + 9), s: 2 }); S.emit('banner', { txt: '¡ABAJO EL CAMPANARIO!', sub: '', c: '#ffb020' }); S.addPts(p, 1500, e, '¡CAMPANARIO!'); }
+  },
+  skel(e, p, part, dmg, S) { S.damage(e, p, dmg * (part === 'head' ? 2 : 1)); },
+  outlaw(e, p, part, dmg, S) {
+    if (e.x.ph === 2) { S.kill(e, p); return; }
+    if (e.x.ph < 2) S.duelFoul(p, e);
+  },
   gunman(e, p, part, dmg, S) {
     if (e.st === ST.SURRENDER) return;
     if (part === 'cover') return;
@@ -3009,6 +3204,20 @@ function spawnChicken(t, S) {
   const e = S.add('chicken', { d: t.d + 1.2 + (r() - 0.5) * 8, lat: t.lat + (r() - 0.5) * 2, h: 2.4 + r() * 1.2, hp: 1, vd: t.vd + (r() - 0.5) * 6 });
   e.x = { vh: 3 + r() * 4, vl: (r() - 0.3) * 5, b: 0, run: (r() - 0.5) * 6 };
 }
+// OLD TOWN: casas a los dos lados de la calle (la plaza del pozo queda libre)
+function westHouses(seed, W) {
+  const r = rng(hash(seed, W.k, 6161)), L = [];
+  for (const sd of [-1, 1]) {
+    let d = W.town + 6 + r() * 6;
+    while (d < W.mansion - 14) {
+      const k = Math.floor(r() * 5), w = k === 3 ? 6 + r() * 2 : 8.5 + r() * 4;
+      if (d + w > W.town + 280 && d < W.town + 345) { d = W.town + 345; continue; }
+      L.push({ d: d + w / 2, sd, w, k, sg: Math.floor(r() * 97) });
+      d += w + 0.8 + r() * 2.5;
+    }
+  }
+  return L;
+}
 function dropWeapon(e, S, extraTier = 0, rare = false) {
   const w = rollWeapon(S.r, Math.min(3, Math.floor(S.runT / 150) + extraTier), S.zd(), S.luck(), rare);
   const k = S.add('weapon', { d: e.d + 2, lat: LANE_ME, h: 2.5, hp: 999, vd: S.speed });
@@ -3017,6 +3226,18 @@ function dropWeapon(e, S, extraTier = 0, rare = false) {
 }
 
 const KILL = {
+  whouse(e, p, S) {
+    // explota y queda en palos negros
+    for (let k = 0; k < 3; k++) S.emit('fx', { f: 'boom', w: S.wpos(e.d + (S.r() - 0.5) * e.x.w * 0.6, e.lat + e.x.sd * (2 + S.r() * 5), 1.5 + S.r() * 3), s: 1.6 });
+    for (const o of S.ents) if (o !== e && o.st !== ST.DEAD && Math.abs(o.d - e.d) < 7 && Math.abs(o.lat - e.lat) < 9 && (o.type === 'barrel' || o.type === 'gunman')) S.blast(o, p, 4);
+  },
+  skel(e, p, S) { S.emit('fx', { f: 'splat', w: S.wpos(e.d, e.lat, 1.2) }); },
+  outlaw(e, p, S) {
+    S.emit('banner', { txt: '¡HAS GANADO EL DUELO!', sub: 'Suelta su revólver: el GARRETT', c: '#ffc531' });
+    const k = S.add('weapon', { d: e.d - 6, lat: LANE_ME, h: 1.6, hp: 999, vd: 0 });
+    k.x = { w: uniqueWeapon('garrett'), pr: S.players.map(() => 0), nd: 1, life: 40 };
+    S.emit('unlockW', { id: 'garrett' });
+  },
   zombie(e, p, S) {
     // el gordo revienta en ácido: si estáis cerca, os salpica
     if (e.x.k === 1) {

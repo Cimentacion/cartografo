@@ -174,7 +174,7 @@ function skyTypeOf(B) {
   if (B.deco === 'dunas') return 'amanecer';
   if (B.deco === 'casino') return 'casino';
   if (B.night) return 'noche';
-  if (['desierto', 'acantilados', 'costa', 'bajada', 'curva', 'lomas'].includes(B.deco)) return 'atardecer';
+  if (['desierto', 'acantilados', 'costa', 'bajada', 'curva', 'lomas', 'oeste'].includes(B.deco)) return 'atardecer';
   if (['guerra', 'ruinas', 'bosque', 'militar', 'manifa', 'detroit', 'industrial', 'barro'].includes(B.deco)) return 'nublado';
   return 'dia';
 }
@@ -699,6 +699,12 @@ function handleEvent(ev) {
       if (!PROG.wpUnl.includes(ev.id)) { PROG.wpUnl.push(ev.id); saveProg(PROG); G.secretNew = 1; }
       showBanner('¡' + (WEAPON_NAMES[ev.id] || ev.id).toUpperCase() + ' DESBLOQUEADO!', 'Ya es tuyo para siempre (Mejoras → Alforjas)', '#ffc531');
       break;
+    case 'duel':
+      // cuenta atrás del duelo y el momento de desenfundar
+      if (ev.n > 0) { showBanner(String(ev.n), '', '#ffe14a'); SFX.tone(440, 440, 0.12, 'square', 0.18); }
+      else { showBanner('¡DESENFUNDA!', '', '#ff4040'); SFX.tone(1200, 600, 0.25, 'sawtooth', 0.25); }
+      break;
+    case 'bell': SFX.tone(660, 650, 0.9, 'sine', 0.3); setTimeout(() => SFX.tone(990, 980, 0.6, 'sine', 0.15), 30); break;
     case 'mono': SFX.tone(1300, 900, 0.09, 'square', 0.12); setTimeout(() => SFX.tone(1500, 1000, 0.08, 'square', 0.1), 110); break;
     case 'storm': G.stormT = ev.dur || 5; SFX.tone(120, 60, 2.5, 'sawtooth', 0.15); break;
     case 'siren': for (let i = 0; i < 3; i++) setTimeout(() => { SFX.tone(700, 1100, 0.22, 'square', 0.12); setTimeout(() => SFX.tone(1100, 700, 0.22, 'square', 0.12), 230); }, i * 470); break;
@@ -906,6 +912,7 @@ function begin(seed, n, li, mode) {
   const SC = G.story != null ? STORY[G.story] : null;
   if (SC) G.road = new Road(G.seed, BIOME_KEYS.indexOf(SC.z[0]), SC.zd || BIOMES[SC.z[0]].lv + G.story);
   else G.road = new Road(G.seed, qb > 0 && mode === 'solo' ? qb : 0, +Q.get('zd') || 1);
+  if (SC && SC.west && G.road.west[0]) G.road.setWest(G.road.west[0].k, 1);
   G.road.extend(520);
   G.sim = mode === 'guest' ? null : new Sim(G.road, n, G.seed, { story: SC ? { ch: G.story, z: SC.z.map(k => BIOME_KEYS.indexOf(k)) } : null, speed: G.speedIdx, metas: [0, 1, 2, 3, 4].map(i => (i === 0 ? metaOf(PROG) : G.peerMetas[i] || {})) });
   if (G.sim) for (const i of (mode === 'host' ? G.goneAtStart || [] : [])) if (G.sim.players[i]) { G.sim.players[i].gone = true; G.sim.players[i].alive = false; }

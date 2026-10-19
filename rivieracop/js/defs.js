@@ -345,9 +345,10 @@ export const TYPES = ['gunman', 'civilian', 'moto', 'ecar', 'heli', 'drone', 'tr
   'amb', 'medkit', 'jeep', 'weapon', 'sign', 'barrel', 'grenade', 'rocket', 'sniper', 'wall', 'train', 'rock', 'lady',
   'jumper', 'tank', 'rig', 'rioter', 'thrown', 'fuel', 'chef', 'boat', 'tlight', 'mtrain', 'preview', 'float',
   'quad', 'pickup', 'van', 'bus', 'canoe',
-  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'whale', 'turret', 'gunship', 'crew', 'police', 'xcar', 'harvester', 'zombie', 'bat', 'brute', 'key', 'hdoor', 'prop', 'megalodon', 'obelisk', 'casinob', 'firetruck', 'toll', 'victim', 'slasher', 'tower', 'mbomb', 'tuktuk', 'fatman', 'dunegate'];
+  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'whale', 'turret', 'gunship', 'crew', 'police', 'xcar', 'harvester', 'zombie', 'bat', 'brute', 'key', 'hdoor', 'prop', 'megalodon', 'obelisk', 'casinob', 'firetruck', 'toll', 'victim', 'slasher', 'tower', 'mbomb', 'tuktuk', 'fatman', 'dunegate',
+  'wsign', 'whouse', 'mansion', 'church', 'skel', 'outlaw'];
 // jefes: llevan barra de vida en pantalla
-export const BOSS = { tower: 'LA TORRE', obelisk: 'EL OBELISCO', megalodon: 'EL MEGALODÓN', brute: 'EL CARNICERO', harvester: 'LA COSECHADORA', gunship: 'EL CAÑONERO', bear: 'OSO GRIZZLY', blimp: 'DIRIGIBLE', bus: 'AUTOBÚS', jeep: 'TERRORISTA', heli: 'HELICÓPTERO', wall: 'MURO', train: 'TREN', tank: 'TANQUE', rig: 'CAMIÓN', chef: 'EL CHEF DEL BUFFET', mtrain: 'TREN MILITAR' };
+export const BOSS = { tower: 'LA TORRE', obelisk: 'EL OBELISCO', megalodon: 'EL MEGALODÓN', brute: 'EL CARNICERO', harvester: 'LA COSECHADORA', gunship: 'EL CAÑONERO', bear: 'OSO GRIZZLY', blimp: 'DIRIGIBLE', bus: 'AUTOBÚS', jeep: 'TERRORISTA', heli: 'HELICÓPTERO', wall: 'MURO', train: 'TREN', tank: 'TANQUE', rig: 'CAMIÓN', chef: 'EL CHEF DEL BUFFET', mtrain: 'TREN MILITAR', mansion: 'LA MANSIÓN' };
 export const TI = Object.fromEntries(TYPES.map((t, i) => [t, i]));
 
 // Estados de entidad
@@ -356,3 +357,32 @@ export const ST = { ALIVE: 0, DEAD: 1, HIDDEN: 2, SURRENDER: 3 };
 export const PCOL = ['#3fa9ff', '#ff4f5e', '#5dff7a', '#ffd23f', '#c77dff'];
 export const PCOLN = [0x2f7fe0, 0xe03040, 0x30c050, 0xe0b020, 0xa050e0];
 export const PNAME = ['J1', 'J2', 'J3', 'J4', 'J5'];
+
+// ---------- OLD TOWN (pueblo del Oeste) ----------
+// casas: H = alto de la pared, ff = alto de la fachada falsa, fl = plantas
+export const WHOUSE = [
+  { name: 'SALOON', H: 7.4, fl: 2 }, { name: '', H: 4.4, ff: 6.4, fl: 1 }, { name: 'HOTEL', H: 7.0, fl: 2, gable: 1 },
+  { name: '', H: 3.6, fl: 1, shack: 1 }, { name: 'BANCO', H: 5.4, ff: 7.0, fl: 1, brick: 1 },
+];
+export const WSIGNS = ['ALMACÉN', 'SHERIFF', 'BARBERO', 'ARMERÍA', 'HERRERO', 'CORREOS', 'FUNERARIA', 'ESTABLO'];
+// sitios donde se asoma un pistolero [x a lo ancho (+ = derecha mirando la fachada), altura, fondo (+ = hacia dentro)]
+export function westSpots(k, w) {
+  const T = WHOUSE[k], L = [[0, 0.32, -0.6]];
+  for (const x of [-w * 0.3, w * 0.3]) L.push([x, 0.32, -0.7]);
+  if (T.fl > 1) for (const x of [-w * 0.3, 0, w * 0.3]) L.push([x, 3.55, -0.7]);
+  if (k === 0 || k === 3) L.push([(w * 0.25) * (k % 2 ? 1 : -1), T.H + 0.3, 1.0]);
+  else if (T.ff) L.push([(w * 0.25) * (k % 2 ? 1 : -1), T.ff + 0.25, -0.05]);
+  return L;
+}
+// mansión: 20 m de fachada, 12 de fondo, dos plantas de 3,4 m. Paredes 0-5 = fachada (planta baja izq/centro/dcha y la de arriba),
+// 6-7 = el costado que da hacia el coche (abajo y arriba)
+export const MANSION = { W: 20, D: 12, FH: 3.4 };
+export function mansionWall(i) {
+  const f = i < 6 ? Math.floor(i / 3) : i - 6, y = f * MANSION.FH + MANSION.FH / 2;
+  return i < 6 ? [-MANSION.W / 3 + (i % 3) * MANSION.W / 3, y, 0] : [-MANSION.W / 2, y, MANSION.D / 2];
+}
+// dónde se asoman los de la mansión (en cada habitación, detrás de su pared)
+export function mansionSpot(i) {
+  const f = i < 6 ? Math.floor(i / 3) : i - 6, y = f * MANSION.FH;
+  return i < 6 ? [-MANSION.W / 3 + (i % 3) * MANSION.W / 3, y, 1.4] : [-MANSION.W / 2 + 1.4, y, MANSION.D / 2];
+}

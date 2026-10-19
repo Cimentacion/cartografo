@@ -6,6 +6,7 @@ import { BIOMES, BIOME_KEYS, CITY } from './defs.js';
 import { HALF, WALK, TUNMSG, duneH } from './road.js';
 import { tr } from './i18n.js';
 import { toon, tex } from './toon.js';
+import { well as wWell } from './west.js';
 
 export const CH = 40;
 
@@ -602,6 +603,7 @@ function outsideRun(R, road, B, i0, i1, r) {
   if (B.deco === 'rio') { riverRun(R, road, B, i0, i1, r); return; }
   if (B.deco === 'submarino') { seaRun(R, road, B, i0, i1, r); return; }
   if (B.deco === 'dunas') { duneRun(R, road, B, i0, i1, r); return; }
+  if (B.deco === 'oeste') { westRun(R, road, B, i0, i1, r); return; }
   strip(R.A, road, i0, i1, C(-HALF, 0), C(HALF, 0), LIGHT(B.asphalt, 0.08), 4);
   if (B.deco !== 'pueblo') dashes(R, road, i0, i1, B.line);
   // en los cruces la acera, el bordillo y el talud de ese lado se cortan: la calle entra a ras de la carretera
@@ -738,6 +740,116 @@ function duneRun(R, road, B, i0, i1, r) {
       strip(R.L, road, a, b, C(HALF + 1.2, 0.02), C(16, 0.02), 0x6ab048);
     }
     if (d % 9 === 3) { palm2(R, road, d, -24 - (d % 5), r, 0); palm2(R, road, d + 4, 12 + (d % 4), r, 0); }
+  }
+}
+// ---------- OLD TOWN: calle de tierra, aceras de tablones, plaza con pozo, cerro de la iglesia, cementerio y llanura agrietada ----------
+const WGL = [6.5, 9, 12, 16, 21, 27, 34, 43, 55, 70, 90, 115, 150, 200, 260];
+function westRun(R, road, B, i0, i1, r) {
+  const W = road.westAt(i0) || road.westAt(i1);
+  const zone = d => !W ? 'x' : d < W.town - 10 ? 'in' : d < W.mansion ? 'town' : d < W.church ? 'mans' : d < W.plain ? 'church' : d < W.out ? 'plain' : 'x';
+  const plain = d => W && d >= W.plain - 20;
+  // la calle de tierra con rodadas
+  strip(R.L, road, i0, i1, C(-HALF - 0.5, 0.0), C(HALF + 0.5, 0.0), 0xb07a46);
+  for (const l of [LANE_ME_ - 0.8, LANE_ME_ + 0.8, -LANE_ME_ - 0.8, -LANE_ME_ + 0.8]) strip(R.L, road, i0, i1, C(l - 0.2, 0.01), C(l + 0.2, 0.01), 0x8a5a32);
+  // el suelo a los lados: llano cerca y suaves lomas lejos; en la llanura del duelo, tierra clara y agrietada
+  const gh = (i, la) => { const a = Math.abs(la); return a < 20 ? 0 : Math.min(1, (a - 20) / 60) * (2 + 1.6 * Math.sin(i * 0.02 + la * 0.03) + Math.sin(i * 0.05)); };
+  const gc = la => { const a = Math.abs(la); return a < 12 ? 0xc0864e : a < 40 ? 0xcc9256 : 0xd69c5e; };
+  for (const sd of [-1, 1]) sandGrid(R.L, road, i0, i1, (sd < 0 ? WGL.slice().reverse() : WGL).map(a => sd * a), gh, la => (plain(i0) ? 0xdcb684 : gc(la)));
+  // mesas (cerros rojos de techo plano) a lo lejos
+  for (let c = Math.floor(i0 / 130); c <= Math.floor(i1 / 130); c++) {
+    const d = c * 130 + (hash(road.seed, c, 4141) % 90);
+    if (d < i0 || d >= i1) continue;
+    for (const sd of [-1, 1]) {
+      if (hash(road.seed, c, sd + 4142) % 3 === 0) continue;
+      const lat = sd * (100 + hash(road.seed, c, sd + 4143) % 90), w = 30 + hash(road.seed, c, sd + 4144) % 40, h = 18 + hash(road.seed, c, sd + 4145) % 22;
+      const m = frame(road, d, lat, gh(d, lat) - 2, (hash(road.seed, c, 9) % 100) / 30);
+      addBox(R.L, w, h * 0.55, w * 0.8, 0xb8603a, m, { y: h * 0.27 });
+      addBox(R.L, w * 0.82, h * 0.3, w * 0.66, 0xc87048, m, { y: h * 0.7 });
+      addBox(R.L, w * 0.7, h * 0.18, w * 0.56, 0xa85232, m, { y: h * 0.94 });
+      addBox(R.L, w * 1.05, 2, w * 0.85, 0xd88a5a, m, { y: h * 0.42 });
+    }
+  }
+  // saguaros, piedras y matojos por todas partes (no en la calle)
+  for (const sd of [-1, 1]) each(i0, i1, r, 7, 15, d => {
+    const z = zone(d), near = z === 'town' ? 24 : z === 'church' && sd < 0 ? 48 : 13;
+    const lat = sd * (near + r() * 40), m = frame(road, d, lat, gh(d, lat), r() * 6);
+    const k = r();
+    if (k < 0.45) cactus2(R, m, 0.9 + r() * 1.2);
+    else if (k < 0.75) addBox(R.L, 0.8 + r() * 1.4, 0.5 + r() * 0.8, 0.8 + r() * 1.2, 0x9a6a4a, m, { y: 0.25, rx: r() * 0.3, ry: r() });
+    else for (let q = 0; q < 4; q++) addBox(R.L, 0.5, 0.4, 0.5, 0x8a7a3a, m, { x: (q % 2) * 0.3, z: (q >> 1) * 0.3, y: 0.2, ry: q });
+  });
+  if (!W) return;
+  // --- el pueblo ---
+  const t0 = Math.max(i0, W.town - 6), t1 = Math.min(i1, W.mansion - 4);
+  if (t1 > t0) {
+    for (const sd of [-1, 1]) {
+      // acera de tablones, con su borde
+      strip(R.D, road, t0, t1, C(sd * (HALF + 0.5), 0.32), C(sd * 10.5, 0.32), 0x8a5a32, 2);
+      strip(R.L, road, t0, t1, C(sd * (HALF + 0.5), 0), C(sd * (HALF + 0.5), 0.32), 0x5a3a20);
+      each(t0, t1, r, 9, 16, d => {
+        if (d > W.town + 278 && d < W.town + 347) return;
+        const m = frame(road, d, sd * (HALF + 0.9), 0.32);
+        const k = r();
+        if (k < 0.4) { for (const z of [-1.2, 1.2]) addBox(R.D, 0.14, 1.0, 0.14, 0x6a4424, m, { y: 0.5, z }); addBox(R.D, 0.12, 0.12, 2.6, 0x6a4424, m, { y: 0.95 }); } // barra de atar caballos
+        else if (k < 0.6) { addBox(R.D, 0.8, 0.5, 2.0, 0x6a4424, m, { y: 0.25 }); addBox(R.G, 0.7, 0.02, 1.9, 0x3a6a8a, m, { y: 0.48 }); } // abrevadero
+        else if (k < 0.8) { addCyl(R.D, 0.35, 0.35, 0.9, 10, 0x7a4a24, m, { y: 0.45 }); addCyl(R.D, 0.3, 0.3, 0.8, 10, 0x6a3a1a, m, { y: 0.4, z: 0.75 }); }
+        else { addBox(R.S, 0.1, 3.2, 0.1, 0x2a2a2a, m, { y: 1.6 }); addBox(R.L, 0.6, 0.06, 0.06, 0x2a2a2a, m, { y: 3.1, x: -sd * 0.3 }); addBox(R.G, 0.28, 0.4, 0.28, 0xffd070, m, { y: 2.85, x: -sd * 0.55 }); } // farol
+      });
+      // detrás de las casas: cobertizos, depósito de agua, molino y corrales
+      each(t0, t1, r, 25, 45, d => {
+        const lat = sd * (24 + r() * 10), m = frame(road, d, lat, 0, sd * Math.PI / 2);
+        const k = r();
+        if (k < 0.3) { for (const x of [-1.2, 1.2]) for (const z of [-1.2, 1.2]) addBox(R.D, 0.25, 6, 0.25, 0x5a3a20, m, { x, z, y: 3 }); addCyl(R.D, 2, 2, 2.6, 10, 0x8a5a32, m, { y: 7.2 }); addBox(R.L, 4.4, 0.4, 4.4, 0x4a2a14, m, { y: 8.6 }); }
+        else if (k < 0.5) { addBox(R.D, 0.4, 9, 0.4, 0x6a6a6a, m, { y: 4.5 }); for (let q = 0; q < 8; q++) addBox(R.L, 0.3, 2.6, 0.05, 0xd8d0c0, m, { y: 9, z: -0.3, rz: q * Math.PI / 4 }); addBox(R.L, 0.3, 0.3, 2, 0x6a6a6a, m, { y: 9, z: 0.8 }); }
+        else if (k < 0.8) { addBox(R.D, 7, 3.4, 6, pick(r, B.build), m, { y: 1.7 }); for (const s2 of [-1, 1]) addBox(R.L, 4.2, 0.18, 6.6, B.roof, m, { x: s2 * 1.9, y: 3.9, rz: -s2 * 0.45 }); }
+        else { for (let q = 0; q < 6; q++) addBox(R.D, 0.14, 1.2, 0.14, 0x6a4424, m, { x: -3 + q * 1.2, y: 0.6 }); addBox(R.D, 7, 0.1, 0.1, 0x6a4424, m, { y: 1.0 }); addBox(R.D, 7, 0.1, 0.1, 0x6a4424, m, { y: 0.55 }); }
+      });
+    }
+    // la plaza: tierra más clara y el pozo
+    const p0 = Math.max(t0, W.town + 282), p1 = Math.min(t1, W.town + 343);
+    if (p1 > p0) {
+      strip(R.L, road, p0, p1, C(-22, 0.015), C(22, 0.015), 0xc8925a);
+      if (W.town + 312 >= i0 && W.town + 312 < i1) {
+        const g = wWell(); road.toWorld(W.town + 312, 13, 0, g.position); g.rotation.y = -road.yawAt(W.town + 312); (R.X || (R.X = [])).push(g);
+        const m = frame(road, W.town + 312, -14, 0);
+        addBox(R.D, 0.2, 9, 0.2, 0x8a8a8a, m, { y: 4.5 }); addBox(R.L, 0.05, 1.2, 1.8, 0xc83030, m, { y: 8.2, z: 0.9 }); // mástil con bandera
+        for (const z of [-6, 6]) { addBox(R.D, 0.5, 0.45, 2.2, 0x6a4424, frame(road, W.town + 312 + z, 11, 0), { y: 0.23 }); }
+      }
+    }
+  }
+  // --- la mansión: valla blanca y jardín ---
+  { const a = Math.max(i0, W.mansion + 12), b = Math.min(i1, W.mansion + 80);
+    if (b > a) { for (let d = a; d < b; d += 1.2) if (Math.abs(d - W.mansion - 45) > 2.2) addBox(R.L, 0.08, 1.0, 0.08, 0xf2f2f2, frame(road, d, -13.5, 0), { y: 0.5 }); strip(R.L, road, a, b, C(-13.6, 0.85), C(-13.4, 0.85), 0xf2f2f2); strip(R.L, road, a, b, C(-46, 0.01), C(-14.5, 0.01), 0x6a8a3a); } }
+  // --- el cerro de la iglesia (a la izquierda) y el cementerio (a la derecha) ---
+  if (W.church + 230 >= i0 && W.church + 70 < i1) {
+    const cd = W.church + 150;
+    if (cd >= i0 && cd < i1) {
+      const m = frame(road, cd, -31, 0);
+      addBox(R.K, 30, 7, 46, 0xb87048, m, { y: 3.5 }); addBox(R.K, 24, 1.2, 40, 0xc88058, m, { y: 7.2 }); addBox(R.K, 34, 2.4, 50, 0xa86040, m, { y: 1.2 });
+      for (let k = 0; k < 7; k++) addBox(R.D, 2.4, 0.3, 1.2, 0x9a6a3a, frame(road, cd - 4 + k * 0, -13.5 - k * 0.9, k * 1.0), { y: 0.15 }); // escalones hasta arriba
+      for (let k = 0; k < 6; k++) cactus2(R, frame(road, cd - 18 + k * 7, -22 - (k % 3) * 6, 7.8), 1 + (k % 2) * 0.5);
+    }
+    // tumbas y cruces
+    const a = Math.max(i0, W.church + 40), b = Math.min(i1, W.church + 240);
+    for (let d = Math.ceil(a / 4) * 4; d < b; d += 4) for (let q = 0; q < 3; q++) {
+      const lat = 12 + q * 4.6 + ((d * 7 + q * 3) % 5) * 0.3, m = frame(road, d + ((q * 13 + d) % 3) * 0.5, lat, 0, ((d + q) % 7 - 3) * 0.05);
+      if ((d + q) % 3 === 0) { addBox(R.D, 0.14, 1.3, 0.14, 0x5a3a20, m, { y: 0.65 }); addBox(R.D, 0.14, 0.12, 0.7, 0x5a3a20, m, { y: 1.0 }); }
+      else { addBox(R.C, 0.25, 1.0, 0.8, 0x9a9a92, m, { y: 0.5 }); addCyl(R.C, 0.4, 0.4, 0.25, 8, 0x9a9a92, m, { y: 1.0, rx: Math.PI / 2 }); }
+      addBox(R.L, 1.0, 0.12, 1.9, 0x7a5a3a, m, { y: 0.06, x: 1.1 });
+    }
+    if (b > a) { for (const lat of [10, 26]) for (let d = a; d < b; d += 2) addBox(R.D, 0.12, 1.1, 0.12, 0x4a2a14, frame(road, d, lat, 0), { y: 0.55 }); strip(R.D, road, a, b, C(9.9, 0.9), C(10.1, 0.9), 0x4a2a14); }
+  }
+  // --- la llanura del duelo: grietas, árboles secos y calaveras ---
+  { const a = Math.max(i0, W.plain - 10), b = Math.min(i1, W.out + 40);
+    if (b > a) {
+      for (let k = 0; k < (b - a) * 1.2; k++) {
+        const d = a + r() * (b - a), lat = (r() - 0.5) * 70, m = frame(road, d, lat, 0.02, r() * Math.PI);
+        if (Math.abs(lat) < HALF + 0.5) continue;
+        for (let q = 0; q < 3; q++) addBox(R.L, 0.09, 0.02, 1.6 + r() * 2.4, 0x6a4a2a, m, { z: q * 1.8, ry: (r() - 0.5) * 1.2, x: (r() - 0.5) * 0.6 });
+      }
+      each(a, b, r, 30, 55, d => { const sd = r() < 0.5 ? -1 : 1, m = frame(road, d, sd * (12 + r() * 18), 0, r() * 6); addBox(R.L, 0.3, 3.4, 0.3, 0x4a3a2a, m, { y: 1.7, rz: 0.1 }); addBox(R.L, 0.16, 1.6, 0.16, 0x4a3a2a, m, { y: 3, x: 0.5, rz: -0.7 }); addBox(R.L, 0.14, 1.2, 0.14, 0x4a3a2a, m, { y: 2.6, x: -0.4, rz: 0.8 }); });
+      each(a, b, r, 18, 30, d => { const m = frame(road, d, (r() < 0.5 ? -1 : 1) * (8 + r() * 6), 0.1, r() * 6); addBox(R.L, 0.4, 0.3, 0.5, 0xf0e8d6, m, { y: 0.15 }); for (const x of [-0.35, 0.35]) addBox(R.L, 0.35, 0.08, 0.08, 0xf0e8d6, m, { y: 0.25, x, rz: x > 0 ? -0.4 : 0.4 }); });
+    }
   }
 }
 function palm(R, road, d, lat, r) {

@@ -1,7 +1,8 @@
 // Representación: crea/actualiza los modelos de las entidades a partir del estado (local o recibido)
 import * as THREE from 'three';
 import * as M from './models.js';
-import { ST } from './defs.js';
+import * as WM from './west.js';
+import { ST, BIOMES, BIOME_KEYS } from './defs.js';
 import { LANE_ME } from './road.js';
 import { SEATS } from './sim.js';
 import { lerp } from './util.js';
@@ -165,7 +166,7 @@ const CIV = [0xf0c040, 0x40a0f0, 0xf06080, 0x60d080, 0xffffff, 0xff8030, 0xa070f
 const SKIN = [0xd9a476, 0xb27a4e, 0xf0c8a0, 0x7a5030];
 // enemigos más grandes: más fáciles de ver y de acertar en el móvil
 const SCALE = { gunman: 1.35, civilian: 1.3, victim: 1.3, slasher: 1.35, sniper: 1.5, moto: 1.2, drone: 1.8, chicken: 1.4, grenade: 1.7, rocket: 1.5, medkit: 1.3, barrel: 1.2, jeep: 1.1, lady: 1.3, rock: 1.3,
-  sign: 1.45, harvester: 1.9, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2, beast: 1.35, bear: 1.5, jelly: 1.4, mine: 1.2, zombie: 1.3, bat: 1.5, key: 2.2 };
+  sign: 1.45, harvester: 1.9, skel: 1.3, outlaw: 1.35, wsign: 2, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2, beast: 1.35, bear: 1.5, jelly: 1.4, mine: 1.2, zombie: 1.3, bat: 1.5, key: 2.2 };
 // cosas que no paran las balas
 const NOHIT = new Set(['tlight', 'preview', 'whale', 'casinob']);
 // sombra suave (mancha difuminada en el suelo) bajo coches, personas y animales: barata y estable
@@ -178,7 +179,7 @@ const BLOBT = (() => {
 })();
 const BLOBM = new THREE.MeshBasicMaterial({ map: BLOBT, transparent: true, depthWrite: false, opacity: 0.8, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
 const BLOBG = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
-const NOBLOB = new Set(['tower', 'mbomb', 'dunegate', 'fatman', 'toll', 'obelisk', 'casinob', 'megalodon', 'bat', 'key', 'hdoor', 'prop', 'sign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
+const NOBLOB = new Set(['wsign', 'whouse', 'mansion', 'church', 'tower', 'mbomb', 'dunegate', 'fatman', 'toll', 'obelisk', 'casinob', 'megalodon', 'bat', 'key', 'hdoor', 'prop', 'sign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
 const _bb = new THREE.Box3(), _bs = new THREE.Vector3();
 export function addBlob(g, k = 1.15) {
   _bb.setFromObject(g); _bb.getSize(_bs);
@@ -198,6 +199,7 @@ const MASK = {
   beast: LAYER_ENEMY, bear: LAYER_ENEMY, mine: LAYER_ENEMY, jet: LAYER_ENEMY, blimp: LAYER_ENEMY, rammer: LAYER_ENEMY, junk: LAYER_ENEMY, jelly: LAYER_ENEMY,
   quad: LAYER_ENEMY, crew: LAYER_ENEMY, harvester: LAYER_ENEMY, xcar: LAYER_KEEP, pickup: LAYER_ENEMY, van: LAYER_ENEMY, bus: LAYER_ENEMY, canoe: LAYER_ENEMY,
   jumper: LAYER_ENEMY, tank: LAYER_ENEMY, rig: LAYER_ENEMY, rioter: LAYER_ENEMY, thrown: LAYER_ENEMY, chef: LAYER_ENEMY, boat: LAYER_ENEMY, mtrain: LAYER_ENEMY,
+  wsign: LAYER_KEEP, whouse: LAYER_KEEP, mansion: LAYER_KEEP, church: LAYER_KEEP, skel: LAYER_ENEMY, outlaw: LAYER_ENEMY,
   obelisk: LAYER_KEEP, toll: LAYER_KEEP, victim: LAYER_KEEP, slasher: LAYER_ENEMY, mbomb: LAYER_ENEMY, tuktuk: LAYER_ENEMY, fatman: LAYER_KEEP, firetruck: LAYER_ENEMY, megalodon: LAYER_ENEMY, zombie: LAYER_ENEMY, bat: LAYER_ENEMY, brute: LAYER_ENEMY, key: LAYER_KEEP, hdoor: LAYER_KEEP, prop: LAYER_KEEP,
   preview: LAYER_KEEP, police: LAYER_KEEP, tlight: LAYER_KEEP, fuel: LAYER_KEEP, float: LAYER_KEEP,
   sign: LAYER_KEEP, weapon: LAYER_KEEP, medkit: LAYER_KEEP, amb: LAYER_KEEP, truck: LAYER_KEEP, barrel: LAYER_KEEP, lady: LAYER_KEEP, civilian: LAYER_KEEP, chicken: LAYER_KEEP,
@@ -318,6 +320,9 @@ export class View {
         const o = x.sol ? { shirt: 0x4a5a2a, pants: 0x3a4a2a, cap: 0x3a4a2a, vest: 0x5a6a3a } : Object.assign({}, OUTFIT[((x.sk || 0) + e.id) % OUTFIT.length]);
         if (x.gr) { o.vest = 0xd06a10; o.gun = null; } else if (x.rk) { o.gun = null; o.vest = 0x5a5a3a; } else o.gun = 'pistol';
         o.skin = SKIN[(x.sk || 0) % SKIN.length];
+        // OLD TOWN: vaqueros con sombrero, pañuelo, chaleco y bigote
+        const cb = x.cb || BIOMES[BIOME_KEYS[this.road.bioAt(e.d)]].deco === 'oeste';
+        if (cb) { o.shirt = [0x8a3a2a, 0x3a5a7a, 0xc8b890, 0x5a6a3a, 0x7a2a4a, 0xd8d0c0][((x.sk || 0) + e.id) % 6]; o.pants = [0x3a2a1a, 0x2a3a5a, 0x5a4a3a][e.id % 3]; o.vest = [0x2a1a10, 0x5a3a20, 0x1a1a1a, null][e.id % 4]; o.hat = 'vaquero'; o.neck = e.id % 2 ? 'bufanda' : null; o.beard = ['bigote', 'barba', 'no'][e.id % 3]; o.cap = null; o.mask = null; o.glasses = false; o.hair = 0x2a1a10; }
         // del desierto: túnica, turbante y fusil
         if (x.tb) { o.shirt = [0xe8dcc0, 0x8a7a5a, 0x3a3a3a, 0x6a2a2a][(x.sk || 0) % 4]; o.pants = 0x5a4a3a; o.gun = 'rifle'; o.cap = null; o.mask = null; o.glasses = false; o.hairStyle = 'calvo'; }
         const p = M.person(o);
@@ -366,7 +371,13 @@ export class View {
         this.scene.add(laser); g.userData.laser = laser; g.userData.lm = lm;
         break;
       }
-      case 'moto': g = M.moto(); break;
+      case 'moto': g = x.horse ? WM.horseRider() : M.moto(); break;
+      case 'wsign': g = WM.wSign(); break;
+      case 'whouse': g = WM.wHouse(x.k || 0, x.w || 9, x.sg || 0); break;
+      case 'mansion': g = WM.mansion(); break;
+      case 'church': g = WM.church(); break;
+      case 'skel': { g = WM.skeleton(); g.userData.shooters = [g.userData.rig.bone]; break; }
+      case 'outlaw': g = WM.outlaw(); break;
       case 'ecar': g = x.limo ? M.limo() : M.enemyCar(x.suv ? 0x2a3a24 : 0x16161a); break;
       case 'heli': g = M.heli(); break;
       case 'drone': g = M.drone(); break;
@@ -390,7 +401,7 @@ export class View {
       case 'tank': g = M.tank(); break;
       case 'rig': g = M.rig(); break;
       case 'rioter': g = M.rioter(x.sk || 0, x.tx || 0); break;
-      case 'thrown': g = M.thrown(x.v || 0); break;
+      case 'thrown': g = x.v === 5 ? WM.boneProj() : M.thrown(x.v || 0); break;
       case 'fuel': g = M.fuel(); break;
       case 'chef': g = M.chef(); break;
       case 'boat': g = M.boat(); break;
@@ -644,6 +655,62 @@ function personAnim(o, e, dt, ctx, V) {
 }
 
 const ANIM = {
+  wsign(o, e, dt, ctx) { const a = o.userData.arm; if (e.x && e.x.s) { a.rotation.z += (-0.35 - a.rotation.z) * Math.min(1, dt * 3); a.rotation.y = Math.sin(ctx.t * 6) * 0.08 * Math.max(0, 1 - (o.userData.st = (o.userData.st || 0) + dt) / 3); } },
+  whouse(o, e, dt, ctx, V) {
+    const ud = o.userData, dead = e.st === ST.DEAD;
+    if (dead && ud.live.visible) { ud.live.visible = false; ud.burnt.visible = true; }
+    if (dead && Math.random() < dt * 5) { o.getWorldPosition(V1); V1.y += 2 + Math.random() * 3; V.fx.smoke(V1, true); }
+    if (ud.batL) { const s = Math.sin(ctx.t * 2.2 + e.id) * 0.35; ud.batL.rotation.y = s; ud.batR.rotation.y = -s; }
+  },
+  mansion(o, e, dt, ctx, V) {
+    const ud = o.userData, x = e.x || {};
+    // cada pared rota cae hacia fuera y desaparece
+    ud.walls.forEach((w, i) => {
+      if (x.w && !x.w[i] && w.visible) { w.userData.f = (w.userData.f || 0) + dt; w.rotation.x = (i >= 6 ? 0 : -1) * Math.min(1.5, w.userData.f * w.userData.f * 4); if (i >= 6) w.rotation.z = Math.min(1.5, w.userData.f * w.userData.f * 4); w.position.y -= dt * w.userData.f * 6; if (w.userData.f > 0.8) w.visible = false; }
+    });
+    // explotando: tiembla; hundiéndose: tiembla más y se va de lado como en los dibujos
+    const sh = x.s === 1 ? 0.12 : x.s === 2 ? 0.25 : 0;
+    ud.body.position.set((Math.random() - 0.5) * sh, 0, (Math.random() - 0.5) * sh);
+    ud.body.rotation.z = x.s === 2 ? Math.sin(ctx.t * 9) * 0.03 + (x.t || 0) * 0.04 : 0;
+    if (x.s === 2 && Math.random() < dt * 20) { o.getWorldPosition(V1); V1.x += (Math.random() - 0.5) * 16; V1.y = o.position.y + Math.max(0, -e.h) + Math.random(); V.fx.smoke(V1, true); }
+  },
+  church(o, e, dt, ctx, V) {
+    const ud = o.userData, x = e.x || {};
+    if (x.bc !== ud.bc) { ud.bc = x.bc; ud.sw = 1; }
+    ud.sw = Math.max(0, (ud.sw || 0) - dt * 0.6);
+    ud.bell.rotation.x = Math.sin(ctx.t * 9) * 0.6 * ud.sw;
+    if (x.fall) { ud.ft = (ud.ft || 0) + dt; const k = Math.min(1, ud.ft * ud.ft * 0.9); ud.tower.rotation.z = -k * 1.45; ud.tower.position.y = -Math.max(0, ud.ft - 1.4) * 3; if (ud.ft < 2 && Math.random() < dt * 14) { ud.tower.getWorldPosition(V1); V1.y += 6; V.fx.smoke(V1, true); } }
+  },
+  skel(o, e, dt, ctx) {
+    const R = o.userData.rig, t = ctx.t * 7 + e.id, s = e.sh && e.sh[0];
+    if (e.st === ST.DEAD) { const k = Math.min(1, (o.userData.dt || 0) * 2.5); R.body.position.y = -k * 0.9; R.body.rotation.z = k * 0.9; R.torso.rotation.x = k * 0.8; R.head.position.set(k * 0.5, 0.82 - k * 0.6, k * 0.3); return; }
+    // sale de la tumba
+    const up = Math.min(1, e.age / 1.4);
+    R.body.position.y = -1.9 * (1 - up) * (1 - up);
+    // baile: brazos arriba y abajo, cadera de lado a lado, patadas
+    const r = s && s.on ? s.r : 0;
+    R.torso.rotation.z = Math.sin(t * 0.5) * 0.25; R.torso.rotation.y = Math.sin(t * 0.25) * 0.3;
+    R.head.rotation.z = Math.sin(t) * 0.25; R.head.position.y = 0.82 + Math.abs(Math.sin(t)) * 0.06;
+    R.armL.rotation.set(-1.2 + Math.sin(t) * 1.4, 0, -0.4);
+    R.armR.rotation.set(r > 0.05 ? -2.6 * r : -1.2 - Math.sin(t) * 1.4, 0, 0.4);
+    R.bone.visible = r > 0.05;
+    R.legs[0].rotation.x = Math.max(0, Math.sin(t * 0.5)) * 0.9; R.legs[1].rotation.x = Math.max(0, -Math.sin(t * 0.5)) * 0.9;
+  },
+  outlaw(o, e, dt, ctx) {
+    const ud = o.userData, R = ud.p.userData.rig, x = e.x || {};
+    if (e.st === ST.DEAD) {
+      // cae de espaldas
+      const k = Math.min(1, (ud.dt || 0) * 1.6), ease = k * k * (3 - 2 * k);
+      R.body.rotation.x = ease * 1.5; R.body.position.y = -ease * 0.15;
+      R.armR.rotation.set(1.5 + ease * 1.2, 0, 0.6 * ease); R.armL.rotation.set(1.0 + ease, 0, -0.6 * ease);
+      return;
+    }
+    const drawn = x.ph >= 2;
+    ud.gun.visible = drawn; ud.hgun.visible = !drawn;
+    if (drawn) { R.armR.rotation.x += (1.45 - R.armR.rotation.x) * Math.min(1, dt * 22); R.armL.rotation.set(0.2, 0, -0.3); }
+    else { R.armR.rotation.set(0.12 + Math.sin(ctx.t * 7) * 0.03, 0, 0.25 + Math.sin(ctx.t * 3) * 0.05); R.armL.rotation.set(0.1, 0, -0.25); }
+    R.torso.rotation.y = drawn ? 0 : Math.sin(ctx.t * 0.7) * 0.05;
+  },
   zombie(o, e, dt, ctx) {
     const rig = o.userData.p.userData.rig, x = e.x || {};
     if (e.st === ST.DEAD) { rig.body.rotation.x = Math.min(1.5, (o.userData.dt || 0) * 4); rig.body.position.y = 0; return; }
@@ -868,6 +935,16 @@ const ANIM = {
     } else lz.visible = false;
   },
   moto(o, e, dt, ctx) {
+    // caballo: galope (patas, cabeza, cola y el jinete botando)
+    const H = o.userData.hlegs;
+    if (H) {
+      if (e.st === ST.DEAD) { o.rotation.z = Math.min(1.45, o.userData.dt * 3); return; }
+      const t = ctx.t * 11 + e.id;
+      H.forEach((l, i) => (l.rotation.x = Math.sin(t + [0, 0.5, 3.1, 3.6][i]) * 0.75));
+      o.userData.horse.position.y = Math.abs(Math.sin(t)) * 0.12; o.userData.neck.rotation.x = -0.75 + Math.sin(t) * 0.12; o.userData.tail.rotation.x = Math.sin(t * 0.5) * 0.3;
+      o.userData.rider.position.y = Math.abs(Math.sin(t)) * 0.1;
+      return;
+    }
     if (e.st === ST.DEAD) o.rotation.z = Math.min(1.45, o.userData.dt * 4);
     else o.rotation.z = Math.sin(ctx.t * 1.3 + e.id) * 0.06;
   },

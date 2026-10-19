@@ -99,9 +99,9 @@ export class Road {
     W.town = this._q({ type: 'town', len: 600, bio: OE, zd }).start;
     W.mansion = this._q({ type: 'town', len: 90, bio: OE, zd }).start;
     W.church = this._q({ type: 'town', len: 300, bio: OE, zd }).start;
-    W.plain = this._q({ type: 'town', len: 300, bio: OE, zd }).start;
+    W.plain = this._q({ type: 'town', len: 430, bio: OE, zd }).start;
     W.duel = W.plain + 245;
-    W.out = W.plain + 300;
+    W.out = W.plain + 430;
     this._q({ type: 'approach', len: APPROACH, bio: OE, zd });
     const tn = this._q({ type: 'tunnel', len: TUN, fork: k, bio: OE, zd });
     f.gantry = tn.start - 40; f.tStart = tn.start; f.tEnd = tn.start + TUN;

@@ -37,7 +37,7 @@ function bgeo(w, h, d) {
   return g;
 }
 const CYC = new Map();
-function cgeo(r, h, s) {
+export function cgeo(r, h, s) {
   const k = r + '|' + h + '|' + s;
   let g = CYC.get(k);
   if (!g) { g = new THREE.CylinderGeometry(r, r, h, s); CYC.set(k, g); }
