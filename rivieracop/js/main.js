@@ -326,7 +326,8 @@ function updateChunks(d, all) {
     if (!all && built >= 1) break;
     const g = buildChunk(G.road, c, MATS);
     if (!g) break;
-    SHC.dirty = true;
+    // la sombra solo se vuelve a pintar si el trozo nuevo cae dentro de la zona con sombras (antes era siempre: tirones)
+    if (c * CH < d + 230) SHC.dirty = true;
     scene.add(g);
     G.chunks.set(c, g);
     built++;
@@ -1815,8 +1816,22 @@ function uiAbilities(dt) {
 // ---------------- bucle ----------------
 const QCAR = new THREE.Quaternion(), QLOOK = new THREE.Quaternion(), QINV = new THREE.Quaternion();
 let last = performance.now();
+// resolución automática: si el móvil no llega a ~30 fps en partida, se baja un poco la resolución interna
+// (y se vuelve a subir si va sobrado). Cambia como mucho cada 4 s para no dar tirones al cambiar
+const PERF = { k: 1, ema: 1 / 60, t: 0 };
+function perfGovern(raw) {
+  if (!G.running || G.over || raw > 0.25) return;
+  PERF.ema += (raw - PERF.ema) * 0.05; PERF.t += raw;
+  if (PERF.t < 4) return;
+  let k = PERF.k;
+  if (PERF.ema > 1 / 28 && k > 0.6) k = Math.max(0.6, k - 0.1);
+  else if (PERF.ema < 1 / 50 && k < 1) k = Math.min(1, k + 0.05);
+  if (k !== PERF.k) { PERF.k = k; PERF.t = 0; renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, QUAL[qIdx][1]) * k); applyView(); }
+  else PERF.t = 3;
+}
 function frame(now) {
   requestAnimationFrame(frame);
+  perfGovern((now - last) / 1000);
   let dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   G.t += dt;
@@ -2480,7 +2495,7 @@ $('btnAO').onclick = () => setAO(!AOON);
 function setQuality(i) {
   qIdx = i;
   try { localStorage.setItem('rc_q', i); } catch (e) { }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, QUAL[i][1]));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, QUAL[i][1]) * (PERF.k || 1));
   outline.mat.uniforms.aoOn.value = i > 0 && AOON ? 1 : 0;
   renderer.shadowMap.enabled = i > 0 && SHADOWS; renderer.shadowMap.needsUpdate = true;
   outline.mat.uniforms.aoN.value = i > 1 ? 12 : 8;
