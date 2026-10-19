@@ -919,6 +919,15 @@ const ANIM = {
     if (ud.smoke) { const k = (ctx.t * 0.6 + e.id) % 1; ud.smoke.position.y = ud.smoke.userData.y0 ?? (ud.smoke.userData.y0 = ud.smoke.position.y); ud.smoke.scale.setScalar(1 + k * 0.4); }
     if (e.st === ST.DEAD) { ud.b.rotation.x = Math.min(0.5, (ud.dt || 0) * 0.15); ud.b.rotation.z = Math.min(0.6, (ud.dt || 0) * 0.12); }
   },
+  // el muro reventado salta en pedazos y desaparece
+  wall(o, e, dt, ctx, V) {
+    if (e.st !== ST.DEAD) return;
+    const t = o.userData.dt || 0;
+    if (!o.userData.br) { o.userData.br = 1; o.getWorldPosition(V1); for (let k = 0; k < 6; k++) { V2.set(V1.x + (Math.random() - 0.5) * 8, V1.y + 1 + Math.random() * 2, V1.z + (Math.random() - 0.5) * 4); V.fx.smoke(V2.clone(), true); } }
+    const k = Math.min(1, t / 0.7);
+    o.children.forEach((c, i) => { if (c.userData.blob) return; c.position.y -= dt * (2 + i % 3) * 3 * k; c.rotation.z += dt * (i % 2 ? 3 : -3); c.scale.setScalar(Math.max(0.01, 1 - k)); });
+    if (t > 0.8) o.visible = false;
+  },
   tumble(o, e, dt) { const b = o.userData.b; b.rotation.x += dt * 5; b.rotation.z += dt * 2; },
   lboat(o, e, dt) { if (e.st === ST.DEAD) { const t = o.userData.dt || 0; o.children[0].rotation.x = Math.min(0.6, t * 2); o.children[0].position.y = -Math.min(0.5, t); } },
   gatcart(o, e, dt, ctx) {

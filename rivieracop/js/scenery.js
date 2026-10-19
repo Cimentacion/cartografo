@@ -416,7 +416,8 @@ function facade(R, road, d, out = 0) {
   const F = (lat, h) => frame(road, d, lat, h);
   // muros base (laterales y dintel); el material y el color cambian con el estilo
   const wall = (L, col, uvs) => {
-    for (const sd of [-1, 1]) addBox(L, 28, 24 + dn, 3, col, F(sd * 21.55, (24 - dn) / 2), { uvs });
+    // (los laterales empiezan justo donde acaba el marco: antes se metían uno en otro)
+    for (const sd of [-1, 1]) addBox(L, 28, 24 + dn, 3, col, F(sd * 22.45, (24 - dn) / 2), { uvs });
     addBox(L, 15.4, 15.2, 3, col, F(0, 15.2), { uvs });
   };
   const rim = (col, L = R.L) => {

@@ -2234,12 +2234,9 @@ function updBeams(t) {
 const GW = new THREE.Vector3(), GF = new THREE.Vector3();
 function inGunWay(o) {
   o.getWorldPosition(GW);
+  // solo si la cámara está prácticamente dentro de él (antes desaparecía al mirarlo de lado)
   const dx = GW.x - camera.position.x, dz = GW.z - camera.position.z, dh = Math.hypot(dx, dz);
-  if (dh < 1.3) return true;
-  if (dh > 2.1) return false;
-  camera.getWorldDirection(GF);
-  const fl = Math.hypot(GF.x, GF.z) || 1;
-  return (dx * GF.x + dz * GF.z) / (dh * fl) > 0.62;
+  return dh < 0.75;
 }
 // posición a pie de cada jugador [d, lat, giro, bote al andar]; la propia se suaviza (al invitado le llega a saltos)
 const FPS = [null, null, null, null, null];
