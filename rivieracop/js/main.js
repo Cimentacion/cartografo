@@ -30,7 +30,9 @@ const $ = id => document.getElementById(id);
 
 // ---------------- 3D ----------------
 const canvas = $('gl');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+// profundidad logarítmica: con la normal, en el móvil lo lejano no tenía precisión y las piezas casi pegadas
+// (pilastras, impostas, balcones sobre la fachada) se peleaban: líneas en zigzag que cambiaban al girar la cámara
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', logarithmicDepthBuffer: !/nolog=1/.test(location.search) });
 // calidad: resolución interna (BAJA 1x, MEDIA 1.5x, ALTA 2x) y oclusión ambiental
 // las dos últimas: más resolución para ver mejor a los enemigos (gasta más batería)
 const QUAL = [['BAJA', 1], ['MEDIA', 1.25], ['ALTA', 1.6], ['ULTRA', 2.25], ['NATIVA', 4]];

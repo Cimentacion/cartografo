@@ -66,7 +66,7 @@ export class Outline {
     this.rt.texture.colorSpace = hf ? THREE.LinearSRGBColorSpace : THREE.SRGBColorSpace;
     this.rt.depthTexture = new THREE.DepthTexture(2, 2);
     // profundidad en coma flotante: con 16/24 bits los móviles pintaban rayas en paredes y suelo
-    this.rt.depthTexture.type = THREE.FloatType;
+    this.rt.depthTexture.type = /d16=1/.test(location.search) ? THREE.UnsignedShortType : THREE.FloatType; // TODO-TESTEO d16
     // máscara de enemigos: comparte la profundidad de la escena, así solo marca lo que se ve (nada a través de paredes)
     this.mrt = new THREE.WebGLRenderTarget(2, 2, { depthBuffer: true, depthTexture: this.rt.depthTexture });
     const mm = c => new THREE.MeshBasicMaterial({ color: c, fog: false, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 });
@@ -86,7 +86,7 @@ export class Outline {
         float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
           return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y); }
         varying vec2 vUv;
-        float lin(float d){ float z = d * 2.0 - 1.0; return (2.0 * near * far) / (far + near - z * (far - near)); }
+        float lin(float d){ return exp2(d * log2(far + 1.0)) - 1.0; } // profundidad logarítmica (ver main.js)
         void main(){
           vec2 hz = heat > 0.0 ? vec2(sin(vUv.y * 160.0 + time * 6.0) * 0.0016 * heat * smoothstep(0.3, 0.55, vUv.y) * (1.0 - smoothstep(0.62, 0.8, vUv.y)), 0.0) : vec2(0.0);
           vec3 c = texture2D(tColor, vUv + hz).rgb;
