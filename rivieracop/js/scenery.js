@@ -1378,6 +1378,8 @@ function skyBridges(R, road, B, i0, i1) {
 function guardrail(R, road, i0, i1, sd, col = 0xd9dde0) {
   for (let i = i0; i < i1; i += 3) {
     if (road.kindAt(i) === 1) continue;
+    // no se mete en la fachada de la boca del túnel
+    if (road.tunnels.some(t => i + 3 > t.start - 4 && i < t.end + 4)) continue;
     const m = frame(road, i + 1.5, sd * 8.25, 0.18);
     addBox(R.L, 0.08, 0.28, 3.05, col, m, { y: 0.62 });
     addBox(R.L, 0.12, 0.7, 0.12, 0x9a9ea2, m, { y: 0.35 });

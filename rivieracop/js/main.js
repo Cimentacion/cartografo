@@ -2103,7 +2103,7 @@ function tick(dt) {
   // bajo el agua (Titanic): niebla y cielo del fondo del mar
   if (TFX.under) B = BIOMES.tsub;
   outline.red = outline.aura ? 1 : B.deco === 'zombi' || G.foot ? 0.45 : 0;
-  outline.mat.uniforms.heat.value = B.deco === 'dunas' && !inTun && G.road.kindAt(G.carD) !== 4 ? 1 : 0; outline.mat.uniforms.time.value = G.t;
+  outline.mat.uniforms.heat.value = (B.deco === 'submarino' || B.deco === 'tsub' || TFX.under) && !inTun ? 2 : B.deco === 'dunas' && !inTun && G.road.kindAt(G.carD) !== 4 ? 1 : 0; outline.mat.uniforms.time.value = G.t;
   if (G.stormT > 0) G.stormT -= dt;
   { const so = G.stormT > 1.2 ? 1 : Math.max(0, (G.stormT || 0) / 1.2); if (so !== G.stormO) { G.stormO = so; $('sandfx').style.opacity = so; } }
   // arena que vuela a ras de suelo

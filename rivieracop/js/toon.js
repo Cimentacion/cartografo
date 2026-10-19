@@ -90,7 +90,9 @@ export class Outline {
         varying vec2 vUv;
         float lin(float d){ return logd > 0.5 ? exp2(d * log2(far + 1.0)) - 1.0 : near * far / (far - d * (far - near)); } // profundidad logarítmica o normal (ver main.js)
         void main(){
-          vec2 hz = heat > 0.0 ? vec2(sin(vUv.y * 160.0 + time * 6.0) * 0.0016 * heat * smoothstep(0.3, 0.55, vUv.y) * (1.0 - smoothstep(0.62, 0.8, vUv.y)), 0.0) : vec2(0.0);
+          // calima: en el desierto una franja en el horizonte; bajo el agua (heat = 2) todo ondula, más hacia la superficie
+          vec2 hz = heat > 1.5 ? vec2(sin(vUv.y * 70.0 + time * 2.6) * 0.0035 + sin(vUv.y * 190.0 - time * 4.0) * 0.0012, cos(vUv.x * 55.0 + time * 2.1) * 0.0022) * (0.35 + 0.65 * smoothstep(0.35, 1.0, vUv.y))
+            : heat > 0.0 ? vec2(sin(vUv.y * 160.0 + time * 6.0) * 0.0016 * heat * smoothstep(0.3, 0.55, vUv.y) * (1.0 - smoothstep(0.62, 0.8, vUv.y)), 0.0) : vec2(0.0);
           vec3 c = texture2D(tColor, vUv + hz).rgb;
           vec2 px = 1.0 / res;
           float raw = texture2D(tDepth, vUv).r;
