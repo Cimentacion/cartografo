@@ -2647,35 +2647,65 @@ $('codeIn').addEventListener('keydown', e => { if (e.key === 'Enter') $('btnGo')
 
 window.addEventListener('error', e => { const el = $('err'); el.hidden = false; el.textContent = 'Error: ' + e.message + ' (' + (e.filename || '').split('/').pop() + ':' + e.lineno + ')'; });
 
-// fondo del menú: el coche bajando hacia Mónaco
+// fondo del menú: el coche bajando hacia Mónaco, con planos de cámara como un tráiler
+// (siempre por el lado del mar o por la carretera: nunca se mete en los edificios)
+const DEMO_SHOTS = [
+  // [posición inicial, posición final, punto al que mira (todo relativo al coche: -z es hacia delante, +x el lado de los edificios)]
+  [[-1.2, 1.2, -11], [-0.4, 1.6, -7.5], [0, 1.3, 0]],
+  [[-7.5, 2.0, 3], [-7.0, 2.4, -4], [0, 1.2, 0]],
+  [[0.6, 5.5, 12], [0, 4.2, 9], [0, 1.0, -25]],
+  [[-4, 0.7, -5], [-5.5, 1.1, 1.5], [0, 1.6, 0]],
+  [[-8, 8, -14], [-6.5, 5.5, -6], [0, 1.0, 0]],
+  [[-3.4, 2.5, 2.2], [-3.6, 2.4, 0.4], [0.6, 1.9, -30]],
+];
 function startDemo() {
   clearChunks();
   G.road = new Road(12345);
-  G.road.extend(700);
+  G.road.extend(900);
   if (!view) view = new View(scene, G.road, fx);
   view.clear(); view.road = G.road;
   view.setAvatars([MYCHAR, defaultChar(1), defaultChar(2), defaultChar(3)]);
   view.av.forEach((a, i) => (a.visible = true));
   if (fpg) fpg.visible = false;
-  let dd = 120;
+  const D0 = 230, D1 = 600;
+  let dd = D0, sh = 0, st = 0, last = performance.now();
   view.placeCar(dd, 0, 0);
   updateChunks(dd, true);
   const B = BIOMES.monaco;
-  scene.background.setHex(B.sky); scene.fog.color.setHex(B.sky); seaMat.color.setHex(B.sea);
+  // la misma luz, cielo y niebla que en la partida
+  scene.background.setHex(B.sky); seaMat.color.setHex(B.sea);
+  scene.fog.near = Math.min(B.fogNear, 120); scene.fog.far = Math.min(B.fogFar, 215);
+  hemi.color.setHex(B.hemi[0]).lerp(TC.setHex(0x8aa4ff), 0.45); hemi.groundColor.setHex(B.hemi[1]).lerp(TC.setHex(0x5a6ac8), 0.5); hemi.intensity = B.hemi[2] * 0.68;
+  sun.color.setHex(B.sun[0]); sun.intensity = B.sun[1] * 1.4;
+  { const U = skyMat.uniforms, T = SKYT[skyTypeOf(B)]; U.hz.value.set(T.bands[T.bands.length - 1]); U.top.value.setHex(T.top); scene.fog.color.copy(U.hz.value); }
+  outline.mat.uniforms.tint.value.setHex(B.sky).lerp(TC.setHex(0xffffff), 0.25);
+  if (outline.mat.uniforms.dim) outline.mat.uniforms.dim.value = 0;
+  const L = (a, b, t) => V3.set(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t);
+  window.__demo = (a, b) => { sh = a; st = b; }; // TODO-TESTEO
   const spin = () => {
     if (G.running) return;
     requestAnimationFrame(spin);
-    dd += 0.18;
-    if (dd > 560) { dd = 120; updateChunks(dd, true); }
+    const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now;
+    dd += dt * 11; st += dt;
+    // cambio de plano cada ~5 s; si se acaba el tramo se vuelve al principio en un corte
+    if (st > 5.2) { st = 0; sh = (sh + 1) % DEMO_SHOTS.length; if (dd > D1) { dd = D0; updateChunks(dd, true); } }
     view.placeCar(dd, G.t, 0);
     updateChunks(dd, false);
-    const t = G.t * 0.2;
-    camera.position.set(Math.sin(t) * 7.5, 2.6 + Math.sin(t * 0.7) * 0.8, Math.cos(t) * 7.5);
-    view.car.localToWorld(camera.position);
-    camera.lookAt(V1.copy(view.car.position).add(V2.set(0, 1.2, 0)));
-    sea.position.set(camera.position.x, 0, camera.position.z);
-    sun.position.copy(camera.position).add(V1.set(40, 80, 25));
-    sun.target.position.copy(camera.position);
+    const [p0, p1, lk] = DEMO_SHOTS[sh], u = st / 5.2, e = u * u * (3 - 2 * u);
+    camera.position.copy(L(p0, p1, e)); view.car.localToWorld(camera.position);
+    V1.set(lk[0], lk[1], lk[2]); view.car.localToWorld(V1); camera.lookAt(V1);
+    // que nunca quede por debajo del suelo
+    const gy = view.car.position.y + 0.35; if (camera.position.y < gy) camera.position.y = gy;
+    skyDome.position.copy(camera.position);
+    for (const m of cloudDomes) { m.position.copy(camera.position); m.rotation.y += dt * 0.004; }
+    sea.position.set(camera.position.x, G.road.seaAt(dd), camera.position.z);
+    // sombras: igual que en la partida, el mapa se rehace solo cuando el coche avanza ~40 m
+    G.road.toWorld(dd + 60, 0, 0, V2);
+    { const px = 290 / sun.shadow.mapSize.x, tx = Math.round(40 / px) * px, a = Math.round(V2.dot(SUNX) / tx) * tx, b = Math.round(V2.dot(SUNY) / tx) * tx, c = Math.round(V2.dot(SUNZ) / tx) * tx;
+      const key = a + ',' + b + ',' + c;
+      if (key !== SHC.key || SHC.dirty) { SHC.key = key; SHC.dirty = false; renderer.shadowMap.needsUpdate = true; }
+      sun.target.position.copy(SUNX).multiplyScalar(a).addScaledVector(SUNY, b).addScaledVector(SUNZ, c); }
+    sun.position.copy(sun.target.position).add(SUNO);
   };
   spin();
 }
