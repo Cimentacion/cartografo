@@ -166,7 +166,7 @@ const CIV = [0xf0c040, 0x40a0f0, 0xf06080, 0x60d080, 0xffffff, 0xff8030, 0xa070f
 const SKIN = [0xd9a476, 0xb27a4e, 0xf0c8a0, 0x7a5030];
 // enemigos más grandes: más fáciles de ver y de acertar en el móvil
 const SCALE = { gunman: 1.35, civilian: 1.3, victim: 1.3, slasher: 1.35, sniper: 1.5, moto: 1.2, drone: 1.8, chicken: 1.4, grenade: 1.7, rocket: 1.5, medkit: 1.3, barrel: 1.2, jeep: 1.1, lady: 1.3, rock: 1.3,
-  sign: 1.45, harvester: 1.9, skel: 1.3, outlaw: 1.35, wsign: 2, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2, beast: 1.35, bear: 1.5, jelly: 1.4, mine: 1.2, zombie: 1.3, bat: 1.5, key: 2.2 };
+  sign: 1.45, harvester: 1.9, skel: 1.3, outlaw: 1.35, wsign: 2, goblin: 1.5, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2, beast: 1.35, bear: 1.5, jelly: 1.4, mine: 1.2, zombie: 1.3, bat: 1.5, key: 2.2 };
 // cosas que no paran las balas
 const NOHIT = new Set(['tlight', 'preview', 'whale', 'casinob']);
 // sombra suave (mancha difuminada en el suelo) bajo coches, personas y animales: barata y estable
@@ -199,7 +199,7 @@ const MASK = {
   beast: LAYER_ENEMY, bear: LAYER_ENEMY, mine: LAYER_ENEMY, jet: LAYER_ENEMY, blimp: LAYER_ENEMY, rammer: LAYER_ENEMY, junk: LAYER_ENEMY, jelly: LAYER_ENEMY,
   quad: LAYER_ENEMY, crew: LAYER_ENEMY, harvester: LAYER_ENEMY, xcar: LAYER_KEEP, pickup: LAYER_ENEMY, van: LAYER_ENEMY, bus: LAYER_ENEMY, canoe: LAYER_ENEMY,
   jumper: LAYER_ENEMY, tank: LAYER_ENEMY, rig: LAYER_ENEMY, rioter: LAYER_ENEMY, thrown: LAYER_ENEMY, chef: LAYER_ENEMY, boat: LAYER_ENEMY, mtrain: LAYER_ENEMY,
-  wsign: LAYER_KEEP, whouse: LAYER_KEEP, mansion: LAYER_KEEP, church: LAYER_KEEP, skel: LAYER_ENEMY, outlaw: LAYER_ENEMY,
+  goblin: LAYER_ENEMY, wsign: LAYER_KEEP, whouse: LAYER_KEEP, mansion: LAYER_KEEP, church: LAYER_KEEP, skel: LAYER_ENEMY, outlaw: LAYER_ENEMY,
   obelisk: LAYER_KEEP, toll: LAYER_KEEP, victim: LAYER_KEEP, slasher: LAYER_ENEMY, mbomb: LAYER_ENEMY, tuktuk: LAYER_ENEMY, fatman: LAYER_KEEP, firetruck: LAYER_ENEMY, megalodon: LAYER_ENEMY, zombie: LAYER_ENEMY, bat: LAYER_ENEMY, brute: LAYER_ENEMY, key: LAYER_KEEP, hdoor: LAYER_KEEP, prop: LAYER_KEEP,
   preview: LAYER_KEEP, police: LAYER_KEEP, tlight: LAYER_KEEP, fuel: LAYER_KEEP, float: LAYER_KEEP,
   sign: LAYER_KEEP, weapon: LAYER_KEEP, medkit: LAYER_KEEP, amb: LAYER_KEEP, truck: LAYER_KEEP, barrel: LAYER_KEEP, lady: LAYER_KEEP, civilian: LAYER_KEEP, chicken: LAYER_KEEP,
@@ -378,6 +378,7 @@ export class View {
       case 'church': g = WM.church(); break;
       case 'skel': { g = WM.skeleton(); g.userData.shooters = [g.userData.rig.bone]; break; }
       case 'outlaw': g = WM.outlaw(); break;
+      case 'goblin': g = WM.goblin(); break;
       case 'ecar': g = x.limo ? M.limo() : M.enemyCar(x.suv ? 0x2a3a24 : 0x16161a); break;
       case 'heli': g = M.heli(); break;
       case 'drone': g = M.drone(); break;
@@ -655,6 +656,19 @@ function personAnim(o, e, dt, ctx, V) {
 }
 
 const ANIM = {
+  goblin(o, e, dt, ctx) {
+    const R = o.userData.rig, x = e.x || {}, t = ctx.t + e.id;
+    if (e.st === ST.DEAD) { const k = Math.min(1, (o.userData.dt || 0) * 2.5); R.body.rotation.x = k * 1.5; R.body.position.y = -k * 0.1; return; }
+    if (x.ph === 0) { // quieto: se balancea y mira con su sonrisa
+      R.body.position.y = Math.abs(Math.sin(t * 3)) * 0.04; R.head.rotation.z = Math.sin(t * 1.5) * 0.2; R.head.rotation.y = Math.sin(t * 0.7) * 0.4;
+      R.armR.rotation.x = 0.3; R.armL.rotation.x = 0.4; R.legs.forEach(l => (l.rotation.x = 0));
+    } else if (x.ph === 1) { // corre a toda pastilla
+      const w = t * 16; R.legs[0].rotation.x = Math.sin(w) * 1.1; R.legs[1].rotation.x = -Math.sin(w) * 1.1;
+      R.armL.rotation.x = Math.sin(w) * 1.0; R.armR.rotation.x = 0.6; R.body.position.y = Math.abs(Math.sin(w)) * 0.12; R.torso.rotation.x = 0.3; R.head.rotation.set(-0.2, 0, Math.sin(w) * 0.1);
+    } else { // cava como loco
+      const w = t * 14; R.torso.rotation.x = 0.6 + Math.sin(w) * 0.25; R.armR.rotation.x = 1.2 + Math.sin(w) * 0.9; R.armL.rotation.x = 1.2 + Math.sin(w) * 0.9; R.legs.forEach(l => (l.rotation.x = 0));
+    }
+  },
   wsign(o, e, dt, ctx) { const a = o.userData.arm; if (e.x && e.x.s) { a.rotation.z += (-0.35 - a.rotation.z) * Math.min(1, dt * 3); a.rotation.y = Math.sin(ctx.t * 6) * 0.08 * Math.max(0, 1 - (o.userData.st = (o.userData.st || 0) + dt) / 3); } },
   whouse(o, e, dt, ctx, V) {
     const ud = o.userData, dead = e.st === ST.DEAD;

@@ -292,3 +292,33 @@ export function well() {
   box(g, 0.3, 0.3, 0.3, 0x6a5a4a, 0, 1.3, 0); box(g, 0.02, 0.6, 0.02, 0x8a7a60, 0, 1.6, 0);
   return g;
 }
+
+// ---------- el goblin del saco: pequeño, verde, sonrisa rara, saco a la espalda y pala ----------
+export function goblin() {
+  const g = new THREE.Group(), SK = 0x6aa83a, SKD = 0x4a8a2a, CL = 0x6a4a2a;
+  const body = new THREE.Group(); g.add(body);
+  const legs = [-1, 1].map(sd => { const l = new THREE.Group(); l.position.set(sd * 0.1, 0.42, 0); body.add(l); box(l, 0.12, 0.38, 0.13, CL, 0, -0.19, 0, 'body'); box(l, 0.15, 0.08, 0.24, 0x2a1a10, 0, -0.38, -0.05, 'body'); return l; });
+  const torso = new THREE.Group(); torso.position.y = 0.42; body.add(torso);
+  box(torso, 0.38, 0.36, 0.28, 0x8a6a3a, 0, 0.18, 0, 'body'); box(torso, 0.4, 0.06, 0.3, 0x3a2a1a, 0, 0.02, 0, 'body');
+  const head = new THREE.Group(); head.position.y = 0.38; torso.add(head);
+  box(head, 0.46, 0.38, 0.4, SK, 0, 0.2, 0, 'head');
+  box(head, 0.12, 0.14, 0.1, SKD, 0, 0.18, -0.24, 'head');                                    // narizota
+  for (const sd of [-1, 1]) { const e = box(head, 0.3, 0.12, 0.05, SK, sd * 0.33, 0.28, 0, 'head'); e.rotation.z = sd * 0.35; box(head, 0.09, 0.09, 0.02, 0xfff060, sd * 0.11, 0.3, -0.205); box(head, 0.04, 0.05, 0.02, 0x111111, sd * 0.11, 0.3, -0.215); }
+  // la sonrisa rara: boca ancha con dientes torcidos
+  box(head, 0.32, 0.07, 0.02, 0x2a0a0a, 0, 0.07, -0.205);
+  for (let k = 0; k < 6; k++) box(head, 0.035, 0.05 + (k % 2) * 0.02, 0.02, 0xf4f0d0, -0.13 + k * 0.052, 0.085, -0.212);
+  for (const sd of [-1, 1]) box(head, 0.06, 0.04, 0.02, 0x2a0a0a, sd * 0.17, 0.11, -0.205).rotation.z = sd * 0.5;
+  box(head, 0.48, 0.08, 0.42, 0x5a2a6a, 0, 0.42, 0); box(head, 0.2, 0.2, 0.2, 0x5a2a6a, 0.05, 0.54, 0.05).rotation.z = -0.3; // gorrito
+  // el saco a la espalda (con monedas asomando)
+  const sack = new THREE.Group(); sack.position.set(0, 0.28, 0.3); torso.add(sack);
+  box(sack, 0.5, 0.5, 0.4, 0xc8a870, 0, 0, 0, 'body'); box(sack, 0.22, 0.12, 0.2, 0xb89860, 0, 0.3, -0.02, 'body');
+  for (let k = 0; k < 3; k++) { const c = new THREE.Mesh(cgeo(0.05, 0.02, 8), glow(0xffd040)); c.position.set(-0.06 + k * 0.06, 0.38, -0.02); c.rotation.x = 1.2; sack.add(c); }
+  box(sack, 0.03, 0.03, 0.5, 0x6a4a2a, 0.18, 0.15, -0.3); box(sack, 0.03, 0.03, 0.5, 0x6a4a2a, -0.18, 0.15, -0.3);
+  const mkArm = sd => { const a = new THREE.Group(); a.position.set(sd * 0.24, 0.3, 0); torso.add(a); box(a, 0.1, 0.1, 0.32, SK, 0, 0, -0.15, 'body'); box(a, 0.12, 0.12, 0.1, SKD, 0, 0, -0.33, 'body'); return a; };
+  const armR = mkArm(1), armL = mkArm(-1);
+  // la pala
+  const shovel = new THREE.Group(); shovel.position.set(0, 0, -0.34); armR.add(shovel);
+  box(shovel, 0.05, 0.05, 0.9, 0x8a5a2a, 0, 0, -0.1, 'body'); box(shovel, 0.24, 0.03, 0.3, 0x8a8e96, 0, 0, -0.68, 'body'); box(shovel, 0.16, 0.06, 0.06, 0x5a3a20, 0, 0, 0.36, 'body');
+  g.userData.rig = { body, torso, head, armR, armL, legs, shovel };
+  return g;
+}

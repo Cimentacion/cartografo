@@ -346,7 +346,7 @@ export const TYPES = ['gunman', 'civilian', 'moto', 'ecar', 'heli', 'drone', 'tr
   'jumper', 'tank', 'rig', 'rioter', 'thrown', 'fuel', 'chef', 'boat', 'tlight', 'mtrain', 'preview', 'float',
   'quad', 'pickup', 'van', 'bus', 'canoe',
   'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'whale', 'turret', 'gunship', 'crew', 'police', 'xcar', 'harvester', 'zombie', 'bat', 'brute', 'key', 'hdoor', 'prop', 'megalodon', 'obelisk', 'casinob', 'firetruck', 'toll', 'victim', 'slasher', 'tower', 'mbomb', 'tuktuk', 'fatman', 'dunegate',
-  'wsign', 'whouse', 'mansion', 'church', 'skel', 'outlaw'];
+  'wsign', 'whouse', 'mansion', 'church', 'skel', 'outlaw', 'goblin'];
 // jefes: llevan barra de vida en pantalla
 export const BOSS = { tower: 'LA TORRE', obelisk: 'EL OBELISCO', megalodon: 'EL MEGALODÓN', brute: 'EL CARNICERO', harvester: 'LA COSECHADORA', gunship: 'EL CAÑONERO', bear: 'OSO GRIZZLY', blimp: 'DIRIGIBLE', bus: 'AUTOBÚS', jeep: 'TERRORISTA', heli: 'HELICÓPTERO', wall: 'MURO', train: 'TREN', tank: 'TANQUE', rig: 'CAMIÓN', chef: 'EL CHEF DEL BUFFET', mtrain: 'TREN MILITAR', mansion: 'LA MANSIÓN' };
 export const TI = Object.fromEntries(TYPES.map((t, i) => [t, i]));

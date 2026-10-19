@@ -46,7 +46,7 @@ const PTS = {
   barrel: 50, wall: 600, train: 900, jumper: 180, tank: 2000, rig: 1200, rioter: 80, thrown: 30, chef: 3000, boat: 450, mtrain: 2500,
   quad: 150, pickup: 400, van: 600, bus: 1200, canoe: 120,
   beast: 160, bear: 3500, mine: 60, jet: 500, blimp: 5000, rammer: 500, junk: 20, jelly: 90, turret: 300, gunship: 6000, crew: 500, xcar: 150, harvester: 8000, zombie: 60, bat: 80, brute: 9000, key: 500, prop: 30, megalodon: 8000, obelisk: 3000, casinob: 10000, firetruck: 1800, toll: 400, slasher: 400, tower: 20000, mbomb: 40, tuktuk: 500,
-  whouse: 400, mansion: 6000, skel: 150, outlaw: 5000,
+  whouse: 400, mansion: 6000, skel: 150, outlaw: 5000, goblin: 3000,
 };
 
 // los enemigos normales se van desbloqueando a lo largo de la partida (segundos de partida)
@@ -676,6 +676,8 @@ export class Sim {
       e.x.limo = 1; e.hp = Math.ceil(e.hp * 1.4);
       if (once0(this, 'limo')) this.emit('banner', { txt: '¡LA MAFIA!', sub: 'Limusinas con tiradores', c: '#ff40c0' });
     }
+    // el goblin del saco: a partir del tercer mapa de la partida, uno cada tres mapas (el 3.º, el 6.º, el 9.º...)
+    if (kz >= 2 && (kz - 2) % 3 === 0 && !inTun && !this.foot && prog > 0.25 + (hash(this.seed, kz, 333) % 35) / 100 && once('gob')) this.spawnGoblin();
     // OLD TOWN: el cartel en las dunas (si nadie le dispara, se sigue por el desierto) y el pueblo del Oeste
     { const WS = this.road.westSign(this.carD);
       if (WS) {
@@ -1058,6 +1060,24 @@ export class Sim {
     for (let i = 0; i < (cl ? n : 1); i++) e.sh.push(this.shooter(2.5 + r() * 0.6, 'shot', 0.3 + i * 0.5));
     if (cl) this.emit('banner', { txt: '¡SON COMO VOSOTROS!', sub: 'Un tuk-tuk con vuestros dobles', c: '#ff40c0' });
     else if (once0(this, 'tuk')) this.emit('banner', { txt: '¡TUK-TUKS!', sub: '', c: '#ffb060' });
+  }
+  spawnGoblin() {
+    const r = this.r, sd = r() < 0.5 ? -1 : 1, d = this.carD + 75 * this.spk(), lat = sd * (8.5 + r() * 3);
+    const e = this.add('goblin', { d, lat, h: BIOMES[BIOME_KEYS[this.road.bioAt(d)]].deco === 'dunas' ? duneH(d, lat) : 0, hp: 3 + this.nAlive(), ry: 0 });
+    e.x = { ph: 0, t: 0, sd };
+  }
+  // poder del goblin para todo el grupo: x2 de daño, ultravelocidad (disparo al doble y recarga al instante) o bomba atómica
+  goblinPower(p) {
+    const k = ['x2', 'speed', 'nuke'][Math.floor(this.r() * 3)];
+    this.emit('gobp', { k, p });
+    if (k === 'nuke') {
+      this.emit('fx', { f: 'boom', w: this.wpos(this.carD + 40, 0, 6), s: 6 });
+      for (const e of this.ents) {
+        if (e.st === ST.DEAD || e.rm || !(HOSTILE.has(e.type) || e.sh.some(s => s.alive)) || this.rel(e) < -40 || this.rel(e) > 160) continue;
+        if (BOSS[e.type] || e.type === 'mansion' || e.type === 'outlaw') { if (e.hm) this.damage(e, p, e.hm * 0.25); }
+        else this.kill(e, p);
+      }
+    }
   }
   // ---------------- OLD TOWN ----------------
   westDir(W, dt, cap, full) {
@@ -1900,6 +1920,7 @@ function ser(e) {
     case 'church': x = { bc: X.bc, fall: X.fall }; break;
     case 'skel': x = { sk: X.sk }; break;
     case 'outlaw': x = { ph: X.ph }; break;
+    case 'goblin': x = { ph: X.ph }; break;
   }
   if (e.hm) { x = x || {}; x.hm = e.hm; }
   if (X.mk > 0) { x = x || {}; x.mk = 1; }
@@ -2193,6 +2214,24 @@ const U = {
   },
   sign(e, dt, S) { if (S.rel(e) < -15) e.rm = true; },
   wsign(e, dt, S) { e.vd = 0; if (S.rel(e) < -40) e.rm = true; },
+  goblin(e, dt, S) {
+    const x = e.x, rel = S.rel(e);
+    if (e.st === ST.DEAD) { e.vd = 0; if (e.deadT > 3) e.rm = true; return; }
+    if (x.ph === 0) {
+      // quieto, sonriendo, hasta que lo veis: entonces sale corriendo
+      e.vd = 0; e.ry = faceCar(e, S);
+      if (rel < 50) { x.ph = 1; x.t = 0; S.emit('banner', { txt: '¡UN GOBLIN!', sub: 'Mátalo antes de que se esconda bajo tierra', c: '#8aff4a' }); }
+    } else if (x.ph === 1) {
+      // corre a esconderse lejos de la carretera
+      x.t += dt; e.vd = S.speed + 3.5; e.lat += x.sd * 4.5 * dt; e.ry = x.sd > 0 ? -1.2 : 1.2;
+      if (x.t > 3.2) { x.ph = 2; x.t = 0; }
+    } else {
+      // cava y se hunde
+      x.t += dt; e.vd = S.speed * 0.5; e.h -= dt * (x.t > 0.8 ? 1.2 : 0); e.ry = faceCar(e, S);
+      if (x.t > 2.4) { e.rm = true; S.emit('banner', { txt: 'EL GOBLIN SE HA ESCAPADO', sub: '', c: '#aaaaaa' }); }
+    }
+    if (rel < -20) e.rm = true;
+  },
   whouse(e, dt, S) { e.vd = 0; if (S.rel(e) < -45) e.rm = true; },
   mansion(e, dt, S) {
     const x = e.x, rel = S.rel(e);
@@ -2848,6 +2887,7 @@ function proj(e, dt, S) {
 
 // --------- qué pasa al dar a cada cosa ---------
 const HIT = {
+  goblin(e, p, part, dmg, S) { S.damage(e, p, dmg); },
   wsign(e, p, part, dmg, S) {
     if (e.x.s) return;
     const W = S.road.west.find(q => q.k === e.x.k);
@@ -3226,6 +3266,7 @@ function dropWeapon(e, S, extraTier = 0, rare = false) {
 }
 
 const KILL = {
+  goblin(e, p, S) { S.emit('fx', { f: 'heal', w: S.wpos(e.d, e.lat, e.h + 1) }); S.goblinPower(p); },
   whouse(e, p, S) {
     // explota y queda en palos negros
     for (let k = 0; k < 3; k++) S.emit('fx', { f: 'boom', w: S.wpos(e.d + (S.r() - 0.5) * e.x.w * 0.6, e.lat + e.x.sd * (2 + S.r() * 5), 1.5 + S.r() * 3), s: 1.6 });

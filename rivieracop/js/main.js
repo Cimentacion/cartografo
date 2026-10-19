@@ -460,7 +460,7 @@ function fire() {
   const E = W.e;
   const fur = PW.furiaT > 0;
   if (!fur && !(Math.random() < (E.saveP || 0))) W.ammo--;
-  W.cd = 1 / (E.rate * (fur ? 2 : 1)); W.recoil = 1; W.flash = 0.06; W.shots = (W.shots || 0) + 1;
+  W.cd = 1 / (E.rate * (fur ? 2 : 1) * (PW.gsp > 0 ? 2 : 1)); W.recoil = 1; W.flash = 0.06; W.shots = (W.shots || 0) + 1;
   if (fpg) { const F = fpg.userData.flash; F.rotation.z = Math.random() * 6.3; F.scale.setScalar(0.8 + Math.random() * 0.6); }
   SFX.shot(W.def.model === 'ray' || W.def.model === 'gl' ? 'launcher' : W.def.model);
   // retroceso: cada arma sube la mira distinto (la escopeta y el lanzagranadas pegan un buen golpe)
@@ -508,6 +508,7 @@ function fire() {
     if (h.part === 'shield') dm *= E.shieldM || 1;
     if (W.contraT > 0) dm *= 1 + 0.25 * (PROG.upg.contra | 0);
     if (PW.fuerzaT > 0) dm *= PW.fuerzaM || 2;
+    if (PW.gx2 > 0) dm *= 2;
     dm *= STY.dmgM();
     add(h, dm);
     // bala explosiva (mejora)
@@ -705,6 +706,14 @@ function handleEvent(ev) {
       else { showBanner('¡DESENFUNDA!', '', '#ff4040'); SFX.tone(1200, 600, 0.25, 'sawtooth', 0.25); }
       break;
     case 'bell': SFX.tone(660, 650, 0.9, 'sine', 0.3); setTimeout(() => SFX.tone(990, 980, 0.6, 'sine', 0.15), 30); break;
+    case 'gobp': {
+      // poder del goblin (para todo el grupo, 15 s)
+      const N = { x2: ['¡DAÑO X2!', 'Todo el grupo, 15 segundos'], speed: ['¡ULTRAVELOCIDAD!', 'Disparo al doble y recarga al instante, 15 s'], nuke: ['¡BOMBA ATÓMICA!', 'Todos los enemigos a la vista, fuera'] }[ev.k];
+      if (ev.k === 'x2') PW.gx2 = 15; else if (ev.k === 'speed') PW.gsp = 15;
+      else { const f = document.createElement('div'); f.style.cssText = 'position:fixed;inset:0;background:#fff;z-index:50;pointer-events:none;transition:opacity 1.6s'; document.body.appendChild(f); requestAnimationFrame(() => requestAnimationFrame(() => (f.style.opacity = 0))); setTimeout(() => f.remove(), 1800); G.shake = Math.max(G.shake, 0.6); }
+      showBanner(N[0], N[1], '#8aff4a'); SFX.tone(200, 1200, 0.5, 'sawtooth', 0.3);
+      break;
+    }
     case 'mono': SFX.tone(1300, 900, 0.09, 'square', 0.12); setTimeout(() => SFX.tone(1500, 1000, 0.08, 'square', 0.1), 110); break;
     case 'storm': G.stormT = ev.dur || 5; SFX.tone(120, 60, 2.5, 'sawtooth', 0.15); break;
     case 'siren': for (let i = 0; i < 3; i++) setTimeout(() => { SFX.tone(700, 1100, 0.22, 'square', 0.12); setTimeout(() => SFX.tone(1100, 700, 0.22, 'square', 0.12), 230); }, i * 470); break;
@@ -926,7 +935,7 @@ function begin(seed, n, li, mode) {
   AB.shield.cd = 0; AB.bullet.cd = 0;
   GR.n = PROG.upg.gren | 0; for (const g of GR.list) scene.remove(g.m); GR.list.length = 0;
   CAN.t = 0; CAN.cd = 0; CAN.saved = null;
-  look.flip = 0; $('btnFlip').classList.remove('on'); G.potUsed = false; TB.cd = 0; TB.rv = 0; W.contraT = 0; PW.furiaT = 0; PW.fuerzaT = 0; LENS.on = false; PW.cd = {}; G.smokeT = 0; G.zoomT = 1; G.zoom = 1; G.lay = 0;
+  look.flip = 0; $('btnFlip').classList.remove('on'); G.potUsed = false; TB.cd = 0; TB.rv = 0; W.contraT = 0; PW.furiaT = 0; PW.fuerzaT = 0; PW.gx2 = 0; PW.gsp = 0; LENS.on = false; PW.cd = {}; G.smokeT = 0; G.zoomT = 1; G.zoom = 1; G.lay = 0;
   $('regulIn').value = 100; G.spdF = 1;
   outline.aura = (PROG.upg.aura | 0) > 0; outline.red = outline.aura ? 1 : 0;
   $('btnHide').hidden = n < 2;
@@ -1703,6 +1712,8 @@ function useAbility(k) {
 function uiAbilities(dt) {
   if (PW.furiaT > 0) PW.furiaT -= dt;
   if (PW.fuerzaT > 0) PW.fuerzaT -= dt;
+  if (PW.gx2 > 0) PW.gx2 -= dt;
+  if (PW.gsp > 0) { PW.gsp -= dt; if (W.rl > 0 && !W.def.shell) W.rl = Math.min(W.rl, 0.02); }
   { const me = G.players[G.li]; $('btnPot').hidden = !((PROG.pot | 0) > 0) || G.potUsed || !me || !me.alive || me.hp >= me.maxHp;
     // al caer: 10 s para revivir con un anuncio (o una poción que tengas); después desaparece
     if (me && !me.alive) { if (!G.adBusy) G.deadT = (G.deadT || 0) + dt; } else G.deadT = 0;
