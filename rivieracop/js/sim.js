@@ -595,7 +595,9 @@ export class Sim {
     if (!this.canAhead(130)) return;
     if (this.foot || this.has('brute') || BIOMES[BIOME_KEYS[this.road.bioAt(this.carD + 80)]].deco === 'zombi') { this.zombieDir(dt); return; }
     this.waveT -= dt;
-    const front = Math.min(2, this.n), cap = Math.max(1, Math.floor(1 + this.diff * 0.9) + (front - 1) + (this.stunT > 0 || this.hold ? 3 : 0) - (this.n === 1 ? 1 : 0));
+    // ritmo Virtua Cop: pocos a la vez (2-3 en solitario, algo más en grupo) para poder ir limpiando la pantalla
+    const front = Math.min(2, this.n), cap = clamp(Math.floor(1.5 + this.diff * 0.35) + (front - 1) + (this.stunT > 0 || this.hold ? 1 : 0) - (this.n === 1 ? 1 : 0), 2, this.n === 1 ? 4 : 6);
+    const full = this.hostileCount(this.n > 2 ? false : null) >= cap + 1;
     if (this.waveT <= 0) {
       if (this.hostileCount(this.n > 2 ? false : null) < cap) this.spawnWave();
       // en solitario salen menos: más tiempo entre oleadas
@@ -641,7 +643,7 @@ export class Sim {
     const free = this.stunT <= 0 && !this.hold;
     if (deco === 'detroit' && !inTun && free) {
       if (this.timer('wall', dt, 45) && !this.has('wall')) this.spawnWall(0);
-      if (this.timer('lady', dt, 20)) this.spawnLady();
+      if (!full && this.timer('lady', dt, 20)) this.spawnLady();
     }
     if (deco === 'industrial' && !inTun && free && this.timer('wall', dt, 60) && !this.has('wall')) this.spawnWall(2);
     // una vez por zona: el traficante de armas (lento, con su música); al reventarlo suelta un arma especial
@@ -660,10 +662,10 @@ export class Sim {
         if (this.carD > D.storm - 30 && once0(this, 'storm' + D.k)) { this.emit('storm', { dur: 5 }); this.emit('banner', { txt: '¡TORMENTA DE ARENA!', sub: '', c: '#ffb060' }); }
         const pre = this.carD < D.drop - 40, arena = this.carD > D.arena + 20 && (D.out == null || this.carD < D.out);
         if (pre || arena) {
-          if (this.timer('tuk', dt, this.n === 1 ? 11 : 8) && this.count('tuktuk') < 2 + (this.n > 2 ? 1 : 0)) this.spawnTuktuk(false);
+          if (!full && this.timer('tuk', dt, this.n === 1 ? 16 : 11) && this.count('tuktuk') < 1 + (this.n > 2 ? 1 : 0)) this.spawnTuktuk(false);
           if (pre && prog > 0.42 && once('clone')) this.spawnTuktuk(true);
-          if (this.timer('vult', dt, 15) && this.count('bat') < 3) for (let i = 0; i < 2; i++) this.spawnBat(i, 1);
-          if (pre && this.timer('turb', dt, 12) && this.hostileCount(false) < cap + 2) this.spawnTurbans();
+          if (!full && this.timer('vult', dt, 18) && this.count('bat') < 2) for (let i = 0; i < 2; i++) this.spawnBat(i, 1);
+          if (pre && !full && this.timer('turb', dt, 14)) this.spawnTurbans();
         }
         if (D.out != null && this.carD > D.out - 90 && this.carD < D.out + 40 && once0(this, 'dg' + D.k)) { const g = this.add('dunegate', { d: D.out + 75, lat: 0, h: 0, hp: 999 }); g.x = { o: 0 }; }
       }
@@ -680,20 +682,20 @@ export class Sim {
     if (deco === 'militar' && !inTun) {
       if (this.timer('tank', dt, 34) && !this.has('tank')) this.spawnTank();
       if (free && this.timer('wall', dt, 55) && !this.has('wall')) this.spawnWall(1);
-      if (this.timer('squad', dt, 9)) this.spawnSquad();
+      if (!full && this.timer('squad', dt, 9)) this.spawnSquad();
     }
     if (deco === 'autopista' && !inTun && this.timer('rig', dt, 28) && !this.has('rig') && this.laneFree(-70, 20)) this.spawnRig();
-    if (deco === 'manifa' && !inTun && prog > 0.3 && prog < 0.58 && this.timer('riot', dt, 6)) this.spawnRioters();
+    if (deco === 'manifa' && !inTun && !full && prog > 0.3 && prog < 0.58 && this.timer('riot', dt, 6)) this.spawnRioters();
     if (deco === 'manifa' && !inTun && prog > 0.6 && once('march')) this.spawnMarch();
     if (deco === 'barro' && !inTun && this.timer('fuel', dt, 8)) this.spawnFuel();
     if (deco === 'orgullo' && !inTun && this.timer('float', dt, 16) && this.laneFree(-20, 180)) this.spawnFloat();
     if (deco === 'chino') {
-      if (this.timer('jump', dt, 5.5) && this.count('jumper') < 2 + this.n) this.spawnJumper(true);
+      if (!full && this.timer('jump', dt, 5.5) && this.count('jumper') < 1 + this.n) this.spawnJumper(true);
       if (prog > 0.64 && prog < 0.75 && once('chef')) this.spawnChef();
     }
     if (deco === 'rio' && !inTun) {
-      if (this.timer('boat', dt, 7) && this.count('boat') < 4) this.spawnBoat();
-      if (this.timer('canoe', dt, 5) && this.count('canoe') < 4) this.spawnCanoe();
+      if (!full && this.timer('boat', dt, 7) && this.count('boat') < 3) this.spawnBoat();
+      if (!full && this.timer('canoe', dt, 5) && this.count('canoe') < 3) this.spawnCanoe();
     }
     if (deco === 'semaforos' && Z.f && !inTun) {
       for (const pos of this.road.lights(Z.f)) if (this.carD > pos - 170 && this.carD < pos - 30 && once('L' + pos)) this.spawnLight(pos);
@@ -711,13 +713,13 @@ export class Sim {
       }
     }
     if (deco === 'bosque') {
-      if (this.timer('beast', dt, 3.6) && this.count('beast') < 3 + this.n) this.spawnBeasts(this.r() < 0.5 ? 0 : 1);
+      if (!full && this.timer('beast', dt, 3.6) && this.count('beast') < 2 + this.n) this.spawnBeasts(this.r() < 0.5 ? 0 : 1);
       if (prog > 0.45 && once('bear')) this.spawnBear();
     }
     if (deco === 'guerra' && !inTun) {
       if (this.timer('mine', dt, 6)) this.spawnMines();
       if (this.timer('tank', dt, 40) && !this.has('tank')) this.spawnTank();
-      if (this.timer('squad', dt, 10)) this.spawnSquad();
+      if (!full && this.timer('squad', dt, 10)) this.spawnSquad();
     }
     // túneles: cada tramo trae el peligro que anuncia el panel luminoso de antes
     if (deco === 'tuneles' && !inTun && Z.f) {
@@ -752,15 +754,15 @@ export class Sim {
     }
     // lomas: camiones y furgonetas con tiradores encima que salen de detrás de cada cambio de rasante
     if (deco === 'lomas' && !inTun) {
-      if (this.timer('crew', dt, 6.5) && this.count('crew') < (this.n > 2 ? 3 : 2)) this.spawnCrew(this.n > 2 && this.r() < 0.3);
+      if (!full && this.timer('crew', dt, 6.5) && this.count('crew') < (this.n > 2 ? 2 : 1)) this.spawnCrew(this.n > 2 && this.r() < 0.3);
     }
     if (deco === 'llanura' && !inTun) {
       if (prog > 0.1 && once('blimp')) this.spawnBlimp();
-      if (this.timer('jet', dt, 11)) this.spawnJet();
+      if (!full && this.timer('jet', dt, 11)) this.spawnJet();
     }
     if (deco === 'ruinas' && !inTun) {
       if (this.count('junk') < 3 && this.timer('junk', dt, 1.2)) this.spawnJunk();
-      if (this.timer('roof', dt, 4) && this.hostileCount(false) < cap + 1) this.spawnRoofGunmen();
+      if (!full && this.timer('roof', dt, 4)) this.spawnRoofGunmen();
       if (this.timer('lady', dt, 18)) this.spawnLady();
     }
     if (deco === 'submarino' && !inTun) {
@@ -775,18 +777,18 @@ export class Sim {
       this.zt.pt = (this.zt.pt || 0) + dt;
       // en la bajada de la ermita todavía no hay casas: allí salen a pie entre los árboles
       const inTown = Z.f && Z.prog * (Z.f.slen || 720) > 200;
-      if (inTown && this.timer('win', dt, 3.0) && this.hostileCount(false) < cap + 2) this.spawnWindowGunmen();
+      if (inTown && !full && this.timer('win', dt, 3.0)) this.spawnWindowGunmen();
       for (const c of this.road.crossings(this.carD + 35, this.carD + 85)) if (once('x' + Math.round(c)) && this.r() < 0.75) this.spawnXCar(c);
       if (this.timer('trac', dt, 24) && !this.has('crew') && this.canAhead(100)) this.spawnTractor();
       if (this.zt.pt > 60 && once('harv')) this.spawnHarvester();
     }
     if (deco === 'bajada' && !inTun) {
       // lanzacohetes en los lados y motos que vienen por detrás a toda velocidad
-      if (this.timer('rk', dt, 5) && this.hostileCount(false) < cap + 1) this.spawnRocketeers();
-      if (this.timer('bikes', dt, 7)) for (let i = 0; i < 2 + (this.r() < 0.4 ? 1 : 0); i++) this.spawnMoto(i, true);
+      if (!full && this.timer('rk', dt, 5)) this.spawnRocketeers();
+      if (!full && this.timer('bikes', dt, 9)) for (let i = 0; i < 2; i++) this.spawnMoto(i, true);
     }
     if (deco === 'curva' && !inTun) {
-      if (this.timer('turret', dt, 6) && this.count('turret') < 3) this.spawnTurret();
+      if (!full && this.timer('turret', dt, 6) && this.count('turret') < 2) this.spawnTurret();
       if (prog > 0.35 && once('gunship')) this.spawnGunship();
     }
     // coches que embisten (por detrás si hay artilleros traseros; si no, de lado)
@@ -820,13 +822,13 @@ export class Sim {
     const k = this.weighted(w);
     const r = this.r;
     switch (k) {
-      case 'gunman': this.spawnGunmen(1 + Math.floor(r() * (1 + this.diff * 0.5)), false); break;
+      case 'gunman': this.spawnGunmen(Math.min(3, 1 + Math.floor(r() * (1 + this.diff * 0.25))), false); break;
       // (los soldados con escudo salen dentro de spawnGunmen)
-      case 'cover': this.spawnGunmen(1 + Math.floor(r() * 2 + this.diff * 0.3), true); break;
+      case 'cover': this.spawnGunmen(Math.min(3, 1 + Math.floor(r() * 1.6 + this.diff * 0.15)), true); break;
       case 'grenadier': this.spawnGunmen(1, true, true); if (r() < 0.5) this.spawnGunmen(1, false); break;
       case 'moto': for (let i = 0, n = 1 + (r() < 0.4 + this.diff * 0.08 ? 1 : 0); i < n; i++) this.spawnMoto(i); break;
       case 'ecar': this.spawnECar(); break;
-      case 'drone': for (let i = 0, n = 2 + (r() < 0.4 ? 1 : 0); i < n; i++) this.spawnDrone(i); break;
+      case 'drone': for (let i = 0, n = 1 + (r() < 0.5 ? 1 : 0); i < n; i++) this.spawnDrone(i); break;
       case 'sniper': this.spawnSniper(); break;
       case 'heli': this.spawnHeli(); break;
       case 'barrels': this.spawnBarrels(); break;
@@ -980,7 +982,7 @@ export class Sim {
   }
   // ---- dunas ----
   spawnTower(D) {
-    const e = this.add('tower', { d: this.carD + 170, lat: 150, h: 0, hp: 1 });
+    const e = this.add('tower', { d: this.carD + 195, lat: 0, h: 0, hp: 1 });
     const ch = 7 + 3 * this.nAlive();
     e.x = { m: 0, fl: 0, F: 3, cm: 0, chp: ch, ch: [ch, ch, ch, ch, ch, ch], st: 14, sq: -1, sqT: 0, pat: 0, k: D.k, y0: null };
     e.hp = e.hm = 3 * 6 * ch;
@@ -988,9 +990,9 @@ export class Sim {
   }
   // salva de la torre: anillos y espirales de misiles que caen alrededor del coche
   salvo(e, w, pat) {
-    const T = 2.9, dC = this.carD + this.speed * T, h0 = Math.max(18, 62 - e.x.fl * 14);
-    for (let j = 0; j < 8; j++) {
-      const a = j / 8 * Math.PI * 2 + (pat === 1 ? w * 0.45 : 0);
+    const T = 3.3, dC = this.carD + this.speed * T, h0 = Math.max(18, 62 - e.x.fl * 14);
+    for (let j = 0; j < 5; j++) {
+      const a = j / 5 * Math.PI * 2 + (pat === 1 ? w * 0.45 : 0);
       const rr = pat === 0 ? 10 - w * 2 : pat === 1 ? 3 + w * 1.6 : (w % 2 ? 7 : 2.5);
       const m = this.add('mbomb', { d: e.d, lat: e.lat, h: h0, hp: 1 });
       m.x = { d0: e.d, l0: e.lat, h0, td: dC + Math.cos(a) * rr, tl: LANE_ME + Math.sin(a) * rr * 0.55, T: T + j * 0.04 };
@@ -1002,7 +1004,7 @@ export class Sim {
   }
   // tiradores en el piso que queda abajo (puntos fijos alrededor de la torre)
   spawnFloor() {
-    const r = this.r, n = 3 + this.nAlive();
+    const r = this.r, n = 2 + Math.ceil(this.nAlive() / 2);
     for (let i = 0; i < n; i++) {
       const g = this.add('gunman', { d: this.carD + 8 + i * 9 + r() * 4, lat: ARENA_R - 12 - r() * 3, h: 0.2, hp: 3, st: ST.ALIVE });
       g.x = { cv: -1, gr: 0, pop: 999, sk: Math.floor(r() * 6), tb: 1, fix: 1 };
@@ -1010,7 +1012,7 @@ export class Sim {
     }
   }
   spawnTurbans() {
-    const r = this.r, side = r() < 0.5 ? -1 : 1, base = this.carD + (60 + r() * 30) * this.spk(), n = 3 + (this.diff > 3 ? 1 : 0);
+    const r = this.r, side = r() < 0.5 ? -1 : 1, base = this.carD + (60 + r() * 30) * this.spk(), n = 2 + (this.diff > 4 ? 1 : 0);
     for (let i = 0; i < n; i++) {
       const d = base + i * 3, lat = side * (13 + r() * 9);
       const g = this.add('gunman', { d, lat, h: 0.2 + duneH(d, lat), hp: 2, st: ST.ALIVE });
@@ -2570,7 +2572,7 @@ const U = {
     if (!D) { e.rm = true; return; }
     if (x.m === 0) {
       // siempre a la misma distancia, al fondo a la derecha
-      e.d = S.carD + 170; e.lat = 150; e.h = 0; e.ry = 0;
+      e.d = S.carD + 195; e.lat = 0; e.h = 0; e.ry = 0;
       if (S.carD > D.arena - 15) x.m = 1;
     }
     if (x.m === 1) {
@@ -2584,7 +2586,7 @@ const U = {
     if (x.fl < x.F) {
       x.st -= dt;
       if (x.st <= 0 && x.sq < 0) { x.sq = 0; x.sqT = 0; x.pat = Math.floor(S.r() * 3); S.emit('banner', { txt: '¡SALVA DE MISILES!', sub: 'Derribad los que vienen a por vosotros', c: '#ff4040' }); S.emit('siren'); }
-      if (x.sq >= 0) { x.sqT -= dt; if (x.sqT <= 0) { S.salvo(e, x.sq, x.pat); x.sq++; x.sqT = 0.45; if (x.sq >= 5) { x.sq = -1; x.st = 30; } } }
+      if (x.sq >= 0) { x.sqT -= dt; if (x.sqT <= 0) { S.salvo(e, x.sq, x.pat); x.sq++; x.sqT = 0.9; if (x.sq >= 3) { x.sq = -1; x.st = 30; } } }
     }
     // rendición: a los 10 s se abre la salida
     if (x.surT != null && !x.exit) { x.surT -= dt; if (x.surT <= 0) { x.exit = 1; S.road.setArenaExit(S.road.gates); S.emit('arenaX', { g: S.road.gates }); S.emit('banner', { txt: '¡A LA SALIDA!', sub: 'La duna se abre', c: '#7dff8a' }); } }

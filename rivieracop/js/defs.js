@@ -297,7 +297,7 @@ export const BIOMES = {
   dunas: {
     name: 'DUNAS DEL DESIERTO', color: '#ffa040',
     sky: 0xf0a060, fogNear: 70, fogFar: 240, sea: 0xd8a860,
-    asphalt: 0xd8a868, walk: 0xe0b070, skirt: 0xe8b878, line: 0xd8a868,
+    asphalt: 0xe2984e, walk: 0xe8a058, skirt: 0xf0a456, line: 0xe2984e,
     hemi: [0xffd0a0, 0xb0703a, 1.1], sun: [0xffb070, 1.9], night: false,
     // amanecer naranja en las dunas: sin carretera, subidas y bajadas suaves; a los 2 min una gran bajada al oasis,
     // tormenta de arena y la batalla en círculo alrededor de la torre (se le tiran las columnas piso a piso)

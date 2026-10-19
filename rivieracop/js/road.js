@@ -14,7 +14,7 @@ export const ARENA_R = 70, ARENA_L = 2 * Math.PI * ARENA_R, ARENA_Q = ARENA_L / 
 export const duneH = (d, lat) => {
   const a = Math.abs(lat), s = Math.sign(lat) || 1;
   if (a < 7) return 0;
-  const n = Math.min(1, (a - 7) / 14) * (1.4 + 1.1 * Math.sin(d * 0.045 + s * 1.3) + 0.7 * Math.sin(d * 0.11 + a * 0.08));
+  const n = Math.min(1, (a - 7) / 14) * (1.4 + 1.1 * Math.sin(d * 0.045 + s * 1.3) + 0.45 * Math.sin(d * 0.07 + a * 0.05));
   return n + (a > 28 ? Math.min(1, (a - 28) / 50) * (6 + 5 * Math.sin(d * 0.02 + s) + 2 * Math.sin(d * 0.07 + a * 0.05)) : 0);
 };
 export const TUNMSG = { coches: 'COCHES EN TODOS LOS CARRILES', pinchos: 'PINCHOS EN LA CALZADA', moteros: 'MOTORISTAS ARMADOS', emboscada: 'EMBOSCADA: CIRCULE CON PRECAUCIÓN' };

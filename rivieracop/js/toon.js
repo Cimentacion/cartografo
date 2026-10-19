@@ -14,7 +14,12 @@ export function toonGrad() {
   return GRAD;
 }
 export function toon(o = {}) {
-  return new THREE.MeshToonMaterial(Object.assign({ gradientMap: toonGrad() }, o));
+  const m = new THREE.MeshToonMaterial(Object.assign({ gradientMap: toonGrad() }, o));
+  // las sombras se calculan con las caras de DETRÁS de cada pieza (todo son cajas cerradas):
+  // así la cara que da al sol nunca se sombrea a sí misma, que es lo que pintaba rayas en las fachadas
+  // (también las de doble cara: el suelo y las paredes planas no se hacen sombra encima a sí mismos)
+  m.shadowSide = THREE.BackSide;
+  return m;
 }
 // degradado vertical en cada pieza de los modelos: abajo más oscuro, arriba más claro
 // (en espacio local de la pieza: en una caja centrada, los vértices de arriba tienen y > 0)

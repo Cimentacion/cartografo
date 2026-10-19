@@ -56,7 +56,7 @@ sun.shadow.mapSize.set(1024, 1024);
 // (lo que se mueve lleva su sombra suave debajo); así no tiemblan y casi no cuestan
 Object.assign(sun.shadow.camera, { left: -145, right: 145, top: 145, bottom: -145, near: 20, far: 460 });
 // sombras duras (poco difuminado)
-sun.shadow.bias = -0.0012; sun.shadow.normalBias = 0.22;
+sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.06;
 // rayas en las fachadas (acné): donde el sol llega muy de canto la superficie ya está en sombra por el toon,
 // así que ahí la sombra proyectada se ignora (y no salen las bandas diagonales en los edificios)
 { const k = 'directLight.color *= ( directLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;';
@@ -393,6 +393,15 @@ function castOne(origin, dir, assist) {
   }
   return null;
 }
+// disparo táctil: punto de la pantalla (en coordenadas del juego, que puede ir girado) -> -1..1
+function aimNDC() {
+  const a = look.aimAt;
+  if (!look.tapAim || !a || performance.now() - a.t > 3000) return null;
+  let gx = a.x, gy = a.y;
+  if (VP.rot === 90) { gx = a.y; gy = innerWidth - a.x; } else if (VP.rot === -90) { gx = innerHeight - a.y; gy = a.x; }
+  return { x: gx / vw() * 2 - 1, y: -(gy / vh() * 2 - 1) };
+}
+const TAPRAY = new THREE.Raycaster();
 function fire() {
   if (W.rl > 0 || W.cd > 0 || !G.running || G.over) return;
   const me = G.players[G.li];
@@ -408,6 +417,7 @@ function fire() {
   if (E.kick) { look.tPitch += E.kick; look.pitch += E.kick * 0.6; if (E.kick >= 0.05) G.shake = Math.max(G.shake, 0.12); }
   const origin = camera.getWorldPosition(new THREE.Vector3());
   const base = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+  { const n = aimNDC(); if (n) { TAPRAY.setFromCamera(n, camera); base.copy(TAPRAY.ray.direction); } }
   const muzzle = fpg.userData.muzzle.getWorldPosition(new THREE.Vector3());
   fx.muzzle(muzzle, base, W.def.model === 'shotgun' || W.def.model === 'launcher' || W.def.model === 'gl' ? 1.6 : 1);
   fx.shell(muzzle, V2.set(1, 0, 0).applyQuaternion(camera.quaternion), W.def.model === 'shotgun');
@@ -1839,6 +1849,8 @@ function tick(dt) {
   if (W.rl > 0) { W.rl -= dt; if (W.rl <= 0) { W.rl = 0; W.ammo = W.e.mag; } }
   const me = G.players[li];
   const canShoot = me && me.alive && !G.over && G.cd < 0;
+  if (look.tapShot !== G.tapSeen) { G.tapSeen = look.tapShot; if (canShoot) { if (W.ammo <= 0) startReload(); else G.tapPend = 0.35; } }
+  if (G.tapPend > 0) { G.tapPend -= dt; if (W.cd <= 0 && W.rl <= 0 && canShoot) { G.tapPend = 0; fire(); } }
   if (look.fire && canShoot) {
     if (W.e.auto) fire();
     else if (!G.prevFire) { if (W.ammo <= 0) startReload(); else fire(); }
@@ -1885,7 +1897,8 @@ function tick(dt) {
   }
   // mira "caliente" si apunta a algo
   if ((G.t * 10 | 0) % 2 === 0) {
-    ray.set(camera.position, V1.set(0, 0, -1).applyQuaternion(camera.quaternion));
+    { const n = aimNDC(); if (n) { ray.setFromCamera(n, camera); } else ray.set(camera.position, V1.set(0, 0, -1).applyQuaternion(camera.quaternion)); }
+    hud.aim = aimNDC();
     const r = ray.intersectObjects(view.hit, true);
     const x = r.length ? resolve(r[0]) : null;
     hud.hot = !!(x && x.part !== 'cover');
@@ -1896,14 +1909,16 @@ function tick(dt) {
   const T0 = G.road.tunnels[0], dark = inTun && T0 && T0.start < 20 && G.carD < T0.end - 2;
   outline.mat.uniforms.dim.value = dark ? 1 : 0; outline.mat.uniforms.dimD.value = dark ? T0.end - G.carD : 0;
   // dentro de un túnel ya se ve el cielo y la niebla de la zona a la que se sale (no de golpe al salir)
-  const TT = inTun && !dark ? G.road.tunnels.find(t => G.carD >= t.start - 4 && G.carD <= t.end + 4) : null;
+  // (se mira por la posición del coche, no por "estar dentro": en los últimos metros del túnel volvía un instante al cielo
+  // de antes y el fundido de nubes se reiniciaba: salía el cielo azul un segundo)
+  const TT = !dark ? G.road.tunnels.find(t => G.carD >= t.start - 4 && G.carD <= t.end + 15) : null;
   const B = BIOMES[BIOME_KEYS[G.road.bioAt(TT ? TT.end + 15 : G.carD)]];
   outline.red = outline.aura ? 1 : B.deco === 'zombi' || G.foot ? 0.45 : 0;
   outline.mat.uniforms.heat.value = B.deco === 'dunas' && !inTun ? 1 : 0; outline.mat.uniforms.time.value = G.t;
   if (G.stormT > 0) G.stormT -= dt;
   { const so = G.stormT > 1.2 ? 1 : Math.max(0, (G.stormT || 0) / 1.2); if (so !== G.stormO) { G.stormO = so; $('sandfx').style.opacity = so; } }
   // arena que vuela a ras de suelo
-  if (B.deco === 'dunas' && !inTun && Math.random() < dt * 14) { G.road.toWorld(G.carD + 10 + Math.random() * 40, (Math.random() - 0.5) * 30, 0.3 + Math.random() * 0.8, V1); fx.part(V1.clone(), V2.set(3 + Math.random() * 3, 0.2, (Math.random() - 0.5) * 2).clone(), 1.4, 0.18 + Math.random() * 0.2, fx.m.dust, 0, 1.5); }
+  if (B.deco === 'dunas' && !inTun && Math.random() < dt * 14) { G.road.toWorld(G.carD + 10 + Math.random() * 40, (Math.random() - 0.5) * 30, 0.3 + Math.random() * 0.8, V1); fx.part(V1.clone(), V2.set(3 + Math.random() * 3, 0.2, (Math.random() - 0.5) * 2).clone(), 1.4, 0.05 + Math.random() * 0.06, fx.m.dust, 0, 1.5); }
   const k = SHOT ? 1 : 1 - Math.exp(-dt * 1.2);
   ENV.sky.lerp(TC.setHex(B.sky), k);
   ENV.sea.lerp(TC.setHex(B.sea), k);
@@ -2333,6 +2348,9 @@ $('btnGv').onclick = () => setGv(GVS[(GVS.findIndex(g => g[0] === GV) + 1) % GVS
 // campo de visión (ajustes)
 const FOVS = [60, 66, 72, 80, 90, 100];
 let FOV = +(localStorage.getItem('rc_fov') || 72); if (!FOVS.includes(FOV)) FOV = 72;
+function setTap(v) { look.tapAim = !!v; try { localStorage.setItem('rc_tap', v ? '1' : '0'); } catch (e) { } $('btnTap').textContent = 'TOCAR PARA DISPARAR: ' + (v ? 'SÍ' : 'NO'); }
+$('btnTap').onclick = () => setTap(!look.tapAim);
+try { setTap(localStorage.getItem('rc_tap') === '1'); } catch (e) { }
 function setFov(v) { FOV = v; try { localStorage.setItem('rc_fov', v); } catch (e) { } $('btnFov').textContent = 'CAMPO DE VISIÓN: ' + v + '°'; }
 $('btnFov').onclick = () => setFov(FOVS[(FOVS.indexOf(FOV) + 1) % FOVS.length]);
 setFov(FOV); setGv(GV);

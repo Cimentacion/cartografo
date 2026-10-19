@@ -28,7 +28,7 @@ export class Hud {
     g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     g.clearRect(0, 0, W, H);
     if (!cam) return;
-    const cx = W / 2, cy = H / 2;
+    const cx = this.aim ? (this.aim.x * 0.5 + 0.5) * W : W / 2, cy = this.aim ? (-this.aim.y * 0.5 + 0.5) * H : H / 2;
     // líneas de velocidad (cuesta abajo, turbo)
     if (o.wind > 0) {
       g.lineCap = 'round';

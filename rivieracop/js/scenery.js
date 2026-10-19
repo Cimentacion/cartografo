@@ -158,6 +158,7 @@ function addBox(list, w, h, d, col, m, o = {}) {
   if (o.ry) g.rotateY(o.ry);
   g.translate(o.x || 0, o.y || 0, o.z || 0);
   g.applyMatrix4(m);
+  g.userData.flat = 1;
   list.push(g);
 }
 function addCyl(list, rt, rb, h, seg, col, m, o = {}) {
@@ -199,6 +200,7 @@ function strip(list, road, i0, i1, fa, fb, col, uvk) {
   g.setIndex(idx);
   g.computeVertexNormals();
   colorize(g, col, false);
+  g.userData.flat = 1;
   list.push(g);
 }
 const C = (lat, h) => () => [lat, h];
@@ -260,15 +262,21 @@ export function buildChunk(road, c, M) {
     }
   }
   const grp = new THREE.Group();
+  // suelos y franjas planas (una sola cara) no proyectan sombra: así no se sombrean a sí mismos (rayas);
+  // las cajas sí, con sus caras de detrás (ver toon.js)
   for (const [L, indoor] of [[R, false], [RI, true]]) for (const k of LIST_KEYS) {
     if (!L[k].length) continue;
-    const g = mergeGeometries(L[k], false);
-    for (const x of L[k]) x.dispose();
-    if (!g) continue;
-    g.computeBoundingSphere();
-    const me = new THREE.Mesh(g, M[k]);
-    me.receiveShadow = !indoor; me.castShadow = !indoor && !'APVGEY'.includes(k);
-    grp.add(me);
+    for (const flat of [false, true]) {
+      const part = L[k].filter(x => !!x.userData.flat === flat);
+      if (!part.length) continue;
+      const g = mergeGeometries(part, false);
+      for (const x of part) x.dispose();
+      if (!g) continue;
+      g.computeBoundingSphere();
+      const me = new THREE.Mesh(g, M[k]);
+      me.receiveShadow = !indoor; me.castShadow = !flat && !indoor && !'APVGEY'.includes(k);
+      grp.add(me);
+    }
   }
   for (const m of (R.X || []).concat(RI.X || [])) grp.add(m);
   return grp;
@@ -596,14 +604,21 @@ function outsideRun(R, road, B, i0, i1, r) {
   if (B.deco === 'dunas') { duneRun(R, road, B, i0, i1, r); return; }
   strip(R.A, road, i0, i1, C(-HALF, 0), C(HALF, 0), LIGHT(B.asphalt, 0.08), 4);
   if (B.deco !== 'pueblo') dashes(R, road, i0, i1, B.line);
-  for (const sd of [-1, 1]) {
-    strip(R.L, road, i0, i1, C(sd * (HALF - 0.45), 0.02), C(sd * (HALF - 0.3), 0.02), 0xf2f2f2);
-    strip(R.P, road, i0, i1, C(sd * HALF, 0.18), C(sd * WALK, 0.18), B.walk, 2);
-    strip(R.L, road, i0, i1, C(sd * HALF, 0), C(sd * HALF, 0.18), 0x8a857c);
+  // en los cruces la acera, el bordillo y el talud de ese lado se cortan: la calle entra a ras de la carretera
+  const XS = road.xstreets(i0 - 12, i1 + 12).filter(x => xSides(BIOMES[BIOME_KEYS[road.bio[Math.floor(x)]]].deco).length);
+  const runs = sd => {
+    const L = []; let a = i0;
+    for (const x of XS) { if (!xSides(BIOMES[BIOME_KEYS[road.bio[Math.floor(x)]]].deco).includes(sd)) continue; const g0 = Math.ceil(x - XSW), g1 = Math.floor(x + XSW); if (g1 < i0 || g0 > i1) continue; if (g0 > a) L.push([a, Math.min(i1, g0)]); a = Math.max(a, g1); }
+    if (a < i1) L.push([a, i1]); return L;
+  };
+  for (const sd of [-1, 1]) for (const [a, b] of runs(sd)) {
+    strip(R.L, road, a, b, C(sd * (HALF - 0.45), 0.02), C(sd * (HALF - 0.3), 0.02), 0xf2f2f2);
+    strip(R.P, road, a, b, C(sd * HALF, 0.18), C(sd * WALK, 0.18), B.walk, 2);
+    strip(R.L, road, a, b, C(sd * HALF, 0), C(sd * HALF, 0.18), 0x8a857c);
     const sh = shoulderOf(B, sd);
-    if (sh > 0) strip(R.K, road, i0, i1, C(sd * WALK, 0.18), C(sd * (WALK + sh), 0.18), LIGHT(B.skirt, 0.2), 5);
+    if (sh > 0) strip(R.K, road, a, b, C(sd * WALK, 0.18), C(sd * (WALK + sh), 0.18), LIGHT(B.skirt, 0.2), 5);
     const e = WALK + sh;
-    if (B.deco !== 'llanura' && B.deco !== 'lomas' && B.deco !== 'tuneles') strip(R.K, road, i0, i1, C(sd * e, 0.18), i => [sd * (e + Math.max(3, (road.gy[i] + 2) * 0.55)), -(road.gy[i] + 2)], LIGHT(B.skirt, 0.2), 6);
+    if (B.deco !== 'llanura' && B.deco !== 'lomas' && B.deco !== 'tuneles') strip(R.K, road, a, b, C(sd * e, 0.18), i => [sd * (e + Math.max(3, (road.gy[i] + 2) * 0.55)), -(road.gy[i] + 2)], LIGHT(B.skirt, 0.2), 6);
   }
   DECO[B.deco](R, road, B, i0, i1, r);
   if (CITY.has(B.deco)) {
@@ -617,7 +632,7 @@ function ok(road, d, lat, rad, edificio = false) {
   const k = road.kindAt(d);
   if (k === 1) return false;
   if (road.hospAt(d, rad) && Math.abs(lat) < 24 + rad) return false;
-  if (Math.abs(lat) > HALF - 0.5) for (const x of road.xstreets(d - 30, d + 30)) if (Math.abs(x - d) < 7 + rad && xSides(BIOMES[BIOME_KEYS[road.bio[Math.floor(x)]]].deco).includes(Math.sign(lat))) return false;
+  if (Math.abs(lat) > HALF - 0.5) for (const x of road.xstreets(d - 40, d + 40)) if (Math.abs(x - d) < (Math.abs(lat) > WALK + 14 ? XSW + 2.7 + 10 : XSW + 2.7) + rad && xSides(BIOMES[BIOME_KEYS[road.bio[Math.floor(x)]]].deco).includes(Math.sign(lat))) return false;
   if (lat < 6 + rad && BIOMES[BIOME_KEYS[road.bio[Math.max(0, Math.min(road.len, Math.floor(d)))]]].deco === 'casino') for (const rb of road.roundabouts(d - 60, d + 100)) if (d > rb - 38 - rad && d < rb + 66 + rad) return false;
   for (const t of road.tunnels) if (d > t.start - 18 - rad && d < t.end + 18 + rad) return false;
   // nada se mete en el pórtico de los carteles ni en los carteles de aviso
@@ -662,18 +677,41 @@ function cactus2(R, m, s) {
   addBox(R.L, 0.22 * s, 0.6 * s, 0.22 * s, 0x3a7a32, m, { y: 0.8 * s, x: -0.3 * s });
 }
 const LANE_ME_ = 3;
+// malla de arena de una pieza (vértices compartidos: normales suaves, sin aristas entre franjas)
+// lats = columnas laterales; hf(i, lat) = altura; cf(lat) = color
+function sandGrid(list, road, i0, i1, lats, hf, cf, step = 2) {
+  const rows = []; for (let i = i0; i < i1; i += step) rows.push(i); rows.push(i1);
+  const nc = lats.length, pos = new Float32Array(rows.length * nc * 3), col = new Float32Array(rows.length * nc * 3), idx = [];
+  rows.forEach((i, k) => {
+    const cy = Math.cos(road.yaw[i]), sy = Math.sin(road.yaw[i]);
+    lats.forEach((la, j) => {
+      const o = (k * nc + j) * 3;
+      pos[o] = road.x[i] + cy * la; pos[o + 1] = road.y[i] + hf(i, la); pos[o + 2] = road.z[i] + sy * la;
+      _c.setHex(cf(la)); col[o] = _c.r; col[o + 1] = _c.g; col[o + 2] = _c.b;
+    });
+  });
+  for (let k = 0; k < rows.length - 1; k++) for (let j = 0; j < nc - 1; j++) {
+    const a = k * nc + j, b = a + 1, c = a + nc, d = c + 1;
+    idx.push(a, b, c, b, d, c);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(rows.length * nc * 2), 2));
+  g.setIndex(idx); g.computeVertexNormals();
+  g.userData.flat = 1;
+  list.push(g);
+}
+// arena naranja: más clara en las crestas lejanas
+const SANDC = la => { const a = Math.abs(la); return a < 9 ? 0xe89a50 : a < 30 ? 0xf0a456 : a < 80 ? 0xf2aa5c : 0xeea055; };
+const SANDL = [7, 9, 11.5, 14, 17, 20.5, 24.5, 29, 34, 40, 47, 55, 65, 77, 92, 110, 135, 170, 210, 260];
 function duneRun(R, road, B, i0, i1, r) {
   // pista de arena (sin carretera) con rodadas
-  strip(R.L, road, i0, i1, C(-HALF - 1, 0.0), C(HALF + 1, 0.0), 0xdcae6c);
-  for (const l of [LANE_ME_ - 0.8, LANE_ME_ + 0.8, -LANE_ME_ - 0.8, -LANE_ME_ + 0.8]) strip(R.L, road, i0, i1, C(l - 0.18, 0.012), C(l + 0.18, 0.012), 0xc89a5a);
+  strip(R.L, road, i0, i1, C(-HALF - 1, 0.0), C(HALF + 1, 0.0), 0xe2984e);
+  for (const l of [LANE_ME_ - 0.8, LANE_ME_ + 0.8, -LANE_ME_ - 0.8, -LANE_ME_ + 0.8]) strip(R.L, road, i0, i1, C(l - 0.18, 0.012), C(l + 0.18, 0.012), 0xc8803e);
   const D = road.dunesAt(i0);
   for (const sd of [-1, 1]) {
-    const H = a => i => [sd * a, duneH(i, sd * a)];
-    strip(R.L, road, i0, i1, C(sd * (HALF + 1), 0), H(14), 0xe2b474);
-    strip(R.L, road, i0, i1, H(14), H(28), 0xe8bc7c);
-    strip(R.L, road, i0, i1, H(28), H(60), 0xdcae6c);
-    strip(R.L, road, i0, i1, H(60), H(110), 0xe6b878);
-    strip(R.L, road, i0, i1, H(110), H(260), 0xd8a868);
+    sandGrid(R.L, road, i0, i1, (sd < 0 ? SANDL.slice().reverse() : SANDL).map(a => sd * a), (i, la) => duneH(i, la), SANDC);
     // cactus, piedras y huesos
     each(i0, i1, r, 9, 16, d => {
       const lat = sd * (8 + r() * 22), m = frame(road, d, lat, duneH(d, lat), r() * 6);
@@ -716,8 +754,12 @@ function building(R, road, B, d, sd, r, night) {
   const lat = sd * (WALK + 1.2 + dep / 2);
   if (!ok(road, d, lat, Math.max(w, dep) * 0.6, true)) return w;
   const y = road.gy[Math.floor(d)], down = y + 2;
+  bldBody(R, B, frame(road, d, lat, 0), w, dep, top, down, sd, r, night);
+  return w;
+}
+// cuerpo de un edificio de ciudad: la fachada mira hacia -sd en x local (a lo largo de z va el ancho w)
+function bldBody(R, B, m, w, dep, top, down, sd, r, night) {
   const col = pick(r, B.build);
-  const m = frame(road, d, lat, 0);
   const fx = -sd * (dep / 2);
   addBox(night ? R.N : R.W, dep, top + down, w, col, m, { y: (top - down) / 2, win: true });
   // que no sean cajas: pilastras, impostas, ático retranqueado, torreón, tejado a cuatro aguas o soportales
@@ -1195,54 +1237,57 @@ function hospital(R, RI, road, H) {
 // cruce: una calle que corta la carretera, con su asfalto, aceras, edificios a los dos lados, parada de bus,
 // árboles y un muro con grafitis al fondo. Si en un lado no hay suelo (el mar en Mónaco), solo se hace el otro
 export const xSides = dc => (dc === 'monaco' ? [1] : [-1, 1]);
+const XSW = 4.5; // media anchura de la calzada de la calle que cruza
 function xstreet(R, road, d) {
   const B = BIOMES[BIOME_KEYS[road.bio[Math.floor(d)]]], dc = B.deco, zb = dc === 'zombi', r = rng(hash(road.seed, Math.round(d), 77));
-  const asp = LIGHT(B.asphalt, 0.08), XL = 46, SW = 4.5;
+  const asp = LIGHT(B.asphalt, 0.08), XL = 46, SW = XSW, night = !!B.night;
   for (const sd of xSides(dc)) {
     const F = (dd, lat, h, ry) => frame(road, d + dd, sd * lat, h, ry);
-    // calzada (mismo asfalto que la carretera) y línea central
-    addBox(R.A, XL, 0.19, SW * 2, asp, F(0, HALF + XL / 2, 0), { y: 0.095, uvs: 4 });
-    for (let k = 0; k < 9; k++) addBox(R.L, 2.4, 0.02, 0.15, B.line || 0xf0f0f0, F(0, HALF + 3 + k * 4.6, 0.19));
-    // aceras de la calle con bordillo
+    // calzada: a ras de la carretera (el mismo asfalto), entra hasta el borde de la calzada principal
+    addBox(R.A, XL - HALF + 0.3, 0.4, SW * 2, asp, F(0, HALF - 0.3 + (XL - HALF + 0.3) / 2, 0), { y: -0.198, uvs: 4 });
+    for (let k = 0; k < 8; k++) addBox(R.L, 2.4, 0.02, 0.15, B.line || 0xf0f0f0, F(0, WALK + 3 + k * 4.6, 0.01));
+    // línea de ceda/stop antes de entrar en la carretera
+    addBox(R.L, 0.4, 0.02, SW - 0.3, 0xf2f2f2, F(-SW / 2, WALK + 0.6, 0.01));
     for (const z of [-1, 1]) {
-      addBox(R.P, XL - 2.5, 0.37, 2.6, B.walk, F(z * (SW + 1.3), WALK + (XL - 2.5) / 2, 0), { y: 0.185, uvs: 2 });
-      addBox(R.L, XL - 2.5, 0.37, 0.15, 0x8a857c, F(z * (SW + 0.05), WALK + (XL - 2.5) / 2, 0), { y: 0.185 });
-      // edificios a lo largo de la calle (dejan ver el cruce, no un hueco vacío)
-      let L = WALK + 3;
-      while (L < XL - 2) {
-        const w = Math.min(XL - L, 7 + r() * 7), dep = 10, top = (zb ? 8 : 10) + r() * (zb ? 14 : 18);
-        const col = pick(r, B.build || [0xd8c8a8, 0xc8b8a0, 0xe0d0b8]);
-        const m = F(z * (SW + 2.6 + dep / 2), L + w / 2, 0);
-        addBox(R.N, w, top + 3, dep, col, m, { y: (top - 3) / 2, win: true });
-        addBox(R.L, w + 0.3, 0.4, dep + 0.3, 0x3a3a3e, m, { y: top + 0.2 });
-        // bajos: escaparate o persiana
-        addBox(r() < 0.5 ? R.G : R.L, w * 0.7, 2.2, 0.08, r() < 0.5 ? 0x8ab8d0 : 0x5a5e66, m, { y: 1.3, z: -z * (dep / 2 + 0.05) });
+      // aceras de la calle con bordillo; arrancan donde se corta la acera de la carretera (esquina continua)
+      addBox(R.P, XL - HALF, 0.18, 2.6, B.walk, F(z * (SW + 1.3), HALF + (XL - HALF) / 2, 0), { y: 0.09, uvs: 2 });
+      addBox(R.L, XL - HALF, 0.18, 0.15, 0x8a857c, F(z * (SW + 0.05), HALF + (XL - HALF) / 2, 0), { y: 0.09 });
+      // bordillo rebajado (paso de peatones) en la esquina
+      addBox(R.L, 0.15, 0.18, 2.6, 0x8a857c, F(z * (SW + 1.3), HALF + 0.07, 0), { y: 0.09 });
+      // edificios de la calle: los mismos de la zona, girados mirando a la calle, detrás de la fila de la carretera
+      let L = WALK + 16;
+      while (L < XL - 3) {
+        const w = Math.min(XL - L, 8 + r() * 6), dep = 10, top = 7 + r() * (night ? 22 : 16);
+        const m = frame(road, d + z * (SW + 2.6 + dep / 2), sd * (L + w / 2), 0, Math.PI / 2);
+        bldBody(R, B, m, w, dep, top, road.gy[Math.floor(d)] + 2, -z, r, night);
         L += w + 0.2;
       }
       // árboles en la acera
-      for (let q = 0; q < 5; q++) {
-        const lt = WALK + 4 + q * 8 + r() * 2;
+      for (let q = 0; q < 4; q++) {
+        const lt = WALK + 14 + q * 8 + r() * 2;
         if (dc === 'monaco' || dc === 'casino') palm(R, road, d + z * (SW + 1.6), sd * lt, r);
-        else { const tm = F(z * (SW + 1.6), lt, 0.37); addCyl(R.L, 0.12, 0.18, 2.6, 6, zb ? 0x2a2420 : 0x6a5a40, tm, { y: 1.3 }); if (!zb) { addCyl(R.L, 1.3, 1.6, 2.0, 7, 0x3a7a32, tm, { y: 3.2 }); addCyl(R.L, 0.9, 1.2, 1.2, 7, 0x4a8a3a, tm, { y: 4.4 }); } else for (let k = 0; k < 3; k++) addBox(R.L, 0.08, 1.0, 0.08, 0x2a2420, tm, { y: 2.8, x: (k - 1) * 0.3, rz: (k - 1) * 0.6 }); }
+        else { const tm = F(z * (SW + 1.6), lt, 0.18); addCyl(R.L, 0.12, 0.18, 2.6, 6, zb ? 0x2a2420 : 0x6a5a40, tm, { y: 1.3 }); if (!zb) { addCyl(R.L, 1.3, 1.6, 2.0, 7, 0x3a7a32, tm, { y: 3.2 }); addCyl(R.L, 0.9, 1.2, 1.2, 7, 0x4a8a3a, tm, { y: 4.4 }); } else for (let k = 0; k < 3; k++) addBox(R.L, 0.08, 1.0, 0.08, 0x2a2420, tm, { y: 2.8, x: (k - 1) * 0.3, rz: (k - 1) * 0.6 }); }
       }
     }
     // muro bajo con grafitis cerrando el fondo de la calle
-    addBox(R.L, 0.6, 2.4, SW * 2 + 5, zb ? 0x4a4a4e : 0xb8b0a0, F(0, XL - 0.3, 0), { y: 1.2 });
+    addBox(R.L, 0.6, 2.4, SW * 2 + 5.4, zb ? 0x4a4a4e : 0xb8b0a0, F(0, XL - 0.3, 0), { y: 1.2 });
     decal(r() < 0.5 ? R.M : R.F, SW * 2 + 4, 2.1, F(0, XL - 0.62, 1.2), sd);
-    // parada de bus en la esquina
+    // parada de bus en la acera de la carretera, antes del cruce
     { const m = F(-12, WALK - 1.0, 0.18), sg = -1;
       addBox(R.L, 1.6, 0.08, 4.0, 0x2a2a30, m, { y: 2.5 }); addBox(R.G, 0.06, 1.8, 3.8, 0x9ad0e8, m, { y: 1.4, x: sg * -0.75 });
       for (const z of [-1.9, 1.9]) addBox(R.S, 0.08, 2.5, 0.08, 0x8a9094, m, { y: 1.25, x: 0.7, z });
       addBox(R.D, 0.45, 0.08, 2.6, 0x8a6a4a, m, { y: 0.5, x: -0.4 }); addBox(R.L, 0.06, 1.6, 1.0, zb ? 0x3a2a2a : 0xd0402a, m, { y: 1.5, x: -0.72, z: 1.2 });
       const pm = F(-15, WALK - 0.4, 0.18); addBox(R.S, 0.08, 2.8, 0.08, 0x8a9094, pm, { y: 1.4 }); addBox(R.L, 0.06, 0.6, 0.6, 0x1a6ad0, pm, { y: 2.6 }); addBox(R.G, 0.07, 0.25, 0.4, 0xf2f2f2, pm, { y: 2.65 }); }
-    // señal y semáforo en las esquinas
-    const m = F(-6.6, WALK - 0.3, 0.18);
+    // señal y semáforo en las esquinas (sobre la acera, fuera de la calzada)
+    const m = F(-(SW + 1.4), WALK - 0.4, 0.18);
     addBox(R.S, 0.12, 3.2, 0.12, 0x5a5e60, m, { y: 1.6 }); addBox(R.L, 0.05, 0.45, 1.6, 0x1a4aa0, m, { y: 3.0 }); addBox(R.L, 0.06, 0.12, 1.3, 0xf2f2f2, m, { y: 3.0 });
-    const t = F(6.6, WALK - 0.3, 0.18);
+    const t = F(SW + 1.4, WALK - 0.4, 0.18);
     addBox(R.S, 0.14, 3.6, 0.14, 0x2a2a2e, t, { y: 1.8 }); addBox(R.L, 0.4, 1.0, 0.35, 0x1a1a1e, t, { y: 3.3 });
     for (const [y, c] of [[3.6, 0x5a1010], [3.3, 0x5a4a10], [3.0, zb ? 0x103a10 : 0x20d040]]) addBox(R.L, 0.42, 0.18, 0.2, c, t, { y });
+    // paso de cebra cruzando la calle, junto a la carretera
+    for (let k = -3; k <= 3; k++) addBox(R.L, 2.4, 0.02, 0.6, 0xf2f2f2, F(k * 1.2, WALK + 1.8, 0.01));
   }
-  // pasos de cebra a los dos lados del cruce
+  // pasos de cebra en la carretera a los dos lados del cruce
   for (const z of [-7.6, 7.6]) for (let k = -5; k <= 5; k++) addBox(R.L, 0.6, 0.03, 2.6, 0xf2f2f2, frame(road, d + z, k * 1.1, 0.025));
 }
 // mancha de luz en el suelo (abanico: brillante en el centro y nada en el borde)

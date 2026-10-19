@@ -23,6 +23,8 @@ export class Look {
     this.dragId = null; this.lx = 0; this.ly = 0;
     this.locked = false;
     this.onReload = null; this.onCal = null;
+    // disparo táctil: tocas un punto de la pantalla y la mira se pone ahí y dispara (la cámara sigue igual)
+    this.tapAim = false; this.aimAt = null; this.tapShot = 0; this.downs = new Map();
     this.enabled = false;
     this.isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 
@@ -259,6 +261,11 @@ export class Look {
         if (e.button === 0) this.fire = true;
         return;
       }
+      if (this.tapAim) {
+        this.downs.set(e.pointerId, { x: e.clientX, y: e.clientY, t: performance.now(), m: 0 });
+        // con giroscopio el toque ya dispara: la mira salta a ese punto antes del disparo
+        if (this.gyro && this.force !== 'joy') this.aimAt = { x: e.clientX, y: e.clientY, t: performance.now() };
+      }
       if (this.force === 'joy') return;
       if (this.gyro) { this.fireTouches.add(e.pointerId); this.fire = true; }
       else if (this.dragId == null) { this.dragId = e.pointerId; this.lx = e.clientX; this.ly = e.clientY; }
@@ -269,6 +276,8 @@ export class Look {
         if (this.locked) { this.tYaw -= e.movementX * 0.0026; this.tPitch -= e.movementY * 0.0026; }
         return;
       }
+      const dn = this.downs.get(e.pointerId);
+      if (dn) dn.m = Math.max(dn.m, Math.hypot(e.clientX - dn.x, e.clientY - dn.y));
       if (e.pointerId === this.dragId) {
         const s = 0.0055 * (this.gain / 1.5);
         let dx = e.clientX - this.lx, dy = e.clientY - this.ly;
@@ -279,6 +288,9 @@ export class Look {
     });
     const up = e => {
       if (e.pointerType === 'mouse') { if (e.button === 0) this.fire = false; return; }
+      const dn = this.downs.get(e.pointerId); this.downs.delete(e.pointerId);
+      // toque corto sin arrastrar: dispara en ese punto (sin giroscopio; con él ya disparó al tocar)
+      if (dn && this.tapAim && !(this.gyro && this.force !== 'joy') && e.type === 'pointerup' && dn.m < 16 && performance.now() - dn.t < 280) { this.aimAt = { x: dn.x, y: dn.y, t: performance.now() }; this.tapShot++; }
       this.fireTouches.delete(e.pointerId);
       if (this.gyro) this.fire = this.fireTouches.size > 0;
       if (e.pointerId === this.dragId) this.dragId = null;
