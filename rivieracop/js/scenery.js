@@ -731,6 +731,8 @@ function outsideRun(R, road, B, i0, i1, r) {
   DECO[B.deco](R, road, B, i0, i1, r);
   if (CITY.has(B.deco)) {
     backRows(R, road, B, i0, i1, r, B.deco === 'monaco' ? [1] : [-1, 1], !!B.night);
+    cityFill(R, road, B, i0, i1, r, B.deco === 'monaco' ? [1] : [-1, 1], !!B.night);
+    if (B.deco === 'monaco') bayRun(R, road, B, i0, i1, r);
     skyBridges(R, road, B, i0, i1);
   }
 }
@@ -1409,6 +1411,49 @@ function backRows(R, road, B, i0, i1, r, sides, night) {
       else for (let k = 0; k < 3; k++) addBox(R.L, w - 2 - k * 2.2, 2, w - 2 - k * 2.2, LIGHT(cc, 0.05 * k), m, { y: top + 1.2 + k * 2 });
     });
   }
+}
+// en una curva cerrada, lo de dentro más allá del radio se cruza: se recorta a un poco menos del radio
+function latCl(road, i, la) { const a = Math.max(1, i - 2), b = Math.min(road.len - 1, i + 2), k = (road.yaw[b] - road.yaw[a]) / Math.max(1, b - a); return k > 1e-3 && la > 0 ? Math.min(la, 0.8 / k) : k < -1e-3 && la < 0 ? Math.max(la, 0.8 / k) : la; }
+// la ciudad sigue hasta el horizonte: suelo de calles hasta lejos (los edificios ya no flotan) y más manzanas detrás
+function cityFill(R, road, B, i0, i1, r, sides, night) {
+  for (const sd of sides) {
+    const e = WALK + shoulderOf(B, sd), gh = i => -(road.gy[i] + 2) + 0.03;
+    strip(R.P, road, i0, i1, i => [latCl(road, i, sd * (e + 2)), gh(i)], i => [latCl(road, i, sd * 170), gh(i)], night ? 0x4a4a52 : 0x9a968c, 4);
+    // manzana intermedia (entre la segunda fila y los rascacielos)
+    each(i0, i1, r, 10, 16, d => {
+      const lat = sd * (60 + r() * 8), w = 9 + r() * 7, dep = 9 + r() * 4;
+      if (!ok(road, d, lat, Math.max(w, dep) * 0.6)) return;
+      const i = Math.floor(d), down = road.gy[i] + 2, top = 16 + r() * 24, m = frame(road, d, lat, 0), cc = pick(r, B.build);
+      addBox(night ? R.N : R.W, dep, top + down, w, cc, m, { y: (top - down) / 2, win: true });
+      addBox(R.L, dep + 0.6, 0.6, w + 0.6, LIGHT(cc, -0.15), m, { y: top + 0.3 });
+      if (r() < 0.4) addBox(R.L, dep * 0.4, 2.4, w * 0.4, LIGHT(cc, 0.2), m, { y: top + 1.6 });
+    });
+    // al fondo del todo: bloques sencillos que cierran el horizonte
+    each(i0, i1, r, 12, 20, d => {
+      const lat = sd * (125 + r() * 35), w = 16 + r() * 14;
+      if (!ok(road, d, lat, w * 0.6)) return;
+      const i = Math.floor(d), down = road.gy[i] + 2, top = 25 + r() * 55, m = frame(road, d, lat, 0);
+      addBox(night ? R.N : R.W, w, top + down, w, LIGHT(pick(r, B.build), 0.2), m, { y: (top - down) / 2, win: true });
+    });
+  }
+}
+// Mónaco, lado del mar: yates fondeados y, al otro lado de la bahía, la costa con la ciudad subiendo por la ladera
+function bayRun(R, road, B, i0, i1, r) {
+  const sh = i => road.sea[i] - road.y[i];
+  each(i0, i1, r, 18, 34, d => {
+    const i = Math.floor(d), lat = -(28 + r() * 85), m = frame(road, d, lat, sh(i), r() * 0.6 - 0.3), L = 8 + r() * 10;
+    addBox(R.L, 3 + L * 0.12, 1.4, L, 0xf4f4f0, m, { y: 0.4 }); addBox(R.L, 2.4, 1.2, L * 0.45, 0xe8e8e4, m, { y: 1.6, z: L * 0.1 }); addBox(R.L, 2.5, 0.5, L * 0.3, 0x2a3a4a, m, { y: 1.8, z: -L * 0.05 });
+    if (r() < 0.5) addBox(R.L, 0.12, 6 + r() * 6, 0.12, 0xd8d8d8, m, { y: 4, z: -L * 0.1 });
+  });
+  // la otra orilla: tierra, cerro y edificios escalonados
+  strip(R.K, road, i0, i1, i => [latCl(road, i, -138), sh(i) + 0.4], i => [latCl(road, i, -215), sh(i) + 42], 0x7a8a5a, 12);
+  strip(R.P, road, i0, i1, i => [latCl(road, i, -126), sh(i) + 0.2], i => [latCl(road, i, -138), sh(i) + 0.4], 0xd8cfbf, 4);
+  each(i0, i1, r, 7, 12, d => {
+    const i = Math.floor(d), k = r(), lat = -(140 + k * 65), base = sh(i) + 0.4 + k * 41.6, w = 8 + r() * 10, top = 10 + r() * 22, m = frame(road, d, lat, base, r() * 0.4);
+    if (!ok(road, d, lat, w)) return;
+    addBox(R.W, w, top + 4, w * 0.8, pick(r, B.build), m, { y: top / 2 - 2, win: true });
+    addBox(R.L, w + 0.6, 0.5, w * 0.8 + 0.6, B.roof, m, { y: top + 0.2 });
+  });
 }
 // pasarelas elevadas que cruzan la calle, con pilares y escaleras
 function skyBridges(R, road, B, i0, i1) {
