@@ -3512,7 +3512,7 @@ const KILL = {
   tdebris(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, e.h), s: 0.6 }); },
   tfunnel(e, p, S) { if (p < 0) return; for (let k = 0; k < 4; k++) S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, e.h + (k - 1.5) * 4), s: 1.8 }); S.emit('banner', { txt: '¡CHIMENEA DESTROZADA!', sub: '', c: '#7dff8a' }); },
   steamer(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 2), s: e.x.big ? 2.4 : 1.2 }); if (e.x.big) S.emit('banner', { txt: '¡VAPOR HUNDIDO!', sub: '', c: '#7dff8a' }); },
-  lboat(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 1), s: 1.2 }); },
+  lboat(e, p, S) { S.emit('fx', { f: 'planks', w: S.wpos(e.d, e.lat, 1) }); e.rm = true; },
   gatcart(e, p, S) { S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 1.5), s: 1.6 }); S.emit('banner', { txt: '¡AMETRALLADORA FUERA!', sub: '', c: '#7dff8a' }); dropWeapon(e, S, 1); },
   ttable(e, p, S) { S.emit('fx', { f: 'rock', w: S.wpos(e.d, e.lat, 0.8) }); },
   iceberg(e, p, S) {

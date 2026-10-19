@@ -1088,16 +1088,20 @@ function shipBow(R, road, T) {
 // Desde la bajada hacia dentro del barco, la cubierta sigue arriba a su altura (techo del salón) y el casco tiene una brecha
 // por donde se sale al agua. (Las chimeneas, el puente y los mástiles los pone el barco entero, ver tfx.js)
 function deckRun(R, road, T, i0, i1, r) {
+  // después de la salida del salón el barco se ha partido: ni cubierta, ni casco, ni barandilla (solo el suelo roto y el fondo)
+  const iE = i1; i1 = Math.min(i1, T.exit);
   const off = i => (T.off && T.off[i]) || 0, dh = i => (i >= T.down ? 18 - road.gy[i] : 0);
   // en la curva de la popa el lado de dentro se recorta antes del centro del giro (si no, la cubierta se dobla y cambia de color)
   const kc = i => { const a = Math.max(1, i - 1), b = Math.min(road.len - 1, i + 1); return (road.yaw[b] - road.yaw[a]) / Math.max(1, b - a); };
-  const cl = (i, la) => { const k = kc(i); return k > 1e-3 && la > 0 ? Math.min(la, 0.9 / k) : k < -1e-3 && la < 0 ? Math.max(la, -0.9 / k) : la; };
+  const cl = (i, la) => { const k = kc(i); return k > 1e-3 && la > 0 ? Math.min(la, 0.9 / k) : k < -1e-3 && la < 0 ? Math.max(la, 0.9 / k) : la; };
   const DL = (X, y = 0) => i => [cl(i, X + off(i)), dh(i) + y];
   const top = (a, b, L0, L1) => { if (b > a) { strip(R.D, road, a, b, L0, L1, 0xb8865a, 1.4); } };
   // cubierta: entera hasta la bajada; en la escotilla de la bajada queda abierta por encima del coche
-  const hatch0 = T.down, hatch1 = T.down + 28;
+  // escotilla abierta sobre el pasillo de bajada mientras su techo (4,2 m) queda por encima de la cubierta
+  let hatch1 = T.down; while (hatch1 < T.ball && 18 - road.gy[hatch1] < 4.6) hatch1++;
+  const hatch0 = T.down;
   top(i0, Math.min(i1, hatch0 + 1), DL(-10.2, 0.02), DL(6.8, 0.02));
-  if (i1 > hatch0 && i0 < hatch1) { const a = Math.max(i0, hatch0), b = Math.min(i1, hatch1); top(a, b, DL(-10.2, 0.02), i => [Math.min(-HALF - 0.8, 6.8 + off(i)), dh(i) + 0.02]); top(a, b, i => [Math.max(HALF + 0.8, -10.2 + off(i)), dh(i) + 0.02], DL(6.8, 0.02)); }
+  if (i1 > hatch0 && i0 < hatch1) { const a = Math.max(i0, hatch0), b = Math.min(i1, hatch1); top(a, b, DL(-10.2, 0.02), i => [Math.min(-HALF - 0.62, 6.8 + off(i)), dh(i) + 0.02]); top(a, b, i => [Math.max(HALF + 0.62, -10.2 + off(i)), dh(i) + 0.02], DL(6.8, 0.02)); }
   top(Math.max(i0, hatch1 - 1), i1, DL(-10.2, 0.02), DL(6.8, 0.02));
   // juntas de los tablones (solo en la cubierta por donde se va)
   const dk1 = Math.min(i1, T.down);
@@ -1157,22 +1161,41 @@ function deckRun(R, road, T, i0, i1, r) {
   }
   // la bajada hacia el salón: paredes de chapa a los lados con lámparas, y la escotilla con su brazola
   const a = Math.max(i0, T.down), b = Math.min(i1, T.ball);
-  if (b > a) for (const sd of [-1, 1]) {
-    strip(R.L, road, a, b, C(sd * (HALF + 0.6), 0), i => [sd * (HALF + 0.6), dh(i)], 0xd8d4c8);
-    for (let d = Math.ceil(a / 8) * 8; d < b; d += 8) addBox(R.G, 0.1, 0.3, 0.6, 0xffe0a0, frame(road, d, sd * (HALF + 0.5), 2.6));
+  // pasillo cerrado de bajada al salón: paredes con zócalo de madera y apliques, techo crema y una caseta de entrada en la cubierta
+  const CH = 4.2, WW = HALF + 0.6, bE = b === T.ball ? b + 1 : b;
+  if (b > a) {
+    for (const sd of [-1, 1]) {
+      strip2(R.L, road, a, bE, C(sd * WW, 0), C(sd * WW, 1.2), 0x6a4020);
+      strip2(R.L, road, a, bE, C(sd * WW, 1.2), C(sd * WW, CH), 0xe8dcc4);
+      strip2(R.L, road, a, bE, C(sd * (WW - 0.03), 1.18), C(sd * (WW - 0.03), 1.3), 0xd4af37);
+      for (let d = Math.ceil(a / 7) * 7 + 3; d < b; d += 7) { addBox(R.G, 0.12, 0.35, 0.3, 0xffe0a0, frame(road, d, sd * (WW - 0.08), 2.9)); addBox(R.L, 0.1, 0.1, 0.5, 0xd4af37, frame(road, d, sd * (WW - 0.06), 2.6)); }
+    }
+    strip2(R.L, road, a, bE, C(-WW, CH), C(WW, CH), 0xf2e8d4);
+    strip2(R.L, road, a, bE, C(-1.2, CH - 0.04), C(1.2, CH - 0.04), 0xe0c890);
+    // por fuera, donde el pasillo asoma por encima de la cubierta: tejado de la caseta
+    if (hatch1 > a) strip(R.L, road, a, Math.min(b, hatch1 + 1), C(-WW - 0.3, CH + 0.12), C(WW + 0.3, CH + 0.12), 0xd8d4c8);
+  }
+  if (T.down >= i0 && T.down < i1) {
+    // fachada de la caseta de entrada (con la puerta grande y el marco dorado)
+    const m = frame(road, T.down, 0, 0);
+    for (const sd of [-1, 1]) addBox(R.L, 3.4, CH + 0.4, 0.5, 0xf2f0ea, m, { x: sd * (WW + 1.7), y: (CH + 0.4) / 2 });
+    addBox(R.L, 2 * WW + 7.2, 0.7, 0.5, 0xf2f0ea, m, { y: CH + 0.25 });
+    addBox(R.L, 2 * WW + 0.4, 0.18, 0.56, 0xd4af37, m, { y: CH - 0.05 });
+    for (const sd of [-1, 1]) addBox(R.L, 0.2, CH, 0.56, 0xd4af37, m, { x: sd * (WW + 0.1), y: CH / 2 });
+    addBox(R.L, 2.4, 0.5, 0.1, 0x2a1a10, m, { y: CH + 0.3, z: -0.3 }); addBox(R.G, 2.0, 0.3, 0.06, 0xffd890, m, { y: CH + 0.3, z: -0.36 });
   }
   // suelo de la bajada (tablones) y de la salida: el suelo del salón partido, inclinado hacia el agua, con el borde roto
-  if (b > a) { strip(R.D, road, a, b, C(-HALF - 0.6, 0.02), C(HALF + 0.6, 0.02), 0x8a5a32, 1.4); for (let l = -HALF; l < HALF; l += 1.5) strip(R.L, road, a, b, C(l, 0.03), C(l + 0.05, 0.03), 0x5a3a1a); }
-  const BR = T.exit + 24, sa = Math.max(i0, T.exit), sb = Math.min(i1, BR);
+  if (b > a) { strip(R.D, road, a, bE, C(-HALF - 0.6, 0.02), C(HALF + 0.6, 0.02), 0x7a2a22, 1.4); for (const l of [-HALF + 0.2, HALF - 0.4]) strip(R.L, road, a, bE, C(l, 0.03), C(l + 0.2, 0.03), 0xd4af37); }
+  const BR = T.exit + 24, sa = Math.max(i0, T.exit), sb = Math.min(iE, BR);
   if (sb > sa) { strip(R.D, road, sa, sb, C(-HALF - 3, 0.02), C(HALF + 1, 0.02), 0x7a2a22, 1.2); strip(R.L, road, sa, sb, C(-HALF - 3, -0.6), C(HALF + 1, -0.6), 0x3a2a24); }
-  if (BR >= i0 && BR < i1) for (let k = 0; k < 9; k++) addBox(R.L, 1.2 + (k % 3) * 0.5, 0.35, 0.8 + (k % 2) * 0.9, k % 2 ? 0x7a2a22 : 0x5a3a1a, frame(road, BR + (k % 3) * 0.4 - 0.4, -HALF - 2 + k * 1.3, -0.1, (k - 4) * 0.2), { y: -0.1, rx: 0.3 * ((k % 3) - 1), rz: 0.25 * ((k % 2) - 0.5) });
+  if (BR >= i0 && BR < iE) for (let k = 0; k < 9; k++) addBox(R.L, 1.2 + (k % 3) * 0.5, 0.35, 0.8 + (k % 2) * 0.9, k % 2 ? 0x7a2a22 : 0x5a3a1a, frame(road, BR + (k % 3) * 0.4 - 0.4, -HALF - 2 + k * 1.3, -0.1, (k - 4) * 0.2), { y: -0.1, rx: 0.3 * ((k % 3) - 1), rz: 0.25 * ((k % 2) - 0.5) });
   // el fondo del mar bajo la caída (al nivel del fondo de la parte submarina)
-  const fa = Math.max(i0, T.exit), fb = Math.min(i1, T.under + 1);
+  const fa = Math.max(i0, T.exit), fb = Math.min(iE, T.under + 1);
   if (fb > fa) { strip(R.L, road, fa, fb, i => [-80, -24 - road.gy[i] - 0.02], i => [80, -24 - road.gy[i] - 0.02], 0x3a4a4e); for (let d = Math.ceil(fa / 6) * 6; d < fb; d += 6) { const i = Math.floor(d), sd = (i * 7) % 2 ? 1 : -1; addBox(R.L, 2 + (i % 4), 1 + (i % 3) * 0.6, 2 + (i % 5) * 0.5, 0x3a4a5a, frame(road, d, sd * (10 + (i * 13) % 30), -24 - road.gy[i], i), { y: 0.3 }); } }
-  const ea = Math.max(i0, T.exit), eb = Math.min(i1, T.under);
-  if (eb > ea) strip(R.L, road, ea, eb, C(-HALF - 0.6, 0), i => [-HALF - 0.6, Math.max(0.5, dh(i))], 0x3a2a24);
-  if (hatch1 >= i0 && hatch0 < i1) for (const sd of [-1, 1]) { const at = sd < 0 ? hatch0 : hatch1; if (at >= i0 && at < i1) addBox(R.L, 2 * HALF + 2, 0.6, 0.4, 0xd8d4c8, frame(road, at, 0, dh(Math.floor(at)) + 0.3)); }
+  if (hatch1 >= i0 && hatch1 < i1) addBox(R.L, 2 * HALF + 2, 0.6, 0.4, 0xd8d4c8, frame(road, hatch1, 0, dh(hatch1) + 0.3));
 }
+// tira visible por las dos caras (paredes y techos de interiores, que se ven desde dentro y desde fuera)
+function strip2(list, road, i0, i1, fa, fb, col, uvk) { strip(list, road, i0, i1, fa, fb, col, uvk); strip(list, road, i0, i1, fb, fa, col, uvk); }
 // salvavidas redondo (blanco y rojo) en un plano que mira hacia +x local
 function buoy(list, m, x, y, z) {
   for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2 + Math.PI / 8; addBox(list, 0.12, 0.17, 0.36, k % 2 ? 0xd8281e : 0xf4f4f0, m, { x, y: y + Math.cos(a) * 0.42, z: z + Math.sin(a) * 0.42, rx: a }); }
@@ -1194,17 +1217,17 @@ function ballroomRun(R, road, B, i0, i1, r) {
   // pista de baile de parqué en medio de la sala
   strip(R.L, road, i0, i1, i => [-17 + off(i), 0.02], i => [-8 + off(i), 0.02], 0xa8743a);
   for (let l = -17; l < -8; l += 1.5) strip(R.L, road, i0, i1, i => [l + off(i), 0.03], i => [l + 0.06 + off(i), 0.03], 0x7a4a22);
-  strip(R.L, road, i0, i1, L(WL, 0), L(WL, CH2), 0xc08a50);
-  strip(R.L, road, i0, i1, L(WR, 0), L(WR, CH2), 0xc08a50);
-  for (const y of [0.9, 1.0, 5.6, 5.75]) { strip(R.L, road, i0, i1, i => [WL(i) + 0.03, y], i => [WL(i) + 0.03, y + 0.08], 0xd4af37); strip(R.L, road, i0, i1, i => [WR(i) - 0.03, y], i => [WR(i) - 0.03, y + 0.08], 0xd4af37); }
-  strip(R.L, road, i0, i1, L(WL, CH2), L(WR, CH2), 0xf2e8d4);
+  strip2(R.L, road, i0, i1, L(WL, 0), L(WL, CH2), 0xc08a50);
+  strip2(R.L, road, i0, i1, L(WR, 0), L(WR, CH2), 0xc08a50);
+  for (const y of [0.9, 1.0, 5.6, 5.75]) { strip2(R.L, road, i0, i1, i => [WL(i) + 0.03, y], i => [WL(i) + 0.03, y + 0.08], 0xd4af37); strip2(R.L, road, i0, i1, i => [WR(i) - 0.03, y], i => [WR(i) - 0.03, y + 0.08], 0xd4af37); }
+  strip2(R.L, road, i0, i1, L(WL, CH2), L(WR, CH2), 0xf2e8d4);
   for (const l of [-16, -9, -2, 4]) strip(R.L, road, i0, i1, i => [l + off(i), CH2 - 0.08], i => [l + 0.3 + off(i), CH2 - 0.08], 0xd4af37);
   for (let d = Math.ceil(i0 / 8) * 8; d < i1; d += 8) {
     const o = off(Math.floor(d));
     // columnas talladas (en filas por la sala; ninguna en la carretera)
     for (const lat of [-18.5, -12.5, -6.8, 6.5 - 1.1]) { const m = frame(road, d, lat + o, 0); addBox(R.D, 0.9, CH2, 0.9, 0xb07a44, m, { y: CH2 / 2 }); addBox(R.L, 1.2, 0.5, 1.2, 0xd4af37, m, { y: CH2 - 0.3 }); addBox(R.D, 1.1, 0.4, 1.1, 0x8a5a2a, m, { y: 0.2 }); addBox(R.L, 0.95, 0.08, 0.95, 0xd4af37, m, { y: 2.2 }); }
     // paneles y apliques a la izquierda; a la derecha (el casco), ventanales con luz cálida
-    const ml = frame(road, d + 4, -22 + o + 0.06, 0), mr = frame(road, d + 4, 6.5 + o - 0.06, 0);
+    const ml = frame(road, d + 4, -22 + o + 0.14, 0), mr = frame(road, d + 4, 6.5 + o - 0.16, 0);
     addBox(R.L, 0.04, 3, 3, 0x9a6232, ml, { y: 3.2 }); addBox(R.L, 0.05, 2.5, 2.5, 0xb07a44, ml, { y: 3.2, x: 0.02 }); addBox(R.G, 0.12, 0.35, 0.25, 0xffd890, ml, { y: 4.6, x: 0.1 });
     addBox(R.G, 0.04, 3.2, 2, 0xfff0c8, mr, { y: 3.3 }); addBox(R.L, 0.06, 0.12, 2.1, 0xd4af37, mr, { y: 1.65 }); addBox(R.L, 0.06, 0.12, 2.1, 0xd4af37, mr, { y: 4.95 });
     // arañas de cristal (una sobre la carretera y otra sobre la pista de baile)
@@ -1222,7 +1245,7 @@ function ballroomRun(R, road, B, i0, i1, r) {
     const o = off(Math.min(i1, Math.max(i0, at))), ex = at === T.exit, gl = ex ? -HALF - 3 : -HALF - 0.6, gr = ex ? HALF + 1 : HALF + 0.6;
     const seg = (a, b, y0, y1) => addBox(R.L, b - a, y1 - y0, 0.5, 0xc08a50, frame(road, at, (a + b) / 2 + (a < 0 && b <= gl ? 0 : 0), 0), { y: (y0 + y1) / 2 });
     seg(-22 + o, gl, 0, CH2); seg(gr, 6.5 + o, 0, CH2);
-    if (!ex) seg(gl, gr, 5, CH2);
+    if (!ex) seg(gl, gr, 4.2, CH2);
     else for (let k = 0; k < 7; k++) addBox(R.L, 1.2 + (k % 3) * 0.6, 1 + (k % 2) * 1.5, 0.5, k % 2 ? 0xc08a50 : 0x3a2a24, frame(road, at, gl + 0.5 + k * 1.6, 0), { y: CH2 - 0.6 - (k % 3) * 0.5, rz: (k - 3) * 0.12 });
   }
   // la gran escalera al fondo izquierdo, con barandilla dorada y el reloj

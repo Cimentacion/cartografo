@@ -46,7 +46,7 @@ function waveMat() {
         float sp = pow(clamp(dot(reflect(-L, n), V), 0.0, 1.0), 40.0);
         c += vec3(0.55, 0.65, 0.85) * sp * 0.6;
         c = mix(c, vec3(0.86, 0.92, 1.0), smoothstep(0.62, 0.9, vH) * 0.8);
-        if (under > 0.5) c = mix(vec3(0.05, 0.16, 0.22), vec3(0.22, 0.42, 0.52), d);
+        if (under > 0.5) c = mix(vec3(0.015, 0.05, 0.07), vec3(0.06, 0.16, 0.21), d);
         gl_FragColor = vec4(c, 1.0);
         #include <colorspace_fragment>
         #include <fog_fragment>
@@ -136,7 +136,15 @@ export class TitanicFX {
     const car = road.toWorld(c, 3, 0, new THREE.Vector3());
     const floating = c > T.rise + 20 && c < T.beach;
     U.calm.value.set(car.x, car.z, floating || c > T.down ? 1 : 0);
+    const wasUnder = this.under;
     this.under = camera.position.y < lvl - 0.3;
+    // chapuzón al caer al agua desde el barco partido
+    if (this.under && !wasUnder && c > T.exit && c < T.exit + 90) {
+      if (!this.splM) this.splM = new THREE.MeshBasicMaterial({ color: 0xe8f6ff });
+      const p = camera.position.clone(); p.y = lvl;
+      for (let k = 0; k < 40; k++) this.fx.part(p.clone().add(new THREE.Vector3((Math.random() - 0.5) * 6, 0, (Math.random() - 0.5) * 6)), new THREE.Vector3((Math.random() - 0.5) * 6, 5 + Math.random() * 7, (Math.random() - 0.5) * 6), 1.4, 0.15 + Math.random() * 0.25, this.splM, 14, 0);
+      G.shake = Math.max(G.shake || 0, 0.8);
+    }
     U.under.value = this.under ? 1 : 0;
     U.fogColor.value.copy(this.scene.fog.color); U.fogNear.value = this.scene.fog.near; U.fogFar.value = this.scene.fog.far;
     // el barco: llega desde lejos y se clava en el iceberg; luego queda quieto (y se le ven las cubiertas de verdad)
