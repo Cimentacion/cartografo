@@ -302,7 +302,7 @@ export function chunkFromData(road, D, M) {
     g.setIndex(new THREE.BufferAttribute(q.idx, 1));
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(q.bs[0], q.bs[1], q.bs[2]), q.bs[3]);
     const me = new THREE.Mesh(g, M[q.k]);
-    me.receiveShadow = !q.indoor; me.castShadow = !q.flat && !q.indoor && !'APVGEY'.includes(q.k);
+    me.receiveShadow = !q.indoor && !q.nr; me.castShadow = !q.flat && !q.indoor && !'APVGEY'.includes(q.k);
     // el Titanic quieto (el de las cubiertas) no se ve hasta que choca contra el iceberg
     if (q.ship) { me.userData.ship = 1; grp.userData.hasShip = 1; }
     grp.add(me);
@@ -365,14 +365,14 @@ export function buildChunkData(road, c) {
   const meshes = [];
   for (const [L, indoor] of [[R, false], [RI, true]]) for (const k of LIST_KEYS) {
     if (!L[k].length) continue;
-    for (const flat of [false, true]) for (const ship of [false, true]) {
-      const part = L[k].filter(x => !!x.userData.flat === flat && !!x.userData.ship === ship);
+    for (const flat of [false, true]) for (const ship of [false, true]) for (const nr of [false, true]) {
+      const part = L[k].filter(x => !!x.userData.flat === flat && !!x.userData.ship === ship && !!x.userData.nr === nr);
       if (!part.length) continue;
       const g = fastMerge(part);
       for (const x of part) x.dispose();
       g.computeBoundingSphere();
       const A = g.attributes, S = g.boundingSphere;
-      meshes.push({ k, indoor, flat, ship, pos: A.position.array, nor: A.normal.array, uv: A.uv.array, col: A.color.array, idx: g.index.array, bs: [S.center.x, S.center.y, S.center.z, S.radius] });
+      meshes.push({ k, indoor, flat, ship, nr, pos: A.position.array, nor: A.normal.array, uv: A.uv.array, col: A.color.array, idx: g.index.array, bs: [S.center.x, S.center.y, S.center.z, S.radius] });
     }
   }
   return { meshes, X: (R.X || []).concat(RI.X || []) };
@@ -1099,7 +1099,7 @@ function deckRun(R, road, T, i0, i1, r) {
   const kc = i => { const a = Math.max(1, i - 1), b = Math.min(road.len - 1, i + 1); return (road.yaw[b] - road.yaw[a]) / Math.max(1, b - a); };
   const cl = (i, la) => { const k = kc(i); return k > 1e-3 && la > 0 ? Math.min(la, 0.9 / k) : k < -1e-3 && la < 0 ? Math.max(la, 0.9 / k) : la; };
   const DL = (X, y = 0) => i => [cl(i, X + off(i)), dh(i) + y];
-  const top = (a, b, L0, L1) => { if (b > a) { strip(R.D, road, a, b, L0, L1, 0xb8865a, 1.4); } };
+  const top = (a, b, L0, L1) => { if (b > a) { strip(R.D, road, a, b, L0, L1, 0xb8865a, 1.4); R.D[R.D.length - 1].userData.nr = 1; } };
   // cubierta: entera hasta la bajada; en la escotilla de la bajada queda abierta por encima del coche
   // escotilla abierta sobre el pasillo de bajada mientras su techo (4,2 m) queda por encima de la cubierta
   let hatch1 = T.down; while (hatch1 < T.ball && 18 - road.gy[hatch1] < 4.6) hatch1++;
@@ -1190,9 +1190,18 @@ function deckRun(R, road, T, i0, i1, r) {
   }
   // suelo de la bajada (tablones) y de la salida: el suelo del salón partido, inclinado hacia el agua, con el borde roto
   if (b > a) { strip(R.D, road, a, bE, C(-HALF - 0.6, 0.02), C(HALF + 0.6, 0.02), 0x7a2a22, 1.4); for (const l of [-HALF + 0.2, HALF - 0.4]) strip(R.L, road, a, bE, C(l, 0.03), C(l + 0.2, 0.03), 0xd4af37); }
-  const BR = T.exit + 24, sa = Math.max(i0, T.exit), sb = Math.min(iE, BR);
-  if (sb > sa) { strip(R.D, road, sa, sb, C(-HALF - 3, 0.02), C(HALF + 1, 0.02), 0x7a2a22, 1.2); strip(R.L, road, sa, sb, C(-HALF - 3, -0.6), C(HALF + 1, -0.6), 0x3a2a24); }
-  if (BR >= i0 && BR < iE) for (let k = 0; k < 9; k++) addBox(R.L, 1.2 + (k % 3) * 0.5, 0.35, 0.8 + (k % 2) * 0.9, k % 2 ? 0x7a2a22 : 0x5a3a1a, frame(road, BR + (k % 3) * 0.4 - 0.4, -HALF - 2 + k * 1.3, -0.1, (k - 4) * 0.2), { y: -0.1, rx: 0.3 * ((k % 3) - 1), rz: 0.25 * ((k % 2) - 0.5) });
+  // pasillo de salida (antes de que entre el agua): suelo, paredes con zócalo, techo y apliques
+  const XE = T.exit + 46, sa = Math.max(i0, T.exit), sb = Math.min(iE, XE);
+  if (sb > sa) {
+    strip(R.D, road, sa, sb, C(-WW, 0.02), C(WW, 0.02), 0x7a2a22, 1.4); R.D[R.D.length - 1].userData.nr = 1;
+    for (const sd of [-1, 1]) {
+      strip2(R.L, road, sa, sb, C(sd * WW, 0), C(sd * WW, 1.2), 0x6a4020); strip2(R.L, road, sa, sb, C(sd * WW, 1.2), C(sd * WW, CH), 0xe8dcc4);
+      strip2(R.L, road, sa, sb, C(sd * (WW - 0.03), 1.18), C(sd * (WW - 0.03), 1.3), 0xd4af37);
+      for (let d = Math.ceil(sa / 7) * 7 + 3; d < sb; d += 7) addBox(R.G, 0.12, 0.35, 0.3, 0xffe0a0, frame(road, d, sd * (WW - 0.08), 2.9));
+    }
+    strip2(R.L, road, sa, sb, C(-WW, CH), C(WW, CH), 0xf2e8d4);
+    for (let d = Math.ceil(sa / 9) * 9 + 4; d < sb; d += 9) { const m = frame(road, d, 0, 0); addBox(R.G, 1.4, 0.12, 0.6, 0xfff0c8, m, { y: CH - 0.08 }); addBox(R.L, 1.6, 0.06, 0.8, 0xd4af37, m, { y: CH - 0.02 }); }
+  }
   // el fondo del mar bajo la caída (al nivel del fondo de la parte submarina)
   const fa = Math.max(i0, T.exit), fb = Math.min(iE, T.under + 1);
   if (fb > fa) { strip(R.L, road, fa, fb, i => [-80, -24 - road.gy[i] - 0.02], i => [80, -24 - road.gy[i] - 0.02], 0x3a4a4e); for (let d = Math.ceil(fa / 6) * 6; d < fb; d += 6) { const i = Math.floor(d), sd = (i * 7) % 2 ? 1 : -1; addBox(R.L, 2 + (i % 4), 1 + (i % 3) * 0.6, 2 + (i % 5) * 0.5, 0x3a4a5a, frame(road, d, sd * (10 + (i * 13) % 30), -24 - road.gy[i], i), { y: 0.3 }); } }
@@ -1231,9 +1240,14 @@ function ballroomRun(R, road, B, i0, i1, r) {
     // columnas talladas (en filas por la sala; ninguna en la carretera)
     for (const lat of [-18.5, -12.5, -6.8, 6.5 - 1.1]) { const m = frame(road, d, lat + o, 0); addBox(R.D, 0.9, CH2, 0.9, 0xb07a44, m, { y: CH2 / 2 }); addBox(R.L, 1.2, 0.5, 1.2, 0xd4af37, m, { y: CH2 - 0.3 }); addBox(R.D, 1.1, 0.4, 1.1, 0x8a5a2a, m, { y: 0.2 }); addBox(R.L, 0.95, 0.08, 0.95, 0xd4af37, m, { y: 2.2 }); }
     // paneles y apliques a la izquierda; a la derecha (el casco), ventanales con luz cálida
-    const ml = frame(road, d + 4, -22 + o + 0.14, 0), mr = frame(road, d + 4, 6.5 + o - 0.16, 0);
-    addBox(R.L, 0.04, 3, 3, 0x9a6232, ml, { y: 3.2 }); addBox(R.L, 0.05, 2.5, 2.5, 0xb07a44, ml, { y: 3.2, x: 0.02 }); addBox(R.G, 0.12, 0.35, 0.25, 0xffd890, ml, { y: 4.6, x: 0.1 });
-    addBox(R.G, 0.04, 3.2, 2, 0xfff0c8, mr, { y: 3.3 }); addBox(R.L, 0.06, 0.12, 2.1, 0xd4af37, mr, { y: 1.65 }); addBox(R.L, 0.06, 0.12, 2.1, 0xd4af37, mr, { y: 4.95 });
+    // paneles (izquierda) y ventanales (derecha) como tiras paralelas a la pared: no la cruzan nunca
+    const wa = Math.max(i0, Math.floor(d + 2.5)), wb = Math.min(i1, Math.floor(d + 5.5));
+    if (wb > wa) {
+      strip2(R.L, road, wa, wb, i => [WL(i) + 0.04, 1.7], i => [WL(i) + 0.04, 4.7], 0x9a6232); strip2(R.L, road, wa, wb, i => [WL(i) + 0.07, 2.0], i => [WL(i) + 0.07, 4.4], 0xb07a44);
+      strip2(R.G, road, wa, wb, i => [WR(i) - 0.04, 1.75], i => [WR(i) - 0.04, 4.85], 0xfff0c8);
+      for (const y of [1.62, 4.88]) strip2(R.L, road, wa, wb, i => [WR(i) - 0.06, y], i => [WR(i) - 0.06, y + 0.1], 0xd4af37);
+    }
+    addBox(R.G, 0.12, 0.35, 0.25, 0xffd890, frame(road, d + 4, -22 + o + 0.14, 0), { y: 4.9, x: 0.1 });
     // arañas de cristal (una sobre la carretera y otra sobre la pista de baile)
     for (const cl of [0, -12.5]) {
       const c = frame(road, d + 4, cl + o, 0);
@@ -1246,11 +1260,12 @@ function ballroomRun(R, road, B, i0, i1, r) {
   // paredes del fondo: la entrada (hueco de la rampa) y la salida (rota, por donde se parte el barco)
   if (T) for (const at of [T.ball, T.exit]) {
     if (at < i0 - 1 || at > i1 + 1) continue;
-    const o = off(Math.min(i1, Math.max(i0, at))), ex = at === T.exit, gl = ex ? -HALF - 3 : -HALF - 0.6, gr = ex ? HALF + 1 : HALF + 0.6;
+    const o = off(Math.min(i1, Math.max(i0, at))), gl = -HALF - 0.6, gr = HALF + 0.6;
     const seg = (a, b, y0, y1) => addBox(R.L, b - a, y1 - y0, 0.5, 0xc08a50, frame(road, at, (a + b) / 2 + (a < 0 && b <= gl ? 0 : 0), 0), { y: (y0 + y1) / 2 });
     seg(-22 + o, gl, 0, CH2); seg(gr, 6.5 + o, 0, CH2);
-    if (!ex) seg(gl, gr, 4.2, CH2);
-    else for (let k = 0; k < 7; k++) addBox(R.L, 1.2 + (k % 3) * 0.6, 1 + (k % 2) * 1.5, 0.5, k % 2 ? 0xc08a50 : 0x3a2a24, frame(road, at, gl + 0.5 + k * 1.6, 0), { y: CH2 - 0.6 - (k % 3) * 0.5, rz: (k - 3) * 0.12 });
+    seg(gl, gr, 4.2, CH2);
+    for (const x of [gl, gr]) addBox(R.L, 0.3, 4.2, 0.6, 0xd4af37, frame(road, at, x, 0), { y: 2.1 });
+    addBox(R.L, gr - gl + 0.3, 0.3, 0.6, 0xd4af37, frame(road, at, 0, 0), { y: 4.3 });
   }
   // la gran escalera al fondo izquierdo, con barandilla dorada y el reloj
   const mid = Math.floor((i0 + i1) / 2);

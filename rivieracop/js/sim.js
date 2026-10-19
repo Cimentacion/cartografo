@@ -1137,8 +1137,8 @@ export class Sim {
         e.sh = [this.shooter(2.8 + r() * 0.8, 'shot', 0.3)];
       }
     }
-    if (c > T.exit + 2 && once0(this, 'tbrk' + T.k)) { this.emit('crash', { soft: 1 }); }
-    if (c > T.exit + 2) ban('w', '¡EL BARCO SE PARTE!', '¡Al agua!', '#5ac8ff');
+    if (c > T.exit + 8 && once0(this, 'tbrk' + T.k)) { this.emit('crash', { soft: 1 }); }
+    if (c > T.exit + 8) ban('w', '¡SE HUNDE!', '¡Viene el agua por el pasillo!', '#5ac8ff');
     // bajo el agua: tiburones, medusas, trozos del barco que caen despacio, la chimenea y los náufragos que disparan desde arriba
     if (c > T.exit + 50 && c < T.rise) {
       ban('u', 'BAJO EL MAR', 'Caen trozos del barco: reventadlos antes de que os den', '#5ac8ff');
@@ -1148,7 +1148,7 @@ export class Sim {
         const e = this.add('tdebris', { d: c + 22 + r() * 30, lat: LANE_ME + (r() - 0.5) * 9, h: 24 + r() * 6, hp: 2 + (r() < 0.3 ? 2 : 0), ry: r() * 6 });
         e.x = { k: Math.floor(r() * 4), v: 1.3 + r() * 0.8, sp: (r() - 0.5) * 1.2, hitd: 0 };
       }
-      if (c > T.under + 70 && once0(this, 'tfn' + T.k)) {
+      if (c > T.exit + 70 && once0(this, 'tfn' + T.k)) {
         const e = this.add('tfunnel', { d: c + 40, lat: LANE_ME - 1, h: 26, hp: 45 + 15 * this.nAlive(), ry: 0 });
         e.hm = e.hp; e.x = { t: 0 };
         this.emit('banner', { txt: '¡CAE UNA CHIMENEA!', sub: 'Tardará 20 segundos en llegar abajo: ¡reventadla!', c: '#ffb020' });
@@ -2408,7 +2408,7 @@ const U = {
     if (x.t >= 20) {
       S.emit('crash', {}); S.emit('fx', { f: 'boom', w: S.wpos(e.d, e.lat, 3), s: 2.5 });
       S.emit('banner', { txt: '¡APLASTADOS!', sub: '', c: '#ff4a4a' });
-      for (const i of S.alivePlayers()) { S.players[i].inv = 0; S.hurt(i, 1, 'crash'); }
+      for (const i of S.alivePlayers()) { S.players[i].inv = 0; S.hurt(i, 2, 'crash'); }
       S.kill(e, -1, true);
     }
   },

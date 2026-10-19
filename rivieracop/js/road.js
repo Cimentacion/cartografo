@@ -132,7 +132,8 @@ export class Road {
       case 'tdown': y = S + 18 - 8 * ez(u); k = -0.0118 * Math.sin(2 * Math.PI * u); break; // 3 m a la izquierda (el salón no pasa del eje del barco)
       case 'interior': y = S + 10; break;
       // salida por la brecha del casco: curva en S a la derecha (unos 24 m) bajando hasta el fondo
-      case 'texit': y = S + 10 - 34 * ez(u); k = 0.0175 * Math.sin(2 * Math.PI * u); break;
+      // pasillo recto al salir del salón (44 m) y luego la caída al fondo (tapada por el fundido azul de la ola)
+      case 'texit': { const v = Math.max(0, (u - 0.55) / 0.45); y = S + 10 - 34 * ez(v); k = 0; break; }
       case 'tunder': y = S - 24 + Math.sin(b.pos * 0.02) * 1.5; k = Math.sin(b.pos * 0.012) * 0.004; break;
       case 'trise': y = S - 24 + 24.4 * ez(u); break;
       case 'tfloat': y = S + 0.4; k = Math.sin(b.pos * 0.009) * 0.003; break;

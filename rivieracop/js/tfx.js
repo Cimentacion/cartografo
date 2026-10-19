@@ -119,6 +119,7 @@ export class TitanicFX {
     const deco = B.deco, on = !!T && T.S != null && (c < T.out + 150);
     this.on = on;
     if (!on) {
+      if (this.fade) this.fade.style.opacity = '0'; if (this.wv) this.wv.visible = false; if (this.dr) for (const D of this.dr) D.g.visible = false;
       this.sea.visible = false; sea0.visible = true; this.tilt = this.roll = this.bob = 0; this.under = false;
       if (this.ship) this.ship.visible = false; if (this.halves) this.halves.visible = false;
       return;
@@ -165,12 +166,12 @@ export class TitanicFX {
       // ya chocado: el medio barco del lado por donde NO se va (el otro medio son las cubiertas de la carretera)
       sh.visible = false;
       // (en el salón no: el salón ya llega hasta el otro costado)
-      const q = c < T.deck2 + 8 ? st : po; q.visible = !(c > T.down + 12 && c < T.exit + 10);
+      const q = c < T.deck2 + 8 ? st : po; q.visible = !(c > T.down + 12 && c < T.exit + 60);
       this.pose(q, road, T.deck1, -10.2, -0.1);
     } else if (c >= T.exit + 40 && c < T.rise + 20) {
       // bajo el agua: el Titanic hundido al lado, ladeado, con la proa clavada hacia el fondo
       sh.visible = true;
-      this.pose(sh, road, T.under + 170, -48, 6, 0.25);
+      this.pose(sh, road, T.exit + 150, -46, 4, 0.3);
       sh.rotation.z = 0.35; sh.rotation.x = 0.12;
     } else sh.visible = false;
     // a lo lejos, en el mar helado: se parte en dos y se hunde (la popa se levanta y se va al fondo)
@@ -196,6 +197,8 @@ export class TitanicFX {
         this.fx.part(p, new THREE.Vector3((Math.random() - 0.5) * 1.5, -2.2, (Math.random() - 0.5) * 1.5), 3, 0.06 + Math.random() * 0.05, this.snowM, 0, 0);
       }
     }
+    this.doors(road, T, c, camera);
+    this.wave(road, T, c, dt, camera, G);
     // burbujas bajo el agua (muchas, de varios tamaños)
     if (!this.bubM) this.bubM = new THREE.MeshBasicMaterial({ color: 0xc8f0ff, transparent: true, opacity: 0.7 });
     if (this.under) for (let k = Math.floor(dt * 28 + Math.random()); k > 0; k--) {
@@ -203,6 +206,60 @@ export class TitanicFX {
       this.fx.part(p, new THREE.Vector3((Math.random() - 0.5) * 0.4, 2 + Math.random() * 1.5, 0), 3.5, 0.05 + Math.random() * 0.12, this.bubM, 0, 0);
     }
     this.sinkers(road, T, c, dt, camera);
+  }
+  // puertas dobles (caseta de la bajada, entrada y salida del salón): se abren al acercarse y se cierran detrás
+  doors(road, T, c, camera) {
+    if (!this.dr) {
+      this.dr = [];
+      const wood = new THREE.MeshLambertMaterial({ color: 0x6a3a1a }), gold = new THREE.MeshLambertMaterial({ color: 0xd4af37 }), glass = new THREE.MeshBasicMaterial({ color: 0xffe8b0 });
+      const WW = 6.6;
+      for (let n = 0; n < 3; n++) {
+        const g = new THREE.Group(); g.visible = false; this.scene.add(g); const L = [];
+        for (const sd of [-1, 1]) {
+          const h = new THREE.Group(); h.position.x = sd * WW; g.add(h);
+          const add = (m, w, hh, d, x, y, z) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, hh, d), m); b.position.set(x, y, z); h.add(b); };
+          const cx = -sd * WW / 2;
+          add(wood, WW - 0.05, 4.15, 0.14, cx, 2.08, 0);
+          for (const y of [0.15, 2.1, 4.05]) add(gold, WW - 0.1, 0.1, 0.18, cx, y, 0);
+          for (const k of [0.25, 0.5, 0.75]) add(glass, WW * 0.18, 1.2, 0.16, -sd * WW * k, 3.0, 0);
+          add(gold, 0.12, 0.3, 0.22, -sd * (WW - 0.4), 1.6, -0.12);
+          L.push([h, sd]);
+        }
+        this.dr.push({ g, L });
+      }
+    }
+    const at = [T.down, T.ball, T.exit];
+    this.dr.forEach((D, n) => {
+      const d = at[n], dist = d - c, show = this.crashed && dist < 120 && dist > -40;
+      D.g.visible = show; if (!show) return;
+      road.toWorld(d, 0, n === 0 ? 0 : 0, D.g.position); D.g.rotation.set(0, -road.yawAt(d), 0);
+      const a = 1.45 * Math.min(Math.min(1, Math.max(0, (20 - dist) / 9)), Math.min(1, Math.max(0, (dist + 14) / 9)));
+      for (const [h, sd] of D.L) h.rotation.y = sd < 0 ? a : -a;
+    });
+  }
+  // la ola que llega por el pasillo de salida, el fundido azul y el chapuzón al fondo
+  wave(road, T, c, dt, camera, G) {
+    if (!this.wv) {
+      const g = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.BoxGeometry(13.6, 4.2, 6), new THREE.MeshBasicMaterial({ color: 0x1a5a8a, transparent: true, opacity: 0.88 }));
+      body.position.set(0, 2.1, -3); g.add(body);
+      const foam = new THREE.MeshBasicMaterial({ color: 0xe8f6ff });
+      for (let k = 0; k < 14; k++) { const f = new THREE.Mesh(new THREE.BoxGeometry(1.1 + (k % 3) * 0.5, 0.6 + (k % 2) * 0.5, 0.8), foam); f.position.set(-6.2 + k * 0.95, 1 + (k * 7 % 5) * 0.7, 0.1); g.add(f); }
+      g.visible = false; this.scene.add(g); this.wv = g;
+      const o = document.createElement('div'); o.style.cssText = 'position:fixed;inset:0;background:radial-gradient(ellipse at 50% 40%,#2a7ab8,#06243e);pointer-events:none;opacity:0;z-index:4;transition:none'; document.body.appendChild(o); this.fade = o;
+    }
+    const x = c - (T.exit + 10);
+    const on = x > 0 && x < 40;
+    this.wv.visible = on;
+    if (on) {
+      const wd = T.exit + 62 - x * 1.9; // la ola corre hacia el coche
+      road.toWorld(Math.max(c + 0.5, wd), 0, 0, this.wv.position); this.wv.rotation.set(0, -road.yawAt(wd), 0);
+      const t = G.t; this.wv.children.forEach((m, k) => { if (k) m.position.y = 1 + (k * 7 % 5) * 0.7 + Math.sin(t * 6 + k) * 0.25; });
+      if (wd - c < 25) G.shake = Math.max(G.shake || 0, 0.35);
+    }
+    // fundido: entra cuando la ola os alcanza y se va ya en el fondo del mar
+    const f = c < T.exit + 26 ? 0 : c < T.exit + 32 ? (c - T.exit - 26) / 6 : c < T.exit + 72 ? 1 : c < T.exit + 84 ? 1 - (c - T.exit - 72) / 12 : 0;
+    this.fade.style.opacity = f.toFixed(3);
   }
   // coches y camiones que se hunden despacio desde la superficie, girando y soltando muchas burbujas
   sinkers(road, T, c, dt, camera) {
