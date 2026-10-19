@@ -178,7 +178,7 @@ const BLOBT = (() => {
 })();
 const BLOBM = new THREE.MeshBasicMaterial({ map: BLOBT, transparent: true, depthWrite: false, opacity: 0.8, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
 const BLOBG = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
-const NOBLOB = new Set(['toll', 'obelisk', 'casinob', 'megalodon', 'bat', 'key', 'hdoor', 'prop', 'sign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
+const NOBLOB = new Set(['tower', 'mbomb', 'dunegate', 'fatman', 'toll', 'obelisk', 'casinob', 'megalodon', 'bat', 'key', 'hdoor', 'prop', 'sign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
 const _bb = new THREE.Box3(), _bs = new THREE.Vector3();
 export function addBlob(g, k = 1.15) {
   _bb.setFromObject(g); _bb.getSize(_bs);
@@ -198,7 +198,7 @@ const MASK = {
   beast: LAYER_ENEMY, bear: LAYER_ENEMY, mine: LAYER_ENEMY, jet: LAYER_ENEMY, blimp: LAYER_ENEMY, rammer: LAYER_ENEMY, junk: LAYER_ENEMY, jelly: LAYER_ENEMY,
   quad: LAYER_ENEMY, crew: LAYER_ENEMY, harvester: LAYER_ENEMY, xcar: LAYER_KEEP, pickup: LAYER_ENEMY, van: LAYER_ENEMY, bus: LAYER_ENEMY, canoe: LAYER_ENEMY,
   jumper: LAYER_ENEMY, tank: LAYER_ENEMY, rig: LAYER_ENEMY, rioter: LAYER_ENEMY, thrown: LAYER_ENEMY, chef: LAYER_ENEMY, boat: LAYER_ENEMY, mtrain: LAYER_ENEMY,
-  obelisk: LAYER_KEEP, toll: LAYER_KEEP, victim: LAYER_KEEP, slasher: LAYER_ENEMY, firetruck: LAYER_ENEMY, megalodon: LAYER_ENEMY, zombie: LAYER_ENEMY, bat: LAYER_ENEMY, brute: LAYER_ENEMY, key: LAYER_KEEP, hdoor: LAYER_KEEP, prop: LAYER_KEEP,
+  obelisk: LAYER_KEEP, toll: LAYER_KEEP, victim: LAYER_KEEP, slasher: LAYER_ENEMY, mbomb: LAYER_ENEMY, tuktuk: LAYER_ENEMY, fatman: LAYER_KEEP, firetruck: LAYER_ENEMY, megalodon: LAYER_ENEMY, zombie: LAYER_ENEMY, bat: LAYER_ENEMY, brute: LAYER_ENEMY, key: LAYER_KEEP, hdoor: LAYER_KEEP, prop: LAYER_KEEP,
   preview: LAYER_KEEP, police: LAYER_KEEP, tlight: LAYER_KEEP, fuel: LAYER_KEEP, float: LAYER_KEEP,
   sign: LAYER_KEEP, weapon: LAYER_KEEP, medkit: LAYER_KEEP, amb: LAYER_KEEP, truck: LAYER_KEEP, barrel: LAYER_KEEP, lady: LAYER_KEEP, civilian: LAYER_KEEP, chicken: LAYER_KEEP,
 };
@@ -266,6 +266,7 @@ export class View {
     u.turret.visible = tu > 0;
   }
   setAvatars(chars) {
+    this.chars = chars;
     this.av.forEach(a => this.car.remove(a));
     this.av = [0, 1, 2, 3, 4].map(i => M.seatedPlayer(i, chars[i]));
     const sy = this.car.userData.seatY || 0;
@@ -317,8 +318,11 @@ export class View {
         const o = x.sol ? { shirt: 0x4a5a2a, pants: 0x3a4a2a, cap: 0x3a4a2a, vest: 0x5a6a3a } : Object.assign({}, OUTFIT[((x.sk || 0) + e.id) % OUTFIT.length]);
         if (x.gr) { o.vest = 0xd06a10; o.gun = null; } else if (x.rk) { o.gun = null; o.vest = 0x5a5a3a; } else o.gun = 'pistol';
         o.skin = SKIN[(x.sk || 0) % SKIN.length];
+        // del desierto: túnica, turbante y fusil
+        if (x.tb) { o.shirt = [0xe8dcc0, 0x8a7a5a, 0x3a3a3a, 0x6a2a2a][(x.sk || 0) % 4]; o.pants = 0x5a4a3a; o.gun = 'rifle'; o.cap = null; o.mask = null; o.glasses = false; o.hairStyle = 'calvo'; }
         const p = M.person(o);
         g.add(p);
+        if (x.tb) { const t = p.userData.rig.torso; M.box(t, 0.36, 0.2, 0.36, [0xf2f2f2, 0x2a2a2a, 0xd8b070][(x.sk || 0) % 3], 0, 1.04, 0, 'head'); M.box(t, 0.3, 0.13, 0.06, 0x3a3a3a, 0, 0.75, -0.15, 'head'); }
         if (x.gr) M.box(p.userData.rig.armR, 0.2, 0.24, 0.2, 0x2a4a1a, 0, 0, -0.65, 'body');
         // lanzacohetes al hombro
         if (x.rk) { M.box(p.userData.rig.armR, 0.22, 0.22, 1.3, 0x3a4a2a, -0.05, 0.12, -0.4, 'gun'); M.box(p.userData.rig.armR, 0.26, 0.26, 0.2, 0x1a1a1a, -0.05, 0.12, -1.05, 'gun'); }
@@ -414,7 +418,12 @@ export class View {
       case 'train': g = M.train(); break;
       case 'lady': g = M.lady(x.sk || 0); break;
       case 'zombie': g = x.k === 1 ? M.fatZombie(x.sk || 0) : M.zombie(x.k || 0, x.sk || 0); break;
-      case 'bat': g = M.bat(); break;
+      case 'bat': g = x.v ? M.vulture() : M.bat(); break;
+      case 'tower': g = M.tower(); break;
+      case 'mbomb': g = M.mbomb(); break;
+      case 'tuktuk': g = M.tuktuk(x.cl ? (this.chars || []).slice(0, Math.max(1, x.n || 1)) : null); break;
+      case 'fatman': g = M.fatman(); break;
+      case 'dunegate': g = M.duneGate(); break;
       case 'brute': g = M.brute(); break;
       case 'key': g = M.keyItem(); break;
       case 'hdoor': g = M.hdoor(); break;
@@ -686,6 +695,36 @@ const ANIM = {
     if (t < 3 && Math.random() < dt * 10) { o.getWorldPosition(V2); V2.y += 2; V.fx.smoke(V2, true); }
   },
   victim: personAnim,
+  tower(o, e, dt, ctx, V) {
+    const ud = o.userData, x = e.x || {}, fl = x.fl | 0;
+    ud.ground.visible = x.m === 1;
+    // los pisos caídos se hunden con humo y temblando
+    const ty = -fl * ud.FH;
+    if (ud.body.position.y > ty + 0.01) {
+      ud.body.position.y = Math.max(ty, ud.body.position.y - dt * 9);
+      ud.body.position.x = (Math.random() - 0.5) * 0.6;
+      if (Math.random() < dt * 30) { o.getWorldPosition(V1); V1.x += (Math.random() - 0.5) * 22; V1.z += (Math.random() - 0.5) * 22; V1.y += 2 + Math.random() * 10; V.fx.smoke(V1, true); }
+    } else ud.body.position.x = 0;
+    ud.rub.visible = fl > 0;
+    ud.floors.forEach((f, j) => { f.visible = j >= fl; });
+    const F = ud.floors[fl];
+    if (F) F.children.forEach(c => { const m = /^f\d+c(\d)$/.exec(c.userData.part || ''); if (m) c.visible = !((x.cm | 0) & (1 << +m[1])); });
+    const on = x.sc ? Math.floor(ctx.t * 8) % 2 === 0 : false;
+    ud.tubes.forEach(t => (t.visible = !!x.sc && on || !x.sc));
+    ud.top.visible = !x.sr;
+  },
+  mbomb(o, e, dt, ctx, V) { if (Math.random() < dt * 25) { o.getWorldPosition(V1); V.fx.smoke(V1, false); } },
+  fatman(o, e, dt, ctx, V) {
+    personAnim(o, e, dt, ctx, V);
+    const rig = o.userData.p.userData.rig;
+    rig.armR.rotation.set(2.9 + Math.sin(ctx.t * 9) * 0.3, 0, 0); rig.armL.rotation.set(0.6 + Math.sin(ctx.t * 12) * 0.5, 0, 0);
+    o.userData.flag.rotation.y = Math.sin(ctx.t * 7) * 0.5;
+  },
+  dunegate(o, e, dt) {
+    const ud = o.userData, op = e.x && e.x.o;
+    ud.halves.forEach((h, i) => { const t = op ? (i ? 13 : -13) : 0; h.position.x += (t - h.position.x) * Math.min(1, dt * 1.5); });
+  },
+  tuktuk(o, e, dt, ctx) { o.rotation.z = Math.sin(ctx.t * 9 + e.id) * 0.03; if (e.st === ST.DEAD) o.rotation.z = Math.min(1.2, (o.userData.dt || 0) * 2); },
   slasher(o, e, dt, ctx, V) {
     personAnim(o, e, dt, ctx, V);
     if (e.st === ST.DEAD) return;

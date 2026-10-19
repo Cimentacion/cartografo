@@ -83,6 +83,8 @@ const SKYT = {
   casino: { top: 0x0a0420, bands: ['#0a0420', '#260c48', '#56207a', '#c8789a'], cl: [150, 100, 190], cs: [50, 24, 80], sun: null, n: 14, mt: '#1a0a2a', stars: true },
   // ciudad zombi: noche morada con nubes de humo
   infierno: { top: 0x0a0320, bands: ['#08031a', '#1c0838', '#36125e', '#5e2280'], cl: [112, 66, 156], cs: [34, 14, 58], sun: null, n: 46, mt: '#12061e', stars: false },
+  // dunas: amanecer naranja con el sol bajo y las dunas recortadas en el horizonte
+  amanecer: { top: 0x4a3a7a, bands: ['#4a3a7a', '#b8607a', '#ff9a5a', '#ffd08a'], cl: [255, 205, 160], cs: [190, 110, 90], sun: '#fff0b0', n: 10, mt: '#b0703a' },
   noche: { top: 0x0a1030, bands: ['#070b24', '#141c44', '#2a3666', '#4a5a86'], cl: [110, 125, 165], cs: [40, 48, 82], sun: '#f2f6ff', n: 12, mt: '#141a32', stars: true },
 };
 const SKYTEX = {};
@@ -165,6 +167,7 @@ const SKYST = { k: 'dia', fade: 1 };
 function skyTypeOf(B) {
   if (B.deco === 'zombi') return 'infierno';
   if (B.deco === 'submarino') return 'mar';
+  if (B.deco === 'dunas') return 'amanecer';
   if (B.deco === 'casino') return 'casino';
   if (B.night) return 'noche';
   if (['desierto', 'acantilados', 'costa', 'bajada', 'curva', 'lomas'].includes(B.deco)) return 'atardecer';
@@ -551,7 +554,7 @@ function updGrenades(dt) {
 }
 
 // ---------------- eventos ----------------
-const IMMEDIATE = new Set(['fork', 'weapon', 'over', 'go']);
+const IMMEDIATE = new Set(['fork', 'weapon', 'over', 'go', 'arenaX']);
 function handleEvent(ev) {
   const li = G.li;
   switch (ev.k) {
@@ -626,6 +629,8 @@ function handleEvent(ev) {
       try { navigator.vibrate && navigator.vibrate([200, 80, 200]); } catch (e) { }
       break;
     case 'pz': if (ev.p === li) flash('poison'); break;
+    case 'arenaX': if (G.mode === 'guest') G.road.setArenaExit(ev.g); break;
+    case 'storm': G.stormT = ev.dur || 5; SFX.tone(120, 60, 2.5, 'sawtooth', 0.15); break;
     case 'siren': for (let i = 0; i < 3; i++) setTimeout(() => { SFX.tone(700, 1100, 0.22, 'square', 0.12); setTimeout(() => SFX.tone(1100, 700, 0.22, 'square', 0.12), 230); }, i * 470); break;
     case 'smoke': G.smokeT = ev.dur || 4; SFX.tone(300, 80, 0.6, 'sawtooth', 0.2); break;
     case 'power': {
@@ -696,6 +701,7 @@ net.onmsg = (m, from) => {
         if (Array.isArray(m.pf)) for (const q of m.pf) if (q && typeof q.id === 'string') addRecent(q.id, q.name);
         begin(m.seed, m.n, net.myIdx || 1, 'guest');
         // reconexión a una partida empezada: se repiten las rutas que ya se eligieron
+        if (m.ax != null) G.road.setArenaExit(m.ax);
         if (Array.isArray(m.rj)) { m.rj.forEach((c, k) => { if (c && c[0] != null) G.road.setChoice(k, c[0], c[1] || 1); }); G.road.extend(600); }
         // por si se cae: se guarda cómo volver
         try { localStorage.setItem('rc_rejoin', JSON.stringify({ code: G.joinCode, gid: net.gid, t: Date.now() })); } catch (e) { }
@@ -766,7 +772,7 @@ net.onjoin = (idx, back) => {
     if (back && P) {
       P.gone = false; if (P.hp > 0) { P.alive = true; P.inv = 3; }
       const gone = G.sim.players.map((q, i) => (q.gone ? i : -1)).filter(i => i > 0);
-      net.sendTo(idx, { t: 'start', seed: G.seed, n: G.n, chars: G.chars, sp: G.speedIdx, gone, st: G.story, veh: G.veh, rj: G.road.forks.map(f => [f.choice, f.zd]) });
+      net.sendTo(idx, { t: 'start', seed: G.seed, n: G.n, chars: G.chars, sp: G.speedIdx, gone, st: G.story, veh: G.veh, rj: G.road.forks.map(f => [f.choice, f.zd]), ax: G.road.exitGate });
       G.sim.emit('banner', { txt: 'J' + (idx + 1) + ' HA VUELTO', sub: '', c: '#7dff8a' });
       return;
     }
@@ -777,7 +783,7 @@ net.onjoin = (idx, back) => {
       G.chars[idx] = G.peerChars[idx] || defaultChar(idx);
       view.setAvatars(G.chars);
       const gone = G.sim.players.map((q, i) => (q.gone ? i : -1)).filter(i => i > 0);
-      net.sendTo(idx, { t: 'start', seed: G.seed, n: G.n, chars: G.chars, sp: G.speedIdx, gone, st: G.story, veh: G.veh, rj: G.road.forks.map(f => [f.choice, f.zd]) });
+      net.sendTo(idx, { t: 'start', seed: G.seed, n: G.n, chars: G.chars, sp: G.speedIdx, gone, st: G.story, veh: G.veh, rj: G.road.forks.map(f => [f.choice, f.zd]), ax: G.road.exitGate });
       net.send({ t: 'nn', n: G.n, chars: G.chars });
       return;
     }
@@ -1682,6 +1688,7 @@ function tick(dt) {
     if (!G.mir) return;
     const s = G.mir.sample();
     if (s) { G.carD = s.carD; G.ents = s.ents; G.players = s.players; G.cd = s.cd; G.speed = s.sp; G.slow = !!s.sl; G.mult = s.mu || 1; G.stun = !!s.sn; G.cu = s.cu; G.turbo = !!s.tb; G.smoked = !!s.sm; G.foot = s.fo || null; G.carLat = s.cl || 0; G.carYo = s.cy || 0; }
+    G.road.cap = G.carD + 140;
     G.road.extend(G.carD + 340);
     const rt = G.mir.rt;
     while (G.evq.length && G.evq[0].st <= rt) handleEvent(G.evq.shift());
@@ -1866,6 +1873,11 @@ function tick(dt) {
   const TT = inTun && !dark ? G.road.tunnels.find(t => G.carD >= t.start - 4 && G.carD <= t.end + 4) : null;
   const B = BIOMES[BIOME_KEYS[G.road.bioAt(TT ? TT.end + 15 : G.carD)]];
   outline.red = outline.aura ? 1 : B.deco === 'zombi' || G.foot ? 0.45 : 0;
+  outline.mat.uniforms.heat.value = B.deco === 'dunas' && !inTun ? 1 : 0; outline.mat.uniforms.time.value = G.t;
+  if (G.stormT > 0) G.stormT -= dt;
+  { const so = G.stormT > 1.2 ? 1 : Math.max(0, (G.stormT || 0) / 1.2); if (so !== G.stormO) { G.stormO = so; $('sandfx').style.opacity = so; } }
+  // arena que vuela a ras de suelo
+  if (B.deco === 'dunas' && !inTun && Math.random() < dt * 14) { G.road.toWorld(G.carD + 10 + Math.random() * 40, (Math.random() - 0.5) * 30, 0.3 + Math.random() * 0.8, V1); fx.part(V1.clone(), V2.set(3 + Math.random() * 3, 0.2, (Math.random() - 0.5) * 2).clone(), 1.4, 0.18 + Math.random() * 0.2, fx.m.dust, 0, 1.5); }
   const k = SHOT ? 1 : 1 - Math.exp(-dt * 1.2);
   ENV.sky.lerp(TC.setHex(B.sky), k);
   ENV.sea.lerp(TC.setHex(B.sea), k);

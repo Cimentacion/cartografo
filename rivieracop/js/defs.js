@@ -2,7 +2,7 @@
 
 export const BIOME_KEYS = ['monaco', 'puerto', 'casino', 'autopista', 'industrial', 'cornisa', 'detroit', 'desierto', 'costa', 'trenes', 'acantilados', 'orgullo',
   'militar', 'manifa', 'barro', 'chino', 'rio', 'semaforos', 'trenmil',
-  'bosque', 'guerra', 'llanura', 'ruinas', 'submarino', 'bajada', 'curva', 'lomas', 'policia', 'tuneles', 'pueblo', 'zombi'];
+  'bosque', 'guerra', 'llanura', 'ruinas', 'submarino', 'bajada', 'curva', 'lomas', 'policia', 'tuneles', 'pueblo', 'zombi', 'dunas'];
 // zonas de ciudad: más edificios detrás, rascacielos y pasarelas elevadas
 export const CITY = new Set(['policia', 'monaco', 'casino', 'detroit', 'manifa', 'semaforos', 'orgullo', 'chino']);
 
@@ -294,6 +294,18 @@ export const BIOMES = {
     build: [0x4a5a7a, 0x5a4a6a, 0x3a4a6a, 0x6a6a8a, 0x7a5a6e, 0x4a6a80], roof: 0x1a1a2a,
     w: {}, pts: 2.1, deco: 'zombi', lv: 5,
   },
+  dunas: {
+    name: 'DUNAS DEL DESIERTO', color: '#ffa040',
+    sky: 0xf0a060, fogNear: 70, fogFar: 240, sea: 0xd8a860,
+    asphalt: 0xd8a868, walk: 0xe0b070, skirt: 0xe8b878, line: 0xd8a868,
+    hemi: [0xffd0a0, 0xb0703a, 1.1], sun: [0xffb070, 1.9], night: false,
+    // amanecer naranja en las dunas: sin carretera, subidas y bajadas suaves; a los 2 min una gran bajada al oasis,
+    // tormenta de arena y la batalla en círculo alrededor de la torre (se le tiran las columnas piso a piso)
+    slope: 0, hills: 0.045, floor: -1e9, len: 1250, dunes: true,
+    hmin: 0, hmax: 0, hair: 0,
+    build: [0xe8c890, 0xd8b078], roof: 0xb88a50,
+    w: { gunman: 0, moto: 0, ecar: 0, drone: 0, heli: 0, sniper: 0, barrels: 0, jumper: 0, grenadier: 0, quad: 0, pickup: 0, van: 0, bus: 0, truck: 0, civcar: 0, rammer: 0 }, pts: 2.2, deco: 'dunas', lv: 5,
+  },
   lomas: {
     name: 'LAS LOMAS', color: '#9ad84a',
     sky: 0x9ac8f0, fogNear: 90, fogFar: 280, sea: 0x4a7a3a,
@@ -321,9 +333,9 @@ export const TYPES = ['gunman', 'civilian', 'moto', 'ecar', 'heli', 'drone', 'tr
   'amb', 'medkit', 'jeep', 'weapon', 'sign', 'barrel', 'grenade', 'rocket', 'sniper', 'wall', 'train', 'rock', 'lady',
   'jumper', 'tank', 'rig', 'rioter', 'thrown', 'fuel', 'chef', 'boat', 'tlight', 'mtrain', 'preview', 'float',
   'quad', 'pickup', 'van', 'bus', 'canoe',
-  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'whale', 'turret', 'gunship', 'crew', 'police', 'xcar', 'harvester', 'zombie', 'bat', 'brute', 'key', 'hdoor', 'prop', 'megalodon', 'obelisk', 'casinob', 'firetruck', 'toll', 'victim', 'slasher'];
+  'beast', 'bear', 'mine', 'jet', 'blimp', 'rammer', 'junk', 'jelly', 'whale', 'turret', 'gunship', 'crew', 'police', 'xcar', 'harvester', 'zombie', 'bat', 'brute', 'key', 'hdoor', 'prop', 'megalodon', 'obelisk', 'casinob', 'firetruck', 'toll', 'victim', 'slasher', 'tower', 'mbomb', 'tuktuk', 'fatman', 'dunegate'];
 // jefes: llevan barra de vida en pantalla
-export const BOSS = { obelisk: 'EL OBELISCO', megalodon: 'EL MEGALODÓN', brute: 'EL CARNICERO', harvester: 'LA COSECHADORA', gunship: 'EL CAÑONERO', bear: 'OSO GRIZZLY', blimp: 'DIRIGIBLE', bus: 'AUTOBÚS', jeep: 'TERRORISTA', heli: 'HELICÓPTERO', wall: 'MURO', train: 'TREN', tank: 'TANQUE', rig: 'CAMIÓN', chef: 'EL CHEF DEL BUFFET', mtrain: 'TREN MILITAR' };
+export const BOSS = { tower: 'LA TORRE', obelisk: 'EL OBELISCO', megalodon: 'EL MEGALODÓN', brute: 'EL CARNICERO', harvester: 'LA COSECHADORA', gunship: 'EL CAÑONERO', bear: 'OSO GRIZZLY', blimp: 'DIRIGIBLE', bus: 'AUTOBÚS', jeep: 'TERRORISTA', heli: 'HELICÓPTERO', wall: 'MURO', train: 'TREN', tank: 'TANQUE', rig: 'CAMIÓN', chef: 'EL CHEF DEL BUFFET', mtrain: 'TREN MILITAR' };
 export const TI = Object.fromEntries(TYPES.map((t, i) => [t, i]));
 
 // Estados de entidad

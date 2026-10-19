@@ -8,6 +8,15 @@ export const START_TUN = 120, SECTION = 720, APPROACH = 90, TUN = 150;
 const CELL = 20;
 
 export const TUNH = ['coches', 'pinchos', 'moteros', 'emboscada'];
+// dunas: radio y longitud de la vuelta alrededor de la torre (se genera a trozos hasta que cae)
+export const ARENA_R = 70, ARENA_L = 2 * Math.PI * ARENA_R, ARENA_Q = ARENA_L / 8;
+// altura de las dunas respecto a la pista (la usan el decorado y los que salen sobre las dunas)
+export const duneH = (d, lat) => {
+  const a = Math.abs(lat), s = Math.sign(lat) || 1;
+  if (a < 7) return 0;
+  const n = Math.min(1, (a - 7) / 14) * (1.4 + 1.1 * Math.sin(d * 0.045 + s * 1.3) + 0.7 * Math.sin(d * 0.11 + a * 0.08));
+  return n + (a > 28 ? Math.min(1, (a - 28) / 50) * (6 + 5 * Math.sin(d * 0.02 + s) + 2 * Math.sin(d * 0.07 + a * 0.05)) : 0);
+};
 export const TUNMSG = { coches: 'COCHES EN TODOS LOS CARRILES', pinchos: 'PINCHOS EN LA CALZADA', moteros: 'MOTORISTAS ARMADOS', emboscada: 'EMBOSCADA: CIRCULE CON PRECAUCIÓN' };
 export class Road {
   constructor(seed, bio0 = 0, zd0 = 1) {
@@ -19,6 +28,8 @@ export class Road {
     this.grid = new Map();
     this._addGrid(0);
     this.queue = []; this.tunnels = []; this.forks = []; this.hosp = [];
+    // dunas: arena circular. cap = hasta dónde se genera en la vuelta (lo pone quien mueve el coche)
+    this.dunes = []; this.cap = Infinity; this.gates = 0; this.exitGate = null;
     this.planEnd = 0;
     this.cur = { yaw: 0, slope: 0 };
     this.baseYaw = 0; this.lastHair = 0;
@@ -50,12 +61,35 @@ export class Road {
       const hb = this._q({ type: 'hosp', len: 240, bio, zd });
       this.hosp.push({ H: hb.start + 70, k });
       this._q({ type: 'section', len: 420, bio, zd, sub: null });
+    } else if (BIOMES[BIOME_KEYS[bio]].dunes) {
+      // dunas: dunas suaves, bajada brutal al oasis, tormenta de arena y la arena circular (la salida se decide luego)
+      this._q({ type: 'section', len: slen, bio, zd, sub: null });
+      const dr = this._q({ type: 'drop', len: 170, bio, zd });
+      const oa = this._q({ type: 'oasis', len: 90, bio, zd });
+      const st = this._q({ type: 'storm', len: 70, bio, zd });
+      this.dunes.push({ k, drop: dr.start, oasis: oa.start, storm: st.start, arena: st.start + st.len, out: null, secStart });
+      this._q({ type: 'loop', len: ARENA_Q, bio, zd });
+      this._q({ type: 'lapgate', len: 0, bio, zd, k });
+      this.forks.push({ k, gantry: 1e9, tStart: 1e9, tEnd: 1e9, choice: null, from: bio, zd: null, secStart, bio, slen, dunes: 1 });
+      return;
     } else this._q({ type: 'section', len: slen, bio, zd, sub: null });
     this._q({ type: 'approach', len: APPROACH, bio, zd });
     const tn = this._q({ type: 'tunnel', len: TUN, fork: k, bio, zd });
     this.forks.push({ k, gantry: tn.start - 40, tStart: tn.start, tEnd: tn.start + TUN, choice: null, from: bio, zd: null, secStart, bio, slen });
     this._q({ type: 'wait', len: 0, fork: k });
   }
+  _dunesExit(b) {
+    const D = this.dunes.find(q => q.k === b.k), f = this.forks[b.k];
+    const o = this._q({ type: 'arenaOut', len: 200, bio: b.bio, zd: b.zd });
+    if (D) D.out = o.start;
+    this._q({ type: 'approach', len: APPROACH, bio: b.bio, zd: b.zd });
+    const tn = this._q({ type: 'tunnel', len: TUN, fork: b.k, bio: b.bio, zd: b.zd });
+    f.gantry = tn.start - 40; f.tStart = tn.start; f.tEnd = tn.start + TUN;
+    this._q({ type: 'wait', len: 0, fork: b.k });
+  }
+  // la torre ha caído: se sale de la arena en el primer trozo de vuelta que aún no esté hecho
+  setArenaExit(g) { if (this.exitGate == null) this.exitGate = g; }
+  dunesAt(d) { for (const D of this.dunes) if (d >= D.secStart - 50 && (D.out == null || d < D.out + 260)) return D; return null; }
   setChoice(k, bio, zd = 1) {
     const f = this.forks[k];
     if (!f || f.choice != null) return;
@@ -74,6 +108,16 @@ export class Road {
         this._queueSection(f.choice, f.zd || 1);
         continue;
       }
+      if (b.type === 'lapgate') {
+        // fin de un trozo de vuelta: otra vuelta más o, si ya ha caído la torre, la salida
+        this.queue.shift();
+        const g = this.gates++;
+        if (this.exitGate != null && g >= this.exitGate) this._dunesExit(b);
+        else { this._q({ type: 'loop', len: ARENA_Q, bio: b.bio, zd: b.zd }); this._q({ type: 'lapgate', len: 0, bio: b.bio, zd: b.zd, k: b.k }); }
+        continue;
+      }
+      // en la arena no se adelanta demasiado (para poder salir enseguida cuando cae la torre)
+      if (b.type === 'loop' && this.len >= this.cap) break;
       if (b.pos >= b.len) { this.queue.shift(); continue; }
       this._step(b);
       b.pos++;
@@ -106,11 +150,19 @@ export class Road {
       } else if (BB.slope < 0 && this.y[this.len] < 16) slopeT = 0;
     } else if (b.type === 'hosp') {
       k = 0; slopeT = 0;
+    } else if (b.type === 'drop') {
+      // la gran bajada hacia el oasis
+      k = 0; slopeT = b.pos < 120 ? -0.17 : 0;
+    } else if (b.type === 'oasis' || b.type === 'storm' || b.type === 'arenaOut') {
+      k = 0; slopeT = 0;
+    } else if (b.type === 'loop') {
+      k = 2 * Math.PI / ARENA_L; slopeT = 0;
     } else if (b.type === 'tunnel' || b.type === 'interior') {
       if (b.kmax == null) { const r = rng(hash(this.seed, b.fork + 7, 99)); b.kmax = (r() - 0.5) * 0.008; }
       k = b.kmax * Math.sin(Math.PI * (b.pos + 0.5) / b.len);
     }
-    c.slope += clamp(slopeT - c.slope, -0.0015, 0.0015);
+    const rate = b.type === 'drop' ? 0.0045 : b.type === 'loop' || b.type === 'oasis' ? 0.004 : 0.0015;
+    c.slope += clamp(slopeT - c.slope, -rate, rate);
     const i = this.len;
     // suelo mínimo: las bajadas largas pueden ir por debajo del nivel del mar (el mar baja con ellas)
     const fl = BIOMES[BIOME_KEYS[b.bio]].floor ?? 6;
@@ -123,7 +175,7 @@ export class Road {
     this.sea.push(Math.min(this.sea[i], ny - 30));
     this.gy.push(ny - this.sea[i + 1]);
     this.yaw.push(yaw);
-    this.kind.push(b.type === 'tunnel' ? 1 : b.type === 'approach' ? 2 : b.type === 'interior' ? 3 : 0);
+    this.kind.push(b.type === 'tunnel' ? 1 : b.type === 'approach' ? 2 : b.type === 'interior' ? 3 : b.type === 'loop' ? 4 : 0);
     this.bio.push(b.bio);
     this.zd.push(b.zd || 1);
     this._addGrid(i + 1);

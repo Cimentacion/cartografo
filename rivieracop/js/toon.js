@@ -67,19 +67,20 @@ export class Outline {
       uniforms: {
         tColor: { value: this.rt.texture }, tDepth: { value: this.rt.depthTexture }, tMask: { value: this.mrt.texture },
         res: { value: new THREE.Vector2(2, 2) }, near: { value: 0.1 }, far: { value: 260 },
-        ink: { value: new THREE.Color(0x14101a) }, inkOn: { value: 1 }, red: { value: new THREE.Color(0xff1a14) }, ow: { value: 2.0 }, redOn: { value: 0 }, aoOn: { value: 1 }, aoN: { value: 8 }, palOn: { value: 1 }, tint: { value: new THREE.Color(0xa8c8e8) }, palA: { value: new THREE.Vector4(0.2, 0.68, 0.88, 0.09) }, palB: { value: new THREE.Vector4(1.45, 0, 0.25, 0) }, palT: { value: new THREE.Color(1, 1, 1) }, dim: { value: 0 }, dimD: { value: 100 },
+        ink: { value: new THREE.Color(0x14101a) }, inkOn: { value: 1 }, red: { value: new THREE.Color(0xff1a14) }, ow: { value: 2.0 }, redOn: { value: 0 }, aoOn: { value: 1 }, aoN: { value: 8 }, palOn: { value: 1 }, tint: { value: new THREE.Color(0xa8c8e8) }, palA: { value: new THREE.Vector4(0.2, 0.68, 0.88, 0.09) }, palB: { value: new THREE.Vector4(1.45, 0, 0.25, 0) }, palT: { value: new THREE.Color(1, 1, 1) }, dim: { value: 0 }, dimD: { value: 100 }, heat: { value: 0 }, time: { value: 0 },
       },
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
       fragmentShader: `
         uniform sampler2D tColor; uniform sampler2D tDepth; uniform sampler2D tMask; uniform vec2 res; uniform float near; uniform float far;
-        uniform vec3 ink; uniform float inkOn; uniform vec3 red; uniform float ow; uniform float redOn; uniform float aoOn; uniform float aoN; uniform float palOn; uniform vec3 tint; uniform vec4 palA; uniform vec4 palB; uniform vec3 palT; uniform float dim; uniform float dimD;
+        uniform vec3 ink; uniform float inkOn; uniform vec3 red; uniform float ow; uniform float redOn; uniform float aoOn; uniform float aoN; uniform float palOn; uniform vec3 tint; uniform vec4 palA; uniform vec4 palB; uniform vec3 palT; uniform float dim; uniform float dimD; uniform float heat; uniform float time;
         float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
         float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
           return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y); }
         varying vec2 vUv;
         float lin(float d){ float z = d * 2.0 - 1.0; return (2.0 * near * far) / (far + near - z * (far - near)); }
         void main(){
-          vec3 c = texture2D(tColor, vUv).rgb;
+          vec2 hz = heat > 0.0 ? vec2(sin(vUv.y * 160.0 + time * 6.0) * 0.0016 * heat * smoothstep(0.3, 0.55, vUv.y) * (1.0 - smoothstep(0.62, 0.8, vUv.y)), 0.0) : vec2(0.0);
+          vec3 c = texture2D(tColor, vUv + hz).rgb;
           vec2 px = 1.0 / res;
           float raw = texture2D(tDepth, vUv).r;
           float d = lin(raw);

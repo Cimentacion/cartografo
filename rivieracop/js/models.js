@@ -2100,3 +2100,133 @@ export function tollGate() {
   g.userData.bar = bar; g.userData.front = front; g.userData.lever = lever; g.userData.arm = arm; g.userData.broken = broken; g.userData.lt = lt;
   return g;
 }
+
+// ---------- dunas ----------
+// buitre: misma estructura que el murciélago (alas en userData.wings) pero grande y con cuello pelado
+export function vulture() {
+  const g = new THREE.Group();
+  const b = new THREE.Group(); g.add(b);
+  box(b, 0.5, 0.42, 0.9, 0x3a2a20, 0, 0, 0, 'body');
+  box(b, 0.32, 0.18, 0.36, 0xe8d8c8, 0, 0.12, -0.45, 'body');
+  box(b, 0.16, 0.18, 0.3, 0xc89a8a, 0, 0.16, -0.72, 'body'); box(b, 0.08, 0.08, 0.16, 0xe0c040, 0, 0.12, -0.9, 'body');
+  box(b, 0.42, 0.06, 0.4, 0x2a1a14, 0, 0, 0.58, 'body');
+  const wings = [];
+  for (const s of [-1, 1]) {
+    const w = new THREE.Group(); w.position.set(s * 0.24, 0.1, 0); b.add(w); wings.push(w);
+    box(w, 1.3, 0.06, 0.7, 0x3a2a20, s * 0.66, 0, 0, 'body');
+    box(w, 0.8, 0.05, 0.5, 0x2a1a14, s * 1.6, 0, 0.08, 'body');
+    for (let k = 0; k < 4; k++) box(w, 0.32, 0.04, 0.1, 0x1a120e, s * (1.95 + k * 0.06), 0, -0.12 + k * 0.12);
+  }
+  proxy(g, 0.9, 0, 0, 0);
+  g.userData.wings = wings; g.userData.body = b;
+  g.userData.shooters = [b];
+  return g;
+}
+// tuk-tuk: moto de tres ruedas con techo y tiradores detrás (o vuestros dobles: cfgs = apariencias)
+export function tuktuk(cfgs) {
+  const g = new THREE.Group();
+  const C = cfgs ? 0x8a3ac0 : pick3(0xd8a020, 0x2aa060, 0xd83030);
+  box(g, 1.5, 0.6, 2.8, C, 0, 0.7, 0.2, 'body');
+  box(g, 1.3, 0.8, 0.9, C, 0, 1.2, -1.0, 'body'); box(g, 1.2, 0.5, 0.06, GLASS, 0, 1.45, -1.46, 'body');
+  box(g, 1.6, 0.08, 2.6, 0x1a1a1a, 0, 2.3, 0.2, 'body');
+  for (const x of [-0.7, 0.7]) for (const z of [-1.3, 1.4]) box(g, 0.06, 1.4, 0.06, 0x2a2a2a, x, 1.6, z);
+  wheel(g, 0, 0.32, -1.5, 0.32, 0.22, 'body'); for (const x of [-0.72, 0.72]) wheel(g, x, 0.32, 1.1, 0.32, 0.22, 'body');
+  box(g, 0.08, 0.08, 0.6, 0x111111, 0, 1.45, -0.5);
+  // flecos y tela de colores
+  for (let k = 0; k < 8; k++) box(g, 0.18, 0.12, 0.04, [0xff3a3a, 0xffe14a, 0x3ad0ff, 0x7dff8a][k % 4], -0.65 + k * 0.19, 2.2, -1.1);
+  const shooters = [];
+  if (cfgs) cfgs.forEach((c, i) => {
+    const p = seatedPlayer(i, c); p.position.set(-0.45 + (i % 2) * 0.9, 1.2, 0.3 + Math.floor(i / 2) * 0.8); p.rotation.y = Math.PI / 2; g.add(p);
+    p.traverse(m => { if (m.isMesh && !m.userData.part) m.userData.part = 'body'; });
+    shooters.push(p.userData.rig.muzzle);
+  });
+  else {
+    const p = person({ shirt: 0xe8e0d0, pants: 0x3a3a3a, mask: 0xd8d0c0, gun: 'rifle', part: 'body' }); p.position.set(0, 0.95, 0.6); p.rotation.y = Math.PI / 2; g.add(p);
+    p.userData.rig.legs.forEach(m => (m.visible = false));
+    box(p.userData.rig.torso, 0.34, 0.18, 0.34, 0xf2f2f2, 0, 1.02, 0, 'body');
+    p.userData.rig.armR.rotation.x = 1.4;
+    shooters.push(p.userData.rig.muzzle);
+  }
+  g.userData.shooters = shooters;
+  return g;
+}
+const pick3 = (...a) => a[Math.floor(Math.random() * a.length)];
+// misil de la torre (de las salvas)
+export function mbomb() {
+  const g = new THREE.Group();
+  box(g, 0.28, 0.28, 1.0, 0x5a5a4a, 0, 0, 0, 'body'); box(g, 0.2, 0.2, 0.3, 0xc81818, 0, 0, -0.6, 'body');
+  for (const r of [0, Math.PI / 2]) { const f = box(g, 0.7, 0.04, 0.3, 0x3a3a30, 0, 0, 0.42, 'body'); f.rotation.z = r; }
+  box(g, 0.3, 0.3, 0.5, glow(0xffb040), 0, 0, 0.7);
+  proxy(g, 0.6, 0, 0, 0);
+  return g;
+}
+// el gordo que se rinde con la bandera blanca
+export function fatman() {
+  const g = new THREE.Group();
+  const p = person({ shirt: 0xe8e0d0, pants: 0x3a3a3a, big: true, skin: 0xb27a4e, hairStyle: 'calvo', beard: 'barba', hair: 0x111111 });
+  p.scale.set(1.35, 1.05, 1.5); g.add(p);
+  box(p.userData.rig.torso, 0.7, 0.5, 0.55, 0xe8e0d0, 0, 0.2, -0.1, 'body');
+  const a = p.userData.rig.armR; a.rotation.x = 2.8;
+  box(a, 0.05, 0.05, 1.6, 0x6a4a2a, 0, 0, -1.2); const fl = box(a, 0.04, 0.6, 0.8, 0xf8f8f8, 0, 0.3, -1.6);
+  g.userData.p = p; g.userData.flag = fl;
+  return g;
+}
+// duna que tapa la salida: se abre en dos al acercarse
+export function duneGate() {
+  const g = new THREE.Group(), halves = [];
+  for (const s of [-1, 1]) {
+    const h = new THREE.Group(); g.add(h); halves.push(h);
+    const m = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), mat(0xe0b070)); m.scale.set(9, 7, 7); m.position.set(s * 6, -1.5, 0); h.add(m);
+    const m2 = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 6), mat(0xd8a868)); m2.scale.set(5, 4, 5); m2.position.set(s * 10, -0.5, 3); h.add(m2);
+  }
+  g.userData.halves = halves;
+  return g;
+}
+// la torre: cilindro de piedra caliza con pisos de arcadas; las 6 columnas del piso de abajo se pueden reventar.
+// Lleva con ella el suelo de la arena (disco de arena con la pista y un anillo de dunas alrededor)
+export function tower() {
+  const g = new THREE.Group(), FH = 14, F = 3;
+  const stone = 0xe8cc88, dark = 0xb8945a;
+  const floors = [];
+  const body = new THREE.Group(); g.add(body);
+  for (let j = 0; j < F; j++) {
+    const f = new THREE.Group(); f.position.y = j * FH; body.add(f); floors.push(f);
+    const core = new THREE.Mesh(new THREE.CylinderGeometry(6.5, 6.8, FH, 16), mat(stone)); core.position.y = FH / 2; f.add(core);
+    // cornisas y ventanas
+    const cr = new THREE.Mesh(new THREE.CylinderGeometry(10.4, 10.4, 0.8, 24), mat(dark)); cr.position.y = FH - 0.4; f.add(cr);
+    const fl = new THREE.Mesh(new THREE.CylinderGeometry(10.2, 10.2, 0.6, 24), mat(stone)); fl.position.y = 0.3; f.add(fl);
+    for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; box(f, 0.3, 2.4, 1.2, 0x2a2018, Math.cos(a) * 6.6, FH * 0.6, Math.sin(a) * 6.6).rotation.y = -a; }
+    // columnas (las del piso que queda abajo son las que se revientan)
+    for (let i = 0; i < 6; i++) {
+      const a = i / 6 * Math.PI * 2;
+      const c = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.1, FH - 1.4, 10), mat(0xf0d898)); c.position.set(Math.cos(a) * 9, (FH - 1.4) / 2 + 0.6, Math.sin(a) * 9);
+      c.userData.part = 'f' + j + 'c' + i; f.add(c);
+      const cap = box(f, 2.4, 0.6, 2.4, dark, Math.cos(a) * 9, FH - 1.1, Math.sin(a) * 9); cap.userData.part = 'f' + j + 'c' + i;
+      const bs = box(f, 2.4, 0.6, 2.4, dark, Math.cos(a) * 9, 0.9, Math.sin(a) * 9); bs.userData.part = 'f' + j + 'c' + i;
+    }
+  }
+  // coronación con almenas y lanzamisiles
+  const top = new THREE.Group(); top.position.y = F * FH; body.add(top);
+  const tc = new THREE.Mesh(new THREE.CylinderGeometry(8.2, 8.2, 1.4, 24), mat(dark)); tc.position.y = 0.7; top.add(tc);
+  for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2; box(top, 1.4, 1.4, 1.0, stone, Math.cos(a) * 7.8, 2.0, Math.sin(a) * 7.8).rotation.y = -a; }
+  const tubes = [];
+  for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2; const t = box(top, 0.8, 2.6, 0.8, 0x4a4a3a, Math.cos(a) * 3, 2.6, Math.sin(a) * 3); t.rotation.x = 0.3; tubes.push(box(top, 0.6, 0.3, 0.6, glow(0xff5a20), Math.cos(a) * 3, 4.0, Math.sin(a) * 3)); }
+  box(top, 0.15, 6, 0.15, 0x3a3a3a, 0, 4, 0); box(top, 2.4, 1.4, 0.05, 0x1a1a1a, 1.2, 6.2, 0);
+  // escombros de los pisos caídos
+  const rub = new THREE.Group(); g.add(rub);
+  for (let k = 0; k < 18; k++) { const a = k * 2.4, r = 5 + (k * 37 % 9); const s = 1 + (k % 4); const b = box(rub, s * 1.4, s * 0.8, s, stone, Math.cos(a) * r, s * 0.3, Math.sin(a) * r); b.rotation.set(k, k * 0.7, k * 0.3); }
+  rub.visible = false;
+  // suelo de la arena
+  const ground = new THREE.Group(); g.add(ground);
+  const disc = new THREE.Mesh(new THREE.CylinderGeometry(150, 150, 0.4, 48), mat(0xe8c080)); disc.position.y = -0.25; ground.add(disc);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(64, 76, 64), mat(0xd0a060)); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.0; ground.add(ring);
+  for (let k = 0; k < 28; k++) {
+    const a = k / 28 * Math.PI * 2, rr = 120 + (k * 53 % 25), s = 14 + (k * 29 % 14);
+    const d = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 6), mat(k % 2 ? 0xe0b070 : 0xd8a868)); d.scale.set(s * 1.6, s * 0.55, s); d.position.set(Math.cos(a) * rr, -s * 0.12, Math.sin(a) * rr); d.rotation.y = -a; ground.add(d);
+  }
+  ground.visible = false;
+  g.userData.floors = floors; g.userData.body = body; g.userData.top = top; g.userData.tubes = tubes; g.userData.rub = rub; g.userData.ground = ground; g.userData.FH = FH;
+  // en la lejanía se ve como silueta aunque esté fuera de la niebla
+  g.traverse(m => { if (m.isMesh && m.material) { m.material = m.material.clone(); m.material.fog = false; } });
+  return g;
+}

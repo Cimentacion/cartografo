@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from '../lib/BufferGeometryUtils.js';
 import { rng, hash, pick } from './util.js';
 import { BIOMES, BIOME_KEYS, CITY } from './defs.js';
-import { HALF, WALK, TUNMSG } from './road.js';
+import { HALF, WALK, TUNMSG, duneH } from './road.js';
 import { tr } from './i18n.js';
 import { toon, tex } from './toon.js';
 
@@ -226,7 +226,7 @@ export function buildChunk(road, c, M) {
   for (const k of LIST_KEYS) { R[k] = []; RI[k] = []; }
   const r = rng(hash(road.seed, c, 77));
   let s = d0;
-  const cls = i => (road.kind[i] === 1 ? 1 : road.kind[i] === 3 ? 3 : 0);
+  const cls = i => (road.kind[i] === 1 ? 1 : road.kind[i] === 3 ? 3 : road.kind[i] === 4 ? 4 : 0);
   while (s < d1) {
     const c0 = cls(s);
     let e = s;
@@ -235,6 +235,7 @@ export function buildChunk(road, c, M) {
     // lo de dentro de túneles e interiores va aparte: no recibe sombras del sol (salían rayas y puntos)
     if (c0 === 1) tunnelRun(RI, road, B, s, e);
     else if (c0 === 3) interiorRun(RI, road, B, s, e, r);
+    else if (c0 === 4) { } // arena de las dunas: el suelo va con la torre
     else outsideRun(B.deco === 'tuneles' ? RI : R, road, B, s, e, r);
     s = e;
   }
@@ -592,6 +593,7 @@ function seaRun(R, road, B, i0, i1, r) {
 function outsideRun(R, road, B, i0, i1, r) {
   if (B.deco === 'rio') { riverRun(R, road, B, i0, i1, r); return; }
   if (B.deco === 'submarino') { seaRun(R, road, B, i0, i1, r); return; }
+  if (B.deco === 'dunas') { duneRun(R, road, B, i0, i1, r); return; }
   strip(R.A, road, i0, i1, C(-HALF, 0), C(HALF, 0), LIGHT(B.asphalt, 0.08), 4);
   if (B.deco !== 'pueblo') dashes(R, road, i0, i1, B.line);
   for (const sd of [-1, 1]) {
@@ -640,6 +642,65 @@ function lamp(R, road, d, sd, tall = false) {
   addBox(R.L, 0.16, h, 0.16, 0x4a4d52, frame(road, d, sd * 8.1, 0.18 + h / 2));
   addBox(R.L, 1.6, 0.12, 0.14, 0x4a4d52, frame(road, d, sd * 7.4, 0.18 + h));
   addBox(R.G, 0.6, 0.14, 0.4, 0xfff0b8, frame(road, d, sd * 6.8, 0.1 + h));
+}
+// ---------- dunas ----------
+// palmera trabajada: tronco curvo por anillos, hojas largas que cuelgan en dos capas y cocos
+function palm2(R, road, d, lat, r, h0 = 0) {
+  const m = frame(road, d, lat, h0, r() * 6), lean = 0.25 + r() * 0.3, n = 9;
+  let x = 0, y = 0;
+  for (let k = 0; k < n; k++) { const s = 0.36 - k * 0.018; addBox(R.L, s, 0.95, s, k % 2 ? 0x8b6a3e : 0x7a5a32, m, { y: y + 0.47, x, rz: -lean * (k / n) }); y += 0.92; x += lean * 0.12 * (k / n) * 3; }
+  for (let k = 0; k < 9; k++) {
+    const a = (k / 9) * Math.PI * 2;
+    addBox(R.L, 0.55, 0.06, 3.0, k % 2 ? 0x2f8f3a : 0x3aa548, m, { y: y + 0.1, x: x + Math.sin(a) * 1.3, z: Math.cos(a) * 1.3, ry: a, rx: 0.5 });
+    addBox(R.L, 0.4, 0.05, 1.6, 0x2a7a30, m, { y: y - 0.6, x: x + Math.sin(a) * 2.6, z: Math.cos(a) * 2.6, ry: a, rx: 0.9 });
+  }
+  for (let k = 0; k < 4; k++) addBox(R.L, 0.22, 0.22, 0.22, 0x6a4a1a, m, { y: y - 0.25, x: x + Math.cos(k * 1.6) * 0.3, z: Math.sin(k * 1.6) * 0.3 });
+}
+function cactus2(R, m, s) {
+  addBox(R.L, 0.3 * s, 1.6 * s, 0.3 * s, 0x4a8a3a, m, { y: 0.8 * s });
+  addBox(R.L, 0.22 * s, 0.7 * s, 0.22 * s, 0x4a8a3a, m, { y: 1.0 * s, x: 0.3 * s });
+  addBox(R.L, 0.22 * s, 0.6 * s, 0.22 * s, 0x3a7a32, m, { y: 0.8 * s, x: -0.3 * s });
+}
+const LANE_ME_ = 3;
+function duneRun(R, road, B, i0, i1, r) {
+  // pista de arena (sin carretera) con rodadas
+  strip(R.L, road, i0, i1, C(-HALF - 1, 0.0), C(HALF + 1, 0.0), 0xdcae6c);
+  for (const l of [LANE_ME_ - 0.8, LANE_ME_ + 0.8, -LANE_ME_ - 0.8, -LANE_ME_ + 0.8]) strip(R.L, road, i0, i1, C(l - 0.18, 0.012), C(l + 0.18, 0.012), 0xc89a5a);
+  const D = road.dunesAt(i0);
+  for (const sd of [-1, 1]) {
+    const H = a => i => [sd * a, duneH(i, sd * a)];
+    strip(R.L, road, i0, i1, C(sd * (HALF + 1), 0), H(14), 0xe2b474);
+    strip(R.L, road, i0, i1, H(14), H(28), 0xe8bc7c);
+    strip(R.L, road, i0, i1, H(28), H(60), 0xdcae6c);
+    strip(R.L, road, i0, i1, H(60), H(110), 0xe6b878);
+    strip(R.L, road, i0, i1, H(110), H(260), 0xd8a868);
+    // cactus, piedras y huesos
+    each(i0, i1, r, 9, 16, d => {
+      const lat = sd * (8 + r() * 22), m = frame(road, d, lat, duneH(d, lat), r() * 6);
+      if (r() < 0.6) cactus2(R, m, 0.6 + r() * 0.7);
+      else addBox(R.L, 0.8 + r(), 0.5 + r() * 0.5, 0.8 + r(), 0xb89060, m, { y: 0.2, rx: r(), ry: r() });
+    });
+    // palmeras sueltas
+    each(i0, i1, r, 60, 110, d => { const lat = sd * (12 + r() * 20); palm2(R, road, d, lat, r, duneH(d, lat)); });
+  }
+  // pirámides al fondo a la derecha
+  for (let c = Math.floor(i0 / 380); c <= Math.floor(i1 / 380); c++) {
+    const d = c * 380 + 150 + (hash(road.seed, c, 3131) % 120);
+    if (d < i0 || d >= i1 || hash(road.seed, c, 3132) % 3 === 0) continue;
+    const s = 45 + (hash(road.seed, c, 3133) % 30), lat = 150 + (hash(road.seed, c, 3134) % 50);
+    const t = frame(road, d, lat, duneH(d, lat) - 4);
+    const g = new THREE.ConeGeometry(s, s * 0.95, 4); g.rotateY(Math.PI / 4); g.translate(0, s * 0.47, 0); colorize(g, 0xe0c080, false, true); g.applyMatrix4(t); R.L.push(g);
+  }
+  // el oasis al fondo de la gran bajada
+  if (D) for (let d = Math.max(i0, D.oasis + 10); d < Math.min(i1, D.oasis + 80); d++) {
+    if (d === Math.max(i0, D.oasis + 10)) {
+      const a = Math.max(i0, D.oasis + 10), b = Math.min(i1, D.oasis + 80);
+      strip(R.L, road, a, b, C(-26, 0.02), C(-HALF - 1.2, 0.02), 0x5aa040);
+      strip(R.G, road, a, b, C(-22, 0.05), C(-9, 0.05), 0x3ab0d0);
+      strip(R.L, road, a, b, C(HALF + 1.2, 0.02), C(16, 0.02), 0x6ab048);
+    }
+    if (d % 9 === 3) { palm2(R, road, d, -24 - (d % 5), r, 0); palm2(R, road, d + 4, 12 + (d % 4), r, 0); }
+  }
 }
 function palm(R, road, d, lat, r) {
   if (!ok(road, d, lat, 2)) return;
