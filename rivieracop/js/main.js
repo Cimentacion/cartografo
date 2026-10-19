@@ -54,7 +54,7 @@ sun.castShadow = true;
 sun.shadow.mapSize.set(1024, 1024);
 // sombras de los edificios y el decorado hasta lo lejos: un mapa grande que solo se vuelve a calcular cada ~30 m
 // (lo que se mueve lleva su sombra suave debajo); así no tiemblan y casi no cuestan
-Object.assign(sun.shadow.camera, { left: -145, right: 145, top: 145, bottom: -145, near: 20, far: 460 });
+Object.assign(sun.shadow.camera, { left: -145, right: 145, top: 145, bottom: -145, near: 60, far: 390 });
 // sombras duras (poco difuminado)
 sun.shadow.bias = -0.002; sun.shadow.normalBias = 0.35;
 // rayas en las fachadas (acné): donde el sol llega muy de canto la superficie ya está en sombra por el toon,

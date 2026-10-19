@@ -480,7 +480,7 @@ function tunnelRun(R, road, B, i0, i1) {
     strip(R.L, road, i0, i1, C(sd * (HALF - 0.4), 0.02), C(sd * (HALF - 0.25), 0.02), 0xffffff);
     strip(R.P, road, i0, i1, C(sd * HALF, 0.25), C(sd * 7.2, 0.25), 0xb8b2a6, 2);
     strip(R.L, road, i0, i1, C(sd * HALF, 0), C(sd * HALF, 0.25), 0x77736c);
-    strip(R.T, road, i0, i1, C(sd * 7.2, 0.25), C(sd * 7.2, 1.6), 0xf2ead6, 1.4);
+    strip(R.L, road, i0, i1, C(sd * 7.2, 0.25), C(sd * 7.2, 1.6), 0xe8dfca);
     strip(R.K, road, i0, i1, C(sd * 7.2, 1.6), C(sd * 7.2, 6.3), 0xb8b4aa, 4);
     // techo sin textura: la de roca hacía puntitos en filas al verse de lejos y muy inclinada
     strip(R.L, road, i0, i1, C(sd * 7.2, 6.3), C(0, 7.4), 0x7a7a7e);
