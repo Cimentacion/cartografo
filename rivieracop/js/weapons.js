@@ -21,6 +21,9 @@ const BASE = {
   doble:    { name: 'Escopeta doble', model: 'shotgun', mag: 2, dmg: 2, rate: 3, auto: false, reload: 1.3, pellets: 9, spread: 0.06, rare: true, rng: 9, kick: 0.07 },
   // pistola de rayos: láser explosivo con un solo cargador; cuando se gasta, vuelves a la pistola
   rayo:     { name: 'Pistola de rayos', model: 'ray', mag: 16, dmg: 6, rate: 3, auto: false, reload: 0.1, pellets: 1, spread: 0, boom: 3.2, once: true, rare: true, rng: 70, kick: 0.02 },
+  // Garrett: el revólver del forajido del Oeste. Siempre 6 balas, el doble de daño que la pistola, mucho retroceso;
+  // se recarga bala a bala (cada toque en RECARGAR mete una al momento)
+  garrett:  { name: 'Garrett', model: 'colt', mag: 6, dmg: 2, rate: 2.8, auto: false, reload: 0.42, shell: true, pellets: 1, spread: 0, unique: true, rng: 55, kick: 0.075 },
   cohetes:  { name: 'Lanzacohetes', model: 'launcher', mag: 4, dmg: 12, rate: 1.4, auto: false, reload: 2.4, pellets: 1, spread: 0, boom: 6, rare: true, rng: 110, kick: 0.07 },
 };
 
@@ -31,6 +34,7 @@ export const RARITY = [
   { name: 'Legendaria', adj: 'dorada', color: '#ffc531' },
 ];
 
+export function uniqueWeapon(id) { return Object.assign({ id, rar: 3 }, BASE[id]); }
 export function defaultWeapon() {
   return Object.assign({ id: 'pistola', rar: 0, inf: true }, BASE.pistola);
 }

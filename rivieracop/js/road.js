@@ -8,6 +8,7 @@ export const START_TUN = 120, SECTION = 720, APPROACH = 90, TUN = 150;
 const CELL = 20;
 
 export const TUNH = ['coches', 'pinchos', 'moteros', 'emboscada'];
+const W1 = 520; // dunas: metros hasta donde se decide si se va a OLD TOWN (el cartel está 250 m antes)
 // dunas: radio y longitud de la vuelta alrededor de la torre (se genera a trozos hasta que cae)
 export const ARENA_R = 70, ARENA_L = 2 * Math.PI * ARENA_R, ARENA_Q = ARENA_L / 8;
 // altura de las dunas respecto a la pista (la usan el decorado y los que salen sobre las dunas)
@@ -30,6 +31,8 @@ export class Road {
     this.queue = []; this.tunnels = []; this.forks = []; this.hosp = [];
     // dunas: arena circular. cap = hasta dónde se genera en la vuelta (lo pone quien mueve el coche)
     this.dunes = []; this.cap = Infinity; this.gates = 0; this.exitGate = null;
+    // desvío secreto del desierto: el cartel de OLD TOWN (si se le dispara, se gira a la derecha hacia el pueblo del Oeste)
+    this.west = [];
     this.planEnd = 0;
     this.cur = { yaw: 0, slope: 0 };
     this.baseYaw = 0; this.lastHair = 0;
@@ -62,14 +65,13 @@ export class Road {
       this.hosp.push({ H: hb.start + 70, k });
       this._q({ type: 'section', len: 420, bio, zd, sub: null });
     } else if (BIOMES[BIOME_KEYS[bio]].dunes) {
-      // dunas: dunas suaves, bajada brutal al oasis, tormenta de arena y la arena circular (la salida se decide luego)
-      this._q({ type: 'section', len: slen, bio, zd, sub: null });
-      const dr = this._q({ type: 'drop', len: 170, bio, zd });
-      const oa = this._q({ type: 'oasis', len: 90, bio, zd });
-      const st = this._q({ type: 'storm', len: 70, bio, zd });
-      this.dunes.push({ k, drop: dr.start, oasis: oa.start, storm: st.start, arena: st.start + st.len, out: null, secStart });
-      this._q({ type: 'loop', len: ARENA_Q, bio, zd });
-      this._q({ type: 'lapgate', len: 0, bio, zd, k });
+      // dunas: dunas suaves, bajada brutal al oasis, tormenta de arena y la arena circular (la salida se decide luego).
+      // A mitad, el cartel de OLD TOWN: si alguien le dispara, el resto cambia por el pueblo del Oeste
+      const s1 = this._q({ type: 'section', len: W1, bio, zd, sub: null });
+      const drop = secStart + slen, storm = drop + 260;
+      this.dunes.push({ k, drop, oasis: drop + 170, storm, arena: storm + 70, out: null, secStart });
+      this.west.push({ k, sign: s1.start + W1 - 250, wait: s1.start + W1, choice: null, bio, zd, slen });
+      this._q({ type: 'wtwait', len: 0, k });
       this.forks.push({ k, gantry: 1e9, tStart: 1e9, tEnd: 1e9, choice: null, from: bio, zd: null, secStart, bio, slen, dunes: 1 });
       return;
     } else this._q({ type: 'section', len: slen, bio, zd, sub: null });
@@ -78,6 +80,37 @@ export class Road {
     this.forks.push({ k, gantry: tn.start - 40, tStart: tn.start, tEnd: tn.start + TUN, choice: null, from: bio, zd: null, secStart, bio, slen });
     this._q({ type: 'wait', len: 0, fork: k });
   }
+  // sin disparar al cartel: sigue el desierto de siempre (bajada, oasis, tormenta y la torre)
+  _dunesRest(W) {
+    const { bio, zd, slen, k } = W;
+    this._q({ type: 'section', len: slen - W1, bio, zd, sub: null });
+    this._q({ type: 'drop', len: 170, bio, zd });
+    this._q({ type: 'oasis', len: 90, bio, zd });
+    this._q({ type: 'storm', len: 70, bio, zd });
+    this._q({ type: 'loop', len: ARENA_Q, bio, zd });
+    this._q({ type: 'lapgate', len: 0, bio, zd, k });
+  }
+  // OLD TOWN: giro a la derecha por las dunas, la calle del pueblo, la mansión, la iglesia con el cementerio
+  // y la llanura agrietada del duelo; luego túnel y desvío normal
+  _queueWest(W) {
+    const { bio, zd, k } = W, OE = BIOME_KEYS.indexOf('oeste'), f = this.forks[k];
+    const i = this.dunes.findIndex(q => q.k === k); if (i >= 0) this.dunes.splice(i, 1);
+    W.turn = this._q({ type: 'wturn', len: 170, bio, zd }).start;
+    W.town = this._q({ type: 'town', len: 600, bio: OE, zd }).start;
+    W.mansion = this._q({ type: 'town', len: 90, bio: OE, zd }).start;
+    W.church = this._q({ type: 'town', len: 300, bio: OE, zd }).start;
+    W.plain = this._q({ type: 'town', len: 300, bio: OE, zd }).start;
+    W.duel = W.plain + 245;
+    W.out = W.plain + 300;
+    this._q({ type: 'approach', len: APPROACH, bio: OE, zd });
+    const tn = this._q({ type: 'tunnel', len: TUN, fork: k, bio: OE, zd });
+    f.gantry = tn.start - 40; f.tStart = tn.start; f.tEnd = tn.start + TUN;
+    this._q({ type: 'wait', len: 0, fork: k });
+  }
+  setWest(k, c) { const W = this.west.find(q => q.k === k); if (W && W.choice == null) W.choice = c ? 1 : 0; }
+  westAt(d) { for (const W of this.west) if (W.choice === 1 && W.turn != null && d >= W.turn - 60 && d < W.out + 260) return W; return null; }
+  // el cartel de OLD TOWN que aún se puede elegir
+  westSign(d) { for (const W of this.west) if (W.choice == null && d > W.sign - 320 && d < W.sign + 40) return W; return null; }
   _dunesExit(b) {
     const D = this.dunes.find(q => q.k === b.k), f = this.forks[b.k];
     const o = this._q({ type: 'arenaOut', len: 200, bio: b.bio, zd: b.zd });
@@ -106,6 +139,13 @@ export class Road {
         if (f.choice == null) break;
         this.queue.shift();
         this._queueSection(f.choice, f.zd || 1);
+        continue;
+      }
+      if (b.type === 'wtwait') {
+        const W = this.west.find(q => q.k === b.k);
+        if (!W || W.choice == null) break;
+        this.queue.shift();
+        if (W.choice === 1) this._queueWest(W); else this._dunesRest(W);
         continue;
       }
       if (b.type === 'lapgate') {
@@ -153,8 +193,11 @@ export class Road {
     } else if (b.type === 'drop') {
       // la gran bajada hacia el oasis
       k = 0; slopeT = b.pos < 120 ? -0.17 : 0;
-    } else if (b.type === 'oasis' || b.type === 'storm' || b.type === 'arenaOut') {
+    } else if (b.type === 'oasis' || b.type === 'storm' || b.type === 'arenaOut' || b.type === 'town') {
       k = 0; slopeT = 0;
+    } else if (b.type === 'wturn') {
+      // giro de ~65° a la derecha por las dunas, bajando suave hasta el llano del pueblo
+      k = 1.15 * Math.PI / (2 * b.len) * Math.sin(Math.PI * (b.pos + 0.5) / b.len); slopeT = 0;
     } else if (b.type === 'loop') {
       k = 2 * Math.PI / ARENA_L; slopeT = 0;
     } else if (b.type === 'tunnel' || b.type === 'interior') {

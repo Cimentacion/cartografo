@@ -103,7 +103,12 @@ export class Outline {
           // en superficies muy inclinadas (techos y suelos lejanos) la profundidad cambia mucho de un píxel a otro:
           // el borde solo cuenta si la curvatura es grande comparada con esa pendiente (si no, salían puntitos)
           float g1 = (abs(1.0 / dl - 1.0 / dr) + abs(1.0 / du - 1.0 / dd)) / w;
-          float edge = smoothstep(0.06, 0.14, e) * smoothstep(0.35, 0.7, e / max(g1, 1e-4)) * sil * (1.0 - smoothstep(22.0, 40.0, d)) * inkOn;
+          // y además tiene que ser un borde de verdad (un lado mucho más lejos que el otro), no un pliegue del terreno o de una
+          // fachada: en un pliegue la profundidad cambia de pendiente pero sigue siendo continua. Con la precisión de los móviles
+          // esos pliegues salían como rayas finas paralelas en las dunas, el asfalto y los edificios
+          float ax = abs(dl + dr - 2.0 * d) / max(max(abs(dl - d), abs(dr - d)), 1e-3);
+          float ay = abs(du + dd - 2.0 * d) / max(max(abs(du - d), abs(dd - d)), 1e-3);
+          float edge = smoothstep(0.06, 0.14, e) * smoothstep(0.35, 0.7, e / max(g1, 1e-4)) * smoothstep(0.6, 0.9, max(ax, ay)) * sil * (1.0 - smoothstep(22.0, 40.0, d)) * inkOn;
           // trazo irregular, como dibujado a mano
           float nz = vnoise(gl_FragCoord.xy / 5.0);
           edge *= 0.85 + 0.15 * nz;

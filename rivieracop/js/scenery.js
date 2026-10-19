@@ -764,8 +764,8 @@ function bldBody(R, B, m, w, dep, top, down, sd, r, night) {
   addBox(night ? R.N : R.W, dep, top + down, w, col, m, { y: (top - down) / 2, win: true });
   // que no sean cajas: pilastras, impostas, ático retranqueado, torreón, tejado a cuatro aguas o soportales
   const rel2 = LIGHT(col, 0.22);
-  for (let z = -w / 2 + 0.3; z <= w / 2 - 0.2; z += Math.max(2.2, w / 4)) addBox(R.L, 0.22, top - 0.2, 0.32, rel2, m, { x: fx - 0.1 * sd, y: top / 2 - 0.1, z });
-  if (r() < 0.6) for (let f2 = 1; f2 < top / 3.1; f2++) addBox(R.L, 0.18, 0.18, w + 0.1, rel2, m, { x: fx - 0.08 * sd, y: f2 * 3.1 - 0.05 });
+  for (let z = -w / 2 + 0.3; z <= w / 2 - 0.2; z += Math.max(2.2, w / 4)) addBox(R.L, 0.22, top - 0.2, 0.32, rel2, m, { x: fx - 0.12 * sd, y: top / 2 - 0.1, z });
+  if (r() < 0.6) for (let f2 = 1; f2 < top / 3.1; f2++) addBox(R.L, 0.18, 0.18, w + 0.1, rel2, m, { x: fx - 0.1 * sd, y: f2 * 3.1 - 0.05 });
   const sh = r();
   let rtop = top;
   if (sh < 0.3 && !night) {
@@ -786,17 +786,18 @@ function bldBody(R, B, m, w, dep, top, down, sd, r, night) {
   }
   // soportales: columnas delante y voladizo
   if (r() < 0.3 && !night) {
-    addBox(R.L, 1.1, 0.35, w, LIGHT(col, 0.18), m, { x: fx - 0.55 * sd, y: 3.2 });
+    addBox(R.L, 1.1, 0.35, w, LIGHT(col, 0.18), m, { x: fx - 0.565 * sd, y: 3.2 });
     for (let z = -w / 2 + 0.6; z <= w / 2 - 0.4; z += 2.6) addBox(R.L, 0.28, 3.0, 0.28, 0xe8e2d6, m, { x: fx - 0.95 * sd, y: 1.68, z });
   }
   addBox(R.L, dep + 0.6, 0.6, w + 0.6, B.roof, m, { y: top + 0.3 });
   // planta baja: escaparate oscuro con un rótulo de color encima
   // escaparate de cristal claro con marcos y puerta (antes era un panel negro)
   const sw = w * 0.82;
-  addBox(R.L, 0.1, 2.4, sw, night ? 0x2a3a5a : 0x9ac4e0, m, { x: fx - 0.05 * sd, y: 1.45 });
-  addBox(R.L, 0.14, 0.35, sw + 0.2, LIGHT(col, -0.25), m, { x: fx - 0.07 * sd, y: 0.25 });
+  // (nada coplanario con la fachada: con cajas de doble cara, dos caras en el mismo plano parpadean)
+  addBox(R.L, 0.1, 2.4, sw, night ? 0x2a3a5a : 0x9ac4e0, m, { x: fx - 0.065 * sd, y: 1.45 });
+  addBox(R.L, 0.14, 0.35, sw + 0.2, LIGHT(col, -0.25), m, { x: fx - 0.085 * sd, y: 0.25 });
   for (let z = -sw / 2; z <= sw / 2 + 0.01; z += sw / Math.max(2, Math.round(sw / 1.7))) addBox(R.L, 0.14, 2.4, 0.1, 0x3a3a44, m, { x: fx - 0.08 * sd, y: 1.45, z });
-  addBox(R.L, 0.14, 2.3, 1.1, 0x5a3a2a, m, { x: fx - 0.08 * sd, y: 1.25, z: (r() - 0.5) * sw * 0.6 });
+  addBox(R.L, 0.15, 2.3, 1.1, 0x5a3a2a, m, { x: fx - 0.095 * sd, y: 1.25, z: (r() - 0.5) * sw * 0.6 });
   // rótulo de la tienda: colores de pintura (no neón) para que no desentone
   addBox(R.L, 0.14, 0.55, w * 0.55, pick(r, [0xc8584a, 0x5a98c0, 0xd8b45a, 0x6aa078, 0xc07a9a, 0xe8e2d4]), m, { x: fx - 0.1 * sd, y: 3.25 });
   // cornisa
@@ -811,7 +812,7 @@ function bldBody(R, B, m, w, dep, top, down, sd, r, night) {
     if (r() < 0.6) addBox(R.L, 1.2, 0.1, w * 0.6, pick(r, [0xc8102e, 0x1f6fb2, 0x2a8a3a, 0xe8a020]), m, { x: fx - 0.6 * sd / Math.abs(sd), y: 2.95, rz: sd * 0.18 });
     // balcones
     if (r() < 0.6) for (let f2 = 1; f2 < top / 3.1 - 1; f2++) for (const z of [-w * 0.25, w * 0.25]) {
-      addBox(R.L, 0.7, 0.12, 1.5, 0xe8e2d6, m, { x: fx - 0.35 * sd, y: f2 * 3.1 + 0.1, z });
+      addBox(R.L, 0.7, 0.12, 1.5, 0xe8e2d6, m, { x: fx - 0.365 * sd, y: f2 * 3.1 + 0.1, z });
       addBox(R.L, 0.05, 0.55, 1.5, 0x3a3a3a, m, { x: fx - 0.68 * sd, y: f2 * 3.1 + 0.42, z });
     }
   } else {
@@ -827,10 +828,9 @@ function backRows(R, road, B, i0, i1, r, sides, night) {
     each(i0, i1, r, 13, 22, d => {
       const dep = 10 + r() * 8, w = 10 + r() * 8, lat = sd * (WALK + 31 + r() * 10);
       if (!ok(road, d, lat, Math.max(w, dep) * 0.6)) return;
-      const y = road.gy[Math.floor(d)], down = y + 2, top = 18 + r() * 30, m = frame(road, d, lat, 0);
-      addBox(night ? R.N : R.W, dep, top + down, w, pick(r, B.build), m, { y: (top - down) / 2, win: true });
-      addBox(R.L, dep + 0.4, 0.5, w + 0.4, B.roof, m, { y: top + 0.25 });
-      if (r() < 0.5) addBox(R.L, 2.4, 3, 2.4, 0x8a8a8a, m, { y: top + 1.5, x: (r() - 0.5) * dep * 0.4 });
+      const y = road.gy[Math.floor(d)], down = y + 2, top = 14 + r() * 26, m = frame(road, d, lat, 0);
+      // la segunda fila con el mismo detalle que la de delante (pilastras, balcones, tejados, bajos con tiendas)
+      bldBody(R, B, m, w, dep, top, down, sd, r, night);
       if (r() < 0.35) addCyl(R.L, 0.08, 0.08, 7, 4, 0x555555, m, { y: top + 3.5 });
       if (night && r() < 0.5) addBox(R.G, 0.3, 0.3, w, pick(r, [0xff3df2, 0x3dfcff, 0xfff23d]), m, { x: -sd * (dep / 2 + 0.1), y: top - 1 });
     });
@@ -839,8 +839,15 @@ function backRows(R, road, B, i0, i1, r, sides, night) {
       if (!ok(road, d, lat, w * 0.6)) return;
       const y = road.gy[Math.floor(d)], down = y + 2, top = 40 + r() * 60;
       const m = frame(road, d, lat, 0);
-      addBox(night ? R.N : R.W, w, top + down, w, LIGHT(pick(r, B.build), 0.15), m, { y: (top - down) / 2, win: true });
-      if (r() < 0.5) addBox(R.L, w * 0.6, 6, w * 0.6, LIGHT(pick(r, B.build), 0.25), m, { y: top + 3 });
+      const cc = LIGHT(pick(r, B.build), 0.15);
+      addBox(night ? R.N : R.W, w, top + down, w, cc, m, { y: (top - down) / 2, win: true });
+      // rascacielos: aletas verticales en la fachada, bandas cada pocos pisos, coronación y antena
+      const fin = LIGHT(cc, 0.3);
+      for (let z = -w / 2 + 1.2; z < w / 2 - 0.6; z += 2.4) addBox(R.L, 0.4, top - 1, 0.25, fin, m, { x: -sd * (w / 2 + 0.18), y: top / 2 });
+      for (let f2 = 12; f2 < top - 4; f2 += 12) addBox(R.L, w + 0.5, 0.6, w + 0.5, fin, m, { y: f2 });
+      addBox(R.L, w + 0.8, 1.2, w + 0.8, LIGHT(cc, -0.2), m, { y: top + 0.6 });
+      if (r() < 0.5) { addBox(R.L, w * 0.6, 6, w * 0.6, LIGHT(pick(r, B.build), 0.25), m, { y: top + 4 }); addCyl(R.L, 0.12, 0.12, 9, 4, 0x666666, m, { y: top + 11 }); }
+      else for (let k = 0; k < 3; k++) addBox(R.L, w - 2 - k * 2.2, 2, w - 2 - k * 2.2, LIGHT(cc, 0.05 * k), m, { y: top + 1.2 + k * 2 });
     });
   }
 }

@@ -2,7 +2,7 @@
 
 export const BIOME_KEYS = ['monaco', 'puerto', 'casino', 'autopista', 'industrial', 'cornisa', 'detroit', 'desierto', 'costa', 'trenes', 'acantilados', 'orgullo',
   'militar', 'manifa', 'barro', 'chino', 'rio', 'semaforos', 'trenmil',
-  'bosque', 'guerra', 'llanura', 'ruinas', 'submarino', 'bajada', 'curva', 'lomas', 'policia', 'tuneles', 'pueblo', 'zombi', 'dunas'];
+  'bosque', 'guerra', 'llanura', 'ruinas', 'submarino', 'bajada', 'curva', 'lomas', 'policia', 'tuneles', 'pueblo', 'zombi', 'dunas', 'oeste'];
 // zonas de ciudad: más edificios detrás, rascacielos y pasarelas elevadas
 export const CITY = new Set(['policia', 'monaco', 'casino', 'detroit', 'manifa', 'semaforos', 'orgullo', 'chino']);
 
@@ -305,6 +305,18 @@ export const BIOMES = {
     hmin: 0, hmax: 0, hair: 0,
     build: [0xe8c890, 0xd8b078], roof: 0xb88a50,
     w: { gunman: 0, moto: 0, ecar: 0, drone: 0, heli: 0, sniper: 0, barrels: 0, jumper: 0, grenadier: 0, quad: 0, pickup: 0, van: 0, bus: 0, truck: 0, civcar: 0, rammer: 0 }, pts: 2.2, deco: 'dunas', lv: 5,
+  },
+  oeste: {
+    name: 'OLD TOWN', color: '#e8a050', hidden: true,
+    sky: 0xf2b070, fogNear: 80, fogFar: 240, sea: 0xc88a50,
+    asphalt: 0xb8804a, walk: 0x8a5a32, skirt: 0xd08a4a, line: 0xb8804a,
+    hemi: [0xffd8a8, 0xa86a3a, 1.1], sun: [0xffc080, 1.9], night: false,
+    // zona secreta (se llega disparando al cartel de OLD TOWN en las dunas): calle del Oeste con casas que revientan,
+    // la mansión que se desmonta pared a pared, la iglesia con el cementerio de esqueletos y el duelo final
+    slope: 0, len: 1300, floor: -1e9,
+    hmin: 0, hmax: 0, hair: 0,
+    build: [0xb8865a, 0xa8744a, 0xc89a68, 0x9a6a42, 0xd0a878], roof: 0x6a4428,
+    w: { gunman: 1.2, cover: 0.6, moto: 0, ecar: 0, drone: 0, heli: 0, sniper: 0.5, barrels: 0.6, jumper: 0, grenadier: 0.3, quad: 0, pickup: 0, van: 0, bus: 0, truck: 0, civcar: 0, rammer: 0 }, pts: 2.4, deco: 'oeste', lv: 6,
   },
   lomas: {
     name: 'LAS LOMAS', color: '#9ad84a',

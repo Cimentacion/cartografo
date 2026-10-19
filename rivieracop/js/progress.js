@@ -77,6 +77,7 @@ export const UPGRADES = [
   { id: 'aereo', cat: 'espec', name: 'Ataque aéreo', desc: 'Botón: una fila de explosiones barre la carretera de delante', max: 3, base: 18000, g: 2.3 },
   { id: 'cura', cat: 'espec', name: 'Botiquín de equipo', desc: 'Botón: cura a todo el grupo y quita el veneno', max: 3, base: 15000, g: 2.3 },
   { id: 'iman', cat: 'espec', name: 'Imán', desc: 'Botón: recoges al vuelo los botiquines y el arma que haya en pantalla', max: 3, base: 10500, g: 2.3 },
+  { id: 'mono', cat: 'espec', name: 'Mono ayudante', desc: 'Un mono salta a la cabeza del enemigo que está a punto de dispararte y no le deja apuntar unos segundos. Cada nivel sale más a menudo y aguanta más', max: 5, base: 7000, g: 1.8 },
   { id: 'fuerza', cat: 'espec', name: 'Fuerza bruta', desc: 'Botón: unos segundos haciendo muchísimo más daño (x1,8 a x2,4). Muy caro', max: 3, base: 24000, g: 2.6 },
   { id: 'escudo2', cat: 'poder', name: 'Escudo rápido', desc: '-8% de espera del escudo', max: 5, base: 2000, g: 1.6 },
   { id: 'bala2', cat: 'poder', name: 'Bala lenta', desc: '+8% de duración del tiempo bala', max: 5, base: 2000, g: 1.6 },
@@ -100,6 +101,9 @@ export function loadProg() {
   p.upg = p.upg && typeof p.upg === 'object' ? p.upg : {};
   p.wl = p.wl && typeof p.wl === 'object' ? p.wl : {};
   p.pot = Math.max(0, Math.min(3, p.pot | 0));
+  // alforjas: armas únicas desbloqueadas y la que llevas equipada al empezar
+  p.wpUnl = Array.isArray(p.wpUnl) ? p.wpUnl.filter(x => typeof x === 'string') : [];
+  if (p.wpEq && !p.wpUnl.includes(p.wpEq)) p.wpEq = null;
   // antes cada nivel de vida daba +3: se convierten los niveles para no perder la vida ya comprada
   if (!p.hp1) { p.hp1 = 1; p.upg.vida = Math.min(97, (p.upg.vida | 0) * 3); }
   for (const u of UPGRADES) p.upg[u.id] = Math.max(0, Math.min(u.max, p.upg[u.id] | 0));
@@ -110,7 +114,7 @@ export const upgCost = (u, lv, p) => Math.round(u.base * Math.pow(u.g || 1.5, lv
 
 // lo que necesita saber el anfitrión de cada jugador
 export const META_KEYS = ['vida', 'def', 'regen', 'botiq', 'antid', 'remedio', 'choque', 'chapa', 'esquiva', 'invul', 'antiexp', 'aliento',
-  'vampiro', 'calma', 'revivir', 'ambu', 'civil', 'botin', 'suerte', 'rapina', 'pinchos', 'torreta', 'ruedas', 'parabrisas', 'emerg', 'detector'];
+  'vampiro', 'calma', 'revivir', 'ambu', 'civil', 'botin', 'suerte', 'rapina', 'pinchos', 'torreta', 'ruedas', 'parabrisas', 'emerg', 'detector', 'mono'];
 export function metaOf(p) {
   const m = { pot: (p.pot | 0) > 0 ? 1 : 0 };
   for (const k of META_KEYS) m[k] = p.upg[k] | 0;
@@ -162,7 +166,7 @@ export function effective(def, lv, upg) {
   const e = Object.assign({}, def);
   e.lv = lv;
   let dm = (1 + 0.12 * L) * (1 + 0.1 * u('atk'));
-  if (def.id === 'pistola') dm *= 1 + 0.15 * u('pistolero');
+  if (def.id === 'pistola' || def.id === 'garrett') dm *= 1 + 0.15 * u('pistolero');
   if (def.auto) dm *= 1 + 0.08 * u('rafaga');
   e.dmg = def.dmg * dm;
   const extraMag = def.id !== 'pistola' ? 1 + 0.1 * u('cargador') : 1;
@@ -183,6 +187,8 @@ export function effective(def, lv, upg) {
   e.bossM = 1 + 0.1 * u('jefes');
   e.tactP = 0.05 * u('tactica');
   if (def.pellets > 1) e.pellets = def.pellets + u('perdigon');
+  // el Garrett siempre tiene 6 balas y su cadencia
+  if (def.id === 'garrett') { e.mag = 6; e.rate = def.rate; }
   if (def.boom) { e.boom = def.boom * (1 + 0.1 * u('demol')); e.dmg *= 1 + 0.15 * u('artif'); }
   e.perks = [];
   if (lv >= 5) {

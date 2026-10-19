@@ -496,6 +496,11 @@ export class View {
       if (ud.ft) { ud.ft -= dt; if (ud.ft <= 0) { ud.ft = 0; flash(o, false); } }
       const A = ANIM[e.type];
       if (A) A(o, e, dt, ctx, this);
+      // el mono ayudante agarrado a la cabeza (le tapa la cara y le da golpes)
+      { const mk = e.x && e.x.mk > 0 && e.st !== ST.DEAD;
+        if (mk && !ud.mono) { o.updateMatrixWorld(true); _bb.setFromObject(o); ud.mono = M.monkey(); ud.mono.position.y = Math.max(1.2, _bb.max.y - o.position.y) - 0.15; ud.mono.scale.setScalar(1.25); o.add(ud.mono); }
+        else if (!mk && ud.mono) { o.remove(ud.mono); ud.mono = null; }
+        if (ud.mono) { const q = ud.mono, w2 = ctx.t * 14 + e.id; q.position.x = Math.sin(w2 * 0.5) * 0.08; q.rotation.z = Math.sin(w2 * 0.5) * 0.25; q.userData.aL.rotation.x = -1.6 + Math.sin(w2) * 0.9; q.userData.aR.rotation.x = -1.6 - Math.sin(w2) * 0.9; q.userData.tail.rotation.x = Math.sin(w2 * 0.3) * 0.5; } }
       o.updateMatrixWorld(true);
       if (ud.aimers) this.aim(o, e);
       if (o.visible && !NOHIT.has(e.type) && (e.st === ST.ALIVE || e.st === ST.HIDDEN || e.st === ST.SURRENDER)) this.hit.push(o);

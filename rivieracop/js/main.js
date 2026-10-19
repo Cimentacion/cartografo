@@ -12,14 +12,14 @@ import { SFX } from './audio.js';
 import { Net, makeCode, NETV, LanBeacon, LanScan, Presence, MAXP } from './net.js';
 import { showRewarded, showInterstitial, adsReal, lastAdErr } from './ads.js';
 import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME, BOSS } from './defs.js';
-import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES, rangeMul } from './weapons.js';
+import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES, rangeMul, rollWeaponId, uniqueWeapon } from './weapons.js';
 import { UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd, turboDur, turboCd, POWERS } from './progress.js';
 import { fpGun, VEHICLES, VCOLORS, convertible } from './models.js';
 import { Outline, toon } from './toon.js';
 import { CHAL, chInit, chAdd, claimable, claim, goal, reward, text as chText, UNLOCKS, UNL_NAME, locked, lockedBy } from './challenges.js';
 import { loadChar, saveChar, sanitize, defaultChar, SKINS, HAIRS, HAIR_COLORS, BEARDS, SHIRTS, SHIRT_COLORS, PANTS_COLORS, HATS, BACKS, NECKS, FACES, BODIES, personOpts } from './character.js';
 import { seatedPlayer, person } from './models.js';
-import { clamp, lerp, lerpAng, VP, vw, vh } from './util.js';
+import { clamp, lerp, lerpAng, angWrap, VP, vw, vh } from './util.js';
 
 const Q = new URLSearchParams(location.search);
 const BOT = Q.get('bot') === '1';          // TODO-TESTEO: apunta y dispara solo
@@ -333,6 +333,7 @@ function recalcWeapon() {
   W.lv = weaponLevel(PROG, W.def.id).lv;
   W.e = effective(W.def, W.lv, PROG.upg);
 }
+window.__give = (id, rar = 0) => { const w = rollWeaponId(Math.random, id, 0); w.rar = rar; giveWeapon(w); }; // TODO-TESTEO
 function giveWeapon(def) {
   // subido al cañón: el arma nueva te espera para cuando bajes
   if (CAN.t > 0 && CAN.saved) { CAN.saved = { def, ammo: 999 }; SFX.pickup(); return; }
@@ -352,6 +353,13 @@ function weaponXp(n) {
   }
 }
 function startReload() {
+  // bala a bala (Garrett): cada toque mientras recarga mete la siguiente al momento
+  if (W.def.shell) {
+    if (!G.running) return;
+    if (W.rl > 0) { W.rl = Math.min(W.rl, 0.035); return; }
+    if (W.ammo >= W.e.mag) return;
+    W.rl = W.rlMax = W.e.reload; SFX.reload(); return;
+  }
   if (W.rl > 0 || W.ammo >= W.e.mag || !G.running || W.def.once) return;
   // recargar a tiempo es algo más rápido; vaciar el cargador hasta el final cuesta un 25 % más
   W.rl = W.rlMax = W.e.reload * (W.ammo > 0 ? 0.85 : 1.25);
@@ -393,6 +401,45 @@ function castOne(origin, dir, assist) {
   }
   return null;
 }
+// arma en primera persona: se queda un poco atrás al girar, respira, vibra con el coche, retrocede al disparar
+// (corredera, martillo, tambor, corredera de la escopeta, cerrojo) y recarga con su animación (cargador fuera y dentro)
+const FPA = { sx: 0, sy: 0, py: 0, pp: 0, drum: 0, pump: 0, lastShots: 0 };
+function fpAnim(dt) {
+  const U = fpg.userData, E = W.e, big = W.def.model === 'cannon', grande = GV === 'g';
+  const dy = angWrap(look.yaw - FPA.py), dp = look.pitch - FPA.pp; FPA.py = look.yaw; FPA.pp = look.pitch;
+  const kf = Math.min(1, dt * 9);
+  FPA.sx += (clamp(dy * 2.4, -0.09, 0.09) - FPA.sx) * kf; FPA.sy += (clamp(dp * 2.4, -0.07, 0.07) - FPA.sy) * kf;
+  const t = G.t, sp = Math.min(1.5, (G.speed || 0) / 12);
+  const bx = Math.sin(t * 1.1) * 0.003 + Math.sin(t * 13.3) * 0.0011 * sp, by = Math.sin(t * 1.7) * 0.003 + Math.abs(Math.sin(t * 6.6)) * 0.0016 * sp;
+  let u = W.rl > 0 ? clamp(1 - W.rl / (W.rlMax || E.reload), 0, 1) : -1;
+  let dip = u >= 0 ? Math.sin(u * Math.PI) : 0;
+  // bala a bala: el arma se queda inclinada con el tambor fuera mientras se van metiendo
+  FPA.sr = (FPA.sr || 0) + ((W.def.shell && W.rl > 0 ? 1 : 0) - (FPA.sr || 0)) * Math.min(1, dt * 8);
+  if (W.def.shell) { dip = FPA.sr * 0.55; u = -1; if (W.ammo > (FPA.la ?? W.ammo)) FPA.drum += Math.PI / 3; }
+  FPA.la = W.ammo;
+  const k = clamp((E.kick || 0.012) * 40, 0.5, 3), rc = W.recoil, rf = Math.max(0, rc * 2 - 1);
+  const P0 = big ? (grande ? [0.26, -0.36, -0.6] : [0.16, -0.34, -0.62]) : (grande ? [0.12, -0.112, -0.29] : [0.13, -0.17, -0.5]);
+  fpg.position.set(P0[0] + bx - FPA.sx * 0.12, P0[1] + by - dip * 0.09 + FPA.sy * 0.1 - rc * 0.004 * k, P0[2] + rc * 0.03 * k);
+  fpg.rotation.set(rc * 0.12 * k - FPA.sy * 0.8 - dip * 0.45 + Math.sin(t * 1.7) * 0.006, (grande ? 0.05 : 0.18) + FPA.sx * 1.1, dip * 0.6 + FPA.sx * 1.2 + Math.sin(t * 0.9) * 0.008);
+  // piezas que se mueven
+  if (U.slide) U.slide.position.z = W.ammo === 0 && W.rl <= 0 ? 0.032 : rf * 0.034;
+  if (U.hammer) U.hammer.rotation.x = rc > 0.6 ? 0.2 : -0.55;
+  if (U.drum) {
+    if ((W.shots || 0) !== FPA.lastShots) { FPA.lastShots = W.shots || 0; FPA.drum += Math.PI / 3; }
+    U.drum.rotation.z += (FPA.drum - U.drum.rotation.z) * Math.min(1, dt * 18) + (u > 0.2 && u < 0.8 ? dt * 14 : 0);
+    U.drum.position.x = W.def.shell ? -0.035 * FPA.sr : u > 0.15 && u < 0.85 ? -0.035 * Math.sin((u - 0.15) / 0.7 * Math.PI) : 0;
+  }
+  if (U.pump) { if (rc > 0.95) FPA.pump = 1; FPA.pump = Math.max(0, FPA.pump - dt * 3.2); U.pump.position.z = -0.26 + Math.sin(FPA.pump * Math.PI) * 0.06 + (u >= 0 ? Math.abs(Math.sin(u * Math.PI * 4)) * 0.05 : 0); }
+  if (U.bolt) { U.bolt.position.z = (U.bolt.userData.z0 ??= U.bolt.position.z) + rf * 0.04 + (u > 0.6 && u < 0.9 ? Math.sin((u - 0.6) / 0.3 * Math.PI) * 0.05 : 0); }
+  if (U.mag) {
+    const m0 = U.mag.userData.y0 ??= U.mag.position.y;
+    let off = 0; if (u >= 0) { if (u < 0.2) off = 0; else if (u < 0.42) off = -(u - 0.2) / 0.22 * 0.3; else if (u < 0.55) off = -0.3; else if (u < 0.8) off = -0.3 * (1 - (u - 0.55) / 0.25); }
+    U.mag.position.y = m0 + off; U.mag.visible = off > -0.29;
+  }
+  if (U.lh) { const lz = U.lh.userData.z0 ??= U.lh.position.z, ly = U.lh.userData.y0 ??= U.lh.position.y; U.lh.position.y = ly + (U.mag && u > 0.3 && u < 0.85 ? -0.06 * Math.sin((u - 0.3) / 0.55 * Math.PI) : 0); U.lh.position.z = lz + (U.pump ? U.pump.position.z + 0.26 : 0); }
+  if (U.orb) U.orb.scale.setScalar(1 + Math.sin(t * 8) * 0.25);
+  U.flash.visible = W.flash > 0;
+}
 // disparo táctil: punto de la pantalla (en coordenadas del juego, que puede ir girado) -> -1..1
 function aimNDC() {
   const a = look.aimAt;
@@ -403,6 +450,8 @@ function aimNDC() {
 }
 const TAPRAY = new THREE.Raycaster();
 function fire() {
+  // el revólver de bala a bala puede disparar a mitad de recarga con lo que ya lleve metido
+  if (W.def.shell && W.rl > 0 && W.ammo > 0) W.rl = 0;
   if (W.rl > 0 || W.cd > 0 || !G.running || G.over) return;
   const me = G.players[G.li];
   if (me && !me.alive) return;
@@ -411,7 +460,8 @@ function fire() {
   const E = W.e;
   const fur = PW.furiaT > 0;
   if (!fur && !(Math.random() < (E.saveP || 0))) W.ammo--;
-  W.cd = 1 / (E.rate * (fur ? 2 : 1)); W.recoil = 1; W.flash = 0.06;
+  W.cd = 1 / (E.rate * (fur ? 2 : 1)); W.recoil = 1; W.flash = 0.06; W.shots = (W.shots || 0) + 1;
+  if (fpg) { const F = fpg.userData.flash; F.rotation.z = Math.random() * 6.3; F.scale.setScalar(0.8 + Math.random() * 0.6); }
   SFX.shot(W.def.model === 'ray' || W.def.model === 'gl' ? 'launcher' : W.def.model);
   // retroceso: cada arma sube la mira distinto (la escopeta y el lanzagranadas pegan un buen golpe)
   if (E.kick) { look.tPitch += E.kick; look.pitch += E.kick * 0.6; if (E.kick >= 0.05) G.shake = Math.max(G.shake, 0.12); }
@@ -568,7 +618,7 @@ function updGrenades(dt) {
 }
 
 // ---------------- eventos ----------------
-const IMMEDIATE = new Set(['fork', 'weapon', 'over', 'go', 'arenaX']);
+const IMMEDIATE = new Set(['fork', 'weapon', 'over', 'go', 'arenaX', 'west', 'unlockW']);
 function handleEvent(ev) {
   const li = G.li;
   switch (ev.k) {
@@ -644,6 +694,12 @@ function handleEvent(ev) {
       break;
     case 'pz': if (ev.p === li) flash('poison'); break;
     case 'arenaX': if (G.mode === 'guest') G.road.setArenaExit(ev.g); break;
+    case 'west': if (G.mode === 'guest') G.road.setWest(ev.kk, ev.c); break;
+    case 'unlockW':
+      if (!PROG.wpUnl.includes(ev.id)) { PROG.wpUnl.push(ev.id); saveProg(PROG); G.secretNew = 1; }
+      showBanner('¡' + (WEAPON_NAMES[ev.id] || ev.id).toUpperCase() + ' DESBLOQUEADO!', 'Ya es tuyo para siempre (Mejoras → Alforjas)', '#ffc531');
+      break;
+    case 'mono': SFX.tone(1300, 900, 0.09, 'square', 0.12); setTimeout(() => SFX.tone(1500, 1000, 0.08, 'square', 0.1), 110); break;
     case 'storm': G.stormT = ev.dur || 5; SFX.tone(120, 60, 2.5, 'sawtooth', 0.15); break;
     case 'siren': for (let i = 0; i < 3; i++) setTimeout(() => { SFX.tone(700, 1100, 0.22, 'square', 0.12); setTimeout(() => SFX.tone(1100, 700, 0.22, 'square', 0.12), 230); }, i * 470); break;
     case 'smoke': G.smokeT = ev.dur || 4; SFX.tone(300, 80, 0.6, 'sawtooth', 0.2); break;
@@ -876,7 +932,7 @@ function begin(seed, n, li, mode) {
   // solo se ven los compañeros que hay de verdad (con 3 jugadores, el cuarto asiento va vacío)
   view.av.forEach((a, i) => (a.visible = n > 1 && i < n && i !== li));
   hud.myCol = PCOL[li];
-  W.def = defaultWeapon(); recalcWeapon(); W.ammo = W.e.mag; W.rl = 0; W.cd = 0;
+  W.def = PROG.wpEq && PROG.wpUnl.includes(PROG.wpEq) ? uniqueWeapon(PROG.wpEq) : defaultWeapon(); recalcWeapon(); W.ammo = W.e.mag; W.rl = 0; W.cd = 0;
   setFpGun();
   view.placeCar(G.carD, 0, 0);
   updateChunks(G.carD, true);
@@ -1002,6 +1058,7 @@ function lanList(list, key) {
 }
 function toMenu(msg) {
   if (G.chDirty) { G.chDirty = 0; saveProg(PROG); }
+  if (G.secretNew) { G.secretNew = 0; setTimeout(() => showToast('🤠 Menú secreto de armas desbloqueado: ALFORJAS (en Mejoras)'), 900); }
   SFX.dance(-1);
   lanStop();
   clearInterval(VS.iv); $('vsel').hidden = true;
@@ -1846,7 +1903,9 @@ function tick(dt) {
   view.sync(G.ents, { li, t: G.t, dt });
   // --- arma ---
   W.cd -= dt;
-  if (W.rl > 0) { W.rl -= dt; if (W.rl <= 0) { W.rl = 0; W.ammo = W.e.mag; } }
+  if (W.rl > 0) { W.rl -= dt; if (W.rl <= 0) {
+    if (W.def.shell) { W.ammo = Math.min(W.e.mag, W.ammo + 1); SFX.tone(1800, 1200, 0.03, 'square', 0.12); W.rl = W.ammo < W.e.mag ? (W.rlMax = W.e.reload) : 0; }
+    else { W.rl = 0; W.ammo = W.e.mag; } } }
   const me = G.players[li];
   const canShoot = me && me.alive && !G.over && G.cd < 0;
   if (look.tapShot !== G.tapSeen) { G.tapSeen = look.tapShot; if (canShoot) { if (W.ammo <= 0) startReload(); else G.tapPend = 0.35; } }
@@ -1888,12 +1947,7 @@ function tick(dt) {
   W.flash -= dt;
   if (fpg) {
     fpg.visible = !!(me && me.alive) && !(W.def.model === 'rifle' && G.zoom > 1.3) && GV !== 'x';
-    const rlk = W.rl > 0 ? Math.sin(Math.min(1, 1 - W.rl / (W.rlMax || W.e.reload)) * Math.PI) : 0;
-    const big = W.def.model === 'cannon';
-    if (GV === 'g') fpg.position.set(big ? 0.3 : 0.24, (big ? -0.46 : -0.3) - rlk * 0.25, (big ? -0.66 : -0.52) + W.recoil * 0.1);
-    else fpg.position.set(big ? 0.16 : 0.13, (big ? -0.34 : -0.19) - rlk * 0.18, (big ? -0.62 : -0.5) + W.recoil * 0.06);
-    fpg.rotation.set(W.recoil * 0.25 - rlk * 0.6, 0.18, rlk * 0.4);
-    fpg.userData.flash.visible = W.flash > 0;
+    fpAnim(dt);
   }
   // mira "caliente" si apunta a algo
   if ((G.t * 10 | 0) % 2 === 0) {
@@ -2341,9 +2395,9 @@ applyStyle();
 let AOON = (localStorage.getItem('rc_ao2') ?? '0') === '1';
 // cómo se ve el arma: normal, grande en la esquina o sin arma (solo la mira)
 const GVS = [['n', 'NORMAL'], ['g', 'GRANDE'], ['x', 'SIN ARMA']];
-let GV = localStorage.getItem('rc_gv') || 'n'; if (!GVS.some(g => g[0] === GV)) GV = 'n';
+let GV = localStorage.getItem('rc_gv') || 'g'; if (!GVS.some(g => g[0] === GV)) GV = 'n';
 function setGv(v) { GV = v; try { localStorage.setItem('rc_gv', v); } catch (e) { } $('btnGv').textContent = 'ARMA: ' + GVS.find(g => g[0] === v)[1]; if (fpg) fpg.scale.setScalar(gunScale()); }
-const gunScale = () => (W.def && W.def.model === 'cannon' ? 0.31 : 0.45) * (GV === 'g' ? 1.75 : 1);
+const gunScale = () => (W.def && W.def.model === 'cannon' ? 0.31 : 0.45) * (GV === 'g' ? 1.55 : 1);
 $('btnGv').onclick = () => setGv(GVS[(GVS.findIndex(g => g[0] === GV) + 1) % GVS.length][0]);
 // campo de visión (ajustes)
 const FOVS = [60, 66, 72, 80, 90, 100];
@@ -2514,11 +2568,12 @@ const CATI = {
   objet: ['🚁', '#ff5ad0', 'Daño extra contra vehículos, jefes, aire y animales'], explo: ['💣', '#ffb020', 'Explosiones y granadas'],
   coche: ['🚗', '#4a9aff', 'Mejoras del descapotable'], poder: ['⚡', '#c48cff', 'Botones de poder: escudo, tiempo bala…'],
   espec: ['🌟', '#ff2a6a', 'Poderes especiales (muy caros)'], _w: ['🏆', '#9ad0ff', 'Suben al usarlas y se guardan para la próxima vez que las cojas'],
+  _a: ['🤠', '#e8a050', 'Menú secreto: armas únicas que has ganado. La equipada es con la que empiezas cada partida'],
 };
 function paintShop(boughtId) {
   $('shopCoins').textContent = PROG.coins.toLocaleString('es-ES');
   const tabs = $('shopTabs'); tabs.innerHTML = '';
-  const cats = UCAT.concat([['_w', 'NIVEL DE ARMAS']]);
+  const cats = UCAT.concat([['_w', 'NIVEL DE ARMAS']]).concat(PROG.wpUnl.length ? [['_a', 'ALFORJAS']] : []);
   for (const [c, name] of cats) {
     const [ic, col] = CATI[c];
     const list = UPGRADES.filter(u => u.cat === c);
@@ -2537,7 +2592,7 @@ function paintShop(boughtId) {
   head.style.setProperty('--c', col);
   $('shopCatN').textContent = (cats.find(x => x[0] === G.shopCat) || cats[0])[1];
   $('shopCatD').textContent = cdesc;
-  const isW = G.shopCat === '_w';
+  const isW = G.shopCat === '_w' || G.shopCat === '_a';
   $('shopW').hidden = !isW; $('shopList').hidden = isW;
   const L = $('shopList'); L.innerHTML = '';
   if (!isW) for (const u of UPGRADES) {
@@ -2566,7 +2621,16 @@ function paintShop(boughtId) {
     L.appendChild(d);
   }
   const W2 = $('shopW'); W2.innerHTML = '';
-  if (isW) for (const [id, name] of Object.entries(WEAPON_NAMES)) {
+  // alforjas: equipar el arma con la que se empieza
+  if (G.shopCat === '_a') for (const id of [null].concat(PROG.wpUnl)) {
+    const name = id ? WEAPON_NAMES[id] : 'Pistola de serie', on = (PROG.wpEq || null) === id;
+    const e = document.createElement('div'); e.className = 'upg' + (on ? ' can' : ''); e.style.setProperty('--c', col);
+    e.innerHTML = `<div class="uh"><span class="un">${tr(name).toUpperCase()}</span><span class="ul">${on ? 'EQUIPADA' : ''}</span></div><p>${id === 'garrett' ? 'Revólver niquelado del forajido. Siempre 6 balas, el doble de daño que la pistola y mucho retroceso. Se recarga bala a bala: cada toque en RECARGAR mete una al momento' : 'La de siempre: balas infinitas'}</p><div class="uf"></div>`;
+    if (!on) { const b = document.createElement('button'); b.textContent = 'EQUIPAR'; b.onclick = () => { PROG.wpEq = id; saveProg(PROG); SFX.pickup(); paintShop(); }; e.querySelector('.uf').appendChild(b); }
+    W2.appendChild(e);
+  }
+  if (G.shopCat === '_w') for (const [id, name] of Object.entries(WEAPON_NAMES)) {
+    if (id === 'garrett' && !PROG.wpUnl.includes(id)) continue;
     const w = weaponLevel(PROG, id);
     const nx = w.lv >= WMAX ? 1 : Math.min(1, (w.xp || 0) / xpNeed(w.lv));
     const e = document.createElement('div'); e.className = 'upg' + (w.lv > 1 ? ' can' : '');

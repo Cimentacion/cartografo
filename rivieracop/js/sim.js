@@ -241,12 +241,24 @@ export class Sim {
       }
     }
     this.charging = [0, 0, 0, 0, 0];
+    // mejora del mono: cada poco salta a la cabeza del enemigo que está más cerca de disparar
+    { const lv = this.maxMeta('mono');
+      if (lv > 0 && this.phase === 'run') {
+        this.monoT = (this.monoT ?? 6) - wd;
+        if (this.monoT <= 0) {
+          let best = null, br = 0.25;
+          for (const e of this.ents) if (e.st === ST.ALIVE && !(e.x.mk > 0) && !BOSS[e.type]) for (const s of e.sh) if (s.alive && s.on && s.r > br) { br = s.r; best = e; }
+          if (best) { best.x.mk = 2 + 0.6 * lv; this.monoT = Math.max(5, 15 - 2 * lv); this.emit('mono', { id: best.id }); } else this.monoT = 0.4;
+        }
+      }
+    }
     if (this.phase === 'run') { if (this.foot) this.footStep(wd); this.chaseStep(wd); this.director(wd); this.forks(); if (!this.foot) this.turret(wd); }
     for (const e of this.ents) {
       e.age += wd;
       if (e.st === ST.DEAD) e.deadT += wd;
       const u = U[e.type];
       if (u) u(e, wd, this);
+      if (e.x.mk > 0) { e.x.mk -= wd; if (e.st === ST.DEAD) e.x.mk = 0; }
       if (!PROJ.has(e.type)) e.d += e.vd * wd;
     }
     if (this.ents.some(e => e.rm)) {
@@ -258,6 +270,8 @@ export class Sim {
     for (let i = 0; i < e.sh.length; i++) {
       const s = e.sh[i];
       if (!s.alive || !active) { s.on = false; s.r = 0; continue; }
+      // el mono le tapa la cara: no puede apuntar
+      if (e.x.mk > 0) { s.on = false; s.r = 0; continue; }
       let bad = s.tgt < 0 || !this.players[s.tgt].alive || this.players[s.tgt].gone;
       if (!bad && this.n > 2 && !this.foot && s.kind !== 'impact' && s.kind !== 'melee' && isRear(s.tgt, this.n) !== (this.rel(e) < -3)) bad = this.alivePlayers().some(i => isRear(i, this.n) === (this.rel(e) < -3));
       if (bad) {
@@ -1470,8 +1484,8 @@ export class Sim {
       this.signsFor = k; this.voting = true;
       const r = rng(hash(this.seed, k, 4242));
       // las zonas no se repiten hasta haberlas visto todas
-      let pool = BIOME_KEYS.map((_, i) => i).filter(b => b !== f.from && !this.visited.has(b));
-      if (!pool.length) { this.visited = new Set([f.from]); pool = BIOME_KEYS.map((_, i) => i).filter(b => b !== f.from); }
+      let pool = BIOME_KEYS.map((_, i) => i).filter(b => b !== f.from && !this.visited.has(b) && !BIOMES[BIOME_KEYS[b]].hidden);
+      if (!pool.length) { this.visited = new Set([f.from]); pool = BIOME_KEYS.map((_, i) => i).filter(b => b !== f.from && !BIOMES[BIOME_KEYS[b]].hidden); }
       if (this.story) pool = [SN];
       const nOpt = Math.min(pool.length, 2 + (k % 2 === 0 ? 1 : 0));
       const lats = nOpt === 3 ? [-5.9, 0, 5.9] : nOpt === 2 ? [-3.1, 3.1] : [0];
@@ -1788,6 +1802,7 @@ function ser(e) {
     case 'casinob': x = { k: X.k, td: X.td, tl: X.tl }; break;
   }
   if (e.hm) { x = x || {}; x.hm = e.hm; }
+  if (X.mk > 0) { x = x || {}; x.mk = 1; }
   return [e.id, TI[e.type], r2(e.d), r2(e.lat), r2(e.h), r2(e.ry), Math.round(e.hp * 10) / 10, e.st, sh, x];
 }
 
