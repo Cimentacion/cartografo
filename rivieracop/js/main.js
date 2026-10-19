@@ -56,7 +56,11 @@ sun.shadow.mapSize.set(1024, 1024);
 // (lo que se mueve lleva su sombra suave debajo); así no tiemblan y casi no cuestan
 Object.assign(sun.shadow.camera, { left: -145, right: 145, top: 145, bottom: -145, near: 20, far: 460 });
 // sombras duras (poco difuminado)
-sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.16;
+sun.shadow.bias = -0.0012; sun.shadow.normalBias = 0.22;
+// rayas en las fachadas (acné): donde el sol llega muy de canto la superficie ya está en sombra por el toon,
+// así que ahí la sombra proyectada se ignora (y no salen las bandas diagonales en los edificios)
+{ const k = 'directLight.color *= ( directLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;';
+  const C = THREE.ShaderChunk; if (C.lights_fragment_begin.includes(k)) C.lights_fragment_begin = C.lights_fragment_begin.replace(k, k.replace('directLight.color *= ', 'directLight.color *= mix( 1.0, ').replace(' : 1.0;', ' : 1.0, smoothstep( 0.08, 0.4, dot( normal, directLight.direction ) ) );')); else console.warn('shadow patch'); }
 renderer.shadowMap.autoUpdate = false;
 sun.shadow.camera.updateProjectionMatrix();
 const SHC = { key: '' };
@@ -1238,8 +1242,8 @@ window.rcPack = (k, v) => {
   }
 };
 // ---------------- selección de vehículo (10 s antes de cada partida) ----------------
-const VICON = { cabrio: '🚘', clasico: '🚗', furgo: '🚐', moto: '🏍', tanque: '🪖' };
-const VDESC = { cabrio: 'El de siempre', clasico: 'Años 50, con aletas', furgo: 'Puertas abiertas', moto: 'Dos sidecars', tanque: 'Todos encima' };
+const VICON = { cabrio: '🚘', clasico: '🚗', furgo: '🚐', moto: '🏍', tanque: '🪖', jeep: '🚙', buggy: '🏜', limo: '🥂' };
+const VDESC = { cabrio: 'El de siempre', clasico: 'Años 50, con aletas', furgo: 'Puertas abiertas', moto: 'Dos sidecars', tanque: 'Todos encima', jeep: 'Con arco de seguridad', buggy: 'Ruedas gordas para la arena', limo: 'Blanca y dorada, de lujo' };
 G.veh = (() => { try { const v = JSON.parse(localStorage.getItem('rc_veh') || 'null'); if (v && VEHICLES.some(x => x[0] === v.k)) return { k: v.k, c: clamp(v.c | 0, 0, VCOLORS.length - 1) }; } catch (e) { } return { k: 'cabrio', c: 0 }; })();
 function applyVeh() { if (view) view.setVehicle(G.veh.k, VCOLORS[G.veh.c]); }
 function paintVsel() {
@@ -1275,22 +1279,43 @@ const VPREV = {
   },
   set(k, col) {
     this.init();
-    const key = k + ':' + col; if (key === this.key) return; this.key = key;
+    const CH = vsChars();
+    const key = k + ':' + col + ':' + JSON.stringify(CH); if (key === this.key) return; this.key = key;
     if (this.model) this.spin.remove(this.model);
     this.model = convertible(k, col);
     const S2 = this.model.userData.seats, sy = this.model.userData.seatY || 0;
-    [0, 1, 2, 3, 4].forEach(i => { const a = seatedPlayer(i, i === 0 ? MYCHAR : null); const st = S2 ? S2[i] : [SEATS[i][0], SEATS[i][1], i >= 2 ? Math.PI : 0]; a.position.set(st[0], 1.4 + sy, st[1]); a.userData.yaw.rotation.y = st[2] || 0; this.model.add(a); });
+    this.av = [];
+    for (const i in CH) { const a = seatedPlayer(+i, CH[i]); const st = S2 ? S2[i] : [SEATS[i][0], SEATS[i][1], i >= 2 ? Math.PI : 0]; a.position.set(st[0], 1.4 + sy, st[1]); a.userData.yaw.rotation.y = st[2] || 0; this.model.add(a); this.av.push({ a, y: 1.4 + sy, yo: st[2] || 0, ph: +i * 1.7, t: +i * 0.9 }); }
     this.model.scale.setScalar(0.0001); this.pop = 0;
     this.spin.add(this.model);
   },
   render(dt) {
     this.spin.rotation.y += dt * 0.7;
+    // cada personaje va cambiando de numerito: salta, saluda, da una vuelta o apunta y dispara
+    for (const v of this.av || []) {
+      v.t += dt; const n = Math.floor(v.t / 2.6), u = (v.t % 2.6) / 2.6, act = (n + Math.floor(v.ph)) % 4, R = v.a.userData.rig, Y = v.a.userData.yaw;
+      let y = 0, yaw = v.yo, aR = 0.25, aL = 0.15, zL = 0, tz = 0;
+      if (act === 0) { y = Math.abs(Math.sin(u * Math.PI * 3)) * 0.55; aR = aL = 2.7 * Math.min(1, u * 4); }
+      else if (act === 1) { aL = 2.9; zL = -0.4 + Math.sin(v.t * 14) * 0.45; tz = Math.sin(v.t * 3) * 0.08; }
+      else if (act === 2) { yaw = v.yo + (1 - Math.pow(1 - u, 3)) * Math.PI * 2; y = Math.sin(u * Math.PI) * 0.3; aR = aL = 1.6; }
+      else { yaw = v.yo + Math.sin(v.t * 1.3 + v.ph) * 0.9; aR = 1.45 - (((v.t * 5) % 1) < 0.25 ? 0.25 : 0); aL = 1.25; }
+      v.a.position.y = v.y + y; Y.rotation.y = yaw; Y.rotation.z = tz;
+      R.armR.rotation.set(aR, 0, 0.1); R.armL.rotation.set(aL, -0.2, zL);
+    }
     if (this.model && this.pop < 1) { this.pop = Math.min(1, this.pop + dt * 5); const k = 1 - Math.pow(1 - this.pop, 3); this.model.scale.setScalar(0.7 + 0.3 * k); }
     this.cam.aspect = vw() / vh(); this.cam.updateProjectionMatrix();
     this.cam.position.set(0, 4.6, 12.5); this.cam.lookAt(0, 2.0, 0);
     renderer.setRenderTarget(null); renderer.render(this.scene, this.cam);
   },
 };
+// quién va montado en el escaparate: tú solo, o todos los de la sala en sus asientos
+function vsChars() {
+  const o = {};
+  if (G.mode === 'guest') { const C = G.vsCh || {}; for (const i in C) o[i] = C[i]; o[net.myIdx || 1] = MYCHAR; return o; }
+  o[0] = MYCHAR;
+  if (G.mode === 'host') for (const L of net.links.values()) if (L.idx > 0 && L.idx < 5) o[L.idx] = G.peerChars[L.idx] || defaultChar(L.idx);
+  return o;
+}
 function setVeh(k, c, who) {
   G.veh = { k, c };
   try { localStorage.setItem('rc_veh', JSON.stringify(G.veh)); } catch (e) { }
@@ -1329,6 +1354,7 @@ function vehSelect(done) {
 // invitado: el anfitrión abre la selección y va mandando la cuenta y lo elegido
 function guestVsel(m) {
   if ($('vsel').hidden) { for (const s of document.querySelectorAll('.screen')) s.hidden = true; $('vsel').hidden = false; $('vsGo').hidden = true; $('vsMsg').textContent = 'Cualquiera puede cambiarlo: sale el que esté elegido al acabar la cuenta'; }
+  if (m.ch) { G.vsCh = {}; for (const [i, c] of m.ch) if (i >= 0 && i < 5) G.vsCh[i] = sanitize(c, i); try { paintVsel(); } catch (e) { } }
   if (m.k && VEHICLES.some(x => x[0] === m.k)) { G.veh = { k: m.k, c: clamp(m.c | 0, 0, VCOLORS.length - 1) }; applyVeh(); paintVsel(); }
   if (m.left != null) $('vsT').textContent = Math.max(0, m.left | 0);
 }
@@ -2152,12 +2178,12 @@ $('btnGo').onclick = async () => {
   }
   G.joining = false;
 };
-$('btnStart').onclick = () => { if (!net.open) return; net.send({ t: 'vsel' }); vehSelect(() => { if (net.open) hostStart(); else toMenu('Se han ido todos de la sala'); }); };
+$('btnStart').onclick = () => { if (!net.open) return; net.send({ t: 'vsel', ch: Object.entries(vsChars()).map(([i, c]) => [+i, c]) }); vehSelect(() => { if (net.open) hostStart(); else toMenu('Se han ido todos de la sala'); }); };
 $('btnBack').onclick = () => toMenu('');
 $('btnAgain').onclick = () => {
   const seed = (Math.random() * 4294967296) >>> 0;
   if (G.mode === 'host') {
-    if (net.open) { net.send({ t: 'vsel' }); vehSelect(() => { if (net.open) hostStart(); else begin(seed, 1, 0, 'solo'); }); }
+    if (net.open) { net.send({ t: 'vsel', ch: Object.entries(vsChars()).map(([i, c]) => [+i, c]) }); vehSelect(() => { if (net.open) hostStart(); else begin(seed, 1, 0, 'solo'); }); }
     else vehSelect(() => begin(seed, 1, 0, 'solo'));
   } else { G.mode = 'solo'; vehSelect(() => begin(seed, 1, 0, 'solo')); }
 };

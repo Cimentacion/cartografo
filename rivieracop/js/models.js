@@ -249,7 +249,7 @@ export function person(o = {}) {
 // descapotable alargado (limusina) para hasta 4 jugadores: 2 filas de pie + conductor delante
 // vehículos de los jugadores. Todos tienen los 4 asientos en el mismo sitio (2 delante, 2 detrás);
 // userData.seatY = cuánto más alto van sentados que en el descapotable
-export const VEHICLES = [['cabrio', 'Descapotable'], ['clasico', 'Clásico'], ['furgo', 'Furgoneta'], ['moto', 'Moto con sidecars'], ['tanque', 'Tanque']];
+export const VEHICLES = [['cabrio', 'Descapotable'], ['clasico', 'Clásico'], ['furgo', 'Furgoneta'], ['moto', 'Moto con sidecars'], ['tanque', 'Tanque'], ['jeep', 'Todoterreno'], ['buggy', 'Buggy'], ['limo', 'Limusina']];
 export const VCOLORS = [0xc8102e, 0x2a6ad0, 0xf0c020, 0x2a9a4a, 0x1a1a1a, 0xf2f2f2, 0xe060a0, 0xf07a20];
 export function convertible(kind = 'cabrio', col = 0xc8102e) {
   const g = new THREE.Group();
@@ -357,6 +357,58 @@ export function convertible(kind = 'cabrio', col = 0xc8102e) {
     box(g, 0.5, 0.18, 0.5, 0x2a2a26, 0.45, 2.12, -1.6);
     seats(1.32);
     g.userData.noDriver = true;
+  } else if (kind === 'jeep') {
+    // todoterreno abierto: caja alta, arco de seguridad, rueda de repuesto y faros redondos
+    L = 5.8; seatY = 0.25; front = -2.9;
+    box(g, 2.1, 0.75, L, col, 0, 0.95, 0);
+    box(g, 2.0, 0.5, 1.5, col, 0, 1.45, -2.2);
+    box(g, 2.2, 0.25, 0.3, 0x1a1a1a, 0, 0.6, -L / 2 - 0.1); box(g, 2.2, 0.25, 0.3, 0x1a1a1a, 0, 0.6, L / 2 + 0.1);
+    for (let k = 0; k < 7; k++) box(g, 0.08, 0.36, 0.06, 0x1a1a1a, -0.6 + k * 0.2, 1.4, -2.96);
+    for (const sd of [-1, 1]) {
+      const hl = new THREE.Mesh(cgeo(0.16, 0.08, 10), glow(0xfff6c8)); hl.rotation.x = Math.PI / 2; hl.position.set(sd * 0.75, 1.42, -2.98); g.add(hl);
+      box(g, 0.36, 0.14, 0.05, glow(0xff2020), sd * 0.8, 1.0, L / 2 + 0.01);
+      box(g, 0.1, 1.5, 0.1, 0x2a2a2a, sd * 0.98, 2.1, 0.55); box(g, 0.1, 1.5, 0.1, 0x2a2a2a, sd * 0.98, 2.1, 2.3);
+      box(g, 0.3, 0.12, 1.2, 0x2a2a2a, sd * 1.12, 0.62, -0.9);
+    }
+    box(g, 2.06, 0.1, 0.1, 0x2a2a2a, 0, 2.85, 0.55); box(g, 2.06, 0.1, 0.1, 0x2a2a2a, 0, 2.85, 2.3); box(g, 0.1, 0.1, 1.85, 0x2a2a2a, 0.98, 2.85, 1.42); box(g, 0.1, 0.1, 1.85, 0x2a2a2a, -0.98, 2.85, 1.42);
+    { const sp = new THREE.Mesh(cgeo(0.5, 0.3, 12), mat(0x151515)); sp.rotation.x = Math.PI / 2; sp.position.set(0, 1.3, L / 2 + 0.25); g.add(sp); }
+    const ws = box(g, 1.9, 0.6, 0.06, GLASS, 0, 1.95, -1.45); ws.rotation.x = -0.2;
+    seats(1.1);
+    for (const sx of [-1.02, 1.02]) for (const sz of [-1.9, 1.9]) wheel(g, sx, 0.48, sz, 0.48, 0.36);
+  } else if (kind === 'buggy') {
+    // buggy de dunas: chasis de tubos con jaula, ruedas enormes detrás y motor a la vista
+    L = 5.4; seatY = -0.05; front = -2.7;
+    box(g, 1.8, 0.25, L - 0.6, 0x2a2a2a, 0, 0.55, 0);
+    box(g, 1.7, 0.35, 1.4, col, 0, 0.8, -2.0); const nose = box(g, 1.6, 0.3, 0.8, col, 0, 0.85, -2.75); nose.rotation.x = 0.3;
+    for (const sd of [-1, 1]) {
+      box(g, 0.08, 0.08, L - 0.8, 0xd8d8d8, sd * 0.9, 0.9, 0.2);
+      for (const z of [0.9, 2.2]) { const p = box(g, 0.08, 1.8, 0.08, 0xd8d8d8, sd * 0.85, 1.75, z); p.rotation.z = sd * 0.1; }
+      box(g, 0.34, 0.14, 0.05, glow(0xfff6c8), sd * 0.55, 0.95, -3.12);
+      box(g, 0.22, 0.22, 0.22, glow(0xff9a20), sd * 0.6, 2.72, 2.2);
+    }
+    for (const z of [0.9, 2.2]) box(g, 1.8, 0.08, 0.08, 0xd8d8d8, 0, 2.62, z);
+    box(g, 0.08, 0.08, 1.4, 0xd8d8d8, 0, 2.62, 1.55);
+    for (const sd of [-1, 1]) { const f = box(g, 0.08, 0.08, 2.4, 0xd8d8d8, sd * 0.85, 1.75, -0.3); f.rotation.x = -0.72; }
+    box(g, 1.2, 0.6, 1.0, 0x5a5a5e, 0, 1.0, 2.5); for (const x of [-0.3, 0.3]) { const ex = new THREE.Mesh(cgeo(0.08, 0.6, 8), mat(0x9a9aa0)); ex.rotation.x = 1.2; ex.position.set(x, 1.3, 3.0); g.add(ex); }
+    seats(0.7);
+    for (const sx of [-1.05, 1.05]) { wheel(g, sx, 0.45, -1.9, 0.45, 0.35); wheel(g, sx * 1.05, 0.62, 2.0, 0.62, 0.5); }
+  } else if (kind === 'limo') {
+    // limusina descapotable larga, blanca con molduras doradas
+    L = 7.8; seatY = 0; front = -3.9;
+    const C = col === 0xc8102e ? 0xf4f2ee : col;
+    box(g, 2.0, 0.5, L, C, 0, 0.6, 0); box(g, 1.94, 0.16, 1.6, C, 0, 0.92, -3.0); box(g, 1.98, 0.2, 1.0, C, 0, 0.94, 3.4);
+    for (const sd of [-1, 1]) {
+      box(g, 0.08, 0.2, 5.6, C, sd * 0.97, 0.94, 0.5);
+      box(g, 0.1, 0.06, L - 0.3, 0xd4af37, sd * 1.0, 0.72, 0);
+      box(g, 0.34, 0.14, 0.05, glow(0xfff6c8), sd * 0.62, 0.66, -L / 2 - 0.01);
+      box(g, 0.36, 0.14, 0.05, glow(0xff2020), sd * 0.62, 0.7, L / 2 + 0.01);
+    }
+    box(g, 2.02, 0.16, 0.3, 0xd4af37, 0, 0.42, -L / 2 - 0.05); box(g, 2.02, 0.16, 0.3, 0xd4af37, 0, 0.42, L / 2 + 0.05);
+    box(g, 0.3, 0.35, 0.08, 0xd4af37, 0, 1.15, -L / 2 + 0.2);
+    const ws = box(g, 1.76, 0.48, 0.04, GLASS, 0, 1.2, -1.6); ws.rotation.x = -0.32;
+    box(g, 0.7, 0.18, 0.6, 0x5a1a2a, 0, 0.86, -1.0); box(g, 0.7, 0.55, 0.16, 0x5a1a2a, 0, 1.12, -0.7);
+    seats(0.86);
+    for (const sx of [-0.95, 0.95]) for (const sz of [-2.8, 2.8]) wheel(g, sx, 0.36, sz);
   } else {
     box(g, 1.96, 0.5, L, col, 0, 0.6, 0);
     box(g, 1.9, 0.16, 1.4, col, 0, 0.92, -2.4);

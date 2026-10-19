@@ -43,6 +43,13 @@ export const STORY = [
     radio: [[['pixel', 'Leed los paneles del túnel: avisan de lo que viene en cada tramo.']], [['duval', 'Bajada a tope. Motoristas por detrás y lanzacohetes en los lados.'], ['pixel', '¡Los misiles se pueden derribar!']], [['viuda', 'Llegó la hora. Cuando os ciegue el humo, ni sabréis dónde estoy.'], ['baron', '¡Acabad con ellos!']]],
     outro: [['viuda', 'Imposible...'], ['duval', 'El Barón ha caído con su helicóptero. La Riviera vuelve a ser libre.'], ['pixel', 'Y yo me quedo sus cuentas para reconstruir la costa. ¡Gracias, agentes!']],
   },
+  // PRUEBA: las dunas y la torre
+  {
+    t: 'PRUEBA: DUNAS', z: ['dunas'], test: true, zd: 2,
+    intro: [['pixel', 'Amanece en las dunas. Al fondo hay una torre enorme que lanza salvas de misiles.'], ['duval', 'Derribad los misiles que caen y llegad a la torre: tirad sus columnas piso a piso.']],
+    radio: [[['pixel', 'La tormenta de arena os llevará hasta la torre. ¡Agarraos!']]],
+    outro: [['duval', 'La torre ha caído. Buen trabajo, agentes.']],
+  },
   // PRUEBA (siempre desbloqueado, no cuenta para el progreso): la ciudad zombi suelta
   {
     t: 'PRUEBA: CIUDAD ZOMBI', z: ['zombi'], test: true, zd: 2,
