@@ -534,7 +534,7 @@ function fpAnim(dt) {
   if (U.lh) { const lz = U.lh.userData.z0 ??= U.lh.position.z, ly = U.lh.userData.y0 ??= U.lh.position.y; U.lh.position.y = ly + (U.mag && u > 0.3 && u < 0.85 ? -0.06 * Math.sin((u - 0.3) / 0.55 * Math.PI) : 0); U.lh.position.z = lz + (U.pump ? U.pump.position.z + 0.26 : 0); }
   if (U.orb) U.orb.scale.setScalar(1 + Math.sin(t * 8) * 0.25);
   // escopeta paralela y derringer: los cañones basculan para recargar
-  if (U.brk) { const op = u >= 0 ? (u < 0.25 ? u / 0.25 : u < 0.75 ? 1 : (1 - u) / 0.25) : 0; U.brk.rotation.x = -op * (W.def.model === 'derringer' ? 0.9 : 0.55); }
+  if (U.brk) { const op = u >= 0 ? (u < 0.25 ? u / 0.25 : u < 0.75 ? 1 : (1 - u) / 0.25) : 0; U.brk.rotation.x = U.brkUp ? op * 0.75 : -op * 0.55; }
   U.flash.visible = W.flash > 0;
 }
 // disparo táctil: punto de la pantalla (en coordenadas del juego, que puede ir girado) -> -1..1
@@ -1613,12 +1613,14 @@ const PROF = (() => {
 })();
 const saveProf = () => { try { localStorage.setItem('rc_prof', JSON.stringify(PROF)); } catch (e) { } };
 saveProf();
-// perfil "Mark": todas las mejoras, armas al nivel máximo, el Garrett, pociones y las 6 ranuras (la ropa y los retos no)
+// perfil "Mark": todas las mejoras, armas al nivel máximo, el Garrett y las armas y vehículos del botín, pociones y las 6 ranuras (la ropa y los retos no)
 function markUnlock() {
   if ((PROF.name || '').trim().toLowerCase() !== 'mark') return;
   for (const u of UPGRADES) PROG.upg[u.id] = u.max;
   for (const id of Object.keys(WEAPON_NAMES)) PROG.wl[id] = { lv: WMAX, xp: 0 };
-  if (!PROG.wpUnl.includes('garrett')) PROG.wpUnl.push('garrett');
+  for (const w of ['garrett', 'derringer', 'bora', 'paralela']) if (!PROG.wpUnl.includes(w)) PROG.wpUnl.push(w);
+  PROG.vehOwn = Array.isArray(PROG.vehOwn) ? PROG.vehOwn : [];
+  for (const v of VLOOT) if (!PROG.vehOwn.includes(v)) PROG.vehOwn.push(v);
   PROG.unl = Array.isArray(PROG.unl) ? PROG.unl : [];
   for (const s of ['slot:2', 'slot:3', 'slot:4', 'slot:5']) if (!PROG.unl.includes(s)) PROG.unl.push(s);
   PROG.slotBuy = 1; PROG.pot = 3;

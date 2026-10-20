@@ -7,6 +7,7 @@ import { PCOL } from './defs.js';
 import { toon, tex, toonGrad2 } from './toon.js';
 import { personOpts, sleeveColor, SKINS } from './character.js';
 import { collapse } from './west.js';
+import { classicGun } from './fpclassic.js';
 
 const MC = new Map();
 export function mat(c) {
@@ -1289,56 +1290,10 @@ export function fpGun(model, rar = 0, cfg = null, lv = 1, fp = true) {
       U.fore = [0, -0.04, -0.3]; U.grip = [0, -0.08, 0.06];
       L = 0.6; break;
     }
-    case 'derringer': {
-      // derringer clásica: dos cañones superpuestos que se abren hacia arriba, armazón de latón y cachas de nácar
-      U.kind = 'pistol'; U.grip = [0, -0.06, 0.035];
-      const bar = grp(g, 0, 0.02, -0.005); U.brk = bar;
-      for (const y of [0.014, -0.012]) { CY(bar, 0.012, 0.11, M.ni, 0, y, -0.055, 12); hole(bar, 0.007, 0, y, -0.111); }
-      B(bar, 0.026, 0.05, 0.11, M.ni, 0, 0.001, -0.055); B(bar, 0.004, 0.006, 0.1, M.br, 0, 0.03, -0.055);
-      for (const sx of [-1, 1]) for (let k = 0; k < 3; k++) B(bar, 0.002, 0.003, 0.02, M.br, sx * 0.014, 0.018 - k * 0.012, -0.03 - k * 0.02);
-      B(g, 0.03, 0.045, 0.04, M.br, 0, 0.012, 0.02); { const hm = grp(g, 0, 0.04, 0.035); U.hammer = hm; B(hm, 0.01, 0.025, 0.008, M.ni, 0, 0.01, 0); }
-      B(g, 0.008, 0.02, 0.006, M.br, 0, -0.018, 0.005); B(g, 0.02, 0.003, 0.03, M.br, 0, -0.03, 0.01);
-      B(g, 0.03, 0.07, 0.035, M.iv, 0, -0.045, 0.05, 0.35); for (const sx of [-1, 1]) B(g, 0.002, 0.05, 0.02, M.br, sx * 0.016, -0.045, 0.05, 0.35);
-      L = 0.12; break;
-    }
-    case 'ak': {
-      // fusil de asalto: guardamanos y culata de madera, receptor estampado, tubo de gases, cargador curvo y punto de mira
-      CY(g, 0.011, 0.34, M.dk, 0, 0.016, -0.44, 10); hole(g, 0.007, 0, 0.016, -0.611);
-      CY(g, 0.016, 0.04, M.dk, 0, 0.016, -0.6, 10); B(g, 0.008, 0.04, 0.012, M.dk, 0, 0.045, -0.58);
-      CY(g, 0.009, 0.24, M.dk, 0, 0.045, -0.36, 8); B(g, 0.03, 0.02, 0.04, M.dk, 0, 0.035, -0.47);
-      B(g, 0.046, 0.04, 0.2, M.wd, 0, 0.0, -0.32); B(g, 0.04, 0.026, 0.16, M.wd, 0, 0.042, -0.33);
-      for (let k = 0; k < 4; k++) B(g, 0.047, 0.004, 0.006, M.wd2, 0, -0.005, -0.38 + k * 0.035);
-      B(g, 0.048, 0.06, 0.26, M.st, 0, 0.012, -0.08); B(g, 0.05, 0.012, 0.24, M.dk, 0, 0.046, -0.08);
-      B(g, 0.004, 0.02, 0.12, M.dk, 0.026, 0.02, -0.06); B(g, 0.012, 0.01, 0.02, M.dk, 0.03, 0.03, -0.02);
-      B(g, 0.01, 0.02, 0.03, M.dk, 0, 0.06, -0.19);
-      const mag = grp(g, 0, -0.045, -0.12); U.mag = mag;
-      for (let k = 0; k < 5; k++) { const sg = B(mag, 0.03, 0.04, 0.05, M.dk, 0, -k * 0.035, -k * 0.012); sg.rotation.x = -k * 0.09; }
-      B(g, 0.028, 0.012, 0.05, M.st, 0, -0.03, 0.0); B(g, 0.006, 0.02, 0.006, M.st, 0, -0.025, -0.005);
-      B(g, 0.04, 0.09, 0.05, M.wd2, 0, -0.07, 0.07, 0.35);
-      B(g, 0.045, 0.06, 0.24, M.wd, 0, -0.025, 0.17); B(g, 0.048, 0.08, 0.03, M.wd2, 0, -0.035, 0.29);
-      U.fore = [0, -0.02, -0.32]; U.grip = [0, -0.07, 0.07];
-      L = 0.62; break;
-    }
-    case 'dbl': {
-      // escopeta de dos cañones paralelos: cañones de acero pavonado que basculan para recargar, báscula grabada,
-      // dos gatillos, guardamanos y culata de nogal
-      const brk = grp(g, 0, 0.0, -0.08); U.brk = brk;
-      for (const sx of [-1, 1]) { CY(brk, 0.017, 0.52, M.dk, sx * 0.018, 0.02, -0.26, 14); hole(brk, 0.012, sx * 0.018, 0.02, -0.521); CY(brk, 0.018, 0.02, M.st, sx * 0.018, 0.02, -0.5, 14); }
-      B(brk, 0.012, 0.012, 0.5, M.st, 0, 0.042, -0.26); B(brk, 0.008, 0.008, 0.006, M.br, 0, 0.05, -0.505);
-      B(brk, 0.03, 0.01, 0.45, M.dk, 0, 0.0, -0.25);
-      // cartuchos dentro (se ven al abrir)
-      for (const sx of [-1, 1]) { CY(brk, 0.013, 0.008, M.br, sx * 0.018, 0.02, 0.006, 12); }
-      B(brk, 0.05, 0.035, 0.16, M.wd, 0, -0.012, -0.12); for (let k = 0; k < 5; k++) B(brk, 0.051, 0.003, 0.006, M.wd2, 0, -0.012, -0.18 + k * 0.03);
-      // báscula de acero grabado
-      B(g, 0.056, 0.06, 0.09, M.ni, 0, 0.005, -0.03);
-      for (const sx of [-1, 1]) { for (let k = 0; k < 3; k++) B(g, 0.002, 0.004, 0.06, M.br, sx * 0.0285, 0.0 + k * 0.012, -0.03); B(g, 0.002, 0.018, 0.018, M.br, sx * 0.0285, 0.01, -0.01); }
-      for (const sx of [-1, 1]) { const h = B(g, 0.008, 0.024, 0.01, M.ni, sx * 0.012, 0.045, 0.012); h.rotation.x = -0.4; }
-      B(g, 0.012, 0.025, 0.008, M.ni, 0, 0.045, 0.0);
-      B(g, 0.024, 0.008, 0.06, M.st, 0, -0.04, 0.01); for (const z of [-0.005, 0.02]) B(g, 0.005, 0.022, 0.005, M.st, 0, -0.03, z);
-      B(g, 0.042, 0.09, 0.06, M.wd, 0, -0.06, 0.07, 0.42);
-      B(g, 0.046, 0.065, 0.2, M.wd, 0, -0.03, 0.18); B(g, 0.05, 0.08, 0.02, M.bk, 0, -0.035, 0.285);
-      U.fore = [0, -0.03, -0.2]; U.grip = [0, -0.07, 0.08];
-      L = 0.6; break;
+    case 'derringer': case 'ak': case 'dbl': {
+      // armas exclusivas del botín: modelos detallados en fpclassic.js
+      const r = classicGun(model, g, U, fpEnv());
+      U.kind = r.kind; U.grip = r.grip; U.fore = r.fore; L = r.L; break;
     }
     case 'shotgun': {
       CY(g, 0.02, 0.5, M.dk, 0, 0.022, -0.27, 14); hole(g, 0.014, 0, 0.022, -0.521);
@@ -1440,7 +1395,7 @@ export function fpGun(model, rar = 0, cfg = null, lv = 1, fp = true) {
   }
   // el arma se va currando al subir de nivel: mira, bocacha, láser, cargador largo y acabados dorados
   const longGun = ['rifle', 'mg', 'smg', 'shotgun'].includes(model);
-  const plain = model === 'cannon' || model === 'colt'; // el Garrett tiene sus propias mejoras (arriba)
+  const plain = ['cannon', 'colt', 'derringer', 'ak', 'dbl'].includes(model); // el Garrett tiene sus propias mejoras (arriba)
   if (lv >= 3 && !plain) {
     if (longGun) {
       CY(g, 0.03, 0.2, M.dk, 0, 0.085, -L * 0.45, 12);
