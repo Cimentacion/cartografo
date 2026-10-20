@@ -26,7 +26,7 @@ export const SFX = {
   shot(model) {
     if (!ac) return;
     const t = ac.currentTime;
-    const big = model === 'shotgun' || model === 'revolver' || model === 'rifle' || model === 'launcher';
+    const big = model === 'shotgun' || model === 'dbl' || model === 'revolver' || model === 'rifle' || model === 'launcher' || model === 'derringer';
     const n = nsrc(), f = ac.createBiquadFilter(), g = ac.createGain();
     f.type = 'bandpass'; f.frequency.value = big ? 900 : 1600; f.Q.value = 0.8;
     n.connect(f); f.connect(g); g.connect(master);

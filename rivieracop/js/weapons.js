@@ -24,6 +24,10 @@ const BASE = {
   // Garrett: el revólver del forajido del Oeste. Siempre 6 balas, el doble de daño que la pistola, mucho retroceso;
   // se recarga bala a bala (cada toque en RECARGAR mete una al momento)
   garrett:  { name: 'Garrett', model: 'colt', mag: 6, dmg: 2, rate: 2.8, auto: false, reload: 0.42, shell: true, pellets: 1, spread: 0, unique: true, rng: 55, kick: 0.075 },
+  // exclusivas de las cajas de botín
+  derringer: { name: 'Derringer', model: 'derringer', mag: 2, dmg: 7, rate: 3, auto: false, reload: 0.25, pellets: 1, spread: 0, unique: true, rng: 30, kick: 0.045 },
+  bora:     { name: 'Bora KR-7', model: 'ak', mag: 30, dmg: 2, rate: 10, auto: true, reload: 1.5, pellets: 1, spread: 0.014, unique: true, rng: 60, kick: 0.009 },
+  paralela: { name: 'Escopeta paralela', model: 'dbl', mag: 2, dmg: 2, rate: 4, auto: false, reload: 1.0, pellets: 11, spread: 0.055, unique: true, rng: 14, kick: 0.08 },
   cohetes:  { name: 'Lanzacohetes', model: 'launcher', mag: 4, dmg: 12, rate: 1.4, auto: false, reload: 2.4, pellets: 1, spread: 0, boom: 6, rare: true, rng: 110, kick: 0.07 },
 };
 

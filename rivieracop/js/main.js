@@ -15,9 +15,9 @@ import { showRewarded, showInterstitial, adsReal, lastAdErr } from './ads.js';
 import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME, BOSS } from './defs.js';
 import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES, rangeMul, rollWeaponId, uniqueWeapon } from './weapons.js';
 import { SLOT_AB, SLOT_MAX, SLOT_PRICE, slotCount, slotsOf, UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd, turboDur, turboCd, POWERS } from './progress.js';
-import { fpGun, VEHICLES, VCOLORS, convertible } from './models.js';
+import { fpGun, VEHICLES, VCOLORS, VLOOT, convertible } from './models.js';
 import { Outline, toon } from './toon.js';
-import { CHAL, chInit, chAdd, claimable, claim, goal, reward, text as chText, UNLOCKS, UNL_NAME, locked, lockedBy } from './challenges.js';
+import { CHAL, chInit, chAdd, claimable, claim, goal, reward, text as chText, UNLOCKS, UNL_NAME, locked, lockedBy, SECRET } from './challenges.js';
 import { loadChar, saveChar, sanitize, defaultChar, SKINS, HAIRS, HAIR_COLORS, BEARDS, SHIRTS, SHIRT_COLORS, PANTS_COLORS, HATS, BACKS, NECKS, FACES, BODIES, personOpts } from './character.js';
 import { seatedPlayer, person } from './models.js';
 import { clamp, lerp, lerpAng, angWrap, VP, vw, vh } from './util.js';
@@ -75,7 +75,7 @@ sun.shadow.camera.updateProjectionMatrix();
 const SHC = { key: '' };
 // ejes de la luz (para encajar la sombra en su rejilla y que no tiemble al moverse)
 const SUNO = new THREE.Vector3(150, 160, 70), SUNZ = SUNO.clone().normalize(), SUNX = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), SUNZ).normalize(), SUNY = new THREE.Vector3().crossVectors(SUNZ, SUNX);
-scene.add(sun); scene.add(sun.target); window.__sun = sun; window.__hemi = hemi; window.__ren = renderer; window.__scene = scene; // TODO-TESTEO
+scene.add(sun); scene.add(sun.target); window.__sun = sun; window.__hemi = hemi; window.__ren = renderer; window.__scene = scene; window.__loot = () => LS; // TODO-TESTEO
 // cielo con degradado: azul intenso arriba y claro en el horizonte
 // cielo de dibujo animado: un degradado suave (sin ruido) y encima una cúpula con nubes dibujadas a mano en un canvas
 // (nubes esponjosas hechas de círculos, con sombra abajo y brillo arriba), sol o luna y estrellas de noche.
@@ -267,6 +267,27 @@ const PROG = loadProg();
 chInit(PROG);
 // retos: contadores de lo que hace el jugador local
 const CHC = (k, n = 1) => { chAdd(PROG, k, n); G.chDirty = 1; };
+// ---------------- cajas de botín: una al acabar cada mapa (valor según mapas hechos, dificultad y velocidad) ----------------
+const LOOT = { zk: null, maps: 0, row: 0, hurt: false, hp: null, got: 0 };
+function lootTrack() {
+  if (!G.running || G.over || !G.road) return;
+  const me = G.players[G.li];
+  if (me) { if (LOOT.hp != null && (me.hp < LOOT.hp - 1e-6 || !me.alive)) LOOT.hurt = true; LOOT.hp = me.hp; }
+  const z = G.road.zoneAt(G.carD), k = z.k;
+  if (LOOT.zk == null) { LOOT.zk = k; return; }
+  if (k <= LOOT.zk) return;
+  // se ha completado el mapa anterior
+  LOOT.zk = k; LOOT.maps++;
+  const zd = G.road.zdAt(Math.max(0, G.carD - 60)), sm = (SPEEDS[G.speedIdx] || SPEEDS[1]).mult;
+  const v = Math.round((1 + LOOT.maps * 0.7) * (1 + 0.35 * (zd - 1)) * sm * 10) / 10;
+  PROG.boxes = Array.isArray(PROG.boxes) ? PROG.boxes : [];
+  if (PROG.boxes.length < 99) PROG.boxes.push(v);
+  LOOT.got++;
+  if (!LOOT.hurt && me && me.alive) { LOOT.row++; CHC('nohit'); if (LOOT.row > (PROG.st.nohitrow || 0)) { PROG.st.nohitrow = LOOT.row; G.chDirty = 1; } showBanner('¡CAJA DE BOTÍN!', 'Mapa sin perder vida · racha ' + LOOT.row, '#ffe14a'); }
+  else { LOOT.row = 0; showBanner('¡CAJA DE BOTÍN!', 'Ábrela en el menú: CAJAS', '#ffe14a'); }
+  LOOT.hurt = false;
+  saveProg(PROG); SFX.pickup();
+}
 const AB = { shield: { cd: 0 }, bullet: { cd: 0 } };
 const W = { def: defaultWeapon(), e: null, lv: 1, ammo: 6, rl: 0, cd: 0, recoil: 0, flash: 0 };
 W.e = effective(W.def, 1, PROG.upg);
@@ -435,6 +456,8 @@ function startReload() {
   if (W.rl > 0 || W.ammo >= W.e.mag || !G.running || W.def.once) return;
   // recargar a tiempo es algo más rápido; vaciar el cargador hasta el final cuesta un 25 % más
   W.rl = W.rlMax = W.e.reload * (W.ammo > 0 ? 0.85 : 1.25);
+  // al abrir la paralela saltan los cartuchos gastados
+  if ((W.def.model === 'dbl' || W.def.model === 'derringer') && fpg) { const mz = fpg.userData.muzzle.getWorldPosition(new THREE.Vector3()), bk = new THREE.Vector3(0.2, 0.6, 1).applyQuaternion(camera.quaternion); for (let q = 0; q < W.e.mag - W.ammo; q++) setTimeout(() => fx.shell(mz.clone().addScaledVector(bk, 0.45), bk.clone().add(V3.set((Math.random() - 0.5) * 0.4, 0.3, 0)), true), 120 + q * 60); }
   // recarga táctica: a veces es instantánea
   if (Math.random() < (W.e.tactP || 0)) { W.rl = 0; W.ammo = W.e.mag; SFX.pickup(); return; }
   SFX.reload();
@@ -510,6 +533,8 @@ function fpAnim(dt) {
   }
   if (U.lh) { const lz = U.lh.userData.z0 ??= U.lh.position.z, ly = U.lh.userData.y0 ??= U.lh.position.y; U.lh.position.y = ly + (U.mag && u > 0.3 && u < 0.85 ? -0.06 * Math.sin((u - 0.3) / 0.55 * Math.PI) : 0); U.lh.position.z = lz + (U.pump ? U.pump.position.z + 0.26 : 0); }
   if (U.orb) U.orb.scale.setScalar(1 + Math.sin(t * 8) * 0.25);
+  // escopeta paralela y derringer: los cañones basculan para recargar
+  if (U.brk) { const op = u >= 0 ? (u < 0.25 ? u / 0.25 : u < 0.75 ? 1 : (1 - u) / 0.25) : 0; U.brk.rotation.x = -op * (W.def.model === 'derringer' ? 0.9 : 0.55); }
   U.flash.visible = W.flash > 0;
 }
 // disparo táctil: punto de la pantalla (en coordenadas del juego, que puede ir girado) -> -1..1
@@ -542,7 +567,9 @@ function fire() {
   { const n = aimNDC(); if (n) { TAPRAY.setFromCamera(n, camera); base.copy(TAPRAY.ray.direction); } }
   const muzzle = fpg.userData.muzzle.getWorldPosition(new THREE.Vector3());
   fx.muzzle(muzzle, base, W.def.model === 'shotgun' || W.def.model === 'launcher' || W.def.model === 'gl' ? 1.6 : 1);
-  fx.shell(muzzle, V2.set(1, 0, 0).applyQuaternion(camera.quaternion), W.def.model === 'shotgun');
+  if (W.def.model !== 'dbl' && W.def.model !== 'derringer') fx.shell(muzzle, V2.set(1, 0, 0).applyQuaternion(camera.quaternion), W.def.model === 'shotgun');
+  // humo que se lleva el viento hacia atrás (vais en marcha)
+  if (W.def.model === 'dbl' || W.def.model === 'derringer') { const bk = V2.set(0, 0, 1).applyQuaternion(camera.quaternion); for (let q = 0; q < 8; q++) fx.part(muzzle, bk.clone().multiplyScalar(3 + (G.speed || 0) * 0.6 + Math.random() * 2).add(V3.set((Math.random() - 0.5), 0.6 + Math.random(), (Math.random() - 0.5))), 0.9 + Math.random() * 0.5, 0.06 + Math.random() * 0.06, fx.m.smoke, -0.3, 4); }
   const agg = new Map();
   let anyHit = false, boomAt = null;
   const add = (h, dmg) => {
@@ -1018,7 +1045,7 @@ function begin(seed, n, li, mode) {
   G.evq = []; G.acc = 0; G.over = false; G.running = true; G.carD = 60; G.shake = 0; G.lastBio = -1; G.lastZd = -1; G.camYaw = null;
   G.ents = []; G.players = [];
   for (let i = 0; i < n; i++) G.players.push({ hp: 10, maxHp: 10, score: 0, alive: true, inv: 0, ly: 0, lp: 0 });
-  AB.shield.cd = 0; AB.bullet.cd = 0;
+  AB.shield.cd = 0; AB.bullet.cd = 0; LOOT.zk = null; LOOT.maps = 0; LOOT.row = 0; LOOT.hurt = false; LOOT.hp = null; LOOT.got = 0;
   GR.n = PROG.upg.gren | 0; for (const g of GR.list) scene.remove(g.m); GR.list.length = 0;
   CAN.t = 0; CAN.cd = 0; CAN.saved = null;
   look.flip = 0; $('btnFlip').classList.remove('on'); G.potUsed = false; TB.cd = 0; TB.rv = 0; W.contraT = 0; PW.furiaT = 0; PW.fuerzaT = 0; PW.gx2 = 0; PW.gsp = 0; LENS.on = false; PW.cd = {}; G.smokeT = 0; G.zoomT = 1; G.zoom = 1; G.lay = 0;
@@ -1255,7 +1282,7 @@ function hpHTML(hp, maxHp, pois) {
   return `<div class="hp${pois ? ' pois' : ''}"><i class="ht" style="--f:100%"></i><div class="hpb" style="--seg:${seg}%"><b style="width:${pct.toFixed(1)}%"></b></div><span>${v % 1 ? v.toFixed(1) : v}</span></div>`;
 }
 // HUD compacto (test): tú en grande y la tira de compañeros
-let HUD2 = localStorage.getItem('rc_hud2') === '1';
+let HUD2 = localStorage.getItem('rc_hud2') !== '0';
 const MKO = {};
 function uiPlayers() {
   document.body.classList.toggle('hud2', HUD2);
@@ -1456,21 +1483,27 @@ window.rcPack = (k, v) => {
   }
 };
 // ---------------- selección de vehículo (10 s antes de cada partida) ----------------
-const VICON = { cabrio: '🚘', clasico: '🚗', furgo: '🚐', moto: '🏍', tanque: '🪖', jeep: '🚙', buggy: '🏜', limo: '🥂' };
-const VDESC = { cabrio: 'El de siempre', clasico: 'Años 50, con aletas', furgo: 'Puertas abiertas', moto: 'Dos sidecars', tanque: 'Todos encima', jeep: 'Con arco de seguridad', buggy: 'Ruedas gordas para la arena', limo: 'Blanca y dorada, de lujo' };
+const VICON = { cabrio: '🚘', clasico: '🚗', furgo: '🚐', moto: '🏍', tanque: '🪖', jeep: '🚙', buggy: '🏜', limo: '🥂', papa: '⛪', barca: '🛶', lancha: '🚤', patera: '🛟', colchon: '🛏', avion: '🛩' };
+const VDESC = { cabrio: 'El de siempre', clasico: 'Años 50, con aletas', furgo: 'Puertas abiertas', moto: 'Dos sidecars', tanque: 'Todos encima', jeep: 'Con arco de seguridad', buggy: 'Ruedas gordas para la arena', limo: 'Blanca y dorada, de lujo',
+  papa: 'Urna de cristal y bendiciones', barca: 'Con remos y ruedas', lancha: 'Motor fueraborda', patera: 'Vieja, azul y con 4 ruedas de coche', colchon: 'Sucio, con volante', avion: 'Todos en fila, uno detrás de otro' };
+// los vehículos de las cajas solo salen si los tienes
+const vOwned = k => !VLOOT.has(k) || (PROG.vehOwn || []).includes(k);
+const VLIST = () => VEHICLES.filter(v => vOwned(v[0]));
 G.veh = (() => { try { const v = JSON.parse(localStorage.getItem('rc_veh') || 'null'); if (v && VEHICLES.some(x => x[0] === v.k)) return { k: v.k, c: clamp(v.c | 0, 0, VCOLORS.length - 1) }; } catch (e) { } return { k: 'cabrio', c: 0 }; })();
 function applyVeh() { if (view) view.setVehicle(G.veh.k, VCOLORS[G.veh.c]); }
 function paintVsel() {
-  let i = VEHICLES.findIndex(x => x[0] === G.veh.k);
-  if (i < 0) { i = 0; G.veh = { k: VEHICLES[0][0], c: 0 }; }
-  $('vsN').textContent = VICON[G.veh.k] + ' ' + VEHICLES[i][1].toUpperCase();
+  const VL = VLIST();
+  let i = VL.findIndex(x => x[0] === G.veh.k);
+  if (i < 0) { i = VEHICLES.findIndex(x => x[0] === G.veh.k); if (i < 0 || G.mode !== 'guest') { i = 0; G.veh = { k: VL[0][0], c: 0 }; } }
+  const V = VEHICLES.find(x => x[0] === G.veh.k);
+  $('vsN').textContent = VICON[G.veh.k] + ' ' + V[1].toUpperCase();
   $('vsD').textContent = VDESC[G.veh.k];
-  $('vsDots').innerHTML = VEHICLES.map((_, j) => `<i class="${j === i ? 'on' : ''}"></i>`).join('');
+  $('vsDots').innerHTML = VL.map((_, j) => `<i class="${j === i ? 'on' : ''}"></i>`).join('');
   const C = $('vsCol'); C.innerHTML = '';
   VCOLORS.forEach((c, j) => { const b = document.createElement('button'); b.style.background = '#' + c.toString(16).padStart(6, '0'); b.className = G.veh.c === j ? 'sel' : ''; b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); pickVeh(G.veh.k, j); }); C.appendChild(b); });
   try { VPREV.set(G.veh.k, VCOLORS[G.veh.c]); } catch (e) { console.error(e); $('vsMsg').textContent = 'Error: ' + (e && e.message); }
 }
-function stepVeh(d) { const i = VEHICLES.findIndex(x => x[0] === G.veh.k); pickVeh(VEHICLES[(i + d + VEHICLES.length) % VEHICLES.length][0], G.veh.c); }
+function stepVeh(d) { const VL = VLIST(); const i = Math.max(0, VL.findIndex(x => x[0] === G.veh.k)); pickVeh(VL[(i + d + VL.length) % VL.length][0], G.veh.c); }
 // pointerdown (no click): en el móvil el control de la mirada puede cancelar los clics
 $('vsL').addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); stepVeh(-1); });
 $('vsR').addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); stepVeh(1); });
@@ -2210,7 +2243,7 @@ function tick(dt) {
   sea.position.set(camera.position.x, G.road.seaAt(G.carD), camera.position.z);
   TFX.update(G, dt, camera, B, sea, G.chunks, () => { G.shake = Math.max(G.shake, 1.4); G.road.toWorld(G.carD + 30, -6, 2, V1); for (let k = 0; k < 5; k++) fx.boom(V1.clone().add(V2.set((Math.random() - 0.5) * 20, Math.random() * 6, (Math.random() - 0.5) * 20)), 2.4); showBanner('¡EL TITANIC CHOCA CONTRA EL ICEBERG!', '¡Agarraos!', '#ff6a4a'); CHC('tcrash'); SFX.tone(70, 40, 1.8, 'sawtooth', 0.3); });
   // --- interfaz ---
-  uiPlayers(); uiWeapon(); uiRoute(); uiWcard(); uiAbilities(dt); uiBoss(); uiRadio(dt);
+  lootTrack(); uiPlayers(); uiWeapon(); uiRoute(); uiWcard(); uiAbilities(dt); uiBoss(); uiRadio(dt);
   setHTML('mult', `x${(G.mult || 1).toFixed(1)} · ${Math.round((G.speed || 0) * 3.6)} km/h`);
   document.body.classList.toggle('poisoned', !!(me && me.poison && me.alive));
   document.body.classList.toggle('slowmo', !!G.slow);
@@ -2576,7 +2609,7 @@ function paintStyle() {
     cc.appendChild(c);
   }
   $('btnNoHud').textContent = NOHUD ? 'HUD: OCULTO' : 'HUD: VISIBLE';
-  $('btnHud2').textContent = 'HUD COMPACTO (TEST): ' + (HUD2 ? 'SÍ' : 'NO');
+  $('btnHud2').textContent = 'HUD COMPACTO: ' + (HUD2 ? 'SÍ' : 'NO');
 }
 $('btnHud2').onclick = () => { HUD2 = !HUD2; try { localStorage.setItem('rc_hud2', HUD2 ? '1' : '0'); } catch (e) { } paintStyle(); };
 $('btnNoHud').onclick = () => { NOHUD = !NOHUD; applyStyle(); paintStyle(); };
@@ -2708,7 +2741,8 @@ function edPaint() {
         const b = document.createElement('button');
         b.className = 'tile' + (c[key] === it.v ? ' sel' : '') + (it.lk ? ' lock' : '');
         b.style.setProperty('--tc', ED_TINT(it.v));
-        b.innerHTML = it.label + (it.lk ? `<small>${(lockedBy(key + ':' + it.v) || 'Reto').replace(/ \(nivel.*$/, '')}</small>` : '');
+        const sec = it.lk && SECRET.has(key + ':' + it.v);
+        b.innerHTML = (sec ? '???' : it.label) + (it.lk ? `<small>${sec ? 'Reto secreto' : (lockedBy(key + ':' + it.v) || 'Reto o caja de botín').replace(/ \(nivel.*$/, '')}</small>` : '');
         b.onclick = () => { if (it.lk) { edLockMsg(key + ':' + it.v); return; } c[key] = it.v; edChanged(); };
         g.appendChild(b);
       }
@@ -2718,6 +2752,102 @@ function edPaint() {
     pane.appendChild(sec);
   }
 }
+// ---------------- cajas de botín: menú para abrirlas ----------------
+const LWPN = [['derringer', 'derringer'], ['bora', 'ak'], ['paralela', 'dbl']];
+const LKIND = ['shirt', 'hat', 'back', 'neck', 'face', 'hair'];
+const LTIER = v => v < 4 ? ['MADERA', 0x8a5a32, 0xc8c8c8] : v < 8 ? ['PLATA', 0xb8bcc4, 0x3a5a9a] : v < 14 ? ['ORO', 0xd4af37, 0x8a1a1a] : ['DIAMANTE', 0x7ad8ff, 0xffffff];
+// qué sale: muy de vez en cuando un arma exclusiva, a veces un vehículo, ropa o monedas (más cuanto más vale la caja)
+function rollLoot(v) {
+  const r = Math.random, own = PROG.vehOwn || [];
+  const wp = LWPN.filter(([id]) => !PROG.wpUnl.includes(id)), vh = [...VLOOT].filter(k => !own.includes(k));
+  const cl = Object.keys(UNL_NAME).filter(k => LKIND.includes(k.split(':')[0]) && !SECRET.has(k) && !PROG.unl.includes(k));
+  const pW = wp.length ? Math.min(0.06, 0.003 + v * 0.002) : 0, pV = vh.length ? Math.min(0.2, 0.03 + v * 0.006) : 0, pC = cl.length ? 0.35 : 0;
+  let x = r();
+  if ((x -= pW) < 0) { const [id, model] = wp[Math.floor(r() * wp.length)]; return { t: 'w', id, model, name: WEAPON_NAMES[id], sub: WDESC[id] || '', rar: '★ ARMA EXCLUSIVA ★', col: '#ffc531' }; }
+  if ((x -= pV) < 0) { const k = vh[Math.floor(r() * vh.length)], V = VEHICLES.find(q => q[0] === k); return { t: 'v', id: k, name: V[1], sub: VDESC[k] + ' · ya sale al elegir vehículo', rar: 'VEHÍCULO', col: '#c46bff' }; }
+  if ((x -= pC) < 0) { const k = cl[Math.floor(r() * cl.length)]; return { t: 'c', id: k, name: UNL_NAME[k], sub: 'Ropa nueva: póntela en PERSONAJE', rar: 'ROPA', col: '#4fb3ff' }; }
+  const n = Math.round(300 * v * (0.7 + 0.6 * r()) / 10) * 10;
+  return { t: 'm', n, name: '+' + n.toLocaleString('es-ES') + ' monedas', sub: '', rar: 'MONEDAS', col: n > 4000 ? '#ffc531' : '#d8d8d8' };
+}
+function applyLoot(L) {
+  if (L.t === 'w') { if (!PROG.wpUnl.includes(L.id)) PROG.wpUnl.push(L.id); }
+  else if (L.t === 'v') { PROG.vehOwn = PROG.vehOwn || []; if (!PROG.vehOwn.includes(L.id)) PROG.vehOwn.push(L.id); }
+  else if (L.t === 'c') { if (!PROG.unl.includes(L.id)) PROG.unl.push(L.id); }
+  else PROG.coins += L.n;
+  saveProg(PROG);
+}
+const LS = { R: null, S: null, cam: null, box: null, lid: null, item: null, beam: null, ph: 'idle', t: 0, on: false, L: null };
+function lootChest(v) {
+  const [, c, tr2] = LTIER(v), g = new THREE.Group(), M = c2 => new THREE.MeshLambertMaterial({ color: c2 });
+  const add = (p, w, h, d, c2, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), M(c2)); m.position.set(x, y, z); p.add(m); return m; };
+  add(g, 1.6, 0.9, 1.1, c, 0, 0.45, 0); add(g, 1.66, 0.12, 1.16, tr2, 0, 0.05, 0); add(g, 1.66, 0.1, 1.16, tr2, 0, 0.88, 0);
+  for (const x of [-0.6, 0.6]) add(g, 0.14, 0.92, 1.14, tr2, x, 0.46, 0);
+  const lid = new THREE.Group(); lid.position.set(0, 0.9, 0.55); g.add(lid);
+  add(lid, 1.6, 0.42, 1.1, c, 0, 0.21, -0.55); add(lid, 1.66, 0.1, 1.16, tr2, 0, 0.42, -0.55); for (const x of [-0.6, 0.6]) add(lid, 0.14, 0.44, 1.14, tr2, x, 0.21, -0.55);
+  add(lid, 0.3, 0.34, 0.12, tr2, 0, 0.0, -1.12); add(lid, 0.12, 0.12, 0.05, 0x111111, 0, -0.02, -1.19);
+  const glowM = new THREE.MeshBasicMaterial({ color: 0xfff2a0 }); const gl = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.04, 0.9), glowM); gl.position.y = 0.86; g.add(gl);
+  g.userData.lid = lid; return g;
+}
+function lootItem(L) {
+  const g = new THREE.Group();
+  if (L.t === 'w') { const w = fpGun(LWPN.find(q => q[0] === L.id)[1], 3, null, 10, false); w.scale.setScalar(4.5); w.rotation.y = Math.PI / 2; g.add(w); }
+  else if (L.t === 'v') { const v = convertible(L.id, VCOLORS[0]); v.scale.setScalar(0.24); v.position.y = -0.25; g.add(v); }
+  else if (L.t === 'c') { const [k, val] = L.id.split(':'), o = Object.assign({}, MYCHAR); o[k] = val; const p = person(personOpts(o)); p.scale.setScalar(0.62); p.position.y = -0.55; g.add(p); }
+  else { for (let k = 0; k < 9; k++) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.08, 18), new THREE.MeshLambertMaterial({ color: 0xffc531, emissive: 0x6a4a00 })); c.position.set((k % 3 - 1) * 0.3, Math.floor(k / 3) * 0.09 + (k % 2) * 0.03, (k % 2) * 0.1); c.rotation.z = (k % 3 - 1) * 0.2; g.add(c); } }
+  return g;
+}
+function lootSetup() {
+  if (!LS.R) {
+    const cv = $('lootCv');
+    LS.R = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true }); LS.R.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+    LS.S = new THREE.Scene(); LS.S.add(new THREE.HemisphereLight(0xffffff, 0x443366, 1.3)); const d = new THREE.DirectionalLight(0xffffff, 1.6); d.position.set(2, 4, 3); LS.S.add(d);
+    LS.cam = new THREE.PerspectiveCamera(38, 1, 0.1, 50); LS.cam.position.set(0, 2.3, 7.2); LS.cam.lookAt(0, 1.45, 0);
+    { const fl = new THREE.Mesh(new THREE.CircleGeometry(2.6, 40), new THREE.MeshBasicMaterial({ color: 0x3a2a6a, transparent: true, opacity: 0.6 })); fl.rotation.x = -Math.PI / 2; LS.S.add(fl); }
+    LS.beam = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.9, 8, 24, 1, true), new THREE.MeshBasicMaterial({ color: 0xfff2a0, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    LS.beam.position.y = 4.4; LS.S.add(LS.beam);
+    const tap = e => { if (!LS.on || e.target !== cv) return; if (LS.ph === 'idle' && LS.box) { LS.ph = 'turn'; LS.t = 0; SFX.tone(300, 600, 0.3, 'triangle', 0.2); } };
+    window.addEventListener('pointerdown', tap, true); window.addEventListener('touchstart', tap, { capture: true, passive: true });
+  }
+  const r = LS.R.domElement.getBoundingClientRect(); LS.R.setSize(r.width, r.height, false); LS.cam.aspect = r.width / Math.max(1, r.height); LS.cam.updateProjectionMatrix();
+}
+function lootNextBox() {
+  if (LS.box) LS.S.remove(LS.box); if (LS.item) LS.S.remove(LS.item); LS.item = null; LS.beam.material.opacity = 0;
+  $('lootRes').hidden = true;
+  const n = (PROG.boxes || []).length;
+  $('lootCnt').textContent = n ? n + (n === 1 ? ' caja' : ' cajas') : 'Sin cajas';
+  if (!n) { LS.box = null; $('lootHint').textContent = 'Acaba mapas en una partida para conseguir cajas'; return; }
+  const v = PROG.boxes[0]; LS.box = lootChest(v); LS.S.add(LS.box); LS.ph = 'idle'; LS.t = 0;
+  $('lootHint').textContent = 'CAJA DE ' + LTIER(v)[0] + ' · toca para abrirla'; $('lootHint').hidden = false;
+}
+function lootLoop() {
+  if (!LS.on) return; requestAnimationFrame(lootLoop);
+  const now = performance.now(), dt = Math.min(0.1, (now - (LS.pt || now)) / 1000); LS.pt = now; LS.t += dt; const B = LS.box;
+  if (B) {
+    if (LS.ph === 'idle') { B.rotation.y += dt * 1.2; B.position.y = 0.15 + Math.sin(LS.t * 2) * 0.08; }
+    else if (LS.ph === 'turn') {
+      // se gira hacia ti temblando
+      const a = ((B.rotation.y % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2), tgt = a > Math.PI ? Math.PI * 2 : 0;
+      B.rotation.y = a + (tgt - a) * Math.min(1, dt * 8); B.rotation.z = Math.sin(LS.t * 60) * 0.03; B.position.y = 0.05;
+      if (LS.t > 0.7) {
+        B.rotation.set(0, 0, 0); LS.ph = 'open'; LS.t = 0;
+        const v = PROG.boxes.shift(); LS.L = rollLoot(v); applyLoot(LS.L);
+        LS.item = lootItem(LS.L); LS.item.position.y = 0.6; LS.item.visible = false; LS.S.add(LS.item); $('lootHint').hidden = true;
+        SFX.tone(500, 1200, 0.6, 'triangle', 0.25); updLootN();
+      }
+    } else if (LS.ph === 'open') {
+      B.userData.lid.rotation.x = -Math.min(2.0, LS.t * 6);
+      LS.beam.material.opacity = Math.min(0.45, LS.t * 0.8);
+      if (LS.item) { const k = Math.min(1, Math.max(0, (LS.t - 0.25) / 0.7)); LS.item.visible = LS.t > 0.25; LS.item.scale.setScalar(0.15 + 0.85 * k); LS.item.position.y = 0.7 + 1.3 * k; LS.item.rotation.y += dt * 1.5; }
+      if (LS.t > 1.1 && $('lootRes').hidden) { const L = LS.L; $('lootRar').textContent = L.rar; $('lootRar').style.color = L.col; $('lootName').textContent = L.name; $('lootRes').style.setProperty('--rc', L.col); $('lootSub').textContent = L.sub; $('lootRes').hidden = false; $('lootNext').textContent = (PROG.boxes || []).length ? 'SIGUIENTE CAJA' : 'LISTO'; SFX.pickup(); }
+    }
+  }
+  LS.R.render(LS.S, LS.cam);
+}
+function updLootN() { const n = (PROG.boxes || []).length; $('lootN').textContent = n || ''; $('lootN').hidden = !n; }
+$('btnLoot').onclick = () => { for (const sc of document.querySelectorAll('.screen')) sc.hidden = true; $('lootScr').hidden = false; lootSetup(); lootNextBox(); LS.on = true; lootLoop(); };
+$('lootNext').onclick = () => { if ((PROG.boxes || []).length) lootNextBox(); else $('lootBack').onclick(); };
+$('lootBack').onclick = () => { LS.on = false; $('lootScr').hidden = true; $('menu').hidden = false; updLootN(); updMenuCard(); };
+updLootN();
 // ---------------- retos ----------------
 function showToast(t) {
   let el = $('toast');
@@ -2742,7 +2872,7 @@ function paintRetos() {
       <div class="rtT">${chText(c, t)}</div>
       <div class="rtL">${'★'.repeat(t)}${'☆'.repeat(10 - t)}</div>
       <div class="rtB"><i style="width:${done ? 100 : Math.min(100, v / g * 100)}%"></i><span>${done ? 'COMPLETADO' : vv + ' / ' + g.toLocaleString('es-ES')}</span></div>
-      <div class="rtR">${done ? '' : '<i class="coin"></i> +' + reward(c, t) + (u ? ' · 🎁 ' + UNL_NAME[u] : '')}</div>
+      <div class="rtR">${done ? '' : '<i class="coin"></i> +' + reward(c, t) + (u ? ' · 🎁 ' + (SECRET.has(u) ? 'Ropa secreta' : UNL_NAME[u]) : '')}</div>
       ${ready ? `<button class="rtC" data-id="${c.id}">RECLAMAR</button>` : ''}
     </div>`;
   }).join('') || '<div class="rtEmpty">Nada por aquí todavía</div>';
@@ -2900,12 +3030,12 @@ function paintShop(boughtId) {
   if (G.shopCat === '_a') for (const id of [null].concat(PROG.wpUnl)) {
     const name = id ? WEAPON_NAMES[id] : 'Pistola de serie', on = (PROG.wpEq || null) === id;
     const e = document.createElement('div'); e.className = 'upg' + (on ? ' can' : ''); e.style.setProperty('--c', col);
-    e.innerHTML = `<div class="uh"><span class="un">${tr(name).toUpperCase()}</span><span class="ul">${on ? 'EQUIPADA' : ''}</span></div><p>${id === 'garrett' ? 'Revólver niquelado del forajido. Siempre 6 balas, el doble de daño que la pistola y mucho retroceso. Se recarga bala a bala: cada toque en RECARGAR mete una al momento' : 'La de siempre: balas infinitas'}</p><div class="uf"></div>`;
+    e.innerHTML = `<div class="uh"><span class="un">${tr(name).toUpperCase()}</span><span class="ul">${on ? 'EQUIPADA' : ''}</span></div><p>${WDESC[id] || 'La de siempre: balas infinitas'}</p><div class="uf"></div>`;
     if (!on) { const b = document.createElement('button'); b.textContent = 'EQUIPAR'; b.onclick = () => { PROG.wpEq = id; saveProg(PROG); SFX.pickup(); paintShop(); }; e.querySelector('.uf').appendChild(b); }
     W2.appendChild(e);
   }
   if (G.shopCat === '_w') for (const [id, name] of Object.entries(WEAPON_NAMES)) {
-    if (id === 'garrett' && !PROG.wpUnl.includes(id)) continue;
+    if (uniqueWeapon(id).unique && !PROG.wpUnl.includes(id)) continue;
     const w = weaponLevel(PROG, id);
     const nx = w.lv >= WMAX ? 1 : Math.min(1, (w.xp || 0) / xpNeed(w.lv));
     const e = document.createElement('div'); e.className = 'upg' + (w.lv > 1 ? ' can' : '');
@@ -2920,6 +3050,12 @@ $('btnShop').onclick = () => {
   $('shop').hidden = false; paintShop();
 };
 $('shopBack').onclick = () => { $('shop').hidden = true; $('menu').hidden = false; updMenuCard(); };
+const WDESC = {
+  garrett: 'Revólver niquelado del forajido. Siempre 6 balas, el doble de daño que la pistola y mucho retroceso. Se recarga bala a bala: cada toque en RECARGAR mete una al momento',
+  derringer: 'Derringer clásica de dos cañones: dos balas que pegan como un camión y se recargan casi al instante',
+  bora: 'Fusil de asalto con culata de madera: 30 balas en automático, buen alcance',
+  paralela: 'Escopeta de dos cañones paralelos: dos disparos brutales de cerca; al abrirla saltan los cartuchos',
+};
 // ---------------- editor de interfaz ----------------
 const HUD_ITEMS = [
   ['btnFire', 'FUEGO', 96, '#ff4040'], ['btnFlip', '180°', 58, '#ffffff'], ['btnReload', 'RECARGAR', 76, '#ffd23f'], ['regul', 'VELOCIDAD', 0, '#7dffd2', 'regul'],

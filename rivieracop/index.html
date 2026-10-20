@@ -178,6 +178,20 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
 #diagTxt{font:12px/1.4 monospace;text-align:left;white-space:pre-wrap;color:#ddd;margin:6px 0 10px}
 .big.alt3{background:#b98cff;box-shadow:0 4px 0 #5a3a8a}
 .sw{display:flex;gap:5px;flex-wrap:wrap}
+/* ======== cajas de botín ======== */
+#lootScr{padding:0;background:radial-gradient(ellipse at 50% 60%,#2a1e4a,#08060f 70%)}
+#lootCv{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.lootTop{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:12px;padding:10px 14px;z-index:2}
+.lootTop .shopTitle{flex:1}
+#lootCnt{font:700 13px var(--f-ui);color:var(--gold)}
+#lootHint{position:absolute;left:0;right:0;bottom:6%;text-align:center;font:14px var(--f-title);letter-spacing:.12em;color:#fff;opacity:.8;animation:lhint 1.2s infinite alternate;pointer-events:none}
+@keyframes lhint{from{opacity:.35}to{opacity:.95}}
+#lootRes{position:absolute;right:max(16px,4%);top:50%;max-width:min(42vw,360px);background:rgba(8,6,16,.75);padding:12px 18px;border-radius:12px;border:1px solid rgba(255,255,255,.12);transform:translateY(-50%);text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;z-index:2;animation:lres .5s ease-out}
+#lootRes small{font:700 12px var(--f-ui);letter-spacing:.2em;text-transform:uppercase}
+#lootRes b{font:clamp(20px,4vw,34px) var(--f-title);color:#fff;text-shadow:0 3px 0 #000,0 0 20px var(--rc,#ffe14a)}
+#lootRes span{font:600 13px var(--f-ui);color:#ddd;max-width:90vw}
+#lootRes .big{margin-top:6px}
+@keyframes lres{from{opacity:0;transform:translate(20px,-50%)}to{opacity:1;transform:translate(0,-50%)}}
 /* ======== HUD compacto (test) ======== */
 #mates{position:absolute;left:max(8px,env(safe-area-inset-left));top:calc(max(8px,env(safe-area-inset-top)) + 70px);display:flex;flex-direction:column;gap:3px;pointer-events:none;width:150px}
 .mt{display:flex;align-items:center;gap:5px;background:rgba(10,8,20,.78);border-left:4px solid var(--c);padding:2px 6px 2px 4px;font:700 11px var(--f-ui);color:#fff;height:18px;box-shadow:2px 2px 0 rgba(0,0,0,.5)}
@@ -696,6 +710,7 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
         <button id="btnFriends" class="mmS">👥 AMIGOS<i id="frDot" hidden></i></button>
         <button id="btnChar" class="mmS">🧑 PERSONAJE</button>
         <button id="btnRetos" class="mmS">🏆 RETOS<i id="retosN" class="mmBadge" hidden></i></button>
+        <button id="btnLoot" class="mmS">🎁 CAJAS<i id="lootN" class="mmBadge" hidden></i></button>
         <button id="btnStory" class="mmS">📖 HISTORIA <small id="storyN"></small></button>
         <button id="btnAdPot" class="mmS mmPot">🧪 POCIÓN GRATIS <small id="potN"></small></button>
       </div>
@@ -740,6 +755,13 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
     </div>
   </div>
 
+  <div id="lootScr" class="screen" hidden>
+    <canvas id="lootCv"></canvas>
+    <div class="lootTop"><div class="shopTitle">CAJAS DE BOTÍN</div><div id="lootCnt"></div><button id="lootBack" class="big">VOLVER</button></div>
+    <div id="lootHint">Toca la caja para abrirla</div>
+    <div id="lootRes" hidden><small id="lootRar"></small><b id="lootName"></b><span id="lootSub"></span><button id="lootNext" class="big">SIGUIENTE</button></div>
+  </div>
+
   <div id="retos" class="screen" hidden>
     <div class="shopTop">
       <div class="shopTitle">RETOS</div>
@@ -770,7 +792,7 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
     <div class="stBody">
       <h3>INTERFAZ</h3><div id="stHud" class="stRow"></div>
       <div class="stOpt"><button id="btnNoHud" class="mini">HUD: VISIBLE</button><span>Sin HUD: solo quedan los controles (ni vida, ni puntos, ni arma)</span></div>
-      <div class="stOpt"><button id="btnHud2" class="mini">HUD COMPACTO (TEST): NO</button><span>Tu vida en grande y los compañeros en una tira pequeña con su vida, KO y desconectado; barra de arriba más pequeña</span></div>
+      <div class="stOpt"><button id="btnHud2" class="mini">HUD COMPACTO: SÍ</button><span>Tu vida en grande y los compañeros en una tira pequeña con su vida, KO y desconectado; barra de arriba más pequeña</span></div>
       <h3>COLORES DEL JUEGO</h3><div id="stCol" class="stRow"></div>
     </div>
   </div>

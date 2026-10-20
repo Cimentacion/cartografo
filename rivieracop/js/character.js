@@ -25,23 +25,24 @@ export const SHIRTS = [
   ['monje', 'Hábito de monje'], ['monjeb', 'Túnica azafrán'], ['lamelar', 'Armadura lamelar'], ['cuero', 'Cuero tachonado'], ['dorada', 'Armadura dorada'],
   ['romana', 'Lorica romana'], ['militar', 'Uniforme de gala'], ['tactico', 'Chaleco táctico'], ['aviador', 'Cazadora de aviador'], ['vestido', 'Vestido de flores'],
   ['vestidon', 'Vestido de noche'], ['corse', 'Corsé y falda'], ['kimonof', 'Kimono de flores'], ['blusa', 'Blusa de volantes'], ['princesa', 'Vestido de princesa'],
+  ['invicto', 'Armadura del Invicto'],
 ];
 export const HATS = [['no', 'Nada'], ['paja', 'Sombrero de paja'], ['gladiador', 'Gladiador'], ['vaquero', 'Vaquero'], ['copa', 'Chistera'], ['corona', 'Corona'],
   ['vikingo', 'Vikingo'], ['gorro', 'Gorro de lana'], ['poli', 'Gorra de poli'], ['pirata', 'Pirata'], ['fiesta', 'De fiesta'], ['chef', 'Gorro de chef'],
   ['halo', 'Halo'], ['cuernos', 'Cuernos'], ['casco', 'Casco SWAT'], ['bombin', 'Bombín'], ['detective', 'Gorro de detective'], ['hachimaki', 'Hachimaki'], ['orejas', 'Orejas de gato'], ['gafasfrente', 'Gafas de aviador'], ['lazo', 'Lazo gigante'], ['flor', 'Flor en el pelo'],
   ['panuelo', 'Pañuelo pirata'], ['panuelof', 'Pañuelo de flores'], ['boina', 'Boina'], ['gorramil', 'Gorra de plato'], ['cascomil', 'Casco militar'], ['capucha', 'Capucha de monje'], ['tiara', 'Tiara'], ['diadema', 'Diadema de flores'],
-  ['velo', 'Velo'], ['pamela', 'Pamela'], ['nasal', 'Casco normando'], ['coronam', 'Corona de plata'], ['ushanka', 'Gorro de piel'], ['espartano', 'Casco de hoplita'], ['cofia', 'Cofia'],
+  ['velo', 'Velo'], ['pamela', 'Pamela'], ['nasal', 'Casco normando'], ['coronam', 'Corona de plata'], ['ushanka', 'Gorro de piel'], ['espartano', 'Casco de hoplita'], ['cofia', 'Cofia'], ['aureola', 'Aureola del Invicto'],
   ['yelmo', 'Yelmo de caballero'], ['cimera', 'Bacinete con penacho'], ['kabuto', 'Kabuto samurái'], ['ninja', 'Capucha ninja'], ['mago', 'Sombrero de mago'], ['laurel', 'Corona de laurel']];
 export const BACKS = [['no', 'Nada'], ['capa', 'Capa roja'], ['capan', 'Capa negra'], ['capaz', 'Capa azul'], ['capad', 'Capa dorada'], ['mochila', 'Mochila'], ['alas', 'Alas'], ['jet', 'Jetpack'], ['alasn', 'Alas de demonio'], ['katana', 'Katana'], ['cartera', 'Mochila escolar'], ['guitarra', 'Guitarra'], ['baston', 'Bastón de combate'],
   ['espada', 'Espadón medieval'], ['escudo', 'Escudo a la espalda'], ['katanas', 'Dos katanas'], ['arco', 'Arco y carcaj'], ['sashimono', 'Estandarte samurái'],
   ['lanza', 'Lanza'], ['alabarda', 'Alabarda'], ['tridente', 'Tridente'], ['naginata', 'Naginata'], ['hacha', 'Hacha de guerra'], ['martillo', 'Martillo de guerra'], ['rifle', 'Fusil'], ['radio', 'Radio militar'],
-  ['mochilam', 'Mochila de combate'], ['paraca', 'Paracaídas'], ['estandarte', 'Estandarte medieval'], ['escudor', 'Escudo redondo'], ['abanico', 'Abanico gigante'], ['alash', 'Alas de hada'], ['bazuca', 'Bazuca']];
+  ['mochilam', 'Mochila de combate'], ['paraca', 'Paracaídas'], ['estandarte', 'Estandarte medieval'], ['escudor', 'Escudo redondo'], ['abanico', 'Abanico gigante'], ['alash', 'Alas de hada'], ['bazuca', 'Bazuca'], ['alasoro', 'Alas del Invicto']];
 export const NECKS = [['no', 'Nada'], ['cadena', 'Cadena de oro'], ['perlas', 'Perlas'], ['medalla', 'Medallón'], ['bufanda', 'Bufanda'], ['pajarita', 'Pajarita'], ['flores', 'Collar de flores'], ['corbata', 'Corbata'],
   ['panueloc', 'Pañuelo vaquero'], ['shemagh', 'Pañuelo militar'], ['chapas', 'Chapas militares'], ['gargantilla', 'Gargantilla'], ['colgante', 'Colgante de corazón'], ['amuleto', 'Amuleto de jade'], ['boa', 'Boa de plumas'], ['gorguera', 'Gorguera'],
-  ['cuellopiel', 'Cuello de piel'], ['lazoc', 'Lazo al cuello'], ['condecor', 'Condecoraciones'], ['gorjal', 'Gorjal de armadura'], ['pinchos', 'Collar de pinchos'], ['cadenaplata', 'Cadena de plata'], ['estola', 'Estola de seda']];
+  ['cuellopiel', 'Cuello de piel'], ['lazoc', 'Lazo al cuello'], ['condecor', 'Condecoraciones'], ['gorjal', 'Gorjal de armadura'], ['pinchos', 'Collar de pinchos'], ['cadenaplata', 'Cadena de plata'], ['estola', 'Estola de seda'], ['medallaoro', 'Medalla del Invicto']];
 export const FACES = [['no', 'Nada'], ['gafas', 'Gafas de sol'], ['antifaz', 'Antifaz'], ['parche', 'Parche'], ['pintura', 'Pintura de guerra'], ['pendientes', 'Pendientes'], ['monoculo', 'Monóculo'], ['redondas', 'Gafas redondas'], ['tirita', 'Tirita'], ['rubor', 'Mejillas sonrojadas'], ['cicatriz', 'Cicatriz en cruz'], ['mascarilla', 'Mascarilla'], ['menpo', 'Máscara samurái'], ['oni', 'Máscara oni'], ['ninjam', 'Máscara ninja'], ['pecas', 'Pecas'], ['katanab', 'Katana en la boca'],
   ['labios', 'Labios rojos'], ['sombra', 'Sombra de ojos'], ['lunar', 'Lunar'], ['pestanas', 'Pestañas largas'], ['camuf', 'Pintura de camuflaje'], ['venda', 'Venda en la frente'], ['velof', 'Velo de seda'], ['nocturnas', 'Gafas de visión nocturna'],
-  ['gas', 'Máscara de gas'], ['tatuaje', 'Tatuaje en la cara'], ['purpurina', 'Purpurina'], ['cicatrizo', 'Cicatriz en el ojo'], ['payaso', 'Nariz de payaso'], ['esqui', 'Gafas de esquí'], ['piercing', 'Piercings']];
+  ['gas', 'Máscara de gas'], ['tatuaje', 'Tatuaje en la cara'], ['purpurina', 'Purpurina'], ['cicatrizo', 'Cicatriz en el ojo'], ['payaso', 'Nariz de payaso'], ['esqui', 'Gafas de esquí'], ['piercing', 'Piercings'], ['mascoro', 'Máscara del Invicto']];
 export const BODIES = [['normal', 'Normal'], ['delgado', 'Delgado'], ['fuerte', 'Fuerte'], ['grande', 'Grandote'], ['alto', 'Alto'], ['bajo', 'Bajito']];
 export const SHIRT_COLORS = [0x2f6fd0, 0xd03040, 0x2a9a4a, 0xf0c020, 0x8a3ac0, 0xf07a20, 0xf2f2f2, 0x1a1a1a, 0x30b0c0, 0xe060a0, 0xd4af37, 0x39ff14];
 export const PANTS_COLORS = [0x222222, 0x24365a, 0x6a5a40, 0x3a4a2a, 0x8a8a8a, 0x6a1a1a, 0xe8e0d0];
@@ -62,11 +63,11 @@ const FLAGS = {
   blazer: ['#1e2a4a'], chandal: ['#c82838'], idol: ['#e83a9a'], capitan: ['#f2f2f2'], mecanico: ['#2a5a9a'],
   samurai: ['#8a1a1a'], caballero: ['#8a8e96'], armadura: ['#b8bcc4'], templario: ['#f2f2ee'], ninja: ['#16161c'], sheriff: ['#c8b890'], poncho: ['#b8603a'], mago: ['#2a2a6a'],
   monje: ['#5a3a20'], monjeb: ['#e08a20'], lamelar: ['#8a6a2a'], cuero: ['#5a3a20'], dorada: ['#d4af37'], romana: ['#c8a050'], militar: ['#3a4a2a'], tactico: ['#2a2a2a'],
-  aviador: ['#6a3a1a'], vestido: ['#f2a8c0'], vestidon: ['#141418'], corse: ['#f2f0ea'], kimonof: ['#e880a8'], blusa: ['#f8f4f0'], princesa: ['#6aa0e8'],
+  aviador: ['#6a3a1a'], vestido: ['#f2a8c0'], vestidon: ['#141418'], corse: ['#f2f0ea'], kimonof: ['#e880a8'], blusa: ['#f8f4f0'], princesa: ['#6aa0e8'], invicto: ['#f0d060'],
 };
 // prendas con faldón: [largo, color, ribete]
 const SKIRT = { monje: [0.85, 0x5a3a20], monjeb: [0.85, 0xe08a20, 0xc06a10], romana: [0.3, 0x6a4424, 0xc8a050], vestido: [0.42, 0xf2a8c0, 0xffffff], vestidon: [0.85, 0x141418, 0x8a8a9a], corse: [0.45, 0x6a1a2a, 0x1a1a1a], kimonof: [0.85, 0xe880a8, 0xc8a040], princesa: [0.85, 0x6aa0e8, 0xffd060] };
-const KITS = new Set(['diez', 'marruecos', 'sudadera', 'cazador', 'hawaiana', 'camuflaje', 'llamas', 'oro', 'tweed', 'chaleco', 'gakuran', 'marinera', 'kimono', 'piloto', 'karate', 'blazer', 'chandal', 'idol', 'capitan', 'mecanico', 'samurai', 'caballero', 'armadura', 'templario', 'ninja', 'sheriff', 'poncho', 'mago', 'monje', 'monjeb', 'lamelar', 'cuero', 'dorada', 'romana', 'militar', 'tactico', 'aviador', 'vestido', 'vestidon', 'corse', 'kimonof', 'blusa', 'princesa']);
+const KITS = new Set(['diez', 'marruecos', 'sudadera', 'cazador', 'hawaiana', 'camuflaje', 'llamas', 'oro', 'tweed', 'chaleco', 'gakuran', 'marinera', 'kimono', 'piloto', 'karate', 'blazer', 'chandal', 'idol', 'capitan', 'mecanico', 'samurai', 'caballero', 'armadura', 'templario', 'ninja', 'sheriff', 'poncho', 'mago', 'monje', 'monjeb', 'lamelar', 'cuero', 'dorada', 'romana', 'militar', 'tactico', 'aviador', 'vestido', 'vestidon', 'corse', 'kimonof', 'blusa', 'princesa', 'invicto']);
 // camisetas dibujadas: degradado negro a morado con el 10 dorado, la de Marruecos (roja con detalles verdes y la estrella) y sudadera
 function drawKit(name, g) {
   if (name === 'diez') {
@@ -289,6 +290,13 @@ function drawKit(name, g) {
     g.fillStyle = '#6aa0e8'; g.fillRect(0, 0, 32, 64); g.fillStyle = '#9ac0f4'; g.fillRect(6, 0, 20, 64);
     g.fillStyle = '#ffd060'; g.fillRect(0, 42, 32, 3); for (let k = 0; k < 4; k++) { g.beginPath(); g.arc(16, 10 + k * 8, 1.5, 0, 7); g.fill(); }
     g.strokeStyle = '#ffd060'; g.lineWidth = 1; g.beginPath(); g.moveTo(6, 0); g.lineTo(16, 30); g.lineTo(26, 0); g.stroke();
+  } else if (name === 'invicto') {
+    // armadura dorada con laureles y piedras que brillan
+    const gr = g.createLinearGradient(0, 0, 32, 64); gr.addColorStop(0, '#fff6c0'); gr.addColorStop(0.4, '#e8c040'); gr.addColorStop(1, '#a07818'); g.fillStyle = gr; g.fillRect(0, 0, 32, 64);
+    g.strokeStyle = '#7a5a10'; g.lineWidth = 1; for (let y = 8; y < 44; y += 9) { g.beginPath(); g.moveTo(2, y); g.quadraticCurveTo(16, y + 6, 30, y); g.stroke(); }
+    g.fillStyle = '#3a8a3a'; for (let k = 0; k < 6; k++) { g.beginPath(); g.ellipse(8 + (k % 2) * 16, 14 + Math.floor(k / 2) * 6, 3, 1.4, k % 2 ? -0.6 : 0.6, 0, 7); g.fill(); }
+    g.fillStyle = '#ff2a4a'; g.beginPath(); g.arc(16, 22, 3, 0, 7); g.fill(); g.fillStyle = '#ffffff'; g.fillRect(15, 20, 1.4, 1.4);
+    g.fillStyle = '#7a1a2a'; g.fillRect(0, 46, 32, 18); g.fillStyle = '#e8c040'; for (let x = 0; x < 32; x += 6) g.fillRect(x + 2, 46, 2, 18);
   } else if (name === 'sudadera') {
     g.fillStyle = '#16161a'; g.fillRect(0, 0, 32, 64);
     g.fillStyle = '#e8e8e8'; g.font = 'bold 7px sans-serif'; g.textAlign = 'center'; g.fillText('CREW', 16, 22);

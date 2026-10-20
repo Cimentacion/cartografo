@@ -67,6 +67,7 @@ export const UNL_NAME = {
   'back:katana': 'Katana', 'shirt:camuflaje': 'Camuflaje', 'shirt:llamas': 'Camiseta de llamas', 'hat:halo': 'Halo', 'hairCol:10': 'Pelo cian',
   'hairCol:9': 'Pelo platino', 'shirtCol:11': 'Color neón', 'shirt:oro': 'Camiseta de oro',
   'slot:2': '2.ª ranura de habilidad', 'slot:3': '3.ª ranura de habilidad', 'slot:4': '4.ª ranura de habilidad', 'slot:5': '5.ª ranura de habilidad',
+  'shirt:invicto': 'Armadura del Invicto', 'hat:aureola': 'Aureola del Invicto', 'back:alasoro': 'Alas del Invicto', 'face:mascoro': 'Máscara del Invicto', 'neck:medallaoro': 'Medalla del Invicto',
   'back:espada': 'Espadón medieval', 'hat:kabuto': 'Kabuto samurái', 'hat:yelmo': 'Yelmo de caballero', 'shirt:samurai': 'Armadura samurái',
 };
 export const CHAL = [];
@@ -105,6 +106,12 @@ const NEWWEAR = [
     }
   }
 }
+// retos secretos (al final de la lista, para no cambiar el reparto de la ropa de antes)
+CHAL.push({ id: 'nohit', txt: 'Pasa {n} mapas sin perder vida', T: RARE, f: 4, cat: 'General' });
+CHAL.push({ id: 'nohitrow', txt: 'Encadena {n} mapas seguidos sin perder vida', T: [1, 2, 3, 4, 5, 6, 8, 10, 12, 15], f: 8, cat: 'General' });
+UNLOCKS.nohitrow = { 0: 'shirt:invicto', 1: 'hat:aureola', 2: 'back:alasoro', 3: 'face:mascoro' };
+UNLOCKS.nohit = { 2: 'neck:medallaoro' };
+export const SECRET = new Set(['shirt:invicto', 'hat:aureola', 'back:alasoro', 'face:mascoro', 'neck:medallaoro']);
 export const reward = (c, t) => Math.round(REW[t] * c.f);
 export const goal = (c, t) => c.T[t];
 export const text = (c, t) => c.txt.replace('{n}', goal(c, Math.min(9, t)).toLocaleString('es-ES'));
