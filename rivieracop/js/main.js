@@ -747,6 +747,8 @@ function handleEvent(ev) {
       else if (ev.f === 'acid') { fx.acid(p, ev.s || 1); SFX.tone(140, 60, 0.25, 'sawtooth', 0.18); if (dist < 10) G.shake = Math.max(G.shake, 0.2); }
       else if (ev.f === 'splat') { fx.sparks(p, 10, fx.m.feather); SFX.tone(200, 90, 0.1, 'square', 0.15); }
       else if (ev.f === 'planks') { const W = PLK || (PLK = [new THREE.MeshLambertMaterial({ color: 0xf2f0ea }), new THREE.MeshLambertMaterial({ color: 0x8a5a32 })]); for (let i = 0; i < 26; i++) fx.part(p.clone().add(fx.rnd(1.5)), fx.rnd(7).clone().add(V3.set(0, 4, 0)), 1.2 + Math.random() * 0.6, 0.2 + Math.random() * 0.35, W[i % 2], 12, 0); fx.dust(p); SFX.boom(dist + 6); }
+      else if (ev.f === 'air') { SFX.tone(300, 900, 0.5, 'sine', 0.12); fx.dust(p); }
+      else if (ev.f === 'land') { fx.dust(p); fx.dust(p); fx.sparks(p, 14); SFX.boom(4); G.shake = Math.max(G.shake, 0.45); }
       else if (ev.f === 'rock') { fx.sparks(p, 12, fx.m.dust); fx.dust(p); fx.dust(p); SFX.boom(dist + 10); }
       break;
     }

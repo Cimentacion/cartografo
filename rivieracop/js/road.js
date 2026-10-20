@@ -4,6 +4,7 @@ import { rng, hash, clamp } from './util.js';
 import { BIOMES, BIOME_KEYS, CITY } from './defs.js';
 
 export const LANE_ME = 3, LANE_OT = -3, HALF = 6, WALK = 8.5;
+export const BUMP_R = 5, BUMP_L = 24, BUMP_HR = 0.55, BUMP_HJ = 4.2;
 export const START_TUN = 120, SECTION = 720, APPROACH = 90, TUN = 150;
 const CELL = 20;
 
@@ -554,6 +555,34 @@ export class Road {
     }
     return L;
   }
+  // badenes-rampa en las ciudades (a partir del segundo mapa): al pisarlos el coche sale volando a cámara lenta.
+  // Uno como mucho cada 300 m, en sitios fijos para todos; b = donde despega (fin de la rampa)
+  bumpB(c) {
+    const K = this._bc || (this._bc = new Map());
+    if (K.has(c)) return K.get(c);
+    const b = c * 300 + 120 + (hash(this.seed, c, 1201) % 100), i = b;
+    if (b < 0 || i + BUMP_L + 6 > this.len) return null; // aún sin generar: no se guarda
+    let ok = hash(this.seed, c, 1202) % 3 !== 0 && this.zoneAt(b).k >= 1;
+    for (let j = i - 46; ok && j <= i + BUMP_L + 6; j += 2) { const q = clamp(j, 0, this.len); if (this.kind[q] !== 0 || !CITY.has(BIOMES[BIOME_KEYS[this.bio[q]]].deco)) ok = false; }
+    if (ok && this.hospAt(b, 40)) ok = false;
+    if (ok) for (const f of this.forks) if (Math.abs(b - f.gantry) < 60 || Math.abs(b - (f.gantry - 140)) < 30 || Math.abs(b - (f.gantry - 85)) < 30) ok = false;
+    if (ok) for (const t of this.tunnels) if (b > t.start - 50 && b < t.end + 50) ok = false;
+    const r = ok ? b : null; K.set(c, r); return r;
+  }
+  // el badén que pilla en d (desde el pie de la rampa hasta que aterriza), o null
+  bumpAt(d) {
+    const c0 = Math.floor(d / 300);
+    for (const c of [c0, c0 - 1]) { const b = this.bumpB(c); if (b != null && d >= b - BUMP_R && d < b + BUMP_L) return b; }
+    return null;
+  }
+  // altura extra del coche: sube por la rampa y luego vuela en parábola hasta aterrizar
+  bumpH(d) {
+    const b = this.bumpAt(d); if (b == null) return 0;
+    if (d < b) return BUMP_HR * (d - (b - BUMP_R)) / BUMP_R;
+    const u = (d - b) / BUMP_L;
+    return BUMP_HR * (1 - u) + 4 * BUMP_HJ * u * (1 - u);
+  }
+  bumps(d0, d1) { const L = []; for (let c = Math.floor(d0 / 300) - 1; c <= Math.floor(d1 / 300) + 1; c++) { const b = this.bumpB(c); if (b != null && b >= d0 - 10 && b <= d1 + 50) L.push(b); } return L; }
   // hospital de la ciudad zombi que pilla en d (con margen)
   hospAt(d, pad = 0) { for (const h of this.hosp) if (d > h.H - 36 - pad && d < h.H + 66 + pad) return h; return null; }
   inTunnel(d) { for (const t of this.tunnels) if (d >= t.start - 4 && d <= t.end + 4) return true; return false; }

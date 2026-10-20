@@ -3,7 +3,7 @@ import * as THREE from '../lib/three.module.js';
 import { mergeGeometries } from '../lib/BufferGeometryUtils.js';
 import { rng, hash, pick } from './util.js';
 import { BIOMES, BIOME_KEYS, CITY } from './defs.js';
-import { HALF, WALK, TUNMSG, duneH } from './road.js';
+import { HALF, WALK, TUNMSG, duneH, BUMP_R, BUMP_HR } from './road.js';
 import { tr } from './i18n.js';
 import { toon, tex } from './toon.js';
 import { well as wWell } from './west.js';
@@ -700,6 +700,35 @@ function seaRun(R, road, B, i0, i1, r) {
   each(i0, i1, r, 6, 12, d => { for (let q = 0; q < 4; q++) addBox(R.G, 0.15, 0.15, 0.15, 0xc8f0ff, frame(road, d, (r() - 0.5) * 30, 1 + q * 1.5 + r())); });
 }
 
+// badén-rampa: cuña de asfalto con franjas amarillas y negras de lado a lado y señales de aviso antes
+function bumpRamps(R, road, i0, i1) {
+  for (const b of road.bumps(i0, i1)) {
+    const a = b - BUMP_R, hr = i => BUMP_HR * Math.min(1, Math.max(0, (i - a) / BUMP_R));
+    const s0 = Math.max(i0, a), s1 = Math.min(i1, b);
+    if (s1 > s0) {
+      const N = 8;
+      for (let k = 0; k < N; k++) {
+        const la = -HALF + 0.1 + k * (2 * HALF - 0.2) / N, lb = la + (2 * HALF - 0.2) / N;
+        strip(R.L, road, s0, s1, i => [la, hr(i) + 0.03], i => [lb, hr(i) + 0.03], k % 2 ? 0x1a1a1a : 0xf2c21a);
+      }
+      for (const sd of [-1, 1]) strip(R.L, road, s0, s1, i => [sd * (HALF - 0.1), 0], i => [sd * (HALF - 0.1), hr(i) + 0.03], 0x4a4a4a);
+    }
+    if (b >= i0 && b <= i1) {
+      const m = frame(road, b, 0, 0);
+      addBox(R.L, 2 * HALF - 0.2, BUMP_HR + 0.03, 0.14, 0x3a3a3a, m, { y: (BUMP_HR + 0.03) / 2 });
+    }
+    // señales de aviso a los dos lados, 40 m antes
+    const ds = b - 40;
+    if (ds >= i0 && ds < i1) for (const sd of [-1, 1]) {
+      const m = frame(road, ds, sd * (HALF + 0.9), 0.18);
+      addBox(R.L, 0.1, 2.2, 0.1, 0x9a9a9a, m, { y: 1.1 });
+      addBox(R.L, 0.9, 0.9, 0.06, 0xf2c21a, m, { y: 2.45, rz: Math.PI / 4 });
+      addBox(R.L, 0.5, 0.12, 0.07, 0x111111, m, { y: 2.38 });
+      addBox(R.L, 0.12, 0.3, 0.07, 0x111111, m, { y: 2.55 });
+    }
+  }
+}
+
 function outsideRun(R, road, B, i0, i1, r) {
   if (B.deco === 'rio') { riverRun(R, road, B, i0, i1, r); return; }
   if (B.deco === 'submarino') { seaRun(R, road, B, i0, i1, r); return; }
@@ -729,6 +758,7 @@ function outsideRun(R, road, B, i0, i1, r) {
     if (B.deco !== 'llanura' && B.deco !== 'lomas' && B.deco !== 'tuneles') strip(R.K, road, a, b, C(sd * e, 0.18), i => [sd * (e + Math.max(3, (road.gy[i] + 2) * 0.55)), -(road.gy[i] + 2)], LIGHT(B.skirt, 0.2), 6);
   }
   DECO[B.deco](R, road, B, i0, i1, r);
+  if (CITY.has(B.deco)) bumpRamps(R, road, i0, i1);
   if (CITY.has(B.deco)) {
     backRows(R, road, B, i0, i1, r, B.deco === 'monaco' ? [1] : [-1, 1], !!B.night);
     cityFill(R, road, B, i0, i1, r, B.deco === 'monaco' ? [1] : [-1, 1], !!B.night);

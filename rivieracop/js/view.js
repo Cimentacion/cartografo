@@ -331,6 +331,8 @@ export class View {
       C.pitch += (tp - C.pitch) * Math.min(1, dt * 4);
       // botes: de vez en cuando pilla un bache y salta un poco
       C.hop -= dt;
+      const JB = R.bumpH ? R.bumpH(d) : 0;
+      if (JB > 0) C.hop = Math.max(C.hop, 0.8);
       if (C.hop <= 0 && speed > 6 && C.y <= 0.001) { C.vy = 1.2 + Math.random() * 1.4; C.hop = 1.2 + Math.random() * 2.8; }
       // cambio de rasante: al coronar una loma rápido, el coche despega un poco
       const ya = R.toWorld(d + 6, LANE_ME, 0, V1).y, yb = R.toWorld(d - 6, LANE_ME, 0, V2).y, y00 = this.carPos.y;
@@ -340,8 +342,10 @@ export class View {
       if (C.y < 0) { C.y = 0; C.vy = C.vy < -1.5 ? -C.vy * 0.3 : 0; }
     }
     this.car.position.copy(this.carPos);
-    this.car.position.y += Math.min(1, Math.abs(lat) / 9) * 0.27 + C.y + Math.sin(t * 13) * 0.015 + (shake ? (Math.random() - 0.5) * shake : 0);
-    this.car.rotation.set(Math.atan2(y1 - y0, 4) + C.pitch + C.vy * 0.015, -yaw - yo, C.roll, 'YXZ');
+    // badén: sube por la rampa y vuela (morro arriba al subir, abajo al bajar)
+    const JH = R.bumpH ? R.bumpH(d) : 0, JS = JH > 0 ? (R.bumpH(d + 1) - R.bumpH(d - 1)) / 2 : 0;
+    this.car.position.y += JH + Math.min(1, Math.abs(lat) / 9) * 0.27 + C.y + Math.sin(t * 13) * 0.015 + (shake ? (Math.random() - 0.5) * shake : 0);
+    this.car.rotation.set(Math.atan2(y1 - y0, 4) + C.pitch + C.vy * 0.015 + Math.atan(JS) * 0.6, -yaw - yo, C.roll, 'YXZ');
     this.car.updateMatrixWorld(true);
     const dr = this.car.userData.driver;
     dr.userData.rig.torso.rotation.y = Math.sin(t * 0.6) * 0.1;

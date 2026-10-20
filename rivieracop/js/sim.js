@@ -229,6 +229,14 @@ export class Sim {
       if (this.stunT > 0) { this.stunT -= dt; tgt = 0; if (this.stunT <= 0) this.emit('banner', { txt: '¡ARRANCAMOS!', sub: '', c: '#7dff8a' }); }
       this.speed += clamp(tgt - this.speed, -9 * dt, (this.turboT > 0 ? 12 : 6) * dt);
     }
+    // badén-rampa: el coche vuela a cámara lenta (solo él: el resto sigue a velocidad normal) y aterriza con un golpe
+    {
+      const JB = this.foot ? null : this.road.bumpAt(this.carD);
+      if (JB != null && this.carD >= JB) {
+        if (this.airB !== JB) { this.airB = JB; this.airV = clamp(this.speed * 0.3, 4, 6); this.emit('banner', { txt: '¡AL AIRE!', sub: 'A cámara lenta', c: '#7dd8ff' }); this.emit('fx', { f: 'air', w: this.wpos(this.carD, LANE_ME, 0.5) }); }
+        this.speed = this.airV; this.inAir = true;
+      } else if (this.inAir) { this.inAir = false; this.speed = Math.max(this.speed, this.airV * 2.2); this.emit('fx', { f: 'land', w: this.wpos(this.carD + 2, LANE_ME, 0.3) }); }
+    }
     // tiempo bala: el mundo va al 35% (los jugadores disparan a velocidad normal)
     const wd = this.slowT > 0 ? dt * 0.35 : dt;
     if (this.slowT > 0) this.slowT -= dt;
