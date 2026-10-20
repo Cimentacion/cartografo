@@ -108,7 +108,7 @@ const NEWWEAR = [
 }
 // retos secretos (al final de la lista, para no cambiar el reparto de la ropa de antes)
 CHAL.push({ id: 'nohit', txt: 'Pasa {n} mapas sin perder vida', T: RARE, f: 4, cat: 'General' });
-CHAL.push({ id: 'nohitrow', txt: 'Encadena {n} mapas seguidos sin perder vida', T: [1, 2, 3, 4, 5, 6, 8, 10, 12, 15], f: 8, cat: 'General' });
+CHAL.push({ id: 'nohitrow', txt: 'Encadena {n} mapas seguidos sin perder vida en una partida', T: [3, 4, 5, 6, 8, 10, 12, 15, 20, 25], f: 8, cat: 'General' });
 UNLOCKS.nohitrow = { 0: 'shirt:invicto', 1: 'hat:aureola', 2: 'back:alasoro', 3: 'face:mascoro' };
 UNLOCKS.nohit = { 2: 'neck:medallaoro' };
 export const SECRET = new Set(['shirt:invicto', 'hat:aureola', 'back:alasoro', 'face:mascoro', 'neck:medallaoro']);
@@ -121,6 +121,8 @@ export function chInit(P) {
   P.st = P.st && typeof P.st === 'object' ? P.st : {};
   P.ch = P.ch && typeof P.ch === 'object' ? P.ch : {};
   P.unl = Array.isArray(P.unl) ? P.unl : [];
+  // las cajas y la racha se contaban al ENTRAR en el primer mapa (fallo): se reinician los retos secretos una vez
+  if (!P.fixNohit) { for (const k of ['nohit', 'nohitrow']) { P.st[k] = 0; P.ch[k] = 0; } P.unl = P.unl.filter(u => !SECRET.has(u)); P.fixNohit = 1; }
   // lo que se añade a niveles ya reclamados se da igualmente (para no perderlo)
   for (const id in UNLOCKS) { const t = P.ch[id] | 0; for (const k in UNLOCKS[id]) if (+k < t) { const u = UNLOCKS[id][k]; if (!u.startsWith('pw:') && !P.unl.includes(u)) P.unl.push(u); } }
 }

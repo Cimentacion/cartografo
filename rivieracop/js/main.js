@@ -273,12 +273,13 @@ function lootTrack() {
   if (!G.running || G.over || !G.road) return;
   const me = G.players[G.li];
   if (me) { if (LOOT.hp != null && (me.hp < LOOT.hp - 1e-6 || !me.alive)) LOOT.hurt = true; LOOT.hp = me.hp; }
-  const z = G.road.zoneAt(G.carD), k = z.k;
-  if (LOOT.zk == null) { LOOT.zk = k; return; }
-  if (k <= LOOT.zk) return;
+  // un mapa cuenta como completado al llegar al túnel que lleva al siguiente
+  const F = G.road.forks; LOOT.zk = LOOT.zk ?? 0;
+  const f = F[LOOT.zk];
+  if (!f || G.carD < f.tStart) return;
   // se ha completado el mapa anterior
-  LOOT.zk = k; LOOT.maps++;
-  const zd = G.road.zdAt(Math.max(0, G.carD - 60)), sm = (SPEEDS[G.speedIdx] || SPEEDS[1]).mult;
+  LOOT.zk++; LOOT.maps++;
+  const zd = G.road.zdAt(Math.max(0, f.tStart - 60)), sm = (SPEEDS[G.speedIdx] || SPEEDS[1]).mult;
   const v = Math.round((1 + LOOT.maps * 0.7) * (1 + 0.35 * (zd - 1)) * sm * 10) / 10;
   PROG.boxes = Array.isArray(PROG.boxes) ? PROG.boxes : [];
   if (PROG.boxes.length < 99) PROG.boxes.push(v);
