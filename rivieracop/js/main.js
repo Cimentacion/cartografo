@@ -513,9 +513,9 @@ function fpAnim(dt) {
   if (W.def.shell) { dip = FPA.sr * 0.55; u = -1; if (W.ammo > (FPA.la ?? W.ammo)) FPA.drum += Math.PI / 3; }
   FPA.la = W.ammo;
   const k = clamp((E.kick || 0.012) * 40, 0.5, 3), rc = W.recoil, rf = Math.max(0, rc * 2 - 1);
-  const P0 = big ? (grande ? [0.26, -0.36, -0.6] : [0.16, -0.34, -0.62]) : (grande ? [0.12, -0.112, -0.29] : [0.13, -0.17, -0.5]);
+  const PO = U.pose, P0 = PO ? (grande ? PO.g : PO.n) : big ? (grande ? [0.26, -0.36, -0.6] : [0.16, -0.34, -0.62]) : (grande ? [0.12, -0.112, -0.29] : [0.13, -0.17, -0.5]);
   fpg.position.set(P0[0] + bx - FPA.sx * 0.12, P0[1] + by - dip * 0.09 + FPA.sy * 0.1 - rc * 0.004 * k, P0[2] + rc * 0.03 * k);
-  fpg.rotation.set(rc * 0.12 * k - FPA.sy * 0.8 - dip * 0.45 + Math.sin(t * 1.7) * 0.006, (grande ? 0.05 : 0.18) + FPA.sx * 1.1, dip * 0.6 + FPA.sx * 1.2 + Math.sin(t * 0.9) * 0.008);
+  fpg.rotation.set((PO?.pitch || 0) + rc * 0.12 * k - FPA.sy * 0.8 - dip * 0.45 + Math.sin(t * 1.7) * 0.006, (PO ? PO.yaw : grande ? 0.05 : 0.18) + FPA.sx * 1.1, dip * 0.6 + FPA.sx * 1.2 + Math.sin(t * 0.9) * 0.008);
   // piezas que se mueven
   if (U.slide) U.slide.position.z = W.ammo === 0 && W.rl <= 0 ? 0.032 : rf * 0.034;
   if (U.hammer) U.hammer.rotation.x = rc > 0.6 ? 0.2 : -0.55;
@@ -2624,7 +2624,7 @@ let AOON = (localStorage.getItem('rc_ao2') ?? '0') === '1';
 const GVS = [['n', 'NORMAL'], ['g', 'GRANDE'], ['x', 'SIN ARMA']];
 let GV = localStorage.getItem('rc_gv') || 'g'; if (!GVS.some(g => g[0] === GV)) GV = 'n';
 function setGv(v) { GV = v; try { localStorage.setItem('rc_gv', v); } catch (e) { } $('btnGv').textContent = 'ARMA: ' + GVS.find(g => g[0] === v)[1]; if (fpg) fpg.scale.setScalar(gunScale()); }
-const gunScale = () => (W.def && W.def.model === 'cannon' ? 0.31 : 0.45) * (GV === 'g' ? 1.55 : 1);
+const gunScale = () => (W.def && W.def.model === 'cannon' ? 0.31 : 0.45) * (GV === 'g' ? 1.55 : 1) * (fpg?.userData.pose?.s || 1);
 $('btnGv').onclick = () => setGv(GVS[(GVS.findIndex(g => g[0] === GV) + 1) % GVS.length][0]);
 // campo de visión (ajustes)
 const FOVS = [60, 66, 72, 80, 90, 100];

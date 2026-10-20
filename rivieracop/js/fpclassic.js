@@ -122,6 +122,11 @@ function mats(env) {
     goldEng: M('goldEng', () => std({ color: 0xffffff, metalness: 0.95, roughness: 0.2, envMapIntensity: 1.6, map: engraveTex('gold', false, '#6a4a10', '#d8a020') })),
     brassEng: M('brassEng', () => std({ color: 0xffffff, metalness: 0.95, roughness: 0.22, envMapIntensity: 1.5, map: engraveTex('brass', false, '#5a3a08', '#fff0b0', ['#f0d080', '#b88a30', '#e0b860']) })),
     blueEng: M('blueEng', () => std({ color: 0xffffff, metalness: 0.9, roughness: 0.25, envMapIntensity: 1.4, map: engraveTex('blue', false, '#e8c060', '#ffe090', ['#4a5466', '#2a303a', '#3a4252']) })),
+    gun: M('gun', () => std({ color: 0xd4dae0, metalness: 0.85, roughness: 0.34, envMapIntensity: 1.3, map: brushTex() })),
+    gunB: M('gunB', () => std({ color: 0xa4acb4, metalness: 0.85, roughness: 0.36, envMapIntensity: 1.2, map: brushTex() })),
+    gunR: M('gunR', () => std({ color: 0x4a4f55, metalness: 0.6, roughness: 0.7, envMapIntensity: 0.6 })),
+    gunEng: M('gunEng', () => std({ color: 0xffffff, metalness: 0.85, roughness: 0.32, envMapIntensity: 1.3, map: engraveTex('gunm', false, 'rgba(40,44,50,0.55)', null, ['#a8aeb4', '#868c92', '#9ca2a8']) })),
+    orange: M('orange', () => phys({ map: woodTex('orange', '#8a4418', '#3a1406', '#c07a38'), roughness: 0.35, clearcoat: 1, clearcoatRoughness: 0.1, envMapIntensity: 0.8 })),
     caseH: M('caseH', () => std({ color: 0xffffff, metalness: 0.85, roughness: 0.3, envMapIntensity: 1.3, map: engraveTex('caseplain', true, 'rgba(0,0,0,0)') })),
     walnut: M('walnut', () => { const t = woodTex('walnut', '#6a3a1c', '#2a1408', '#a0602a').clone(); t.needsUpdate = true; t.repeat.set(5, 5); return phys({ map: t, roughness: 0.42, clearcoat: 1, clearcoatRoughness: 0.15, envMapIntensity: 0.7 }); }),
     walnutB: M('walnutB', () => { const t = woodTex('walnut', '#6a3a1c', '#2a1408', '#a0602a'); return phys({ map: t, roughness: 0.42, clearcoat: 1, clearcoatRoughness: 0.15, envMapIntensity: 0.7 }); }),
@@ -229,81 +234,68 @@ export function classicGun(model, g, U, env) {
 // Escopeta paralela de martillos exteriores, de caza inglesa: cañones pavonados con banda superior y punto de latón,
 // báscula y pletinas con temple de colores y grabado, dos martillos, dos gatillos, guardamanos y culata recta de nogal con picado
 function paralela(g, U, K) {
-  const BR = 0.0175, BY = 0.024; // separación y altura de los cañones (en el bloque basculante)
+  // escopeta de dos cañones gordos y pegados, banda superior ancha y plana, báscula gris con los hombros redondos
+  // muy marcados, palanca de apertura, culata y guardamanos de madera barnizada (sin martillos: llave interior)
+  const R = 0.0195, BR = 0.0195, BY = 0.024;
   const brk = grp(g, 0, -0.012, -0.075); U.brk = brk;
   for (const sx of [-1, 1]) {
     const x = sx * BR;
-    TC(brk, 0.0188, 0.0152, 0.56, K.blue, x, BY, -0.28, 22);
-    TC(brk, 0.0158, 0.0158, 0.012, K.blueD, x, BY, -0.554, 22);            // boca
-    TC(brk, 0.0118, 0.0118, 0.003, K.bore, x, BY, -0.5605, 16);           // ánima
-    TC(brk, 0.0128, 0.0128, 0.004, K.brass, x, BY, 0.0015, 18);           // culote del cartucho
-    TC(brk, 0.0035, 0.0035, 0.0045, K.nick, x, BY, 0.002, 10);            // pistón
-    TC(brk, 0.0172, 0.0172, 0.003, K.steel, x, BY, -0.0005, 22);          // cara de la recámara
+    TC(brk, R, 0.0172, 0.56, K.gunB, x, BY, -0.28, 26);
+    TC(brk, 0.0182, 0.0182, 0.016, K.gunB, x, BY, -0.552, 26);            // boca reforzada
+    TC(brk, 0.0135, 0.0135, 0.003, K.bore, x, BY, -0.5605, 18);           // ánima
+    TC(brk, 0.0152, 0.0152, 0.0025, K.gunR, x, BY, -0.5595, 22);          // bisel de la boca
+    TC(brk, 0.0142, 0.0142, 0.004, K.brass, x, BY, 0.0015, 18);           // culote del cartucho
+    TC(brk, 0.0038, 0.0038, 0.0045, K.nick, x, BY, 0.002, 10);            // pistón
+    TC(brk, R, R, 0.003, K.gun, x, BY, -0.0005, 26);                      // cara de la recámara
   }
-  // banda superior estriada con punto de mira de latón, banda inferior
-  BX(brk, 0.012, 0.007, 0.54, K.blueD, 0, BY + 0.0135, -0.29);
-  for (let k = 0; k < 40; k++) BX(brk, 0.0122, 0.0008, 0.002, K.blue, 0, BY + 0.0172, -0.04 - k * 0.0125);
-  SP(brk, 0.0032, K.brass, 0, BY + 0.0195, -0.548);
-  SP(brk, 0.0022, K.nick, 0, BY + 0.0185, -0.3);
-  BX(brk, 0.011, 0.007, 0.36, K.blueD, 0, BY - 0.0135, -0.37);
+  // banda superior ancha y plana (mate, estriada) que rellena el valle entre los cañones, y banda inferior
+  EX(brk, [[0.0, BY + 0.017], [-0.552, BY + 0.0145], [-0.552, BY + 0.004], [0.0, BY + 0.004]], 0.024, K.gunB, 0, 0.0015, 2);
+  for (let k = 0; k < 46; k++) BX(brk, 0.02, 0.0007, 0.0025, K.gunR, 0, BY + 0.0185 - k * 0.0025 / 46, -0.01 - k * 0.0118);
+  SP(brk, 0.0034, K.nick, 0, BY + 0.0195, -0.547);
+  EX(brk, [[-0.07, BY - 0.004], [-0.552, BY - 0.004], [-0.552, BY - 0.0155], [-0.07, BY - 0.017]], 0.02, K.gunB, 0, 0.0015, 2);
   // extractor y gancho de la bisagra
-  BX(brk, 0.012, 0.014, 0.004, K.steel, 0, BY, 0.0005);
-  EX(brk, [[-0.005, 0.012], [-0.07, 0.012], [-0.075, 0.004], [-0.055, -0.006], [-0.03, -0.004], [-0.01, 0.0], [0.0, 0.006]], 0.028, K.blueD, 0, 0.002);
-  // guardamanos de nogal con picado, hierro del guardamanos grabado y botón de cierre
-  const fes = [[-0.064, 0.003, 0.024, 0.016, 2.6], [-0.1, 0.001, 0.027, 0.017, 2.6], [-0.18, 0.0, 0.0272, 0.0168, 2.6], [-0.25, 0.002, 0.026, 0.015, 2.6], [-0.272, 0.005, 0.021, 0.011, 2.4], [-0.281, 0.008, 0.012, 0.006, 2]];
-  LO(brk, fes, K.walnutB, 4);
-  LO(brk, [[-0.11, 0.0, 0.0272, 0.0168, 2.6], [-0.18, 0.0, 0.0273, 0.0169, 2.6], [-0.235, 0.001, 0.0266, 0.0158, 2.6]], K.chkW, 40, 20, 1.012);
-  EX(brk, [[-0.004, 0.002], [-0.065, 0.002], [-0.068, -0.012], [-0.06, -0.018], [-0.01, -0.016], [-0.004, -0.008]], 0.046, K.caseH, 0, 0.003);
-  for (const sx of [-1, 1]) PL(brk, [[-0.008, -0.001], [-0.06, -0.001], [-0.063, -0.012], [-0.012, -0.013]], K.caseEng, sx * 0.0236, sx);
-  TC(brk, 0.004, 0.004, 0.006, K.nick, 0, -0.004, -0.284, 12);
-  PX(brk, 0.006, 0.05, K.steel, 0, 0.003, -0.002, 16); // pasador de la bisagra (se ve al abrir)
+  BX(brk, 0.014, 0.016, 0.004, K.gun, 0, BY, 0.0005);
+  EX(brk, [[-0.005, 0.012], [-0.07, 0.012], [-0.075, 0.004], [-0.055, -0.006], [-0.03, -0.004], [-0.01, 0.0], [0.0, 0.006]], 0.03, K.gun, 0, 0.002);
+  PX(brk, 0.006, 0.052, K.gun, 0, 0.003, -0.002, 16);
+  // guardamanos de madera barnizada, con su hierro y el botón de cierre
+  LO(brk, [[-0.064, 0.004, 0.028, 0.016, 3], [-0.1, 0.002, 0.031, 0.018, 3], [-0.19, 0.001, 0.0315, 0.0178, 3], [-0.25, 0.003, 0.03, 0.016, 3], [-0.272, 0.006, 0.024, 0.012, 2.6], [-0.282, 0.009, 0.014, 0.006, 2]], K.orange, 4, 24);
+  EX(brk, [[-0.004, 0.004], [-0.065, 0.004], [-0.068, -0.012], [-0.06, -0.018], [-0.01, -0.016], [-0.004, -0.008]], 0.054, K.gunEng, 0, 0.003);
+  TC(brk, 0.0045, 0.0045, 0.006, K.gun, 0, -0.004, -0.284, 12);
 
-  // báscula (cuerpo de la acción): perfil redondeado con temple de colores
-  const act = [[-0.075, 0.046], [-0.075, 0.004], [-0.13, 0.002], [-0.136, -0.008], [-0.134, -0.024, -0.118, -0.027], [-0.02, -0.03], [0.008, -0.028], [0.032, -0.022], [0.032, 0.032], [0.008, 0.044], [-0.04, 0.047]];
-  EX(g, act, 0.054, K.caseH, 0, 0.004);
+  // báscula: cajón gris con grabado suave
+  const act = [[-0.075, 0.026], [-0.075, 0.004], [-0.13, 0.002], [-0.136, -0.008], [-0.134, -0.024, -0.118, -0.027], [-0.02, -0.03], [0.008, -0.028], [0.034, -0.02], [0.034, 0.022], [0.01, 0.027], [-0.04, 0.028]];
+  EX(g, act, 0.066, K.gunEng, 0, 0.004);
   for (const sx of [-1, 1]) {
-    PL(g, [[-0.128, -0.003], [-0.078, 0.0], [-0.074, 0.04], [-0.05, 0.043], [-0.02, 0.026], [0.004, 0.01], [0.006, -0.022], [-0.1, -0.024], [-0.126, -0.018]], K.caseEng, sx * 0.0281, sx);
-    // pletina lateral (sidelock) que entra en la madera, con grabado y tornillos
-    EX(g, [[-0.03, 0.03], [0.02, 0.034], [0.07, 0.03], [0.09, 0.018, 0.088, 0.002], [0.07, -0.014], [0.02, -0.02], [-0.03, -0.018]], 0.004, K.caseH, sx * 0.0285, 0.0012, 2);
-    PL(g, [[-0.026, 0.027], [0.02, 0.031], [0.068, 0.027], [0.084, 0.016, 0.083, 0.003], [0.068, -0.011], [0.02, -0.017], [-0.026, -0.015]], K.caseEng, sx * 0.0309, sx);
-    screw(g, K.steel, sx * 0.031, 0.006, 0.035, 0.0032, sx); screw(g, K.steel, sx * 0.031, -0.008, 0.07, 0.0028, sx); screw(g, K.gold, sx * 0.031, 0.015, -0.012, 0.0026, sx);
-    // hombros (fences) redondeados alrededor de los percutores
-    SP(g, 0.0215, K.caseH, sx * 0.0175, 0.012, -0.073, 1, 1, 0.45);
-    for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2; SP(g, 0.0025, K.gold, sx * 0.0175 + Math.cos(a) * 0.014 * 0.6, 0.012 + Math.sin(a) * 0.014, -0.083, 1, 1, 0.5); }
-    TC(g, 0.003, 0.003, 0.012, K.nick, sx * 0.0175, 0.012, -0.086, 10); // percutor
+    // hombros redondos alrededor de las recámaras (lo que más se ve desde atrás)
+    SP(g, 0.0235, K.gun, sx * BR, 0.012, -0.07, 1, 1, 1.05);
+    TC(g, 0.0035, 0.0035, 0.01, K.gunR, sx * BR, 0.012, -0.093, 10);
+    screw(g, K.gun, sx * 0.0345, 0.0, -0.03, 0.0032, sx); screw(g, K.gun, sx * 0.0345, -0.012, 0.012, 0.0028, sx);
+    BX(g, 0.002, 0.004, 0.11, K.gunR, sx * 0.0335, -0.022, -0.06); // filo de la báscula
   }
-  // martillos exteriores con la uña picada (se montan al recargar)
-  const hm = grp(g, 0, 0.026, -0.018); U.hammer = hm;
-  for (const sx of [-1, 1]) {
-    const x = sx * 0.024;
-    EX(hm, [[0.008, -0.01], [0.01, 0.008], [0.012, 0.022, 0.027, 0.03], [0.031, 0.025], [0.017, 0.015, 0.002, 0.01], [-0.03, 0.004], [-0.052, -0.002], [-0.054, -0.01], [-0.03, -0.006], [-0.006, -0.009]], 0.0075, K.caseH, x, 0.0018, 2);
-    for (let k = 0; k < 4; k++) BX(hm, 0.0078, 0.0012, 0.005, K.blueD, x, 0.022 + k * 0.0022, 0.02 + k * 0.0022, -0.7);
-    PX(hm, 0.006, 0.01, K.steel, x, 0, 0, 14);
-  }
-  // palanca de apertura y seguro en la cola superior, cola que recorre el puño
-  const tl = grp(g, 0, 0.049, 0.002); tl.rotation.y = 0.3;
-  EX(tl, [[-0.006, -0.002], [0.026, -0.002], [0.036, -0.001, 0.037, 0.002], [0.026, 0.003], [-0.006, 0.002]], 0.01, K.caseH, 0, 0.0012);
-  for (let k = 0; k < 3; k++) BX(tl, 0.01, 0.0008, 0.0015, K.blueD, 0, 0.0035, 0.025 + k * 0.004);
-  BX(g, 0.016, 0.004, 0.09, K.caseH, 0, 0.041, 0.075);
-  BX(g, 0.008, 0.004, 0.012, K.gold, 0, 0.0445, 0.05);
-  // guardamonte, dos gatillos y placa inferior
-  TU(g, [[-0.035, -0.028], [-0.03, -0.056], [-0.005, -0.068], [0.03, -0.06], [0.05, -0.038], [0.075, -0.032], [0.13, -0.034]], 0.0035, K.caseH, 1.8);
+  // muesca de la recámara entre los hombros, palanca de apertura (girada) y seguro
+  BX(g, 0.016, 0.01, 0.026, K.gunR, 0, 0.026, -0.066);
+  const tl = grp(g, 0, 0.032, -0.03); tl.rotation.y = 0.22;
+  EX(tl, [[-0.012, -0.004], [0.02, -0.004], [0.032, -0.003, 0.034, 0.003], [0.02, 0.006], [-0.012, 0.005]], 0.014, K.gunB, 0, 0.002);
+  for (let k = 0; k < 3; k++) BX(tl, 0.014, 0.0009, 0.0018, K.gunR, 0, 0.0075, 0.02 + k * 0.004);
+  PX(tl, 0.004, 0.003, K.gunR, 0, 0.007, -0.006, 10).rotation.set(0, 0, 0);
+  BX(g, 0.018, 0.005, 0.1, K.gunB, 0, 0.0285, 0.06);
+  BX(g, 0.009, 0.005, 0.014, K.gunR, 0, 0.031, 0.03);
+  // guardamonte y dos gatillos
+  TU(g, [[-0.035, -0.028], [-0.03, -0.056], [-0.005, -0.068], [0.03, -0.06], [0.05, -0.038], [0.075, -0.032], [0.13, -0.034]], 0.0035, K.gun, 1.8);
   for (const [z, ang] of [[-0.012, 0.0], [0.014, 0.1]]) {
     const t = grp(g, 0, -0.03, z); t.rotation.x = ang;
-    EX(t, [[0.0, 0.0], [0.004, -0.014, -0.002, -0.026], [-0.007, -0.03], [-0.005, -0.026], [-0.0055, -0.012, -0.006, 0.0]], 0.005, K.steel, 0, 0.0012, 2);
+    EX(t, [[0.0, 0.0], [0.004, -0.014, -0.002, -0.026], [-0.007, -0.03], [-0.005, -0.026], [-0.0055, -0.012, -0.006, 0.0]], 0.005, K.gun, 0, 0.0012, 2);
   }
-  BX(g, 0.024, 0.004, 0.1, K.caseH, 0, -0.031, 0.02);
-  // culata inglesa (puño recto), picado en el puño, cantonera con tornillos y escudo de oro
-  const sts = [[0.028, 0.004, 0.0255, 0.034, 3], [0.06, 0.0, 0.0205, 0.031, 2.6], [0.1, -0.003, 0.0205, 0.033, 2.6], [0.15, -0.012, 0.022, 0.039, 2.8], [0.22, -0.024, 0.0245, 0.047, 3], [0.29, -0.035, 0.026, 0.053, 3.2], [0.334, -0.04, 0.026, 0.056, 3.4]];
-  LO(g, sts, K.walnutB, 4, 24);
-  LO(g, [[0.045, 0.001, 0.0212, 0.0322, 2.6], [0.06, 0.0, 0.0205, 0.031, 2.6], [0.1, -0.003, 0.0205, 0.033, 2.6], [0.128, -0.007, 0.0212, 0.036, 2.7]], K.chkW, 40, 24, 1.012);
-  LO(g, [[0.333, -0.04, 0.026, 0.056, 3.4], [0.35, -0.041, 0.026, 0.056, 3.4]], K.rubber, 4, 24, 1.005);
-  for (let k = 0; k < 6; k++) BX(g, 0.05, 0.0012, 0.0015, K.blueD, 0, 0.012 - k * 0.018, 0.3505); // estrías de la cantonera
-  for (const y of [0.0, -0.07]) PX(g, 0.0022, 0.002, K.steel, 0, y, 0.353, 8).rotation.set(0, 0, 0);
-  SP(g, 0.007, K.gold, 0, -0.06, 0.18, 0.4, 0.8, 1.2); // escudo bajo la culata
-  // anillas para la correa
-  for (const z of [0.25, -0.21]) { const r = new THREE.Mesh(new THREE.TorusGeometry(0.008, 0.0015, 6, 16), K.steel); r.position.set(0, z > 0 ? -0.078 : -0.03, z); r.rotation.y = Math.PI / 2; (z > 0 ? g : brk).add(r); if (z < 0) r.position.set(0, -0.022, -0.2); }
-  return { L: 0.635, kind: 'long', grip: [0, -0.05, 0.08], fore: [0, -0.034, -0.24] };
+  BX(g, 0.026, 0.004, 0.1, K.gun, 0, -0.031, 0.02);
+  // culata: la cabeza abraza la báscula por los dos lados y se estrecha en el puño
+  const sts = [[0.03, 0.0, 0.034, 0.026, 3.2], [0.06, -0.004, 0.025, 0.028, 2.8], [0.1, -0.007, 0.022, 0.031, 2.6], [0.15, -0.013, 0.023, 0.04, 2.8], [0.22, -0.025, 0.026, 0.048, 3], [0.29, -0.036, 0.028, 0.054, 3.2], [0.334, -0.041, 0.028, 0.057, 3.4]];
+  LO(g, sts, K.orange, 4, 26);
+  LO(g, [[0.333, -0.041, 0.028, 0.057, 3.4], [0.35, -0.042, 0.028, 0.057, 3.4]], K.rubber, 4, 24, 1.005);
+  for (let k = 0; k < 6; k++) BX(g, 0.052, 0.0012, 0.0015, K.gunR, 0, 0.012 - k * 0.018, 0.3505);
+  for (const z of [0.25, -0.21]) { const r = new THREE.Mesh(new THREE.TorusGeometry(0.008, 0.0015, 6, 16), K.gun); r.rotation.y = Math.PI / 2; if (z > 0) { r.position.set(0, -0.08, z); g.add(r); } else { r.position.set(0, -0.022, -0.2); brk.add(r); } }
+  // pose propia: más grande, centrada y mirando al frente (como se lleva una escopeta)
+  U.pose = { n: [0.03, -0.135, -0.24], g: [0.045, -0.19, -0.36], yaw: 0.015, pitch: 0.1, s: 3 };
+  return { L: 0.635, kind: 'long', grip: [0, -0.05, 0.08], fore: [0, -0.036, -0.24] };
 }
 
 // Bora KR-7: fusil de asalto de cajón estampado, madera rojiza, cargador curvo estriado, freno de boca oblicuo,
@@ -403,30 +395,35 @@ function derringer(g, U, K) {
     TC(brk, 0.0065, 0.0065, 0.002, K.bore, 0, y, -0.1235, 14);
     TC(brk, 0.0072, 0.0072, 0.0025, K.brass, 0, y, -0.0055, 14); // cartucho .41 en la recámara
   }
-  EX(brk, [[-0.004, -0.009], [-0.118, -0.009], [-0.118, -0.039], [-0.004, -0.039]], 0.015, K.blue, 0, 0.002);
-  // costilla arqueada con mira
-  EX(brk, [[-0.004, -0.002], [-0.04, 0.007, -0.12, 0.0], [-0.122, -0.006], [-0.004, -0.008]], 0.006, K.blue, 0, 0.0015, 2);
-  BX(brk, 0.0025, 0.006, 0.006, K.gold, 0, 0.002, -0.117);
+  // bloque de cañones de caras planas, con las bocas redondas
+  EX(brk, [[-0.004, -0.002], [-0.12, -0.002], [-0.122, -0.006], [-0.122, -0.042], [-0.118, -0.046], [-0.004, -0.046]], 0.019, K.blue, 0, 0.0012, 1);
+  for (const y of [-0.012, -0.036]) { TC(brk, 0.0088, 0.0088, 0.002, K.blueD, 0, y, -0.1236, 16); TC(brk, 0.0062, 0.0062, 0.002, K.bore, 0, y, -0.1243, 14); }
+  // costilla plana con mira
+  EX(brk, [[-0.004, 0.004], [-0.03, 0.006], [-0.12, 0.003], [-0.12, -0.003], [-0.004, -0.003]], 0.007, K.blue, 0, 0.0008, 1);
+  BX(brk, 0.0025, 0.006, 0.005, K.gold, 0, 0.0055, -0.116);
   for (const sx of [-1, 1]) {
-    PL(brk, [[-0.01, -0.011], [-0.106, -0.011], [-0.106, -0.037], [-0.01, -0.037]], K.blueEng, sx * 0.0078, sx);
-    for (const y of [-0.0095, -0.0385]) BX(brk, 0.001, 0.0016, 0.1, K.gold, sx * 0.0079, y, -0.06);
+    PL(brk, [[-0.01, -0.006], [-0.112, -0.006], [-0.112, -0.042], [-0.01, -0.042]], K.blueEng, sx * 0.0108, sx);
+    for (const y of [-0.0045, -0.0435]) BX(brk, 0.0008, 0.0012, 0.104, K.gold, sx * 0.0108, y, -0.061);
   }
-  PX(brk, 0.0045, 0.03, K.gold, 0, 0, 0, 14); // eje de la bisagra
-  // armazón de latón grabado, de una pieza con el lomo del puño
-  LO(g, [[-0.016, 0.011, 0.0118, 0.0265, 3.6], [-0.002, 0.012, 0.0122, 0.027, 3.4], [0.013, 0.011, 0.0122, 0.025, 3.0], [0.025, 0.002, 0.0122, 0.021, 2.8], [0.031, -0.012, 0.0122, 0.017, 2.8]], K.brassEng, 14, 24);
-  screw(g, K.nick, 0.0124, 0.02, 0.012, 0.0022, 1); screw(g, K.nick, -0.0124, 0.02, 0.012, 0.0022, -1);
-  screw(g, K.nick, 0.0124, -0.004, -0.004, 0.002, 1); screw(g, K.nick, -0.0124, -0.004, -0.004, 0.002, -1);
-  PX(g, 0.0032, 0.004, K.nick, 0.0135, 0.014, -0.008, 12); // botón del cierre
-  // puño en pico de pájaro: cachas de nácar con el lomo de latón, tornillo y medallón
-  const gs = [[0.026, -0.006, 0.0118, 0.0152, 2.8], [0.029, -0.028, 0.0124, 0.0158, 2.8], [0.034, -0.048, 0.0128, 0.0162, 2.8], [0.042, -0.063, 0.0124, 0.0158, 2.6], [0.052, -0.072, 0.011, 0.0135, 2.4], [0.06, -0.075, 0.007, 0.009, 2]];
-  LO(g, gs, K.pearl, 12, 22);
-  LO(g, gs.map(q => [q[0], q[1], q[2] * 0.42, q[3] * 1.035, q[4]]), K.brassEng, 30, 22);
-  for (const sx of [-1, 1]) { screw(g, K.gold, sx * 0.0128, -0.04, 0.032, 0.0026, sx); SP(g, 0.0042, K.gold, sx * 0.0122, -0.058, 0.042, 0.4, 1, 1); }
+  PX(brk, 0.0045, 0.024, K.gold, 0, 0, 0, 14); // eje de la bisagra
+  // armazón de latón grabado, de caras planas y aristas vivas
+  EX(g, [[-0.016, 0.034], [0.006, 0.038], [0.024, 0.034], [0.032, 0.024], [0.036, 0.006], [0.034, -0.008], [0.02, -0.016], [0.004, -0.02], [-0.01, -0.016], [-0.016, -0.004]], 0.022, K.brassEng, 0, 0.001, 1);
+  for (const sx of [-1, 1]) {
+    PL(g, [[-0.014, 0.032], [0.006, 0.036], [0.023, 0.032], [0.03, 0.023], [0.034, 0.006], [0.032, -0.006], [0.019, -0.014], [0.004, -0.018], [-0.009, -0.014], [-0.014, -0.004]], K.brassEng, sx * 0.0111, sx);
+    screw(g, K.nick, sx * 0.0113, 0.02, 0.012, 0.0022, sx); screw(g, K.nick, sx * 0.0113, -0.004, -0.004, 0.002, sx);
+  }
+  PX(g, 0.0032, 0.004, K.nick, 0.0125, 0.014, -0.008, 12); // botón del cierre
+  // puño en pico de pájaro: lomo de latón y cachas planas de nácar con tornillo y medallón
+  EX(g, [[0.018, -0.014], [0.034, -0.008], [0.04, -0.03], [0.046, -0.05], [0.054, -0.064], [0.058, -0.074], [0.05, -0.08], [0.038, -0.078], [0.03, -0.07], [0.026, -0.05], [0.02, -0.032], [0.012, -0.02]], 0.016, K.brassEng, 0, 0.001, 1);
+  for (const sx of [-1, 1]) {
+    EX(g, [[0.021, -0.017], [0.032, -0.012], [0.037, -0.03], [0.043, -0.05], [0.05, -0.063], [0.053, -0.072], [0.048, -0.076], [0.04, -0.074], [0.033, -0.067], [0.029, -0.05], [0.023, -0.032], [0.016, -0.022]], 0.004, K.pearl, sx * 0.0095, 0.001, 1);
+    screw(g, K.gold, sx * 0.0117, -0.04, 0.031, 0.0024, sx); BX(g, 0.001, 0.007, 0.005, K.gold, sx * 0.0116, -0.06, 0.043, 0.5);
+  }
   // gatillo de espuela (con su vaina) y martillo
-  EX(g, [[-0.006, -0.012], [0.006, -0.018], [0.004, -0.026], [-0.006, -0.02]], 0.012, K.nick, 0, 0.0015, 2);
-  EX(g, [[-0.002, -0.018], [0.0, -0.03, -0.006, -0.038], [-0.009, -0.036], [-0.004, -0.028, -0.004, -0.018]], 0.005, K.gold, 0, 0.001, 2);
+  EX(g, [[-0.006, -0.012], [0.006, -0.018], [0.004, -0.026], [-0.006, -0.02]], 0.012, K.brassEng, 0, 0.0008, 1);
+  EX(g, [[-0.002, -0.018], [0.0, -0.03, -0.006, -0.038], [-0.009, -0.036], [-0.004, -0.028, -0.004, -0.018]], 0.005, K.gold, 0, 0.0008, 1);
   const hm = grp(g, 0, 0.03, 0.018); U.hammer = hm;
-  EX(hm, [[0.003, -0.006], [0.005, 0.008], [0.008, 0.016, 0.018, 0.018], [0.019, 0.013], [0.01, 0.01, 0.0, 0.006], [-0.012, 0.004], [-0.013, -0.002], [-0.003, -0.004]], 0.007, K.blue, 0, 0.0014, 2);
+  EX(hm, [[0.003, -0.006], [0.005, 0.008], [0.009, 0.016], [0.018, 0.018], [0.019, 0.013], [0.01, 0.01], [0.0, 0.006], [-0.012, 0.004], [-0.013, -0.002], [-0.003, -0.004]], 0.007, K.blue, 0, 0.0008, 1);
   for (let k = 0; k < 3; k++) BX(hm, 0.0072, 0.0009, 0.004, K.gold, 0, 0.012 + k * 0.002, 0.012 + k * 0.002, -0.7);
   PX(hm, 0.0035, 0.026, K.gold, 0, 0, 0, 12);
   return { L: 0.14, kind: 'pistol', grip: [0, -0.042, 0.036], fore: null };
