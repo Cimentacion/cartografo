@@ -1042,9 +1042,10 @@ export class Sim {
   // salva de la torre: anillos y espirales de misiles que caen alrededor del coche
   salvo(e, w, pat) {
     const K = e.x.m === 1 ? 4 : 1, T = 3.3, dC = this.carD + this.speed * T, h0 = Math.max(18, (62 - e.x.fl * 14) * K); // la torre es x4 solo en la arena
-    for (let j = 0; j < 5; j++) {
-      const a = j / 5 * Math.PI * 2 + (pat === 1 ? w * 0.45 : 0);
-      const rr = pat === 0 ? 10 - w * 2 : pat === 1 ? 3 + w * 1.6 : (w % 2 ? 7 : 2.5);
+    // un misil por llamada (w = número de misil de la serie)
+    for (let j = 0; j < 1; j++) {
+      const a = w * 2.4 + (pat === 1 ? w * 0.45 : 0);
+      const rr = pat === 0 ? 2 + (w % 3) * 3 : pat === 1 ? 2 + w * 0.8 : (w % 2 ? 6 : 2);
       const m = this.add('mbomb', { d: e.d, lat: e.lat, h: h0, hp: 1 });
       m.x = { d0: e.d, l0: e.lat, h0, td: dC + Math.cos(a) * rr, tl: LANE_ME + Math.sin(a) * rr * 0.55, T: T + j * 0.04 };
     }
@@ -3016,7 +3017,8 @@ const U = {
     if (x.m === 0) {
       // siempre a la misma distancia, al fondo a la derecha
       e.d = S.carD + 195; e.lat = 0; e.h = 0; e.ry = 0;
-      if (S.carD > D.arena - 15) x.m = 1;
+      // el cambio a la torre gigante de la arena se hace dentro de la tormenta de arena (no se ve el salto)
+      if (S.carD > D.storm - 18) x.m = 1;
     }
     if (x.m === 1) {
       // en el centro de la vuelta (en coordenadas de la carretera, el centro está siempre a un radio de distancia)
@@ -3029,7 +3031,9 @@ const U = {
     if (x.fl < x.F) {
       x.st -= dt;
       if (x.st <= 0 && x.sq < 0) { x.sq = 0; x.sqT = 0; x.pat = Math.floor(S.r() * 3); S.emit('banner', { txt: '¡SALVA DE MISILES!', sub: 'Derribad los que vienen a por vosotros', c: '#ff4040' }); S.emit('siren'); }
-      if (x.sq >= 0) { x.sqT -= dt; if (x.sqT <= 0) { S.salvo(e, x.sq, x.pat); x.sq++; x.sqT = 0.9; if (x.sq >= 3) { x.sq = -1; x.st = 30; } } }
+      // los misiles salen de uno en uno, seguidos (se pueden ir derribando)
+      const N = 6 + Math.min(4, Math.floor(S.diff / 2));
+      if (x.sq >= 0) { x.sqT -= dt; if (x.sqT <= 0) { S.salvo(e, x.sq, x.pat); x.sq++; x.sqT = 0.75; if (x.sq >= N) { x.sq = -1; x.st = 30; } } }
     }
     // rendición: a los 10 s se abre la salida
     if (x.surT != null && !x.exit) { x.surT -= dt; if (x.surT <= 0) { x.exit = 1; S.road.setArenaExit(S.road.gates); S.emit('arenaX', { g: S.road.gates }); S.emit('banner', { txt: '¡A LA SALIDA!', sub: 'La duna se abre', c: '#7dff8a' }); } }

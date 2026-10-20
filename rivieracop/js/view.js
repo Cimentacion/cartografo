@@ -847,7 +847,8 @@ const ANIM = {
   tower(o, e, dt, ctx, V) {
     const ud = o.userData, x = e.x || {}, fl = x.fl | 0;
     // de lejos, como siempre; en la arena crece hasta x4 (se pelea pegados a ella)
-    ud.K = (ud.K || 1) + ((x.m === 1 ? 4 : 1) - (ud.K || 1)) * Math.min(1, dt * 1.2); const K = ud.K;
+    // pasa a x4 de golpe (ocurre tapado por la tormenta de arena)
+    ud.K = x.m === 1 ? 4 : 1; const K = ud.K;
     // la torre es enorme (x4): en la arena se pelea pegados a ella
     ud.body.scale.setScalar(K); ud.rub.scale.setScalar(K);
     ud.ground.visible = x.m === 1;

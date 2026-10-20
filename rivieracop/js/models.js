@@ -6,6 +6,7 @@ import { RARITY, weaponLines } from './weapons.js';
 import { PCOL } from './defs.js';
 import { toon, tex, toonGrad2 } from './toon.js';
 import { personOpts, sleeveColor, SKINS } from './character.js';
+import { collapse } from './west.js';
 
 const MC = new Map();
 export function mat(c) {
@@ -2605,6 +2606,35 @@ export function tower() {
     const a = k / 28 * Math.PI * 2, rr = 120 + (k * 53 % 25), s = 14 + (k * 29 % 14);
     const d = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 6), mat(k % 2 ? 0xe0b070 : 0xd8a868)); d.scale.set(s * 1.6, s * 0.55, s); d.position.set(Math.cos(a) * rr, -s * 0.12, Math.sin(a) * rr); d.rotation.y = -a; ground.add(d);
   }
+  // ladera de dunas altas que cierra el horizonte (no se ve dónde acaba el suelo)
+  { const sk = new THREE.Mesh(new THREE.CylinderGeometry(150, 260, 34, 48, 1, true), mat(0xe0b070)); sk.material = sk.material.clone(); sk.material.side = THREE.DoubleSide; sk.position.y = 16.5; ground.add(sk);
+    const fl = new THREE.Mesh(new THREE.RingGeometry(150, 420, 48), mat(0xe8b878)); fl.rotation.x = -Math.PI / 2; fl.position.y = 33.5; ground.add(fl); }
+  // ruinas egipcias alrededor de la pista: columnas con capitel de loto, pórticos (pilonos), arcos cuadrados,
+  // obeliscos, esfinges, muros rotos y columnas caídas
+  const SD = 0xd8b878, SD2 = 0xb89058, BL = 0x2a5a9a, RD = 0xa83a2a, GO = 0xd4af37;
+  const at = (r, a, y = 0) => { const q = new THREE.Group(); q.position.set(Math.cos(a) * r, y, Math.sin(a) * r); q.rotation.y = -a + Math.PI / 2; ground.add(q); return q; };
+  const column = (q, x, z, h, broken) => { const c = new THREE.Mesh(cgeo(0.9, h, 10), mat(SD)); c.position.set(x, h / 2, z); q.add(c); for (let k = 1; k < 4; k++) { const b = new THREE.Mesh(cgeo(0.95, 0.25, 10), mat(k % 2 ? BL : RD)); b.position.set(x, h * k / 4, z); q.add(b); } if (!broken) { const cap = new THREE.Mesh(cgeo(1.5, 1.2, 10), mat(SD)); cap.position.set(x, h + 0.6, z); q.add(cap); box(q, 3.2, 0.6, 3.2, SD2, x, h + 1.5, z); } box(q, 2.4, 0.6, 2.4, SD2, x, 0.3, z); };
+  for (let k = 0; k < 40; k++) {
+    const a = k / 40 * Math.PI * 2 + (k % 3) * 0.04, out = k % 2 === 0, r = out ? 86 + (k * 37 % 22) : 46 + (k * 23 % 12), q = at(r, a), t = out ? (k * 7) % 8 : [3, 6, 7][k % 3]; // dentro, solo cosas bajas
+    if (t === 0) { // pilono con puerta
+      for (const sd of [-1, 1]) { const p = box(q, 6, 14, 4, SD, sd * 5.5, 7, 0); p.scale.x = 1; box(q, 6.4, 0.8, 4.4, SD2, sd * 5.5, 14.2, 0); for (let y = 3; y < 13; y += 3) box(q, 6.05, 0.5, 4.05, y % 2 ? BL : RD, sd * 5.5, y, 0); }
+      box(q, 5, 1.6, 3.6, SD, 0, 9.8, 0); box(q, 2.4, 0.9, 0.2, GO, 0, 9.8, -1.85);
+    } else if (t === 1 || t === 5) { // arco cuadrado (dos postes y dintel)
+      for (const sd of [-1, 1]) column(q, sd * 3.2, 0, 8, false); box(q, 9.5, 1.4, 2.2, SD, 0, 10.4, 0); box(q, 9.6, 0.4, 2.3, BL, 0, 9.8, 0);
+    } else if (t === 2) { // obelisco
+      box(q, 2.6, 1, 2.6, SD2, 0, 0.5, 0); { const o = box(q, 1.6, 16, 1.6, 0xc8a868, 0, 9, 0); } const pt = new THREE.Mesh(new THREE.ConeGeometry(1.15, 1.6, 4), mat(GO)); pt.position.y = 17.8; pt.rotation.y = Math.PI / 4; q.add(pt);
+      for (let y = 3; y < 15; y += 1.6) box(q, 0.5, 0.5, 0.05, 0x6a4a28, 0, y, -0.82);
+    } else if (t === 3) { // esfinge
+      box(q, 3, 2, 9, SD, 0, 1, 0); box(q, 3.2, 3.2, 3, SD, 0, 3.2, -3.2); box(q, 3.8, 2.4, 1.2, BL, 0, 3.4, -2.2); box(q, 2, 1.2, 0.6, SD2, 0, 2.4, -4.8); for (const sd of [-1, 1]) box(q, 0.9, 0.9, 3.5, SD, sd * 1.1, 0.45, -5.5);
+    } else if (t === 4) { // fila de columnas (algunas rotas)
+      for (let j = 0; j < 4; j++) column(q, (j - 1.5) * 4.5, 0, j === 2 ? 4 : 9, j === 2); box(q, 9, 1, 2, SD, -4.5, 10.2, 0);
+    } else if (t === 6) { // muro roto con relieves
+      for (let j = 0; j < 5; j++) { const h = 3 + ((j * 5 + k) % 4) * 1.4; box(q, 2.8, h, 1.4, SD, (j - 2) * 2.8, h / 2, 0); box(q, 2.2, 1.6, 0.05, j % 2 ? BL : RD, (j - 2) * 2.8, h - 1.4, -0.72); }
+    } else { // columna caída partida en tambores
+      for (let j = 0; j < 4; j++) { const c = new THREE.Mesh(cgeo(0.9, 2.2, 10), mat(SD)); c.rotation.z = Math.PI / 2; c.position.set(j * 2.4 - 3.6, 0.9, (j % 2) * 0.4); c.rotation.y = j * 0.1; q.add(c); } box(q, 3, 1.2, 3, SD2, 6, 0.6, 0);
+    }
+  }
+  collapse(ground); ground.traverse(o => { if (o.isMesh) o.raycast = () => { }; });
   ground.visible = false;
   g.userData.floors = floors; g.userData.body = body; g.userData.top = top; g.userData.tubes = tubes; g.userData.rub = rub; g.userData.ground = ground; g.userData.FH = FH;
   // en la lejanía se ve como silueta aunque esté fuera de la niebla
