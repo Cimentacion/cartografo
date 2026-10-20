@@ -10,6 +10,7 @@ import { TitanicFX } from './tfx.js';
 import { Hud } from './hud.js';
 import { Look } from './input.js';
 import { SFX } from './audio.js';
+import { MUSIC } from './music.js';
 import { Net, makeCode, NETV, LanBeacon, LanScan, Presence, MAXP } from './net.js';
 import { showRewarded, showInterstitial, adsReal, lastAdErr } from './ads.js';
 import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME, BOSS } from './defs.js';
@@ -1738,7 +1739,8 @@ function storyLabel() { const n = Math.min(STORY_N, (PROG.story | 0) + 1); retur
 function paintStory() {
   const L = $('storyList'); L.innerHTML = '';
   // la prueba sale la primera (así se ve sin bajar)
-  const ord = STORY.map((S, i) => i).sort((a, b) => (STORY[b].test ? 1 : 0) - (STORY[a].test ? 1 : 0));
+  // los capítulos de PRUEBA (Titanic, dunas, Old Town) solo salen en modo depuración (?debug=1)
+  const ord = STORY.map((S, i) => i).filter(i => !STORY[i].test || /debug=1/.test(location.search)).sort((a, b) => (STORY[b].test ? 1 : 0) - (STORY[a].test ? 1 : 0));
   ord.forEach(i => {
     const S = STORY[i];
     const unlocked = S.test || i <= (PROG.story | 0), done = !S.test && i < (PROG.story | 0);
@@ -1757,6 +1759,71 @@ function paintStory() {
 }
 $('btnInvite').onclick = () => $('btnFriends').onclick();
 $('btnSettings').onclick = () => { for (const sc of document.querySelectorAll('.screen')) sc.hidden = true; $('setScr').hidden = false; };
+// ---------- música: una lista por mundo, la del menú fuera de la partida ----------
+{
+  const paintMus = () => { for (const b of $('musVol').children) b.classList.toggle('sel', Math.abs(+b.dataset.v - MUSIC.vol) < 0.01); };
+  for (const b of $('musVol').children) b.onclick = () => { MUSIC.setVol(+b.dataset.v); paintMus(); };
+  paintMus();
+  // el navegador no deja sonar nada hasta el primer toque
+  const first = () => { SFX.unlock(); window.removeEventListener('pointerdown', first, true); };
+  window.addEventListener('pointerdown', first, true);
+  let last = performance.now();
+  setInterval(() => {
+    const now = performance.now(), dt = Math.min(0.5, (now - last) / 1000); last = now;
+    let key = 'menu';
+    if (G.running && G.road) { key = BIOMES[BIOME_KEYS[G.road.bioAt(Math.min(G.road.len, G.carD + 120))]].deco; // cambia ya en el túnel, antes de llegar
+    if (TFX.under) key = 'tsub'; }
+    MUSIC.update(key, dt);
+  }, 100);
+}
+// ---------- pasar la partida con un código (sin cuentas ni contraseñas) ----------
+const XKEYS = ['rc_prog', 'rc_prof', 'rc_char', 'rc_friends', 'rc_veh', 'rc_best', 'rc_hs'];
+const b64u = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+const unb64u = t => { const s = atob(t.replace(/-/g, '+').replace(/_/g, '/')); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
+async function zipStr(str, inflate) {
+  const cs = inflate ? new DecompressionStream('deflate') : new CompressionStream('deflate');
+  const data = inflate ? str : new TextEncoder().encode(str);
+  const out = new Response(new Blob([data]).stream().pipeThrough(cs));
+  return inflate ? await out.text() : new Uint8Array(await out.arrayBuffer());
+}
+async function exportCode() {
+  saveProg(PROG); saveProf();
+  const o = {}; for (const k of XKEYS) { try { const v = localStorage.getItem(k); if (v != null) o[k] = v; } catch (e) { } }
+  const js = JSON.stringify(o);
+  try { if (window.CompressionStream) return 'RC1' + b64u(await zipStr(js)); } catch (e) { }
+  return 'RC0' + b64u(new TextEncoder().encode(js));
+}
+async function parseCode(code) {
+  code = (code || '').replace(/\s+/g, '');
+  const v = code.slice(0, 3), body = code.slice(3);
+  const js = v === 'RC1' ? await zipStr(unb64u(body), true) : v === 'RC0' ? new TextDecoder().decode(unb64u(body)) : null;
+  if (!js) throw new Error('bad');
+  const o = JSON.parse(js);
+  if (!o || typeof o.rc_prog !== 'string') throw new Error('bad');
+  JSON.parse(o.rc_prog);
+  return o;
+}
+{
+  const box = $('xferBox'), txt = $('xferTxt'), msg = $('xferMsg');
+  let armed = null;
+  $('btnExport').onclick = async () => {
+    box.hidden = false; armed = null; $('btnImport').textContent = 'CARGAR UN CÓDIGO';
+    const c = await exportCode(); txt.value = c; txt.readOnly = true;
+    let ok = false;
+    try { await navigator.clipboard.writeText(c); ok = true; } catch (e) { }
+    if (!ok) { try { txt.focus(); txt.select(); ok = document.execCommand('copy'); } catch (e) { } }
+    msg.textContent = ok ? '✔ Código copiado. Guárdalo donde no lo pierdas.' : 'Mantén pulsado el código para copiarlo.';
+  };
+  $('btnImport').onclick = async () => {
+    if (box.hidden || txt.readOnly) { box.hidden = false; txt.readOnly = false; txt.value = ''; msg.textContent = 'Pega el código y vuelve a pulsar CARGAR UN CÓDIGO'; txt.focus(); return; }
+    let o;
+    try { o = await parseCode(txt.value); } catch (e) { msg.textContent = '✖ Ese código no es válido (¿está entero?)'; return; }
+    if (armed !== txt.value) { armed = txt.value; $('btnImport').textContent = '¿SEGURO? SUSTITUYE TU PARTIDA'; msg.textContent = 'Tu partida actual de este móvil se cambiará por la del código. Pulsa otra vez para confirmar.'; return; }
+    try { for (const k of XKEYS) { if (k in o) localStorage.setItem(k, o[k]); } } catch (e) { msg.textContent = '✖ No se pudo guardar'; return; }
+    msg.textContent = '✔ Partida cargada. Reiniciando…';
+    setTimeout(() => location.reload(), 600);
+  };
+}
 $('setBack').onclick = () => { $('setScr').hidden = true; $('menu').hidden = false; };
 $('btnHelp').onclick = () => { for (const sc of document.querySelectorAll('.screen')) sc.hidden = true; $('helpScr').hidden = false; };
 $('helpBack').onclick = () => { $('helpScr').hidden = true; $('menu').hidden = false; };
@@ -1765,7 +1832,7 @@ $('btnStory').onclick = () => { for (const sc of document.querySelectorAll('.scr
 $('storyBack').onclick = () => { $('storyScr').hidden = true; $('menu').hidden = false; };
 // en la sala, el anfitrión elige arcade o un capítulo de la historia para todos
 $('btnMode').onclick = () => {
-  const opts = STORY.map((S, i) => i).filter(i => STORY[i].test || i <= (PROG.story | 0));
+  const opts = STORY.map((S, i) => i).filter(i => STORY[i].test ? /debug=1/.test(location.search) : i <= (PROG.story | 0));
   const k = G.story == null ? 0 : opts.indexOf(G.story) + 1;
   G.story = k < opts.length ? opts[k] : null;
   $('btnMode').textContent = 'MODO: ' + (G.story == null ? 'ARCADE' : 'HISTORIA ' + (G.story + 1) + ' · ' + STORY[G.story].t);
@@ -2268,7 +2335,7 @@ function tick(dt) {
     }
   }
   // eurodance desde la furgoneta del traficante (más fuerte cuanto más cerca)
-  { let best = 1e9; for (const e of G.ents) if (e.type === 'jeep' && e.x && e.x.dealer && e.st !== ST.DEAD) best = Math.min(best, Math.abs(e.d - G.carD)); SFX.dance(best < 1e9 ? Math.max(0, 1 - best / 140) : 0); }
+  { let best = 1e9; for (const e of G.ents) if (e.type === 'jeep' && e.x && e.x.dealer && e.st !== ST.DEAD) best = Math.min(best, Math.abs(e.d - G.carD)); const dv = best < 1e9 ? Math.max(0, 1 - best / 140) : 0; SFX.dance(dv); MUSIC.duck(1 - dv * 0.85); }
   $('rotate').hidden = !(look.isTouch && innerHeight > innerWidth && !VP.rot);
   $('btnFire').hidden = !look.isTouch || (!look.force && look.gyro);
 }

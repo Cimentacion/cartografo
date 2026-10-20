@@ -136,8 +136,8 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
 .big:disabled{opacity:.4}
 .row{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:12px;flex-wrap:wrap}
 .lbl{font:700 12px var(--f-ui);letter-spacing:.1em;color:var(--dim)}
-#sens button{font:13px var(--f-title);padding:7px 11px;border-radius:5px;background:#2a2d38;color:var(--ink)}
-#sens button.sel{background:var(--gold);color:#111}
+#sens button,#musVol button{font:13px var(--f-title);padding:7px 11px;border-radius:5px;background:#2a2d38;color:var(--ink)}
+#sens button.sel,#musVol button.sel{background:var(--gold);color:#111}
 .help{font:500 13px/1.45 var(--f-ui);color:#d8d8e0;background:rgba(0,0,0,.5);border-radius:8px;padding:10px 14px;margin-top:12px;text-align:left}
 .help b{color:var(--gold)}
 #menuMsg{color:#ff8a6a;font-weight:700;min-height:1em;margin-top:8px}
@@ -397,6 +397,8 @@ body.shielded #shieldfx{opacity:1}
 #setScr,#helpScr{padding:0;display:grid;grid-template-rows:auto 1fr;grid-template-columns:100%;justify-content:stretch;background:linear-gradient(160deg,#141030,#0a0c18 60%,#1a0e22)}
 #setScr[hidden],#helpScr[hidden]{display:none}
 .setBody .row{justify-content:flex-start}
+.xferBox{display:flex;flex-direction:column;gap:6px;margin:4px 0 8px}.xferBox textarea{width:100%;height:74px;background:#0a0a18;color:#9effc8;border:2px solid #3a3a6a;border-radius:8px;font:11px monospace;padding:6px;resize:none;word-break:break-all}
+.xferHelp{font-size:11px;opacity:.75;max-width:640px;line-height:1.35}
 /* ---------- tienda de mejoras ---------- */
 #retos{padding:0;display:grid;grid-template-rows:auto auto 1fr;grid-template-columns:100%;justify-content:stretch;align-items:stretch;background:linear-gradient(160deg,#141030 0%,#0a0c18 60%,#1a0e22 100%);overflow:hidden}
 #retos[hidden]{display:none}
@@ -726,6 +728,10 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
       <div class="row"><span class="lbl">VELOCIDAD INICIAL</span><span id="spd"></span></div>
       <div class="row"><span class="lbl">APUNTAR CON</span><span id="ctl"><button data-m="joy">JOYSTICK</button> <button data-m="gyro">GIROSCOPIO</button> <button data-m="dedo">DEDO</button></span> <button id="btnDiag" class="mini">PROBAR GIROSCOPIO</button> <button id="btnOutline" class="mini">CONTORNO: SÍ</button> <button id="btnQuality" class="mini">CALIDAD: MEDIA</button> <button id="btnRes" class="mini">RESOLUCIÓN: 100%</button> <button id="btnShadow" class="mini">SOMBRAS: NO</button> <button id="btnAO" class="mini">OCLUSIÓN: SÍ</button> <button id="btnTap" class="mini">TOCAR PARA DISPARAR: NO</button> <button id="btnFov" class="mini">CAMPO DE VISIÓN: 72°</button> <button id="btnGv" class="mini">ARMA: NORMAL</button> <select id="langSel" class="mini" aria-label="Idioma"></select></div>
       <div id="gyroSt" class="lbl"></div>
+      <div class="row"><span class="lbl">MÚSICA</span><span id="musVol"><button data-v="0">NO</button> <button data-v="0.25">25%</button> <button data-v="0.5">50%</button> <button data-v="0.75">75%</button> <button data-v="1">100%</button></span></div>
+      <div class="row xfer"><span class="lbl">PASAR LA PARTIDA</span><button id="btnExport" class="mini">COPIAR MI CÓDIGO</button> <button id="btnImport" class="mini">CARGAR UN CÓDIGO</button></div>
+      <div class="xferBox" id="xferBox" hidden><textarea id="xferTxt" spellcheck="false" placeholder="Pega aquí el código de tu partida"></textarea><span id="xferMsg" class="lbl"></span></div>
+      <div class="lbl xferHelp">Guarda tu código en un sitio seguro (notas, WhatsApp a ti mismo…). Si cambias de móvil o reinstalas el juego, pégalo en CARGAR UN CÓDIGO y recuperas mejoras, armas, ropa, retos, cofres y personaje.</div>
     </div>
   </div>
 

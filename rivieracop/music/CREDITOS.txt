@@ -1,0 +1,17 @@
+Música y efectos de sonido de Riviera Cop — todo con licencia CC0 1.0 (dominio público: uso comercial libre, sin atribución obligatoria).
+https://creativecommons.org/publicdomain/zero/1.0/
+
+MÚSICA
+- med-*, nin-*, pre-*, rpg-*, spc-*, tds-*, wst-*: Superpowers Asset Packs (Medieval Fantasy, Ninja Adventure, Prehistoric Platformer,
+  RPG Battle System, Space Shooter, Top-Down Shooter, Western FPS 2D) por Pixel-boy / Sparklin Labs — CC0.
+  https://github.com/sparklinlabs/superpowers-asset-packs
+- stage_2, peaceful_days, a_place_i_call_home: Juhani Junkala (OpenGameArt) — CC0.
+- lasso_lady, head_in_the_sand, project_utopia: congusbongus (OpenGameArt) — CC0.
+- four_loop: pauliuw (OpenGameArt) — CC0.   - upbeat_loop: BenjaTheMaker (OpenGameArt) — CC0.
+- doodle: StumpyStrust (OpenGameArt) — CC0.   - spacy_loop: ElectronicFreaker (OpenGameArt) — CC0.   - menu: wipics (OpenGameArt) — CC0.
+  (recogidas en https://github.com/S3M1TR4SH/asset-library, ver su LICENSES.md)
+
+EFECTOS (carpeta sfx/)
+- Disparos, recarga, casquillos, impactos, cristales y explosiones: Superpowers Asset Packs (Western FPS 2D y Top-Down Shooter) — CC0.
+
+Los temas se han recodificado a Opus y normalizado de volumen.
