@@ -1453,9 +1453,15 @@ function cityFill(R, road, B, i0, i1, r, sides, night) {
 // junto a las bocas de los túneles no caben edificios: ahí va un parque (césped, setos con murete, árboles, bancos,
 // farolas y una fuente) y detrás una cortina de árboles altos y bloques, para que no se vea el vacío
 function cityParks(R, road, B, i0, i1, r, sides, night) {
-  for (const t of road.tunnels) for (const [a0, b0] of [[t.end + 2, t.end + 62], [t.start - 62, t.start - 2]]) {
-    const a = Math.max(i0, Math.floor(a0)), b = Math.min(i1, Math.floor(b0));
-    if (b <= a) continue;
+  // tramos junto a los túneles, partidos por las calles que cruzan (el parque nunca pisa un cruce)
+  const segs = [];
+  for (const t of road.tunnels) for (const [a0, b0] of [[t.end + 2, t.end + 22], [t.start - 22, t.start - 2]]) {
+    let a = Math.max(i0, Math.floor(a0)); const b = Math.min(i1, Math.floor(b0));
+    const xs = road.xstreets(a - 30, b + 30).sort((p, q) => p - q);
+    for (const x of xs) { const g0 = Math.floor(x - XSW - 4), g1 = Math.ceil(x + XSW + 4); if (g1 <= a) continue; if (g0 >= b) break; if (g0 - a > 4) segs.push([a, g0]); a = Math.max(a, g1); }
+    if (b - a > 4) segs.push([a, b]);
+  }
+  for (const [a, b] of segs) {
     for (const sd of sides) {
       const e = WALK + 0.3, gh = i => -(road.gy[i] + 2);
       strip(R.L, road, a, b, C(sd * e, 0.21), C(sd * (WALK + 16), 0.21), night ? 0x2a4a2a : 0x5a9a42, 3);
