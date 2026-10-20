@@ -1551,6 +1551,18 @@ const PROF = (() => {
 })();
 const saveProf = () => { try { localStorage.setItem('rc_prof', JSON.stringify(PROF)); } catch (e) { } };
 saveProf();
+// perfil "Mark": todas las mejoras, armas al nivel máximo, el Garrett, pociones y las 6 ranuras (la ropa y los retos no)
+function markUnlock() {
+  if ((PROF.name || '').trim().toLowerCase() !== 'mark') return;
+  for (const u of UPGRADES) PROG.upg[u.id] = u.max;
+  for (const id of Object.keys(WEAPON_NAMES)) PROG.wl[id] = { lv: WMAX, xp: 0 };
+  if (!PROG.wpUnl.includes('garrett')) PROG.wpUnl.push('garrett');
+  PROG.unl = Array.isArray(PROG.unl) ? PROG.unl : [];
+  for (const s of ['slot:2', 'slot:3', 'slot:4', 'slot:5']) if (!PROG.unl.includes(s)) PROG.unl.push(s);
+  PROG.slotBuy = 1; PROG.pot = 3;
+  saveProg(PROG);
+}
+markUnlock();
 let FRIENDS = [], RECENT = [];
 try { FRIENDS = JSON.parse(localStorage.getItem('rc_friends') || '[]') || []; RECENT = JSON.parse(localStorage.getItem('rc_recent') || '[]') || []; } catch (e) { }
 const saveFriends = () => { try { localStorage.setItem('rc_friends', JSON.stringify(FRIENDS)); localStorage.setItem('rc_recent', JSON.stringify(RECENT.slice(0, 12))); } catch (e) { } };
@@ -1607,7 +1619,7 @@ function paintFriends() {
 }
 $('btnFriends').onclick = () => { for (const sc of document.querySelectorAll('.screen')) sc.hidden = true; $('frScr').hidden = false; $('frMsg').textContent = ''; paintFriends(); };
 $('frBack').onclick = () => { $('frScr').hidden = true; if (G.mode === 'host' && net.open !== undefined && G.roomCode) $('lobby').hidden = false; else $('menu').hidden = false; };
-$('frName').onchange = () => { PROF.name = $('frName').value.trim().slice(0, 16) || PROF.name; saveProf(); if (PRES) PRES.ping(); updMenuCard(); };
+$('frName').onchange = () => { PROF.name = $('frName').value.trim().slice(0, 16) || PROF.name; saveProf(); markUnlock(); if (PRES) PRES.ping(); updMenuCard(); };
 $('frAddBtn').onclick = () => { const e = addFriend($('frCode').value); $('frMsg').textContent = e || '¡Amigo añadido!'; if (!e) $('frCode').value = ''; paintFriends(); };
 $('frCopy').onclick = () => { try { navigator.clipboard.writeText(PROF.id); $('frMsg').textContent = 'Código copiado'; } catch (e) { } };
 let INV = null;
