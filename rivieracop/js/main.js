@@ -1254,7 +1254,36 @@ function hpHTML(hp, maxHp, pois) {
   const seg = maxHp > 30 ? 1000 / maxHp : 100 / maxHp;
   return `<div class="hp${pois ? ' pois' : ''}"><i class="ht" style="--f:100%"></i><div class="hpb" style="--seg:${seg}%"><b style="width:${pct.toFixed(1)}%"></b></div><span>${v % 1 ? v.toFixed(1) : v}</span></div>`;
 }
+// HUD compacto (test): tú en grande y la tira de compañeros
+let HUD2 = localStorage.getItem('rc_hud2') === '1';
+const MKO = {};
 function uiPlayers() {
+  document.body.classList.toggle('hud2', HUD2);
+  $('mates').hidden = !HUD2 || G.n < 2;
+  if (HUD2) {
+    const li = G.li, me = G.players[li];
+    if (me) {
+      const st = me.gone ? ' OFF' : !me.alive ? ' KO' : me.shield ? ' ◆' : me.poison ? ' ☠' : '';
+      setHTML('p0', `<div class="pn" style="color:${PCOL[li]}">${G.n > 1 ? PNAME[li] + ' · TÚ' : '1P'}<span class="pst">${st}</span></div>${hpHTML(me.hp, me.maxHp || 10, me.poison)}<div class="sc">${String(me.score).padStart(7, '0')}</div>`);
+      $('p0').style.color = PCOL[li];
+    }
+    let h = '';
+    for (let i = 0; i < G.n; i++) {
+      if (i === li) continue;
+      const P = G.players[i]; if (!P) continue;
+      const pct = Math.max(0, Math.min(100, P.hp / (P.maxHp || 10) * 100)), cls = P.gone ? ' off' : !P.alive ? ' ko' : P.poison ? ' pois' : '';
+      const ic = P.gone ? '🔌' : !P.alive ? '💀' : P.shield ? '◆' : P.poison ? '☠' : '';
+      const v = Math.max(0, P.hp);
+      h += `<div class="mt${cls}" style="--c:${PCOL[i]}"><b>${(PNAME[i] || 'J' + (i + 1)).slice(0, 4)}</b><div class="mb"><i style="width:${P.alive && !P.gone ? pct.toFixed(0) : 0}%"></i></div><span>${P.alive && !P.gone ? (v % 1 ? v.toFixed(1) : v) : '--'}</span><em>${ic}</em></div>`;
+      // aviso cuando cae un compañero
+      const ko = !P.alive && !P.gone;
+      if (ko && !MKO[i] && G.running && !G.over) showBanner('💀 ' + (PNAME[i] || 'Compañero') + ' HA CAÍDO', 'Reanímalo', '#ff4a4a');
+      MKO[i] = ko;
+    }
+    setHTML('mates', h);
+    return;
+  }
+  $('p0').style.color = '';
   for (let i = 0; i < G.n; i++) {
     const P = G.players[i];
     if (!P) continue;
@@ -2547,7 +2576,9 @@ function paintStyle() {
     cc.appendChild(c);
   }
   $('btnNoHud').textContent = NOHUD ? 'HUD: OCULTO' : 'HUD: VISIBLE';
+  $('btnHud2').textContent = 'HUD COMPACTO (TEST): ' + (HUD2 ? 'SÍ' : 'NO');
 }
+$('btnHud2').onclick = () => { HUD2 = !HUD2; try { localStorage.setItem('rc_hud2', HUD2 ? '1' : '0'); } catch (e) { } paintStyle(); };
 $('btnNoHud').onclick = () => { NOHUD = !NOHUD; applyStyle(); paintStyle(); };
 $('btnStyle').onclick = () => { for (const sc of document.querySelectorAll('.screen')) sc.hidden = true; $('styleScr').hidden = false; paintStyle(); };
 $('styleBack').onclick = () => { $('styleScr').hidden = true; $('menu').hidden = false; };
