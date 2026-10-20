@@ -732,6 +732,7 @@ function outsideRun(R, road, B, i0, i1, r) {
   if (CITY.has(B.deco)) {
     backRows(R, road, B, i0, i1, r, B.deco === 'monaco' ? [1] : [-1, 1], !!B.night);
     cityFill(R, road, B, i0, i1, r, B.deco === 'monaco' ? [1] : [-1, 1], !!B.night);
+    cityParks(R, road, B, i0, i1, r, B.deco === 'monaco' ? [1] : [-1, 1], !!B.night);
     if (B.deco === 'monaco') bayRun(R, road, B, i0, i1, r);
     skyBridges(R, road, B, i0, i1);
   }
@@ -1447,6 +1448,39 @@ function cityFill(R, road, B, i0, i1, r, sides, night) {
       const i = Math.floor(d), down = road.gy[i] + 2, top = 25 + r() * 55, m = frame(road, d, lat, 0);
       addBox(night ? R.N : R.W, w, top + down, w, LIGHT(pick(r, B.build), 0.2), m, { y: (top - down) / 2, win: true });
     });
+  }
+}
+// junto a las bocas de los túneles no caben edificios: ahí va un parque (césped, setos con murete, árboles, bancos,
+// farolas y una fuente) y detrás una cortina de árboles altos y bloques, para que no se vea el vacío
+function cityParks(R, road, B, i0, i1, r, sides, night) {
+  for (const t of road.tunnels) for (const [a0, b0] of [[t.end + 2, t.end + 62], [t.start - 62, t.start - 2]]) {
+    const a = Math.max(i0, Math.floor(a0)), b = Math.min(i1, Math.floor(b0));
+    if (b <= a) continue;
+    for (const sd of sides) {
+      const e = WALK + 0.3, gh = i => -(road.gy[i] + 2);
+      strip(R.L, road, a, b, C(sd * e, 0.21), C(sd * (WALK + 16), 0.21), night ? 0x2a4a2a : 0x5a9a42, 3);
+      // murete de piedra con seto encima, junto a la acera
+      strip2(R.K, road, a, b, C(sd * e, 0.18), C(sd * e, 0.75), 0xd8ccb0, 1.2);
+      strip(R.L, road, a, b, C(sd * e, 0.75), C(sd * (e + 0.6), 0.75), 0xc8bca0);
+      for (let d = a + 1; d < b - 1; d += 2.2) addBox(R.L, 0.8, 0.7, 2.2, night ? 0x1e3a1e : 0x3a7a32, frame(road, d + 1.1, sd * (e + 0.3), 1.1));
+      // caminito de tierra y bancos
+      strip(R.L, road, a, b, C(sd * (WALK + 6), 0.23), C(sd * (WALK + 8), 0.23), 0xd8c8a0);
+      for (let d = Math.ceil(a / 12) * 12 + 4; d < b - 2; d += 12) { const m = frame(road, d, sd * (WALK + 9), 0.22, sd > 0 ? 0 : Math.PI); addBox(R.L, 0.5, 0.06, 1.8, 0x8a5a32, m, { y: 0.45 }); addBox(R.L, 0.08, 0.5, 1.8, 0x8a5a32, m, { x: 0.25 * sd, y: 0.7 }); for (const z of [-0.8, 0.8]) addBox(R.L, 0.45, 0.45, 0.08, 0x2a2a2a, m, { y: 0.22, z }); }
+      // farolas del parque
+      for (let d = Math.ceil(a / 16) * 16 + 8; d < b; d += 16) { const m = frame(road, d, sd * (WALK + 5), 0.2); addBox(R.L, 0.12, 3.6, 0.12, 0x2a2a30, m, { y: 1.8 }); addBox(R.G, 0.35, 0.45, 0.35, night ? 0xffe0a0 : 0xfff6d8, m, { y: 3.7 }); addBox(R.L, 0.5, 0.08, 0.5, 0x2a2a30, m, { y: 4.0 }); }
+      // árboles redondos en dos filas
+      for (const L of [WALK + 3.5, WALK + 12]) each(a + 2, b - 2, r, 5, 8, d => {
+        const m = frame(road, d, sd * (L + (r() - 0.5) * 2), 0.2), h = 2.4 + r() * 1.4, c = pick(r, night ? [0x1e3a1e, 0x24442a] : [0x3a7a32, 0x4a8a3a, 0x2f6a2a]);
+        addCyl(R.L, 0.18, 0.24, h, 6, 0x6a4a2a, m, { y: h / 2 });
+        addBox(R.L, 2.6, 2.2, 2.6, c, m, { y: h + 0.8 }); addBox(R.L, 1.8, 1.4, 1.8, LIGHT(c, 0.12), m, { y: h + 2.2 }); addBox(R.L, 3.0, 1.2, 1.8, c, m, { y: h + 0.5, ry: 0.7 });
+      });
+      // fuente en medio del parque
+      const fd = Math.floor((a + b) / 2);
+      if (b - a > 30) { const m = frame(road, fd, sd * (WALK + 9.5), 0.2); addCyl(R.K, 2.4, 2.6, 0.6, 12, 0xd8ccb0, m, { y: 0.3 }); addCyl(R.G, 2.1, 2.1, 0.08, 12, 0x6ac8f0, m, { y: 0.56 }); addCyl(R.K, 0.35, 0.5, 1.6, 8, 0xd8ccb0, m, { y: 1.1 }); addCyl(R.K, 0.9, 0.7, 0.25, 10, 0xd8ccb0, m, { y: 1.9 }); addCyl(R.G, 0.12, 0.3, 0.9, 6, 0xbfe8ff, m, { y: 2.4 }); }
+      // cortina de árboles altos (cipreses) y, detrás, bloques que cierran el horizonte
+      for (let d = a + 1; d < b; d += 3.2) { const m = frame(road, d, sd * (WALK + 17 + (d * 7 % 3)), 0.2), h = 7 + (d * 13 % 5); addCyl(R.L, 0.9, 1.5, h, 7, night ? 0x1a301c : 0x2a5a2a, m, { y: h / 2 + 0.8 }); addCyl(R.L, 0.15, 0.2, 1, 5, 0x5a3a20, m, { y: 0.5 }); }
+      each(a, b, r, 14, 20, d => { const i = Math.floor(d), w = 14 + r() * 10, top = 22 + r() * 30, m = frame(road, d, sd * (55 + r() * 25), gh(i)); addBox(night ? R.N : R.W, w, top + road.gy[i] + 2, w, LIGHT(pick(r, B.build), 0.15), m, { y: (top + road.gy[i] + 2) / 2, win: true }); });
+    }
   }
 }
 // Mónaco, lado del mar: yates fondeados y, al otro lado de la bahía, la costa con la ciudad subiendo por la ladera
