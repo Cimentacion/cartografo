@@ -1847,7 +1847,7 @@ function uiAbilities(dt) {
   sb.classList.toggle('on', LENS.on);
   for (const k of Object.keys(POWERS)) {
     const b = $('btnP_' + k), lv = PROG.upg[k] | 0;
-    b.hidden = !lv;
+    b.hidden = !lv || !EQ(k);
     if (!lv) continue;
     if (PW.cd[k] > 0) PW.cd[k] = Math.max(0, PW.cd[k] - dt);
     b.style.setProperty('--p', (PW.cd[k] > 0 ? Math.round((1 - PW.cd[k] / PW.max[k]) * 100) : 100) + '%');
@@ -1855,17 +1855,17 @@ function uiAbilities(dt) {
   }
   if ((G.lay = (G.lay || 0) - dt) <= 0) { G.lay = 0.5; layoutAbilities(); }
   const tb = $('btnTurbo'), tl = PROG.upg.turbo | 0;
-  tb.hidden = !tl;
+  tb.hidden = !tl || !EQ('turbo');
   if (tl) {
     if (TB.cd > 0) TB.cd = Math.max(0, TB.cd - dt);
     tb.style.setProperty('--p', (TB.cd > 0 ? Math.round((1 - TB.cd / TB.max) * 100) : 100) + '%');
     tb.classList.toggle('ready', TB.cd <= 0);
   }
   const rb = $('btnRevive');
-  rb.hidden = !(PROG.upg.reviv | 0) || TB.rv || G.n < 2 || !G.players.some(p => !p.alive && !p.gone);
+  rb.hidden = !(PROG.upg.reviv | 0) || !EQ('reviv') || TB.rv || G.n < 2 || !G.players.some(p => !p.alive && !p.gone);
   $('regul').hidden = !(PROG.upg.regul | 0);
   const cb = $('btnCannon'), cl = PROG.upg.canon | 0;
-  cb.hidden = !cl;
+  cb.hidden = !cl || !EQ('canon');
   if (cl) {
     const pct = CAN.t > 0 ? 100 : CAN.cd > 0 ? Math.round((1 - CAN.cd / (CAN.max || 1)) * 100) : 100;
     cb.style.setProperty('--p', pct + '%');
@@ -1873,14 +1873,14 @@ function uiAbilities(dt) {
     cb.classList.toggle('act', CAN.t > 0);
   }
   const gb = $('btnGrenade');
-  gb.hidden = !(PROG.upg.gren | 0);
+  gb.hidden = !(PROG.upg.gren | 0) || !EQ('gren');
   setHTML('grenN', String(GR.n));
   gb.classList.toggle('ready', GR.n > 0);
   gb.style.setProperty('--p', GR.n > 0 ? '100%' : '0%');
   for (const k of ['shield', 'bullet']) {
     const b = $(k === 'shield' ? 'btnShield' : 'btnBullet');
     const lv = PROG.upg[k] | 0;
-    b.hidden = !lv;
+    b.hidden = !lv || !EQ(k);
     if (!lv) continue;
     if (AB[k].cd > 0) AB[k].cd = Math.max(0, AB[k].cd - dt);
     const pct = AB[k].cd > 0 ? Math.round((1 - AB[k].cd / (AB[k].max || 1)) * 100) : 100;
