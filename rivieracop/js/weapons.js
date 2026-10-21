@@ -28,6 +28,10 @@ const BASE = {
   derringer: { name: 'Derringer', model: 'derringer', mag: 2, dmg: 7, rate: 3, auto: false, reload: 0.25, pellets: 1, spread: 0, unique: true, rng: 30, kick: 0.045 },
   bora:     { name: 'Bora KR-7', model: 'ak', mag: 30, dmg: 2, rate: 10, auto: true, reload: 1.5, pellets: 1, spread: 0.014, unique: true, rng: 60, kick: 0.009 },
   paralela: { name: 'Escopeta paralela', model: 'dbl', mag: 2, dmg: 2, rate: 4, auto: false, reload: 1.0, pellets: 11, spread: 0.055, unique: true, rng: 14, kick: 0.08 },
+  tambor:   { name: 'Tambor 21', model: 'tommy', mag: 50, dmg: 1, rate: 13, auto: true, reload: 2.0, pellets: 1, spread: 0.02, unique: true, rng: 40, kick: 0.008 },
+  trabuco:  { name: 'Trabuco', model: 'blunder', mag: 1, dmg: 3, rate: 2, auto: false, reload: 1.2, pellets: 14, spread: 0.09, unique: true, rng: 10, kick: 0.09 },
+  chispa:   { name: 'Pistola de chispa', model: 'flint', mag: 1, dmg: 12, rate: 2, auto: false, reload: 0.7, pellets: 1, spread: 0, unique: true, rng: 45, kick: 0.07 },
+  ballesta: { name: 'Ballesta', model: 'xbow', mag: 1, dmg: 9, rate: 2, auto: false, reload: 0.9, pellets: 1, spread: 0, pierce: true, unique: true, rng: 90, kick: 0.02 },
   cohetes:  { name: 'Lanzacohetes', model: 'launcher', mag: 4, dmg: 12, rate: 1.4, auto: false, reload: 2.4, pellets: 1, spread: 0, boom: 6, rare: true, rng: 110, kick: 0.07 },
 };
 

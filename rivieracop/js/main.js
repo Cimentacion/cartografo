@@ -16,9 +16,10 @@ import { showRewarded, showInterstitial, adsReal, lastAdErr } from './ads.js';
 import { TYPES, ST, BIOMES, BIOME_KEYS, PCOL, PNAME, BOSS } from './defs.js';
 import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES, rangeMul, rollWeaponId, uniqueWeapon } from './weapons.js';
 import { SLOT_AB, SLOT_MAX, SLOT_PRICE, slotCount, slotsOf, UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd, turboDur, turboCd, POWERS } from './progress.js';
-import { fpGun, VEHICLES, VCOLORS, VLOOT, convertible } from './models.js';
+import { fpGun, VEHICLES, VCOLORS, VLOOT, convertible, fpEnv } from './models.js';
+import { treasureChest } from './fpclassic.js';
 import { Outline, toon } from './toon.js';
-import { CHAL, chInit, chAdd, claimable, claim, goal, reward, text as chText, UNLOCKS, UNL_NAME, locked, lockedBy, SECRET } from './challenges.js';
+import { CHAL, chInit, chAdd, claimable, claim, goal, reward, text as chText, UNLOCKS, UNL_NAME, locked, lockedBy, SECRET, LOOTONLY } from './challenges.js';
 import { loadChar, saveChar, sanitize, defaultChar, SKINS, HAIRS, HAIR_COLORS, BEARDS, SHIRTS, SHIRT_COLORS, PANTS_COLORS, HATS, BACKS, NECKS, FACES, BODIES, personOpts } from './character.js';
 import { seatedPlayer, person } from './models.js';
 import { clamp, lerp, lerpAng, angWrap, VP, vw, vh } from './util.js';
@@ -569,9 +570,9 @@ function fire() {
   { const n = aimNDC(); if (n) { TAPRAY.setFromCamera(n, camera); base.copy(TAPRAY.ray.direction); } }
   const muzzle = fpg.userData.muzzle.getWorldPosition(new THREE.Vector3());
   fx.muzzle(muzzle, base, W.def.model === 'shotgun' || W.def.model === 'launcher' || W.def.model === 'gl' ? 1.6 : 1);
-  if (W.def.model !== 'dbl' && W.def.model !== 'derringer') fx.shell(muzzle, V2.set(1, 0, 0).applyQuaternion(camera.quaternion), W.def.model === 'shotgun');
+  if (!['dbl', 'derringer', 'blunder', 'flint', 'xbow'].includes(W.def.model)) fx.shell(muzzle, V2.set(1, 0, 0).applyQuaternion(camera.quaternion), W.def.model === 'shotgun');
   // humo que se lleva el viento hacia atrás (vais en marcha)
-  if (W.def.model === 'dbl' || W.def.model === 'derringer') { const bk = V2.set(0, 0, 1).applyQuaternion(camera.quaternion); for (let q = 0; q < 8; q++) fx.part(muzzle, bk.clone().multiplyScalar(3 + (G.speed || 0) * 0.6 + Math.random() * 2).add(V3.set((Math.random() - 0.5), 0.6 + Math.random(), (Math.random() - 0.5))), 0.9 + Math.random() * 0.5, 0.06 + Math.random() * 0.06, fx.m.smoke, -0.3, 4); }
+  if (['dbl', 'derringer', 'blunder', 'flint'].includes(W.def.model)) { const bk = V2.set(0, 0, 1).applyQuaternion(camera.quaternion); for (let q = 0; q < 8; q++) fx.part(muzzle, bk.clone().multiplyScalar(3 + (G.speed || 0) * 0.6 + Math.random() * 2).add(V3.set((Math.random() - 0.5), 0.6 + Math.random(), (Math.random() - 0.5))), 0.9 + Math.random() * 0.5, 0.06 + Math.random() * 0.06, fx.m.smoke, -0.3, 4); }
   const agg = new Map();
   let anyHit = false, boomAt = null;
   const add = (h, dmg) => {
@@ -1487,9 +1488,9 @@ window.rcPack = (k, v) => {
   }
 };
 // ---------------- selección de vehículo (10 s antes de cada partida) ----------------
-const VICON = { cabrio: '🚘', clasico: '🚗', furgo: '🚐', moto: '🏍', tanque: '🪖', jeep: '🚙', buggy: '🏜', limo: '🥂', papa: '⛪', barca: '🛶', lancha: '🚤', patera: '🛟', colchon: '🛏', avion: '🛩' };
+const VICON = { cabrio: '🚘', clasico: '🚗', furgo: '🚐', moto: '🏍', tanque: '🪖', jeep: '🚙', buggy: '🏜', limo: '🥂', papa: '⛪', barca: '🛶', lancha: '🚤', patera: '🛟', colchon: '🛏', avion: '🛩', sofa: '🛋', carrito: '🛒', f1: '🏎', calabaza: '🎃', banera: '🛁' };
 const VDESC = { cabrio: 'El de siempre', clasico: 'Años 50, con aletas', furgo: 'Puertas abiertas', moto: 'Dos sidecars', tanque: 'Todos encima', jeep: 'Con arco de seguridad', buggy: 'Ruedas gordas para la arena', limo: 'Blanca y dorada, de lujo',
-  papa: 'Urna de cristal y bendiciones', barca: 'Con remos y ruedas', lancha: 'Motor fueraborda', patera: 'Vieja, azul y con 4 ruedas de coche', colchon: 'Sucio, con volante', avion: 'Todos en fila, uno detrás de otro' };
+  papa: 'Urna de cristal y bendiciones', barca: 'Con remos y ruedas', lancha: 'Motor fueraborda', patera: 'Vieja, azul y con 4 ruedas de coche', colchon: 'Sucio, con volante', avion: 'Todos en fila, uno detrás de otro', sofa: 'Terciopelo, cojines y lámpara', carrito: 'El del súper, pero gigante', f1: 'Alerones y ruedas anchas', calabaza: 'A medianoche se vuelve calabaza', banera: 'Con espuma y patito' };
 // los vehículos de las cajas solo salen si los tienes
 const vOwned = k => !VLOOT.has(k) || (PROG.vehOwn || []).includes(k);
 const VLIST = () => VEHICLES.filter(v => vOwned(v[0]));
@@ -1622,7 +1623,7 @@ function markUnlock() {
   if ((PROF.name || '').trim().toLowerCase() !== 'mark') return;
   for (const u of UPGRADES) PROG.upg[u.id] = u.max;
   for (const id of Object.keys(WEAPON_NAMES)) PROG.wl[id] = { lv: WMAX, xp: 0 };
-  for (const w of ['garrett', 'derringer', 'bora', 'paralela']) if (!PROG.wpUnl.includes(w)) PROG.wpUnl.push(w);
+  for (const w of ['garrett', 'derringer', 'bora', 'paralela', 'tambor', 'trabuco', 'chispa', 'ballesta']) if (!PROG.wpUnl.includes(w)) PROG.wpUnl.push(w);
   PROG.vehOwn = Array.isArray(PROG.vehOwn) ? PROG.vehOwn : [];
   for (const v of VLOOT) if (!PROG.vehOwn.includes(v)) PROG.vehOwn.push(v);
   PROG.unl = Array.isArray(PROG.unl) ? PROG.unl : [];
@@ -2814,7 +2815,7 @@ function edPaint() {
         b.className = 'tile' + (c[key] === it.v ? ' sel' : '') + (it.lk ? ' lock' : '');
         b.style.setProperty('--tc', ED_TINT(it.v));
         const sec = it.lk && SECRET.has(key + ':' + it.v);
-        b.innerHTML = (sec ? '???' : it.label) + (it.lk ? `<small>${sec ? 'Reto secreto' : (lockedBy(key + ':' + it.v) || 'Reto o caja de botín').replace(/ \(nivel.*$/, '')}</small>` : '');
+        b.innerHTML = (sec ? '???' : it.label) + (it.lk ? `<small>${sec ? 'Reto secreto' : (LOOTONLY.has(key + ':' + it.v) ? 'Sale en cofres' : lockedBy(key + ':' + it.v) || 'Reto o caja de botín').replace(/ \(nivel.*$/, '')}</small>` : '');
         b.onclick = () => { if (it.lk) { edLockMsg(key + ':' + it.v); return; } c[key] = it.v; edChanged(); };
         g.appendChild(b);
       }
@@ -2825,14 +2826,25 @@ function edPaint() {
   }
 }
 // ---------------- cajas de botín: menú para abrirlas ----------------
-const LWPN = [['derringer', 'derringer'], ['bora', 'ak'], ['paralela', 'dbl']];
+const LWPN = [['derringer', 'derringer'], ['bora', 'ak'], ['paralela', 'dbl'], ['tambor', 'tommy'], ['trabuco', 'blunder'], ['chispa', 'flint'], ['ballesta', 'xbow']];
 const LKIND = ['shirt', 'hat', 'back', 'neck', 'face', 'hair'];
-const LTIER = v => v < 4 ? ['MADERA', 0x8a5a32, 0xc8c8c8] : v < 8 ? ['PLATA', 0xb8bcc4, 0x3a5a9a] : v < 14 ? ['ORO', 0xd4af37, 0x8a1a1a] : ['DIAMANTE', 0x7ad8ff, 0xffffff];
+const LOOTWEAR = LOOTONLY; // ropa que solo sale en cofres
+const LTIER = v => v >= 50 ? ['LEGENDARIO', 4, '#ff6ad8'] : v < 4 ? ['MADERA', 0, '#c89a60'] : v < 8 ? ['PLATA', 1, '#cfd6e0'] : v < 14 ? ['ORO', 2, '#ffd34a'] : ['DIAMANTE', 3, '#9af4ff'];
 // qué sale: muy de vez en cuando un arma exclusiva, a veces un vehículo, ropa o monedas (más cuanto más vale la caja)
 function rollLoot(v) {
   const r = Math.random, own = PROG.vehOwn || [];
   const wp = LWPN.filter(([id]) => !PROG.wpUnl.includes(id)), vh = [...VLOOT].filter(k => !own.includes(k));
   const cl = Object.keys(UNL_NAME).filter(k => LKIND.includes(k.split(':')[0]) && !SECRET.has(k) && !PROG.unl.includes(k));
+  // cofre legendario (el asegurado de los 10 anuncios): siempre algo raro (arma, vehículo o ropa de cofre), nunca monedas
+  if (v >= 50) {
+    const rc = cl.filter(k => LOOTWEAR.has(k)), opts = [];
+    if (wp.length) opts.push('w', 'w'); if (vh.length) opts.push('v', 'v', 'v'); if (rc.length || cl.length) opts.push('c');
+    const o = opts[Math.floor(r() * opts.length)];
+    if (o === 'w') { const [id, model] = wp[Math.floor(r() * wp.length)]; return { t: 'w', id, model, name: WEAPON_NAMES[id], sub: WDESC[id] || '', rar: '★ ARMA EXCLUSIVA ★', col: '#ffc531' }; }
+    if (o === 'v') { const k = vh[Math.floor(r() * vh.length)], V = VEHICLES.find(q => q[0] === k); return { t: 'v', id: k, name: V[1], sub: VDESC[k] + ' · ya sale al elegir vehículo', rar: '★ VEHÍCULO ★', col: '#c46bff' }; }
+    if (o === 'c') { const L2 = rc.length ? rc : cl, k = L2[Math.floor(r() * L2.length)]; return { t: 'c', id: k, name: UNL_NAME[k], sub: 'Ropa rara de cofre: póntela en PERSONAJE', rar: '★ ROPA RARA ★', col: '#ff6ad8' }; }
+    const n = 25000; return { t: 'm', n, name: '+25.000 monedas', sub: '¡Ya tienes todo lo raro!', rar: 'TESORO', col: '#ffc531' };
+  }
   const pW = wp.length ? Math.min(0.06, 0.003 + v * 0.002) : 0, pV = vh.length ? Math.min(0.2, 0.03 + v * 0.006) : 0, pC = cl.length ? 0.35 : 0;
   let x = r();
   if ((x -= pW) < 0) { const [id, model] = wp[Math.floor(r() * wp.length)]; return { t: 'w', id, model, name: WEAPON_NAMES[id], sub: WDESC[id] || '', rar: '★ ARMA EXCLUSIVA ★', col: '#ffc531' }; }
@@ -2849,17 +2861,7 @@ function applyLoot(L) {
   saveProg(PROG);
 }
 const LS = { R: null, S: null, cam: null, box: null, lid: null, item: null, beam: null, ph: 'idle', t: 0, on: false, L: null };
-function lootChest(v) {
-  const [, c, tr2] = LTIER(v), g = new THREE.Group(), M = c2 => new THREE.MeshLambertMaterial({ color: c2 });
-  const add = (p, w, h, d, c2, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), M(c2)); m.position.set(x, y, z); p.add(m); return m; };
-  add(g, 1.6, 0.9, 1.1, c, 0, 0.45, 0); add(g, 1.66, 0.12, 1.16, tr2, 0, 0.05, 0); add(g, 1.66, 0.1, 1.16, tr2, 0, 0.88, 0);
-  for (const x of [-0.6, 0.6]) add(g, 0.14, 0.92, 1.14, tr2, x, 0.46, 0);
-  const lid = new THREE.Group(); lid.position.set(0, 0.9, 0.55); g.add(lid);
-  add(lid, 1.6, 0.42, 1.1, c, 0, 0.21, -0.55); add(lid, 1.66, 0.1, 1.16, tr2, 0, 0.42, -0.55); for (const x of [-0.6, 0.6]) add(lid, 0.14, 0.44, 1.14, tr2, x, 0.21, -0.55);
-  add(lid, 0.3, 0.34, 0.12, tr2, 0, 0.0, -1.12); add(lid, 0.12, 0.12, 0.05, 0x111111, 0, -0.02, -1.19);
-  const glowM = new THREE.MeshBasicMaterial({ color: 0xfff2a0 }); const gl = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.04, 0.9), glowM); gl.position.y = 0.86; g.add(gl);
-  g.userData.lid = lid; return g;
-}
+function lootChest(v) { return treasureChest(LTIER(v)[1], fpEnv()); }
 function lootItem(L) {
   const g = new THREE.Group();
   if (L.t === 'w') { const w = fpGun(LWPN.find(q => q[0] === L.id)[1], 3, null, 10, false); w.scale.setScalar(4.5); w.rotation.y = Math.PI / 2; g.add(w); }
@@ -2877,6 +2879,14 @@ function lootSetup() {
     { const fl = new THREE.Mesh(new THREE.CircleGeometry(2.6, 40), new THREE.MeshBasicMaterial({ color: 0x3a2a6a, transparent: true, opacity: 0.6 })); fl.rotation.x = -Math.PI / 2; LS.S.add(fl); }
     LS.beam = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.9, 8, 24, 1, true), new THREE.MeshBasicMaterial({ color: 0xfff2a0, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
     LS.beam.position.y = 4.4; LS.S.add(LS.beam);
+    // rayos de luz que giran detrás del cofre y chispas flotando
+    { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); const gr = x.createRadialGradient(128, 128, 0, 128, 128, 128); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = gr;
+      for (let i = 0; i < 12; i++) { x.beginPath(); x.moveTo(128, 128); const a0 = i / 12 * Math.PI * 2, a1 = a0 + 0.16; x.lineTo(128 + Math.cos(a0) * 128, 128 + Math.sin(a0) * 128); x.lineTo(128 + Math.cos(a1) * 128, 128 + Math.sin(a1) * 128); x.fill(); }
+      const t = new THREE.CanvasTexture(c); LS.rays = new THREE.Mesh(new THREE.PlaneGeometry(7, 7), new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false })); LS.rays.position.set(0, 1.4, -1.6); LS.S.add(LS.rays); }
+    { const n = 60, pos = new Float32Array(n * 3); for (let i = 0; i < n; i++) { pos[i * 3] = (Math.random() - 0.5) * 5; pos[i * 3 + 1] = Math.random() * 4; pos[i * 3 + 2] = (Math.random() - 0.5) * 3; }
+      const gq = new THREE.BufferGeometry(); gq.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      LS.spk = new THREE.Points(gq, new THREE.PointsMaterial({ color: 0xffe9a0, size: 0.06, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false })); LS.S.add(LS.spk); }
+    LS.conf = [];
     const tap = e => { if (!LS.on || e.target !== cv) return; if (LS.ph === 'idle' && LS.box) { LS.ph = 'turn'; LS.t = 0; SFX.tone(300, 600, 0.3, 'triangle', 0.2); } };
     window.addEventListener('pointerdown', tap, true); window.addEventListener('touchstart', tap, { capture: true, passive: true });
   }
@@ -2887,13 +2897,17 @@ function lootNextBox() {
   $('lootRes').hidden = true;
   const n = (PROG.boxes || []).length;
   $('lootCnt').textContent = n ? n + (n === 1 ? ' caja' : ' cajas') : 'Sin cajas';
-  if (!n) { LS.box = null; $('lootHint').textContent = 'Acaba mapas en una partida para conseguir cajas'; return; }
-  const v = PROG.boxes[0]; LS.box = lootChest(v); LS.S.add(LS.box); LS.ph = 'idle'; LS.t = 0;
-  $('lootHint').textContent = 'CAJA DE ' + LTIER(v)[0] + ' · toca para abrirla'; $('lootHint').hidden = false;
+  if (!n) { LS.box = null; $('lootHint').textContent = 'Acaba mapas en una partida o mira un anuncio para conseguir cofres'; return; }
+  const v = PROG.boxes[0], TI = LTIER(v); LS.box = lootChest(v); LS.S.add(LS.box); LS.ph = 'idle'; LS.t = 0;
+  LS.rays.material.color.set(TI[2]); LS.spk.material.color.set(TI[2]);
+  $('lootHint').textContent = 'COFRE ' + (TI[1] === 4 ? 'LEGENDARIO' : 'DE ' + TI[0]) + ' · toca para abrirlo'; $('lootHint').hidden = false;
 }
 function lootLoop() {
   if (!LS.on) return; requestAnimationFrame(lootLoop);
   const now = performance.now(), dt = Math.min(0.1, (now - (LS.pt || now)) / 1000); LS.pt = now; LS.t += dt; const B = LS.box;
+  LS.rays.rotation.z += dt * 0.25; LS.rays.visible = !!B;
+  { const P = LS.spk.geometry.attributes.position; for (let i = 0; i < P.count; i++) { let y = P.getY(i) + dt * (0.3 + (i % 5) * 0.08); if (y > 4) y = 0; P.setY(i, y); } P.needsUpdate = true; }
+  for (const c of LS.conf) { c.v.y -= dt * 6; c.m.position.addScaledVector(c.v, dt); c.m.rotation.x += dt * 8; c.m.rotation.z += dt * 5; c.life -= dt; c.m.visible = c.life > 0; }
   if (B) {
     if (LS.ph === 'idle') { B.rotation.y += dt * 1.2; B.position.y = 0.15 + Math.sin(LS.t * 2) * 0.08; }
     else if (LS.ph === 'turn') {
@@ -2904,6 +2918,9 @@ function lootLoop() {
         B.rotation.set(0, 0, 0); LS.ph = 'open'; LS.t = 0;
         const v = PROG.boxes.shift(); LS.L = rollLoot(v); applyLoot(LS.L);
         LS.item = lootItem(LS.L); LS.item.position.y = 0.6; LS.item.visible = false; LS.S.add(LS.item); $('lootHint').hidden = true;
+        // confeti del color de la rareza
+        for (const c of LS.conf) LS.S.remove(c.m); LS.conf = [];
+        for (let i = 0; i < 70; i++) { const m = new THREE.Mesh(new THREE.PlaneGeometry(0.07, 0.11), new THREE.MeshBasicMaterial({ color: [LS.L.col, '#ffffff', '#ffe14a', LS.L.col][i % 4], side: THREE.DoubleSide })); m.position.set(0, 1.0, 0.1); LS.S.add(m); const a = Math.random() * Math.PI * 2, sp = 2 + Math.random() * 3; LS.conf.push({ m, v: new THREE.Vector3(Math.cos(a) * sp * 0.6, 4 + Math.random() * 4, Math.sin(a) * sp * 0.4 + 1), life: 2.5 }); }
         SFX.tone(500, 1200, 0.6, 'triangle', 0.25); updLootN();
       }
     } else if (LS.ph === 'open') {
@@ -2915,8 +2932,54 @@ function lootLoop() {
   }
   LS.R.render(LS.S, LS.cam);
 }
+// ---------- cofre por anuncio: uno cada 10 minutos; al décimo anuncio, cofre LEGENDARIO asegurado ----------
+const AD_CD = 10 * 60 * 1000;
+function paintLootAd() {
+  const n = PROG.adBoxN | 0, left = Math.max(0, (PROG.adBoxT || 0) + AD_CD - Date.now());
+  $('lootAdN').textContent = n + ' / 10';
+  $('lootAdBar').style.width = (n * 10) + '%';
+  $('lootAdTip').textContent = n === 9 ? '¡El próximo anuncio da el cofre LEGENDARIO!' : 'Faltan ' + (10 - n) + ' anuncios para el cofre LEGENDARIO asegurado';
+  const b = $('lootAdBtn');
+  if (left > 0) { const m = Math.floor(left / 60000), sx = Math.floor(left / 1000) % 60; b.disabled = true; b.textContent = 'OTRO EN ' + m + ':' + String(sx).padStart(2, '0'); }
+  else if (!b.dataset.busy) { b.disabled = false; b.textContent = '▶ VER ANUNCIO · COFRE GRATIS'; }
+}
+setInterval(() => { if (!$('lootScr').hidden) paintLootAd(); }, 1000);
+$('lootAdBtn').onclick = async () => {
+  if (Date.now() < (PROG.adBoxT || 0) + AD_CD) return;
+  const b = $('lootAdBtn'); b.dataset.busy = '1'; b.disabled = true; b.textContent = 'Cargando anuncio…';
+  const ok = await showRewarded();
+  delete b.dataset.busy;
+  if (!ok) { b.disabled = false; b.textContent = 'No hay anuncio ahora'; setTimeout(paintLootAd, 2500); return; }
+  PROG.adBoxT = Date.now(); PROG.adBoxN = (PROG.adBoxN | 0) + 1;
+  PROG.boxes = Array.isArray(PROG.boxes) ? PROG.boxes : [];
+  let v;
+  if (PROG.adBoxN >= 10) { v = 60; PROG.adBoxN = 0; showToast('¡COFRE LEGENDARIO conseguido!'); }
+  else { const r = Math.random(); v = r < 0.5 ? 2 + Math.random() * 2 : r < 0.85 ? 4 + Math.random() * 4 : r < 0.97 ? 8 + Math.random() * 6 : 14 + Math.random() * 6; v = Math.round(v * 10) / 10; }
+  PROG.boxes.unshift(v); saveProg(PROG); SFX.pickup(); paintLootAd(); updLootN();
+  if (LS.ph !== 'turn' && LS.ph !== 'open' || !$('lootRes').hidden) lootNextBox();
+};
+// ---------- recompensa diaria con racha (7 días; a los 7 vuelve a empezar) ----------
+const DAILY = [['🪙', '500', { m: 500 }], ['🧰', 'Cofre de madera', { b: 3 }], ['🪙', '1.000', { m: 1000 }], ['🧰', 'Cofre de plata', { b: 6 }], ['🪙', '2.000', { m: 2000 }], ['🧰', 'Cofre de oro', { b: 11 }], ['💎', 'Cofre de diamante', { b: 16 }]];
+const dayKey = d => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+function dailyCheck() {
+  const today = dayKey(new Date()), yest = dayKey(new Date(Date.now() - 864e5));
+  if (PROG.dayLast === today) return;
+  const streak = PROG.dayLast === yest ? (PROG.dayStreak | 0) % 7 + 1 : 1;
+  const box = $('dDays'); box.innerHTML = '';
+  DAILY.forEach((d, i) => { const e = document.createElement('div'); e.className = 'dDay' + (i + 1 < streak ? ' got' : i + 1 === streak ? ' now' : ''); e.innerHTML = `<span>DÍA ${i + 1}</span><i>${d[0]}</i><b>${d[1]}</b>`; box.appendChild(e); });
+  $('dSub').textContent = streak > 1 ? '¡Racha de ' + streak + ' días! Mañana, el siguiente premio' : 'Entra cada día: la racha sube el premio (si fallas un día, vuelve al día 1)';
+  $('dailyScr').hidden = false;
+  $('dGet').onclick = () => {
+    const R = DAILY[streak - 1][2];
+    if (R.m) PROG.coins += R.m; else { PROG.boxes = Array.isArray(PROG.boxes) ? PROG.boxes : []; PROG.boxes.push(R.b); }
+    PROG.dayLast = today; PROG.dayStreak = streak; saveProg(PROG); SFX.unlock(); SFX.pickup();
+    $('dailyScr').hidden = true; updLootN(); updMenuCard();
+    if (R.b) showToast('¡Cofre conseguido! Ábrelo en CAJAS');
+  };
+}
+setTimeout(dailyCheck, 1200);
 function updLootN() { const n = (PROG.boxes || []).length; $('lootN').textContent = n || ''; $('lootN').hidden = !n; }
-$('btnLoot').onclick = () => { for (const sc of document.querySelectorAll('.screen')) sc.hidden = true; $('lootScr').hidden = false; lootSetup(); lootNextBox(); LS.on = true; lootLoop(); };
+$('btnLoot').onclick = () => { for (const sc of document.querySelectorAll('.screen')) sc.hidden = true; $('lootScr').hidden = false; lootSetup(); lootNextBox(); paintLootAd(); LS.on = true; lootLoop(); };
 $('lootNext').onclick = () => { if ((PROG.boxes || []).length) lootNextBox(); else $('lootBack').onclick(); };
 $('lootBack').onclick = () => { LS.on = false; $('lootScr').hidden = true; $('menu').hidden = false; updLootN(); updMenuCard(); };
 updLootN();
@@ -2959,7 +3022,7 @@ function paintRetos() {
 $('btnRetos').onclick = () => { for (const sc of document.querySelectorAll('.screen')) sc.hidden = true; $('retos').hidden = false; RF = claimable(PROG) ? 'Listos' : 'Todos'; paintRetos(); };
 $('retosBack').onclick = () => { $('retos').hidden = true; $('menu').hidden = false; updRetos(); updMenuCard(); };
 updRetos();
-function edLockMsg(k) { showToast('🔒 ' + (UNL_NAME[k] || '') + ' — se consigue en RETOS: ' + lockedBy(k)); }
+function edLockMsg(k) { showToast('🔒 ' + (UNL_NAME[k] || '') + (LOOTONLY.has(k) ? ' — sale en los cofres de botín' : ' — se consigue en RETOS: ' + lockedBy(k))); }
 // si lo puesto está bloqueado (p. ej. de otra versión), se quita
 function edFixLocks(c) {
   const d = defaultChar(0);
@@ -3126,6 +3189,10 @@ const WDESC = {
   garrett: 'Revólver niquelado del forajido. Siempre 6 balas, el doble de daño que la pistola y mucho retroceso. Se recarga bala a bala: cada toque en RECARGAR mete una al momento',
   derringer: 'Derringer clásica de dos cañones: dos balas que pegan como un camión y se recargan casi al instante',
   bora: 'Fusil de asalto con culata de madera: 30 balas en automático, buen alcance',
+  tambor: 'Subfusil de los años 20 con cargador de tambor: 50 balas a toda velocidad',
+  trabuco: 'Boca de campana: un solo disparo que barre todo lo que tengas delante',
+  chispa: 'Pistola de pirata: una bala enorme y una nube de humo',
+  ballesta: 'Virotes que atraviesan a varios enemigos en fila, en silencio',
   paralela: 'Escopeta de dos cañones paralelos: dos disparos brutales de cerca; al abrirla saltan los cartuchos',
 };
 // ---------------- editor de interfaz ----------------

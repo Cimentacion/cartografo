@@ -111,6 +111,9 @@ CHAL.push({ id: 'nohit', txt: 'Pasa {n} mapas sin perder vida', T: RARE, f: 4, c
 CHAL.push({ id: 'nohitrow', txt: 'Encadena {n} mapas seguidos sin perder vida en una partida', T: [3, 4, 5, 6, 8, 10, 12, 15, 20, 25], f: 8, cat: 'General' });
 UNLOCKS.nohitrow = { 0: 'shirt:invicto', 1: 'hat:aureola', 2: 'back:alasoro', 3: 'face:mascoro' };
 UNLOCKS.nohit = { 2: 'neck:medallaoro' };
+// ropa que solo sale en cofres
+export const LOOTONLY = new Set(['shirt:neon', 'shirt:galaxia', 'shirt:tigre', 'shirt:cromada', 'shirt:esmoquinb', 'shirt:corsario', 'hat:coronad', 'hat:ganster', 'hat:cuernosd', 'hat:neonband', 'back:alasneon', 'back:jetoro', 'face:gafasneon', 'face:mascarac']);
+Object.assign(UNL_NAME, { 'shirt:neon': 'Chaqueta neón', 'shirt:galaxia': 'Camiseta galaxia', 'shirt:tigre': 'Estampado de tigre', 'shirt:cromada': 'Armadura cromada', 'shirt:esmoquinb': 'Esmoquin blanco', 'shirt:corsario': 'Casaca de corsario', 'hat:coronad': 'Corona de diamantes', 'hat:ganster': 'Sombrero de gánster', 'hat:cuernosd': 'Cuernos dorados', 'hat:neonband': 'Cinta de neón', 'back:alasneon': 'Alas de neón', 'back:jetoro': 'Jetpack de oro', 'face:gafasneon': 'Gafas de neón', 'face:mascarac': 'Máscara cromada' });
 export const SECRET = new Set(['shirt:invicto', 'hat:aureola', 'back:alasoro', 'face:mascoro', 'neck:medallaoro']);
 export const reward = (c, t) => Math.round(REW[t] * c.f);
 export const goal = (c, t) => c.T[t];

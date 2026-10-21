@@ -25,6 +25,7 @@ const GUNS = {
   pistol: [['r_light', 'r_light2'], 1.05, 0.8, 0.2, 170], revolver: [['r_mid', 'r_mid2'], 0.92, 1, 0.45, 110], colt: [['r_snap'], 0.95, 0.95, 0.4, 120],
   derringer: [['r_snap'], 1.12, 0.85, 0.3, 160], smg: [['r_light', 'r_light2'], 1.15, 0.7, 0.12, 200], mg: [['r_light2', 'r_mid2'], 1.0, 0.75, 0.25, 140],
   ak: [['r_mid', 'r_mid2'], 1.08, 0.75, 0.25, 150], rifle: [['r_mid', 'r_mid2'], 0.85, 1, 0.5, 95],
+  tommy: [['r_light', 'r_light2'], 0.95, 0.8, 0.25, 150], flint: [['r_heavy2'], 1.25, 0.9, 0.6, 90], blunder: [['r_heavy', 'r_heavy2'], 0.85, 1, 1, 60],
   shotgun: [['r_heavy', 'r_heavy2'], 1.0, 1, 0.8, 70], dbl: [['r_heavy2', 'r_heavy'], 0.94, 1, 0.9, 65], cannon: [['r_heavy2'], 0.8, 1, 1, 55],
 };
 const pick = a => a[Math.floor(Math.random() * a.length)];
@@ -53,6 +54,7 @@ export const SFX = {
   unlock() { if (!ensure()) return; if (ac.state === 'suspended') ac.resume(); loadSfx(); },
   shot(model) {
     if (!ac) return;
+    if (model === 'xbow') { this.tone(220, 90, 0.18, 'triangle', 0.35); samp('r_emp', 0.5, 0.6); return; } // chasquido de cuerda
     const G = GUNS[model];
     if (G && BUF[G[0][0]]) {
       samp(pick(G[0]), G[2], G[1] * jit(0.04));

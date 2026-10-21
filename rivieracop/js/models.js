@@ -190,6 +190,10 @@ function accessories(t, o, hp, bp) {
     case 'ushanka': box(t, 0.36, 0.16, 0.36, 0x6a4a30, 0, 1.03, 0.005, hp); box(t, 0.37, 0.06, 0.08, 0x8a6a4a, 0, 0.98, -0.17, hp); for (const sd of [-1, 1]) box(t, 0.06, 0.22, 0.26, 0x8a6a4a, sd * 0.18, 0.86, 0.02, hp); box(t, 0.05, 0.05, 0.01, 0xc02020, 0, 1.02, -0.215, hp); break;
     case 'espartano': box(t, 0.34, 0.3, 0.35, 0xb08a3a, 0, 0.9, 0.005, hp); box(t, 0.06, 0.18, 0.03, 0x111111, -0.06, 0.86, -0.18, hp); box(t, 0.06, 0.18, 0.03, 0x111111, 0.06, 0.86, -0.18, hp); box(t, 0.08, 0.06, 0.03, 0x111111, 0, 0.92, -0.18, hp); box(t, 0.06, 0.18, 0.46, 0xc02020, 0, 1.13, 0.04, hp); break;
     case 'aureola': for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; box(t, 0.07, 0.035, 0.07, GL, Math.cos(a) * 0.2, 1.24, Math.sin(a) * 0.2, hp); } for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; if (Math.cos(a) < -0.85) continue; const l = box(t, 0.07, 0.03, 0.04, G, Math.sin(a) * 0.16, 0.96, Math.cos(a) * 0.16, hp); l.rotation.y = a; } break;
+    case 'coronad': box(t, 0.31, 0.06, 0.31, 0xe8eef8, 0, 1.0, 0.005, hp); for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; box(t, 0.04, 0.11, 0.04, 0xe8eef8, Math.sin(a) * 0.14, 1.07, Math.cos(a) * 0.14, hp); box(t, 0.035, 0.035, 0.035, glow([0x9af4ff, 0xff6ad8][k % 2]), Math.sin(a) * 0.14, 1.14, Math.cos(a) * 0.14, hp); } box(t, 0.06, 0.06, 0.02, glow(0x9af4ff), 0, 1.02, -0.165, hp); break;
+    case 'ganster': box(t, 0.44, 0.025, 0.44, 0x2a2a30, 0, 1.0, 0, hp); box(t, 0.3, 0.15, 0.3, 0x34343c, 0, 1.08, 0, hp); box(t, 0.12, 0.03, 0.3, 0x24242a, 0, 1.165, 0, hp); box(t, 0.31, 0.04, 0.31, 0x8a1a1a, 0, 1.03, 0, hp); { const f = box(t, 0.03, 0.22, 0.02, 0xf2f2f2, 0.14, 1.14, 0.08, hp); f.rotation.z = -0.4; } break;
+    case 'cuernosd': for (const s of [-1, 1]) for (let k = 0; k < 4; k++) { const a = box(t, 0.07 - k * 0.012, 0.09, 0.07 - k * 0.012, k % 2 ? 0xffe680 : G, s * (0.11 + k * 0.035), 1.04 + k * 0.07, -0.04 + k * 0.02, hp); a.rotation.z = -s * (0.3 + k * 0.18); } break;
+    case 'neonband': box(t, 0.31, 0.045, 0.31, 0x141428, 0, 0.98, 0.005, hp); box(t, 0.312, 0.012, 0.312, glow(0xff3ad0), 0, 0.99, 0.005, hp); box(t, 0.312, 0.012, 0.312, glow(0x3af4ff), 0, 0.97, 0.005, hp); break;
     case 'cofia': box(t, 0.31, 0.1, 0.3, 0xf8f8f8, 0, 0.99, 0.02, hp); for (let k = 0; k < 7; k++) box(t, 0.05, 0.04, 0.03, 0xf8f8f8, -0.15 + k * 0.05, 1.02, -0.13, hp); box(t, 0.3, 0.02, 0.03, 0x1a1a1a, 0, 0.97, -0.13, hp); break;
     case 'orejas': for (const sd of [-1, 1]) { const e = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.14, 4), mat(o.hair ?? 0x2a1a10)); e.position.set(sd * 0.1, 1.1, 0); e.rotation.y = Math.PI / 4; t.add(e); const n = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.08, 4), mat(0xf090b0)); n.position.set(sd * 0.1, 1.09, -0.03); n.rotation.y = Math.PI / 4; t.add(n); } break;
   }
@@ -228,6 +232,8 @@ function accessories(t, o, hp, bp) {
   else if (o.back === 'alash') for (const s of [-1, 1]) for (const [y, w, h, rz] of [[0.6, 0.42, 0.34, 0.5], [0.3, 0.32, 0.24, -0.3]]) { const f = box(t, w, h, 0.01, FAIRY || (FAIRY = new THREE.MeshBasicMaterial({ color: 0xb8f0ff, transparent: true, opacity: 0.6, side: THREE.DoubleSide })), s * (0.22 + w * 0.3), y, 0.22, bp); f.rotation.z = s * rz; }
   else if (o.back === 'alasoro') for (const s of [-1, 1]) for (let k = 0; k < 5; k++) { const w = box(t, 0.6 - k * 0.09, 0.11, 0.03, k % 2 ? GL : G, s * (0.32 + k * 0.03), 0.66 - k * 0.12, 0.22, bp); w.rotation.z = s * (0.55 - k * 0.1); }
   else if (o.back === 'bazuca') { const q = new THREE.Group(); q.position.set(0.05, 0.4, 0.24); q.rotation.z = 0.25; t.add(q); const c = new THREE.Mesh(cgeo(0.08, 1.1, 10), mat(0x4a5a32)); if (bp) c.userData.part = bp; q.add(c); box(q, 0.06, 0.12, 0.1, 0x2a2a2a, 0, -0.1, -0.08, bp); box(q, 0.12, 0.08, 0.12, 0x2a2a2a, 0, 0.5, 0, bp); }
+  else if (o.back === 'alasneon') for (const s of [-1, 1]) for (let k = 0; k < 5; k++) { const w = box(t, 0.6 - k * 0.09, 0.05, 0.02, glow([0xff3ad0, 0x3af4ff, 0xb46aff, 0x3af4ff, 0xff3ad0][k]), s * (0.32 + k * 0.03), 0.66 - k * 0.12, 0.22, bp); w.rotation.z = s * (0.55 - k * 0.1); }
+  else if (o.back === 'jetoro') { for (const x of [-0.11, 0.11]) { const c = new THREE.Mesh(cgeo(0.085, 0.44, 10), mat(G)); c.position.set(x, 0.36, 0.26); t.add(c); box(t, 0.12, 0.08, 0.12, glow(0x7af4ff), x, 0.12, 0.26, bp); box(t, 0.1, 0.05, 0.1, mat(0xe8eef8), x, 0.6, 0.26, bp); } box(t, 0.38, 0.16, 0.07, 0xb8862a, 0, 0.5, 0.2, bp); box(t, 0.06, 0.06, 0.02, glow(0xff3ad0), 0, 0.5, 0.24, bp); }
   else if (o.back === 'jet') { for (const x of [-0.11, 0.11]) { const c = new THREE.Mesh(cgeo(0.08, 0.42, 8), mat(0xb8b8c0)); c.position.set(x, 0.36, 0.26); t.add(c); box(t, 0.1, 0.06, 0.1, GL, x, 0.12, 0.26, bp); } box(t, 0.36, 0.14, 0.06, 0x3a3a40, 0, 0.5, 0.2, bp); }
   t = sub(-(o.dz || 0));
   switch (o.neck) {
@@ -276,6 +282,8 @@ function accessories(t, o, hp, bp) {
       box(q, 0.035, 0.08, 0.07, 0xb08a30, 0.07, 0, 0, hp);
       box(q, 0.26, 0.045, 0.04, 0x1a1a1a, -0.07, 0, 0, hp); for (let k = 0; k < 4; k++) box(q, 0.02, 0.05, 0.045, 0xf2f2f2, -0.16 + k * 0.06, 0, 0, hp);
       break; }
+case 'gafasneon': box(t, 0.3, 0.06, 0.04, 0x141428, 0, 0.865, -0.15, hp); box(t, 0.28, 0.025, 0.006, glow(0xff3ad0), 0, 0.875, -0.172, hp); box(t, 0.28, 0.02, 0.006, glow(0x3af4ff), 0, 0.855, -0.172, hp); break;
+case 'mascarac': box(t, 0.3, 0.26, 0.04, mat(0xd8dee8), 0, 0.82, -0.155, hp); for (const x of [-0.07, 0.07]) box(t, 0.08, 0.025, 0.01, glow(0xff2a2a), x, 0.87, -0.178, hp); for (let k = 0; k < 4; k++) box(t, 0.012, 0.06, 0.01, 0x4a505a, -0.045 + k * 0.03, 0.76, -0.178, hp); break;
 case 'mascoro': box(t, 0.3, 0.22, 0.04, G, 0, 0.84, -0.155, hp); for (const x of [-0.07, 0.07]) box(t, 0.07, 0.03, 0.01, 0x111111, x, 0.87, -0.178, hp); box(t, 0.04, 0.04, 0.01, GL, 0, 0.94, -0.178, hp); break;
     case 'labios': box(t, 0.08, 0.025, 0.01, 0xd01838, 0, 0.745, -0.142, hp); break;
     case 'sombra': for (const x of [-0.07, 0.07]) box(t, 0.08, 0.03, 0.01, 0x8a4ab8, x, 0.885, -0.142, hp); break;
@@ -464,8 +472,9 @@ export function person(o = {}) {
 // userData.seatY = cuánto más alto van sentados que en el descapotable
 export const VEHICLES = [['cabrio', 'Descapotable'], ['clasico', 'Clásico'], ['furgo', 'Furgoneta'], ['moto', 'Moto con sidecars'], ['tanque', 'Tanque'], ['jeep', 'Todoterreno'], ['buggy', 'Buggy'], ['limo', 'Limusina'],
   // de las cajas de botín (solo salen en la lista si los tienes)
-  ['papa', 'Papamóvil'], ['barca', 'Barca de remos'], ['lancha', 'Lancha'], ['patera', 'Patera con ruedas'], ['colchon', 'Colchón con volante'], ['avion', 'Avioneta']];
-export const VLOOT = new Set(['papa', 'barca', 'lancha', 'patera', 'colchon', 'avion']);
+  ['papa', 'Papamóvil'], ['barca', 'Barca de remos'], ['lancha', 'Lancha'], ['patera', 'Patera con ruedas'], ['colchon', 'Colchón con volante'], ['avion', 'Avioneta'],
+  ['sofa', 'Sofá con ruedas'], ['carrito', 'Carrito del súper'], ['f1', 'Bólido de carreras'], ['calabaza', 'Carroza calabaza'], ['banera', 'Bañera con ruedas']];
+export const VLOOT = new Set(['papa', 'barca', 'lancha', 'patera', 'colchon', 'avion', 'sofa', 'carrito', 'f1', 'calabaza', 'banera']);
 export const VCOLORS = [0xc8102e, 0x2a6ad0, 0xf0c020, 0x2a9a4a, 0x1a1a1a, 0xf2f2f2, 0xe060a0, 0xf07a20];
 export function convertible(kind = 'cabrio', col = 0xc8102e) {
   const g = new THREE.Group();
@@ -672,6 +681,63 @@ export function convertible(kind = 'cabrio', col = 0xc8102e) {
     // todos en fila, uno detrás de otro
     g.userData.seats = [[0, -1.2, 0], [0, -0.05, 0], [0, 1.1, 0], [0, 2.25, 0], [0, 3.4, 0]];
     g.userData.noDriver = true; g.userData.camK = 1;
+  } else if (kind === 'sofa') {
+    // sofá de tres plazas de terciopelo con cojines, lámpara de pie y ruedas de oficina
+    L = 4.8; seatY = -0.05; drvY = 0.25; front = -2.4;
+    const C = col === 0xc8102e ? 0x8a2a3a : col;
+    box(g, 2.2, 0.45, L, C, 0, 0.62, 0); box(g, 2.2, 0.08, L, 0x2a1a10, 0, 0.36, 0);
+    for (const sd of [-1, 1]) { box(g, 0.3, 0.7, L, C, sd * 1.0, 0.95, 0); box(g, 0.34, 0.1, L + 0.04, new THREE.Color(C).multiplyScalar(0.8).getHex(), sd * 1.0, 1.32, 0); }
+    for (let k = 0; k < 4; k++) { box(g, 1.6, 0.18, 1.0, new THREE.Color(C).multiplyScalar(1.15).getHex(), 0, 0.92, -1.6 + k * 1.1); for (const x of [-0.5, 0, 0.5]) box(g, 0.05, 0.02, 0.05, 0xd4af37, x, 1.02, -1.6 + k * 1.1); }
+    box(g, 0.06, 1.6, 0.06, 0xd4af37, 0.9, 1.6, 2.2); { const sh = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.35, 10, 1, true), mat(0xf2e0b0)); sh.position.set(0.9, 2.5, 2.2); g.add(sh); box(g, 0.12, 0.12, 0.12, glow(0xfff2c0), 0.9, 2.42, 2.2); }
+    box(g, 0.08, 0.7, 0.08, 0x4a4a4a, 0, 1.0, -2.1); { const sw = new THREE.Mesh(cgeo(0.22, 0.05, 12), mat(0x1a1a1a)); sw.rotation.x = Math.PI / 2 - 0.5; sw.position.set(0, 1.4, -2.0); g.add(sw); }
+    for (const sx of [-0.9, 0.9]) for (const sz of [-2.0, 2.0]) { wheel(g, sx, 0.2, sz, 0.2, 0.12); box(g, 0.08, 0.16, 0.08, 0x8a8a8a, sx, 0.34, sz); }
+  } else if (kind === 'carrito') {
+    // carrito del súper gigante: rejilla de varillas, asa roja, ruedas pequeñas y una barra de pan asomando
+    L = 5.4; seatY = 0.1; drvY = 0.3; front = -2.7;
+    const M2 = 0xc8ccd4;
+    box(g, 2.2, 0.08, L, M2, 0, 0.6, 0);
+    for (const sd of [-1, 1]) { for (let k = 0; k <= 10; k++) box(g, 0.04, 1.0, 0.04, M2, sd * 1.1, 1.1, -L / 2 + k * L / 10); for (const y of [0.62, 1.1, 1.6]) box(g, 0.05, 0.05, L, M2, sd * 1.1, y, 0); }
+    for (let k = 0; k <= 8; k++) box(g, 0.04, 1.0, 0.04, M2, -1.1 + k * 0.275, 1.1, -L / 2);
+    for (const y of [0.62, 1.1, 1.6]) box(g, 2.2, 0.05, 0.05, M2, 0, y, -L / 2);
+    box(g, 2.3, 0.14, 0.14, 0xd81e2a, 0, 1.75, L / 2 + 0.3); for (const sd of [-1, 1]) box(g, 0.06, 0.06, 0.4, M2, sd * 1.1, 1.65, L / 2 + 0.1);
+    { const b = box(g, 0.2, 0.2, 1.2, 0xd8a050, 0.6, 1.5, -1.8); b.rotation.x = 0.6; b.rotation.y = 0.3; }
+    box(g, 0.5, 0.4, 0.4, 0xf2f2f2, -0.6, 0.85, 2.0); box(g, 0.5, 0.06, 0.4, 0x2a6ad0, -0.6, 1.0, 2.0);
+    seats(0.7);
+    for (const sx of [-0.95, 0.95]) for (const sz of [-2.4, 2.4]) { wheel(g, sx, 0.22, sz, 0.22, 0.12); box(g, 0.06, 0.3, 0.06, 0x5a5a5a, sx, 0.42, sz); }
+  } else if (kind === 'f1') {
+    // bólido de carreras: morro afilado con alerón delantero, pontones, alerón trasero, ruedas anchas y dorsal
+    L = 7.2; seatY = -0.25; drvY = 0.05; front = -3.6;
+    const C = col;
+    box(g, 0.9, 0.4, L - 1.2, C, 0, 0.55, 0.2); const nose = box(g, 0.5, 0.3, 1.8, C, 0, 0.5, -3.1); nose.rotation.x = 0.06;
+    box(g, 2.6, 0.06, 0.6, C, 0, 0.3, -3.7); for (const sd of [-1, 1]) box(g, 0.06, 0.3, 0.7, 0x1a1a1a, sd * 1.3, 0.42, -3.7);
+    for (const sd of [-1, 1]) { box(g, 0.6, 0.45, 2.4, C, sd * 0.75, 0.55, 0.6); box(g, 0.62, 0.08, 2.4, 0xf2f2f2, sd * 0.75, 0.8, 0.6); }
+    box(g, 2.4, 0.08, 0.7, 0x1a1a1a, 0, 1.55, 3.3); box(g, 2.4, 0.06, 0.4, C, 0, 1.4, 3.3); for (const sd of [-1, 1]) box(g, 0.06, 1.0, 0.8, 0x1a1a1a, sd * 1.2, 1.1, 3.3);
+    box(g, 0.5, 0.5, 0.05, 0xf2f2f2, 0, 0.82, -1.6); box(g, 0.2, 0.3, 0.06, 0x1a1a1a, 0, 0.84, -1.62);
+    box(g, 0.4, 0.5, 0.9, 0x2a2a2a, 0, 1.0, 1.8);
+    seats(0.62);
+    for (const sx of [-1.15, 1.15]) { wheel(g, sx, 0.42, -2.4, 0.42, 0.42); wheel(g, sx * 1.04, 0.5, 2.6, 0.5, 0.55); }
+  } else if (kind === 'calabaza') {
+    // carroza calabaza: gajos naranjas, ventanas de filigrana dorada, hojas en el techo y ruedas de rizos
+    L = 5.6; seatY = 0.3; drvY = 0.3; front = -2.8;
+    // media calabaza abierta por arriba (si no, tapa la vista) con arcos dorados por encima
+    for (let k = 0; k < 14; k++) { const a = k / 14 * Math.PI * 2, r = 1.25; if (Math.cos(a) > -0.15) continue; const o = box(g, 0.5, 1.6, L - 1.0, k % 2 ? 0xf08a20 : 0xe07010, Math.sin(a) * r * 0.85, 1.6 + Math.cos(a) * r * 0.75, 0); o.rotation.z = -a; }
+    for (const sd of [-1, 1]) box(g, 0.3, 0.7, L - 1.0, 0xe07010, sd * 1.05, 1.05, 0);
+    for (const z of [-1.6, 0.2, 2.0]) for (let k = 0; k < 9; k++) { const a = -Math.PI / 2 + k / 8 * Math.PI; box(g, 0.08, 0.08, 0.08, 0xd4af37, Math.sin(a) * 1.1, 1.5 + Math.cos(a) * 1.4, z); }
+    box(g, 2.2, 0.2, L - 0.6, 0xd4af37, 0, 0.58, 0);
+    box(g, 0.2, 0.5, 0.2, 0x3a7a2a, 0, 2.95, 0.2); for (const sd of [-1, 1]) { const lf = box(g, 0.6, 0.06, 0.4, 0x4a9a3a, sd * 0.35, 2.85, 0.3); lf.rotation.z = sd * 0.4; }
+    box(g, 2.2, 0.1, 1.6, 0xd4af37, 0, 1.0, -2.6);
+    seats(1.1);
+    for (const sx of [-1.2, 1.2]) for (const sz of [-1.8, 1.8]) { wheel(g, sx, 0.55, sz, 0.55, 0.15); const r2 = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.04, 6, 16), mat(0xd4af37)); r2.position.set(sx * 1.05, 0.55, sz); r2.rotation.y = Math.PI / 2; g.add(r2); }
+  } else if (kind === 'banera') {
+    // bañera antigua con patas de león, grifos dorados, espuma y patito de goma
+    L = 5.0; seatY = 0.05; drvY = 0.25; front = -2.5;
+    box(g, 2.0, 0.9, L, 0xf6f6f2, 0, 0.95, 0); box(g, 2.1, 0.12, L + 0.1, 0xffffff, 0, 1.42, 0);
+    for (const sz of [-1, 1]) { const e = box(g, 2.0, 0.9, 0.6, 0xf6f6f2, 0, 1.0, sz * (L / 2 + 0.15)); e.rotation.x = sz * 0.25; }
+    for (let k = 0; k < 14; k++) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.18 + (k % 3) * 0.06, 8, 6), mat(0xeaf6ff)); b.position.set(-0.8 + (k % 5) * 0.4, 1.45, -2.0 + Math.floor(k / 5) * 1.9 + (k % 2) * 0.4); g.add(b); }
+    box(g, 0.24, 0.2, 0.3, 0xffd020, 0.5, 1.6, 1.4); box(g, 0.16, 0.16, 0.16, 0xffd020, 0.5, 1.78, 1.25); box(g, 0.08, 0.04, 0.08, 0xff7a20, 0.5, 1.76, 1.15);
+    box(g, 0.08, 0.4, 0.08, 0xd4af37, 0, 1.7, -2.45); for (const sd of [-1, 1]) box(g, 0.14, 0.1, 0.1, 0xd4af37, sd * 0.2, 1.6, -2.45);
+    seats(1.0);
+    for (const sx of [-0.85, 0.85]) for (const sz of [-1.9, 1.9]) { const f = box(g, 0.2, 0.5, 0.2, 0xd4af37, sx, 0.35, sz); wheel(g, sx * 1.1, 0.25, sz, 0.25, 0.12); }
   } else if (kind === 'limo') {
     // limusina descapotable larga, blanca con molduras doradas
     L = 7.8; seatY = 0; front = -3.9;
@@ -1166,7 +1232,7 @@ export function drawWeaponCard(g, w, prog, need, n) {
 // materiales "de verdad" solo para el arma: metal con reflejos, madera barnizada y polímero.
 // El reflejo sale de un cielo de mentira (cubo pintado): al girar la cámara los brillos se mueven por el arma
 let FPENV = null;
-function fpEnv() {
+export function fpEnv() {
   if (FPENV) return FPENV;
   const S = 64;
   const face = (top, mid, bot, spot) => {
@@ -1290,7 +1356,7 @@ export function fpGun(model, rar = 0, cfg = null, lv = 1, fp = true) {
       U.fore = [0, -0.04, -0.3]; U.grip = [0, -0.08, 0.06];
       L = 0.6; break;
     }
-    case 'derringer': case 'ak': case 'dbl': {
+    case 'derringer': case 'ak': case 'dbl': case 'tommy': case 'blunder': case 'flint': case 'xbow': {
       // armas exclusivas del botín: modelos detallados en fpclassic.js
       const r = classicGun(model, g, U, fpEnv());
       U.kind = r.kind; U.grip = r.grip; U.fore = r.fore; L = r.L; break;
@@ -1395,7 +1461,7 @@ export function fpGun(model, rar = 0, cfg = null, lv = 1, fp = true) {
   }
   // el arma se va currando al subir de nivel: mira, bocacha, láser, cargador largo y acabados dorados
   const longGun = ['rifle', 'mg', 'smg', 'shotgun'].includes(model);
-  const plain = ['cannon', 'colt', 'derringer', 'ak', 'dbl'].includes(model); // el Garrett tiene sus propias mejoras (arriba)
+  const plain = ['cannon', 'colt', 'derringer', 'ak', 'dbl', 'tommy', 'blunder', 'flint', 'xbow'].includes(model); // el Garrett tiene sus propias mejoras (arriba)
   if (lv >= 3 && !plain) {
     if (longGun) {
       CY(g, 0.03, 0.2, M.dk, 0, 0.085, -L * 0.45, 12);

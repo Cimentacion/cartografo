@@ -225,6 +225,10 @@ export function classicGun(model, g, U, env) {
   const K = mats(env);
   if (model === 'dbl') return paralela(g, U, K);
   if (model === 'ak') return bora(g, U, K);
+  if (model === 'tommy') return tommy(g, U, K);
+  if (model === 'blunder') return blunder(g, U, K);
+  if (model === 'xbow') return xbow(g, U, K);
+  if (model === 'flint') { const S = 1.25, sub = grp(g); sub.scale.setScalar(S); const r = flint(sub, U, K); return { ...r, L: r.L * S, grip: r.grip.map(v => v * S) }; }
   // la derringer es diminuta: se agranda un poco para que se luzca en la mano
   const S = 1.45, sub = grp(g); sub.scale.setScalar(S);
   const r = derringer(sub, U, K);
@@ -425,4 +429,162 @@ function derringer(g, U, K) {
   for (let k = 0; k < 3; k++) BX(hm, 0.0072, 0.0009, 0.004, K.gold, 0, 0.012 + k * 0.002, 0.012 + k * 0.002, -0.7);
   PX(hm, 0.0035, 0.026, K.gold, 0, 0, 0, 12);
   return { L: 0.14, kind: 'pistol', grip: [0, -0.042, 0.036], fore: null };
+}
+
+// tubo en 3D (puntos [x, y, z])
+function TU3(p, pts, r, m, seg = 24) {
+  const c = new THREE.CatmullRomCurve3(pts.map(q => new THREE.Vector3(q[0], q[1], q[2])));
+  const o = new THREE.Mesh(new THREE.TubeGeometry(c, seg, r, 8, false), m); p.add(o); return o;
+}
+
+// Tambor 21: subfusil de los años 20 con cargador de tambor, cañón con aletas, compensador, empuñadura delantera y culata de nogal
+function tommy(g, U, K) {
+  EX(g, [[-0.13, 0.034], [-0.13, -0.022], [0.06, -0.026], [0.07, 0.03], [0.04, 0.038], [-0.1, 0.038]], 0.044, K.blue, 0, 0.003);
+  BX(g, 0.02, 0.006, 0.13, K.bore, 0, 0.04, -0.04);
+  const bolt = grp(g, 0, 0.046, -0.02); U.bolt = bolt; TC(bolt, 0.006, 0.006, 0.012, K.steel, 0, 0.004, 0, 10).rotation.set(0, 0, 0); SP(bolt, 0.008, K.steel, 0, 0.012, 0);
+  // cañón con aletas de refrigeración y compensador ranurado
+  TC(g, 0.011, 0.011, 0.3, K.blue, 0, 0.012, -0.28, 16);
+  for (let k = 0; k < 14; k++) TC(g, 0.019, 0.019, 0.004, K.blue, 0, 0.012, -0.15 - k * 0.012, 18);
+  TC(g, 0.016, 0.016, 0.05, K.blue, 0, 0.012, -0.44, 16);
+  for (let k = 0; k < 3; k++) BX(g, 0.006, 0.01, 0.006, K.bore, 0, 0.026, -0.43 - k * 0.012);
+  TC(g, 0.008, 0.008, 0.003, K.bore, 0, 0.012, -0.4655, 12);
+  BX(g, 0.004, 0.016, 0.006, K.blue, 0, 0.032, -0.45);
+  // alza de librillo
+  EX(g, [[0.03, 0.038], [0.06, 0.038], [0.06, 0.055], [0.05, 0.06], [0.04, 0.05]], 0.016, K.blue, 0, 0.001, 1);
+  // empuñadura delantera vertical con dedos
+  LO(g, [[-0.2, -0.01, 0.014, 0.016, 2.4], [-0.198, -0.04, 0.016, 0.018, 2.4], [-0.196, -0.07, 0.015, 0.017, 2.4], [-0.194, -0.1, 0.016, 0.018, 2.4], [-0.193, -0.115, 0.012, 0.012, 2]], K.walnutB, 4, 18);
+  BX(g, 0.03, 0.012, 0.05, K.blue, 0, -0.012, -0.2);
+  // cargador de tambor (se suelta al recargar)
+  const mag = grp(g, 0, -0.07, -0.07); U.mag = mag;
+  const dr = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.036, 32), K.blue); dr.rotation.z = Math.PI / 2; mag.add(dr);
+  for (const sx of [-1, 1]) { const f = new THREE.Mesh(new THREE.CylinderGeometry(0.058, 0.058, 0.004, 32), K.blueD); f.rotation.z = Math.PI / 2; f.position.x = sx * 0.019; mag.add(f); PX(mag, 0.012, 0.006, K.steel, sx * 0.021, 0, 0, 12); for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; BX(mag, 0.003, 0.004, 0.03, K.steel, sx * 0.021, Math.sin(a) * 0.04, Math.cos(a) * 0.04, a); } }
+  BX(mag, 0.03, 0.03, 0.02, K.blue, 0, 0.055, 0);
+  // gatillo, guardamonte, empuñadura y culata
+  TU(g, [[-0.005, -0.024], [0.0, -0.045], [0.025, -0.05], [0.045, -0.04], [0.05, -0.024]], 0.003, K.blue, 2);
+  EX(grp(g, 0, -0.024, 0.02), [[0.0, 0.0], [0.005, -0.012, 0.0, -0.02], [-0.006, -0.022], [-0.004, -0.01, -0.005, 0.0]], 0.005, K.steel, 0, 0.001, 2);
+  LO(g, [[0.05, -0.024, 0.016, 0.017, 2.5], [0.058, -0.05, 0.017, 0.018, 2.5], [0.068, -0.08, 0.017, 0.019, 2.5], [0.076, -0.106, 0.016, 0.017, 2.4], [0.08, -0.114, 0.011, 0.011, 2]], K.walnutB, 4, 18);
+  LO(g, [[0.07, 0.006, 0.02, 0.026, 3], [0.14, -0.006, 0.0205, 0.03, 3], [0.22, -0.022, 0.021, 0.036, 3.2], [0.262, -0.03, 0.021, 0.038, 3.4]], K.walnutB, 4, 20);
+  LO(g, [[0.261, -0.03, 0.021, 0.038, 3.4], [0.27, -0.03, 0.021, 0.038, 3.4]], K.blue, 4, 20, 1.01);
+  return { L: 0.47, kind: 'long', grip: [0, -0.068, 0.066], fore: [0, -0.06, -0.196] };
+}
+
+// Trabuco: boca acampanada de latón, caja de nogal hasta delante, abrazaderas de latón y llave de chispa
+function blunder(g, U, K) {
+  TC(g, 0.016, 0.014, 0.36, K.brass, 0, 0.012, -0.2, 20);
+  for (let k = 0; k < 6; k++) { const z = -0.38 - k * 0.018, r0 = 0.014 + k * k * 0.0009, r1 = 0.014 + (k + 1) * (k + 1) * 0.0009; TC(g, r0, r1, 0.018, K.brass, 0, 0.012, z - 0.009, 22); }
+  TC(g, 0.036, 0.036, 0.006, K.gold, 0, 0.012, -0.49, 24); TC(g, 0.03, 0.03, 0.003, K.bore, 0, 0.012, -0.4935, 20);
+  for (const z of [-0.06, -0.16, -0.26]) TC(g, 0.0175, 0.0175, 0.006, K.gold, 0, 0.012, z, 18);
+  // caja de madera de una pieza: bajo el cañón, puño y culata
+  LO(g, [[-0.3, 0.0, 0.016, 0.012, 2.6], [-0.15, -0.002, 0.018, 0.014, 2.6], [-0.02, -0.004, 0.02, 0.02, 2.8], [0.04, -0.012, 0.017, 0.024, 2.6], [0.1, -0.03, 0.018, 0.032, 2.8], [0.2, -0.05, 0.022, 0.042, 3], [0.255, -0.058, 0.022, 0.046, 3.2]], K.walnutB, 4, 22);
+  LO(g, [[0.254, -0.058, 0.022, 0.046, 3.2], [0.264, -0.058, 0.022, 0.046, 3.2]], K.brass, 4, 22, 1.01);
+  TC(g, 0.004, 0.004, 0.28, K.walnutB, 0, -0.008, -0.17, 8); TC(g, 0.0055, 0.0055, 0.01, K.brass, 0, -0.008, -0.31, 10);
+  // llave de chispa a la derecha: pletina, pie de gato (martillo con piedra), rastrillo y cazoleta
+  EX(g, [[-0.06, 0.016], [0.03, 0.016], [0.045, 0.004, 0.03, -0.006], [-0.06, -0.006]], 0.004, K.steel, 0.019, 0.001, 1);
+  const hm = grp(g, 0.022, 0.014, 0.014); U.hammer = hm;
+  EX(hm, [[0.004, -0.004], [0.006, 0.012], [0.0, 0.03], [-0.012, 0.034], [-0.014, 0.026], [-0.004, 0.024], [-0.002, 0.012], [-0.006, -0.004]], 0.005, K.steel, 0, 0.001, 1);
+  BX(hm, 0.008, 0.008, 0.01, fpMatLocal(0x2a2a2a), 0, 0.028, -0.01);
+  EX(g, [[-0.032, 0.014], [-0.028, 0.04], [-0.022, 0.04], [-0.024, 0.016]], 0.006, K.steel, 0.022, 0.001, 1);
+  BX(g, 0.012, 0.006, 0.016, K.brass, 0.022, 0.016, -0.034);
+  // gatillo y guardamonte de latón
+  TU(g, [[-0.02, -0.02], [-0.016, -0.04], [0.005, -0.048], [0.03, -0.042], [0.05, -0.03], [0.08, -0.034]], 0.003, K.brass, 2);
+  EX(grp(g, 0, -0.018, 0.0), [[0.0, 0.0], [0.004, -0.012, 0.0, -0.02], [-0.006, -0.022], [-0.004, -0.01, -0.005, 0.0]], 0.005, K.steel, 0, 0.001, 2);
+  return { L: 0.495, kind: 'long', grip: [0, -0.05, 0.08], fore: [0, -0.02, -0.2] };
+}
+
+// Pistola de chispa: cañón ochavado largo, caja de nogal hasta la boca, baqueta, llave de chispa y pomo de latón
+function flint(g, U, K) {
+  TC(g, 0.0105, 0.0105, 0.23, K.blue, 0, 0.012, -0.135, 8).rotation.set(Math.PI / 2, Math.PI / 8, 0);
+  TC(g, 0.0115, 0.0115, 0.01, K.brass, 0, 0.012, -0.248, 16); TC(g, 0.006, 0.006, 0.003, K.bore, 0, 0.012, -0.2535, 12);
+  BX(g, 0.003, 0.005, 0.006, K.brass, 0, 0.024, -0.24);
+  LO(g, [[-0.235, 0.002, 0.009, 0.006, 2.6], [-0.1, 0.0, 0.011, 0.008, 2.6], [-0.02, 0.0, 0.013, 0.014, 2.8], [0.02, -0.01, 0.012, 0.018, 2.6], [0.04, -0.035, 0.0125, 0.019, 2.6], [0.052, -0.06, 0.0135, 0.02, 2.6], [0.06, -0.078, 0.014, 0.018, 2.4]], K.walnutB, 6, 20);
+  // pomo de latón en la culata
+  SP(g, 0.017, K.brass, 0, -0.082, 0.064, 0.9, 0.8, 1.1);
+  TC(g, 0.0028, 0.0028, 0.2, K.walnutB, 0, -0.008, -0.13, 8); TC(g, 0.0045, 0.0045, 0.008, K.brass, 0, -0.008, -0.232, 10);
+  EX(g, [[-0.05, 0.015], [0.02, 0.015], [0.03, 0.004, 0.02, -0.004], [-0.05, -0.004]], 0.003, K.steel, 0.012, 0.0008, 1);
+  const hm = grp(g, 0.015, 0.014, 0.008); U.hammer = hm;
+  EX(hm, [[0.004, -0.004], [0.006, 0.01], [0.0, 0.025], [-0.01, 0.028], [-0.012, 0.022], [-0.004, 0.02], [-0.002, 0.01], [-0.005, -0.004]], 0.004, K.steel, 0, 0.0008, 1);
+  BX(hm, 0.006, 0.006, 0.008, fpMatLocal(0x2a2a2a), 0, 0.023, -0.008);
+  EX(g, [[-0.025, 0.013], [-0.022, 0.034], [-0.017, 0.034], [-0.019, 0.014]], 0.005, K.steel, 0.015, 0.0008, 1);
+  TU(g, [[-0.012, -0.012], [-0.01, -0.03], [0.005, -0.036], [0.022, -0.03], [0.03, -0.02]], 0.0025, K.brass, 2);
+  EX(grp(g, 0, -0.012, 0.004), [[0.0, 0.0], [0.004, -0.01, 0.0, -0.016], [-0.005, -0.018], [-0.003, -0.008, -0.004, 0.0]], 0.004, K.steel, 0, 0.0008, 2);
+  for (const sx of [-1, 1]) screw(g, K.brass, sx * 0.0135, -0.01, -0.03, 0.0025, sx);
+  return { L: 0.255, kind: 'pistol', grip: [0, -0.05, 0.04], fore: null };
+}
+
+// Ballesta: culata de madera, arco de acero con poleas, cuerda tensada, virote cargado, estribo y mira
+function xbow(g, U, K) {
+  LO(g, [[-0.32, 0.004, 0.014, 0.012, 3], [-0.15, 0.002, 0.016, 0.016, 3], [-0.02, -0.002, 0.018, 0.02, 3], [0.06, -0.01, 0.018, 0.024, 3], [0.16, -0.026, 0.02, 0.032, 3.2], [0.24, -0.036, 0.021, 0.038, 3.4]], K.walnutB, 4, 22);
+  LO(g, [[0.239, -0.036, 0.021, 0.038, 3.4], [0.249, -0.036, 0.021, 0.038, 3.4]], K.rubber, 4, 22, 1.01);
+  BX(g, 0.006, 0.004, 0.3, K.steel, 0, 0.018, -0.16); // carril del virote
+  // arco (palas curvas) y poleas
+  for (const sx of [-1, 1]) {
+    TU3(g, [[0, 0.01, -0.3], [sx * 0.08, 0.012, -0.31], [sx * 0.16, 0.014, -0.29], [sx * 0.22, 0.016, -0.25]], 0.006, K.blueD, 20);
+    const pul = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.006, 16), K.steel); pul.position.set(sx * 0.222, 0.016, -0.248); g.add(pul);
+  }
+  BX(g, 0.05, 0.03, 0.04, K.blue, 0, 0.008, -0.3);
+  // estribo delantero
+  TU3(g, [[-0.03, 0.0, -0.32], [-0.035, -0.01, -0.36], [0, -0.012, -0.375], [0.035, -0.01, -0.36], [0.03, 0.0, -0.32]], 0.004, K.blue, 20);
+  // cuerda y virote (bajan y vuelven a subir al recargar)
+  const mag = grp(g, 0, 0, 0); U.mag = mag;
+  for (const sx of [-1, 1]) { const len = Math.hypot(0.222, 0.248 - 0.02), st = new THREE.Mesh(new THREE.CylinderGeometry(0.0012, 0.0012, len, 4), fpMatLocal(0xe8e0d0)); st.rotation.set(Math.PI / 2, 0, 0); st.rotation.y = sx * Math.atan2(0.222, 0.228); st.position.set(sx * 0.111, 0.018, -0.134); mag.add(st); }
+  TC(mag, 0.003, 0.003, 0.3, K.walnutB, 0, 0.024, -0.17, 8);
+  const tip = new THREE.Mesh(new THREE.ConeGeometry(0.006, 0.03, 8), K.steel); tip.rotation.x = -Math.PI / 2; tip.position.set(0, 0.024, -0.335); mag.add(tip);
+  for (const a of [0, 2.1, 4.2]) BX(mag, 0.001, 0.012, 0.03, fpMatLocal(0xd02020), Math.sin(a) * 0.005, 0.024 + Math.cos(a) * 0.005, -0.03, 0, a, 0);
+  // gatillo, guardamonte, empuñadura y mira
+  TU(g, [[-0.01, -0.02], [-0.006, -0.04], [0.014, -0.046], [0.032, -0.038], [0.04, -0.026]], 0.0028, K.blue, 2);
+  EX(grp(g, 0, -0.02, 0.012), [[0.0, 0.0], [0.004, -0.012, 0.0, -0.02], [-0.006, -0.022], [-0.004, -0.01, -0.005, 0.0]], 0.005, K.steel, 0, 0.001, 2);
+  LO(g, [[0.04, -0.026, 0.015, 0.016, 2.5], [0.05, -0.055, 0.016, 0.017, 2.5], [0.06, -0.085, 0.016, 0.017, 2.4], [0.064, -0.096, 0.011, 0.011, 2]], K.walnutB, 4, 18);
+  TC(g, 0.012, 0.012, 0.11, K.blueD, 0, 0.05, -0.06, 16); for (const z of [-0.115, -0.005]) TC(g, 0.015, 0.015, 0.012, K.blueD, 0, 0.05, z, 16);
+  BX(g, 0.018, 0.02, 0.006, K.blue, 0, 0.034, -0.09); BX(g, 0.018, 0.02, 0.006, K.blue, 0, 0.034, -0.03);
+  return { L: 0.35, kind: 'long', grip: [0, -0.062, 0.054], fore: [0, -0.012, -0.16] };
+}
+const FPL = new Map();
+function fpMatLocal(c) { let m = FPL.get(c); if (!m) { m = new THREE.MeshStandardMaterial({ color: c, roughness: 0.7, metalness: 0.1 }); FPL.set(c, m); } return m; }
+
+// ---------- cofres del botín: madera con veta, flejes de metal con remaches, tapa curva, cerradura y gemas ----------
+// tier: 0 madera, 1 plata, 2 oro, 3 diamante, 4 legendario (el asegurado de los anuncios)
+export function treasureChest(tier, env) {
+  const K = mats(env), g = new THREE.Group();
+  const std = o => new THREE.MeshStandardMaterial({ envMap: env, ...o }), phys = o => new THREE.MeshPhysicalMaterial({ envMap: env, ...o });
+  const T = [
+    { wood: woodTex('oak', '#8a5a2a', '#4a2a10', '#b07a40'), band: std({ color: 0x5a5e66, metalness: 0.9, roughness: 0.45, envMapIntensity: 1.1 }), gem: null },
+    { wood: woodTex('dark', '#4a2e1a', '#1e1008', '#7a5030'), band: K.silvEng, gem: 0x4fb3ff },
+    { wood: woodTex('red', '#8a2018', '#3a0806', '#c04030'), band: K.brassEng, gem: 0x3aff7a },
+    { wood: woodTex('ice', '#cfe8ff', '#7aa8d8', '#ffffff'), band: K.silvEng, gem: 0x9af4ff },
+    { wood: woodTex('night', '#2a1040', '#100418', '#5a2a80'), band: K.brassEng, gem: 0xff3ad0 },
+  ][Math.max(0, Math.min(4, tier))];
+  const woodM = phys({ map: T.wood, roughness: tier === 3 ? 0.15 : 0.55, clearcoat: tier >= 2 ? 1 : 0.3, clearcoatRoughness: 0.2, envMapIntensity: tier === 3 ? 1.2 : 0.6, transmission: 0 });
+  const W = 1.7, D = 1.15, H = 0.95, R = D / 2;
+  // cuerpo de tablones (cada uno con una juntura oscura) y fondo
+  for (let k = 0; k < 4; k++) BX(g, W - 0.04, H / 4 - 0.012, D - 0.02, woodM, 0, H / 8 + k * H / 4, 0);
+  BX(g, W - 0.02, 0.06, D, K.blueD, 0, 0.03, 0);
+  // flejes verticales y horizontales con remaches
+  const band = (p, x) => { BX(p, 0.12, H + 0.02, D + 0.04, T.band, x, H / 2, 0); for (const y of [0.15, H / 2, H - 0.12]) for (const z of [-D / 2 - 0.022, D / 2 + 0.022]) SP(p, 0.025, T.band, x, y, z); };
+  for (const x of [-W / 2 + 0.16, W / 2 - 0.16]) band(g, x);
+  BX(g, W + 0.04, 0.09, D + 0.04, T.band, 0, 0.05, 0); BX(g, W + 0.04, 0.08, D + 0.04, T.band, 0, H - 0.04, 0);
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) BX(g, 0.16, 0.16, 0.16, T.band, sx * (W / 2 - 0.02), 0.06, sz * (D / 2 - 0.02));
+  // tapa curva: medio cilindro que gira por detrás
+  const lid = grp(g, 0, H, -R); g.userData.lid = lid;
+  const cyl = (r, len, m, segs = 28) => { const o = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, segs, 1, false, 0, Math.PI), m); o.rotation.z = Math.PI / 2; o.position.set(0, 0, R); lid.add(o); return o; };
+  cyl(R, W - 0.04, woodM);
+  const cap = new THREE.Mesh(new THREE.CircleGeometry(R, 28, 0, Math.PI), woodM.clone()); cap.material.side = THREE.DoubleSide;
+  for (const sx of [-1, 1]) { const c = cap.clone(); c.rotation.y = sx * Math.PI / 2; c.position.set(sx * (W / 2 - 0.02), 0, R); lid.add(c); }
+  for (const x of [-W / 2 + 0.16, W / 2 - 0.16]) cyl(R + 0.02, 0.12, T.band).position.x = x;
+  cyl(R + 0.015, 0.06, T.band).position.x = 0;
+  for (const x of [-W / 2 + 0.16, W / 2 - 0.16]) for (let k = 1; k < 6; k++) { const a = k / 6 * Math.PI; SP(lid, 0.025, T.band, x, Math.sin(a) * (R + 0.03), R - Math.cos(a) * (R + 0.03)); }
+  // cerradura con bocallave y, en los buenos, gemas engastadas
+  BX(lid, 0.34, 0.36, 0.06, T.band, 0, -0.05, D + 0.0);
+  const kh = new THREE.Mesh(new THREE.CircleGeometry(0.04, 12), K.bore); kh.position.set(0, -0.02, D + 0.032); lid.add(kh);
+  BX(lid, 0.03, 0.08, 0.01, K.bore, 0, -0.08, D + 0.032);
+  if (T.gem != null) {
+    const gm = phys({ color: T.gem, roughness: 0.05, metalness: 0, transmission: 0.6, thickness: 0.3, ior: 2.2, emissive: T.gem, emissiveIntensity: 0.35, envMapIntensity: 2 });
+    const gem = (p, x, y, z, s) => { const o = new THREE.Mesh(new THREE.OctahedronGeometry(s, 0), gm); o.position.set(x, y, z); o.scale.z = 0.6; p.add(o); };
+    gem(lid, 0, 0.16, D + 0.02, 0.06);
+    if (tier >= 2) for (const x of [-W / 2 + 0.16, W / 2 - 0.16]) gem(g, x, H / 2, D / 2 + 0.06, 0.05);
+    if (tier >= 3) for (const x of [-0.45, 0.45]) gem(lid, x, R * 0.95, R * 0.75, 0.045);
+  }
+  // brillo del interior (se ve al abrir)
+  const inner = new THREE.Mesh(new THREE.BoxGeometry(W - 0.12, 0.04, D - 0.12), new THREE.MeshBasicMaterial({ color: [0xfff2a0, 0xbfe4ff, 0xffe070, 0xd8fbff, 0xff9af0][tier] }));
+  inner.position.y = H - 0.08; g.add(inner);
+  return g;
 }

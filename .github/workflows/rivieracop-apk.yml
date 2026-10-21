@@ -33,6 +33,10 @@ jobs:
         env: { KS: "${{ secrets.PLAY_KEYSTORE_B64 }}" }
         run: |
           if [ -n "$KS" ]; then echo "$KS" | base64 -d > "$RUNNER_TEMP/upload.jks"; echo "PLAY_KS=$RUNNER_TEMP/upload.jks" >> $GITHUB_ENV; fi
+      - name: Firebase (google-services.json desde el secreto, si existe)
+        env: { GSJ: "${{ secrets.GOOGLE_SERVICES_JSON }}" }
+        run: |
+          if [ -n "$GSJ" ]; then printf '%s' "$GSJ" > android-rivieracop/app/google-services.json; fi
       - name: Compilar
         working-directory: android-rivieracop
         env:

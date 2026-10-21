@@ -1,4 +1,7 @@
 plugins { id "com.android.application" }
+// Firebase Analytics (retención, sesiones…): se activa solo si existe app/google-services.json
+// (en GitHub llega desde el secreto GOOGLE_SERVICES_JSON)
+if (file("google-services.json").exists()) apply plugin: "com.google.gms.google-services"
 android {
     namespace "com.cimentacion.rivieracop"
     compileSdk 36
@@ -39,4 +42,6 @@ android {
 }
 dependencies {
     implementation "com.google.android.gms:play-services-ads:24.4.0"
+    implementation platform("com.google.firebase:firebase-bom:33.7.0")
+    implementation "com.google.firebase:firebase-analytics"
 }

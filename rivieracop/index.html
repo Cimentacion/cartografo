@@ -184,6 +184,18 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
 .lootTop{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:12px;padding:10px 14px;z-index:2}
 .lootTop .shopTitle{flex:1}
 #lootCnt{font:700 13px var(--f-ui);color:var(--gold)}
+#dailyScr{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(4,2,10,.72);backdrop-filter:blur(3px)}#dailyScr[hidden]{display:none}
+.dBox{background:linear-gradient(160deg,#241a44,#0e0a1c);border:2px solid #ffd34a;border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;align-items:center;gap:8px;max-width:94vw;box-shadow:0 0 40px rgba(255,200,60,.25);animation:lres .4s ease-out}
+.dT{font:clamp(18px,3.6vw,28px) var(--f-title);color:var(--gold);text-shadow:0 3px 0 #000}#dSub{font:600 12px var(--f-ui);color:#cfc8ee}
+#dDays{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
+.dDay{width:clamp(62px,10vw,86px);padding:8px 4px;border-radius:10px;background:#1a1430;border:1px solid #3a3260;display:flex;flex-direction:column;align-items:center;gap:3px;font:600 11px var(--f-ui);color:#aaa}
+.dDay i{font-style:normal;font-size:24px}.dDay b{font:12px var(--f-title);color:#fff}
+.dDay.got{opacity:.45}.dDay.now{background:#3a2a10;border:2px solid #ffd34a;color:#ffe;transform:scale(1.08);box-shadow:0 0 16px rgba(255,211,74,.5)}
+#lootAd{position:absolute;left:max(14px,3%);top:50%;transform:translateY(-50%);width:min(30vw,250px);background:rgba(8,6,16,.78);border:1px solid rgba(255,214,90,.35);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:7px;z-index:2;box-shadow:0 0 24px rgba(255,200,60,.12)}
+#lootAd>b{font:16px var(--f-title);color:var(--gold);letter-spacing:.08em}#lootAd>small{font:600 11px var(--f-ui);color:#b8b2d8}
+#lootAdBtn{font-size:12px;padding:10px 8px}#lootAdBtn:disabled{filter:grayscale(.7);opacity:.75}
+#lootAd .lab{display:flex;justify-content:space-between;font:600 11px var(--f-ui);color:#ddd}#lootAd .lab b{color:#fff}
+#lootAd .lbar{height:9px;border-radius:5px;background:#231c38;overflow:hidden}#lootAd .lbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff6ad8,#ffd34a);transition:width .4s}
 #lootHint{position:absolute;left:0;right:0;bottom:6%;text-align:center;font:14px var(--f-title);letter-spacing:.12em;color:#fff;opacity:.8;animation:lhint 1.2s infinite alternate;pointer-events:none}
 @keyframes lhint{from{opacity:.35}to{opacity:.95}}
 #lootRes{position:absolute;right:max(16px,4%);top:50%;max-width:min(42vw,360px);background:rgba(8,6,16,.75);padding:12px 18px;border-radius:12px;border:1px solid rgba(255,255,255,.12);transform:translateY(-50%);text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;z-index:2;animation:lres .5s ease-out}
@@ -761,10 +773,12 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
     </div>
   </div>
 
+  <div id="dailyScr" hidden><div class="dBox"><b class="dT">RECOMPENSA DIARIA</b><small id="dSub">Entra cada día: la racha sube el premio</small><div id="dDays"></div><button id="dGet" class="big">RECOGER</button></div></div>
   <div id="lootScr" class="screen" hidden>
     <canvas id="lootCv"></canvas>
     <div class="lootTop"><div class="shopTitle">CAJAS DE BOTÍN</div><div id="lootCnt"></div><button id="lootBack" class="big">VOLVER</button></div>
-    <div id="lootHint">Toca la caja para abrirla</div>
+    <div id="lootHint">Toca el cofre para abrirlo</div>
+    <div id="lootAd"><b>COFRE GRATIS</b><small>Uno cada 10 minutos</small><button id="lootAdBtn" class="big">▶ VER ANUNCIO · COFRE GRATIS</button><div class="lab"><span>Anuncios vistos</span><b id="lootAdN">0 / 10</b></div><div class="lbar"><i id="lootAdBar"></i></div><small id="lootAdTip"></small></div>
     <div id="lootRes" hidden><small id="lootRar"></small><b id="lootName"></b><span id="lootSub"></span><button id="lootNext" class="big">SIGUIENTE</button></div>
   </div>
 
