@@ -1,10 +1,11 @@
-// Sonido con WebAudio: muestras reales (CC0, carpeta sfx/) para disparos, recargas y explosiones, y el resto sintetizado
+// Sonido con WebAudio: efectos retro de 16 bits (estilo beat'em up, originales, carpeta sfx/) para disparos, golpes,
+// recargas y explosiones, y el resto sintetizado al vuelo
 let ac = null, master = null, noise = null;
 const BUF = {};
 let sfxLoading = false;
 function loadSfx() {
   if (sfxLoading || !ac) return; sfxLoading = true;
-  for (const k of ['g1', 'g2', 'g3', 'g4', 'g5', 'rel', 'emp', 'ammo', 'ex1', 'ex2', 'ex3', 'ex4', 'ex5', 'ex6', 'imp1', 'imp2', 'gl1', 'gl2'])
+  for (const k of ['r_light', 'r_light2', 'r_mid', 'r_mid2', 'r_snap', 'r_heavy', 'r_heavy2', 'r_en1', 'r_en2', 'r_en3', 'r_boom1', 'r_boom2', 'r_boom3', 'r_hit1', 'r_hit2', 'r_rel', 'r_emp', 'r_shell', 'gl1', 'gl2'])
     fetch('sfx/' + k + '.ogg').then(r => r.ok ? r.arrayBuffer() : null).then(b => b && ac.decodeAudioData(b)).then(d => { if (d) BUF[k] = d; }).catch(() => { });
 }
 // reproduce una muestra: rate = tono/velocidad, lp = filtro paso bajo (lejanía), hp = paso alto (más fino)
@@ -21,10 +22,12 @@ function samp(k, vol = 1, rate = 1, lp = 0, hp = 0, delay = 0) {
 const jit = (a = 0.05) => 1 + (Math.random() - 0.5) * 2 * a;
 // cada arma con su muestra, su tono y cuánto "cuerpo" grave se le añade (sintetizado)
 const GUNS = {
-  pistol: ['g2', 1.12, 0.8, 0.25, 160], revolver: ['g4', 0.9, 1, 0.5, 110], colt: ['g1', 0.95, 1, 0.45, 120], derringer: ['g3', 1.18, 0.85, 0.3, 170],
-  smg: ['g5', 1.12, 0.75, 0.15, 200], mg: ['g5', 0.92, 0.85, 0.3, 140], ak: ['g3', 1.0, 0.8, 0.3, 150], rifle: ['g1', 0.82, 1, 0.55, 95],
-  shotgun: ['g4', 0.74, 1, 0.9, 70], dbl: ['g4', 0.7, 1, 1, 65], cannon: ['g4', 0.6, 1, 1, 55],
+  pistol: [['r_light', 'r_light2'], 1.05, 0.8, 0.2, 170], revolver: [['r_mid', 'r_mid2'], 0.92, 1, 0.45, 110], colt: [['r_snap'], 0.95, 0.95, 0.4, 120],
+  derringer: [['r_snap'], 1.12, 0.85, 0.3, 160], smg: [['r_light', 'r_light2'], 1.15, 0.7, 0.12, 200], mg: [['r_light2', 'r_mid2'], 1.0, 0.75, 0.25, 140],
+  ak: [['r_mid', 'r_mid2'], 1.08, 0.75, 0.25, 150], rifle: [['r_mid', 'r_mid2'], 0.85, 1, 0.5, 95],
+  shotgun: [['r_heavy', 'r_heavy2'], 1.0, 1, 0.8, 70], dbl: [['r_heavy2', 'r_heavy'], 0.94, 1, 0.9, 65], cannon: [['r_heavy2'], 0.8, 1, 1, 55],
 };
+const pick = a => a[Math.floor(Math.random() * a.length)];
 let siren = null, heliN = null, engine = null;
 
 function ensure() {
@@ -51,8 +54,8 @@ export const SFX = {
   shot(model) {
     if (!ac) return;
     const G = GUNS[model];
-    if (G && BUF[G[0]]) {
-      samp(G[0], G[2], G[1] * jit(0.04));
+    if (G && BUF[G[0][0]]) {
+      samp(pick(G[0]), G[2], G[1] * jit(0.04));
       // golpe grave debajo (el "pum" que da peso al disparo)
       if (G[3] > 0) { const t = ac.currentTime, o = ac.createOscillator(), g2 = ac.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(G[4], t); o.frequency.exponentialRampToValueAtTime(38, t + 0.16); o.connect(g2); g2.connect(master); env(g2, t, 0.002, G[3] * 0.7, 0.16); o.start(t); o.stop(t + 0.22); }
       return;
@@ -73,7 +76,7 @@ export const SFX = {
   eshot(dist = 20) {
     if (!ac) return;
     const t = ac.currentTime, v = Math.max(0.08, Math.min(0.5, 8 / (dist + 4)));
-    if (samp('g' + (1 + Math.floor(Math.random() * 4)), v * 0.9, 0.95 * jit(0.08), Math.max(700, 9000 - dist * 160))) return;
+    if (samp(pick(['r_en1', 'r_en2', 'r_en3']), v * 0.9, jit(0.08), Math.max(700, 9000 - dist * 160))) return;
     const n = nsrc(), f = ac.createBiquadFilter(), g = ac.createGain();
     f.type = 'lowpass'; f.frequency.value = 1200;
     n.connect(f); f.connect(g); g.connect(master);
@@ -83,7 +86,7 @@ export const SFX = {
   boom(dist = 20) {
     if (!ac) return;
     const t = ac.currentTime, v = Math.max(0.15, Math.min(1, 25 / (dist + 10)));
-    if (samp('ex' + (1 + Math.floor(Math.random() * 6)), v, 0.9 * jit(0.08), Math.max(500, 8000 - dist * 120))) {
+    if (samp(pick(['r_boom1', 'r_boom2', 'r_boom3']), v, jit(0.08), Math.max(500, 8000 - dist * 120))) {
       // retumbo grave añadido (más suave que antes)
       const n = nsrc(), f = ac.createBiquadFilter(), g = ac.createGain();
       f.type = 'lowpass'; f.frequency.setValueAtTime(400, t); f.frequency.exponentialRampToValueAtTime(60, t + 0.8);
@@ -119,14 +122,16 @@ export const SFX = {
     o.start(t); o.stop(t + dur + 0.05);
   },
   hurt() { this.tone(300, 80, 0.35, 'sawtooth', 0.35); },
-  empty() { if (!samp('emp', 0.6, jit(0.03))) this.tone(1800, 1600, 0.03, 'square', 0.08); },
-  reload() { if (!samp('rel', 0.7, jit(0.03))) { this.tone(500, 700, 0.05, 'square', 0.12); this.tone(800, 600, 0.05, 'square', 0.12, 0.12); } },
-  shell() { samp('ammo', 0.35, jit(0.1)); },
+  empty() { if (!samp('r_emp', 0.6, jit(0.03))) this.tone(1800, 1600, 0.03, 'square', 0.08); },
+  reload() { if (!samp('r_rel', 0.7, jit(0.03))) { this.tone(500, 700, 0.05, 'square', 0.12); this.tone(800, 600, 0.05, 'square', 0.12, 0.12); } },
+  shell() { samp('r_shell', 0.3, jit(0.1)); },
   glass() { samp(Math.random() < 0.5 ? 'gl1' : 'gl2', 0.5, jit(0.06)); },
-  hit() { samp(Math.random() < 0.5 ? 'imp1' : 'imp2', 0.45, jit(0.08)); },
+  hit() { samp(Math.random() < 0.5 ? 'r_hit1' : 'r_hit2', 0.5, jit(0.08)); },
   pickup() { [523, 659, 784, 1046].forEach((f, i) => this.tone(f, f, 0.1, 'square', 0.15, i * 0.07)); },
   heal() { [660, 880].forEach((f, i) => this.tone(f, f * 1.01, 0.12, 'triangle', 0.25, i * 0.09)); },
   banner() { this.tone(880, 880, 0.08, 'square', 0.1); this.tone(1320, 1320, 0.1, 'square', 0.1, 0.09); },
+  // fanfarria de salida de recreativa: tres notas que suben y un acorde
+  go() { [0, 0.11, 0.22].forEach((d, i) => this.tone([523, 659, 784][i], [523, 659, 784][i], 0.09, 'square', 0.16, d)); [1046, 1318, 1568].forEach(f => this.tone(f, f, 0.35, 'square', 0.07, 0.34)); },
   vote() { this.tone(1200, 1500, 0.04, 'triangle', 0.08); },
   // sonidos continuos: sirena de ambulancia, helicóptero y motor
   loops(ambDist, heliDist, speed) {

@@ -728,7 +728,7 @@ const IMMEDIATE = new Set(['fork', 'weapon', 'over', 'go', 'arenaX', 'west', 'un
 function handleEvent(ev) {
   const li = G.li;
   switch (ev.k) {
-    case 'go': showBanner('¡YA!', 'Dispara a todo lo que te apunte', '#ffe14a'); look.calibrate(); $('count').hidden = true; break;
+    case 'go': showBanner('GO! GO! GO!', 'Dispara a todo lo que te apunte', '#ffe14a'); SFX.go(); look.calibrate(); $('count').hidden = true; break;
     case 'fx': {
       const p = V1.set(ev.w[0], ev.w[1], ev.w[2]);
       const dist = p.distanceTo(camera.position);
@@ -858,7 +858,7 @@ function handleEvent(ev) {
       break;
     case 'over': gameOver(ev); break;
     case 'kill': if (ev.p === G.li) {
-      STY.kill(ev);
+      STY.kill(ev); SFX.hit();
       CHC('kills'); if (ev.t) CHC('k_' + ev.t); if (ev.boss) CHC('boss'); if (ev.air) CHC('air'); if (ev.big) CHC('big'); if (ev.dl) CHC('dealer');
       if (STY.chain === 3) CHC('multi');
       if (STY.chain === 10) CHC('multi10');

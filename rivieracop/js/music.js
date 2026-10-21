@@ -9,6 +9,8 @@ const POOLS = {
   calma: ['med-2', 'peaceful_days', 'nin-7', 'wst-2', 'a_place_i_call_home', 'pre-5', 'nin-10', 'pre-4'],
   menu: ['menu', 'doodle', 'spc-2', 'nin-9'],
 };
+// el primer mundo tiene sus dos temas propios (originales, rock de carreras a toda velocidad)
+const OWN = { monaco: ['fz1', 'fz2'] };
 const CAT = {
   monaco: 'ciudad', puerto: 'ciudad', casino: 'ciudad', autopista: 'ciudad', industrial: 'ciudad', detroit: 'ciudad', trenes: 'ciudad',
   orgullo: 'ciudad', manifa: 'ciudad', chino: 'ciudad', semaforos: 'ciudad', policia: 'ciudad', tuneles: 'ciudad', bajada: 'ciudad', curva: 'ciudad',
@@ -22,6 +24,7 @@ const CAT = {
 const LISTS = {};
 function listFor(key) {
   if (LISTS[key]) return LISTS[key];
+  if (OWN[key]) return (LISTS[key] = OWN[key].slice());
   const cat = key === 'menu' ? 'menu' : CAT[key] || 'ciudad', P = POOLS[cat];
   if (cat === 'menu') return (LISTS[key] = P.slice());
   const same = Object.keys(CAT).filter(k => CAT[k] === cat), i = Math.max(0, same.indexOf(key));

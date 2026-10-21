@@ -2,6 +2,7 @@ Música y efectos de sonido de Riviera Cop — todo con licencia CC0 1.0 (domini
 https://creativecommons.org/publicdomain/zero/1.0/
 
 MÚSICA
+- fz1 ("Riviera Rush") y fz2 ("Costa Azul a fondo"): temas originales compuestos y sintetizados para el juego (primer mundo).
 - med-*, nin-*, pre-*, rpg-*, spc-*, tds-*, wst-*: Superpowers Asset Packs (Medieval Fantasy, Ninja Adventure, Prehistoric Platformer,
   RPG Battle System, Space Shooter, Top-Down Shooter, Western FPS 2D) por Pixel-boy / Sparklin Labs — CC0.
   https://github.com/sparklinlabs/superpowers-asset-packs
@@ -12,6 +13,7 @@ MÚSICA
   (recogidas en https://github.com/S3M1TR4SH/asset-library, ver su LICENSES.md)
 
 EFECTOS (carpeta sfx/)
-- Disparos, recarga, casquillos, impactos, cristales y explosiones: Superpowers Asset Packs (Western FPS 2D y Top-Down Shooter) — CC0.
+- r_*: disparos, explosiones, golpes, recarga y casquillos originales, sintetizados para el juego (estilo 16 bits).
+- gl1, gl2 (cristales): Superpowers Asset Packs (Western FPS 2D) — CC0.
 
 Los temas se han recodificado a Opus y normalizado de volumen.
