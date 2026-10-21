@@ -184,6 +184,18 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
 .lootTop{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:12px;padding:10px 14px;z-index:2}
 .lootTop .shopTitle{flex:1}
 #lootCnt{font:700 13px var(--f-ui);color:var(--gold)}
+#vsHud{position:absolute;left:0;right:0;top:52px;display:flex;justify-content:center;align-items:center;gap:14px;z-index:5;pointer-events:none}#vsHud[hidden]{display:none}
+.vsSide{display:flex;align-items:center;gap:6px;background:rgba(8,6,16,.7);padding:6px 10px;border-radius:8px;border:2px solid #4fb3ff;font:700 12px var(--f-ui);color:#fff;position:relative}.vsSide.op{border-color:#ff5a8a;flex-direction:row-reverse}
+.vsSide b{font:13px var(--f-title)}.vsBar{width:min(22vw,180px);height:12px;background:#2a1a24;border-radius:3px;overflow:hidden}.vsBar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#3aff7a,#d8ff4a);transition:width .2s}.op .vsBar i{background:linear-gradient(270deg,#ff4a6a,#ffa04a);margin-left:auto}
+.vsSide em{position:absolute;top:100%;left:0;right:0;text-align:center;font:700 11px var(--f-ui);color:#ffb04a;font-style:normal;margin-top:3px}
+#vsSc{font:clamp(20px,4vw,30px) var(--f-title);color:#ffe14a;text-shadow:0 3px 0 #000}
+#vsCount{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);font:clamp(60px,14vw,120px) var(--f-title);color:#ffe14a;text-shadow:0 6px 0 #000}
+#vsCross{display:none;position:fixed;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border:2px solid rgba(255,255,255,.85);border-radius:50%;pointer-events:none;z-index:4;box-shadow:0 0 0 1px rgba(0,0,0,.5)}#vsCross i{position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;background:#ff3a5a;border-radius:50%}body.vsmode #vsCross{display:block}
+#vsHurt{position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 120px rgba(255,0,0,.0);z-index:4}#vsHurt.on{animation:vshurt .45s}
+@keyframes vshurt{0%{box-shadow:inset 0 0 140px rgba(255,20,20,.75)}100%{box-shadow:inset 0 0 140px rgba(255,20,20,0)}}
+#vsEnd{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(4,2,10,.65)}#vsEnd[hidden]{display:none}
+#vsEnd b{font:clamp(32px,8vw,64px) var(--f-title);text-shadow:0 5px 0 #000}#vsEnd span{font:700 18px var(--f-ui);color:#fff}
+body.vsmode #p0,body.vsmode #p1,body.vsmode #p2,body.vsmode #p3,body.vsmode #p4,body.vsmode #mates,body.vsmode #route,body.vsmode #mult,body.vsmode #style,body.vsmode #boss,body.vsmode #wcard,body.vsmode #hud,body.vsmode .pw,body.vsmode #btnShield,body.vsmode #btnBullet,body.vsmode #btnTurbo,body.vsmode #btnCannon,body.vsmode #btnPot,body.vsmode #btnRevive,body.vsmode #regul,body.vsmode #btnHide,body.vsmode #btnScope{display:none!important}
 #dailyScr{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(4,2,10,.72);backdrop-filter:blur(3px)}#dailyScr[hidden]{display:none}
 .dBox{background:linear-gradient(160deg,#241a44,#0e0a1c);border:2px solid #ffd34a;border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;align-items:center;gap:8px;max-width:94vw;box-shadow:0 0 40px rgba(255,200,60,.25);animation:lres .4s ease-out}
 .dT{font:clamp(18px,3.6vw,28px) var(--f-title);color:var(--gold);text-shadow:0 3px 0 #000}#dSub{font:600 12px var(--f-ui);color:#cfc8ee}
@@ -654,6 +666,14 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
 
   <div id="hudwrap" hidden>
     <div id="netTag" hidden></div>
+    <div id="vsHud" hidden>
+      <div class="vsSide me"><b>TÚ</b><div class="vsBar"><i id="vsMeB"></i></div><span id="vsMeN">50</span><em id="vsMeW" hidden>🛞 PINCHADO</em></div>
+      <div id="vsSc">0 - 0</div>
+      <div class="vsSide op"><b>RIVAL</b><div class="vsBar"><i id="vsOpB"></i></div><span id="vsOpN">50</span><em id="vsOpW" hidden>🛞 PINCHADO</em></div>
+      <div id="vsCount"></div>
+    </div>
+    <div id="vsHurt"></div><div id="vsCross"><i></i></div>
+    <div id="vsEnd" hidden><b id="vsEndT"></b><span id="vsEndS"></span><div><button id="vsAgain" class="big">REVANCHA</button> <button id="vsMenu" class="big">MENÚ</button></div></div>
     <div id="style" hidden><div class="styTop"><b id="styR">D</b><span id="styN"></span></div><div class="styBar"><i id="styB"></i></div><small id="styM"></small><div id="styF"></div></div>
     <div id="scope" hidden></div>
     <div id="smokefx"></div><div id="sandfx"></div><div id="wetfx"></div>
@@ -726,6 +746,7 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
         <button id="btnRetos" class="mmS">🏆 RETOS<i id="retosN" class="mmBadge" hidden></i></button>
         <button id="btnLoot" class="mmS">🎁 CAJAS<i id="lootN" class="mmBadge" hidden></i></button>
         <button id="btnStory" class="mmS">📖 HISTORIA <small id="storyN"></small></button>
+        <button id="btnVersus" class="mmS">⚔ VERSUS <small>vs máquina</small></button>
         <button id="btnAdPot" class="mmS mmPot">🧪 POCIÓN GRATIS <small id="potN"></small></button>
       </div>
       <div id="best"></div>
