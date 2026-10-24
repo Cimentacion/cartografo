@@ -200,7 +200,7 @@ const CIV = [0xf0c040, 0x40a0f0, 0xf06080, 0x60d080, 0xffffff, 0xff8030, 0xa070f
 const SKIN = [0xd9a476, 0xb27a4e, 0xf0c8a0, 0x7a5030];
 // enemigos más grandes: más fáciles de ver y de acertar en el móvil
 const SCALE = { tfunnel: 2.2, mbomb: 2.6, iceberg: 2.3, gunman: 1.35, civilian: 1.3, victim: 1.3, slasher: 1.35, sniper: 1.5, moto: 1.2, drone: 1.8, chicken: 1.4, grenade: 1.7, rocket: 1.5, medkit: 1.3, barrel: 1.2, jeep: 1.1, lady: 1.3, rock: 1.3,
-  sign: 1.45, harvester: 1.9, skel: 1.3, outlaw: 1.35, wsign: 2, goblin: 1.5, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2, beast: 1.35, bear: 1.5, jelly: 1.4, mine: 1.2, zombie: 1.3, bat: 1.5, key: 2.2 };
+  sign: 1.45, csign: 1.6, harvester: 1.9, skel: 1.3, outlaw: 1.35, wsign: 2, goblin: 1.5, jumper: 1.3, rioter: 1.3, thrown: 1.6, boat: 1.1, quad: 1.15, canoe: 1.2, beast: 1.35, bear: 1.5, jelly: 1.4, mine: 1.2, zombie: 1.3, bat: 1.5, key: 2.2 };
 // cosas que no paran las balas
 const NOHIT = new Set(['tlight', 'preview', 'whale', 'casinob']);
 // sombra suave (mancha difuminada en el suelo) bajo coches, personas y animales: barata y estable
@@ -213,7 +213,7 @@ const BLOBT = (() => {
 })();
 const BLOBM = new THREE.MeshBasicMaterial({ map: BLOBT, transparent: true, depthWrite: false, opacity: 0.8, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
 const BLOBG = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
-const NOBLOB = new Set(['tdebris', 'tfunnel', 'steamer', 'warch', 'iceberg', 'lboat', 'wsign', 'whouse', 'mansion', 'church', 'tower', 'mbomb', 'dunegate', 'fatman', 'toll', 'obelisk', 'casinob', 'megalodon', 'bat', 'key', 'hdoor', 'prop', 'sign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
+const NOBLOB = new Set(['tdebris', 'tfunnel', 'steamer', 'warch', 'iceberg', 'lboat', 'wsign', 'whouse', 'mansion', 'church', 'tower', 'mbomb', 'dunegate', 'fatman', 'toll', 'obelisk', 'casinob', 'megalodon', 'bat', 'key', 'hdoor', 'prop', 'sign', 'csign', 'preview', 'tlight', 'heli', 'drone', 'jet', 'blimp', 'gunship', 'rocket', 'grenade', 'thrown', 'whale', 'jelly', 'mtrain', 'train', 'wall', 'boat', 'canoe', 'mine', 'weapon']);
 const _bb = new THREE.Box3(), _bs = new THREE.Vector3();
 export function addBlob(g, k = 1.15) {
   _bb.setFromObject(g); _bb.getSize(_bs);
@@ -239,7 +239,7 @@ const MASK = {
   goblin: LAYER_ENEMY, wsign: LAYER_KEEP, whouse: LAYER_KEEP, mansion: LAYER_KEEP, church: LAYER_KEEP, skel: LAYER_ENEMY, outlaw: LAYER_ENEMY,
   obelisk: LAYER_KEEP, toll: LAYER_KEEP, victim: LAYER_KEEP, slasher: LAYER_ENEMY, mbomb: LAYER_ENEMY, tuktuk: LAYER_ENEMY, fatman: LAYER_KEEP, firetruck: LAYER_ENEMY, megalodon: LAYER_ENEMY, zombie: LAYER_ENEMY, bat: LAYER_ENEMY, brute: LAYER_ENEMY, key: LAYER_KEEP, hdoor: LAYER_KEEP, prop: LAYER_KEEP,
   preview: LAYER_KEEP, police: LAYER_KEEP, tlight: LAYER_KEEP, fuel: LAYER_KEEP, float: LAYER_KEEP,
-  sign: LAYER_KEEP, weapon: LAYER_KEEP, medkit: LAYER_KEEP, amb: LAYER_KEEP, truck: LAYER_KEEP, barrel: LAYER_KEEP, lady: LAYER_KEEP, civilian: LAYER_KEEP, chicken: LAYER_KEEP,
+  sign: LAYER_KEEP, csign: LAYER_KEEP, weapon: LAYER_KEEP, medkit: LAYER_KEEP, amb: LAYER_KEEP, truck: LAYER_KEEP, barrel: LAYER_KEEP, lady: LAYER_KEEP, civilian: LAYER_KEEP, chicken: LAYER_KEEP,
 };
 // enemigos con colores más vivos (material saturado, uno por material original)
 const SATM = new Map();
@@ -449,6 +449,7 @@ export class View {
       case 'jeep': g = x.dealer ? M.dealerVan() : M.jeep(); break;
       case 'weapon': g = M.weaponPickup(x.w); break;
       case 'sign': g = M.sign(); break;
+      case 'csign': { g = M.sign(); g.children[0].userData.part = 'body'; const pole = new THREE.Mesh(new THREE.BoxGeometry(0.22, 4.2, 0.22), new THREE.MeshLambertMaterial({ color: 0x8a8f96 })); pole.position.y = -2.2; g.add(pole); break; }
       case 'barrel': g = M.barrel(); break;
       case 'grenade': g = M.grenade(); break;
       case 'rocket': g = M.rocket(); break;
@@ -1123,6 +1124,7 @@ const ANIM = {
     if (e.x && e.x.w) M.drawWeaponCard(o, e.x.w, e.x.pr || [0, 0], e.x.nd || 5, (e.x.pr || [0]).length);
   },
   sign(o, e) { if (e.x) M.drawSign(o, e.x); },
+  csign(o, e) { if (e.x) M.drawSign(o, Object.assign({}, e.x, { zd: 0 })); },
   lady(o, e, dt, ctx) {
     const ud = o.userData, rig = ud.p.userData.rig;
     if (e.st === ST.DEAD) {

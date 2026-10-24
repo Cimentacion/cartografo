@@ -38,8 +38,24 @@ const HOSTILE = new Set(['gunman', 'sniper', 'moto', 'ecar', 'heli', 'drone', 'j
 export const AIR = new Set(['heli', 'drone', 'jet', 'blimp', 'gunship']);
 export const ANIMAL = new Set(['beast', 'bear', 'jelly', 'chicken']);
 const PROJ = new Set(['grenade', 'rocket', 'rock', 'thrown']);
-// lo que se puede poner en un mapa hecho a mano: [nombre, cómo sale] (n = cuántos)
+// enemigos colocados en un sitio exacto del mapa (e.d, e.lat, e.h; e.cv = escondido tras una cobertura)
+function pGun(S, n, e, gren) {
+  const r = S.r;
+  for (let i = 0; i < n; i++) {
+    const d = e.d + i * 2.4, lat = clamp((+e.lat || 0) + (i % 2 ? 1.2 : 0), -60, 60);
+    const g = S.add('gunman', { d, lat, h: 0.18 + Math.max(0, +e.h || 0), hp: 2 + (S.diff > 3 ? 1 : 0), st: ST.HIDDEN });
+    g.x = { cv: e.cv ? i % 3 : -1, gr: gren ? 1 : 0, pop: e.cv ? 40 + r() * 20 : 999, sk: Math.floor(r() * 6), cm: 1 };
+    g.sh = [gren ? S.shooter(3.6, 'grenade', 0.3) : S.shooter(3.0 + r() * 0.8, 'shot', 0.4 + i * 0.5)];
+  }
+}
+const PEV = { pgun: 1, pgren: 1, psniper: 1, pciv: 1, pbarrel: 1, pmedkit: 1 };
 export const CMAP_EV = {
+  pgun: ['📍 Pistoleros AQUÍ', (S, n, e) => pGun(S, n, e, false)],
+  pgren: ['📍 Granaderos AQUÍ', (S, n, e) => pGun(S, n, e, true)],
+  psniper: ['📍 Francotirador AQUÍ', (S, n, e) => { for (let i = 0; i < n; i++) { const s = S.add('sniper', { d: e.d + i * 3, lat: clamp(+e.lat || 8, -60, 60), h: Math.max(1, +e.h || 5), hp: 2 }); s.x = { cm: 1 }; s.sh = [S.shooter(3.8, 'shot', 1.2 + i * 0.4)]; } }],
+  pciv: ['📍 Civiles AQUÍ (no disparar)', (S, n, e) => { for (let i = 0; i < n; i++) { const c = S.add('civilian', { d: e.d + i * 1.5, lat: (+e.lat || 0) + (S.r() - 0.5), h: 0.18 + Math.max(0, +e.h || 0), hp: 1 }); c.x = { sk: Math.floor(S.r() * 6), cm: 1 }; } }],
+  pbarrel: ['📍 Bidón explosivo AQUÍ', (S, n, e) => { for (let i = 0; i < n; i++) { const b = S.add('barrel', { d: e.d + i * 1.4, lat: +e.lat || 0, h: 0.18 + Math.max(0, +e.h || 0), hp: 1 }); b.x = { cm: 1 }; } }],
+  pmedkit: ['📍 Botiquín AQUÍ', (S, n, e) => { const m = S.add('medkit', { d: e.d, lat: +e.lat || 0, h: 1.2 + Math.max(0, +e.h || 0), hp: 1 }); m.x = { st: 1.2 + Math.max(0, +e.h || 0), still: 1, life: 999, cm: 1 }; }],
   gunmen: ['Pistoleros', (S, n) => { for (let k = n; k > 0; k -= 3) S.spawnGunmen(Math.min(3, k), false); }],
   cover: ['Pistoleros tras coberturas', (S, n) => { for (let k = n; k > 0; k -= 3) S.spawnGunmen(Math.min(3, k), true); }],
   grenadier: ['Granaderos', (S, n) => { for (let i = 0; i < n; i++) S.spawnGunmen(1, true, true); }],
@@ -128,7 +144,7 @@ export class Sim {
     this.forkDone = -1; this.signsFor = -1; this.voting = false;
     this.visited = new Set([road.forks[0] ? road.forks[0].bio : 0]);
     // mapa hecho a mano: sus enemigos salen al llegar a cada punto (metros desde el principio del mapa)
-    if (opts.cmap) { const M = opts.cmap; this.cmap = { auto: clamp(M.auto | 0, 0, 2), i: 0, ambT: 60, evs: (M.evs || []).filter(e => CMAP_EV[e.k]).map(e => ({ d: START_TUN + Math.max(0, +e.d || 0), k: e.k, n: clamp(e.n | 0 || 1, 1, 8) })).sort((a, b) => a.d - b.d) }; }
+    if (opts.cmap) { const M = opts.cmap; this.cmap = { auto: clamp(M.auto | 0, 0, 2), ambT: 60 }; }
     // modo historia: zonas fijas del capítulo { ch, z: [índices de zona], lv }
     this.story = opts.story || null;
     this.bonus = {}; this.diff = 1; this.over = false;
@@ -711,9 +727,20 @@ export class Sim {
   // mapa hecho a mano: lanza lo que toque según los metros y, al pasar la meta, mapa completado
   cmapStep(dt) {
     const C = this.cmap, R = this.road;
-    while (C.i < C.evs.length && this.carD >= C.evs[C.i].d - 4) {
-      const e = C.evs[C.i++];
-      try { CMAP_EV[e.k][1](this, e.n); } catch (err) { console.warn('cmap', e.k, err); }
+    // enemigos del mapa: los colocados en un sitio exacto salen un poco antes (para verlos aparecer allí)
+    for (const e of R.cevs || []) {
+      if (e.done) continue;
+      const pos = !!PEV[e.k];
+      if (this.carD < e.d - (pos ? 75 : 4)) break;
+      e.done = 1;
+      const f = CMAP_EV[e.k]; if (!f) continue;
+      try { f[1](this, clamp(e.n | 0 || 1, 1, 8), e); } catch (err) { console.warn('cmap', e.k, err); }
+    }
+    // cartel lateral (como el de OLD TOWN): si nadie le dispara, se sigue recto
+    const W = R.sideSign && R.sideSign(this.carD);
+    if (W) {
+      if (once0(this, 'csg' + W.k + ':' + W.sign)) { const lat = W.sd * 9.5; const e = this.add('csign', { d: W.sign, lat, h: 4.4, hp: 999, ry: Math.PI - W.sd * 0.45 }); e.x = { k: W.k, l: W.l, s: 0, v: 0, w: 0, zd: 0 }; }
+      if (this.carD > W.sign + 6 && W.choice == null) { R.setCSide(W.k, 0); this.emit('cside', { kk: W.k, c: 0 }); for (const q of this.ents) if (q.type === 'csign' && q.x.k === W.k) q.x.w = -1; }
     }
     if (!C.auto) {
       // sin oleadas automáticas: solo la ambulancia si alguien va mal de vida
@@ -725,6 +752,14 @@ export class Sim {
       this.emit('banner', { txt: '¡MAPA COMPLETADO!', sub: '', c: '#7dff8a' });
       this.emit('over', { t: Math.round(this.runT), dist: Math.round(this.carD), sc: this.players.map(p => p.score), kl: this.players.map(p => p.kills), ck: this.stats.chickens, rt: this.stats.forks, win: 1, cm: 1 });
     }
+  }
+  // le han disparado al cartel lateral: la carretera gira por el otro camino
+  cside(W) {
+    this.road.setCSide(W.k, 1);
+    this.emit('cside', { kk: W.k, c: 1 });
+    // fuera lo que ya hubiera salido del camino que ya no existe
+    for (const e of this.ents) if (e.d > W.cut - 2 && (e.x.cm || e.type === 'sign' || e.type === 'preview')) e.rm = true;
+    if (this.signsFor >= this.forkDone + 1 && !this.road.forks[this.signsFor]) { this.signsFor = this.forkDone; this.voting = false; this.voteT = null; }
   }
   director(dt) {
     if (this.cmap) { this.cmapStep(dt); if (!this.cmap.auto || this.over) return; }
@@ -1871,7 +1906,21 @@ export class Sim {
       let pool = BIOME_KEYS.map((_, i) => i).filter(b => b !== f.from && !this.visited.has(b) && !BIOMES[BIOME_KEYS[b]].hidden);
       if (!pool.length) { this.visited = new Set([f.from]); pool = BIOME_KEYS.map((_, i) => i).filter(b => b !== f.from && !BIOMES[BIOME_KEYS[b]].hidden); }
       if (this.story) pool = [SN];
-      const nOpt = Math.min(pool.length, 2 + (k % 2 === 0 ? 1 : 0));
+      if (f.custom) {
+        // mapa hecho a mano: un cartel por camino, con el nombre que le hayan puesto
+        const nO = Math.min(3, f.opts.length), lt = nO === 3 ? [-5.9, 0, 5.9] : [-3.1, 3.1], opts = [];
+        for (let i = 0; i < nO; i++) {
+          const O = f.opts[i], seg0 = (O.segs || [])[0], bi = this.road._cbio(seg0 ? seg0.bio : BIOME_KEYS[f.bio]), B = BIOMES[BIOME_KEYS[bi]];
+          const l = String(O.l || B.name).slice(0, 22).toUpperCase(), zd = this.road.czd;
+          const e = this.add('sign', { d: f.gantry, lat: lt[i], h: 6.4, hp: 999, ry: Math.PI });
+          e.x = { o: i, l, s: O.s ? String(O.s).slice(0, 26) : '', v: 0, w: 0, b: bi, bo: 'none', k, zd, ci: i };
+          opts.push({ l, zd, c: B.color, a: Math.sign(lt[i]) });
+        }
+        for (const dd of [140, 85]) for (const sd of [-1, 1]) { const e = this.add('preview', { d: f.gantry - dd, lat: sd * 8.0, h: 0.18, hp: 999, ry: Math.PI - sd * 0.5 }); e.x = { o: opts }; }
+        this.emit('banner', { txt: 'ELIGE CAMINO', sub: 'Dispara al cartel del camino que quieras', c: '#ffe14a' });
+        pool = [];
+      }
+      const nOpt = f.custom ? 0 : Math.min(pool.length, 2 + (k % 2 === 0 ? 1 : 0));
       const lats = nOpt === 3 ? [-5.9, 0, 5.9] : nOpt === 2 ? [-3.1, 3.1] : [0];
       const opts = [];
       for (let i = 0; i < nOpt; i++) {
@@ -1904,16 +1953,16 @@ export class Sim {
       }
       const win = top[Math.floor(this.r() * top.length)];
       for (const s of signs) s.x.w = s === win ? 1 : -1;
-      R.setChoice(k, win.x.b, win.x.zd);
+      R.setChoice(k, f.custom ? win.x.ci : win.x.b, win.x.zd);
       this.visited.add(win.x.b);
       this.forkDone = k; this.voting = false;
       this.bonus = {}; this.zt = {};
       if (win.x.bo !== 'none') this.bonus[win.x.bo] = 1;
       if (win.x.bo === 'terror') this.terrT = Math.min(this.terrT, 22);
       this.stats.forks.push(win.x.l + ' ' + win.x.zd);
-      this.emit('fork', { kk: k, b: win.x.b, zd: win.x.zd });
+      this.emit('fork', { kk: k, b: f.custom ? win.x.ci : win.x.b, zd: win.x.zd });
       if (this.story) this.emit('radio', { ch: this.story.ch, z: k + 1 });
-      this.emit('banner', { txt: 'RUTA: ' + win.x.l, sub: 'DIFICULTAD ' + win.x.zd + (win.x.s ? ' · ' + win.x.s : ''), c: BIOMES[BIOME_KEYS[win.x.b]].color });
+      this.emit('banner', { txt: (f.custom ? 'CAMINO: ' : 'RUTA: ') + win.x.l, sub: f.custom ? (win.x.s || '') : 'DIFICULTAD ' + win.x.zd + (win.x.s ? ' · ' + win.x.s : ''), c: BIOMES[BIOME_KEYS[win.x.b]].color });
     }
   }
 
@@ -2146,6 +2195,7 @@ function ser(e) {
     case 'ecar': x = { gd: X.gd, suv: X.suv, limo: X.limo }; break;
     case 'civcar': x = { c: X.c }; break;
     case 'sign': x = { l: X.l, s: X.s, v: X.v, w: X.w, zd: X.zd }; break;
+    case 'csign': x = { l: X.l, s: X.s, v: X.v, w: X.w, zd: 0 }; break;
     case 'lady': x = { sk: X.sk, used: X.used }; break;
     case 'train': x = { dv: X.dv }; break;
     case 'weapon': x = { w: X.w, pr: X.pr, nd: X.nd }; break;
@@ -2487,6 +2537,7 @@ const U = {
     if (x.life <= 0) { e.rm = true; S.emit('banner', { txt: 'EL ARMA SE HA PERDIDO', sub: '', c: '#aaaaaa' }); }
   },
   sign(e, dt, S) { if (S.rel(e) < -15) e.rm = true; },
+  csign(e, dt, S) { e.vd = 0; if (S.rel(e) < -20) e.rm = true; },
   wsign(e, dt, S) { e.vd = 0; if (S.rel(e) < -40) e.rm = true; },
   goblin(e, dt, S) {
     const x = e.x, rel = S.rel(e);
@@ -3582,6 +3633,15 @@ const HIT = {
       S.emit('banner', { txt: `${S.n > 1 ? PNAME[p] + ' COGE' : 'HAS COGIDO'}: ${x.w.name.toUpperCase()}`, sub: '', c: '#ffe14a' });
       S.emit('fx', { f: 'heal', w: S.wpos(e.d, e.lat, e.h) });
     }
+  },
+  csign(e, p, part, dmg, S) {
+    if (e.x.s || e.x.w) return;
+    const W = S.road.csides && S.road.csides.find(q => q.k === e.x.k);
+    if (!W || W.choice != null) return;
+    e.x.s = 1; e.x.w = 1;
+    S.cside(W);
+    const O = W.opts[1] || {};
+    S.emit('banner', { txt: '¡' + (O.l ? String(O.l).toUpperCase() : 'CAMBIO DE CAMINO') + '!', sub: '¡Giramos!', c: '#ffb02a' });
   },
   sign(e, p, part, dmg, S) {
     if (!S.voting || e.x.w !== 0) return;

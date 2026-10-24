@@ -274,7 +274,7 @@ const CHC = (k, n = 1) => { chAdd(PROG, k, n); G.chDirty = 1; };
 // ---------------- cajas de botín: una al acabar cada mapa (valor según mapas hechos, dificultad y velocidad) ----------------
 const LOOT = { zk: null, maps: 0, row: 0, hurt: false, hp: null, got: 0 };
 function lootTrack() {
-  if (!G.running || G.over || !G.road) return;
+  if (!G.running || G.over || !G.road || G.cmap) return;
   const me = G.players[G.li];
   if (me) { if (LOOT.hp != null && (me.hp < LOOT.hp - 1e-6 || !me.alive)) LOOT.hurt = true; LOOT.hp = me.hp; }
   // un mapa cuenta como completado al llegar al túnel que lleva al siguiente
@@ -595,7 +595,7 @@ function fire() {
     const ray0 = W.def.model === 'ray';
     if (p < 4) fx.tracer(muzzle, end, ray0 ? 0x5aff7a : 0xffe27a, ray0 ? 0.12 : 0.07, ray0 ? 0.06 : E.pierce ? 0.03 : 0.018);
     // las armas explosivas también cogen armas, botiquines y votan carteles
-    const pick0 = h && ['weapon', 'medkit', 'sign', 'truck'].includes(h.type);
+    const pick0 = h && ['weapon', 'medkit', 'sign', 'csign', 'truck'].includes(h.type);
     if (E.boom && !pick0) { boomAt = end; continue; }
     if (!h) continue;
     fx.impact(h.point, h.part === 'cover');
@@ -638,7 +638,7 @@ function fire() {
     const reps = ent && (ent.type === 'sign' || ent.type === 'weapon' || ent.type === 'truck') ? k.n : 1;
     for (let i = 0; i < reps; i++) hits.push([id, k.part, Math.round(k.dmg * 100) / 100]);
     if (ent && ent.type === 'sign') SFX.vote();
-    if (ent && !['sign', 'weapon', 'truck', 'civilian', 'civcar', 'police', 'medkit'].includes(ent.type)) nHits += k.n;
+    if (ent && !['sign', 'csign', 'weapon', 'truck', 'civilian', 'civcar', 'police', 'medkit'].includes(ent.type)) nHits += k.n;
   }
   if (anyHit) hud.hitT = 0.12;
   if (nHits) weaponXp(nHits);
@@ -727,7 +727,7 @@ function updGrenades(dt) {
 }
 
 // ---------------- eventos ----------------
-const IMMEDIATE = new Set(['fork', 'weapon', 'over', 'go', 'arenaX', 'west', 'unlockW']);
+const IMMEDIATE = new Set(['fork', 'weapon', 'over', 'go', 'arenaX', 'west', 'cside', 'unlockW']);
 function handleEvent(ev) {
   const li = G.li;
   switch (ev.k) {
@@ -807,6 +807,12 @@ function handleEvent(ev) {
       break;
     case 'pz': if (ev.p === li) flash('poison'); break;
     case 'arenaX': if (G.mode === 'guest') G.road.setArenaExit(ev.g); break;
+    case 'cside': {
+      if (G.mode === 'guest') G.road.setCSide(ev.kk, ev.c);
+      const W = G.road.csides && G.road.csides.find(q => q.k === ev.kk);
+      if (ev.c && W) { for (const [c, g] of G.chunks) if ((c + 1) * CH > W.cut - 2) { scene.remove(g); g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); G.chunks.delete(c); SHC.dirty = true; } G.shake = Math.max(G.shake, 0.4); SFX.tone(220, 120, 0.4, 'square', 0.15); }
+      break;
+    }
     case 'west': {
       if (G.mode === 'guest') G.road.setWest(ev.kk, ev.c);
       // la carretera se ha cortado en el cartel: fuera los trozos de decorado de la carretera vieja
@@ -2741,7 +2747,7 @@ function botAim() {
     if (ty === 'truck') p.y += 2;
     const d = p.distanceTo(camPos);
     if (d > (ty === 'wall' || ty === 'train' ? 170 : 90)) continue;
-    const s = (ty === 'wall' || ty === 'train' || ty === 'rock' || ty === 'junk' || ty === 'mine' ? 90 : ty === 'sign' || ty === 'weapon' || ty === 'medkit' ? 60 : 30) - d * 0.3;
+    const s = (ty === 'wall' || ty === 'train' || ty === 'rock' || ty === 'junk' || ty === 'mine' ? 90 : ty === 'sign' || ty === 'csign' || ty === 'weapon' || ty === 'medkit' ? 60 : 30) - d * 0.3;
     if (s > bs) { bs = s; best = p; }
   }
   if (best) {

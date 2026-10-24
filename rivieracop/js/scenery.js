@@ -323,7 +323,7 @@ export function buildChunkData(road, c) {
   for (const k of LIST_KEYS) { R[k] = []; RI[k] = []; }
   const r = rng(hash(road.seed, c, 77));
   let s = d0;
-  const cls = i => (road.kind[i] === 1 ? 1 : road.kind[i] === 3 ? 3 : road.kind[i] === 4 ? 4 : 0);
+  const cls = i => (road.kind[i] === 1 ? 1 : road.kind[i] === 3 ? 3 : road.kind[i] === 4 ? 4 : road.cnd && road.noDeco(i) ? 9 : 0);
   while (s < d1) {
     const c0 = cls(s);
     let e = s;
@@ -336,8 +336,13 @@ export function buildChunkData(road, c) {
       strip(R.L, road, s, e, C(-HALF - 1, 0.02), C(HALF + 1, 0.02), 0xe2984e);
       for (const l of [LANE_ME_ - 0.8, LANE_ME_ + 0.8, -LANE_ME_ - 0.8, -LANE_ME_ + 0.8]) strip(R.L, road, s, e, C(l - 0.18, 0.03), C(l + 0.18, 0.03), 0xc8803e);
     }
+    else if (c0 === 9) plainRun(R, road, B, s, e);
     else outsideRun(B.deco === 'tuneles' ? RI : R, road, B, s, e, r);
     s = e;
+  }
+  // mapas hechos a mano: los objetos colocados en el editor
+  if (road.cprops) for (const p of road.cprops) if (p.d >= d0 && p.d < d1 && PROPS[p.k]) {
+    try { PROPS[p.k][1](R, road, p, rng(hash(road.seed, Math.round(p.d * 10), Math.round((p.lat || 0) * 10) + 999))); } catch (err) { }
   }
   for (const t of road.tunnels) {
     if (t.interior && t.ball) continue; // salón del Titanic: se entra por la bajada de dentro del barco
@@ -767,6 +772,76 @@ function outsideRun(R, road, B, i0, i1, r) {
     skyBridges(R, road, B, i0, i1);
   }
 }
+
+// tramo "sin decorado" de un mapa hecho a mano: solo carretera, aceras y talud (lo demás lo pone quien hace el mapa)
+function plainRun(R, road, B, i0, i1) {
+  strip(R.A, road, i0, i1, C(-HALF, 0), C(HALF, 0), LIGHT(B.asphalt, 0.08), 4);
+  dashes(R, road, i0, i1, B.line);
+  for (const sd of [-1, 1]) {
+    strip(R.L, road, i0, i1, C(sd * (HALF - 0.45), 0.02), C(sd * (HALF - 0.3), 0.02), 0xf2f2f2);
+    strip(R.P, road, i0, i1, C(sd * HALF, 0.18), C(sd * WALK, 0.18), B.walk, 2);
+    strip(R.L, road, i0, i1, C(sd * HALF, 0), C(sd * HALF, 0.18), 0x8a857c);
+    strip(R.K, road, i0, i1, C(sd * WALK, 0.18), C(sd * (WALK + 40), 0.18), LIGHT(B.skirt, 0.2), 5);
+    strip(R.K, road, i0, i1, C(sd * (WALK + 40), 0.18), i => [sd * (WALK + 40 + Math.max(3, (road.gy[i] + 2) * 0.55)), -(road.gy[i] + 2)], LIGHT(B.skirt, 0.2), 6);
+  }
+}
+
+// ---------- OBJETOS PARA LOS MAPAS HECHOS A MANO ----------
+// p = { k, d, lat, rot (grados), s (tamaño), h (altura extra) }. La cara de delante mira a la carretera.
+const _ms = new THREE.Vector3();
+function pm(road, p, extraH = 0) {
+  const sd = (p.lat || 0) >= 0 ? 1 : -1;
+  const m = frame(road, p.d, p.lat || 0, (p.h || 0) + extraH, (p.rot || 0) * Math.PI / 180).clone();
+  const k = Math.max(0.3, Math.min(4, +p.s || 1));
+  m.scale(_ms.set(k, k, k));
+  return { m, sd, k };
+}
+const BIO = (road, d) => BIOMES[BIOME_KEYS[road.bio[Math.max(0, Math.min(road.len, Math.floor(d)))]]];
+function simpleCar(R, m, col) {
+  addBox(R.L, 1.8, 0.7, 4.2, col, m, { y: 0.65 });
+  addBox(R.L, 1.6, 0.6, 2.2, col, m, { y: 1.25, z: -0.2 });
+  addBox(R.G, 1.5, 0.45, 0.05, 0x9ad0ff, m, { y: 1.28, z: 0.92, rx: -0.3 });
+  for (const [x, z] of [[-0.85, 1.3], [0.85, 1.3], [-0.85, -1.3], [0.85, -1.3]]) addCyl(R.L, 0.36, 0.36, 0.25, 10, 0x1a1a1a, m, { x, y: 0.36, z, rz: Math.PI / 2 });
+}
+export const PROPS = {
+  edificio: ['Edificio', (R, road, p, r) => { const { m, sd, k } = pm(road, p); const B = BIO(road, p.d); bldBody(R, B, m, 10, 10, 12, 4, sd, r, !!B.night); }],
+  rascacielos: ['Rascacielos', (R, road, p, r) => { const { m, sd } = pm(road, p); const B = BIO(road, p.d); bldBody(R, B, m, 14, 14, 42, 4, sd, r, !!B.night); }],
+  casa: ['Casa', (R, road, p, r) => {
+    const { m } = pm(road, p), c = pick(r, [0xe8d8b8, 0xf0e0c8, 0xd8c0a0, 0xc8d8e0, 0xf2ecdc]);
+    addBox(R.W, 8, 5, 7, c, m, { y: 2.5, uvs: 4 }); gable(R.L, m, 7, 8, 5, 2.6, 0xa84a2a, c);
+    addBox(R.D, 1.2, 2.2, 0.1, 0x6a4424, m, { y: 1.1, x: 0, z: 3.55, ry: Math.PI / 2 });
+  }],
+  ruina: ['Edificio en ruinas', (R, road, p, r) => {
+    const { m } = pm(road, p);
+    for (let i = 0; i < 7; i++) addBox(R.C, 2 + r() * 4, 2 + r() * 9, 0.5 + r() * 0.6, pick(r, [0x8a8478, 0x6a645a, 0x9a9488]), m, { x: (r() - 0.5) * 9, y: 2, z: (r() - 0.5) * 9, ry: r() * 3, rz: (r() - 0.5) * 0.3 });
+    for (let i = 0; i < 8; i++) addBox(R.K, 0.5 + r() * 1.4, 0.4 + r() * 0.6, 0.5 + r() * 1.4, 0x5a5650, m, { x: (r() - 0.5) * 10, y: 0.3, z: (r() - 0.5) * 10, ry: r() * 3 });
+  }],
+  palmera: ['Palmera', (R, road, p, r) => { const { m } = pm(road, p); for (let k = 0; k < 4; k++) addBox(R.L, 0.34 - k * 0.04, 1.6, 0.34 - k * 0.04, 0x8b6a3e, m, { y: 0.8 + k * 1.55, x: k * 0.12 }); for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; addBox(R.L, 0.5, 0.08, 2.6, k % 2 ? 0x2f8f3a : 0x3aa548, m, { y: 6.3, x: 0.36 + Math.sin(a) * 1.15, z: Math.cos(a) * 1.15, ry: a, rx: 0.35 }); } }],
+  pino: ['Pino', (R, road, p, r) => { const { m } = pm(road, p); addCyl(R.L, 0.15, 0.22, 2, 5, 0x6b4a2a, m, { y: 1 }); addCyl(R.L, 0, 1.6, 3.4, 6, 0x2c6a34, m, { y: 3.6 }); addCyl(R.L, 0, 1.2, 2.6, 6, 0x347a3c, m, { y: 5 }); }],
+  arbol: ['Árbol', (R, road, p, r) => { const { m } = pm(road, p); addCyl(R.L, 0.22, 0.3, 2.6, 6, 0x6b4a2a, m, { y: 1.3 }); for (let i = 0; i < 5; i++) addBox(R.L, 2 + r(), 1.6 + r(), 2 + r(), pick(r, [0x3a8a3a, 0x4a9a3a, 0x2f7a34]), m, { x: (r() - 0.5) * 1.6, y: 3.4 + r() * 1.4, z: (r() - 0.5) * 1.6, ry: r() * 3 }); }],
+  arbusto: ['Arbusto', (R, road, p, r) => { const { m } = pm(road, p); for (let i = 0; i < 3; i++) addBox(R.L, 1 + r() * 0.6, 0.8 + r() * 0.4, 1 + r() * 0.6, pick(r, [0x3a8a3a, 0x4a9a3a]), m, { x: (r() - 0.5) * 1.2, y: 0.45, z: (r() - 0.5) * 1.2, ry: r() * 3 }); }],
+  cactus: ['Cactus', (R, road, p, r) => { const { m } = pm(road, p); cactus2(R, m, 1.6); }],
+  roca: ['Roca', (R, road, p, r) => { const { m } = pm(road, p); addBox(R.K, 3 + r() * 2, 2 + r() * 2, 3 + r() * 2, pick(r, [0xc2ab8c, 0xb09c80, 0x8a8a8a]), m, { y: 1, ry: r(), rx: (r() - 0.5) * 0.3, uvs: 5 }); }],
+  farola: ['Farola', (R, road, p, r) => { const { m, sd } = pm(road, p); addBox(R.L, 0.16, 6, 0.16, 0x4a4d52, m, { y: 3 }); addBox(R.L, 0.14, 0.12, 1.6, 0x4a4d52, m, { y: 6, x: -sd * 0.7, ry: Math.PI / 2 }); addBox(R.G, 0.6, 0.14, 0.4, 0xfff0b8, m, { y: 5.9, x: -sd * 1.3 }); }],
+  coche: ['Coche aparcado', (R, road, p, r) => { const { m } = pm(road, p); simpleCar(R, m, pick(r, [0x8a2a2a, 0x2a4a8a, 0xb8b8b0, 0x2a2a2e, 0xc8a030, 0x3a6a4a])); }],
+  cochefuego: ['Coche quemado', (R, road, p, r) => { const { m } = pm(road, p); simpleCar(R, m, 0x2a2420); addBox(R.G, 1.2, 1.2, 1.6, 0xff7a1a, m, { y: 1.6 }); addBox(R.G, 0.7, 1.6, 0.9, 0xffc040, m, { y: 2, z: 0.4 }); }],
+  contenedor: ['Contenedor', (R, road, p, r) => { const { m } = pm(road, p); addBox(R.Q, 2.5, 2.6, 6, pick(r, [0xb03a2a, 0x2a6ab0, 0x2a8a4a, 0xc8a030]), m, { y: 1.3 }); }],
+  cajas: ['Cajas', (R, road, p, r) => { const { m } = pm(road, p); for (let i = 0; i < 5; i++) addBox(R.D, 1.1, 1.1, 1.1, 0xa87a44, m, { x: (i % 3 - 1) * 1.15, y: 0.55 + (i > 2 ? 1.1 : 0), z: 0, ry: (r() - 0.5) * 0.3 }); }],
+  bidones: ['Bidones', (R, road, p, r) => { const { m } = pm(road, p); for (let i = 0; i < 4; i++) addCyl(R.U, 0.4, 0.4, 1.2, 10, pick(r, [0x3a6a3a, 0x8a2a2a, 0x2a4a8a]), m, { x: (i % 2) * 0.9 - 0.45, y: 0.6, z: Math.floor(i / 2) * 0.9 - 0.45 }); }],
+  sacos: ['Sacos terreros', (R, road, p, r) => { const { m } = pm(road, p); for (let y = 0; y < 3; y++) for (let i = 0; i < 5 - y; i++) addBox(R.L, 0.9, 0.35, 0.55, pick(r, [0xb8a070, 0xa89060]), m, { x: (i - (4 - y) / 2) * 0.92, y: 0.18 + y * 0.35 }); }],
+  valla: ['Valla', (R, road, p, r) => { const { m } = pm(road, p); for (let i = -2; i <= 2; i++) addBox(R.D, 0.12, 1.2, 0.12, 0x8a6a44, m, { z: i * 1.5, y: 0.6 }); for (const y of [0.4, 0.9]) addBox(R.D, 0.06, 0.14, 6.2, 0xa88a5a, m, { y }); }],
+  muro: ['Muro', (R, road, p, r) => { const { m } = pm(road, p); addBox(R.C, 0.6, 2.4, 8, 0x9a948a, m, { y: 1.2, uvs: 4 }); }],
+  torre: ['Torre de vigilancia', (R, road, p, r) => { const { m } = pm(road, p); for (const [x, z] of [[-1.2, -1.2], [1.2, -1.2], [-1.2, 1.2], [1.2, 1.2]]) addBox(R.D, 0.2, 6, 0.2, 0x6a4a2a, m, { x, y: 3, z }); addBox(R.D, 3.2, 0.2, 3.2, 0x7a5a3a, m, { y: 6 }); addBox(R.D, 3.2, 1, 0.1, 0x8a6a44, m, { y: 6.6, z: 1.55 }); addBox(R.D, 3.6, 0.15, 3.6, 0x5a3a20, m, { y: 8.2 }); for (const [x, z] of [[-1.5, -1.5], [1.5, -1.5], [-1.5, 1.5], [1.5, 1.5]]) addBox(R.D, 0.12, 2, 0.12, 0x6a4a2a, m, { x, y: 7.1, z }); }],
+  gasolinera: ['Gasolinera', (R, road, p, r) => { gasStation(R, road, p.d, (p.lat || 0) >= 0 ? 1 : -1); }],
+  casino: ['Casino', (R, road, p, r) => { casinoLandmark(R, road, p.d, (p.lat || 0) >= 0 ? 1 : -1, Math.floor(r() * 8), r); }],
+  parada: ['Parada de autobús', (R, road, p, r) => { const { m, sd } = pm(road, p); addBox(R.S, 0.1, 2.4, 0.1, 0x8a8f96, m, { y: 1.2, z: -1.6, x: sd * 0.6 }); addBox(R.S, 0.1, 2.4, 0.1, 0x8a8f96, m, { y: 1.2, z: 1.6, x: sd * 0.6 }); addBox(R.G, 0.05, 2, 3.2, 0x9ad0ff, m, { y: 1.2, x: sd * 0.65 }); addBox(R.L, 1.6, 0.12, 3.6, 0xd03a2a, m, { y: 2.45 }); addBox(R.D, 0.5, 0.1, 2.6, 0x8a6a44, m, { y: 0.5, x: sd * 0.3 }); }],
+  puesto: ['Puesto de mercado', (R, road, p, r) => { const { m } = pm(road, p); addBox(R.D, 3, 1, 1.4, 0x8a6a44, m, { y: 0.5 }); for (const z of [-1.4, 1.4]) for (const x of [-0.65, 0.65]) addBox(R.D, 0.1, 2.4, 0.1, 0x6a4a2a, m, { x, y: 1.2, z: z * 1.05 }); for (let i = 0; i < 6; i++) addBox(R.L, 1.7, 0.08, 0.5, i % 2 ? 0xffffff : pick(r, [0xd03a2a, 0x2a6ab0, 0x2a9a4a]), m, { y: 2.45, z: (i - 2.5) * 0.5, rx: 0.15 }); for (let i = 0; i < 5; i++) addBox(R.L, 0.35, 0.3, 0.35, pick(r, [0xff8a2a, 0xffe14a, 0x5ad04a, 0xd03a3a]), m, { x: (r() - 0.5) * 0.8, y: 1.15, z: (r() - 0.5) * 2.4 }); }],
+  cartel: ['Cartel publicitario', (R, road, p, r) => { const { m } = pm(road, p); for (const z of [-2.5, 2.5]) addBox(R.S, 0.2, 5, 0.2, 0x5a5a60, m, { y: 2.5, z }); addBox(R.L, 0.3, 3, 7, pick(r, [0xffe14a, 0xff5ad0, 0x5ad0ff, 0x7dff8a]), m, { y: 6 }); addBox(R.L, 0.32, 1.2, 5, 0xffffff, m, { y: 6.2 }); }],
+  arco: ['Arco sobre la carretera', (R, road, p, r) => { const m = frame(road, p.d, 0, p.h || 0, (p.rot || 0) * Math.PI / 180).clone(); for (const x of [-9.5, 9.5]) addBox(R.B, 1.4, 8, 1.4, 0xb8835a, m, { x, y: 4 }); addBox(R.B, 20.4, 1.6, 1.6, 0xc8936a, m, { y: 8.6 }); }],
+  puente: ['Pasarela sobre la carretera', (R, road, p, r) => { const m = frame(road, p.d, 0, p.h || 0, (p.rot || 0) * Math.PI / 180).clone(); for (const x of [-9, 9]) addBox(R.S, 0.6, 6.5, 0.6, 0x8a8f96, m, { x, y: 3.25 }); addBox(R.C, 22, 0.4, 3, 0xb0aca4, m, { y: 6.6 }); for (const z of [-1.4, 1.4]) addBox(R.S, 22, 0.9, 0.08, 0x5a6a7a, m, { y: 7.25, z }); }],
+  tienda: ['Tienda de campaña', (R, road, p, r) => { const { m } = pm(road, p); gable(R.L, m, 3, 3.5, 0, 2, pick(r, [0x5a7a3a, 0xc85a2a, 0x2a6ab0]), 0x3a3a2a, 0.1, 0); }],
+  hoguera: ['Hoguera', (R, road, p, r) => { const { m } = pm(road, p); for (let i = 0; i < 5; i++) addBox(R.D, 0.18, 0.18, 1.4, 0x5a3a20, m, { y: 0.2, ry: i * 1.2, rx: 0.3 }); addBox(R.G, 0.6, 0.9, 0.6, 0xff7a1a, m, { y: 0.6 }); addBox(R.G, 0.35, 1.2, 0.35, 0xffd040, m, { y: 0.8 }); }],
+};
 
 // ¿se puede poner decorado aquí?
 function ok(road, d, lat, rad, edificio = false) {

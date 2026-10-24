@@ -21,7 +21,7 @@ export const duneH = (d, lat) => {
 };
 export const TUNMSG = { coches: 'COCHES EN TODOS LOS CARRILES', pinchos: 'PINCHOS EN LA CALZADA', moteros: 'MOTORISTAS ARMADOS', emboscada: 'EMBOSCADA: CIRCULE CON PRECAUCIÓN' };
 export class Road {
-  constructor(seed, bio0 = 0, zd0 = 1, cmap = null) {
+  constructor(seed, bio0 = 0, zd0 = 1, cmap = null, picks = null) {
     this.seed = seed >>> 0;
     this.x = [0]; this.y = [70]; this.z = [0]; this.yaw = [0];
     this.kind = [1]; this.bio = [0]; this.zd = [1];
@@ -39,33 +39,96 @@ export class Road {
     this.planEnd = 0;
     this.cur = { yaw: 0, slope: 0 };
     this.baseYaw = 0; this.lastHair = 0;
-    if (cmap) { this._queueCustom(cmap); return; }
+    if (cmap) { this._queueCustom(cmap, picks); return; }
     this._q({ type: 'tunnel', len: START_TUN, fork: -1, bio: 0, zd: 1 });
     this._queueSection(bio0, zd0);
   }
-  // MAPA HECHO A MANO (editor de mapas): tramos fijos uno detrás de otro, sin desvíos; al final, meta
-  _queueCustom(M) {
+  // MAPA HECHO A MANO (editor de mapas). Un mapa es un camino: tramos seguidos, enemigos, objetos y cómo acaba:
+  //   end.t = 'meta' (fin del mapa), 'fork' (pórtico con carteles + túnel: cada cartel lleva a otro camino, se vota disparando)
+  //   o 'side' (cartel a un lado, como el de OLD TOWN: si le disparas, la carretera gira por el otro camino).
+  // Cada camino de un desvío es otro camino igual (con sus propios desvíos). picks = caminos elegidos a la fuerza (el editor).
+  _queueCustom(M, picks) {
+    this.cmap = M; this.picks = Array.isArray(picks) ? picks : null;
+    this.czd = clamp(M.zd | 0 || 1, 1, 10);
+    this.cevs = []; this.cprops = []; this.cnd = []; this.cramps = []; this.csides = []; this.czones = []; this.rstarts = []; this.cEnd = null;
     const segs = (M.segs || []).filter(g => g && g.len > 0);
-    const bioOf = k => { const i = BIOME_KEYS.indexOf(k); return i >= 0 && !CMAP_NO.has(k) ? i : 0; };
-    const zd = clamp(M.zd | 0 || 1, 1, 10);
-    const b0 = segs.length ? bioOf(segs[0].bio) : 0;
-    this._q({ type: 'tunnel', len: START_TUN, fork: -1, bio: b0, zd });
-    const secStart = this.planEnd;
-    this.cramps = [];
-    let last = b0;
+    const b0 = segs.length ? this._cbio(segs[0].bio) : 0;
+    this._q({ type: 'tunnel', len: START_TUN, fork: -1, bio: b0, zd: this.czd });
+    this._queueRoute(M, 0, b0);
+  }
+  _cbio(k) { const i = BIOME_KEYS.indexOf(k); return i >= 0 && !CMAP_NO.has(k) ? i : 0; }
+  _queueRoute(rt, depth, prevBio) {
+    const zd = this.czd, S = this.planEnd;
+    this.rstarts[depth] = S; this.rstarts.length = depth + 1;
+    const segs = (rt.segs || []).filter(g => g && g.len > 0);
+    let last = prevBio;
+    if (!segs.length) segs.push({ bio: BIOME_KEYS[prevBio], len: 60 });
     segs.forEach((g, i) => {
-      const len = clamp(Math.round(g.len), 20, 2000), bio = last = bioOf(g.bio);
+      const len = clamp(Math.round(g.len), 20, 2000), bio = last = this._cbio(g.bio);
       const A = clamp(+g.curve || 0, -3, 3) * 0.35, kmax = A * Math.PI / (2 * len);
-      if (g.tun) this._q({ type: 'tunnel', len, fork: 1000 + i, bio, zd, kmax });
+      let b;
+      if (g.tun) b = this._q({ type: 'tunnel', len, fork: 1000 + depth * 100 + i, bio, zd, kmax });
       else {
-        const b = this._q({ type: 'cseg', len, bio, zd, kmax, slope: clamp(+g.hill || 0, -3, 3) * 0.03 });
+        b = this._q({ type: 'cseg', len, bio, zd, kmax, slope: clamp(+g.hill || 0, -3, 3) * 0.03 });
         if (g.ramp && len >= 60) this.cramps.push(b.start + Math.round(len / 2));
       }
+      if (g.deco === 0) this.cnd.push([b.start, b.start + len]);
     });
-    this.cEnd = this.planEnd + 20;
-    this._q({ type: 'cseg', len: 420, bio: last, zd, kmax: 0, slope: 0 });
-    this.forks.push({ k: 0, gantry: 1e9, tStart: 1e9, tEnd: 1e9, choice: null, from: b0, zd: null, secStart, bio: b0, slen: Math.max(100, this.cEnd - secStart), custom: 1 });
+    const E = this.planEnd;
+    this.czones.push({ k: this.czones.length, secStart: S, slen: Math.max(60, E - S), gantry: 1e9, tStart: 1e9, tEnd: 1e9, bio: this._cbio(segs[0].bio), depth });
+    for (const e of rt.evs || []) this.cevs.push(Object.assign({}, e, { d: S + clamp(+e.d || 0, 0, E - S), depth }));
+    this.cevs.sort((a, b) => a.d - b.d);
+    for (const p of rt.props || []) this.cprops.push(Object.assign({}, p, { d: S + clamp(+p.d || 0, 0, E - S + 30), depth }));
+    const end = rt.end || {}, opts = Array.isArray(end.opts) ? end.opts.filter(o => o && typeof o === 'object') : [];
+    if (end.t === 'fork' && opts.length >= 2 && depth < 8) {
+      this._q({ type: 'approach', len: APPROACH, bio: last, zd });
+      const k = this.forks.length;
+      const tn = this._q({ type: 'tunnel', len: TUN, fork: k, bio: last, zd });
+      this.forks.push({ k, gantry: tn.start - 40, tStart: tn.start, tEnd: tn.start + TUN, choice: null, from: last, zd: null, secStart: S, bio: last, slen: E - S, custom: 1, opts: opts.slice(0, 3), depth });
+      this._q({ type: 'wait', len: 0, fork: k });
+      // el editor enseña el camino que se está editando
+      if (this.picks) this.forks[k].choice = clamp(this.picks[depth] | 0, 0, Math.min(3, opts.length) - 1);
+    } else if (end.t === 'side' && opts.length >= 2 && depth < 8) {
+      // cartel lateral: se sigue por el camino 0 salvo que alguien le dispare (entonces la carretera se corta y gira)
+      const W = { k: this.csides.length, sign: Math.max(S + 10, E - 30), cut: E, choice: null, opts: opts.slice(0, 2), depth, bio: last, l: String(end.l || 'DESVÍO').slice(0, 24), sd: end.sd === -1 ? -1 : 1 };
+      this.csides.push(W);
+      if (this.picks) { W.choice = clamp(this.picks[depth] | 0, 0, 1); this._queueRoute(W.opts[W.choice], depth + 1, last); }
+      else this._queueRoute(W.opts[0], depth + 1, last);
+    } else {
+      this.cEnd = E + 20;
+      this._q({ type: 'cseg', len: 420, bio: last, zd, kmax: 0, slope: 0 });
+    }
   }
+  // cartel lateral elegido (1 = le han disparado: se corta la carretera en el corte y sale el otro camino)
+  setCSide(k, c) {
+    const W = this.csides && this.csides[k];
+    if (!W || W.choice != null) return;
+    W.choice = c ? 1 : 0;
+    if (!c) return;
+    const cut = W.cut;
+    this.ver = (this.ver || 0) + 1;
+    if (this.len > cut) {
+      for (const key of ['x', 'y', 'z', 'yaw', 'kind', 'bio', 'zd', 'sea', 'gy']) this[key].length = cut + 1;
+      for (const [key, L] of this.grid) { const f = L.filter(i => i <= cut); if (f.length) this.grid.set(key, f); else this.grid.delete(key); }
+      this.cur.yaw = this.yaw[cut]; this.cur.slope = this.y[cut] - this.y[cut - 1];
+      this.queue = [];
+    } else this.queue = this.queue.filter(b => b.start < cut);
+    this.planEnd = cut;
+    // fuera todo lo del camino que ya no se va a hacer
+    this.tunnels = this.tunnels.filter(t => t.start < cut);
+    this.forks = this.forks.filter(f => f.secStart < cut || f.tStart < cut);
+    this.csides = this.csides.filter(q => q.sign < cut || q === W);
+    this.cramps = this.cramps.filter(b => b < cut);
+    this.cevs = this.cevs.filter(e => e.d < cut);
+    this.cprops = this.cprops.filter(p => p.d < cut);
+    this.cnd = this.cnd.filter(r => r[0] < cut).map(r => [r[0], Math.min(r[1], cut)]);
+    this.czones = this.czones.filter(z => z.secStart < cut);
+    if (this._bc) this._bc.clear();
+    this.cEnd = null;
+    this._queueRoute(W.opts[1], W.depth + 1, W.bio);
+  }
+  sideSign(d) { if (this.csides) for (const W of this.csides) if (W.choice == null && d > W.sign - 240 && d < W.sign + 40) return W; return null; }
+  noDeco(i) { if (!this.cnd) return false; for (const r of this.cnd) if (i >= r[0] && i < r[1]) return true; return false; }
   get len() { return this.x.length - 1; }
 
   _q(b) {
@@ -266,9 +329,10 @@ export class Road {
       if (!b) break;
       if (b.type === 'wait') {
         const f = this.forks[b.fork];
-        if (f.choice == null) break;
+        if (!f || f.choice == null) break;
         this.queue.shift();
-        this._queueSection(f.choice, f.zd || 1);
+        if (f.custom) this._queueRoute(f.opts[f.choice] || f.opts[0], f.depth + 1, f.bio);
+        else this._queueSection(f.choice, f.zd || 1);
         continue;
       }
       if (b.type === 'wtwait') {
@@ -476,6 +540,10 @@ export class Road {
   bioAt(d) { const i = clamp(Math.floor(d), 0, this.len); return this.bio[i]; }
   // en qué tramo estamos y cuánto llevamos (0..1) de la zona
   zoneAt(d) {
+    if (this.czones) {
+      for (let i = this.czones.length - 1; i >= 0; i--) { const z = this.czones[i]; if (d >= z.secStart) return { f: z, k: i, prog: (d - z.secStart) / z.slen }; }
+      return { f: null, k: -1, prog: 0 };
+    }
     for (let i = this.forks.length - 1; i >= 0; i--) {
       const f = this.forks[i];
       if (d >= f.secStart) return { f, k: i, prog: (d - f.secStart) / (f.slen || SECTION) };

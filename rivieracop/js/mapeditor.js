@@ -4,6 +4,8 @@
 // "Enviar a DebugMaps" lo marca para que salga en el menú privado DebugMaps del juego.
 import { Road, CMAP_NO, START_TUN } from './road.js';
 import { CMAP_EV } from './sim.js';
+import { PROPS } from './scenery.js';
+import { View3D } from './mapview3d.js';
 import { BIOMES, BIOME_KEYS } from './defs.js';
 
 const $ = id => document.getElementById(id);
@@ -30,19 +32,38 @@ function locals() { return LS.get('rcm_maps', {}); }
 function saveLocal(M) { const L = locals(); M.t = Date.now(); L[M.id] = M; if (!LS.set('rcm_maps', L)) { toast('No queda sitio en el móvil para guardar'); return false; } return true; }
 function delLocal(id) { const L = locals(); delete L[id]; LS.set('rcm_maps', L); }
 function newId() { return 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function newRoute(bio = 'monaco') { return { segs: [{ bio, len: 300, curve: 0, hill: 0 }], evs: [], props: [], end: { t: 'meta' } }; }
 function newMap() {
-  return { v: 1, id: newId(), name: 'Mapa nuevo', author: CFG.author || '', t: Date.now(), zd: 2, auto: 0,
+  return { v: 2, id: newId(), name: 'Mapa nuevo', author: CFG.author || '', t: Date.now(), zd: 2, auto: 0,
     segs: [{ bio: 'monaco', len: 220, curve: 0, hill: 0 }, { bio: 'monaco', len: 260, curve: 1, hill: -1 }, { bio: 'puerto', len: 300, curve: -1, hill: 0, ramp: 1 }],
-    evs: [{ d: 60, k: 'gunmen', n: 2 }, { d: 260, k: 'moto', n: 2 }, { d: 520, k: 'cover', n: 3 }] };
+    evs: [{ d: 60, k: 'gunmen', n: 2 }, { d: 260, k: 'moto', n: 2 }, { d: 520, k: 'pgun', n: 2, lat: 8, h: 0, cv: 1 }],
+    props: [{ k: 'contenedor', d: 500, lat: 11, rot: 0, s: 1, h: 0 }], end: { t: 'meta' } };
+}
+const num = (v, a, b, d = 0) => { v = +v; return Number.isFinite(v) ? clamp(v, a, b) : d; };
+function fixRoute(r, depth) {
+  r = r && typeof r === 'object' ? r : {};
+  r.segs = (Array.isArray(r.segs) ? r.segs : []).slice(0, 60).map(g => { const o = { bio: BIOS.includes(g.bio) ? g.bio : 'monaco', len: Math.round(num(g.len, 20, 1000, 100)), curve: Math.round(num(g.curve, -3, 3)), hill: Math.round(num(g.hill, -3, 3)), tun: g.tun ? 1 : 0, ramp: g.ramp && !g.tun ? 1 : 0 }; if (g.deco === 0) o.deco = 0; return o; });
+  if (!r.segs.length) r.segs.push({ bio: 'monaco', len: 200, curve: 0, hill: 0, tun: 0, ramp: 0 });
+  r.evs = (Array.isArray(r.evs) ? r.evs : []).filter(e => CMAP_EV[e.k]).slice(0, 300).map(e => { const o = { d: Math.round(num(e.d, 0, 1e5)), k: e.k, n: Math.round(num(e.n, 1, 8, 1)) }; if (e.lat != null) o.lat = num(e.lat, -60, 60); if (e.h != null) o.h = num(e.h, 0, 40); if (e.cv) o.cv = 1; return o; });
+  r.props = (Array.isArray(r.props) ? r.props : []).filter(p => PROPS[p.k]).slice(0, 400).map(p => ({ k: p.k, d: Math.round(num(p.d, 0, 1e5)), lat: num(p.lat, -80, 80), rot: Math.round(num(p.rot, -360, 360)), s: num(p.s, 0.3, 4, 1), h: num(p.h, -10, 40) }));
+  const e = r.end && typeof r.end === 'object' ? r.end : { t: 'meta' };
+  if ((e.t === 'fork' || e.t === 'side') && depth < 6 && Array.isArray(e.opts) && e.opts.length >= 2) {
+    const n = e.t === 'side' ? 2 : Math.min(3, e.opts.length);
+    r.end = { t: e.t, opts: e.opts.slice(0, n).map((o, i) => Object.assign(fixRoute(o, depth + 1), { l: String(o.l || (e.t === 'side' ? (i ? 'GIRO' : 'SEGUIR') : 'CAMINO ' + (i + 1))).slice(0, 22), s: String(o.s || '').slice(0, 26) })) };
+    if (e.t === 'side') { r.end.l = String(e.l || 'DESVÍO').slice(0, 22); r.end.sd = e.sd === -1 ? -1 : 1; }
+  } else r.end = { t: 'meta' };
+  return r;
 }
 function fixMap(M) {
-  M.v = 1; M.id = M.id || newId(); M.name = String(M.name || 'Sin nombre').slice(0, 40); M.author = String(M.author || '').slice(0, 24);
-  M.zd = clamp(M.zd | 0 || 2, 1, 10); M.auto = clamp(M.auto | 0, 0, 2);
-  M.segs = (Array.isArray(M.segs) ? M.segs : []).map(g => ({ bio: BIOS.includes(g.bio) ? g.bio : 'monaco', len: clamp(Math.round(+g.len || 100), 20, 1000), curve: clamp(Math.round(+g.curve || 0), -3, 3), hill: clamp(Math.round(+g.hill || 0), -3, 3), tun: g.tun ? 1 : 0, ramp: g.ramp && !g.tun ? 1 : 0 }));
-  M.evs = (Array.isArray(M.evs) ? M.evs : []).filter(e => CMAP_EV[e.k]).map(e => ({ d: Math.max(0, Math.round(+e.d || 0)), k: e.k, n: clamp(e.n | 0 || 1, 1, 8) }));
+  fixRoute(M, 0);
+  M.v = 2; M.id = M.id || newId(); M.name = String(M.name || 'Sin nombre').slice(0, 40); M.author = String(M.author || '').slice(0, 24);
+  M.zd = Math.round(num(M.zd, 1, 10, 2)); M.auto = Math.round(num(M.auto, 0, 2));
   return M;
 }
-const totalLen = M => M.segs.reduce((a, g) => a + g.len, 0);
+const routeLen = r => r.segs.reduce((a, g) => a + g.len, 0);
+// largo del camino principal (siempre el primer camino de cada desvío) y cuántas cosas tiene en total
+function totalLen(M) { let r = M, n = 0; for (let i = 0; i < 8 && r; i++) { n += routeLen(r); r = r.end && r.end.opts ? r.end.opts[0] : null; } return n; }
+function countAll(M) { let c = { segs: 0, evs: 0, props: 0, ways: 1 }; const go = r => { c.segs += r.segs.length; c.evs += r.evs.length; c.props += r.props.length; if (r.end && r.end.opts) { c.ways += r.end.opts.length - 1; r.end.opts.forEach(go); } }; go(M); return c; }
 
 // ---------- código para pasar el mapa a mano ----------
 function mapCode(M) { const b = btoa(unescape(encodeURIComponent(JSON.stringify(M)))); return 'RCM1' + b.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
@@ -132,7 +153,7 @@ function paintLocal() {
   for (const M of L) {
     const s = SRV.find(x => x.id === M.id);
     const d = document.createElement('div'); d.className = 'mcard';
-    d.innerHTML = `<b>${esc(M.name)}</b><small>${(totalLen(M) / 1000).toFixed(2)} km · ${M.segs.length} tramos · ${M.evs.length} enemigos · ${new Date(M.t).toLocaleString()}</small>
+    d.innerHTML = `<b>${esc(M.name)}</b><small>${(totalLen(M) / 1000).toFixed(2)} km · ${(c => c.segs + ' tramos · ' + c.evs + ' enemigos · ' + c.props + ' objetos' + (c.ways > 1 ? ' · ' + c.ways + ' caminos' : ''))(countAll(fixMap(M)))} · ${new Date(M.t).toLocaleString()}</small>
       <div class="row">${s ? (s.debug ? '<span class="tag">EN DEBUGMAPS</span>' : '<span class="tag" style="background:#2b5fa0">EN EL SERVIDOR</span>') : ''}</div>
       <div class="row"><button class="mini go" data-a="ed">✏ EDITAR</button><button class="mini" data-a="test">▶ PROBAR</button><button class="mini" data-a="dup">⧉ COPIA</button><button class="mini warn" data-a="del">✕</button></div>`;
     d.querySelector('[data-a=ed]').onclick = () => openEditor(M.id);
@@ -200,96 +221,216 @@ function testMap(M) {
   location.href = 'index.html?cmaptest=1';
 }
 
+
 // ---------- pantalla: editor ----------
-let M = null, SEL = 0, MARK = null, ROUTE = null, dirty = false, TAB = 'segs';
+// PATH = caminos elegidos desde el principal hasta el que se edita (índices de cada desvío)
+let M = null, PATH = [], SEL = 0, MARK = null, MLAT = null, MH = 0, ROUTE = null, RS = 0, dirty = false, TAB = 'segs', MODE3D = false, V3 = null;
+const CUR = () => { let r = M; for (const i of PATH) { if (!r.end || !r.end.opts || !r.end.opts[i]) break; r = r.end.opts[i]; } return r; };
 function openEditor(id) {
   const L = locals(); if (!L[id]) return;
-  M = fixMap(JSON.parse(JSON.stringify(L[id]))); SEL = 0; MARK = null; dirty = false;
+  M = fixMap(JSON.parse(JSON.stringify(L[id]))); SEL = 0; MARK = null; MLAT = null; dirty = false;
+  { const q = LS.get('rcm_path', null); PATH = q && q.id === id && Array.isArray(q.p) ? q.p : []; let r = M; for (const i of PATH) { if (!r.end || !r.end.opts || !r.end.opts[i]) { PATH = []; break; } r = r.end.opts[i]; } }
   LS.set('rcm_cur', id);
   $('listScr').hidden = true; $('edScr').hidden = false;
   $('fName').value = M.name;
   paintAll();
   requestAnimationFrame(() => { sizeCv(); drawMap(); });
 }
-function touch() { dirty = true; $('saveSt').textContent = 'SIN GUARDAR'; LS.set('rcm_draft', M); rebuild(); }
+let rbT = 0;
+function touch(now) { dirty = true; $('saveSt').textContent = 'SIN GUARDAR'; LS.set('rcm_draft', M); clearTimeout(rbT); if (now) rebuild(); else { drawMap(); rbT = setTimeout(rebuild, 250); } }
 function save() { M.name = $('fName').value.trim() || 'Sin nombre'; if (!M.author) M.author = CFG.author; if (saveLocal(M)) { dirty = false; $('saveSt').textContent = 'GUARDADO'; } }
 $('fName').oninput = () => { M.name = $('fName').value; dirty = true; $('saveSt').textContent = 'SIN GUARDAR'; };
 $('bSave').onclick = () => { save(); toast('Guardado en el móvil'); };
 $('bBack').onclick = () => { if (dirty && confirm('¿Guardar los cambios antes de salir?')) save(); showList(); };
-$('bTest').onclick = () => { save(); testMap(M); };
-for (const b of document.querySelectorAll('.tabs button')) b.onclick = () => { TAB = b.dataset.t; for (const x of document.querySelectorAll('.tabs button')) x.classList.toggle('on', x === b); for (const t of ['segs', 'evs', 'opts']) $('p_' + t).hidden = t !== TAB; paintPane(); };
+$('bTest').onclick = () => { save(); LS.set('rcm_path', { id: M.id, p: PATH }); testMap(M); };
+for (const b of document.querySelectorAll('.tabs button')) b.onclick = () => { TAB = b.dataset.t; for (const x of document.querySelectorAll('.tabs button')) x.classList.toggle('on', x === b); for (const t of ['segs', 'evs', 'props', 'end', 'opts']) $('p_' + t).hidden = t !== TAB; paintPane(); };
 
-// la carretera de verdad (con el mismo código que el juego), para dibujarla
+// la carretera de verdad (con el mismo código que el juego), siguiendo el camino que se edita
 function rebuild() {
   try {
-    const R = new Road(12345, 0, 1, M);
-    R.extend(R.planEnd + 5);
-    ROUTE = R;
+    const picks = PATH.concat([0, 0, 0, 0, 0, 0, 0, 0]);
+    const R = new Road(12345, 0, 1, M, picks);
+    for (let g = 0; g < 20 && R.len < R.planEnd; g++) R.extend(R.planEnd + 5);
+    ROUTE = R; RS = R.rstarts[PATH.length] ?? START_TUN;
   } catch (e) { console.warn(e); ROUTE = null; }
   drawMap();
+  if (V3 && MODE3D) push3D();
 }
-function segStarts() { const S = []; let d = 0; for (const g of M.segs) { S.push(d); d += g.len; } return S; }
+function segStarts(r = CUR()) { const S = []; let d = 0; for (const g of r.segs) { S.push(d); d += g.len; } return S; }
 
 const BCOL = k => (BIOMES[k] && BIOMES[k].color) || '#888';
-const STEP = (v, min, max, on) => { let h = '<div class="steps">'; for (let i = min; i <= max; i++) h += `<button data-v="${i}" class="${i === v ? 'on' : ''}">${i < 0 ? '◀'.repeat(-i) : i > 0 ? '▶'.repeat(i) : '—'}</button>`; return h + '</div>'; };
+const STEP = (v, min, max) => { let h = '<div class="steps">'; for (let i = min; i <= max; i++) h += `<button data-v="${i}" class="${i === v ? 'on' : ''}">${i < 0 ? '◀'.repeat(-i) : i > 0 ? '▶'.repeat(i) : '—'}</button>`; return h + '</div>'; };
 const HSTEP = (v) => { let h = '<div class="steps">'; for (let i = -3; i <= 3; i++) h += `<button data-v="${i}" class="${i === v ? 'on' : ''}">${i < 0 ? '↘'.repeat(-i) : i > 0 ? '↗'.repeat(i) : '—'}</button>`; return h + '</div>'; };
 function bioSelect(v) { return '<select>' + BIOS.map(k => `<option value="${k}"${k === v ? ' selected' : ''}>${esc(BIOMES[k].name)}</option>`).join('') + '</select>'; }
 function evSelect(v) { return '<select>' + EVK.map(k => `<option value="${k}"${k === v ? ' selected' : ''}>${esc(CMAP_EV[k][0])}</option>`).join('') + '</select>'; }
+function propSelect(v) { return '<select>' + Object.keys(PROPS).map(k => `<option value="${k}"${k === v ? ' selected' : ''}>${esc(PROPS[k][0])}</option>`).join('') + '</select>'; }
+const POS_EV = new Set(['pgun', 'pgren', 'psniper', 'pciv', 'pbarrel', 'pmedkit']);
+// lados rápidos (metros desde el centro de la carretera: - izquierda, + derecha)
+const LATS = [['ACERA IZQ', -7.5], ['CARRIL IZQ', -3], ['CENTRO', 0], ['CARRIL DER', 3], ['ACERA DER', 7.5]];
+function latRow(v, max = 40) {
+  return `<div class="rowk"><span>LADO</span><input type="range" min="${-max}" max="${max}" step="0.5" value="${v}" data-k="lat"><output>${v < 0 ? 'IZQ ' + (-v) : v > 0 ? 'DER ' + v : 'CENTRO'}</output></div>
+    <div class="steps" data-k="latq">${LATS.map(([t, l]) => `<button data-v="${l}" class="${l === v ? 'on' : ''}">${t}</button>`).join('')}</div>`;
+}
+
+// camino actual: de dónde viene
+function paintCrumb() {
+  const el = $('crumb'); let r = M, h = '<button class="mini" data-p="-1">PRINCIPAL</button>';
+  PATH.forEach((i, n) => { const e = r.end; const o = e.opts[i]; const t = e.t === 'side' ? (i ? '↪ ' : '→ ') + o.l : '⑂ ' + o.l; h += ' › <button class="mini" data-p="' + n + '">' + esc(t) + '</button>'; r = o; });
+  el.innerHTML = '<span class="lbl">CAMINO:</span> ' + h;
+  for (const b of el.querySelectorAll('button')) b.onclick = () => { PATH = PATH.slice(0, +b.dataset.p + 1); SEL = 0; MARK = null; LS.set('rcm_path', { id: M.id, p: PATH }); paintAll(); };
+}
+function goPath(p) { PATH = p; SEL = 0; MARK = null; MLAT = null; LS.set('rcm_path', { id: M.id, p: PATH }); paintAll(); }
 
 function paintSegs() {
-  const P = $('p_segs'), st = segStarts();
+  const P = $('p_segs'), r = CUR(), st = segStarts(r);
   P.innerHTML = `<div class="addbar"><button id="aSeg" class="go">＋ TRAMO AL FINAL</button><button id="aSegAfter">＋ DETRÁS DEL ELEGIDO</button></div>
     <p class="note">Cada tramo es un trozo de carretera. Toca un tramo en el mapa o en la lista para elegirlo.</p>`;
-  M.segs.forEach((g, i) => {
+  r.segs.forEach((g, i) => {
     const d = document.createElement('div'); d.className = 'seg' + (i === SEL ? ' sel' : ''); d.style.borderLeftColor = BCOL(g.bio);
     d.innerHTML = `<div class="h"><b>TRAMO ${i + 1}</b>${bioSelect(g.bio)}<small class="lbl">${st[i]}–${st[i] + g.len} m</small></div>
       <div class="rowk"><span>LARGO</span><input type="range" min="20" max="1000" step="10" value="${g.len}" data-k="len"><output>${g.len} m</output></div>
       <div class="rowk"><span>CURVA</span><div data-k="curve">${STEP(g.curve, -3, 3)}</div><output>${g.curve < 0 ? 'IZQ' : g.curve > 0 ? 'DER' : 'RECTA'}</output></div>
       <div class="rowk"><span>CUESTA</span><div data-k="hill">${HSTEP(g.hill)}</div><output>${g.hill < 0 ? 'BAJA' : g.hill > 0 ? 'SUBE' : 'LLANO'}</output></div>
-      <div class="h tog"><button data-t="tun" class="mini ${g.tun ? 'on' : ''}">🚇 TÚNEL</button><button data-t="ramp" class="mini ${g.ramp ? 'on' : ''}" ${g.tun ? 'disabled' : ''}>🛹 RAMPA</button><span class="sp"></span>
+      <div class="h tog"><button data-t="tun" class="mini ${g.tun ? 'on' : ''}">🚇 TÚNEL</button><button data-t="ramp" class="mini ${g.ramp ? 'on' : ''}" ${g.tun ? 'disabled' : ''}>🛹 RAMPA</button><button data-t="deco" class="mini ${g.deco === 0 ? '' : 'on'}" ${g.tun ? 'disabled' : ''}>🏙 DECORADO ${g.deco === 0 ? 'NO' : 'SÍ'}</button><span class="sp"></span>
         <button data-a="up" class="mini">▲</button><button data-a="dn" class="mini">▼</button><button data-a="dup" class="mini">⧉</button><button data-a="del" class="mini warn">✕</button></div>`;
-    d.onclick = e => { if (SEL !== i) { SEL = i; for (const x of P.querySelectorAll('.seg')) x.classList.remove('sel'); d.classList.add('sel'); drawMap(); } };
+    d.onclick = () => { if (SEL !== i) { SEL = i; for (const x of P.querySelectorAll('.seg')) x.classList.remove('sel'); d.classList.add('sel'); drawMap(); if (MODE3D && V3) V3.look(RS + st[i] + 10); } };
     d.querySelector('select').onchange = e => { g.bio = e.target.value; d.style.borderLeftColor = BCOL(g.bio); touch(); };
     const rng = d.querySelector('input[data-k=len]'), out = rng.nextElementSibling;
     rng.oninput = () => { g.len = +rng.value; out.textContent = g.len + ' m'; touch(); };
     rng.onchange = () => paintSegs();
     for (const k of ['curve', 'hill']) for (const b of d.querySelectorAll(`[data-k=${k}] button`)) b.onclick = () => { g[k] = +b.dataset.v; touch(); paintSegs(); };
-    for (const b of d.querySelectorAll('[data-t]')) b.onclick = () => { const k = b.dataset.t; g[k] = g[k] ? 0 : 1; if (g.tun) g.ramp = 0; if (k === 'ramp' && g.ramp && g.len < 60) g.len = 60; touch(); paintSegs(); };
-    d.querySelector('[data-a=up]').onclick = ev => { ev.stopPropagation(); if (i > 0) { [M.segs[i - 1], M.segs[i]] = [M.segs[i], M.segs[i - 1]]; SEL = i - 1; touch(); paintSegs(); } };
-    d.querySelector('[data-a=dn]').onclick = ev => { ev.stopPropagation(); if (i < M.segs.length - 1) { [M.segs[i + 1], M.segs[i]] = [M.segs[i], M.segs[i + 1]]; SEL = i + 1; touch(); paintSegs(); } };
-    d.querySelector('[data-a=dup]').onclick = ev => { ev.stopPropagation(); M.segs.splice(i + 1, 0, Object.assign({}, g)); SEL = i + 1; touch(); paintSegs(); };
-    d.querySelector('[data-a=del]').onclick = ev => { ev.stopPropagation(); if (M.segs.length <= 1) { toast('El mapa necesita al menos un tramo'); return; } M.segs.splice(i, 1); SEL = Math.min(SEL, M.segs.length - 1); touch(); paintSegs(); };
+    for (const b of d.querySelectorAll('[data-t]')) b.onclick = () => {
+      const k = b.dataset.t;
+      if (k === 'deco') { if (g.deco === 0) delete g.deco; else g.deco = 0; }
+      else { g[k] = g[k] ? 0 : 1; if (g.tun) g.ramp = 0; if (k === 'ramp' && g.ramp && g.len < 60) g.len = 60; }
+      touch(); paintSegs();
+    };
+    d.querySelector('[data-a=up]').onclick = ev => { ev.stopPropagation(); if (i > 0) { [r.segs[i - 1], r.segs[i]] = [r.segs[i], r.segs[i - 1]]; SEL = i - 1; touch(); paintSegs(); } };
+    d.querySelector('[data-a=dn]').onclick = ev => { ev.stopPropagation(); if (i < r.segs.length - 1) { [r.segs[i + 1], r.segs[i]] = [r.segs[i], r.segs[i + 1]]; SEL = i + 1; touch(); paintSegs(); } };
+    d.querySelector('[data-a=dup]').onclick = ev => { ev.stopPropagation(); r.segs.splice(i + 1, 0, Object.assign({}, g)); SEL = i + 1; touch(); paintSegs(); };
+    d.querySelector('[data-a=del]').onclick = ev => { ev.stopPropagation(); if (r.segs.length <= 1) { toast('Cada camino necesita al menos un tramo'); return; } r.segs.splice(i, 1); SEL = Math.min(SEL, r.segs.length - 1); touch(); paintSegs(); };
     P.appendChild(d);
   });
-  const add = at => { const ref = M.segs[Math.min(at, M.segs.length) - 1] || M.segs[M.segs.length - 1]; M.segs.splice(at, 0, { bio: ref ? ref.bio : 'monaco', len: 200, curve: 0, hill: 0 }); SEL = at; touch(); paintSegs(); };
-  $('aSeg').onclick = () => add(M.segs.length);
+  const add = at => { const ref = r.segs[Math.min(at, r.segs.length) - 1] || r.segs[r.segs.length - 1]; r.segs.splice(at, 0, { bio: ref ? ref.bio : 'monaco', len: 200, curve: 0, hill: 0 }); SEL = at; touch(); paintSegs(); };
+  $('aSeg').onclick = () => add(r.segs.length);
   $('aSegAfter').onclick = () => add(SEL + 1);
 }
+const markTxt = () => MARK != null ? Math.round(MARK) + ' m' + (MLAT != null ? ' · ' + (MLAT < 0 ? 'IZQ ' + (-MLAT) : MLAT > 0 ? 'DER ' + MLAT : 'CENTRO') + (MH ? ' · ALTO ' + MH : '') : '') : null;
 function paintEvs() {
-  const P = $('p_evs'), T = totalLen(M);
-  M.evs.sort((a, b) => a.d - b.d);
-  P.innerHTML = `<div class="addbar"><button id="aEv" class="go">＋ ENEMIGO ${MARK != null ? 'EN ' + Math.round(MARK) + ' m' : 'AL FINAL'}</button></div>
-    <p class="note">Salen al llegar el coche a esa distancia (aparecen un poco por delante). Toca el mapa para elegir el punto. El mapa mide ${T} m.</p>`;
-  M.evs.forEach((e, i) => {
-    const d = document.createElement('div'); d.className = 'ev';
-    d.innerHTML = `<div class="h"><input type="number" min="0" max="${T}" step="10" value="${e.d}"><span class="lbl">m</span>${evSelect(e.k)}</div>
-      <div class="h"><span class="lbl">CUÁNTOS</span><div class="steps" style="flex:1">${[1, 2, 3, 4, 5, 6].map(n => `<button data-n="${n}" class="${n === e.n ? 'on' : ''}">${n}</button>`).join('')}</div><button class="mini" data-a="here">📍</button><button class="mini warn" data-a="del">✕</button></div>`;
-    d.querySelector('input').onchange = ev => { e.d = clamp(Math.round(+ev.target.value || 0), 0, T); touch(); paintEvs(); };
-    d.querySelector('select').onchange = ev => { e.k = ev.target.value; touch(); };
+  const P = $('p_evs'), r = CUR(), T = routeLen(r);
+  r.evs.sort((a, b) => a.d - b.d);
+  P.innerHTML = `<div class="addbar"><button id="aEv" class="go">＋ ENEMIGO ${markTxt() ? 'EN ' + markTxt() : 'AL FINAL'}</button><button id="aEvP">📍 PISTOLEROS EN EL PUNTO</button></div>
+    <p class="note">Los normales salen solos por delante al llegar a esa distancia. Los 📍 salen justo en el sitio (lado y altura): toca el mapa o el visor 3D para elegir el punto. Este camino mide ${T} m.</p>`;
+  r.evs.forEach((e, i) => {
+    const pos = POS_EV.has(e.k), d = document.createElement('div'); d.className = 'ev';
+    if (pos) { if (e.lat == null) e.lat = 7.5; if (e.h == null) e.h = 0; }
+    d.innerHTML = `<div class="h"><input type="number" min="0" max="${T}" step="5" value="${e.d}"><span class="lbl">m</span>${evSelect(e.k)}</div>
+      <div class="h"><span class="lbl">CUÁNTOS</span><div class="steps" style="flex:1">${[1, 2, 3, 4, 5, 6].map(n => `<button data-n="${n}" class="${n === e.n ? 'on' : ''}">${n}</button>`).join('')}</div><button class="mini" data-a="here">👁</button><button class="mini warn" data-a="del">✕</button></div>
+      ${pos ? latRow(e.lat) + `<div class="rowk"><span>ALTURA</span><input type="range" min="0" max="30" step="0.5" value="${e.h}" data-k="h"><output>${e.h ? e.h + ' m' : 'SUELO'}</output></div>
+      ${e.k === 'pgun' || e.k === 'pgren' ? `<div class="h tog"><button data-a="cv" class="mini ${e.cv ? 'on' : ''}">🛡 ESCONDIDOS TRAS COBERTURA</button><button data-a="mk" class="mini">📌 AL PUNTO MARCADO</button></div>` : `<div class="h tog"><button data-a="mk" class="mini">📌 AL PUNTO MARCADO</button></div>`}` : ''}`;
+    d.querySelector('input[type=number]').onchange = ev => { e.d = clamp(Math.round(+ev.target.value || 0), 0, T); touch(); paintEvs(); };
+    d.querySelector('select').onchange = ev => { e.k = ev.target.value; if (!POS_EV.has(e.k)) { delete e.lat; delete e.h; delete e.cv; } touch(); paintEvs(); };
     for (const b of d.querySelectorAll('[data-n]')) b.onclick = () => { e.n = +b.dataset.n; touch(); paintEvs(); };
-    d.querySelector('[data-a=here]').onclick = () => { MARK = e.d; drawMap(); };
-    d.querySelector('[data-a=del]').onclick = () => { M.evs.splice(i, 1); touch(); paintEvs(); };
+    d.querySelector('[data-a=here]').onclick = () => { MARK = e.d; MLAT = pos ? e.lat : null; MH = pos ? e.h : 0; drawMap(); if (V3) V3.look(RS + e.d); };
+    d.querySelector('[data-a=del]').onclick = () => { r.evs.splice(i, 1); touch(); paintEvs(); };
+    if (pos) {
+      const lr = d.querySelector('[data-k=lat]'); lr.oninput = () => { e.lat = +lr.value; lr.nextElementSibling.textContent = e.lat < 0 ? 'IZQ ' + (-e.lat) : e.lat > 0 ? 'DER ' + e.lat : 'CENTRO'; touch(); }; lr.onchange = () => paintEvs();
+      for (const b of d.querySelectorAll('[data-k=latq] button')) b.onclick = () => { e.lat = +b.dataset.v; touch(); paintEvs(); };
+      const hr = d.querySelector('[data-k=h]'); hr.oninput = () => { e.h = +hr.value; hr.nextElementSibling.textContent = e.h ? e.h + ' m' : 'SUELO'; touch(); };
+      const cv = d.querySelector('[data-a=cv]'); if (cv) cv.onclick = () => { if (e.cv) delete e.cv; else e.cv = 1; touch(); paintEvs(); };
+      d.querySelector('[data-a=mk]').onclick = () => { if (MARK == null) { toast('Primero toca un punto en el mapa o en el 3D'); return; } e.d = Math.round(MARK); if (MLAT != null) e.lat = MLAT; e.h = MH || 0; touch(); paintEvs(); };
+    }
     P.appendChild(d);
   });
-  $('aEv').onclick = () => { const last = M.evs.length ? M.evs[M.evs.length - 1] : null; const d = MARK != null ? Math.round(MARK) : Math.min(T, last ? last.d + 120 : 60); M.evs.push({ d, k: last ? last.k : 'gunmen', n: 2 }); touch(); paintEvs(); };
+  const last = r.evs.length ? r.evs[r.evs.length - 1] : null;
+  $('aEv').onclick = () => { const d = MARK != null ? Math.round(MARK) : Math.min(T, last ? last.d + 120 : 60); const k = last && !POS_EV.has(last.k) ? last.k : 'gunmen'; r.evs.push({ d, k, n: 2 }); touch(); paintEvs(); };
+  $('aEvP').onclick = () => { const d = MARK != null ? Math.round(MARK) : Math.min(T, last ? last.d + 60 : 60); r.evs.push({ d, k: 'pgun', n: 1, lat: MLAT != null ? MLAT : 7.5, h: MH || 0, cv: 1 }); touch(); paintEvs(); };
+}
+function paintProps() {
+  const P = $('p_props'), r = CUR(), T = routeLen(r);
+  r.props.sort((a, b) => a.d - b.d);
+  P.innerHTML = `<div class="addbar">${propSelect(LS.get('rcm_lastprop', 'edificio')).replace('<select>', '<select id="pType" style="flex:1">')}<button id="aProp" class="go">＋ ${markTxt() ? 'EN ' + markTxt() : 'AÑADIR'}</button></div>
+    <p class="note">Toca el mapa o el visor 3D donde lo quieras (en el 3D se coge también el lado). Lado: negativo = izquierda, positivo = derecha; la acera está a unos 7 m del centro.</p>`;
+  $('pType').onchange = e => LS.set('rcm_lastprop', e.target.value);
+  r.props.forEach((p, i) => {
+    const d = document.createElement('div'); d.className = 'ev'; d.style.borderLeftColor = '#5ad0ff';
+    d.innerHTML = `<div class="h">${propSelect(p.k)}<input type="number" min="0" max="${T}" step="5" value="${p.d}"><span class="lbl">m</span><button class="mini" data-a="here">👁</button><button class="mini" data-a="dup">⧉</button><button class="mini warn" data-a="del">✕</button></div>
+      ${latRow(p.lat, 80)}
+      <div class="rowk"><span>GIRO</span><input type="range" min="-180" max="180" step="15" value="${p.rot}" data-k="rot"><output>${p.rot}°</output></div>
+      <div class="rowk"><span>TAMAÑO</span><input type="range" min="0.3" max="4" step="0.1" value="${p.s}" data-k="s"><output>x${p.s}</output></div>
+      <div class="rowk"><span>ALTURA</span><input type="range" min="-10" max="40" step="0.5" value="${p.h}" data-k="h"><output>${p.h} m</output></div>
+      <div class="h tog"><button data-a="mk" class="mini">📌 AL PUNTO MARCADO</button></div>`;
+    d.querySelector('select').onchange = ev => { p.k = ev.target.value; touch(); };
+    d.querySelector('input[type=number]').onchange = ev => { p.d = clamp(Math.round(+ev.target.value || 0), 0, T + 30); touch(); paintProps(); };
+    for (const [k, f] of [['lat', v => (v < 0 ? 'IZQ ' + (-v) : v > 0 ? 'DER ' + v : 'CENTRO')], ['rot', v => v + '°'], ['s', v => 'x' + v], ['h', v => v + ' m']]) {
+      const el = d.querySelector(`[data-k=${k}]`); el.oninput = () => { p[k] = +el.value; el.nextElementSibling.textContent = f(p[k]); touch(); };
+    }
+    for (const b of d.querySelectorAll('[data-k=latq] button')) b.onclick = () => { p.lat = +b.dataset.v; touch(); paintProps(); };
+    d.querySelector('[data-a=here]').onclick = () => { MARK = p.d; MLAT = p.lat; MH = p.h; drawMap(); if (V3) V3.look(RS + p.d); };
+    d.querySelector('[data-a=dup]').onclick = () => { r.props.splice(i + 1, 0, Object.assign({}, p, { d: Math.min(T, p.d + 15) })); touch(); paintProps(); };
+    d.querySelector('[data-a=del]').onclick = () => { r.props.splice(i, 1); touch(); paintProps(); };
+    d.querySelector('[data-a=mk]').onclick = () => { if (MARK == null) { toast('Primero toca un punto en el mapa o en el 3D'); return; } p.d = Math.round(MARK); if (MLAT != null) p.lat = MLAT; p.h = MH || 0; touch(); paintProps(); };
+    P.appendChild(d);
+  });
+  $('aProp').onclick = () => {
+    const k = $('pType').value, d = MARK != null ? Math.round(MARK) : Math.min(T, r.props.length ? r.props[r.props.length - 1].d + 25 : 30);
+    const lat = MLAT != null ? MLAT : (['arco', 'puente'].includes(k) ? 0 : 13);
+    r.props.push({ k, d, lat, rot: 0, s: 1, h: MH || 0 }); touch(); paintProps();
+  };
+}
+function paintEnd() {
+  const P = $('p_end'), r = CUR(), e = r.end, depth = PATH.length;
+  const cur = e.t || 'meta';
+  P.innerHTML = `<p class="note">Qué pasa al acabar los tramos de este camino.</p>
+    <div class="steps" id="eT" style="margin-bottom:10px"><button data-v="meta" class="${cur === 'meta' ? 'on' : ''}">🏁 META</button><button data-v="fork" class="${cur === 'fork' ? 'on' : ''}" ${depth >= 5 ? 'disabled' : ''}>⑂ CARTELES + TÚNEL</button><button data-v="side" class="${cur === 'side' ? 'on' : ''}" ${depth >= 5 ? 'disabled' : ''}>↪ CARTEL LATERAL</button></div>
+    <div id="eBody"></div>`;
+  const B = $('eBody');
+  if (cur === 'meta') B.innerHTML = '<p class="note">Aquí se acaba el mapa: ¡MAPA COMPLETADO!</p>';
+  else if (cur === 'fork') {
+    B.innerHTML = `<p class="note">Pórtico con un cartel por camino encima de la carretera y un túnel. Se elige disparando al cartel (en grupo, gana el más votado). Cada camino sigue por su lado y puede tener sus propios desvíos.</p>`;
+    e.opts.forEach((o, i) => {
+      const d = document.createElement('div'); d.className = 'seg'; d.style.borderLeftColor = BCOL(o.segs[0].bio);
+      d.innerHTML = `<div class="h"><b>CARTEL ${i + 1}</b><input type="text" maxlength="22" value="${esc(o.l)}" placeholder="Texto del cartel" style="flex:1"></div>
+        <div class="h"><input type="text" maxlength="26" value="${esc(o.s)}" placeholder="Subtítulo (opcional)" style="flex:1"><button data-a="ed" class="mini go">✏ EDITAR ESTE CAMINO</button>${e.opts.length > 2 ? '<button data-a="del" class="mini warn">✕</button>' : ''}</div>
+        <small class="lbl">${o.segs.length} tramos · ${routeLen(o)} m · ${o.evs.length} enemigos · ${o.props.length} objetos · acaba en ${o.end.t === 'meta' ? 'META' : 'OTRO DESVÍO'}</small>`;
+      const [t1, t2] = d.querySelectorAll('input');
+      t1.oninput = () => { o.l = t1.value.toUpperCase(); touch(); }; t2.oninput = () => { o.s = t2.value; touch(); };
+      d.querySelector('[data-a=ed]').onclick = () => goPath(PATH.concat([i]));
+      const dl = d.querySelector('[data-a=del]'); if (dl) dl.onclick = () => { if (confirm('¿Borrar el camino "' + o.l + '" con todo lo que tiene?')) { e.opts.splice(i, 1); touch(true); paintEnd(); } };
+      B.appendChild(d);
+    });
+    if (e.opts.length < 3) { const b = document.createElement('button'); b.className = 'go'; b.textContent = '＋ TERCER CAMINO'; b.onclick = () => { e.opts.push(Object.assign(newRoute(r.segs[r.segs.length - 1].bio), { l: 'CAMINO 3', s: '' })); touch(true); paintEnd(); }; B.appendChild(b); }
+  } else {
+    B.innerHTML = `<p class="note">Como el de OLD TOWN: un cartel a un lado de la carretera. Si nadie le dispara, se sigue por el primer camino; si le disparan, la carretera gira por el segundo.</p>
+      <div class="h" style="display:flex;gap:8px;margin-bottom:8px"><input id="sTxt" type="text" maxlength="22" value="${esc(e.l)}" placeholder="Texto del cartel" style="flex:1"><div class="steps" id="sSd"><button data-v="-1" class="${e.sd === -1 ? 'on' : ''}">A LA IZQ</button><button data-v="1" class="${e.sd !== -1 ? 'on' : ''}">A LA DER</button></div></div>`;
+    $('sTxt').oninput = ev => { e.l = ev.target.value.toUpperCase(); touch(); };
+    for (const b of $('sSd').children) b.onclick = () => { e.sd = +b.dataset.v; touch(); paintEnd(); };
+    e.opts.forEach((o, i) => {
+      const d = document.createElement('div'); d.className = 'seg'; d.style.borderLeftColor = BCOL(o.segs[0].bio);
+      d.innerHTML = `<div class="h"><b>${i ? 'SI LE DISPARAN' : 'SI NO LE DISPARAN'}</b><input type="text" maxlength="22" value="${esc(o.l)}" placeholder="Nombre del camino" style="flex:1"><button data-a="ed" class="mini go">✏ EDITAR ESTE CAMINO</button></div>
+        <small class="lbl">${o.segs.length} tramos · ${routeLen(o)} m · ${o.evs.length} enemigos · ${o.props.length} objetos</small>`;
+      const t = d.querySelector('input'); t.oninput = () => { o.l = t.value.toUpperCase(); touch(); };
+      d.querySelector('[data-a=ed]').onclick = () => goPath(PATH.concat([i]));
+      B.appendChild(d);
+    });
+  }
+  for (const b of $('eT').children) b.onclick = () => {
+    const t = b.dataset.v; if (t === cur) return;
+    if (cur !== 'meta' && !confirm('Se borran los caminos que salen de aquí. ¿Seguro?')) return;
+    const bio = r.segs[r.segs.length - 1].bio;
+    if (t === 'meta') r.end = { t: 'meta' };
+    else if (t === 'fork') r.end = { t: 'fork', opts: [Object.assign(newRoute(bio), { l: 'IZQUIERDA', s: '' }), Object.assign(newRoute(bio), { l: 'DERECHA', s: '' })] };
+    else r.end = { t: 'side', l: 'ATAJO', sd: 1, opts: [Object.assign(newRoute(bio), { l: 'SEGUIR', s: '' }), Object.assign(newRoute(bio), { l: 'ATAJO', s: '' })] };
+    touch(true); paintEnd();
+  };
 }
 function paintOpts() {
-  const P = $('p_opts'), s = SRV.find(x => x.id === M.id);
+  const P = $('p_opts'), s = SRV.find(x => x.id === M.id), C = countAll(M);
   P.innerHTML = `
     <div class="field"><span class="lbl">AUTOR</span><input id="oAuth" type="text" maxlength="24" value="${esc(M.author || CFG.author)}"></div>
     <div class="field"><span class="lbl">DIFICULTAD (vida de los enemigos y daño)</span><div class="steps" id="oZd">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<button data-v="${n}" class="${n === M.zd ? 'on' : ''}">${n}</button>`).join('')}</div></div>
     <div class="field"><span class="lbl">ENEMIGOS AUTOMÁTICOS (además de los que pongas tú)</span><div class="steps" id="oAuto">${['NINGUNO', 'POCOS', 'NORMAL'].map((t, n) => `<button data-v="${n}" class="${n === M.auto ? 'on' : ''}">${t}</button>`).join('')}</div></div>
-    <p class="note">Total: ${(totalLen(M) / 1000).toFixed(2)} km · ${M.segs.length} tramos · ${M.evs.length} enemigos. ${s ? (s.debug ? 'Está en DebugMaps.' : 'Está subido al servidor (borrador).') : 'Todavía no está en el servidor.'}</p>
+    <p class="note">Camino principal: ${(totalLen(M) / 1000).toFixed(2)} km · ${C.ways} camino${C.ways > 1 ? 's' : ''} · ${C.segs} tramos · ${C.evs} enemigos · ${C.props} objetos. ${s ? (s.debug ? 'Está en DebugMaps.' : 'Está subido al servidor (borrador).') : 'Todavía no está en el servidor.'}</p>
     <div class="btns"><button id="oUp" class="gold">☁ SUBIR AL SERVIDOR</button><button id="oDbg" class="go">➜ ENVIAR A DEBUGMAPS</button></div>
     <div class="btns"><button id="oCode">📋 COPIAR CÓDIGO</button><button id="oFile">💾 GUARDAR ARCHIVO</button><button id="oDel" class="warn">✕ BORRAR DEL MÓVIL</button></div>
     <div id="oMsg" class="note"></div>`;
@@ -312,12 +453,12 @@ function paintOpts() {
   };
   $('oFile').onclick = () => {
     const txt = JSON.stringify(fixMap(JSON.parse(JSON.stringify(M))), null, 1), name = (M.name || 'mapa').replace(/[^\w\-áéíóúñÁÉÍÓÚÑ ]+/g, '').trim().replace(/\s+/g, '_') + '.rcmap.json';
-    try { if (window.RCMaps && window.RCMaps.saveFile) { const r = window.RCMaps.saveFile(name, txt); toast(r ? 'Guardado en Descargas/' + name : 'No se ha podido guardar'); return; } } catch (e) { }
+    try { if (window.RCMaps && window.RCMaps.saveFile) { const r = window.RCMaps.saveFile(name, txt); toast(r ? 'Guardado en Descargas/RivieraMapas/' + name : 'No se ha podido guardar'); return; } } catch (e) { }
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'application/json' })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
   };
   $('oDel').onclick = () => { if (confirm('¿Borrar este mapa del móvil?')) { delLocal(M.id); dirty = false; showList(); } };
 }
-function paintPane() { if (TAB === 'segs') paintSegs(); else if (TAB === 'evs') paintEvs(); else paintOpts(); }
+function paintPane() { paintCrumb(); ({ segs: paintSegs, evs: paintEvs, props: paintProps, end: paintEnd, opts: paintOpts })[TAB](); }
 function paintAll() { rebuild(); paintPane(); }
 
 // ---------- dibujo del recorrido (visto desde arriba) y del perfil de alturas ----------
@@ -329,76 +470,98 @@ function sizeCv() {
 }
 window.addEventListener('resize', () => { if (!$('edScr').hidden) { sizeCv(); drawMap(); } });
 function drawMap() {
-  if ($('edScr').hidden) return;
-  const g = cv.getContext('2d'), W = cv.width, H = cv.height, dpr = cv._dpr || 1, R = ROUTE;
+  if ($('edScr').hidden || !M) return;
+  const g = cv.getContext('2d'), W = cv.width, H = cv.height, dpr = cv._dpr || 1, R = ROUTE, r = CUR(), RL = routeLen(r);
   g.fillStyle = '#0c0a18'; g.fillRect(0, 0, W, H);
   g.strokeStyle = 'rgba(255,255,255,.05)'; g.lineWidth = 1;
   for (let k = 0; k < W; k += 24 * dpr) { g.beginPath(); g.moveTo(k, 0); g.lineTo(k, H); g.stroke(); }
   for (let k = 0; k < H; k += 24 * dpr) { g.beginPath(); g.moveTo(0, k); g.lineTo(W, k); g.stroke(); }
+  $('mapInfo').innerHTML = `CAMINO: ${(RL / 1000).toFixed(2)} KM · ${r.segs.length} TRAMOS · ${r.evs.length} ENEMIGOS · ${r.props.length} OBJETOS<br>TOCA EL MAPA PARA MARCAR UN PUNTO${markTxt() ? ' · ' + markTxt() : ''}`;
   if (!R) return;
-  const n = R.len, d0 = START_TUN - 30, d1 = Math.min(n, R.cEnd + 40);
+  const n = R.len, d0 = START_TUN - 30, d1 = Math.min(n, (R.cEnd || n) + 40);
   let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
   for (let i = d0; i <= d1; i += 2) { x0 = Math.min(x0, R.x[i]); x1 = Math.max(x1, R.x[i]); z0 = Math.min(z0, R.z[i]); z1 = Math.max(z1, R.z[i]); }
   const pad = 30 * dpr, sc = Math.min((W - pad * 2) / Math.max(60, x1 - x0), (H - pad * 2) / Math.max(60, z1 - z0));
   const ox = (W - (x1 - x0) * sc) / 2, oz = (H - (z1 - z0) * sc) / 2;
-  const P = i => [ox + (R.x[i] - x0) * sc, oz + (R.z[i] - z0) * sc];
-  VIEW = { P, d0, d1 };
+  const P = i => [ox + (R.x[Math.max(0, Math.min(n, Math.round(i)))] - x0) * sc, oz + (R.z[Math.max(0, Math.min(n, Math.round(i)))] - z0) * sc];
+  VIEW = { P, d0, d1, sc };
+  const line = (a, b, col, w, dash) => { g.strokeStyle = col; g.lineWidth = w * dpr; g.setLineDash(dash ? [5 * dpr, 4 * dpr] : []); g.beginPath(); for (let i = a; i <= b; i += 2) { const [x, y] = P(Math.min(i, n)); i === a ? g.moveTo(x, y) : g.lineTo(x, y); } g.stroke(); g.setLineDash([]); };
   g.lineCap = 'round'; g.lineJoin = 'round';
-  // borde negro y luego cada tramo de su color
-  g.strokeStyle = '#000'; g.lineWidth = 11 * dpr; g.beginPath();
-  for (let i = d0; i <= d1; i += 2) { const [x, y] = P(i); i === d0 ? g.moveTo(x, y) : g.lineTo(x, y); } g.stroke();
-  const st = segStarts();
-  M.segs.forEach((s, k) => {
-    const a = START_TUN + st[k], b = a + s.len;
-    g.strokeStyle = BCOL(s.bio); g.lineWidth = (k === SEL ? 9 : 6) * dpr; g.setLineDash(s.tun ? [5 * dpr, 4 * dpr] : []);
-    g.beginPath(); for (let i = a; i <= b; i += 2) { const [x, y] = P(Math.min(i, n)); i === a ? g.moveTo(x, y) : g.lineTo(x, y); } g.stroke();
-    if (s.tun) { g.setLineDash([]); g.strokeStyle = 'rgba(0,0,0,.55)'; g.lineWidth = 3 * dpr; g.beginPath(); for (let i = a; i <= b; i += 2) { const [x, y] = P(Math.min(i, n)); i === a ? g.moveTo(x, y) : g.lineTo(x, y); } g.stroke(); }
-    g.setLineDash([]);
-  });
-  // túnel de salida, meta
-  g.strokeStyle = '#666'; g.lineWidth = 5 * dpr; g.beginPath(); for (let i = d0; i <= START_TUN; i += 2) { const [x, y] = P(i); i === d0 ? g.moveTo(x, y) : g.lineTo(x, y); } g.stroke();
-  const flag = (d, c, t) => { const [x, y] = P(Math.min(n, Math.round(d))); g.fillStyle = c; g.beginPath(); g.arc(x, y, 6 * dpr, 0, 7); g.fill(); g.strokeStyle = '#000'; g.lineWidth = 2 * dpr; g.stroke(); if (t) { g.font = `${9 * dpr}px "Press Start 2P",monospace`; g.fillStyle = '#fff'; g.fillText(t, x + 9 * dpr, y - 7 * dpr); } };
-  flag(START_TUN, '#7dff8a', 'SALIDA'); flag(R.cEnd, '#fff', 'META');
-  // rampas
+  line(d0, d1, '#000', 11); line(d0, d1, '#4a4660', 5);
+  const st = segStarts(r);
+  r.segs.forEach((s, k) => { const a = RS + st[k], b = a + s.len; line(a, b, BCOL(s.bio), k === SEL ? 9 : 6, s.tun); if (s.deco === 0) line(a, b, 'rgba(255,255,255,.35)', 2); });
+  const flag = (d, c, t) => { const [x, y] = P(d); g.fillStyle = c; g.beginPath(); g.arc(x, y, 6 * dpr, 0, 7); g.fill(); g.strokeStyle = '#000'; g.lineWidth = 2 * dpr; g.stroke(); if (t) { g.font = `${9 * dpr}px "Press Start 2P",monospace`; g.fillStyle = '#fff'; g.fillText(t, x + 9 * dpr, y - 7 * dpr); } };
+  flag(START_TUN, '#7dff8a', 'SALIDA'); if (R.cEnd) flag(R.cEnd, '#fff', 'META');
+  for (const f of R.forks) flag(f.gantry, '#ffe14a', '⑂');
+  for (const w of R.csides || []) flag(w.sign, '#ffb02a', '↪');
   for (const b of R.cramps || []) { const [x, y] = P(b); g.fillStyle = '#5ad0ff'; g.fillRect(x - 5 * dpr, y - 5 * dpr, 10 * dpr, 10 * dpr); }
-  // enemigos
-  g.font = `bold ${11 * dpr}px "Chakra Petch",sans-serif`;
-  for (const e of M.evs) { const [x, y] = P(Math.min(n, Math.round(START_TUN + e.d))); g.fillStyle = /JEFE/.test(CMAP_EV[e.k][0]) ? '#ff2a6a' : '#ff8a3d'; g.beginPath(); g.moveTo(x, y - 9 * dpr); g.lineTo(x + 7 * dpr, y + 5 * dpr); g.lineTo(x - 7 * dpr, y + 5 * dpr); g.closePath(); g.fill(); g.strokeStyle = '#000'; g.lineWidth = 1.5 * dpr; g.stroke(); }
-  if (MARK != null) { const [x, y] = P(Math.min(n, Math.round(START_TUN + MARK))); g.strokeStyle = '#ffe14a'; g.lineWidth = 3 * dpr; g.beginPath(); g.arc(x, y, 11 * dpr, 0, 7); g.stroke(); g.fillStyle = '#ffe14a'; g.font = `${9 * dpr}px "Press Start 2P",monospace`; g.fillText(Math.round(MARK) + ' m', x + 14 * dpr, y + 4 * dpr); }
-  $('mapInfo').innerHTML = `${(totalLen(M) / 1000).toFixed(2)} KM · ${M.segs.length} TRAMOS · ${M.evs.length} ENEMIGOS<br>TOCA EL MAPA PARA MARCAR UN PUNTO`;
+  // objetos y enemigos del camino que se edita (en su sitio, con el lado)
+  const at = (d, lat) => { const i = Math.max(0, Math.min(n, Math.round(d))), yw = R.yaw[i]; const [x, y] = P(i); return [x + Math.cos(yw) * lat * sc, y + Math.sin(yw) * lat * sc]; };
+  for (const p of r.props) { const [x, y] = at(RS + p.d, p.lat); g.fillStyle = '#5ad0ff'; g.globalAlpha = 0.8; g.fillRect(x - 3 * dpr, y - 3 * dpr, 6 * dpr, 6 * dpr); g.globalAlpha = 1; }
+  for (const e of r.evs) { const [x, y] = at(RS + e.d, POS_EV.has(e.k) ? e.lat || 0 : 0); g.fillStyle = /JEFE/.test(CMAP_EV[e.k][0]) ? '#ff2a6a' : POS_EV.has(e.k) ? '#ff4a4a' : '#ff8a3d'; g.beginPath(); g.moveTo(x, y - 8 * dpr); g.lineTo(x + 6 * dpr, y + 4 * dpr); g.lineTo(x - 6 * dpr, y + 4 * dpr); g.closePath(); g.fill(); g.strokeStyle = '#000'; g.lineWidth = 1.5 * dpr; g.stroke(); }
+  if (MARK != null) { const [x, y] = at(RS + MARK, MLAT || 0); g.strokeStyle = '#ffe14a'; g.lineWidth = 3 * dpr; g.beginPath(); g.arc(x, y, 11 * dpr, 0, 7); g.stroke(); }
   drawProf();
 }
 function drawProf() {
-  const g = pcv.getContext('2d'), W = pcv.width, H = pcv.height, dpr = pcv._dpr || 1, R = ROUTE;
+  const g = pcv.getContext('2d'), W = pcv.width, H = pcv.height, dpr = pcv._dpr || 1, R = ROUTE, r = CUR();
   g.fillStyle = '#0a0816'; g.fillRect(0, 0, W, H);
   if (!R) return;
-  const a = START_TUN, b = Math.max(a + 10, R.cEnd);
-  let y0 = 1e9, y1 = -1e9; for (let i = a; i <= b; i++) { y0 = Math.min(y0, R.y[i]); y1 = Math.max(y1, R.y[i]); }
+  const a = RS, b = Math.max(a + 10, a + routeLen(r));
+  let y0 = 1e9, y1 = -1e9; for (let i = a; i <= Math.min(b, R.len); i++) { y0 = Math.min(y0, R.y[i]); y1 = Math.max(y1, R.y[i]); }
   const pad = 6 * dpr, X = d => pad + (d - a) / (b - a) * (W - pad * 2), Y = y => H - pad - (y - y0) / Math.max(8, y1 - y0) * (H - pad * 2);
-  const st = segStarts();
-  M.segs.forEach((s, k) => { g.fillStyle = BCOL(s.bio) + (k === SEL ? '55' : '22'); g.fillRect(X(a + st[k]), 0, X(a + st[k] + s.len) - X(a + st[k]), H); });
+  const st = segStarts(r);
+  r.segs.forEach((s, k) => { g.fillStyle = BCOL(s.bio) + (k === SEL ? '55' : '22'); g.fillRect(X(a + st[k]), 0, X(a + st[k] + s.len) - X(a + st[k]), H); });
   g.strokeStyle = '#fff'; g.lineWidth = 2 * dpr; g.beginPath();
-  for (let i = a; i <= b; i += 2) { const x = X(i), y = Y(R.y[i]); i === a ? g.moveTo(x, y) : g.lineTo(x, y); } g.stroke();
+  for (let i = a; i <= Math.min(b, R.len); i += 2) { const x = X(i), y = Y(R.y[i]); i === a ? g.moveTo(x, y) : g.lineTo(x, y); } g.stroke();
   if (MARK != null) { g.strokeStyle = '#ffe14a'; g.beginPath(); g.moveTo(X(a + MARK), 0); g.lineTo(X(a + MARK), H); g.stroke(); }
   g.font = `${8 * dpr}px "Press Start 2P",monospace`; g.fillStyle = 'rgba(255,255,255,.6)'; g.fillText('ALTURA: ' + Math.round(y1 - y0) + ' m de desnivel', 8 * dpr, 12 * dpr);
   pcv._map = { a, b, pad };
 }
-// tocar el mapa: punto más cercano de la carretera
-function pickAt(cx, cy) {
-  if (!VIEW || !ROUTE) return;
-  const r = cv.getBoundingClientRect(), dpr = cv._dpr || 1, x = (cx - r.left) * dpr, y = (cy - r.top) * dpr;
-  let best = null, bd = 1e18;
-  for (let i = START_TUN; i <= Math.min(ROUTE.len, ROUTE.cEnd); i += 2) { const [px, py] = VIEW.P(i); const d = (px - x) ** 2 + (py - y) ** 2; if (d < bd) { bd = d; best = i; } }
-  if (best == null || bd > (40 * dpr) ** 2) return;
-  setMark(best - START_TUN);
-}
-function setMark(m) {
-  MARK = clamp(Math.round(m / 5) * 5, 0, totalLen(M));
-  const st = segStarts(); for (let k = 0; k < st.length; k++) if (MARK >= st[k]) SEL = k;
+function setMark(m, lat = null, h = 0) {
+  const r = CUR(); MARK = clamp(Math.round(m), 0, routeLen(r)); MLAT = lat; MH = h || 0;
+  const st = segStarts(r); for (let k = 0; k < st.length; k++) if (MARK >= st[k]) SEL = k;
   drawMap(); paintPane();
 }
-cv.addEventListener('pointerdown', e => pickAt(e.clientX, e.clientY));
-pcv.addEventListener('pointerdown', e => { const m = pcv._map; if (!m) return; const r = pcv.getBoundingClientRect(), dpr = pcv._dpr || 1; const u = ((e.clientX - r.left) * dpr - m.pad) / (pcv.width - m.pad * 2); setMark(u * (m.b - m.a)); });
+// tocar el mapa: punto más cercano de la carretera del camino que se edita (y a qué lado)
+cv.addEventListener('pointerdown', e => {
+  if (!VIEW || !ROUTE) return;
+  const R = ROUTE, rc = cv.getBoundingClientRect(), dpr = cv._dpr || 1, x = (e.clientX - rc.left) * dpr, y = (e.clientY - rc.top) * dpr;
+  let best = null, bd = 1e18;
+  for (let i = RS; i <= Math.min(R.len, RS + routeLen(CUR())); i += 1) { const [px, py] = VIEW.P(i); const d = (px - x) ** 2 + (py - y) ** 2; if (d < bd) { bd = d; best = i; } }
+  if (best == null || bd > (40 * dpr) ** 2) return;
+  const [px, py] = VIEW.P(best), yw = R.yaw[best];
+  const lat = ((x - px) * Math.cos(yw) + (y - py) * Math.sin(yw)) / VIEW.sc;
+  setMark(best - RS, Math.abs(lat) < 2 ? null : Math.round(clamp(lat, -60, 60) * 2) / 2, 0);
+  if (V3) V3.look(best);
+});
+pcv.addEventListener('pointerdown', e => { const m = pcv._map; if (!m) return; const r = pcv.getBoundingClientRect(), dpr = pcv._dpr || 1; const u = ((e.clientX - r.left) * dpr - m.pad) / (pcv.width - m.pad * 2); setMark(u * (m.b - m.a)); if (V3) V3.look(RS + MARK); });
+
+// ---------- visor 3D ----------
+function marks3D() {
+  const L = [], r = CUR(), R = ROUTE;
+  for (const e of r.evs) {
+    const pos = POS_EV.has(e.k), nm = CMAP_EV[e.k][0].replace('📍 ', '');
+    if (pos) L.push({ t: 'enemy', d: RS + e.d, lat: e.lat || 0, h: e.h || 0, n: e.n, cv: e.cv, c: e.k === 'pciv' ? 0x4ad0ff : e.k === 'pmedkit' ? 0x40ff80 : e.k === 'pbarrel' ? 0xd03a2a : null, l: (e.n > 1 ? e.n + ' × ' : '') + nm });
+    else L.push({ t: 'event', d: RS + e.d, lat: 0, l: (e.n > 1 ? e.n + ' × ' : '') + nm, col: /JEFE/.test(nm) ? '#ff5a8a' : '#ffb020' });
+  }
+  for (const f of R.forks) if (f.custom) f.opts.forEach((o, i) => L.push({ t: 'sign', d: f.gantry, lat: [-3.1, 3.1, 0][i] * (f.opts.length === 3 ? 1.9 : 1), l: '⑂ ' + o.l, col: '#7dff8a' }));
+  for (const w of R.csides || []) L.push({ t: 'sign', d: w.sign, lat: w.sd * 9.5, l: '↪ ' + w.l, col: '#ffb02a' });
+  if (R.cEnd) L.push({ t: 'flag', d: R.cEnd, lat: -6, l: 'META', col: '#ffffff' });
+  return L;
+}
+function push3D() { if (!V3 || !ROUTE) return; V3.setRoad(ROUTE, marks3D(), [RS, RS + routeLen(CUR())]); if (MARK != null) V3.look(RS + MARK); }
+function set3D(on) {
+  MODE3D = on;
+  if (on && !V3) { V3 = new View3D($('v3d')); V3.onPick = p => { setMark(p.d - RS, p.lat, p.h); }; V3.td = RS + (MARK || 20); }
+  if (V3) V3.show(on);
+  $('b3d').textContent = on ? '🗺 2D' : '🧊 3D';
+  for (const id of ['bFwd', 'bRev', 'bCar']) $(id).hidden = !on;
+  if (on) push3D(); else drawMap();
+}
+$('b3d').onclick = () => set3D(!MODE3D);
+$('bFwd').onclick = () => V3 && V3.look(V3.td + 25);
+$('bRev').onclick = () => V3 && V3.look(V3.td - 25);
+$('bCar').onclick = () => { if (!V3) return; V3.fp = !V3.fp; V3.pitch = V3.fp ? 0.45 : 0.45; V3.yaw = 0.6; $('bCar').classList.toggle('on', V3.fp); };
 
 // ---------- arranque ----------
 paintWho();
@@ -408,4 +571,4 @@ if (!CFG.author) setTimeout(settings, 400);
   const cur = LS.get('rcm_cur', null);
   if (cur && locals()[cur]) openEditor(cur); else showList();
 }
-window.__ED = { get M() { return M; }, upload, readIndex, parseCode, mapCode }; // TODO-TESTEO
+window.__ED = { get M() { return M; }, upload, readIndex, parseCode, mapCode, goPath, set3D, setMark, get V3() { return V3; } }; // TODO-TESTEO
