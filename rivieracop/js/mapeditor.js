@@ -563,6 +563,17 @@ $('bFwd').onclick = () => V3 && V3.look(V3.td + 25);
 $('bRev').onclick = () => V3 && V3.look(V3.td - 25);
 $('bCar').onclick = () => { if (!V3) return; V3.fp = !V3.fp; V3.pitch = V3.fp ? 0.45 : 0.45; V3.yaw = 0.6; $('bCar').classList.toggle('on', V3.fp); };
 
+// ---------- versión y actualizaciones ----------
+// la app avisa cuando ha descargado una versión nueva del editor: se recarga en cuanto no se está editando
+window.rcPack = (st, v) => {
+  if (st !== 'done') return;
+  if ($('edScr').hidden) { toast('Editor actualizado: recargando…'); setTimeout(() => { try { window.RCMaps.reloadGame(); } catch (e) { location.reload(); } }, 1200); }
+  else { window.__packWaiting = 1; toast('Hay una versión nueva del editor: sal a la lista de mapas para cargarla', 6000); }
+};
+{ let v = '?'; try { v = window.RCMaps && window.RCMaps.pack ? window.RCMaps.pack() : 'web'; } catch (e) { } const t = document.createElement('span'); t.className = 'lbl'; t.textContent = 'VERSIÓN ' + v; t.style.cssText = 'position:fixed;right:10px;bottom:6px;opacity:.6;pointer-events:none'; document.body.appendChild(t); }
+const _showList = showList;
+showList = function () { _showList(); if (window.__packWaiting) { try { window.RCMaps.reloadGame(); } catch (e) { location.reload(); } } };
+
 // ---------- arranque ----------
 paintWho();
 if (!CFG.author) setTimeout(settings, 400);
