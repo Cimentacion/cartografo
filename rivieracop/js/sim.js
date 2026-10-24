@@ -2,7 +2,7 @@
 // Todo va en "coordenadas de carretera": d = metros recorridos, lat = lateral, h = altura.
 import { TI, ST, BIOMES, BIOME_KEYS, BONUSES, PNAME, BOSS, WHOUSE, westSpots, MANSION, mansionWall, mansionSpot } from './defs.js';
 import { rollWeapon, uniqueWeapon } from './weapons.js';
-import { LANE_ME, LANE_OT, WALK, HALF, ARENA_R, duneH } from './road.js';
+import { LANE_ME, LANE_OT, WALK, HALF, ARENA_R, duneH, START_TUN } from './road.js';
 import { rng, hash, clamp, lerp, pick, r2 } from './util.js';
 import { SPEEDS, shieldDur, bulletDur, maxHpOf, META_KEYS, turboDur } from './progress.js';
 
@@ -38,6 +38,54 @@ const HOSTILE = new Set(['gunman', 'sniper', 'moto', 'ecar', 'heli', 'drone', 'j
 export const AIR = new Set(['heli', 'drone', 'jet', 'blimp', 'gunship']);
 export const ANIMAL = new Set(['beast', 'bear', 'jelly', 'chicken']);
 const PROJ = new Set(['grenade', 'rocket', 'rock', 'thrown']);
+// lo que se puede poner en un mapa hecho a mano: [nombre, cómo sale] (n = cuántos)
+export const CMAP_EV = {
+  gunmen: ['Pistoleros', (S, n) => { for (let k = n; k > 0; k -= 3) S.spawnGunmen(Math.min(3, k), false); }],
+  cover: ['Pistoleros tras coberturas', (S, n) => { for (let k = n; k > 0; k -= 3) S.spawnGunmen(Math.min(3, k), true); }],
+  grenadier: ['Granaderos', (S, n) => { for (let i = 0; i < n; i++) S.spawnGunmen(1, true, true); }],
+  sniper: ['Francotirador', (S, n) => { for (let i = 0; i < n; i++) S.spawnSniper(); }],
+  roofgun: ['Tiradores en tejados', (S) => S.spawnRoofGunmen()],
+  rocketeers: ['Lanzacohetes', (S) => S.spawnRocketeers()],
+  jumper: ['Saltadores', (S, n) => { for (let i = 0; i < n; i++) S.spawnJumper(i % 2 === 1); }],
+  moto: ['Motoristas', (S, n) => { for (let i = 0; i < n; i++) S.spawnMoto(i); }],
+  motoback: ['Motoristas por detrás', (S, n) => { for (let i = 0; i < n; i++) S.spawnMoto(i, true); }],
+  quad: ['Quads', (S) => S.spawnQuads(false)],
+  ecar: ['Coche armado', (S, n) => { for (let i = 0; i < n; i++) S.spawnECar(); }],
+  pickup: ['Pickup artillada', (S) => S.spawnPickup(false)],
+  van: ['Furgón blindado', (S) => S.spawnVan()],
+  bus: ['Autobús', (S) => S.spawnBus()],
+  rammer: ['Coche que embiste', (S) => S.spawnRammer()],
+  drone: ['Drones', (S, n) => { for (let i = 0; i < n; i++) S.spawnDrone(i); }],
+  heli: ['Helicóptero', (S) => S.spawnHeli()],
+  barrels: ['Bidones explosivos', (S) => S.spawnBarrels()],
+  mines: ['Minas en la carretera', (S) => S.spawnMines()],
+  wall: ['Muro (choque)', (S) => S.spawnWall(0)],
+  beasts: ['Bestias', (S) => S.spawnBeasts(0)],
+  bear: ['JEFE: Oso grizzly', (S) => S.spawnBear()],
+  jeep: ['JEFE: Terrorista en jeep', (S) => S.spawnJeep()],
+  tank: ['JEFE: Tanque', (S) => S.spawnTank()],
+  rig: ['JEFE: Camión', (S) => S.spawnRig()],
+  blimp: ['JEFE: Dirigible', (S) => S.spawnBlimp()],
+  gunship: ['JEFE: Cañonero', (S) => S.spawnGunship()],
+  jet: ['Avión de combate', (S) => S.spawnJet()],
+  turret: ['Torreta', (S) => S.spawnTurret()],
+  dealer: ['Traficante de armas', (S) => S.spawnDealer()],
+  goblin: ['Goblin del saco', (S) => S.spawnGoblin()],
+  amb: ['Ambulancia (vida)', (S) => S.spawnAmb()],
+  civ: ['Civiles', (S, n) => S.spawnCivilians(n * 2)],
+  civcar: ['Coche civil', (S, n) => { for (let i = 0; i < n; i++) S.spawnCivCar(); }],
+  truck: ['Camión civil', (S) => S.spawnTruck()],
+};
+// huella en el suelo para que no se atraviesen: [medio largo (a lo largo de la carretera), medio ancho, ¿vehículo?]
+const FOOTPR = {};
+for (const k of ['gunman', 'sniper', 'rioter', 'zombie', 'jumper', 'outlaw', 'skel', 'slasher', 'goblin', 'civilian', 'fatman', 'lady', 'victim']) FOOTPR[k] = [0.42, 0.42, 0];
+FOOTPR.beast = [0.7, 0.7, 0]; FOOTPR.bear = [1.1, 1.1, 0]; FOOTPR.brute = [1.0, 1.0, 0];
+for (const k of ['moto']) FOOTPR[k] = [1.1, 0.5, 1];
+for (const k of ['quad', 'tuktuk', 'gatcart']) FOOTPR[k] = [1.3, 0.75, 1];
+for (const k of ['ecar', 'xcar', 'civcar', 'police', 'rammer']) FOOTPR[k] = [2.2, 0.95, 1];
+for (const k of ['jeep', 'pickup', 'van', 'amb']) FOOTPR[k] = [2.5, 1.05, 1];
+for (const k of ['truck', 'fuel', 'float', 'firetruck', 'crew', 'tank', 'rig', 'bus']) FOOTPR[k] = [4.0, 1.35, 1];
+for (const k of ['boat', 'canoe']) FOOTPR[k] = [2.6, 1.1, 1];
 const VEHICLE_DMG = new Set(['firetruck', 'moto', 'ecar', 'heli', 'jeep', 'tank', 'rig', 'boat', 'mtrain', 'train', 'wall', 'drone', 'crew', 'xcar', 'harvester']);
 const OFFH = { iceberg: 16, steamer: 3, tfunnel: 0, gunman: 1.5, sniper: 1.5, moto: 1.6, ecar: 1.6, heli: -0.4, drone: 0, jeep: 2.6, rioter: 1.6, chef: 2.2, boat: 1.4, tank: 2.4, mtrain: 2.5,
   quad: 1.4, pickup: 2.2, van: 1.6, bus: 2.4, canoe: 0.8, bear: 2.2, blimp: -3, jet: 0, rammer: 1.4, jelly: 0, turret: 0.6, gunship: 0, crew: 2.4, xcar: 1.4, harvester: 4, zombie: 1.3, bat: 0, brute: 3.5, megalodon: 0, firetruck: 2.4, slasher: 1.5, tuktuk: 1.6, skel: 1.9, outlaw: 1.5 };
@@ -79,6 +127,8 @@ export class Sim {
     this.zt = {}; this.zf = new Set();
     this.forkDone = -1; this.signsFor = -1; this.voting = false;
     this.visited = new Set([road.forks[0] ? road.forks[0].bio : 0]);
+    // mapa hecho a mano: sus enemigos salen al llegar a cada punto (metros desde el principio del mapa)
+    if (opts.cmap) { const M = opts.cmap; this.cmap = { auto: clamp(M.auto | 0, 0, 2), i: 0, ambT: 60, evs: (M.evs || []).filter(e => CMAP_EV[e.k]).map(e => ({ d: START_TUN + Math.max(0, +e.d || 0), k: e.k, n: clamp(e.n | 0 || 1, 1, 8) })).sort((a, b) => a.d - b.d) }; }
     // modo historia: zonas fijas del capítulo { ch, z: [índices de zona], lv }
     this.story = opts.story || null;
     this.bonus = {}; this.diff = 1; this.over = false;
@@ -280,11 +330,56 @@ export class Sim {
       if (e.x.mk > 0) { e.x.mk -= wd; if (e.st === ST.DEAD) e.x.mk = 0; }
       if (!PROJ.has(e.type)) e.d += e.vd * wd;
     }
+    this.separate();
     if (this.ents.some(e => e.rm)) {
       this.ents = this.ents.filter(e => { if (e.rm) this.map.delete(e.id); return !e.rm; });
     }
   }
 
+  // nadie atraviesa a nadie: los de a pie se apartan, los vehículos chocan y el de detrás se queda bloqueado
+  separate() {
+    const A = [];
+    for (const e of this.ents) {
+      if (e.st === ST.DEAD || e.rm) continue;
+      const f = FOOTPR[e.type]; if (!f) continue;
+      if (e.x.ph === 2 && (e.type === 'jumper' || e.type === 'beast')) continue; // agarrado al coche
+      if (e.x.amb || e.x.hs) continue; // emboscadas y los de las casas del oeste: posiciones fijas
+      A.push(e);
+    }
+    for (let i = 0; i < A.length; i++) for (let j = i + 1; j < A.length; j++) {
+      const e = A[i], o = A[j];
+      if (Math.abs(e.h - o.h) > 1.3) continue;
+      const fe = FOOTPR[e.type], fo = FOOTPR[o.type];
+      let ad = e.d - o.d, al = e.lat - o.lat;
+      const pd = fe[0] + fo[0] - Math.abs(ad), pl = fe[1] + fo[1] - Math.abs(al);
+      if (pd <= 0 || pl <= 0) continue;
+      const ve = fe[2], vo = fo[2];
+      if (!ve && !vo) {
+        // dos de a pie: círculos que se empujan a medias
+        const r = fe[0] + fo[0]; let q = Math.hypot(ad, al);
+        if (q >= r) continue;
+        if (q < 1e-3) { al = (e.id & 1) ? 1 : -1; ad = 0; q = 1; }
+        const k = (r - q) * 0.5 / q;
+        e.d += ad * k; e.lat += al * k; o.d -= ad * k; o.lat -= al * k;
+        continue;
+      }
+      if (ve && vo) {
+        if (pl < pd * 0.6) {
+          // de lado: se separan de carril
+          const s = (al >= 0 ? 1 : -1) * pl * 0.5; e.lat += s; o.lat -= s;
+        } else {
+          // por detrás: el de atrás se come el choque y se queda pegado a la velocidad del de delante
+          const back = ad < 0 ? e : o, front = back === e ? o : e;
+          back.d -= pd; back.vd = Math.min(back.vd, front.vd);
+          if (!back.x.bump || this.t - back.x.bump > 1.2) { back.x.bump = this.t; this.emit('fx', { f: 'bump', w: this.wpos((back.d + front.d) / 2, (back.lat + front.lat) / 2, 0.8) }); }
+        }
+        continue;
+      }
+      // peatón contra vehículo: el peatón se aparta por el lado más corto
+      const man = ve ? o : e, car = ve ? e : o, sg = man === e ? 1 : -1;
+      if (pl < pd) man.lat += (al * sg >= 0 ? 1 : -1) * pl; else man.d += (ad * sg >= 0 ? 1 : -1) * pd;
+    }
+  }
   tick(e, dt, active) {
     for (let i = 0; i < e.sh.length; i++) {
       const s = e.sh[i];
@@ -613,7 +708,26 @@ export class Sim {
     return false;
   }
   ok(k) { return this.unl.has(k); }
+  // mapa hecho a mano: lanza lo que toque según los metros y, al pasar la meta, mapa completado
+  cmapStep(dt) {
+    const C = this.cmap, R = this.road;
+    while (C.i < C.evs.length && this.carD >= C.evs[C.i].d - 4) {
+      const e = C.evs[C.i++];
+      try { CMAP_EV[e.k][1](this, e.n); } catch (err) { console.warn('cmap', e.k, err); }
+    }
+    if (!C.auto) {
+      // sin oleadas automáticas: solo la ambulancia si alguien va mal de vida
+      C.ambT -= dt;
+      if (C.ambT <= 0) { C.ambT = 5; if (this.players.some(p => !p.gone && p.alive && p.hp <= p.maxHp * 0.5) && this.laneFree(-50, 40) && !this.has('amb') && !this.has('medkit')) { this.spawnAmb(); C.ambT = 70; } }
+    }
+    if (!this.over && R.cEnd != null && this.carD >= R.cEnd) {
+      this.over = true;
+      this.emit('banner', { txt: '¡MAPA COMPLETADO!', sub: '', c: '#7dff8a' });
+      this.emit('over', { t: Math.round(this.runT), dist: Math.round(this.carD), sc: this.players.map(p => p.score), kl: this.players.map(p => p.kills), ck: this.stats.chickens, rt: this.stats.forks, win: 1, cm: 1 });
+    }
+  }
   director(dt) {
+    if (this.cmap) { this.cmapStep(dt); if (!this.cmap.auto || this.over) return; }
     const rt = this.runT;
     // en el túnel del principio no sale nadie: se empieza tranquilo y la acción llega al salir
     const T0 = this.road.tunnels[0];
@@ -644,6 +758,7 @@ export class Sim {
       if (!inT && this.hostileCount(this.n > 2 ? false : null) < cap) this.spawnWave();
       // en solitario salen menos: más tiempo entre oleadas
       this.waveT = Math.max(2.0, 7 - this.diff * 0.7) * (0.8 + this.r() * 0.5) * (this.n === 1 ? 1.4 : 1);
+      if (this.cmap && this.cmap.auto === 1) this.waveT *= 2;
     }
     const deco = BIOMES[BIOME_KEYS[this.road.bioAt(this.carD + 80)]].deco;
     const inTun = this.road.inTunnel(this.carD + 120);
@@ -998,7 +1113,7 @@ export class Sim {
   }
   // ---- cruces: asesinos (o zombis) persiguen a una chica; si la salvas, te recompensa ----
   chaseStep(dt) {
-    if (!this.chase && !this.foot && !this.voting) for (const xd of this.road.xstreets(this.carD + 55, this.carD + 100)) {
+    if (!this.chase && !this.foot && !this.voting && !(this.cmap && !this.cmap.auto)) for (const xd of this.road.xstreets(this.carD + 55, this.carD + 100)) {
       if (xd - this.carD > 55 && xd - this.carD < 100 && hash(this.seed, Math.round(xd), 404) % 100 < 60 && once0(this, 'ch' + Math.round(xd))) { this.startChase(xd); break; }
     }
     const C = this.chase;

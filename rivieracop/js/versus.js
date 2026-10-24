@@ -72,6 +72,28 @@ export class VsSim {
         P.th = wrap(P.th + P.s * 0.02); rem = Math.max(0, rem - 0.02 * VR);
       }
     }
+    this.collide();
+  }
+  // los coches no se atraviesan: si uno va hacia el otro, choca y se queda pegado detrás;
+  // de frente, los dos rebotan y dan media vuelta (si no, se quedarían bloqueados para siempre)
+  collide() {
+    const A = this.P[0], B = this.P[1], a = carPose(A), b = carPose(B);
+    const dx = b.x - a.x, dz = b.z - a.z, d = Math.hypot(dx, dz), D = 5.4;
+    if (d >= D || d < 1e-4) return;
+    const aTo = (a.hx * dx + a.hz * dz) / d > 0.3, bTo = -(b.hx * dx + b.hz * dz) / d > 0.3;
+    const pen = D - d;
+    const back = (P, k) => { P.th = wrap(P.th - P.s * k / VR); };
+    if (aTo && bTo) {
+      back(A, pen / 2 + 0.2); back(B, pen / 2 + 0.2);
+      if (A.v + B.v > 1) { A.s = -A.s; B.s = -B.s; A.v = Math.min(A.v, 3); B.v = Math.min(B.v, 3); A.choice = B.choice = 0; this.emit('crash', { s: 1 }); }
+      return;
+    }
+    // el de atrás (el que va hacia el otro) se come el golpe
+    const R = aTo ? A : bTo ? B : null, F = R === A ? B : A;
+    if (!R) { back(A, -pen / 2); back(B, -pen / 2); return; }
+    back(R, pen);
+    if (R.v > F.v + 2) this.emit('crash', { s: 0 });
+    R.v = Math.min(R.v, F.v);
   }
   hit(from, part, dmg) {
     if (this.phase !== 'run') return;

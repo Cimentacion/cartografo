@@ -160,8 +160,16 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
 #lobbyMsg{margin:8px 0 0}
 #lobbyMsg{font:700 15px var(--f-ui);margin:8px 0 14px;background:rgba(0,0,0,.5);padding:8px;border-radius:6px}
 #codeIn{font:34px var(--f-title);width:170px;text-align:center;text-transform:uppercase;letter-spacing:.2em;padding:8px;border-radius:8px;border:3px solid var(--gold);background:#111;color:var(--gold)}
-#over .card{background:rgba(0,0,0,.6);padding:18px;border-radius:12px}
-#over h2{font:clamp(34px,8vw,60px) var(--f-title);color:var(--red);margin:0 0 8px;font-style:italic;text-shadow:0 4px 0 rgba(0,0,0,.6)}
+#dmScr .dmBody{position:absolute;left:0;right:0;top:64px;bottom:0;overflow:auto;padding:8px 16px 20px}
+.dmBar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.dmList{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.dmItem{background:rgba(8,6,16,.8);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;font:600 13px var(--f-ui);color:#fff}
+.dmItem b{font:16px var(--f-title);color:#ffe14a}.dmItem small{color:var(--dim)}.dmItem .dmB{display:flex;gap:6px;flex-wrap:wrap}
+.dmItem.dbg{border-color:#7dff8a}.dmTag{font:9px var(--f-px);color:#7dff8a}
+#over{z-index:50}#over .card{background:rgba(0,0,0,.6);padding:14px 18px;border-radius:12px;width:min(980px,100%)}
+.oGrid{display:flex;gap:16px;align-items:center;justify-content:center}.oL{flex:1 1 0;min-width:0}.oR{flex:1.15 1 0;min-width:0}
+@media (max-aspect-ratio:1/1){.oGrid{flex-direction:column}.oL,.oR{width:100%}}
+#over h2{font:clamp(24px,min(7vw,9vh),56px) var(--f-title);color:var(--red);margin:0 0 8px;font-style:italic;text-shadow:0 4px 0 rgba(0,0,0,.6)}
 .ostats{font:700 14px var(--f-ui);color:var(--dim);margin-bottom:8px}
 .ostats b,.orow b{color:var(--ink);font-family:var(--f-title)}
 .orow{font:20px var(--f-title);margin:4px 0}
@@ -193,7 +201,7 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
 #vsCross{display:none;position:fixed;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border:2px solid rgba(255,255,255,.85);border-radius:50%;pointer-events:none;z-index:4;box-shadow:0 0 0 1px rgba(0,0,0,.5)}#vsCross i{position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;background:#ff3a5a;border-radius:50%}body.vsmode #vsCross{display:block}
 #vsHurt{position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 120px rgba(255,0,0,.0);z-index:4}#vsHurt.on{animation:vshurt .45s}
 @keyframes vshurt{0%{box-shadow:inset 0 0 140px rgba(255,20,20,.75)}100%{box-shadow:inset 0 0 140px rgba(255,20,20,0)}}
-#vsEnd{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(4,2,10,.65)}#vsEnd[hidden]{display:none}
+#vsEnd{position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(4,2,10,.65)}#vsEnd[hidden]{display:none}
 #vsEnd b{font:clamp(32px,8vw,64px) var(--f-title);text-shadow:0 5px 0 #000}#vsEnd span{font:700 18px var(--f-ui);color:#fff}
 body.vsmode #p0,body.vsmode #p1,body.vsmode #p2,body.vsmode #p3,body.vsmode #p4,body.vsmode #mates,body.vsmode #route,body.vsmode #mult,body.vsmode #style,body.vsmode #boss,body.vsmode #wcard,body.vsmode #hud,body.vsmode .pw,body.vsmode #btnShield,body.vsmode #btnBullet,body.vsmode #btnTurbo,body.vsmode #btnCannon,body.vsmode #btnPot,body.vsmode #btnRevive,body.vsmode #regul,body.vsmode #btnHide,body.vsmode #btnScope{display:none!important}
 #dailyScr{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(4,2,10,.72);backdrop-filter:blur(3px)}#dailyScr[hidden]{display:none}
@@ -387,7 +395,7 @@ body.many .hp span{font-size:7px}
 #poisfx{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(120,255,40,0) 40%,rgba(120,255,40,.5) 100%)}
 #poisfx.on{animation:fl .6s ease-out}
 body.poisoned #hudwrap::before{content:'';position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 40px rgba(150,255,60,.35)}
-#routeMap{display:block;width:min(560px,100%);height:auto;margin:10px auto 4px;border:3px solid #ffe14a;box-shadow:0 0 0 2px #000,5px 5px 0 rgba(0,0,0,.5);image-rendering:pixelated}
+#routeMap{display:block;width:100%;max-height:44vh;object-fit:contain;height:auto;margin:4px auto 4px;border:3px solid #ffe14a;box-shadow:0 0 0 2px #000,5px 5px 0 rgba(0,0,0,.5);image-rendering:pixelated}
 #slowfx,#shieldfx{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .25s}
 #slowfx{background:radial-gradient(ellipse at center,rgba(120,60,255,0) 40%,rgba(120,60,255,.45) 100%)}
 #shieldfx{box-shadow:inset 0 0 0 6px rgba(90,224,255,.8),inset 0 0 60px rgba(90,224,255,.6)}
@@ -747,10 +755,19 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
         <button id="btnLoot" class="mmS">🎁 CAJAS<i id="lootN" class="mmBadge" hidden></i></button>
         <button id="btnStory" class="mmS">📖 HISTORIA <small id="storyN"></small></button>
         <button id="btnVersus" class="mmS">⚔ VERSUS <small>vs máquina</small></button>
+        <button id="btnDbgMaps" class="mmS" hidden>🛠 DEBUGMAPS</button>
         <button id="btnAdPot" class="mmS mmPot">🧪 POCIÓN GRATIS <small id="potN"></small></button>
       </div>
       <div id="best"></div>
       <div id="menuMsg"></div>
+    </div>
+  </div>
+
+  <div id="dmScr" class="screen" hidden>
+    <div class="shopTop"><div class="shopTitle">DEBUGMAPS</div><div id="dmSrc"></div><button id="dmBack" class="big">VOLVER</button></div>
+    <div class="dmBody">
+      <div class="dmBar"><button id="dmReload" class="mini">↻ RECARGAR</button><button id="dmAll" class="mini">VER TODOS</button><button id="dmPaste" class="mini">PEGAR CÓDIGO</button><button id="dmRepo" class="mini">SERVIDOR…</button></div>
+      <div id="dmList" class="dmList">Cargando…</div>
     </div>
   </div>
 
@@ -896,9 +913,8 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
 
   <div id="over" class="screen" hidden>
     <div class="card">
-      <h2 id="overT">FIN DE LA PARTIDA</h2>
-      <div id="overStats"></div>
-      <div class="btns" style="margin-top:14px"><button id="btnNext" class="big alt4" hidden>SIGUIENTE CAPÍTULO</button><button id="btnAgain" class="big">OTRA PARTIDA</button><button id="btnMenu" class="big alt2">MENÚ</button></div>
+      <div class="oGrid"><div class="oL"><h2 id="overT">FIN DE LA PARTIDA</h2><div id="overStats"></div></div><div class="oR"><canvas id="routeMap" width="560" height="240"></canvas><div id="overCoin"></div></div></div>
+      <div class="btns" style="margin-top:14px"><button id="btnEditor" class="big alt4" hidden>VOLVER AL EDITOR</button><button id="btnNext" class="big alt4" hidden>SIGUIENTE CAPÍTULO</button><button id="btnAgain" class="big">OTRA PARTIDA</button><button id="btnMenu" class="big alt2">MENÚ</button></div>
       <div class="btns" style="margin-top:8px"><button id="btnX2" class="big alt4" hidden>📺 x2 MONEDAS</button><button id="btnOverAd" class="mini">VER ANUNCIO: +1 POCIÓN PARA LA PRÓXIMA</button></div>
       <div id="overWait" class="lbl" style="margin-top:10px" hidden>Esperando a que el anfitrión empiece otra…</div>
     </div>

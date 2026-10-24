@@ -21,7 +21,7 @@ export const duneH = (d, lat) => {
 };
 export const TUNMSG = { coches: 'COCHES EN TODOS LOS CARRILES', pinchos: 'PINCHOS EN LA CALZADA', moteros: 'MOTORISTAS ARMADOS', emboscada: 'EMBOSCADA: CIRCULE CON PRECAUCIÓN' };
 export class Road {
-  constructor(seed, bio0 = 0, zd0 = 1) {
+  constructor(seed, bio0 = 0, zd0 = 1, cmap = null) {
     this.seed = seed >>> 0;
     this.x = [0]; this.y = [70]; this.z = [0]; this.yaw = [0];
     this.kind = [1]; this.bio = [0]; this.zd = [1];
@@ -39,8 +39,32 @@ export class Road {
     this.planEnd = 0;
     this.cur = { yaw: 0, slope: 0 };
     this.baseYaw = 0; this.lastHair = 0;
+    if (cmap) { this._queueCustom(cmap); return; }
     this._q({ type: 'tunnel', len: START_TUN, fork: -1, bio: 0, zd: 1 });
     this._queueSection(bio0, zd0);
+  }
+  // MAPA HECHO A MANO (editor de mapas): tramos fijos uno detrás de otro, sin desvíos; al final, meta
+  _queueCustom(M) {
+    const segs = (M.segs || []).filter(g => g && g.len > 0);
+    const bioOf = k => { const i = BIOME_KEYS.indexOf(k); return i >= 0 && !CMAP_NO.has(k) ? i : 0; };
+    const zd = clamp(M.zd | 0 || 1, 1, 10);
+    const b0 = segs.length ? bioOf(segs[0].bio) : 0;
+    this._q({ type: 'tunnel', len: START_TUN, fork: -1, bio: b0, zd });
+    const secStart = this.planEnd;
+    this.cramps = [];
+    let last = b0;
+    segs.forEach((g, i) => {
+      const len = clamp(Math.round(g.len), 20, 2000), bio = last = bioOf(g.bio);
+      const A = clamp(+g.curve || 0, -3, 3) * 0.35, kmax = A * Math.PI / (2 * len);
+      if (g.tun) this._q({ type: 'tunnel', len, fork: 1000 + i, bio, zd, kmax });
+      else {
+        const b = this._q({ type: 'cseg', len, bio, zd, kmax, slope: clamp(+g.hill || 0, -3, 3) * 0.03 });
+        if (g.ramp && len >= 60) this.cramps.push(b.start + Math.round(len / 2));
+      }
+    });
+    this.cEnd = this.planEnd + 20;
+    this._q({ type: 'cseg', len: 420, bio: last, zd, kmax: 0, slope: 0 });
+    this.forks.push({ k: 0, gantry: 1e9, tStart: 1e9, tEnd: 1e9, choice: null, from: b0, zd: null, secStart, bio: b0, slen: Math.max(100, this.cEnd - secStart), custom: 1 });
   }
   get len() { return this.x.length - 1; }
 
@@ -295,6 +319,10 @@ export class Road {
         // acantilados: primero se sube por la ladera y luego se va cayendo en picado hacia el mar
         slopeT = b.pos < b.len * 0.28 ? (this.y[this.len] < 85 ? 0.07 : 0) : (this.y[this.len] > 12 ? -0.085 : 0);
       } else if (BB.slope < 0 && this.y[this.len] < 16) slopeT = 0;
+    } else if (b.type === 'cseg') {
+      k = b.kmax * Math.sin(Math.PI * (b.pos + 0.5) / b.len); slopeT = b.slope;
+      // sin subir al cielo ni bajar al infierno
+      if ((slopeT > 0 && this.y[this.len] > 160) || (slopeT < 0 && this.y[this.len] < 10)) slopeT = 0;
     } else if (b.type === 'hosp') {
       k = 0; slopeT = 0;
     } else if (b.type === 'drop') {
@@ -571,6 +599,7 @@ export class Road {
   }
   // el badén que pilla en d (desde el pie de la rampa hasta que aterriza), o null
   bumpAt(d) {
+    if (this.cramps) { for (const b of this.cramps) if (d >= b - BUMP_R && d < b + BUMP_L) return b; return null; }
     const c0 = Math.floor(d / 300);
     for (const c of [c0, c0 - 1]) { const b = this.bumpB(c); if (b != null && d >= b - BUMP_R && d < b + BUMP_L) return b; }
     return null;
@@ -582,9 +611,11 @@ export class Road {
     const u = (d - b) / BUMP_L;
     return BUMP_HR * (1 - u) + 4 * BUMP_HJ * u * (1 - u);
   }
-  bumps(d0, d1) { const L = []; for (let c = Math.floor(d0 / 300) - 1; c <= Math.floor(d1 / 300) + 1; c++) { const b = this.bumpB(c); if (b != null && b >= d0 - 10 && b <= d1 + 50) L.push(b); } return L; }
+  bumps(d0, d1) { if (this.cramps) return this.cramps.filter(b => b >= d0 - 10 && b <= d1 + 50); const L = []; for (let c = Math.floor(d0 / 300) - 1; c <= Math.floor(d1 / 300) + 1; c++) { const b = this.bumpB(c); if (b != null && b >= d0 - 10 && b <= d1 + 50) L.push(b); } return L; }
   // hospital de la ciudad zombi que pilla en d (con margen)
   hospAt(d, pad = 0) { for (const h of this.hosp) if (d > h.H - 36 - pad && d < h.H + 66 + pad) return h; return null; }
   inTunnel(d) { for (const t of this.tunnels) if (d >= t.start - 4 && d <= t.end + 4) return true; return false; }
 }
 const TMP = { x: 0, y: 0, z: 0, yaw: 0 };
+// zonas que no valen para los mapas hechos a mano (necesitan su recorrido especial)
+export const CMAP_NO = new Set(['dunas', 'oeste', 'titanic', 'tsub', 'tmar']);

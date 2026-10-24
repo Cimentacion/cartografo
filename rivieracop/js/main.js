@@ -26,6 +26,7 @@ import { seatedPlayer, person } from './models.js';
 import { clamp, lerp, lerpAng, angWrap, VP, vw, vh } from './util.js';
 
 const Q = new URLSearchParams(location.search);
+const CMT = Q.get('cmaptest') === '1'; // probando un mapa desde el editor
 const BOT = Q.get('bot') === '1';          // TODO-TESTEO: apunta y dispara solo
 const TS = +Q.get('ts') || 1;
 const SHOT = !!Q.get('shot');               // TODO-TESTEO: capturas (entorno sin transiciones)              // TODO-TESTEO: acelerar el tiempo
@@ -751,6 +752,7 @@ function handleEvent(ev) {
       else if (ev.f === 'splat') { fx.sparks(p, 10, fx.m.feather); SFX.tone(200, 90, 0.1, 'square', 0.15); }
       else if (ev.f === 'planks') { const W = PLK || (PLK = [new THREE.MeshLambertMaterial({ color: 0xf2f0ea }), new THREE.MeshLambertMaterial({ color: 0x8a5a32 })]); for (let i = 0; i < 26; i++) fx.part(p.clone().add(fx.rnd(1.5)), fx.rnd(7).clone().add(V3.set(0, 4, 0)), 1.2 + Math.random() * 0.6, 0.2 + Math.random() * 0.35, W[i % 2], 12, 0); fx.dust(p); SFX.boom(dist + 6); }
       else if (ev.f === 'air') { SFX.tone(300, 900, 0.5, 'sine', 0.12); fx.dust(p); }
+      else if (ev.f === 'bump') { fx.sparks(p, 8); fx.dust(p); if (dist < 60) SFX.tone(120, 50, 0.12, 'square', 0.12); }
       else if (ev.f === 'land') { fx.dust(p); fx.dust(p); fx.sparks(p, 14); SFX.boom(4); G.shake = Math.max(G.shake, 0.45); }
       else if (ev.f === 'rock') { fx.sparks(p, 12, fx.m.dust); fx.dust(p); fx.dust(p); SFX.boom(dist + 10); }
       break;
@@ -906,6 +908,7 @@ net.onmsg = (m, from) => {
         $('vsel').hidden = true;
         if (m.veh && VEHICLES.some(x => x[0] === m.veh.k)) G.veh = { k: m.veh.k, c: clamp(m.veh.c | 0, 0, VCOLORS.length - 1) };
         G.story = m.st != null && STORY[m.st] ? m.st | 0 : null;
+        G.cmap = m.cm && typeof m.cm === 'object' && Array.isArray(m.cm.segs) ? m.cm : null;
         if (Array.isArray(m.pf)) for (const q of m.pf) if (q && typeof q.id === 'string') addRecent(q.id, q.name);
         begin(m.seed, m.n, net.myIdx || 1, 'guest');
         // reconexión a una partida empezada: se repiten las rutas que ya se eligieron
@@ -1036,7 +1039,7 @@ function hostStart() {
   for (let i = 1; i < n; i++) if (!idx.includes(i)) gone.push(i);
   G.chars = [0, 1, 2, 3, 4].map(i => (i === 0 ? MYCHAR : G.peerChars[i] || defaultChar(i)));
   G.goneAtStart = gone;
-  net.send({ t: 'start', seed, n, chars: G.chars, sp: G.speedIdx, gone, st: G.story, veh: G.veh, pf: [{ id: PROF.id, name: PROF.name }].concat(Object.values(G.peerProf || {})) });
+  net.send({ t: 'start', seed, n, chars: G.chars, sp: G.speedIdx, gone, st: G.story, cm: G.cmap || null, veh: G.veh, pf: [{ id: PROF.id, name: PROF.name }].concat(Object.values(G.peerProf || {})) });
   begin(seed, n, 0, 'host');
 }
 
@@ -1243,13 +1246,14 @@ function vsHandle(e) {
     case 'dmg': if (e.p === me) { G.shake = Math.max(G.shake, 0.18); SFX.hurt(); flashHurt(); } break;
     case 'shot': if (e.p !== me) { const c = VSM.cars[e.p]; const p = V1.set(0, 2.4, 0); c.localToWorld(p); SFX.eshot(camera.position.distanceTo(p)); VSM.fx.muzzle(p, V2.set(0, 0, -1), 0.8); } break;
     case 'switch': break;
+    case 'crash': { G.shake = Math.max(G.shake, e.s ? 0.5 : 0.25); SFX.boom(e.s ? 4 : 10); const c = VSM.cars; if (c[0] && c[1]) { const p = V1.copy(c[0].position).add(c[1].position).multiplyScalar(0.5); p.y += 1; VSM.fx.sparks(p, 18); VSM.fx.dust(p); } if (e.s) showBanner('¡CHOQUE!', 'Os dais la vuelta', '#ffb02a'); break; }
     case 'ko': showBanner(e.w === me ? '¡K.O.! GANAS LA RONDA' : '¡K.O.! PIERDES LA RONDA', (e.sc || VSM.st.score).join(' - '), e.w === me ? '#7dff8a' : '#ff5a5a'); if (e.w === me) SFX.pickup(); break;
     case 'end': vsFinish(e.w); break;
   }
 }
 function flashHurt() { const f = $('vsHurt'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on'); }
 function vsFinish(w) {
-  VSM.ended = true; const win = w === VSM.li;
+  VSM.ended = true; const win = w === VSM.li; $('hudwrap').hidden = true; look.enabled = false; look.fire = false;
   $('vsEnd').hidden = false; $('vsEndT').textContent = win ? '¡HAS GANADO!' : 'HAS PERDIDO'; $('vsEndT').style.color = win ? '#7dff8a' : '#ff5a5a';
   $('vsEndS').textContent = VSM.st.score[VSM.li] + ' - ' + VSM.st.score[1 - VSM.li];
   $('vsAgain').hidden = VSM.mode === 'guest';
@@ -1317,11 +1321,12 @@ function begin(seed, n, li, mode) {
   G.mode = mode; G.n = n; G.li = li; G.seed = seed >>> 0;
   const qb = BIOME_KEYS.indexOf(Q.get('zona') || ''); // TODO-TESTEO: empezar en una zona concreta
   const SC = G.story != null ? STORY[G.story] : null;
-  if (SC) G.road = new Road(G.seed, BIOME_KEYS.indexOf(SC.z[0]), SC.zd || BIOMES[SC.z[0]].lv + G.story);
+  if (G.cmap) G.road = new Road(G.seed, 0, 1, G.cmap);
+  else if (SC) G.road = new Road(G.seed, BIOME_KEYS.indexOf(SC.z[0]), SC.zd || BIOMES[SC.z[0]].lv + G.story);
   else G.road = new Road(G.seed, qb > 0 && mode === 'solo' ? qb : 0, +Q.get('zd') || 1);
   if (SC && SC.west && G.road.west[0]) G.road.setWest(G.road.west[0].k, 1);
   G.road.extend(520);
-  G.sim = mode === 'guest' ? null : new Sim(G.road, n, G.seed, { story: SC ? { ch: G.story, z: SC.z.map(k => BIOME_KEYS.indexOf(k)) } : null, speed: G.speedIdx, metas: [0, 1, 2, 3, 4].map(i => (i === 0 ? metaOf(PROG) : G.peerMetas[i] || {})) });
+  G.sim = mode === 'guest' ? null : new Sim(G.road, n, G.seed, { cmap: G.cmap || null, story: SC && !G.cmap ? { ch: G.story, z: SC.z.map(k => BIOME_KEYS.indexOf(k)) } : null, speed: G.speedIdx, metas: [0, 1, 2, 3, 4].map(i => (i === 0 ? metaOf(PROG) : G.peerMetas[i] || {})) });
   if (G.sim) for (const i of (mode === 'host' ? G.goneAtStart || [] : [])) if (G.sim.players[i]) { G.sim.players[i].gone = true; G.sim.players[i].alive = false; }
   if (G.sim && Q.get('god')) G.sim.god = true; // TODO-TESTEO
   G.mir = mode === 'guest' ? new Mirror() : null;
@@ -1379,11 +1384,10 @@ function gameOver(ev) {
   look.fire = false;
   setTimeout(() => {
     const o = $('over');
-    o.hidden = false;
+    o.hidden = false; $('hudwrap').hidden = true; look.enabled = false; o.scrollTop = 0;
     const n = ev.sc.length;
     let h = `<div class="ostats">TIEMPO <b>${Math.floor(ev.t / 60)}:${String(ev.t % 60).padStart(2, '0')}</b> · DISTANCIA <b>${(ev.dist / 1000).toFixed(1)} km</b> · GALLINAS <b>${ev.ck}</b></div>`;
     for (let i = 0; i < n; i++) h += `<div class="orow" style="color:${PCOL[i]}">${n > 1 ? PNAME[i] : 'PUNTOS'} <b>${String(ev.sc[i]).padStart(7, '0')}</b> · ${ev.kl[i]} bajas</div>`;
-    h += '<canvas id="routeMap" width="560" height="240"></canvas>';
     const mine = ev.sc[G.li] || 0, coins = Math.floor(mine / 10 * (1 + 0.1 * (PROG.upg.codicia | 0))) + (STY.coins | 0);
     PROG.coins += coins;
     CHC('runs'); CHC('dist', Math.round(ev.dist) / 1000); CHC('coins', coins); CHC('score', mine); CHC('mins', ev.t / 60); CHC('ck', ev.ck | 0);
@@ -1392,22 +1396,24 @@ function gameOver(ev) {
     saveProg(PROG); updRetos();
     // ver un anuncio duplica las monedas de esta partida (una vez)
     G.lastCoins = coins; $('btnX2').hidden = coins <= 0; $('btnX2').disabled = false; $('btnX2').textContent = '📺 x2 MONEDAS (+' + coins + ')';
-    h += `<div class="ocoin">+${coins} MONEDAS · tienes ${PROG.coins}</div>`;
+    let hc = `<div class="ocoin">+${coins} MONEDAS · tienes ${PROG.coins}</div>`;
     const best = Math.max(...ev.sc);
     const rec = +(localStorage.getItem('rc_best') || 0);
-    if (best > rec) { localStorage.setItem('rc_best', best); h += '<div class="orec">¡NUEVO RÉCORD!</div>'; }
-    else h += `<div class="oroute">Récord: ${rec}</div>`;
+    if (best > rec) { localStorage.setItem('rc_best', best); hc += '<div class="orec">¡NUEVO RÉCORD!</div>'; }
+    else hc += `<div class="oroute">Récord: ${rec}</div>`;
+    $('overCoin').innerHTML = hc;
     // historia: capítulo superado o misión fallida
-    $('overT').textContent = G.story == null ? 'FIN DE LA PARTIDA' : ev.win ? '¡CAPÍTULO COMPLETADO!' : 'MISIÓN FALLIDA';
+    $('overT').textContent = G.cmap ? (ev.win ? '¡MAPA COMPLETADO!' : 'MAPA FALLIDO') : G.story == null ? 'FIN DE LA PARTIDA' : ev.win ? '¡CAPÍTULO COMPLETADO!' : 'MISIÓN FALLIDA';
+    $('btnEditor').hidden = !CMT;
     G.nextStory = null;
-    if (G.story != null && ev.win) {
+    if (G.story != null && ev.win && !G.cmap) {
       const ch = ev.ch | 0;
       if (!STORY[ch].test && (PROG.story | 0) < ch + 1) { PROG.story = ch + 1; saveProg(PROG); }
       if (ch + 1 < STORY.length && !STORY[ch].test && !STORY[ch + 1].test) G.nextStory = ch + 1;
       if (STORY[ch].outro) setTimeout(() => dialog(STORY[ch].outro), 300);
     }
     $('btnNext').hidden = G.nextStory == null || G.mode === 'guest';
-    $('btnAgain').textContent = G.story == null ? 'OTRA PARTIDA' : 'REPETIR CAPÍTULO';
+    $('btnAgain').textContent = G.cmap ? 'REPETIR MAPA' : G.story == null ? 'OTRA PARTIDA' : 'REPETIR CAPÍTULO';
     $('overStats').innerHTML = h;
     try { drawRouteMap($('routeMap'), ev.dist); } catch (e) { console.warn(e); }
     $('btnAgain').hidden = G.mode === 'guest';
@@ -1481,7 +1487,10 @@ function lanList(list, key) {
   for (const b of el.querySelectorAll('.lanRoom')) b.onclick = () => { $('codeIn').value = b.dataset.c; $('btnGo').click(); };
 }
 function toMenu(msg) {
+  // probando un mapa desde el editor: se vuelve al editor
+  if (CMT) { location.href = 'mapas.html'; return; }
   vsEnd();
+  G.cmap = null;
   if (G.chDirty) { G.chDirty = 0; saveProg(PROG); }
   if (G.secretNew) { G.secretNew = 0; setTimeout(() => showToast('🤠 Menú secreto de armas desbloqueado: ALFORJAS (en Mejoras)'), 900); }
   SFX.dance(-1);
@@ -1498,6 +1507,7 @@ function toMenu(msg) {
   $('hudwrap').hidden = true;
   $('menu').hidden = false;
   $('menuMsg').textContent = msg || '';
+  setTimeout(dailyCheck, 800);
   $('best').textContent = localStorage.getItem('rc_best') ? 'Récord: ' + localStorage.getItem('rc_best') : '';
   try { if (document.exitPointerLock) document.exitPointerLock(); } catch (e) { }
   startDemo();
@@ -2117,6 +2127,7 @@ $('storyBack').onclick = () => { $('storyScr').hidden = true; $('menu').hidden =
 $('btnMode').onclick = () => {
   // ARCADE → capítulos de historia → VERSUS 1 VS 1 → ARCADE…
   const opts = STORY.map((S, i) => i).filter(i => STORY[i].test ? /debug=1/.test(location.search) : i <= (PROG.story | 0));
+  if (G.cmap) { G.cmap = null; G.story = null; G.vsMode = false; $('btnMode').textContent = 'MODO: ARCADE'; return; }
   if (G.vsMode) { G.vsMode = false; G.story = null; }
   else { const k = G.story == null ? 0 : opts.indexOf(G.story) + 1; if (k < opts.length) G.story = opts[k]; else { G.story = null; G.vsMode = true; } }
   $('btnMode').textContent = 'MODO: ' + (G.vsMode ? 'VERSUS 1 VS 1' : G.story == null ? 'ARCADE' : 'HISTORIA ' + (G.story + 1) + ' · ' + STORY[G.story].t);
@@ -3251,6 +3262,8 @@ const dayKey = d => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate
 function dailyCheck() {
   const today = dayKey(new Date()), yest = dayKey(new Date(Date.now() - 864e5));
   if (PROG.dayLast === today) return;
+  // solo en el menú (si no, saldría encima de la partida o del final de partida)
+  if (G.running || VSM.on || $('menu').hidden || Q.get('cmaptest')) return;
   const streak = PROG.dayLast === yest ? (PROG.dayStreak | 0) % 7 + 1 : 1;
   const box = $('dDays'); box.innerHTML = '';
   DAILY.forEach((d, i) => { const e = document.createElement('div'); e.className = 'dDay' + (i + 1 < streak ? ' got' : i + 1 === streak ? ' now' : ''); e.innerHTML = `<span>DÍA ${i + 1}</span><i>${d[0]}</i><b>${d[1]}</b>`; box.appendChild(e); });
@@ -3635,3 +3648,80 @@ function startDemo() {
 }
 startDemo();
 requestAnimationFrame(frame);
+
+// ================= DEBUGMAPS: mapas hechos con el editor (app Riviera Mapas) =================
+// Los mapas están en un repositorio de GitHub (maps/index.json + maps/<id>.json). Menú privado: perfil Mark,
+// o tocando 7 veces el título del menú.
+function dbgOn() { try { return (PROF.name || '').trim().toLowerCase() === 'mark' || localStorage.getItem('rc_dbg') === '1' || !!Q.get('debug'); } catch (e) { return false; } }
+function dbgBtn() { $('btnDbgMaps').hidden = !dbgOn(); }
+dbgBtn(); setInterval(dbgBtn, 3000);
+{ let n = 0, t = 0; document.querySelector('#menu h1').addEventListener('click', () => { const now = performance.now(); n = now - t < 900 ? n + 1 : 1; t = now; if (n >= 7) { n = 0; let on = false; try { on = localStorage.getItem('rc_dbg') !== '1'; localStorage.setItem('rc_dbg', on ? '1' : '0'); } catch (e) { } dbgBtn(); showToast(on ? '🛠 DebugMaps activado' : 'DebugMaps desactivado'); } }); }
+const MAPREPO_DEF = 'Cimentacion/riviera-mapas@main';
+function mapRepo() { let r = MAPREPO_DEF; try { r = localStorage.getItem('rc_maprepo') || r; } catch (e) { } const [or, br] = r.split('@'); return { or, br: br || 'main' }; }
+async function ghRaw(path) {
+  const { or, br } = mapRepo();
+  // la API no tiene caché (raw.githubusercontent tarda ~5 min en enterarse de los cambios)
+  try {
+    const r = await fetch(`https://api.github.com/repos/${or}/contents/${path}?ref=${br}&t=${Date.now()}`, { headers: { Accept: 'application/vnd.github.raw+json' }, cache: 'no-store' });
+    if (r.ok) return await r.text();
+    if (r.status === 404) throw new Error('No existe ' + path + ' en ' + or + ' (' + br + ')');
+  } catch (e) { if (/No existe/.test(e.message)) throw e; }
+  const r = await fetch(`https://raw.githubusercontent.com/${or}/${br}/${path}?t=${Date.now()}`, { cache: 'no-store' });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return await r.text();
+}
+function parseMapCode(txt) {
+  txt = String(txt || '').trim();
+  if (txt.startsWith('{')) return JSON.parse(txt);
+  const m = txt.match(/RCM1[A-Za-z0-9_-]+/); if (!m) throw new Error('Código no válido');
+  const b = atob(m[0].slice(4).replace(/-/g, '+').replace(/_/g, '/'));
+  return JSON.parse(decodeURIComponent(escape(b)));
+}
+const DM = { all: false, list: [] };
+function cmapOk(M) { return M && Array.isArray(M.segs) && M.segs.length > 0; }
+function playMap(M, how) {
+  if (!cmapOk(M)) { showToast('Ese mapa está vacío o roto'); return; }
+  G.cmap = M; G.story = null; G.vsMode = false;
+  if (how === 'host') { const cm = M; $('btnHost').onclick().then(() => { G.cmap = cm; $('btnMode').textContent = 'MAPA: ' + (cm.name || 'sin nombre').toUpperCase(); }); return; }
+  prep().then(() => { G.mode = 'solo'; vehSelect(() => begin((Math.random() * 4294967296) >>> 0, 1, 0, 'solo')); });
+}
+async function dmLoad() {
+  const el = $('dmList'); el.textContent = 'Cargando…';
+  const { or, br } = mapRepo(); $('dmSrc').textContent = or + ' · ' + br;
+  try {
+    const idx = JSON.parse(await ghRaw('maps/index.json'));
+    DM.list = Array.isArray(idx) ? idx : (idx.maps || []);
+    dmPaint();
+  } catch (e) { el.innerHTML = '<div class="dmItem">No se ha podido leer la lista de mapas.<small>' + String(e.message || e).replace(/</g, '&lt;') + '</small><small>Pulsa SERVIDOR… para cambiar el repositorio, o PEGAR CÓDIGO para cargar uno a mano.</small></div>'; }
+}
+function dmPaint() {
+  const el = $('dmList'); el.innerHTML = '';
+  const L = DM.list.filter(m => DM.all || m.debug).sort((a, b) => (b.t || 0) - (a.t || 0));
+  $('dmAll').textContent = DM.all ? 'SOLO LOS ENVIADOS' : 'VER TODOS';
+  if (!L.length) { el.innerHTML = '<div class="dmItem">' + (DM.all ? 'No hay mapas en el servidor todavía.' : 'Nadie ha enviado mapas a DebugMaps todavía. (VER TODOS enseña también los borradores)') + '</div>'; return; }
+  const esc = t => String(t || '').replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]);
+  for (const m of L) {
+    const d = document.createElement('div'); d.className = 'dmItem' + (m.debug ? ' dbg' : '');
+    d.innerHTML = `<b>${esc(m.name) || 'Sin nombre'}</b><small>de ${esc(m.author) || '¿?'} · ${m.len ? (m.len / 1000).toFixed(1) + ' km · ' : ''}${m.t ? new Date(m.t).toLocaleString() : ''}</small>${m.debug ? '<span class="dmTag">EN DEBUGMAPS</span>' : '<small>borrador</small>'}<div class="dmB"><button class="mini" data-a="solo">▶ JUGAR</button><button class="mini" data-a="host">👥 CREAR SALA</button></div>`;
+    for (const b of d.querySelectorAll('button')) b.onclick = async () => {
+      b.disabled = true; const t0 = b.textContent; b.textContent = 'Cargando…';
+      try { const M = JSON.parse(await ghRaw('maps/' + m.id + '.json')); playMap(M, b.dataset.a); }
+      catch (e) { showToast('No se ha podido cargar: ' + (e.message || e)); }
+      b.disabled = false; b.textContent = t0;
+    };
+    el.appendChild(d);
+  }
+}
+$('btnDbgMaps').onclick = () => { for (const sc of document.querySelectorAll('.screen')) sc.hidden = true; $('dmScr').hidden = false; dmLoad(); };
+$('dmBack').onclick = () => { $('dmScr').hidden = true; $('menu').hidden = false; };
+$('dmReload').onclick = dmLoad;
+$('dmAll').onclick = () => { DM.all = !DM.all; dmPaint(); };
+$('dmPaste').onclick = () => { const t = prompt('Pega el código del mapa (empieza por RCM1)'); if (!t) return; try { playMap(parseMapCode(t), 'solo'); } catch (e) { showToast('Código no válido'); } };
+$('dmRepo').onclick = () => { const r = mapRepo(); const t = prompt('Repositorio de los mapas (usuario/repositorio@rama)', r.or + '@' + r.br); if (t == null) return; try { localStorage.setItem('rc_maprepo', t.trim() || MAPREPO_DEF); } catch (e) { } dmLoad(); };
+$('btnEditor').onclick = () => { location.href = 'mapas.html'; };
+// probando un mapa desde el editor: se empieza directamente
+if (CMT) {
+  try { G.cmap = JSON.parse(localStorage.getItem('rc_cmap_test') || 'null'); } catch (e) { G.cmap = null; }
+  if (cmapOk(G.cmap)) setTimeout(() => { const M = G.cmap; prep().catch(() => { }).then(() => { G.cmap = M; G.story = null; G.mode = 'solo'; begin((Math.random() * 4294967296) >>> 0, 1, 0, 'solo'); }); }, 400);
+  else location.href = 'mapas.html';
+}
