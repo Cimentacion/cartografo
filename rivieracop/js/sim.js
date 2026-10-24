@@ -48,13 +48,20 @@ function pGun(S, n, e, gren) {
     g.sh = [gren ? S.shooter(3.6, 'grenade', 0.3) : S.shooter(3.0 + r() * 0.8, 'shot', 0.4 + i * 0.5)];
   }
 }
-const PEV = { pgun: 1, pgren: 1, psniper: 1, pciv: 1, pbarrel: 1, pmedkit: 1 };
+const PEV = { pgun: 1, pgren: 1, psniper: 1, pciv: 1, pbarrel: 1, pmedkit: 1, pweapon: 1, ptlight: 1, ptoll: 1, pchase: 1, pwall: 1, pxcar: 1, plady: 1 };
 export const CMAP_EV = {
   pgun: ['📍 Pistoleros AQUÍ', (S, n, e) => pGun(S, n, e, false)],
   pgren: ['📍 Granaderos AQUÍ', (S, n, e) => pGun(S, n, e, true)],
   psniper: ['📍 Francotirador AQUÍ', (S, n, e) => { for (let i = 0; i < n; i++) { const s = S.add('sniper', { d: e.d + i * 3, lat: clamp(+e.lat || 8, -60, 60), h: Math.max(1, +e.h || 5), hp: 2 }); s.x = { cm: 1 }; s.sh = [S.shooter(3.8, 'shot', 1.2 + i * 0.4)]; } }],
   pciv: ['📍 Civiles AQUÍ (no disparar)', (S, n, e) => { for (let i = 0; i < n; i++) { const c = S.add('civilian', { d: e.d + i * 1.5, lat: (+e.lat || 0) + (S.r() - 0.5), h: 0.18 + Math.max(0, +e.h || 0), hp: 1 }); c.x = { sk: Math.floor(S.r() * 6), cm: 1 }; } }],
   pbarrel: ['📍 Bidón explosivo AQUÍ', (S, n, e) => { for (let i = 0; i < n; i++) { const b = S.add('barrel', { d: e.d + i * 1.4, lat: +e.lat || 0, h: 0.18 + Math.max(0, +e.h || 0), hp: 1 }); b.x = { cm: 1 }; } }],
+  pweapon: ['📍 Arma para coger AQUÍ', (S, n, e) => { const k = S.add('weapon', { d: e.d, lat: +e.lat || LANE_ME, h: 1.6 + Math.max(0, +e.h || 0), hp: 999, vd: 0 }); k.x = { w: rollWeapon(S.r, Math.min(3, 1 + Math.floor(S.runT / 150)), S.zd(), S.luck(), n > 1), pr: S.players.map(() => 0), nd: S.alivePlayers().length > 1 ? 5 : 2, life: 60, cm: 1 }; }],
+  ptlight: ['📍 Semáforo AQUÍ (para el coche)', (S, n, e) => S.spawnLight(e.d)],
+  ptoll: ['📍 Peaje AQUÍ (barrera)', (S, n, e) => S.spawnToll(e.d)],
+  pwall: ['📍 Muro en la carretera AQUÍ', (S, n, e) => { const w = S.spawnWall(0); if (w) w.d = e.d; }],
+  pchase: ['📍 Chica perseguida AQUÍ (salvarla)', (S, n, e) => { if (!S.chase) S.startChase(e.d); }],
+  pxcar: ['📍 Coche cruzando AQUÍ', (S, n, e) => { for (let i = 0; i < n; i++) S.spawnXCar(e.d + i * 7); }],
+  plady: ['📍 Chica del trago AQUÍ', (S, n, e) => { const l = S.add('lady', { d: e.d, lat: +e.lat || 7.5, h: 0.18 + Math.max(0, +e.h || 0), hp: 1, ry: 0 }); l.x = { sk: Math.floor(S.r() * 4), used: 0, cm: 1 }; }],
   pmedkit: ['📍 Botiquín AQUÍ', (S, n, e) => { const m = S.add('medkit', { d: e.d, lat: +e.lat || 0, h: 1.2 + Math.max(0, +e.h || 0), hp: 1 }); m.x = { st: 1.2 + Math.max(0, +e.h || 0), still: 1, life: 999, cm: 1 }; }],
   gunmen: ['Pistoleros', (S, n) => { for (let k = n; k > 0; k -= 3) S.spawnGunmen(Math.min(3, k), false); }],
   cover: ['Pistoleros tras coberturas', (S, n) => { for (let k = n; k > 0; k -= 3) S.spawnGunmen(Math.min(3, k), true); }],
@@ -87,6 +94,36 @@ export const CMAP_EV = {
   turret: ['Torreta', (S) => S.spawnTurret()],
   dealer: ['Traficante de armas', (S) => S.spawnDealer()],
   goblin: ['Goblin del saco', (S) => S.spawnGoblin()],
+  squad: ['Escuadra de soldados', (S) => S.spawnSquad()],
+  wingun: ['Tiradores en ventanas (pueblo)', (S) => S.spawnWindowGunmen()],
+  turbans: ['Tiradores de las dunas', (S) => S.spawnTurbans()],
+  skel: ['Esqueletos', (S, n) => { for (let i = 0; i < n; i++) S.spawnSkel(); }],
+  rioters: ['Manifestantes que tiran cosas', (S) => S.spawnRioters()],
+  march: ['JEFE: Marcha que corta el paso', (S) => S.spawnMarch()],
+  bats: ['Murciélagos', (S, n) => { for (let i = 0; i < n; i++) S.spawnBat(i); }],
+  vultures: ['Buitres', (S, n) => { for (let i = 0; i < n; i++) S.spawnBat(i, 1); }],
+  tuktuk: ['Tuk-tuk', (S) => S.spawnTuktuk(false)],
+  tuktukx: ['Tuk-tuk con vuestros dobles', (S) => S.spawnTuktuk(true)],
+  crew: ['Camioneta con tiradores', (S) => S.spawnCrew(false)],
+  crewback: ['Camioneta por detrás', (S) => S.spawnCrew(true)],
+  suv: ['Todoterreno por detrás', (S) => S.spawnSUV(-60)],
+  tractor: ['Tractor con remolque', (S) => S.spawnTractor()],
+  fuel: ['Bidones de gasolina', (S) => S.spawnFuel()],
+  rocks: ['Rocas que caen', (S, n) => { for (let i = 0; i < n; i++) S.spawnRocks(); }],
+  boat: ['Lancha (río o mar)', (S, n) => { for (let i = 0; i < n; i++) S.spawnBoat(); }],
+  canoe: ['Canoa', (S, n) => { for (let i = 0; i < n; i++) S.spawnCanoe(); }],
+  jellies: ['Medusas', (S) => S.spawnJellies()],
+  whale: ['Ballena (paisaje)', (S) => S.spawnWhale()],
+  float: ['Carroza', (S) => S.spawnFloat()],
+  lady: ['Chica del trago', (S) => S.spawnLady()],
+  train: ['JEFE: Tren de frente', (S) => S.spawnTrain()],
+  mtrainl: ['JEFE: Tren militar (izquierda)', (S) => S.spawnMTrain(-1)],
+  mtrainr: ['JEFE: Tren militar (derecha)', (S) => S.spawnMTrain(1)],
+  chef: ['JEFE: Chef del buffet', (S) => S.spawnChef()],
+  brute: ['JEFE: El Carnicero', (S) => S.spawnBrute()],
+  harvester: ['JEFE: La Cosechadora', (S) => S.spawnHarvester()],
+  firetruck: ['JEFE: Bomberos', (S) => S.spawnFiretruck()],
+  mega: ['JEFE: Megalodón (mar)', (S) => S.spawnMega()],
   amb: ['Ambulancia (vida)', (S) => S.spawnAmb()],
   civ: ['Civiles', (S, n) => S.spawnCivilians(n * 2)],
   civcar: ['Coche civil', (S, n) => { for (let i = 0; i < n; i++) S.spawnCivCar(); }],
@@ -762,7 +799,9 @@ export class Sim {
     if (this.signsFor >= this.forkDone + 1 && !this.road.forks[this.signsFor]) { this.signsFor = this.forkDone; this.voting = false; this.voteT = null; }
   }
   director(dt) {
-    if (this.cmap) { this.cmapStep(dt); if (!this.cmap.auto || this.over) return; }
+    // mapa hecho a mano: sin enemigos automáticos solo corre la "dinámica de la zona" donde se haya pedido
+    const DZ = this.cmap ? this.road.dinAt(this.carD + 80) : 0, OZ = !!this.cmap && !this.cmap.auto && DZ < 2;
+    if (this.cmap) { this.cmapStep(dt); if (this.over || (OZ && !DZ)) return; }
     const rt = this.runT;
     // en el túnel del principio no sale nadie: se empieza tranquilo y la acción llega al salir
     const T0 = this.road.tunnels[0];
@@ -789,6 +828,7 @@ export class Sim {
     // durante el duelo no sale nada (ni ambulancias, ni jeeps, ni oleadas)
     if (this.ents.some(e => e.type === 'outlaw' && e.st !== ST.DEAD)) { this.ambT = Math.max(this.ambT, 4); this.terrT = Math.max(this.terrT, 6); this.civT = Math.max(this.civT, 2); this.waveT = Math.max(this.waveT, 2); this.ramT = Math.max(this.ramT || 0, 6); }
     const narrowN = !!BIOMES[BIOME_KEYS[this.road.bioAt(this.carD + 80)]].narrow || !!BIOMES[BIOME_KEYS[this.road.bioAt(this.carD)]].narrow, solo1 = inT || narrowN;
+    if (OZ) { this.waveT = 9; this.civT = 9; this.ambT = 9; this.terrT = 9; this.rearT = 9; }
     if (this.waveT <= 0) {
       if (!inT && this.hostileCount(this.n > 2 ? false : null) < cap) this.spawnWave();
       // en solitario salen menos: más tiempo entre oleadas
@@ -1897,6 +1937,12 @@ export class Sim {
         for (const P of this.players) if (P.alive) P.score += 5000 * (this.story.ch + 1);
         this.emit('over', { t: Math.round(this.runT), dist: Math.round(this.carD), sc: this.players.map(p => p.score), kl: this.players.map(p => p.kills), ck: this.stats.chickens, rt: this.stats.forks, win: 1, ch: this.story.ch });
       }
+      return;
+    }
+    // mapa hecho a mano: zona del juego entera que sigue por otro camino al acabar (sin carteles)
+    if (f.cont) {
+      if (f.choice == null && this.carD > f.gantry - 60) { R.setChoice(k, 0, f.zd || R.czd || 1); this.forkDone = k; this.signsFor = k; this.voting = false; this.emit('fork', { kk: k, b: 0, zd: f.zd || R.czd || 1 }); }
+      else if (f.choice != null) { this.forkDone = k; this.signsFor = k; }
       return;
     }
     if (this.signsFor < k && this.carD > f.gantry - 180) {

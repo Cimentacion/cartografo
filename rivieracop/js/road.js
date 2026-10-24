@@ -50,7 +50,7 @@ export class Road {
   _queueCustom(M, picks) {
     this.cmap = M; this.picks = Array.isArray(picks) ? picks : null;
     this.czd = clamp(M.zd | 0 || 1, 1, 10);
-    this.cevs = []; this.cprops = []; this.cnd = []; this.cramps = []; this.csides = []; this.czones = []; this.rstarts = []; this.cEnd = null;
+    this.cevs = []; this.cprops = []; this.ctiles = []; this.cdin = []; this.cnd = []; this.cramps = []; this.csides = []; this.czones = []; this.rstarts = []; this.cEnd = null;
     const segs = (M.segs || []).filter(g => g && g.len > 0);
     const b0 = segs.length ? this._cbio(segs[0].bio) : 0;
     this._q({ type: 'tunnel', len: START_TUN, fork: -1, bio: b0, zd: this.czd });
@@ -72,13 +72,15 @@ export class Road {
         b = this._q({ type: 'cseg', len, bio, zd, kmax, slope: clamp(+g.hill || 0, -3, 3) * 0.03 });
         if (g.ramp && len >= 60) this.cramps.push(b.start + Math.round(len / 2));
       }
-      if (g.deco === 0) this.cnd.push([b.start, b.start + len]);
+      if (g.deco === 0) this.cnd.push([b.start, b.start + len, { surf: g.surf, walk: g.walk, tl: g.tl, tr: g.tr }]);
+      if (g.din) this.cdin.push([b.start, b.start + len]);
     });
     const E = this.planEnd;
-    this.czones.push({ k: this.czones.length, secStart: S, slen: Math.max(60, E - S), gantry: 1e9, tStart: 1e9, tEnd: 1e9, bio: this._cbio(segs[0].bio), depth });
+    this.czones.push({ k: this.czones.length, secStart: S, slen: Math.max(60, E - S), gantry: E + 60, tStart: E + 100, tEnd: E + 250, bio: this._cbio(segs[0].bio), depth });
     for (const e of rt.evs || []) this.cevs.push(Object.assign({}, e, { d: S + clamp(+e.d || 0, 0, E - S), depth }));
     this.cevs.sort((a, b) => a.d - b.d);
     for (const p of rt.props || []) this.cprops.push(Object.assign({}, p, { d: S + clamp(+p.d || 0, 0, E - S + 30), depth }));
+    for (const t of rt.tiles || []) this.ctiles.push(Object.assign({}, t, { d: S + clamp(+t.d || 0, -10, E - S + 30), depth }));
     const end = rt.end || {}, opts = Array.isArray(end.opts) ? end.opts.filter(o => o && typeof o === 'object') : [];
     if (end.t === 'fork' && opts.length >= 2 && depth < 8) {
       this._q({ type: 'approach', len: APPROACH, bio: last, zd });
@@ -88,6 +90,15 @@ export class Road {
       this._q({ type: 'wait', len: 0, fork: k });
       // el editor enseña el camino que se está editando
       if (this.picks) this.forks[k].choice = clamp(this.picks[depth] | 0, 0, Math.min(3, opts.length) - 1);
+    } else if (end.t === 'zone' && opts.length >= 1 && depth < 8 && ZONE_OK(end.z)) {
+      // una zona entera del juego, con su recorrido y sus sucesos (hospital, dunas con la torre, Titanic...); al acabar, sigue otro camino
+      const zk = end.z === 'oeste' ? 'dunas' : end.z, bi = BIOME_KEYS.indexOf(zk), Z0 = this.planEnd;
+      this._queueSection(bi, zd);
+      const f = this.forks[this.forks.length - 1];
+      if (end.z === 'oeste') { const W = this.west[this.west.length - 1]; if (W) this.setWest(W.k, 1); }
+      f.cont = { route: opts[0], depth }; f.zd = zd;
+      this.czones.push(f); this.cdin.push([Z0, null, f]);
+      if (this.picks) { f.choice = 0; if (end.z === 'dunas') { const W = this.west[this.west.length - 1]; if (W) this.setWest(W.k, 0); this.setArenaExit(0); } }
     } else if (end.t === 'side' && opts.length >= 2 && depth < 8) {
       // cartel lateral: se sigue por el camino 0 salvo que alguien le dispare (entonces la carretera se corta y gira)
       const W = { k: this.csides.length, sign: Math.max(S + 10, E - 30), cut: E, choice: null, opts: opts.slice(0, 2), depth, bio: last, l: String(end.l || 'DESVÍO').slice(0, 24), sd: end.sd === -1 ? -1 : 1 };
@@ -121,13 +132,18 @@ export class Road {
     this.cramps = this.cramps.filter(b => b < cut);
     this.cevs = this.cevs.filter(e => e.d < cut);
     this.cprops = this.cprops.filter(p => p.d < cut);
-    this.cnd = this.cnd.filter(r => r[0] < cut).map(r => [r[0], Math.min(r[1], cut)]);
+    this.cnd = this.cnd.filter(r => r[0] < cut).map(r => [r[0], Math.min(r[1], cut), r[2]]);
+    this.cdin = this.cdin.filter(r => r[0] < cut).map(r => r[2] ? r : [r[0], Math.min(r[1], cut)]);
+    this.ctiles = this.ctiles.filter(t => t.d < cut);
     this.czones = this.czones.filter(z => z.secStart < cut);
     if (this._bc) this._bc.clear();
     this.cEnd = null;
     this._queueRoute(W.opts[1], W.depth + 1, W.bio);
   }
   sideSign(d) { if (this.csides) for (const W of this.csides) if (W.choice == null && d > W.sign - 240 && d < W.sign + 40) return W; return null; }
+  // 2 = zona entera del juego (todo como en una partida normal), 1 = tramo con la dinámica de su zona, 0 = nada
+  dinAt(d) { if (!this.cdin) return 0; for (const r of this.cdin) if (d >= r[0] && d < (r[2] ? r[2].tEnd : r[1])) return r[2] ? 2 : 1; return 0; }
+  ndProf(i) { if (!this.cnd) return null; for (const r of this.cnd) if (i >= r[0] && i < r[1]) return r[2] || {}; return null; }
   noDeco(i) { if (!this.cnd) return false; for (const r of this.cnd) if (i >= r[0] && i < r[1]) return true; return false; }
   get len() { return this.x.length - 1; }
 
@@ -331,7 +347,8 @@ export class Road {
         const f = this.forks[b.fork];
         if (!f || f.choice == null) break;
         this.queue.shift();
-        if (f.custom) this._queueRoute(f.opts[f.choice] || f.opts[0], f.depth + 1, f.bio);
+        if (f.cont) this._queueRoute(f.cont.route, f.cont.depth + 1, BIOME_KEYS.indexOf(f.cont.route.segs && f.cont.route.segs[0] ? f.cont.route.segs[0].bio : 'monaco'));
+        else if (f.custom) this._queueRoute(f.opts[f.choice] || f.opts[0], f.depth + 1, f.bio);
         else this._queueSection(f.choice, f.zd || 1);
         continue;
       }
@@ -687,3 +704,5 @@ export class Road {
 const TMP = { x: 0, y: 0, z: 0, yaw: 0 };
 // zonas que no valen para los mapas hechos a mano (necesitan su recorrido especial)
 export const CMAP_NO = new Set(['dunas', 'oeste', 'titanic', 'tsub', 'tmar']);
+// zonas enteras del juego que se pueden meter en un mapa (con su recorrido especial)
+export const ZONE_OK = k => k === 'oeste' || (BIOME_KEYS.includes(k) && k !== 'tsub' && k !== 'tmar');

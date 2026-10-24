@@ -43,8 +43,17 @@ input[type=range]{accent-color:var(--gold);width:100%}
 #profCv{height:64px;width:100%;display:block;border-top:1px solid var(--line);touch-action:none}
 #v3d{position:absolute;inset:0;z-index:3;background:#000}#v3d[hidden]{display:none}
 #mapBtns{position:absolute;right:8px;top:6px;z-index:4;display:flex;gap:6px}#mapBtns button.on{background:#2b5fa0}
+#tools{position:absolute;left:0;right:0;bottom:0;z-index:5;background:rgba(10,8,22,.86);border-top:1px solid var(--line)}
+#tools .trow{display:flex;gap:4px;padding:5px 6px;overflow-x:auto;white-space:nowrap}
+#tools .trow button{padding:6px 8px;font-size:12px;flex:none}#tools .trow button.on{background:var(--gold);color:#000;border-color:var(--gold)}
+#palette{display:flex;gap:5px;padding:6px;overflow-x:auto;white-space:nowrap;border-bottom:1px solid var(--line)}#palette:empty{display:none}
+#palette button{flex:none;padding:5px 8px;font-size:12px;display:flex;align-items:center;gap:5px}#palette button.on{outline:2px solid var(--gold);background:#3a3260}
+#palette i{display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid #000}
+#selBar{position:absolute;left:6px;top:40px;z-index:6;display:flex;flex-wrap:wrap;gap:4px;max-width:calc(100% - 12px);background:rgba(10,8,22,.88);border:1px solid var(--gold);border-radius:9px;padding:5px}
+#selBar[hidden]{display:none}#selBar b{font:13px var(--f-title);color:var(--gold);align-self:center;margin:0 4px}#selBar button{padding:5px 8px;font-size:13px}#selBar button.on{background:#2b5fa0}
+#edBody.wide #panel{display:none}#edBody.wide #mapSide{border-right:0}
 #crumb{padding:6px 10px;border-bottom:1px solid var(--line);font:600 12px var(--f-ui);display:flex;flex-wrap:wrap;gap:4px;align-items:center;background:#120f22}#crumb button{padding:3px 7px;font-size:12px}
-#mapInfo{position:absolute;left:8px;right:72px;top:6px;font:9px var(--f-px);color:var(--dim);pointer-events:none;text-shadow:1px 1px 0 #000;line-height:1.6}
+#mapInfo{z-index:4;position:absolute;left:8px;right:72px;top:6px;font:9px var(--f-px);color:var(--dim);pointer-events:none;text-shadow:1px 1px 0 #000;line-height:1.6}
 #panel{flex:1;display:flex;flex-direction:column;min-width:0}
 .tabs{display:flex;border-bottom:1px solid var(--line)}
 .tabs button{flex:1;border:0;border-radius:0;background:transparent;padding:9px 2px;font:15px var(--f-title);letter-spacing:.05em;color:var(--dim)}
@@ -99,7 +108,9 @@ input[type=range]{accent-color:var(--gold);width:100%}
     <button id="bTest" class="go">▶ PROBAR</button><button id="bSave" class="gold">💾 GUARDAR</button></div>
   <div id="edBody">
     <div id="mapSide"><canvas id="mapCv"></canvas><canvas id="profCv"></canvas><div id="mapInfo"></div><div id="v3d" hidden></div>
-      <div id="mapBtns"><button id="bRev" class="mini" hidden>◀ ATRÁS</button><button id="bFwd" class="mini" hidden>ADELANTE ▶</button><button id="bCar" class="mini" hidden>🚗</button><button id="b3d" class="mini gold">🧊 3D</button></div></div>
+      <div id="mapBtns"><button id="bRev" class="mini" hidden>◀</button><button id="bFwd" class="mini" hidden>▶</button><button id="bCar" class="mini" hidden>🚗</button><button id="bWide" class="mini">⛶</button><button id="b3d" class="mini gold">🧊 3D</button></div>
+      <div id="selBar" hidden></div>
+      <div id="tools" hidden><div id="palette"></div><div class="trow" id="trow"></div></div></div>
     <div id="panel">
       <div id="crumb"></div>
       <div class="tabs"><button data-t="segs" class="on">TRAMOS</button><button data-t="evs">ENEMIGOS</button><button data-t="props">OBJETOS</button><button data-t="end">FINAL</button><button data-t="opts">MAPA</button></div>

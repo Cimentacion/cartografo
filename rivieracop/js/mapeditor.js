@@ -2,9 +2,9 @@
 // Un mapa = tramos de carretera seguidos (zona, largo, curva, cuesta, túnel, rampa) + enemigos que salen al llegar a cada punto.
 // Se guarda en el móvil (localStorage) y en un repositorio de GitHub (maps/<id>.json + maps/index.json).
 // "Enviar a DebugMaps" lo marca para que salga en el menú privado DebugMaps del juego.
-import { Road, CMAP_NO, START_TUN } from './road.js';
+import { Road, CMAP_NO, START_TUN, ZONE_OK } from './road.js';
 import { CMAP_EV } from './sim.js';
-import { PROPS } from './scenery.js';
+import { PROPS, GROUND } from './scenery.js';
 import { View3D } from './mapview3d.js';
 import { BIOMES, BIOME_KEYS } from './defs.js';
 
@@ -32,7 +32,7 @@ function locals() { return LS.get('rcm_maps', {}); }
 function saveLocal(M) { const L = locals(); M.t = Date.now(); L[M.id] = M; if (!LS.set('rcm_maps', L)) { toast('No queda sitio en el móvil para guardar'); return false; } return true; }
 function delLocal(id) { const L = locals(); delete L[id]; LS.set('rcm_maps', L); }
 function newId() { return 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
-function newRoute(bio = 'monaco') { return { segs: [{ bio, len: 300, curve: 0, hill: 0 }], evs: [], props: [], end: { t: 'meta' } }; }
+function newRoute(bio = 'monaco') { return { segs: [{ bio, len: 300, curve: 0, hill: 0 }], evs: [], props: [], tiles: [], end: { t: 'meta' } }; }
 function newMap() {
   return { v: 2, id: newId(), name: 'Mapa nuevo', author: CFG.author || '', t: Date.now(), zd: 2, auto: 0,
     segs: [{ bio: 'monaco', len: 220, curve: 0, hill: 0 }, { bio: 'monaco', len: 260, curve: 1, hill: -1 }, { bio: 'puerto', len: 300, curve: -1, hill: 0, ramp: 1 }],
@@ -42,12 +42,16 @@ function newMap() {
 const num = (v, a, b, d = 0) => { v = +v; return Number.isFinite(v) ? clamp(v, a, b) : d; };
 function fixRoute(r, depth) {
   r = r && typeof r === 'object' ? r : {};
-  r.segs = (Array.isArray(r.segs) ? r.segs : []).slice(0, 60).map(g => { const o = { bio: BIOS.includes(g.bio) ? g.bio : 'monaco', len: Math.round(num(g.len, 20, 1000, 100)), curve: Math.round(num(g.curve, -3, 3)), hill: Math.round(num(g.hill, -3, 3)), tun: g.tun ? 1 : 0, ramp: g.ramp && !g.tun ? 1 : 0 }; if (g.deco === 0) o.deco = 0; return o; });
+  r.segs = (Array.isArray(r.segs) ? r.segs : []).slice(0, 60).map(g => { const o = { bio: BIOS.includes(g.bio) ? g.bio : 'monaco', len: Math.round(num(g.len, 20, 1000, 100)), curve: Math.round(num(g.curve, -3, 3)), hill: Math.round(num(g.hill, -3, 3)), tun: g.tun ? 1 : 0, ramp: g.ramp && !g.tun ? 1 : 0 }; if (g.deco === 0) { o.deco = 0; for (const k of ['surf', 'tl', 'tr']) if (GROUND[g[k]]) o[k] = g[k]; if (g.walk === 0) o.walk = 0; } if (g.din) o.din = 1; return o; });
   if (!r.segs.length) r.segs.push({ bio: 'monaco', len: 200, curve: 0, hill: 0, tun: 0, ramp: 0 });
   r.evs = (Array.isArray(r.evs) ? r.evs : []).filter(e => CMAP_EV[e.k]).slice(0, 300).map(e => { const o = { d: Math.round(num(e.d, 0, 1e5)), k: e.k, n: Math.round(num(e.n, 1, 8, 1)) }; if (e.lat != null) o.lat = num(e.lat, -60, 60); if (e.h != null) o.h = num(e.h, 0, 40); if (e.cv) o.cv = 1; return o; });
-  r.props = (Array.isArray(r.props) ? r.props : []).filter(p => PROPS[p.k]).slice(0, 400).map(p => ({ k: p.k, d: Math.round(num(p.d, 0, 1e5)), lat: num(p.lat, -80, 80), rot: Math.round(num(p.rot, -360, 360)), s: num(p.s, 0.3, 4, 1), h: num(p.h, -10, 40) }));
+  r.tiles = (Array.isArray(r.tiles) ? r.tiles : []).filter(t => GROUND[t.g]).slice(0, 3000).map(t => ({ g: t.g, d: num(t.d, -10, 1e5), lat: num(t.lat, -80, 80), w: num(t.w, 0.5, 40, 2), l: num(t.l, 0.5, 40, 2), h: num(t.h, 0, 20) }));
+  r.props = (Array.isArray(r.props) ? r.props : []).filter(p => PROPS[p.k]).slice(0, 800).map(p => ({ k: p.k, d: Math.round(num(p.d, 0, 1e5)), lat: num(p.lat, -80, 80), rot: Math.round(num(p.rot, -360, 360)), s: num(p.s, 0.3, 4, 1), h: num(p.h, -10, 40) }));
   const e = r.end && typeof r.end === 'object' ? r.end : { t: 'meta' };
-  if ((e.t === 'fork' || e.t === 'side') && depth < 6 && Array.isArray(e.opts) && e.opts.length >= 2) {
+  if (e.t === 'zone' && depth < 6 && ZONE_OK(e.z)) {
+    const o = Array.isArray(e.opts) && e.opts[0] ? e.opts[0] : newRoute('monaco');
+    r.end = { t: 'zone', z: e.z, opts: [Object.assign(fixRoute(o, depth + 1), { l: 'DESPUÉS', s: '' })] };
+  } else if ((e.t === 'fork' || e.t === 'side') && depth < 6 && Array.isArray(e.opts) && e.opts.length >= 2) {
     const n = e.t === 'side' ? 2 : Math.min(3, e.opts.length);
     r.end = { t: e.t, opts: e.opts.slice(0, n).map((o, i) => Object.assign(fixRoute(o, depth + 1), { l: String(o.l || (e.t === 'side' ? (i ? 'GIRO' : 'SEGUIR') : 'CAMINO ' + (i + 1))).slice(0, 22), s: String(o.s || '').slice(0, 26) })) };
     if (e.t === 'side') { r.end.l = String(e.l || 'DESVÍO').slice(0, 22); r.end.sd = e.sd === -1 ? -1 : 1; }
@@ -63,7 +67,7 @@ function fixMap(M) {
 const routeLen = r => r.segs.reduce((a, g) => a + g.len, 0);
 // largo del camino principal (siempre el primer camino de cada desvío) y cuántas cosas tiene en total
 function totalLen(M) { let r = M, n = 0; for (let i = 0; i < 8 && r; i++) { n += routeLen(r); r = r.end && r.end.opts ? r.end.opts[0] : null; } return n; }
-function countAll(M) { let c = { segs: 0, evs: 0, props: 0, ways: 1 }; const go = r => { c.segs += r.segs.length; c.evs += r.evs.length; c.props += r.props.length; if (r.end && r.end.opts) { c.ways += r.end.opts.length - 1; r.end.opts.forEach(go); } }; go(M); return c; }
+function countAll(M) { let c = { segs: 0, evs: 0, props: 0, ways: 1 }; const go = r => { c.segs += r.segs.length; c.evs += r.evs.length; c.props += r.props.length + (r.tiles ? r.tiles.length : 0); if (r.end && r.end.opts) { c.ways += r.end.opts.length - 1; r.end.opts.forEach(go); } }; go(M); return c; }
 
 // ---------- código para pasar el mapa a mano ----------
 function mapCode(M) { const b = btoa(unescape(encodeURIComponent(JSON.stringify(M)))); return 'RCM1' + b.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
@@ -234,7 +238,7 @@ function openEditor(id) {
   $('listScr').hidden = true; $('edScr').hidden = false;
   $('fName').value = M.name;
   paintAll();
-  requestAnimationFrame(() => { sizeCv(); drawMap(); });
+  requestAnimationFrame(() => { sizeCv(); drawMap(); if (LS.get('rcm_3d', true) && !MODE3D) set3D(true); else if (MODE3D) push3D(); });
 }
 let rbT = 0;
 function touch(now) { dirty = true; $('saveSt').textContent = 'SIN GUARDAR'; LS.set('rcm_draft', M); clearTimeout(rbT); if (now) rebuild(); else { drawMap(); rbT = setTimeout(rebuild, 250); } }
@@ -263,6 +267,7 @@ const STEP = (v, min, max) => { let h = '<div class="steps">'; for (let i = min;
 const HSTEP = (v) => { let h = '<div class="steps">'; for (let i = -3; i <= 3; i++) h += `<button data-v="${i}" class="${i === v ? 'on' : ''}">${i < 0 ? '↘'.repeat(-i) : i > 0 ? '↗'.repeat(i) : '—'}</button>`; return h + '</div>'; };
 function bioSelect(v) { return '<select>' + BIOS.map(k => `<option value="${k}"${k === v ? ' selected' : ''}>${esc(BIOMES[k].name)}</option>`).join('') + '</select>'; }
 function evSelect(v) { return '<select>' + EVK.map(k => `<option value="${k}"${k === v ? ' selected' : ''}>${esc(CMAP_EV[k][0])}</option>`).join('') + '</select>'; }
+function gSel(v, k, none) { return `<select data-g="${k}"><option value="">${none}</option>` + Object.keys(GROUND).map(x => `<option value="${x}"${x === v ? ' selected' : ''}>${GROUND[x][4]}</option>`).join('') + '</select>'; }
 function propSelect(v) { return '<select>' + Object.keys(PROPS).map(k => `<option value="${k}"${k === v ? ' selected' : ''}>${esc(PROPS[k][0])}</option>`).join('') + '</select>'; }
 const POS_EV = new Set(['pgun', 'pgren', 'psniper', 'pciv', 'pbarrel', 'pmedkit']);
 // lados rápidos (metros desde el centro de la carretera: - izquierda, + derecha)
@@ -275,7 +280,7 @@ function latRow(v, max = 40) {
 // camino actual: de dónde viene
 function paintCrumb() {
   const el = $('crumb'); let r = M, h = '<button class="mini" data-p="-1">PRINCIPAL</button>';
-  PATH.forEach((i, n) => { const e = r.end; const o = e.opts[i]; const t = e.t === 'side' ? (i ? '↪ ' : '→ ') + o.l : '⑂ ' + o.l; h += ' › <button class="mini" data-p="' + n + '">' + esc(t) + '</button>'; r = o; });
+  PATH.forEach((i, n) => { const e = r.end; const o = e.opts[i]; const t = e.t === 'zone' ? '🗺 tras ' + ((BIOMES[e.z === 'oeste' ? 'dunas' : e.z] || {}).name || e.z) : e.t === 'side' ? (i ? '↪ ' : '→ ') + o.l : '⑂ ' + o.l; h += ' › <button class="mini" data-p="' + n + '">' + esc(t) + '</button>'; r = o; });
   el.innerHTML = '<span class="lbl">CAMINO:</span> ' + h;
   for (const b of el.querySelectorAll('button')) b.onclick = () => { PATH = PATH.slice(0, +b.dataset.p + 1); SEL = 0; MARK = null; LS.set('rcm_path', { id: M.id, p: PATH }); paintAll(); };
 }
@@ -291,10 +296,13 @@ function paintSegs() {
       <div class="rowk"><span>LARGO</span><input type="range" min="20" max="1000" step="10" value="${g.len}" data-k="len"><output>${g.len} m</output></div>
       <div class="rowk"><span>CURVA</span><div data-k="curve">${STEP(g.curve, -3, 3)}</div><output>${g.curve < 0 ? 'IZQ' : g.curve > 0 ? 'DER' : 'RECTA'}</output></div>
       <div class="rowk"><span>CUESTA</span><div data-k="hill">${HSTEP(g.hill)}</div><output>${g.hill < 0 ? 'BAJA' : g.hill > 0 ? 'SUBE' : 'LLANO'}</output></div>
-      <div class="h tog"><button data-t="tun" class="mini ${g.tun ? 'on' : ''}">🚇 TÚNEL</button><button data-t="ramp" class="mini ${g.ramp ? 'on' : ''}" ${g.tun ? 'disabled' : ''}>🛹 RAMPA</button><button data-t="deco" class="mini ${g.deco === 0 ? '' : 'on'}" ${g.tun ? 'disabled' : ''}>🏙 DECORADO ${g.deco === 0 ? 'NO' : 'SÍ'}</button><span class="sp"></span>
-        <button data-a="up" class="mini">▲</button><button data-a="dn" class="mini">▼</button><button data-a="dup" class="mini">⧉</button><button data-a="del" class="mini warn">✕</button></div>`;
+      <div class="h tog"><button data-t="tun" class="mini ${g.tun ? 'on' : ''}">🚇 TÚNEL</button><button data-t="ramp" class="mini ${g.ramp ? 'on' : ''}" ${g.tun ? 'disabled' : ''}>🛹 RAMPA</button><button data-t="deco" class="mini ${g.deco === 0 ? '' : 'on'}" ${g.tun ? 'disabled' : ''}>🏙 DECORADO ${g.deco === 0 ? 'NO' : 'SÍ'}</button><button data-t="din" class="mini ${g.din ? 'on' : ''}">⚡ SUCESOS DE LA ZONA ${g.din ? 'SÍ' : 'NO'}</button><span class="sp"></span>
+        <button data-a="up" class="mini">▲</button><button data-a="dn" class="mini">▼</button><button data-a="dup" class="mini">⧉</button><button data-a="del" class="mini warn">✕</button></div>
+      ${g.deco === 0 && !g.tun ? `<div class="h prof"><span class="lbl">CARRETERA</span>${gSel(g.surf, 'surf', 'Asfalto con rayas')}<button data-t="walk" class="mini ${g.walk === 0 ? '' : 'on'}">ACERAS ${g.walk === 0 ? 'NO' : 'SÍ'}</button></div>
+      <div class="h prof"><span class="lbl">LADO IZQ</span>${gSel(g.tl, 'tl', 'Como la zona')}<span class="lbl">LADO DER</span>${gSel(g.tr, 'tr', 'Como la zona')}</div>` : ''}`;
     d.onclick = () => { if (SEL !== i) { SEL = i; for (const x of P.querySelectorAll('.seg')) x.classList.remove('sel'); d.classList.add('sel'); drawMap(); if (MODE3D && V3) V3.look(RS + st[i] + 10); } };
     d.querySelector('select').onchange = e => { g.bio = e.target.value; d.style.borderLeftColor = BCOL(g.bio); touch(); };
+    for (const sl of d.querySelectorAll('select[data-g]')) sl.onchange = () => { const k = sl.dataset.g; if (sl.value) g[k] = sl.value; else delete g[k]; touch(); };
     const rng = d.querySelector('input[data-k=len]'), out = rng.nextElementSibling;
     rng.oninput = () => { g.len = +rng.value; out.textContent = g.len + ' m'; touch(); };
     rng.onchange = () => paintSegs();
@@ -302,6 +310,8 @@ function paintSegs() {
     for (const b of d.querySelectorAll('[data-t]')) b.onclick = () => {
       const k = b.dataset.t;
       if (k === 'deco') { if (g.deco === 0) delete g.deco; else g.deco = 0; }
+      else if (k === 'din') { if (g.din) delete g.din; else g.din = 1; }
+      else if (k === 'walk') { if (g.walk === 0) delete g.walk; else g.walk = 0; }
       else { g[k] = g[k] ? 0 : 1; if (g.tun) g.ramp = 0; if (k === 'ramp' && g.ramp && g.len < 60) g.len = 60; }
       touch(); paintSegs();
     };
@@ -328,23 +338,23 @@ function paintEvs() {
       <div class="h"><span class="lbl">CUÁNTOS</span><div class="steps" style="flex:1">${[1, 2, 3, 4, 5, 6].map(n => `<button data-n="${n}" class="${n === e.n ? 'on' : ''}">${n}</button>`).join('')}</div><button class="mini" data-a="here">👁</button><button class="mini warn" data-a="del">✕</button></div>
       ${pos ? latRow(e.lat) + `<div class="rowk"><span>ALTURA</span><input type="range" min="0" max="30" step="0.5" value="${e.h}" data-k="h"><output>${e.h ? e.h + ' m' : 'SUELO'}</output></div>
       ${e.k === 'pgun' || e.k === 'pgren' ? `<div class="h tog"><button data-a="cv" class="mini ${e.cv ? 'on' : ''}">🛡 ESCONDIDOS TRAS COBERTURA</button><button data-a="mk" class="mini">📌 AL PUNTO MARCADO</button></div>` : `<div class="h tog"><button data-a="mk" class="mini">📌 AL PUNTO MARCADO</button></div>`}` : ''}`;
-    d.querySelector('input[type=number]').onchange = ev => { e.d = clamp(Math.round(+ev.target.value || 0), 0, T); touch(); paintEvs(); };
-    d.querySelector('select').onchange = ev => { e.k = ev.target.value; if (!POS_EV.has(e.k)) { delete e.lat; delete e.h; delete e.cv; } touch(); paintEvs(); };
-    for (const b of d.querySelectorAll('[data-n]')) b.onclick = () => { e.n = +b.dataset.n; touch(); paintEvs(); };
+    d.querySelector('input[type=number]').onchange = ev => { e.d = clamp(Math.round(+ev.target.value || 0), 0, T); touchX(true); paintEvs(); };
+    d.querySelector('select').onchange = ev => { e.k = ev.target.value; if (!POS_EV.has(e.k)) { delete e.lat; delete e.h; delete e.cv; } touchX(true); paintEvs(); };
+    for (const b of d.querySelectorAll('[data-n]')) b.onclick = () => { e.n = +b.dataset.n; touchX(true); paintEvs(); };
     d.querySelector('[data-a=here]').onclick = () => { MARK = e.d; MLAT = pos ? e.lat : null; MH = pos ? e.h : 0; drawMap(); if (V3) V3.look(RS + e.d); };
-    d.querySelector('[data-a=del]').onclick = () => { r.evs.splice(i, 1); touch(); paintEvs(); };
+    d.querySelector('[data-a=del]').onclick = () => { r.evs.splice(i, 1); touchX(true); paintEvs(); };
     if (pos) {
-      const lr = d.querySelector('[data-k=lat]'); lr.oninput = () => { e.lat = +lr.value; lr.nextElementSibling.textContent = e.lat < 0 ? 'IZQ ' + (-e.lat) : e.lat > 0 ? 'DER ' + e.lat : 'CENTRO'; touch(); }; lr.onchange = () => paintEvs();
-      for (const b of d.querySelectorAll('[data-k=latq] button')) b.onclick = () => { e.lat = +b.dataset.v; touch(); paintEvs(); };
-      const hr = d.querySelector('[data-k=h]'); hr.oninput = () => { e.h = +hr.value; hr.nextElementSibling.textContent = e.h ? e.h + ' m' : 'SUELO'; touch(); };
-      const cv = d.querySelector('[data-a=cv]'); if (cv) cv.onclick = () => { if (e.cv) delete e.cv; else e.cv = 1; touch(); paintEvs(); };
-      d.querySelector('[data-a=mk]').onclick = () => { if (MARK == null) { toast('Primero toca un punto en el mapa o en el 3D'); return; } e.d = Math.round(MARK); if (MLAT != null) e.lat = MLAT; e.h = MH || 0; touch(); paintEvs(); };
+      const lr = d.querySelector('[data-k=lat]'); lr.oninput = () => { e.lat = +lr.value; lr.nextElementSibling.textContent = e.lat < 0 ? 'IZQ ' + (-e.lat) : e.lat > 0 ? 'DER ' + e.lat : 'CENTRO'; touchX(true); }; lr.onchange = () => paintEvs();
+      for (const b of d.querySelectorAll('[data-k=latq] button')) b.onclick = () => { e.lat = +b.dataset.v; touchX(true); paintEvs(); };
+      const hr = d.querySelector('[data-k=h]'); hr.oninput = () => { e.h = +hr.value; hr.nextElementSibling.textContent = e.h ? e.h + ' m' : 'SUELO'; touchX(true); };
+      const cv = d.querySelector('[data-a=cv]'); if (cv) cv.onclick = () => { if (e.cv) delete e.cv; else e.cv = 1; touchX(true); paintEvs(); };
+      d.querySelector('[data-a=mk]').onclick = () => { if (MARK == null) { toast('Primero toca un punto en el mapa o en el 3D'); return; } e.d = Math.round(MARK); if (MLAT != null) e.lat = MLAT; e.h = MH || 0; touchX(true); paintEvs(); };
     }
     P.appendChild(d);
   });
   const last = r.evs.length ? r.evs[r.evs.length - 1] : null;
-  $('aEv').onclick = () => { const d = MARK != null ? Math.round(MARK) : Math.min(T, last ? last.d + 120 : 60); const k = last && !POS_EV.has(last.k) ? last.k : 'gunmen'; r.evs.push({ d, k, n: 2 }); touch(); paintEvs(); };
-  $('aEvP').onclick = () => { const d = MARK != null ? Math.round(MARK) : Math.min(T, last ? last.d + 60 : 60); r.evs.push({ d, k: 'pgun', n: 1, lat: MLAT != null ? MLAT : 7.5, h: MH || 0, cv: 1 }); touch(); paintEvs(); };
+  $('aEv').onclick = () => { const d = MARK != null ? Math.round(MARK) : Math.min(T, last ? last.d + 120 : 60); const k = last && !POS_EV.has(last.k) ? last.k : 'gunmen'; r.evs.push({ d, k, n: 2 }); touchX(true); paintEvs(); };
+  $('aEvP').onclick = () => { const d = MARK != null ? Math.round(MARK) : Math.min(T, last ? last.d + 60 : 60); r.evs.push({ d, k: 'pgun', n: 1, lat: MLAT != null ? MLAT : 7.5, h: MH || 0, cv: 1 }); touchX(true); paintEvs(); };
 }
 function paintProps() {
   const P = $('p_props'), r = CUR(), T = routeLen(r);
@@ -360,32 +370,42 @@ function paintProps() {
       <div class="rowk"><span>TAMAÑO</span><input type="range" min="0.3" max="4" step="0.1" value="${p.s}" data-k="s"><output>x${p.s}</output></div>
       <div class="rowk"><span>ALTURA</span><input type="range" min="-10" max="40" step="0.5" value="${p.h}" data-k="h"><output>${p.h} m</output></div>
       <div class="h tog"><button data-a="mk" class="mini">📌 AL PUNTO MARCADO</button></div>`;
-    d.querySelector('select').onchange = ev => { p.k = ev.target.value; touch(); };
-    d.querySelector('input[type=number]').onchange = ev => { p.d = clamp(Math.round(+ev.target.value || 0), 0, T + 30); touch(); paintProps(); };
+    d.querySelector('select').onchange = ev => { p.k = ev.target.value; touchX(true); };
+    d.querySelector('input[type=number]').onchange = ev => { p.d = clamp(Math.round(+ev.target.value || 0), 0, T + 30); touchX(true); paintProps(); };
     for (const [k, f] of [['lat', v => (v < 0 ? 'IZQ ' + (-v) : v > 0 ? 'DER ' + v : 'CENTRO')], ['rot', v => v + '°'], ['s', v => 'x' + v], ['h', v => v + ' m']]) {
-      const el = d.querySelector(`[data-k=${k}]`); el.oninput = () => { p[k] = +el.value; el.nextElementSibling.textContent = f(p[k]); touch(); };
+      const el = d.querySelector(`[data-k=${k}]`); el.oninput = () => { p[k] = +el.value; el.nextElementSibling.textContent = f(p[k]); touchX(true); };
     }
-    for (const b of d.querySelectorAll('[data-k=latq] button')) b.onclick = () => { p.lat = +b.dataset.v; touch(); paintProps(); };
+    for (const b of d.querySelectorAll('[data-k=latq] button')) b.onclick = () => { p.lat = +b.dataset.v; touchX(true); paintProps(); };
     d.querySelector('[data-a=here]').onclick = () => { MARK = p.d; MLAT = p.lat; MH = p.h; drawMap(); if (V3) V3.look(RS + p.d); };
-    d.querySelector('[data-a=dup]').onclick = () => { r.props.splice(i + 1, 0, Object.assign({}, p, { d: Math.min(T, p.d + 15) })); touch(); paintProps(); };
-    d.querySelector('[data-a=del]').onclick = () => { r.props.splice(i, 1); touch(); paintProps(); };
-    d.querySelector('[data-a=mk]').onclick = () => { if (MARK == null) { toast('Primero toca un punto en el mapa o en el 3D'); return; } p.d = Math.round(MARK); if (MLAT != null) p.lat = MLAT; p.h = MH || 0; touch(); paintProps(); };
+    d.querySelector('[data-a=dup]').onclick = () => { r.props.splice(i + 1, 0, Object.assign({}, p, { d: Math.min(T, p.d + 15) })); touchX(true); paintProps(); };
+    d.querySelector('[data-a=del]').onclick = () => { r.props.splice(i, 1); touchX(true); paintProps(); };
+    d.querySelector('[data-a=mk]').onclick = () => { if (MARK == null) { toast('Primero toca un punto en el mapa o en el 3D'); return; } p.d = Math.round(MARK); if (MLAT != null) p.lat = MLAT; p.h = MH || 0; touchX(true); paintProps(); };
     P.appendChild(d);
   });
   $('aProp').onclick = () => {
     const k = $('pType').value, d = MARK != null ? Math.round(MARK) : Math.min(T, r.props.length ? r.props[r.props.length - 1].d + 25 : 30);
     const lat = MLAT != null ? MLAT : (['arco', 'puente'].includes(k) ? 0 : 13);
-    r.props.push({ k, d, lat, rot: 0, s: 1, h: MH || 0 }); touch(); paintProps();
+    r.props.push({ k, d, lat, rot: 0, s: 1, h: MH || 0 }); touchX(true); paintProps();
   };
 }
 function paintEnd() {
   const P = $('p_end'), r = CUR(), e = r.end, depth = PATH.length;
   const cur = e.t || 'meta';
   P.innerHTML = `<p class="note">Qué pasa al acabar los tramos de este camino.</p>
-    <div class="steps" id="eT" style="margin-bottom:10px"><button data-v="meta" class="${cur === 'meta' ? 'on' : ''}">🏁 META</button><button data-v="fork" class="${cur === 'fork' ? 'on' : ''}" ${depth >= 5 ? 'disabled' : ''}>⑂ CARTELES + TÚNEL</button><button data-v="side" class="${cur === 'side' ? 'on' : ''}" ${depth >= 5 ? 'disabled' : ''}>↪ CARTEL LATERAL</button></div>
+    <div class="steps" id="eT" style="margin-bottom:10px"><button data-v="meta" class="${cur === 'meta' ? 'on' : ''}">🏁 META</button><button data-v="fork" class="${cur === 'fork' ? 'on' : ''}" ${depth >= 5 ? 'disabled' : ''}>⑂ CARTELES + TÚNEL</button><button data-v="side" class="${cur === 'side' ? 'on' : ''}" ${depth >= 5 ? 'disabled' : ''}>↪ CARTEL LATERAL</button><button data-v="zone" class="${cur === 'zone' ? 'on' : ''}" ${depth >= 5 ? 'disabled' : ''}>🗺 ZONA DEL JUEGO</button></div>
     <div id="eBody"></div>`;
   const B = $('eBody');
   if (cur === 'meta') B.innerHTML = '<p class="note">Aquí se acaba el mapa: ¡MAPA COMPLETADO!</p>';
+  else if (cur === 'zone') {
+    const ZN = BIOME_KEYS.filter(ZONE_OK).map(k => [k, BIOMES[k].name]).concat([['oeste', 'OLD TOWN (por las dunas, directo al pueblo)']]);
+    B.innerHTML = `<p class="note">Mete una zona entera del juego tal cual, con su recorrido y todos sus sucesos: el hospital de la ciudad zombi (a pie), las dunas con la torre y el cartel de OLD TOWN, el Titanic, el barrio chino con el restaurante, los semáforos, la manifestación, los trenes... Al acabar la zona (en su túnel), sigue por el camino de abajo.</p>
+      <div class="field"><span class="lbl">ZONA</span><select id="zSel">${ZN.map(([k, n]) => `<option value="${k}"${k === e.z ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></div>`;
+    $('zSel').onchange = ev => { e.z = ev.target.value; touch(true); };
+    const o = e.opts[0], d = document.createElement('div'); d.className = 'seg'; d.style.borderLeftColor = BCOL(o.segs[0].bio);
+    d.innerHTML = `<div class="h"><b>DESPUÉS DE LA ZONA</b><span class="sp"></span><button data-a="ed" class="mini go">✏ EDITAR ESTE CAMINO</button></div><small class="lbl">${o.segs.length} tramos · ${routeLen(o)} m · ${o.evs.length} enemigos · ${o.props.length} objetos</small>`;
+    d.querySelector('[data-a=ed]').onclick = () => goPath(PATH.concat([0]));
+    B.appendChild(d);
+  }
   else if (cur === 'fork') {
     B.innerHTML = `<p class="note">Pórtico con un cartel por camino encima de la carretera y un túnel. Se elige disparando al cartel (en grupo, gana el más votado). Cada camino sigue por su lado y puede tener sus propios desvíos.</p>`;
     e.opts.forEach((o, i) => {
@@ -420,6 +440,7 @@ function paintEnd() {
     const bio = r.segs[r.segs.length - 1].bio;
     if (t === 'meta') r.end = { t: 'meta' };
     else if (t === 'fork') r.end = { t: 'fork', opts: [Object.assign(newRoute(bio), { l: 'IZQUIERDA', s: '' }), Object.assign(newRoute(bio), { l: 'DERECHA', s: '' })] };
+    else if (t === 'zone') r.end = { t: 'zone', z: 'zombi', opts: [Object.assign(newRoute(bio), { l: 'DESPUÉS', s: '' })] };
     else r.end = { t: 'side', l: 'ATAJO', sd: 1, opts: [Object.assign(newRoute(bio), { l: 'SEGUIR', s: '' }), Object.assign(newRoute(bio), { l: 'ATAJO', s: '' })] };
     touch(true); paintEnd();
   };
@@ -476,7 +497,7 @@ function drawMap() {
   g.strokeStyle = 'rgba(255,255,255,.05)'; g.lineWidth = 1;
   for (let k = 0; k < W; k += 24 * dpr) { g.beginPath(); g.moveTo(k, 0); g.lineTo(k, H); g.stroke(); }
   for (let k = 0; k < H; k += 24 * dpr) { g.beginPath(); g.moveTo(0, k); g.lineTo(W, k); g.stroke(); }
-  $('mapInfo').innerHTML = `CAMINO: ${(RL / 1000).toFixed(2)} KM · ${r.segs.length} TRAMOS · ${r.evs.length} ENEMIGOS · ${r.props.length} OBJETOS<br>TOCA EL MAPA PARA MARCAR UN PUNTO${markTxt() ? ' · ' + markTxt() : ''}`;
+  $('mapInfo').innerHTML = `CAMINO: ${(RL / 1000).toFixed(2)} KM · ${r.segs.length} TRAMOS · ${r.evs.length} ENEMIGOS · ${r.props.length} OBJETOS<br>${MODE3D ? esc($('mapInfo').dataset.hint || '') : 'TOCA EL MAPA PARA MARCAR UN PUNTO'}${markTxt() ? ' · ' + markTxt() : ''}`;
   if (!R) return;
   const n = R.len, d0 = START_TUN - 30, d1 = Math.min(n, (R.cEnd || n) + 40);
   let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
@@ -497,6 +518,7 @@ function drawMap() {
   for (const b of R.cramps || []) { const [x, y] = P(b); g.fillStyle = '#5ad0ff'; g.fillRect(x - 5 * dpr, y - 5 * dpr, 10 * dpr, 10 * dpr); }
   // objetos y enemigos del camino que se edita (en su sitio, con el lado)
   const at = (d, lat) => { const i = Math.max(0, Math.min(n, Math.round(d))), yw = R.yaw[i]; const [x, y] = P(i); return [x + Math.cos(yw) * lat * sc, y + Math.sin(yw) * lat * sc]; };
+  for (const t of r.tiles || []) { const [x, y] = at(RS + t.d + t.l / 2, t.lat); g.fillStyle = '#' + GROUND[t.g][1].toString(16).padStart(6, '0'); g.globalAlpha = 0.7; const z = Math.max(2 * dpr, t.w * sc); g.fillRect(x - z / 2, y - z / 2, z, z); g.globalAlpha = 1; }
   for (const p of r.props) { const [x, y] = at(RS + p.d, p.lat); g.fillStyle = '#5ad0ff'; g.globalAlpha = 0.8; g.fillRect(x - 3 * dpr, y - 3 * dpr, 6 * dpr, 6 * dpr); g.globalAlpha = 1; }
   for (const e of r.evs) { const [x, y] = at(RS + e.d, POS_EV.has(e.k) ? e.lat || 0 : 0); g.fillStyle = /JEFE/.test(CMAP_EV[e.k][0]) ? '#ff2a6a' : POS_EV.has(e.k) ? '#ff4a4a' : '#ff8a3d'; g.beginPath(); g.moveTo(x, y - 8 * dpr); g.lineTo(x + 6 * dpr, y + 4 * dpr); g.lineTo(x - 6 * dpr, y + 4 * dpr); g.closePath(); g.fill(); g.strokeStyle = '#000'; g.lineWidth = 1.5 * dpr; g.stroke(); }
   if (MARK != null) { const [x, y] = at(RS + MARK, MLAT || 0); g.strokeStyle = '#ffe14a'; g.lineWidth = 3 * dpr; g.beginPath(); g.arc(x, y, 11 * dpr, 0, 7); g.stroke(); }
@@ -536,12 +558,12 @@ cv.addEventListener('pointerdown', e => {
 });
 pcv.addEventListener('pointerdown', e => { const m = pcv._map; if (!m) return; const r = pcv.getBoundingClientRect(), dpr = pcv._dpr || 1; const u = ((e.clientX - r.left) * dpr - m.pad) / (pcv.width - m.pad * 2); setMark(u * (m.b - m.a)); if (V3) V3.look(RS + MARK); });
 
-// ---------- visor 3D ----------
+// ---------- visor 3D (y construir en él) ----------
 function marks3D() {
   const L = [], r = CUR(), R = ROUTE;
   for (const e of r.evs) {
     const pos = POS_EV.has(e.k), nm = CMAP_EV[e.k][0].replace('📍 ', '');
-    if (pos) L.push({ t: 'enemy', d: RS + e.d, lat: e.lat || 0, h: e.h || 0, n: e.n, cv: e.cv, c: e.k === 'pciv' ? 0x4ad0ff : e.k === 'pmedkit' ? 0x40ff80 : e.k === 'pbarrel' ? 0xd03a2a : null, l: (e.n > 1 ? e.n + ' × ' : '') + nm });
+    if (pos) L.push({ t: 'enemy', d: RS + e.d, lat: e.lat || 0, h: e.h || 0, n: e.n, cv: e.cv, c: e.k === 'pciv' ? 0x4ad0ff : e.k === 'pmedkit' || e.k === 'pweapon' ? 0x40ff80 : e.k === 'pbarrel' ? 0xd03a2a : /tlight|toll|wall|xcar|chase|lady/.test(e.k) ? 0xffb020 : null, l: (e.n > 1 ? e.n + ' × ' : '') + nm });
     else L.push({ t: 'event', d: RS + e.d, lat: 0, l: (e.n > 1 ? e.n + ' × ' : '') + nm, col: /JEFE/.test(nm) ? '#ff5a8a' : '#ffb020' });
   }
   for (const f of R.forks) if (f.custom) f.opts.forEach((o, i) => L.push({ t: 'sign', d: f.gantry, lat: [-3.1, 3.1, 0][i] * (f.opts.length === 3 ? 1.9 : 1), l: '⑂ ' + o.l, col: '#7dff8a' }));
@@ -549,19 +571,142 @@ function marks3D() {
   if (R.cEnd) L.push({ t: 'flag', d: R.cEnd, lat: -6, l: 'META', col: '#ffffff' });
   return L;
 }
-function push3D() { if (!V3 || !ROUTE) return; V3.setRoad(ROUTE, marks3D(), [RS, RS + routeLen(CUR())]); if (MARK != null) V3.look(RS + MARK); }
+const absX = () => { const r = CUR(); return [r.props.map(p => Object.assign({}, p, { d: p.d + RS })), (r.tiles || []).map(t => Object.assign({}, t, { d: t.d + RS }))]; };
+function push3D() { if (!V3 || !ROUTE) return; V3.setRoad(ROUTE, marks3D(), [RS, RS + routeLen(CUR())]); V3.setExtras(...absX()); V3.setGrid(SNAP); paintSel(); if (MARK != null) V3.look(RS + MARK); }
+// cambios de objetos, suelo o enemigos: solo se rehace lo suyo (al momento)
+let xT = 0;
+function touchX(noPane) {
+  dirty = true; $('saveSt').textContent = 'SIN GUARDAR'; LS.set('rcm_draft', M); drawMap();
+  clearTimeout(xT); xT = setTimeout(() => { if (V3 && MODE3D) { V3.setExtras(...absX()); V3.setMarks(marks3D()); } paintSel(); }, 60);
+  if (!noPane && (TAB === 'props' || TAB === 'evs')) { clearTimeout(touchX.p); touchX.p = setTimeout(paintPane, 300); }
+}
 function set3D(on) {
   MODE3D = on;
-  if (on && !V3) { V3 = new View3D($('v3d')); V3.onPick = p => { setMark(p.d - RS, p.lat, p.h); }; V3.td = RS + (MARK || 20); }
+  if (on && !V3) { V3 = new View3D($('v3d')); V3.onPick = onPick3D; V3.td = RS + (MARK || 20); }
   if (V3) V3.show(on);
   $('b3d').textContent = on ? '🗺 2D' : '🧊 3D';
   for (const id of ['bFwd', 'bRev', 'bCar']) $(id).hidden = !on;
-  if (on) push3D(); else drawMap();
+  $('tools').hidden = !on; if (!on) $('selBar').hidden = true;
+  LS.set('rcm_3d', on);
+  if (on) { paintTools(); push3D(); } else drawMap();
 }
 $('b3d').onclick = () => set3D(!MODE3D);
 $('bFwd').onclick = () => V3 && V3.look(V3.td + 25);
 $('bRev').onclick = () => V3 && V3.look(V3.td - 25);
-$('bCar').onclick = () => { if (!V3) return; V3.fp = !V3.fp; V3.pitch = V3.fp ? 0.45 : 0.45; V3.yaw = 0.6; $('bCar').classList.toggle('on', V3.fp); };
+$('bCar').onclick = () => { if (!V3) return; V3.fp = !V3.fp; V3.pitch = 0.45; V3.yaw = 0.6; $('bCar').classList.toggle('on', V3.fp); };
+$('bWide').onclick = () => { $('edBody').classList.toggle('wide'); setTimeout(() => { sizeCv(); drawMap(); if (V3) V3.resize(); }, 50); };
+
+// herramientas: MIRAR, SUELO, OBJETOS, ENEMIGOS, EDITAR; imán (rejilla) y deshacer
+let TOOL = 'look', SNAP = LS.get('rcm_snap', 2), RECT = false, rectA = null, SELI = null, MOVING = false;
+const ITEM = Object.assign({ ground: 'hierba', obj: 'edificio', enemy: 'pgun' }, LS.get('rcm_item', {}));
+const UNDO = [];
+function pushUndo() { UNDO.push(JSON.stringify(M)); if (UNDO.length > 40) UNDO.shift(); }
+function undo() { if (!UNDO.length) { toast('No hay nada que deshacer'); return; } const id = M.id; M = JSON.parse(UNDO.pop()); M.id = id; SELI = null; touch(true); paintPane(); if (V3 && MODE3D) push3D(); }
+const sn = (v, st) => st ? Math.round(v / st) * st : Math.round(v * 2) / 2;
+const TOOLS = [['look', '👁 MIRAR'], ['ground', '🟫 SUELO'], ['obj', '🏢 OBJETOS'], ['enemy', '👾 ENEMIGOS'], ['edit', '👆 EDITAR']];
+function paintTools() {
+  const T = $('trow');
+  T.innerHTML = TOOLS.map(([k, n]) => `<button data-t="${k}" class="${TOOL === k ? 'on' : ''}">${n}</button>`).join('') +
+    `<button id="tSnap" class="${SNAP ? 'on' : ''}">🧲 ${SNAP ? SNAP + ' m' : 'NO'}</button>` + (TOOL === 'ground' ? `<button id="tRect" class="${RECT ? 'on' : ''}">▭ ZONA</button>` : '') + `<button id="tUndo">↶ DESHACER</button>`;
+  for (const b of T.querySelectorAll('[data-t]')) b.onclick = () => { TOOL = b.dataset.t; rectA = null; MOVING = false; if (TOOL !== 'edit') { SELI = null; paintSel(); } paintTools(); };
+  $('tSnap').onclick = () => { const L = [0, 1, 2, 4, 8]; SNAP = L[(L.indexOf(SNAP) + 1) % L.length]; LS.set('rcm_snap', SNAP); if (V3) V3.setGrid(SNAP); paintTools(); };
+  if ($('tRect')) $('tRect').onclick = () => { RECT = !RECT; rectA = null; paintTools(); };
+  $('tUndo').onclick = undo;
+  const P = $('palette');
+  let items = [];
+  if (TOOL === 'ground') items = Object.keys(GROUND).map(k => [k, GROUND[k][4], '#' + GROUND[k][1].toString(16).padStart(6, '0')]).concat([['borrar', '🧽 BORRAR', null]]);
+  else if (TOOL === 'obj') items = Object.keys(PROPS).map(k => [k, PROPS[k][0]]);
+  else if (TOOL === 'enemy') items = EVK.slice().sort((a, b) => (POS_EV.has(b) ? 1 : 0) - (POS_EV.has(a) ? 1 : 0)).map(k => [k, CMAP_EV[k][0]]);
+  const key = TOOL === 'ground' ? 'ground' : TOOL === 'obj' ? 'obj' : 'enemy';
+  P.innerHTML = items.map(([k, n, c]) => `<button data-k="${k}" class="${ITEM[key] === k ? 'on' : ''}">${c ? `<i style="background:${c}"></i>` : ''}${esc(n)}</button>`).join('');
+  for (const b of P.querySelectorAll('button')) b.onclick = () => { ITEM[key] = b.dataset.k; LS.set('rcm_item', ITEM); for (const x of P.children) x.classList.toggle('on', x === b); };
+  const on = P.querySelector('.on'); if (on) on.scrollIntoView({ inline: 'center', block: 'nearest' });
+  if (TOOL === 'look' || TOOL === 'edit') P.innerHTML = '';
+  const hint = { look: 'Toca para marcar un punto. Arrastra para girar, pellizca para acercar, dos dedos para avanzar.', ground: RECT ? 'Toca una esquina y luego la otra: se pinta toda la zona.' : 'Toca para pintar una casilla del tamaño del imán.', obj: 'Toca donde quieras ponerlo. Luego, con EDITAR, se gira, mueve o cambia de tamaño.', enemy: 'Los 📍 salen justo donde tocas; los demás llegan por su cuenta al pasar por ese punto.', edit: 'Toca un objeto, enemigo o casilla para elegirlo.' }[TOOL];
+  $('mapInfo').dataset.hint = hint; drawMap();
+}
+function nearest(dr, lat) {
+  const r = CUR(); let best = null, bd = 1e9;
+  r.props.forEach((p, i) => { const q = Math.hypot(p.d - dr, (p.lat - lat) * 0.8); if (q < bd && q < 7 * Math.max(1, p.s || 1)) { bd = q; best = { t: 'prop', i }; } });
+  r.evs.forEach((e, i) => { const q = Math.hypot(e.d - dr, ((POS_EV.has(e.k) ? e.lat || 0 : 0) - lat) * 0.8); if (q < bd && q < 5) { bd = q; best = { t: 'ev', i }; } });
+  if (!best) (r.tiles || []).forEach((t, i) => { if (dr >= t.d && dr <= t.d + t.l && Math.abs(lat - t.lat) <= t.w / 2) best = { t: 'tile', i }; });
+  return best;
+}
+function selObj() { if (!SELI) return null; const r = CUR(); return SELI.t === 'prop' ? r.props[SELI.i] : SELI.t === 'ev' ? r.evs[SELI.i] : (r.tiles || [])[SELI.i]; }
+function paintSel() {
+  const o = selObj(), B = $('selBar');
+  if (!o || !MODE3D) { B.hidden = true; if (V3) V3.setSel(null); return; }
+  B.hidden = false;
+  const t = SELI.t, name = t === 'prop' ? PROPS[o.k][0] : t === 'ev' ? CMAP_EV[o.k][0] : GROUND[o.g][4];
+  const pos = t === 'ev' && POS_EV.has(o.k);
+  B.innerHTML = `<b>${esc(name)}</b>` +
+    (t === 'prop' ? '<button data-a="rl">⟲</button><button data-a="rr">⟳</button><button data-a="sm">－</button><button data-a="sp">＋</button>' : '') +
+    (t === 'ev' ? '<button data-a="nm">－</button><button data-a="np">＋</button>' + (o.k === 'pgun' || o.k === 'pgren' ? `<button data-a="cv" class="${o.cv ? 'on' : ''}">🛡</button>` : '') : '') +
+    (t === 'tile' ? '<button data-a="hm">⬇</button><button data-a="hp">⬆</button>' : '') +
+    (t === 'prop' || pos ? '<button data-a="hm">⬇</button><button data-a="hp">⬆</button>' : '') +
+    `<button data-a="mv" class="${MOVING ? 'on' : ''}">✥ MOVER</button><button data-a="dup">⧉</button><button data-a="del" class="warn">🗑</button><button data-a="x">✕</button>`;
+  const st = SNAP || 1, rs = SNAP ? 90 : 15;
+  const act = {
+    rl: () => { o.rot = ((o.rot || 0) - rs + 540) % 360 - 180; }, rr: () => { o.rot = ((o.rot || 0) + rs + 540) % 360 - 180; },
+    sm: () => { o.s = Math.max(0.3, Math.round(((o.s || 1) - 0.1) * 10) / 10); }, sp: () => { o.s = Math.min(4, Math.round(((o.s || 1) + 0.1) * 10) / 10); },
+    nm: () => { o.n = Math.max(1, (o.n || 1) - 1); }, np: () => { o.n = Math.min(8, (o.n || 1) + 1); }, cv: () => { if (o.cv) delete o.cv; else o.cv = 1; },
+    hm: () => { o.h = Math.max(t === 'prop' ? -10 : 0, (o.h || 0) - (SNAP ? Math.min(SNAP, 2) : 0.5)); }, hp: () => { o.h = Math.min(40, (o.h || 0) + (SNAP ? Math.min(SNAP, 2) : 0.5)); },
+    dup: () => { const r = CUR(), c = Object.assign({}, o); const L = t === 'prop' ? r.props : t === 'ev' ? r.evs : r.tiles; if (t === 'tile') c.d += c.l; else c.d = Math.min(routeLen(r), c.d + Math.max(st, 4)); L.push(c); SELI = { t, i: L.length - 1 }; },
+    del: () => { const r = CUR(); (t === 'prop' ? r.props : t === 'ev' ? r.evs : r.tiles).splice(SELI.i, 1); SELI = null; },
+  };
+  for (const b of B.querySelectorAll('button')) b.onclick = () => {
+    const a = b.dataset.a;
+    if (a === 'x') { SELI = null; MOVING = false; paintSel(); return; }
+    if (a === 'mv') { MOVING = !MOVING; paintSel(); if (MOVING) toast('Toca dónde lo quieres'); return; }
+    pushUndo(); act[a](); touchX(); paintSel();
+  };
+  const hh = t === 'prop' ? 6 * (o.s || 1) : t === 'tile' ? 0.6 : 3;
+  V3.setSel({ d: RS + (t === 'tile' ? o.d + o.l / 2 : o.d), lat: t === 'ev' && !pos ? 0 : o.lat || 0, h: o.h || 0, r: t === 'tile' ? Math.max(o.w, o.l) : t === 'prop' ? 5 * (o.s || 1) : 2.5, hh });
+}
+function onPick3D(p) {
+  const r = CUR(), RL = routeLen(r), dr = clamp(p.d - RS, 0, RL);
+  if (TOOL === 'look') { setMark(dr, p.lat, p.h); V3.look(p.d); return; }
+  if (TOOL === 'edit') {
+    const o = selObj();
+    if (MOVING && o) {
+      pushUndo();
+      if (SELI.t === 'tile') { const gs = o.w; o.d = Math.floor(dr / gs) * gs; o.lat = Math.floor(p.lat / gs) * gs + gs / 2; }
+      else { o.d = Math.round(sn(dr, SNAP)); if (SELI.t === 'prop' || POS_EV.has(o.k)) { o.lat = sn(p.lat, SNAP); if (!SNAP && p.h > 0.5) o.h = p.h; } }
+      MOVING = false; touchX(); paintSel(); return;
+    }
+    SELI = nearest(dr, p.lat); MOVING = false; paintSel(); if (!SELI) toast('Ahí no hay nada'); return;
+  }
+  pushUndo();
+  if (TOOL === 'ground') {
+    const gs = SNAP || 2, cell = (d, l) => [Math.floor(d / gs) * gs, Math.floor(l / gs) * gs + gs / 2];
+    r.tiles = r.tiles || [];
+    const paint = (cd, cl) => {
+      const i = r.tiles.findIndex(t => Math.abs(t.d - cd) < 0.01 && Math.abs(t.lat - cl) < 0.01 && t.w === gs);
+      if (ITEM.ground === 'borrar') { for (let k = r.tiles.length - 1; k >= 0; k--) { const t = r.tiles[k]; if (cd + gs / 2 >= t.d && cd + gs / 2 <= t.d + t.l && Math.abs(cl - t.lat) <= t.w / 2) r.tiles.splice(k, 1); } return; }
+      if (i >= 0) r.tiles[i].g = ITEM.ground; else r.tiles.push({ g: ITEM.ground, d: cd, lat: cl, w: gs, l: gs, h: 0 });
+    };
+    const [cd, cl] = cell(dr, p.lat);
+    if (RECT) {
+      if (!rectA) { rectA = [cd, cl]; UNDO.pop(); toast('Ahora toca la otra esquina'); setMark(cd, cl); return; }
+      const [d0, d1] = [Math.min(rectA[0], cd), Math.max(rectA[0], cd)], [l0, l1] = [Math.min(rectA[1], cl), Math.max(rectA[1], cl)];
+      if ((d1 - d0) / gs * (l1 - l0) / gs > 2500) { toast('Zona demasiado grande: sube el tamaño del imán'); rectA = null; return; }
+      for (let d = d0; d <= d1 + 1e-6; d += gs) for (let l = l0; l <= l1 + 1e-6; l += gs) paint(d, l);
+      rectA = null;
+    } else paint(cd, cl);
+    if (r.tiles.length > 3000) { r.tiles.length = 3000; toast('Máximo de casillas de suelo en este camino'); }
+    touchX(); return;
+  }
+  if (TOOL === 'obj') {
+    const k = ITEM.obj, over = ['arco', 'puente'].includes(k);
+    r.props.push({ k, d: Math.round(sn(dr, SNAP)), lat: over ? 0 : sn(p.lat, SNAP), rot: 0, s: 1, h: !SNAP && p.h > 0.5 ? p.h : 0 });
+    SELI = { t: 'prop', i: r.props.length - 1 }; touchX(); paintSel(); return;
+  }
+  if (TOOL === 'enemy') {
+    const k = ITEM.enemy, e = { d: Math.round(sn(dr, SNAP)), k, n: POS_EV.has(k) ? 1 : 2 };
+    if (POS_EV.has(k)) { e.lat = sn(p.lat, SNAP); e.h = p.h > 0.5 ? p.h : 0; if (k === 'pgun' || k === 'pgren') e.cv = 1; }
+    r.evs.push(e); SELI = { t: 'ev', i: r.evs.length - 1 }; touchX(); paintSel();
+  }
+}
 
 // ---------- versión y actualizaciones ----------
 // la app avisa cuando ha descargado una versión nueva del editor: se recarga en cuanto no se está editando

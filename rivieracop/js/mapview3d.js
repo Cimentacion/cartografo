@@ -2,7 +2,7 @@
 // marcas de los enemigos y los carteles. Se mueve con el dedo: arrastrar = girar, pellizcar = acercar,
 // dos dedos arriba/abajo = avanzar por la carretera. Un toque = elegir ese punto (distancia, lado y altura).
 import * as THREE from '../lib/three.module.js';
-import { makeMats, buildChunk, CH } from './scenery.js';
+import { makeMats, buildChunk, buildExtras, CH } from './scenery.js';
 import { BIOMES, BIOME_KEYS } from './defs.js';
 import { toon } from './toon.js';
 
@@ -54,9 +54,44 @@ export class View3D {
   setRoad(R, marks, range) {
     for (const g of this.chunks.values()) this._drop(g);
     this.chunks.clear();
-    this.road = R; this.range = range || [0, R.len];
+    R.noExtras = true; // los objetos y el suelo pintado van aparte (setExtras), así se cambian al momento
+    this.road = R; this.range = range || [0, R.len]; this.gridKey = '';
     this.td = Math.max(0, Math.min(R.len - 1, this.td || range[0] + 30));
     this.setMarks(marks || []);
+  }
+  setExtras(props, tiles) {
+    if (this.extras) this._drop(this.extras);
+    this.extras = null;
+    if (!this.road) return;
+    try { this.extras = buildExtras(this.road, props, tiles, this.M); this.scene.add(this.extras); } catch (e) { console.warn('extras', e); }
+  }
+  // rejilla del imán (en metros de carretera: a lo largo y a lo ancho)
+  setGrid(step) { this.gstep = step; this.gridKey = ''; }
+  _grid() {
+    const R = this.road, st = this.gstep;
+    if (!R || !st) { if (this.grid) { this.grid.visible = false; } return; }
+    const key = st + ':' + Math.round(this.td / (st * 4));
+    if (key === this.gridKey) { this.grid.visible = !this.fp; return; }
+    this.gridKey = key;
+    if (this.grid) { this.scene.remove(this.grid); this.grid.geometry.dispose(); }
+    const P = [], base = Math.round(this.td / st) * st, a = base - 48, b = base + 60;
+    const pt = (d, lat) => { R.toWorld(Math.max(0, Math.min(R.len, d)), lat, Math.abs(lat) > 6.01 ? 0.24 : 0.06, V); P.push(V.x, V.y, V.z); };
+    for (let lat = -30; lat <= 30; lat += st) for (let d = a; d < b; d += 2) { pt(d, lat); pt(d + 2, lat); }
+    for (let d = a; d <= b; d += st) for (let lat = -30; lat < 30; lat += 1) { pt(d, lat); pt(d, lat + 1); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
+    this.grid = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.22, depthWrite: false }));
+    this.grid.renderOrder = 5; this.scene.add(this.grid);
+  }
+  // lo que está elegido (para moverlo, girarlo...): una caja amarilla
+  setSel(o) {
+    if (this.sel) { this.scene.remove(this.sel); this.sel.geometry.dispose(); this.sel = null; }
+    if (!o || !this.road) return;
+    const sz = o.r || 3, g = new THREE.BoxGeometry(sz, Math.max(2, o.hh || 3), sz);
+    this.sel = new THREE.LineSegments(new THREE.EdgesGeometry(g), new THREE.LineBasicMaterial({ color: 0xffe14a, depthTest: false }));
+    g.dispose(); this.sel.renderOrder = 11;
+    this.road.toWorld(o.d, o.lat || 0, (o.h || 0) + Math.max(2, o.hh || 3) / 2 + 0.2, this.sel.position);
+    this.sel.rotation.y = -this.road.yawAt(o.d);
+    this.scene.add(this.sel);
   }
   _drop(g) { this.scene.remove(g); g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
   setMarks(L) {
@@ -117,6 +152,7 @@ export class View3D {
       this.cam.lookAt(V);
     }
     this.sea.position.set(this.cam.position.x, R.seaAt(this.td), this.cam.position.z);
+    this._grid();
     this.sun.target.position.copy(V); this.sun.position.copy(V).add(V2.set(60, 120, 40));
     this.r.render(this.scene, this.cam);
   }
@@ -151,7 +187,7 @@ export class View3D {
     const R = this.road; if (!R || !this.onPick) return;
     const rc = this.r.domElement.getBoundingClientRect();
     const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2((cx - rc.left) / rc.width * 2 - 1, -((cy - rc.top) / rc.height) * 2 + 1), this.cam);
-    const objs = []; for (const g of this.chunks.values()) objs.push(g);
+    const objs = []; for (const g of this.chunks.values()) objs.push(g); if (this.extras) objs.push(this.extras);
     const hit = ray.intersectObjects(objs, true)[0];
     let p = hit ? hit.point.clone() : null;
     if (!p) { R.toWorld(this.td, 0, 0, V); const pl = new THREE.Plane(new THREE.Vector3(0, 1, 0), -V.y); p = new THREE.Vector3(); if (!ray.ray.intersectPlane(pl, p)) return; }
