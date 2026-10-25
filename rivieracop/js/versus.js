@@ -36,6 +36,22 @@ export function nextJunction(P) {
   }
   return best;
 }
+// cubos de poder (estilo Mario Kart): se les dispara para cogerlos y desaparecen 15 s.
+// Cuatro por círculo, a mitad de cada arco (lejos de los cruces), a un lado u otro del camino.
+export const BOXRESP = 15;
+export const BOXES = [];
+{
+  const kinds = ['turbo', 'rand', 'turbo', 'dmg', 'turbo', 'rand', 'dmg', 'turbo', 'rand', 'turbo', 'turbo', 'dmg', 'rand', 'turbo', 'dmg', 'rand'];
+  let n = 0;
+  for (let c = 0; c < 4; c++) for (let q = 0; q < 4; q++) { const th = Math.PI / 4 + q * Math.PI / 2; BOXES.push({ id: n, c, th, r: VR + (q % 2 ? -4.2 : 4.2), k: kinds[n] }); n++; }
+}
+export function boxPos(b) { const C = CENTERS[b.c]; return { x: C[0] + Math.cos(b.th) * b.r, z: C[1] + Math.sin(b.th) * b.r }; }
+// lo que puede tocar en el cubo "?" (los de turbo y daño dan siempre lo suyo)
+export const PW = {
+  turbo: ['¡TURBO!', 'Acelerón a tope', '#ffb020'], dmg: ['¡DAÑO x2!', '12 segundos pegando el doble', '#ff4a4a'], shield: ['¡ESCUDO!', '10 segundos recibiendo menos daño', '#5ad0ff'],
+  heal: ['¡+15 DE VIDA!', '', '#7dff8a'], flat: ['¡PINCHAZO!', 'Le revientas una rueda al rival', '#ff8a3d'], nade: ['¡GRANADA LISTA!', '', '#b48cff'], ammo: ['¡CARGADOR LLENO!', '', '#ffe14a'],
+};
+const RAND = ['turbo', 'dmg', 'shield', 'heal', 'flat', 'nade', 'ammo', 'turbo', 'shield'];
 export class VsSim {
   constructor(seed) {
     this.seed = seed; this.score = [0, 0]; this.round = 0; this.events = [];
@@ -47,6 +63,8 @@ export class VsSim {
       { c: 0, th: Math.PI * 1.25, s: 1, v: 0, hp: VHP, flatT: 0, immT: 0, choice: 0, cd: 0 },
       { c: 3, th: Math.PI * 0.25, s: 1, v: 0, hp: VHP, flatT: 0, immT: 0, choice: 0, cd: 0 },
     ];
+    for (const P of this.P) { P.boostT = 0; P.dmgT = 0; P.shT = 0; }
+    this.B = BOXES.map(() => 0);
     this.phase = 'count'; this.t = 3;
     this.emit('round', { r: this.round });
   }
@@ -59,8 +77,9 @@ export class VsSim {
       const P = this.P[i];
       if (P.flatT > 0) { P.flatT -= dt; if (P.flatT <= 0) { P.immT = 3.5; this.emit('fixed', { p: i }); } }
       if (P.immT > 0) P.immT -= dt;
-      const tgt = P.flatT > 0 ? 0 : VSPEED;
-      P.v += Math.max(-14 * dt, Math.min(6 * dt, tgt - P.v));
+      if (P.boostT > 0) P.boostT -= dt; if (P.dmgT > 0) P.dmgT -= dt; if (P.shT > 0) P.shT -= dt;
+      const tgt = P.flatT > 0 ? 0 : P.boostT > 0 ? VSPEED * 1.8 : VSPEED;
+      P.v += Math.max(-14 * dt, Math.min((P.boostT > 0 ? 30 : 6) * dt, tgt - P.v));
       let rem = P.v * dt;
       // avanza y, al pasar por un cruce, sigue o cambia de círculo según lo que haya elegido
       for (let guard = 0; guard < 3 && rem > 0; guard++) {
@@ -73,6 +92,20 @@ export class VsSim {
       }
     }
     this.collide();
+    for (let i = 0; i < this.B.length; i++) if (this.B[i] > 0) this.B[i] = Math.max(0, this.B[i] - dt);
+  }
+  // alguien ha disparado a un cubo: se lo lleva (si está)
+  take(p, id) {
+    if (this.phase !== 'run' || !BOXES[id] || this.B[id] > 0) return;
+    this.B[id] = BOXRESP;
+    const b = BOXES[id], P = this.P[p], O = this.P[1 - p];
+    const w = b.k === 'rand' ? RAND[Math.floor(Math.random() * RAND.length)] : b.k;
+    if (w === 'turbo') { P.boostT = 3.5; P.v = Math.max(P.v, VSPEED * 1.3); }
+    else if (w === 'dmg') P.dmgT = 12;
+    else if (w === 'shield') P.shT = 10;
+    else if (w === 'heal') P.hp = Math.min(VHP, P.hp + 15);
+    else if (w === 'flat') { if (O.flatT <= 0 && O.immT <= 0 && O.shT <= 0) { O.flatT = 3; this.emit('flat', { p: 1 - p }); } }
+    this.emit('pw', { p, w, b: id });
   }
   // los coches no se atraviesan: si uno va hacia el otro, choca y se queda pegado detrás;
   // de frente, los dos rebotan y dan media vuelta (si no, se quedarían bloqueados para siempre)
@@ -98,8 +131,10 @@ export class VsSim {
   hit(from, part, dmg) {
     if (this.phase !== 'run') return;
     const T = this.P[1 - from];
+    if (this.P[from].dmgT > 0) dmg *= 2;
+    if (T.shT > 0) dmg *= 0.4;
     if (part === 'wheel') {
-      if (T.flatT <= 0 && T.immT <= 0) { T.flatT = 3; this.emit('flat', { p: 1 - from }); }
+      if (T.flatT <= 0 && T.immT <= 0 && T.shT <= 0) { T.flatT = 3; this.emit('flat', { p: 1 - from }); }
       dmg *= 0.5;
     }
     T.hp = Math.max(0, T.hp - dmg);
@@ -109,11 +144,12 @@ export class VsSim {
   choose(p, c) { if (this.P[p]) this.P[p].choice = c ? 1 : 0; }
   snapshot() {
     const r2 = v => Math.round(v * 1000) / 1000;
-    return { t: 'vss', ph: this.phase, tt: r2(this.t), sc: this.score, rd: this.round, P: this.P.map(P => [P.c, r2(P.th), P.s, r2(P.v), r2(P.hp), r2(P.flatT), r2(P.immT), P.choice]) };
+    return { t: 'vss', ph: this.phase, tt: r2(this.t), sc: this.score, rd: this.round, P: this.P.map(P => [P.c, r2(P.th), P.s, r2(P.v), r2(P.hp), r2(P.flatT), r2(P.immT), P.choice, r2(P.boostT), r2(P.dmgT), r2(P.shT)]), B: this.B.map(v => Math.round(v * 10) / 10) };
   }
   static apply(snap, into) {
     into.phase = snap.ph; into.t = snap.tt; into.score = snap.sc; into.round = snap.rd;
-    into.P = snap.P.map(a => ({ c: a[0], th: a[1], s: a[2], v: a[3], hp: a[4], flatT: a[5], immT: a[6], choice: a[7] }));
+    into.P = snap.P.map(a => ({ c: a[0], th: a[1], s: a[2], v: a[3], hp: a[4], flatT: a[5], immT: a[6], choice: a[7], boostT: a[8] || 0, dmgT: a[9] || 0, shT: a[10] || 0 }));
+    into.B = snap.B || BOXES.map(() => 0);
   }
 }
 

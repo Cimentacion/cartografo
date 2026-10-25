@@ -18,7 +18,7 @@ import { defaultWeapon, RARITY, weaponLines, WEAPON_NAMES, rangeMul, rollWeaponI
 import { SLOT_AB, SLOT_MAX, SLOT_PRICE, slotCount, slotsOf, UCAT, loadProg, saveProg, UPGRADES, SPEEDS, upgCost, metaOf, weaponLevel, addWeaponXp, effective, xpNeed, WMAX, shieldCd, bulletCd, ABMAX, maxHpOf, canonDur, canonCd, turboDur, turboCd, POWERS } from './progress.js';
 import { fpGun, VEHICLES, VCOLORS, VLOOT, convertible, fpEnv } from './models.js';
 import { treasureChest } from './fpclassic.js';
-import { VsSim, VsWorld, carPose, nextJunction, vsDamage, CENTERS, VR, VHP, VWIN } from './versus.js';
+import { VsSim, VsWorld, carPose, nextJunction, vsDamage, CENTERS, VR, VHP, VWIN, BOXES, boxPos, PW as VSPW } from './versus.js';
 import { Outline, toon } from './toon.js';
 import { CHAL, chInit, chAdd, claimable, claim, goal, reward, text as chText, UNLOCKS, UNL_NAME, locked, lockedBy, SECRET, LOOTONLY } from './challenges.js';
 import { loadChar, saveChar, sanitize, defaultChar, SKINS, HAIRS, HAIR_COLORS, BEARDS, SHIRTS, SHIRT_COLORS, PANTS_COLORS, HATS, BACKS, NECKS, FACES, BODIES, personOpts } from './character.js';
@@ -902,6 +902,7 @@ net.onmsg = (m, from) => {
       case 'f': if (S && G.running) { S.emit('pf', { p: from }); S.fired(from); } break;
       case 'vh': if (VSM.on && VSM.sim) VSM.sim.hit(1, m.p === 'wheel' || m.p === 'head' ? m.p : 'body', clamp(+m.d || 0, 0, 30)); break;
       case 'vc': if (VSM.on && VSM.sim) VSM.sim.choose(1, m.c ? 1 : 0); break;
+      case 'vb': if (VSM.on && VSM.sim) VSM.sim.take(1, m.id | 0); break;
       case 'vl': G.vsLook = [+m.y || 0, +m.p || 0]; break;
       case 'vf': if (VSM.on && VSM.sim) VSM.sim.emit('shot', { p: 1 }); break;
     }
@@ -1065,6 +1066,29 @@ function vsMakeCar(i, char, vk, col) {
   for (const sx of [-1, 1]) for (const sz of [-1.9, 1.9]) hb(0.5, 0.95, 0.95, sx * 1.02, 0.45, sz, 'wheel');
   return car;
 }
+// textura de cada tipo de cubo: TURBO (flechas), DAÑO (x2) y SORPRESA (?)
+const VBM = {};
+function vsBoxMat(k) {
+  if (VBM[k]) return VBM[k];
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+  const grd = g.createLinearGradient(0, 0, 128, 128);
+  if (k === 'turbo') { grd.addColorStop(0, '#ffe14a'); grd.addColorStop(1, '#ff7a1a'); }
+  else if (k === 'dmg') { grd.addColorStop(0, '#ff5a5a'); grd.addColorStop(1, '#a01030'); }
+  else { grd.addColorStop(0, '#ff5ad0'); grd.addColorStop(0.35, '#ffe14a'); grd.addColorStop(0.7, '#5ad0ff'); grd.addColorStop(1, '#7dff8a'); }
+  g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
+  g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 8; g.strokeRect(6, 6, 116, 116);
+  g.fillStyle = '#fff'; g.strokeStyle = '#000'; g.lineWidth = 6; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = 'bold 72px sans-serif';
+  const t = k === 'turbo' ? '»' : k === 'dmg' ? 'x2' : '?';
+  if (k === 'dmg') g.font = 'bold 60px sans-serif';
+  g.strokeText(t, 64, 68); g.fillText(t, 64, 68);
+  const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace;
+  return (VBM[k] = new THREE.MeshBasicMaterial({ map: tx, transparent: true, opacity: 0.95 }));
+}
+function vsTake(id) {
+  if (VSM.mode === 'guest') net.send({ t: 'vb', id });
+  else if (VSM.sim) VSM.sim.take(VSM.li, id);
+}
 function vsBegin(seed, li, mode, chars, vehs) {
   window.__VSM = VSM; // TODO-TESTEO
   SFX.unlock();
@@ -1094,6 +1118,18 @@ function vsBegin(seed, li, mode, chars, vehs) {
     const hl = new THREE.Mesh(new THREE.BoxGeometry(3.7, 2.0, 0.08), new THREE.MeshBasicMaterial({ color: 0xffe14a })); hl.position.set(0, 3.2, -0.1); hl.visible = false; g.add(hl); g.userData.hl = hl; g.userData.b = b;
     g.visible = false; S.add(g); return g;
   });
+  // cubos de poder: girando y flotando junto al camino; se les dispara para cogerlos
+  VSM.boxes = BOXES.map(b => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(1.9, 1.9, 1.9), vsBoxMat(b.k));
+    const p = boxPos(b); m.position.set(p.x, 2.3, p.z); m.userData.box = b.id; m.userData.y0 = 2.3; S.add(m);
+    const sh = new THREE.Mesh(new THREE.CircleGeometry(0.9, 16).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25, depthWrite: false })); sh.position.set(p.x, 0.06, p.z); S.add(sh); m.userData.sh = sh;
+    return m;
+  });
+  // escudo y daño x2 encima de cada coche (para ver lo que lleva el rival)
+  for (const c of VSM.cars) {
+    const bub = new THREE.Mesh(new THREE.SphereGeometry(3.6, 16, 10), new THREE.MeshBasicMaterial({ color: 0x5ad0ff, transparent: true, opacity: 0.22, depthWrite: false })); bub.position.y = 1.4; bub.visible = false; c.add(bub); c.userData.bub = bub;
+    const red = new THREE.Mesh(new THREE.TorusGeometry(2.6, 0.12, 6, 24).rotateX(Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xff3a3a })); red.position.y = 0.3; red.visible = false; c.add(red); c.userData.red = red;
+  }
   S.add(camera);
   // arma: la tuya de siempre
   W.def = PROG.wpEq && PROG.wpUnl.includes(PROG.wpEq) ? uniqueWeapon(PROG.wpEq) : defaultWeapon(); recalcWeapon(); W.ammo = W.e.mag; W.rl = 0; W.cd = 0;
@@ -1110,7 +1146,7 @@ function vsBegin(seed, li, mode, chars, vehs) {
 }
 function vsEnd() {
   if (!VSM.on) return;
-  VSM.on = false; document.body.classList.remove('vsmode'); $('vsHud').hidden = true; $('vsEnd').hidden = true;
+  VSM.on = false; document.body.classList.remove('vsmode'); document.body.classList.remove('turbo'); camera.fov = FOV; camera.updateProjectionMatrix(); $('vsHud').hidden = true; $('vsEnd').hidden = true;
   scene.add(camera);
   VSM.scene = null; VSM.world = null; VSM.sim = null;
 }
@@ -1126,6 +1162,13 @@ function vsPlace(dt) {
     car.updateMatrixWorld(true);
     if (P.flatT > 0 && Math.random() < dt * 20) VSM.fx.part(V1.set(ps.x, 0.5, ps.z), V2.set((Math.random() - 0.5) * 2, 2 + Math.random() * 2, (Math.random() - 0.5) * 2), 1.2, 0.2, VSM.fx.m.smoke, -0.5, 1);
   }
+  const B = st.B || [];
+  for (const m of VSM.boxes || []) {
+    const on = !(B[m.userData.box] > 0); m.visible = on; m.userData.sh.visible = on;
+    if (on) { m.rotation.y += dt * 1.6; m.rotation.x = 0.35; m.position.y = m.userData.y0 + Math.sin(G.t * 2.2 + m.userData.box) * 0.25; }
+  }
+  for (let i = 0; i < 2; i++) { const u = VSM.cars[i].userData, P = st.P[i]; u.bub.visible = P.shT > 0 && i !== VSM.li; u.red.visible = P.dmgT > 0; if (u.red.visible) u.red.rotation.y += dt * 3; }
+  { const P = st.P[VSM.li], tb = P.boostT > 0; document.body.classList.toggle('turbo', tb); const f = FOV + (tb ? 12 : 0); if (Math.abs(camera.fov - f) > 0.05) { camera.fov += (f - camera.fov) * Math.min(1, dt * 6); camera.updateProjectionMatrix(); } }
   const me = VSM.cars[VSM.li], ps = carPose(st.P[VSM.li]);
   EA.set(0, ps.yaw, 0, 'YXZ'); QCAR.setFromEuler(EA);
   EA.set(look.pitch, look.yaw, 0, 'YXZ'); QLOOK.setFromEuler(EA);
@@ -1167,7 +1210,7 @@ function vsFire() {
   { const n = aimNDC(); if (n) { TAPRAY.setFromCamera(n, camera); base.copy(TAPRAY.ray.direction); } }
   const muzzle = fpg.userData.muzzle.getWorldPosition(new THREE.Vector3());
   VSM.fx.muzzle(muzzle, base, 1);
-  const targets = VSM.hit[1 - VSM.li].concat(VSM.world.colliders, VSM.signs.filter(s => s.visible).map(s => s.userData.b));
+  const targets = VSM.hit[1 - VSM.li].concat(VSM.world.colliders, VSM.signs.filter(s => s.visible).map(s => s.userData.b), (VSM.boxes || []).filter(b => b.visible));
   let dmg = 0, part = null, nHit = 0;
   const per = vsDamage(W.def.model) * (E.boom ? 1 : 1);
   for (let p = 0; p < E.pellets; p++) {
@@ -1179,6 +1222,7 @@ function vsFire() {
     if (p < 4) VSM.fx.tracer(muzzle, end, 0xffe27a, 0.07, 0.018);
     if (!h) continue;
     if (h.object.userData.sign != null) { const c = h.object.userData.sign; vsChoose(c); SFX.vote(); continue; }
+    if (h.object.userData.box != null) { if (!h.object.userData.pend) { h.object.userData.pend = 1; setTimeout(() => { h.object.userData.pend = 0; }, 600); vsTake(h.object.userData.box); } VSM.fx.sparks(h.point, 10); continue; }
     if (h.object.userData.part) {
       const pt = h.object.userData.part; nHit++;
       dmg += per * (pt === 'head' ? 1.5 : 1); if (!part || pt === 'wheel' || pt === 'head') part = pt;
@@ -1228,6 +1272,8 @@ function vsBot(dt) {
   const S = VSM.sim, B = S.P[1];
   if (S.phase !== 'run') return;
   const J = nextJunction(B); if (J.dist < 40 && B._j !== J.th) { B._j = J.th; S.choose(1, Math.random() < 0.5 ? 1 : 0); }
+  // la máquina también dispara a los cubos que tiene cerca
+  { const a = carPose(B); for (const b of BOXES) { if (S.B[b.id] > 0) continue; const p = boxPos(b); if (Math.hypot(p.x - a.x, p.z - a.z) < 14 && Math.random() < dt * 1.2) { S.take(1, b.id); break; } } }
   VSM.botT -= dt;
   if (VSM.botT > 0) return;
   VSM.botT = 0.45 + Math.random() * 0.5;
@@ -1255,6 +1301,20 @@ function vsHandle(e) {
     case 'crash': { G.shake = Math.max(G.shake, e.s ? 0.5 : 0.25); SFX.boom(e.s ? 4 : 10); const c = VSM.cars; if (c[0] && c[1]) { const p = V1.copy(c[0].position).add(c[1].position).multiplyScalar(0.5); p.y += 1; VSM.fx.sparks(p, 18); VSM.fx.dust(p); } if (e.s) showBanner('¡CHOQUE!', 'Os dais la vuelta', '#ffb02a'); break; }
     case 'ko': showBanner(e.w === me ? '¡K.O.! GANAS LA RONDA' : '¡K.O.! PIERDES LA RONDA', (e.sc || VSM.st.score).join(' - '), e.w === me ? '#7dff8a' : '#ff5a5a'); if (e.w === me) SFX.pickup(); break;
     case 'end': vsFinish(e.w); break;
+    case 'pw': {
+      const T = VSPW[e.w] || ['¡PODER!', '', '#ffe14a'], mine = e.p === me;
+      const bx = BOXES[e.b]; if (bx && VSM.fx) { const p = boxPos(bx); V1.set(p.x, 2.3, p.z); VSM.fx.sparks(V1, 26); VSM.fx.boom(V1, 0.5); }
+      if (mine) {
+        showBanner(T[0], T[1], T[2]); SFX.pickup(); try { navigator.vibrate && navigator.vibrate(60); } catch (x) { }
+        if (e.w === 'nade') VSM.nadeCd = 0;
+        if (e.w === 'ammo') { W.ammo = W.e.mag; W.rl = 0; }
+        if (e.w === 'turbo') { G.shake = Math.max(G.shake, 0.25); SFX.tone(200, 900, 0.5, 'sawtooth', 0.12); }
+      } else {
+        const txt = { turbo: 'El rival ha cogido TURBO', dmg: '¡Cuidado! El rival pega el DOBLE', shield: 'El rival lleva ESCUDO', heal: 'El rival se ha curado', flat: '', nade: 'El rival tiene la granada lista', ammo: '' }[e.w];
+        if (txt) showToast(txt);
+      }
+      break;
+    }
   }
 }
 function flashHurt() { const f = $('vsHurt'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on'); }
@@ -1273,6 +1333,13 @@ function vsHud() {
   $('vsSc').textContent = st.score[me] + ' - ' + st.score[op];
   $('vsMeW').hidden = !(st.P[me].flatT > 0); $('vsOpW').hidden = !(st.P[op].flatT > 0);
   $('vsCount').textContent = st.phase === 'count' ? String(Math.ceil(st.t)) : '';
+  { const P = st.P[me], O = st.P[op], L = [];
+    if (P.boostT > 0) L.push('<b style="color:#ffb020">» TURBO ' + Math.ceil(P.boostT) + '</b>');
+    if (P.dmgT > 0) L.push('<b style="color:#ff5a5a">x2 DAÑO ' + Math.ceil(P.dmgT) + '</b>');
+    if (P.shT > 0) L.push('<b style="color:#5ad0ff">🛡 ESCUDO ' + Math.ceil(P.shT) + '</b>');
+    if (O.dmgT > 0) L.push('<span>rival x2 ' + Math.ceil(O.dmgT) + '</span>');
+    if (O.shT > 0) L.push('<span>rival 🛡 ' + Math.ceil(O.shT) + '</span>');
+    const h = L.join(' · '); if ($('vsPw').innerHTML !== h) $('vsPw').innerHTML = h; }
   const nb = $('btnGrenade'); nb.classList.toggle('ready', VSM.nadeCd <= 0); nb.style.setProperty('--cd', VSM.nadeCd > 0 ? (VSM.nadeCd / 14) : 0);
 }
 function vsTick(dt) {
@@ -1290,7 +1357,7 @@ function vsTick(dt) {
     }
   } else {
     // invitado: entre fotos del anfitrión se sigue moviendo igual (y luego se corrige)
-    const pr = VSM.pred; pr.P = VSM.st.P; pr.phase = VSM.st.phase; pr.t = VSM.st.t; pr.step(dt); pr.events.length = 0;
+    const pr = VSM.pred; pr.P = VSM.st.P; pr.B = VSM.st.B || pr.B; pr.phase = VSM.st.phase; pr.t = VSM.st.t; pr.step(dt); pr.events.length = 0;
     VSM.lookT -= dt; if (VSM.lookT <= 0) { VSM.lookT = 0.07; net.send({ t: 'vl', y: Math.round(look.yaw * 100) / 100, p: Math.round(look.pitch * 100) / 100 }); }
   }
   if (VSM.mode === 'host') { const P = G.vsLook; if (P) VSM.oppLook = P; }
