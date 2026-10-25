@@ -900,11 +900,11 @@ net.onmsg = (m, from) => {
       case 'h': if (S && G.running) for (const h of m.h) S.hit(from, h[0], h[1], h[2]); break;
       case 'b': if (S && G.running) S.boomWorld(from, m.x, m.y, m.z, m.r, m.dmg); break;
       case 'f': if (S && G.running) { S.emit('pf', { p: from }); S.fired(from); } break;
-      case 'vh': if (VSM.on && VSM.sim) VSM.sim.hit(1, m.p === 'wheel' || m.p === 'head' ? m.p : 'body', clamp(+m.d || 0, 0, 30)); break;
-      case 'vc': if (VSM.on && VSM.sim) VSM.sim.choose(1, m.c ? 1 : 0); break;
-      case 'vb': if (VSM.on && VSM.sim) VSM.sim.take(1, m.id | 0); break;
-      case 'vl': G.vsLook = [+m.y || 0, +m.p || 0]; break;
-      case 'vf': if (VSM.on && VSM.sim) VSM.sim.emit('shot', { p: 1 }); break;
+      case 'vh': if (VSM.on && VSM.sim && VSM.slotOf[from] != null) VSM.sim.hit(VSM.slotOf[from], m.to | 0, m.p === 'wheel' || m.p === 'head' ? m.p : 'body', clamp(+m.d || 0, 0, 30)); break;
+      case 'vc': if (VSM.on && VSM.sim && VSM.slotOf[from] != null) VSM.sim.choose(VSM.slotOf[from], m.c ? 1 : 0); break;
+      case 'vb': if (VSM.on && VSM.sim && VSM.slotOf[from] != null) VSM.sim.take(VSM.slotOf[from], m.id | 0); break;
+      case 'vl': if (VSM.on && VSM.slotOf[from] != null) VSM.looks[VSM.slotOf[from]] = [+m.y || 0, +m.p || 0]; break;
+      case 'vf': if (VSM.on && VSM.sim && VSM.slotOf[from] != null) VSM.sim.emit('shot', { p: VSM.slotOf[from] }); break;
     }
   } else {
     switch (m.t) {
@@ -926,8 +926,8 @@ net.onmsg = (m, from) => {
         break;
       }
       case 's': if (G.mir) G.mir.push(m); break;
-      case 'vstart': $('vsel').hidden = true; vsEnd(); vsBegin(m.seed, 1, 'guest', [0, 1].map(i => sanitize(m.chars && m.chars[i], i)), m.vehs || []); break;
-      case 'vss': if (VSM.on) { VsSim.apply(m, VSM.st); if (m.L) VSM.oppLook = m.L; } break;
+      case 'vstart': { $('vsel').hidden = true; vsEnd(); const n = clamp(m.n | 0 || 2, 2, 5), li = m.slots && m.slots[net.myIdx] != null ? m.slots[net.myIdx] | 0 : 1; vsBegin(m.seed, li, 'guest', { n, chars: Array.from({ length: n }, (_, i) => sanitize(m.chars && m.chars[i], i)), vehs: (m.vehs || []).map(v => v && VEHICLES.some(x => x[0] === v.k) ? { k: v.k, c: clamp(v.c | 0, 0, VCOLORS.length - 1) } : null), names: (m.names || []).map(x => String(x || '').slice(0, 12)), bots: Array.isArray(m.bots) ? m.bots.map(x => x | 0) : [] }); break; }
+      case 'vss': if (VSM.on) { VsSim.apply(m, VSM.st); if (Array.isArray(m.L)) for (let i = 0; i < m.L.length; i++) if (i !== VSM.li && m.L[i]) VSM.looks[i] = m.L[i]; } break;
       case 'vev': if (VSM.on) for (const e of m.e) vsHandle(e); break;
       case 'vsel': case 'vs': guestVsel(m); break;
       case 'ev': for (const e of m.e) { if (IMMEDIATE.has(e.k)) handleEvent(e); else G.evq.push(e); } break;
@@ -1050,21 +1050,31 @@ function hostStart() {
   begin(seed, n, 0, 'host');
 }
 
-// ================= MODO VERSUS (1 contra 1) =================
-// Escena propia (campo verde), cada uno en su coche dando vueltas por los cuatro círculos; el anfitrión manda.
+// ================= MODO VERSUS (todos contra todos, de 2 a 5 coches: jugadores y bots) =================
+// Escena propia (campo verde), cada uno en su coche dando vueltas por los cuatro círculos; el anfitrión manda y mueve a los bots.
 // (window.__VSM: solo para pruebas)
-const VSM = { on: false, scene: null, world: null, sim: null, st: null, pred: null, li: 0, mode: 'solo', cars: [], hit: [[], []], fx: null, snapT: 0, acc: 0, signs: null, nadeCd: 0, nades: [], botT: 1, lastJ: null, lookT: 0, oppLook: [0, 0], ended: false };
+const VSM = { on: false, scene: null, world: null, sim: null, st: null, pred: null, li: 0, n: 2, mode: 'solo', cars: [], hit: [], fx: null, snapT: 0, acc: 0, signs: null, nadeCd: 0, nades: [], lastJ: null, lookT: 0, looks: [], names: [], bots: new Set(), botS: {}, slotOf: {}, ended: false };
+const VSCOL = ['#4fb3ff', '#ff5a8a', '#7dff8a', '#ffb020', '#b48cff'];
 function vsMakeCar(i, char, vk, col) {
   const car = convertible(vk || 'cabrio', col);
   const av = seatedPlayer(i, char); const st = SEATS[0];
   av.position.set(st[0], 1.4 + (car.userData.seatY || 0), st[1]); car.add(av); car.userData.av = av;
   // cajas invisibles para las balas: carrocería, cabeza del jugador y las cuatro ruedas
   const H = VSM.hit[i] = [];
-  const hb = (w, h, d, x, y, z, part) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d)); m.visible = false; m.position.set(x, y, z); m.userData.part = part; car.add(m); H.push(m); };
+  const hb = (w, h, d, x, y, z, part) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d)); m.visible = false; m.position.set(x, y, z); m.userData.part = part; m.userData.pi = i; car.add(m); H.push(m); };
   hb(2.0, 1.1, 5.6, 0, 0.75, 0, 'body');
   hb(0.55, 0.75, 0.55, st[0], 2.05 + (car.userData.seatY || 0), st[1], 'head');
   for (const sx of [-1, 1]) for (const sz of [-1.9, 1.9]) hb(0.5, 0.95, 0.95, sx * 1.02, 0.45, sz, 'wheel');
   return car;
+}
+// cartel con el nombre encima de cada rival (con muchos coches hay que saber quién es quién)
+function vsNameTag(txt, col) {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 56; const g = c.getContext('2d');
+  g.fillStyle = 'rgba(0,0,0,.6)'; g.fillRect(0, 0, 256, 56); g.strokeStyle = col; g.lineWidth = 5; g.strokeRect(3, 3, 250, 50);
+  g.fillStyle = col; g.font = 'bold 34px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt.slice(0, 12), 128, 30);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: false, transparent: true })); s.scale.set(3.4, 0.75, 1); s.position.y = 4.4; s.renderOrder = 5;
+  return s;
 }
 // textura de cada tipo de cubo: TURBO (flechas), DAÑO (x2) y SORPRESA (?)
 const VBM = {};
@@ -1089,22 +1099,31 @@ function vsTake(id) {
   if (VSM.mode === 'guest') net.send({ t: 'vb', id });
   else if (VSM.sim) VSM.sim.take(VSM.li, id);
 }
-function vsBegin(seed, li, mode, chars, vehs) {
+// info = { n, chars[], vehs[], names[], bots[] }
+function vsBegin(seed, li, mode, info) {
   window.__VSM = VSM; // TODO-TESTEO
+  $('dailyScr').hidden = true; // si no se ha recogido, vuelve a salir al volver al menú
   SFX.unlock();
-  VSM.on = true; VSM.li = li; VSM.mode = mode; VSM.ended = false; VSM.acc = 0; VSM.snapT = 0; VSM.nadeCd = 0; VSM.nades = []; VSM.botT = 1.5; VSM.lastJ = null;
-  G.mode = mode; G.running = false; G.over = false; G.n = 2; G.li = li;
+  const n = clamp(info.n | 0 || 2, 2, 5);
+  VSM.on = true; VSM.li = li; VSM.n = n; VSM.mode = mode; VSM.ended = false; VSM.acc = 0; VSM.snapT = 0; VSM.nadeCd = 0; VSM.nades = []; VSM.lastJ = null;
+  VSM.names = Array.from({ length: n }, (_, i) => String((info.names || [])[i] || 'J' + (i + 1)).slice(0, 12));
+  VSM.bots = new Set(info.bots || []); VSM.botS = {}; VSM.looks = Array.from({ length: n }, () => [0, 0]); VSM.hit = [];
+  G.mode = mode; G.running = false; G.over = false; G.n = n; G.li = li;
   const S = VSM.scene = new THREE.Scene();
   S.background = new THREE.Color(0x9ad4ff); S.fog = new THREE.Fog(0xcfe9ff, 140, 430);
   S.add(new THREE.HemisphereLight(0xeaf6ff, 0x5a8a3a, 1.25));
   const sunV = new THREE.DirectionalLight(0xfff4dc, 1.9); sunV.position.set(60, 120, 40); S.add(sunV);
   VSM.world = new VsWorld(seed); S.add(VSM.world.root);
   VSM.fx = new Fx(S);
-  VSM.cars = [0, 1].map(i => { const c = vsMakeCar(i, chars[i] || defaultChar(i), vehs[i] && vehs[i].k, VCOLORS[(vehs[i] && vehs[i].c) ?? (i ? 1 : 0)]); S.add(c); return c; });
+  VSM.cars = Array.from({ length: n }, (_, i) => {
+    const v = (info.vehs || [])[i], c = vsMakeCar(i, (info.chars || [])[i] || defaultChar(i), v && v.k, VCOLORS[(v && v.c) ?? i % VCOLORS.length]);
+    if (i !== li) c.add(vsNameTag(VSM.names[i], VSCOL[i]));
+    S.add(c); return c;
+  });
   VSM.cars[li].userData.av.visible = false; // el tuyo no se ve (vas sentado ahí)
-  VSM.sim = mode === 'guest' ? null : new VsSim(seed);
-  VSM.st = { phase: 'count', t: 3, score: [0, 0], round: 1, P: new VsSim(seed).P };
-  VSM.pred = new VsSim(seed);
+  VSM.sim = mode === 'guest' ? null : new VsSim(seed, n);
+  VSM.st = { phase: 'count', t: 3, score: new Array(n).fill(0), round: 1, P: new VsSim(seed, n).P, B: BOXES.map(() => 0) };
+  VSM.pred = new VsSim(seed, n);
   if (VSM.sim) VsSim.apply(VSM.sim.snapshot(), VSM.st);
   // carteles de los cruces (solo los ves tú): SEGUIR y CAMBIAR
   VSM.signs = [0, 1].map(k => {
@@ -1125,7 +1144,7 @@ function vsBegin(seed, li, mode, chars, vehs) {
     const sh = new THREE.Mesh(new THREE.CircleGeometry(0.9, 16).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25, depthWrite: false })); sh.position.set(p.x, 0.06, p.z); S.add(sh); m.userData.sh = sh;
     return m;
   });
-  // escudo y daño x2 encima de cada coche (para ver lo que lleva el rival)
+  // escudo y daño x2 encima de cada coche (para ver lo que lleva cada uno)
   for (const c of VSM.cars) {
     const bub = new THREE.Mesh(new THREE.SphereGeometry(3.6, 16, 10), new THREE.MeshBasicMaterial({ color: 0x5ad0ff, transparent: true, opacity: 0.22, depthWrite: false })); bub.position.y = 1.4; bub.visible = false; c.add(bub); c.userData.bub = bub;
     const red = new THREE.Mesh(new THREE.TorusGeometry(2.6, 0.12, 6, 24).rotateX(Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xff3a3a })); red.position.y = 0.3; red.visible = false; c.add(red); c.userData.red = red;
@@ -1137,12 +1156,14 @@ function vsBegin(seed, li, mode, chars, vehs) {
   for (const s of document.querySelectorAll('.screen')) s.hidden = true;
   $('hudwrap').hidden = false; document.body.classList.add('vsmode');
   $('vsHud').hidden = false; $('vsEnd').hidden = true;
+  // marcadores de los rivales
+  $('vsOps').innerHTML = VSM.names.map((nm, i) => i === li ? '' : `<div class="vsO" id="vsO${i}" style="--c:${VSCOL[i]}"><b>${nm.replace(/[<>&]/g, '')}${VSM.bots.has(i) ? ' 🤖' : ''}</b><div class="vsBar"><i></i></div><span>50</span><em></em></div>`).join('');
   $('btnGrenade').hidden = false;
   look.enabled = true; look.calibrate(); look.flip = 0;
   $('btnFire').hidden = !look.isTouch || (!look.force && look.gyro);
   camera.fov = FOV; camera.updateProjectionMatrix();
   uiWeapon(true); vsHud();
-  showBanner('VERSUS', 'Gana el primero en ' + VWIN + ' rondas · dispara a los carteles para cambiar de círculo', '#ff5a8a');
+  showBanner('VERSUS', (n > 2 ? 'Todos contra todos · ' : '') + 'Gana el primero en ' + VWIN + ' rondas', '#ff5a8a');
 }
 function vsEnd() {
   if (!VSM.on) return;
@@ -1153,21 +1174,26 @@ function vsEnd() {
 // pinta coches, carteles y cámara a partir del estado
 function vsPlace(dt) {
   const st = VSM.st;
-  for (let i = 0; i < 2; i++) {
-    const P = st.P[i], car = VSM.cars[i], ps = carPose(P);
+  for (let i = 0; i < VSM.n; i++) {
+    const P = st.P[i], car = VSM.cars[i]; if (!P || !car) continue;
+    const ps = carPose(P);
+    car.visible = !P.out || i === VSM.li;
     const y = 0.02 + (P.flatT > 0 ? -0.12 : 0);
     car.position.set(ps.x, y, ps.z); car.rotation.set(0, ps.yaw, P.flatT > 0 ? 0.06 * Math.sin(G.t * 30) : 0);
     // inclinación en las curvas (siempre van girando)
     car.rotation.z += -P.s * 0.05;
     car.updateMatrixWorld(true);
     if (P.flatT > 0 && Math.random() < dt * 20) VSM.fx.part(V1.set(ps.x, 0.5, ps.z), V2.set((Math.random() - 0.5) * 2, 2 + Math.random() * 2, (Math.random() - 0.5) * 2), 1.2, 0.2, VSM.fx.m.smoke, -0.5, 1);
+    if (P.out && i === VSM.li && Math.random() < dt * 12) VSM.fx.part(V1.set(ps.x, 1, ps.z), V2.set((Math.random() - 0.5), 3, (Math.random() - 0.5)), 1.6, 0.4, VSM.fx.m.smoke, -0.3, 1);
+    const u = car.userData; u.bub.visible = P.shT > 0 && i !== VSM.li; u.red.visible = P.dmgT > 0 && !P.out; if (u.red.visible) u.red.rotation.y += dt * 3;
+    // hacia dónde apunta cada uno
+    if (i !== VSM.li) { const L = VSM.looks[i] || [0, 0], av = u.av; av.userData.yaw.rotation.y = L[0]; av.userData.rig.armR.rotation.x = L[1]; av.userData.rig.armL.rotation.set(L[1], -0.5, 0); }
   }
   const B = st.B || [];
   for (const m of VSM.boxes || []) {
     const on = !(B[m.userData.box] > 0); m.visible = on; m.userData.sh.visible = on;
     if (on) { m.rotation.y += dt * 1.6; m.rotation.x = 0.35; m.position.y = m.userData.y0 + Math.sin(G.t * 2.2 + m.userData.box) * 0.25; }
   }
-  for (let i = 0; i < 2; i++) { const u = VSM.cars[i].userData, P = st.P[i]; u.bub.visible = P.shT > 0 && i !== VSM.li; u.red.visible = P.dmgT > 0; if (u.red.visible) u.red.rotation.y += dt * 3; }
   { const P = st.P[VSM.li], tb = P.boostT > 0; document.body.classList.toggle('turbo', tb); const f = FOV + (tb ? 12 : 0); if (Math.abs(camera.fov - f) > 0.05) { camera.fov += (f - camera.fov) * Math.min(1, dt * 6); camera.updateProjectionMatrix(); } }
   const me = VSM.cars[VSM.li], ps = carPose(st.P[VSM.li]);
   EA.set(0, ps.yaw, 0, 'YXZ'); QCAR.setFromEuler(EA);
@@ -1176,11 +1202,9 @@ function vsPlace(dt) {
   camera.position.set(SEATS[0][0] * 1.5, 2.42 + (me.userData.seatY || 0), SEATS[0][1]); me.localToWorld(camera.position);
   if (G.shake > 0) camera.position.add(V1.set((Math.random() - 0.5) * G.shake * 0.3, (Math.random() - 0.5) * G.shake * 0.3, 0));
   camera.updateMatrixWorld(true);
-  // el rival mira hacia donde apunta
-  const opp = VSM.cars[1 - VSM.li].userData.av; opp.userData.yaw.rotation.y = VSM.oppLook[0]; opp.userData.rig.armR.rotation.x = VSM.oppLook[1]; opp.userData.rig.armL.rotation.set(VSM.oppLook[1], -0.5, 0);
   // carteles del próximo cruce
   const P = st.P[VSM.li], J = nextJunction(P);
-  const show = st.phase === 'run' && J.dist < 55 && J.dist > 3;
+  const show = st.phase === 'run' && !P.out && J.dist < 55 && J.dist > 3;
   const key = P.c + ':' + J.j;
   if (key !== VSM.lastJ) { VSM.lastJ = key; VSM.myChoice = 0; }
   for (let k = 0; k < 2; k++) {
@@ -1190,12 +1214,13 @@ function vsPlace(dt) {
     // 9 m antes del cruce; SEGUIR hacia tu centro, CAMBIAR hacia el centro del otro círculo
     const back = 9 / VR, th0 = J.th - P.s * back, bx = C[0] + Math.cos(th0) * VR, bz = C[1] + Math.sin(th0) * VR;
     const tgt = k ? N : C, dx = tgt[0] - cx, dz = tgt[1] - cz, dl = Math.hypot(dx, dz);
-    g.position.set(bx + dx / dl * 5.2, VSM.world.height(bx, bz) * 0, bz + dz / dl * 5.2);
+    g.position.set(bx + dx / dl * 5.2, 0, bz + dz / dl * 5.2);
     const hx = -Math.sin(th0) * P.s, hz = Math.cos(th0) * P.s; g.rotation.y = Math.atan2(-hx, -hz);
     g.userData.hl.visible = (P.choice === 1) === (k === 1);
     g.updateMatrixWorld(true);
   }
 }
+const vsLive = i => VSM.st.P[i] && !VSM.st.P[i].out;
 // disparo en versus: mismas armas, pero las balas chocan con árboles, rocas y lomas
 function vsFire() {
   if (W.def.shell && W.rl > 0 && W.ammo > 0) W.rl = 0;
@@ -1210,9 +1235,10 @@ function vsFire() {
   { const n = aimNDC(); if (n) { TAPRAY.setFromCamera(n, camera); base.copy(TAPRAY.ray.direction); } }
   const muzzle = fpg.userData.muzzle.getWorldPosition(new THREE.Vector3());
   VSM.fx.muzzle(muzzle, base, 1);
-  const targets = VSM.hit[1 - VSM.li].concat(VSM.world.colliders, VSM.signs.filter(s => s.visible).map(s => s.userData.b), (VSM.boxes || []).filter(b => b.visible));
-  let dmg = 0, part = null, nHit = 0;
-  const per = vsDamage(W.def.model) * (E.boom ? 1 : 1);
+  let targets = VSM.world.colliders.concat(VSM.signs.filter(s => s.visible).map(s => s.userData.b), (VSM.boxes || []).filter(b => b.visible));
+  for (let i = 0; i < VSM.n; i++) if (i !== VSM.li && vsLive(i)) targets = targets.concat(VSM.hit[i]);
+  const acc = {};
+  const per = vsDamage(W.def.model);
   for (let p = 0; p < E.pellets; p++) {
     const dir = base.clone();
     if (E.spread) { dir.x += (Math.random() - 0.5) * E.spread * 2; dir.y += (Math.random() - 0.5) * E.spread * 2; dir.z += (Math.random() - 0.5) * E.spread * 2; dir.normalize(); }
@@ -1224,17 +1250,18 @@ function vsFire() {
     if (h.object.userData.sign != null) { const c = h.object.userData.sign; vsChoose(c); SFX.vote(); continue; }
     if (h.object.userData.box != null) { if (!h.object.userData.pend) { h.object.userData.pend = 1; setTimeout(() => { h.object.userData.pend = 0; }, 600); vsTake(h.object.userData.box); } VSM.fx.sparks(h.point, 10); continue; }
     if (h.object.userData.part) {
-      const pt = h.object.userData.part; nHit++;
-      dmg += per * (pt === 'head' ? 1.5 : 1); if (!part || pt === 'wheel' || pt === 'head') part = pt;
+      const pt = h.object.userData.part, to = h.object.userData.pi, A = acc[to] || (acc[to] = { d: 0, part: null });
+      A.d += per * (pt === 'head' ? 1.5 : 1); if (!A.part || pt === 'wheel' || pt === 'head') A.part = pt;
       VSM.fx.impact(h.point, false);
     } else VSM.fx.impact(h.point, true);
   }
-  if (nHit) { SFX.tone(1400, 1800, 0.04, 'square', 0.12); vsHitSend(part, dmg); }
+  const tos = Object.keys(acc);
+  if (tos.length) { SFX.tone(1400, 1800, 0.04, 'square', 0.12); for (const to of tos) vsHitSend(+to, acc[to].part, acc[to].d); }
   if (VSM.mode === 'guest') net.send({ t: 'vf' }); else vsEmit('shot', { p: VSM.li });
 }
-function vsHitSend(part, dmg) {
-  if (VSM.mode === 'guest') net.send({ t: 'vh', p: part, d: Math.round(dmg * 10) / 10 });
-  else if (VSM.sim) VSM.sim.hit(VSM.li, part, dmg);
+function vsHitSend(to, part, dmg) {
+  if (VSM.mode === 'guest') net.send({ t: 'vh', to, p: part, d: Math.round(dmg * 10) / 10 });
+  else if (VSM.sim) VSM.sim.hit(VSM.li, to, part, dmg);
 }
 function vsChoose(c) {
   const P = VSM.st.P[VSM.li]; P.choice = c;
@@ -1244,7 +1271,7 @@ function vsChoose(c) {
 function vsEmit(k, o) { if (VSM.sim) VSM.sim.emit(k, o); }
 // granada (botón de poder): sale en arco hacia donde apuntas y explota al tocar el suelo o un obstáculo
 function vsNade() {
-  if (VSM.nadeCd > 0 || VSM.st.phase !== 'run') return;
+  if (VSM.nadeCd > 0 || VSM.st.phase !== 'run' || !vsLive(VSM.li)) return;
   VSM.nadeCd = 14;
   const o = camera.getWorldPosition(new THREE.Vector3()), d = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
   const m = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), new THREE.MeshLambertMaterial({ color: 0x3a5a2a })); m.position.copy(o).addScaledVector(d, 1); VSM.scene.add(m);
@@ -1252,66 +1279,81 @@ function vsNade() {
   SFX.tone(500, 300, 0.12, 'triangle', 0.15);
 }
 function vsUpdNades(dt) {
+  let hb = []; for (let i = 0; i < VSM.n; i++) if (i !== VSM.li && vsLive(i)) hb = hb.concat(VSM.hit[i]);
   for (let i = VSM.nades.length - 1; i >= 0; i--) {
     const n = VSM.nades[i]; n.t += dt; n.v.y -= 20 * dt;
     const prev = n.m.position.clone(); n.m.position.addScaledVector(n.v, dt);
     ray.set(prev, V1.copy(n.m.position).sub(prev).normalize()); ray.far = prev.distanceTo(n.m.position) + 0.2;
-    const hit = ray.intersectObjects(VSM.world.colliders.concat(VSM.hit[1 - VSM.li]), false)[0];
+    const hit = ray.intersectObjects(VSM.world.colliders.concat(hb), false)[0];
     const gy = VSM.world.height(n.m.position.x, n.m.position.z);
     if (hit || n.m.position.y <= gy + 0.1 || n.t > 4) {
       const p = hit ? hit.point : n.m.position;
       VSM.fx.boom(p, 1.6); SFX.boom(camera.position.distanceTo(p)); G.shake = Math.max(G.shake, 0.3);
-      if (n.mine) { const ps = carPose(VSM.st.P[1 - VSM.li]), d = Math.hypot(ps.x - p.x, ps.z - p.z); if (d < 7) vsHitSend('body', d < 3.5 ? 7 : 5); }
+      if (n.mine) for (let k = 0; k < VSM.n; k++) { if (k === VSM.li || !vsLive(k)) continue; const ps = carPose(VSM.st.P[k]), d = Math.hypot(ps.x - p.x, ps.z - p.z); if (d < 7) vsHitSend(k, 'body', d < 3.5 ? 7 : 5); }
       VSM.scene.remove(n.m); VSM.nades.splice(i, 1);
     }
   }
   ray.far = 230;
 }
-// rival de la máquina (si juegas solo): elige cruces al azar y dispara con algo de puntería si te ve
-function vsBot(dt) {
-  const S = VSM.sim, B = S.P[1];
-  if (S.phase !== 'run') return;
-  const J = nextJunction(B); if (J.dist < 40 && B._j !== J.th) { B._j = J.th; S.choose(1, Math.random() < 0.5 ? 1 : 0); }
-  // la máquina también dispara a los cubos que tiene cerca
-  { const a = carPose(B); for (const b of BOXES) { if (S.B[b.id] > 0) continue; const p = boxPos(b); if (Math.hypot(p.x - a.x, p.z - a.z) < 14 && Math.random() < dt * 1.2) { S.take(1, b.id); break; } } }
-  VSM.botT -= dt;
-  if (VSM.botT > 0) return;
-  VSM.botT = 0.45 + Math.random() * 0.5;
-  const a = carPose(B), b = carPose(S.P[0]);
-  const from = V1.set(a.x, 2.4, a.z), to = V2.set(b.x, 1.3, b.z), d = from.distanceTo(to);
-  VSM.oppLook = [Math.atan2(-(to.x - from.x), -(to.z - from.z)) - a.yaw, 0];
-  if (d > 75) return;
-  ray.set(from, V3.copy(to).sub(from).normalize()); ray.far = d;
-  const blocked = ray.intersectObjects(VSM.world.colliders, false).length > 0; ray.far = 230;
-  if (blocked) return;
-  VSM.fx.tracer(from, to.clone().add(V3.set((Math.random() - 0.5) * 3, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 3)), 0xff8a5a, 0.07, 0.02);
-  SFX.eshot(d);
-  if (Math.random() < 0.38 - d / 400) S.hit(1, Math.random() < 0.1 ? 'wheel' : 'body', 2);
+// bots (los mueve el anfitrión): eligen cruces al azar, van a por el rival más cercano que vean y cogen cubos al pasar
+function vsBots(dt) {
+  const S = VSM.sim;
+  if (!S || S.phase !== 'run') return;
+  for (const b of VSM.bots) {
+    const B = S.P[b]; if (!B || B.out) continue;
+    const st = VSM.botS[b] || (VSM.botS[b] = { t: 1 + Math.random(), j: null });
+    const J = nextJunction(B); if (J.dist < 40 && st.j !== J.th) { st.j = J.th; S.choose(b, Math.random() < 0.5 ? 1 : 0); }
+    const a = carPose(B);
+    for (const bx of BOXES) { if (S.B[bx.id] > 0) continue; const p = boxPos(bx); if (Math.hypot(p.x - a.x, p.z - a.z) < 14 && Math.random() < dt * 1.2) { S.take(b, bx.id); break; } }
+    // objetivo: el vivo más cercano
+    let tg = -1, td = 1e9;
+    for (const i of S.alive()) { if (i === b) continue; const q = carPose(S.P[i]), d = Math.hypot(q.x - a.x, q.z - a.z); if (d < td) { td = d; tg = i; } }
+    if (tg < 0) continue;
+    const q = carPose(S.P[tg]), from = V1.set(a.x, 2.4, a.z), to = V2.set(q.x, 1.3, q.z);
+    VSM.looks[b] = [Math.atan2(-(to.x - from.x), -(to.z - from.z)) - a.yaw, 0];
+    st.t -= dt;
+    if (st.t > 0) continue;
+    st.t = 0.45 + Math.random() * 0.5;
+    if (td > 75) continue;
+    ray.set(from, V3.copy(to).sub(from).normalize()); ray.far = td;
+    const blocked = ray.intersectObjects(VSM.world.colliders, false).length > 0; ray.far = 230;
+    if (blocked) continue;
+    VSM.fx.tracer(from, to.clone().add(V3.set((Math.random() - 0.5) * 3, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 3)), 0xff8a5a, 0.07, 0.02);
+    S.emit('shot', { p: b });
+    if (Math.random() < 0.38 - td / 400) S.hit(b, tg, Math.random() < 0.1 ? 'wheel' : 'body', 2);
+  }
 }
 function vsHandle(e) {
-  const me = VSM.li;
+  const me = VSM.li, N = i => VSM.names[i] || 'J' + (i + 1);
   switch (e.k) {
-    case 'round': if (e.r > 1) showBanner('RONDA ' + e.r, VSM.st.score.join(' - '), '#ffe14a'); W.ammo = W.e.mag; W.rl = 0; VSM.nadeCd = 0; break;
-    case 'go': showBanner('GO! GO! GO!', '¡A por él!', '#ffe14a'); SFX.go(); break;
-    case 'flat': showBanner(e.p === me ? '¡TE HAN PINCHADO UNA RUEDA!' : '¡RUEDA PINCHADA!', e.p === me ? 'Parado unos segundos' : 'Está parado: ¡aprovecha!', e.p === me ? '#ff5a5a' : '#7dff8a'); SFX.boom(e.p === me ? 3 : 30); break;
+    case 'round': if (e.r > 1) showBanner('RONDA ' + e.r, 'Tú llevas ' + (VSM.st.score[me] || 0) + ' de ' + VWIN, '#ffe14a'); W.ammo = W.e.mag; W.rl = 0; VSM.nadeCd = 0; break;
+    case 'go': showBanner('GO! GO! GO!', VSM.n > 2 ? '¡Todos contra todos!' : '¡A por él!', '#ffe14a'); SFX.go(); break;
+    case 'flat': if (e.p === me) { showBanner('¡TE HAN PINCHADO UNA RUEDA!', 'Parado unos segundos', '#ff5a5a'); SFX.boom(3); } else showToast('🛞 ' + N(e.p) + ' tiene una rueda pinchada'); break;
     case 'fixed': if (e.p === me) showBanner('RUEDA ARREGLADA', 'Unos segundos sin que te la puedan pinchar', '#7dff8a'); break;
     case 'dmg': if (e.p === me) { G.shake = Math.max(G.shake, 0.18); SFX.hurt(); flashHurt(); } break;
-    case 'shot': if (e.p !== me) { const c = VSM.cars[e.p]; const p = V1.set(0, 2.4, 0); c.localToWorld(p); SFX.eshot(camera.position.distanceTo(p)); VSM.fx.muzzle(p, V2.set(0, 0, -1), 0.8); } break;
+    case 'shot': if (e.p !== me && VSM.cars[e.p]) { const c = VSM.cars[e.p]; const p = V1.set(0, 2.4, 0); c.localToWorld(p); SFX.eshot(camera.position.distanceTo(p)); VSM.fx.muzzle(p, V2.set(0, 0, -1), 0.8); } break;
     case 'switch': break;
-    case 'crash': { G.shake = Math.max(G.shake, e.s ? 0.5 : 0.25); SFX.boom(e.s ? 4 : 10); const c = VSM.cars; if (c[0] && c[1]) { const p = V1.copy(c[0].position).add(c[1].position).multiplyScalar(0.5); p.y += 1; VSM.fx.sparks(p, 18); VSM.fx.dust(p); } if (e.s) showBanner('¡CHOQUE!', 'Os dais la vuelta', '#ffb02a'); break; }
-    case 'ko': showBanner(e.w === me ? '¡K.O.! GANAS LA RONDA' : '¡K.O.! PIERDES LA RONDA', (e.sc || VSM.st.score).join(' - '), e.w === me ? '#7dff8a' : '#ff5a5a'); if (e.w === me) SFX.pickup(); break;
+    case 'crash': { const mine = e.a === me || e.b === me; if (mine) { G.shake = Math.max(G.shake, e.s ? 0.5 : 0.25); SFX.boom(e.s ? 4 : 10); } const A = VSM.cars[e.a], B = VSM.cars[e.b]; if (A && B) { const p = V1.copy(A.position).add(B.position).multiplyScalar(0.5); p.y += 1; VSM.fx.sparks(p, 18); VSM.fx.dust(p); } if (e.s && mine) showBanner('¡CHOQUE!', 'Os dais la vuelta', '#ffb02a'); break; }
+    case 'out': {
+      const c = VSM.cars[e.p]; if (c) { V1.copy(c.position); V1.y += 1; VSM.fx.boom(V1, 1.4); SFX.boom(camera.position.distanceTo(V1)); }
+      if (e.p === me) showBanner('¡ELIMINADO!', 'Mira cómo acaba la ronda', '#ff5a5a');
+      else if (e.by === me) { showBanner('¡ELIMINADO ' + N(e.p).toUpperCase() + '!', '', '#7dff8a'); SFX.pickup(); }
+      else showToast('💥 ' + N(e.by) + ' ha eliminado a ' + N(e.p));
+      break;
+    }
+    case 'ko': showBanner(e.w === me ? '¡GANAS LA RONDA!' : N(e.w).toUpperCase() + ' GANA LA RONDA', (e.sc || VSM.st.score).map((v, i) => (i === me ? 'TÚ ' : N(i) + ' ') + v).join(' · '), e.w === me ? '#7dff8a' : '#ff5a5a'); if (e.w === me) SFX.pickup(); break;
     case 'end': vsFinish(e.w); break;
     case 'pw': {
       const T = VSPW[e.w] || ['¡PODER!', '', '#ffe14a'], mine = e.p === me;
       const bx = BOXES[e.b]; if (bx && VSM.fx) { const p = boxPos(bx); V1.set(p.x, 2.3, p.z); VSM.fx.sparks(V1, 26); VSM.fx.boom(V1, 0.5); }
       if (mine) {
-        showBanner(T[0], T[1], T[2]); SFX.pickup(); try { navigator.vibrate && navigator.vibrate(60); } catch (x) { }
+        showBanner(T[0], e.w === 'flat' && e.to >= 0 ? 'Le revientas una rueda a ' + N(e.to) : T[1], T[2]); SFX.pickup(); try { navigator.vibrate && navigator.vibrate(60); } catch (x) { }
         if (e.w === 'nade') VSM.nadeCd = 0;
         if (e.w === 'ammo') { W.ammo = W.e.mag; W.rl = 0; }
         if (e.w === 'turbo') { G.shake = Math.max(G.shake, 0.25); SFX.tone(200, 900, 0.5, 'sawtooth', 0.12); }
       } else {
-        const txt = { turbo: 'El rival ha cogido TURBO', dmg: '¡Cuidado! El rival pega el DOBLE', shield: 'El rival lleva ESCUDO', heal: 'El rival se ha curado', flat: '', nade: 'El rival tiene la granada lista', ammo: '' }[e.w];
-        if (txt) showToast(txt);
+        const txt = { turbo: 'ha cogido TURBO', dmg: 'pega el DOBLE', shield: 'lleva ESCUDO', heal: 'se ha curado', nade: 'tiene la granada lista' }[e.w];
+        if (txt && VSM.n <= 3) showToast(N(e.p) + ' ' + txt);
       }
       break;
     }
@@ -1320,53 +1362,59 @@ function vsHandle(e) {
 function flashHurt() { const f = $('vsHurt'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on'); }
 function vsFinish(w) {
   VSM.ended = true; const win = w === VSM.li; $('hudwrap').hidden = true; look.enabled = false; look.fire = false;
-  $('vsEnd').hidden = false; $('vsEndT').textContent = win ? '¡HAS GANADO!' : 'HAS PERDIDO'; $('vsEndT').style.color = win ? '#7dff8a' : '#ff5a5a';
-  $('vsEndS').textContent = VSM.st.score[VSM.li] + ' - ' + VSM.st.score[1 - VSM.li];
+  $('vsEnd').hidden = false; $('vsEndT').textContent = win ? '¡HAS GANADO!' : (VSM.names[w] || 'J' + (w + 1)).toUpperCase() + ' GANA'; $('vsEndT').style.color = win ? '#7dff8a' : '#ff5a5a';
+  const sc = VSM.st.score;
+  $('vsEndS').textContent = sc.map((v, i) => ({ v, i })).sort((a, b) => b.v - a.v).map(o => (o.i === VSM.li ? 'TÚ' : VSM.names[o.i]) + ' ' + o.v).join(' · ');
   $('vsAgain').hidden = VSM.mode === 'guest';
-  if (win) { PROG.coins += 300; CHC('vswin'); saveProg(PROG); $('vsEndS').textContent += ' · +300 monedas'; }
+  if (win) { PROG.coins += 300 + 100 * (VSM.n - 2); CHC('vswin'); saveProg(PROG); $('vsEndS').textContent += ' · +' + (300 + 100 * (VSM.n - 2)) + ' monedas'; }
 }
 function vsHud() {
-  const st = VSM.st, me = VSM.li, op = 1 - me;
+  const st = VSM.st, me = VSM.li;
   const bar = (P) => Math.max(0, P.hp / VHP * 100) + '%';
-  $('vsMeB').style.width = bar(st.P[me]); $('vsOpB').style.width = bar(st.P[op]);
-  $('vsMeN').textContent = Math.ceil(st.P[me].hp); $('vsOpN').textContent = Math.ceil(st.P[op].hp);
-  $('vsSc').textContent = st.score[me] + ' - ' + st.score[op];
-  $('vsMeW').hidden = !(st.P[me].flatT > 0); $('vsOpW').hidden = !(st.P[op].flatT > 0);
+  const M = st.P[me];
+  $('vsMeB').style.width = bar(M); $('vsMeN').textContent = Math.ceil(M.hp); $('vsMeW').hidden = !(M.flatT > 0);
+  $('vsSc').textContent = (st.score[me] || 0) + ' / ' + VWIN;
+  for (let i = 0; i < VSM.n; i++) {
+    if (i === me) continue;
+    const el = $('vsO' + i), P = st.P[i]; if (!el || !P) continue;
+    el.querySelector('i').style.width = bar(P); el.querySelector('span').textContent = P.out ? '💀' : Math.ceil(P.hp);
+    el.querySelector('em').textContent = '★'.repeat(st.score[i] || 0) + (P.flatT > 0 ? ' 🛞' : '');
+    el.classList.toggle('out', !!P.out);
+  }
   $('vsCount').textContent = st.phase === 'count' ? String(Math.ceil(st.t)) : '';
-  { const P = st.P[me], O = st.P[op], L = [];
+  { const P = st.P[me], L = [];
     if (P.boostT > 0) L.push('<b style="color:#ffb020">» TURBO ' + Math.ceil(P.boostT) + '</b>');
     if (P.dmgT > 0) L.push('<b style="color:#ff5a5a">x2 DAÑO ' + Math.ceil(P.dmgT) + '</b>');
     if (P.shT > 0) L.push('<b style="color:#5ad0ff">🛡 ESCUDO ' + Math.ceil(P.shT) + '</b>');
-    if (O.dmgT > 0) L.push('<span>rival x2 ' + Math.ceil(O.dmgT) + '</span>');
-    if (O.shT > 0) L.push('<span>rival 🛡 ' + Math.ceil(O.shT) + '</span>');
+    if (P.out && st.phase === 'run') L.push('<b style="color:#ff5a5a">ELIMINADO · esperando a que acabe la ronda</b>');
     const h = L.join(' · '); if ($('vsPw').innerHTML !== h) $('vsPw').innerHTML = h; }
   const nb = $('btnGrenade'); nb.classList.toggle('ready', VSM.nadeCd <= 0); nb.style.setProperty('--cd', VSM.nadeCd > 0 ? (VSM.nadeCd / 14) : 0);
 }
 function vsTick(dt) {
   const S = VSM.sim;
+  VSM.looks[VSM.li] = [Math.round(look.yaw * 100) / 100, Math.round(look.pitch * 100) / 100];
   if (S) {
     VSM.acc += dt; let n = 0;
     while (VSM.acc >= 1 / 60 && n++ < 8) { S.step(1 / 60); VSM.acc -= 1 / 60; }
-    if (VSM.mode === 'solo') vsBot(dt);
+    vsBots(dt);
     const evs = S.events.splice(0);
     for (const e of evs) vsHandle(e);
     VsSim.apply(S.snapshot(), VSM.st);
     if (VSM.mode === 'host' && net.open) {
       if (evs.length) net.send({ t: 'vev', e: evs });
-      VSM.snapT -= dt; if (VSM.snapT <= 0) { VSM.snapT = 0.05; const sn = S.snapshot(); sn.L = [Math.round(look.yaw * 100) / 100, Math.round(look.pitch * 100) / 100]; net.send(sn); }
+      VSM.snapT -= dt; if (VSM.snapT <= 0) { VSM.snapT = 0.05; const sn = S.snapshot(); sn.L = VSM.looks; net.send(sn); }
     }
   } else {
     // invitado: entre fotos del anfitrión se sigue moviendo igual (y luego se corrige)
     const pr = VSM.pred; pr.P = VSM.st.P; pr.B = VSM.st.B || pr.B; pr.phase = VSM.st.phase; pr.t = VSM.st.t; pr.step(dt); pr.events.length = 0;
-    VSM.lookT -= dt; if (VSM.lookT <= 0) { VSM.lookT = 0.07; net.send({ t: 'vl', y: Math.round(look.yaw * 100) / 100, p: Math.round(look.pitch * 100) / 100 }); }
+    VSM.lookT -= dt; if (VSM.lookT <= 0) { VSM.lookT = 0.07; net.send({ t: 'vl', y: VSM.looks[VSM.li][0], p: VSM.looks[VSM.li][1] }); }
   }
-  if (VSM.mode === 'host') { const P = G.vsLook; if (P) VSM.oppLook = P; }
   G.shake = Math.max(0, G.shake - dt);
   vsPlace(dt);
   // arma
   W.cd -= dt;
   if (W.rl > 0) { W.rl -= dt; if (W.rl <= 0) { if (W.def.shell) { W.ammo = Math.min(W.e.mag, W.ammo + 1); W.rl = W.ammo < W.e.mag ? (W.rlMax = W.e.reload) : 0; } else { W.rl = 0; W.ammo = W.e.mag; } } }
-  const can = VSM.st.phase === 'run' && !VSM.ended;
+  const can = VSM.st.phase === 'run' && !VSM.ended && vsLive(VSM.li);
   if (look.tapShot !== G.tapSeen) { G.tapSeen = look.tapShot; if (can) { if (W.ammo <= 0) startReload(); else G.tapPend = 0.35; } }
   if (G.tapPend > 0) { G.tapPend -= dt; if (W.cd <= 0 && W.rl <= 0 && can) { G.tapPend = 0; vsFire(); } }
   if (look.fire && can) { if (W.e.auto) vsFire(); else if (!G.prevFire) { if (W.ammo <= 0) startReload(); else vsFire(); } }
@@ -1374,23 +1422,45 @@ function vsTick(dt) {
   W.recoil = Math.max(0, W.recoil - dt * 9); W.flash -= dt;
   if (VSM.nadeCd > 0) VSM.nadeCd -= dt;
   vsUpdNades(dt);
-  if (fpg) { fpg.visible = GV !== 'x'; fpAnim(dt); }
+  if (fpg) { fpg.visible = GV !== 'x' && vsLive(VSM.li); fpAnim(dt); }
   VSM.fx.update(dt);
   look.slow = 1;
   if ((G.t * 10 | 0) % 3 === 0) vsHud();
   uiWeapon();
 }
+// empieza un versus: los jugadores de la sala (hasta 5) y los bots que se hayan elegido
 function vsHostStart() {
   lanStop();
-  const seed = (Math.random() * 4294967296) >>> 0, solo = !net.open || ![...net.links.values()].some(L => L.idx === 1);
-  const chars = [MYCHAR, G.peerChars[1] || defaultChar(1)], vehs = [G.veh, G.peerVeh || { k: 'cabrio', c: 1 }];
-  if (!solo) net.send({ t: 'vstart', seed, chars, vehs });
-  vsBegin(seed, 0, solo ? 'solo' : 'host', chars, vehs);
+  const seed = (Math.random() * 4294967296) >>> 0;
+  const links = net.open ? [...net.links.values()].map(L => L.idx).filter(i => i > 0).sort((a, b) => a - b).slice(0, 4) : [];
+  const humans = [0].concat(links);
+  const bots = clamp(G.vsBots | 0, humans.length > 1 ? 0 : 1, 5 - humans.length);
+  const n = humans.length + bots;
+  VSM.slotOf = {}; humans.forEach((idx, s) => (VSM.slotOf[idx] = s));
+  const chars = [], vehs = [], names = [], botL = [];
+  const BV = ['cabrio', 'clasico', 'jeep', 'buggy', 'furgo', 'limo'];
+  humans.forEach((idx, s) => {
+    chars.push(idx === 0 ? MYCHAR : G.peerChars[idx] || defaultChar(s));
+    vehs.push(idx === 0 ? G.veh : { k: 'cabrio', c: s % VCOLORS.length });
+    names.push(idx === 0 ? (PROF.name || 'J1') : ((G.peerProf && G.peerProf[idx] && G.peerProf[idx].name) || 'J' + (s + 1)));
+  });
+  for (let k = 0; k < bots; k++) { const s = humans.length + k; botL.push(s); chars.push(defaultChar(s)); vehs.push({ k: BV[(seed + k) % BV.length], c: s % VCOLORS.length }); names.push('BOT ' + (k + 1)); }
+  const info = { n, chars, vehs, names, bots: botL };
+  if (links.length) net.send({ t: 'vstart', seed, slots: VSM.slotOf, ...info });
+  vsBegin(seed, 0, links.length ? 'host' : 'solo', info);
+}
+// elegir cuántos bots
+function vsBotsPick(max, done) {
+  const el = $('vsBotsScr'); el.hidden = false;
+  el.querySelector('#vsBotsBtns').innerHTML = [1, 2, 3, 4].filter(n => n <= max).map(n => `<button class="big" data-n="${n}">${n} BOT${n > 1 ? 'S' : ''}</button>`).join('');
+  for (const b of el.querySelectorAll('[data-n]')) b.onclick = () => { el.hidden = true; G.vsBots = +b.dataset.n; try { localStorage.setItem('rc_vsbots', b.dataset.n); } catch (e) { } done(); };
+  el.querySelector('#vsBotsNo').onclick = () => { el.hidden = true; };
 }
 
 // ---------------- partida ----------------
 function begin(seed, n, li, mode) {
   SFX.unlock();
+  $('dailyScr').hidden = true;
   G.mode = mode; G.n = n; G.li = li; G.seed = seed >>> 0;
   const qb = BIOME_KEYS.indexOf(Q.get('zona') || ''); // TODO-TESTEO: empezar en una zona concreta
   const SC = G.story != null ? STORY[G.story] : null;
@@ -2197,14 +2267,23 @@ setTimeout(updMenuCard, 0);
 $('btnStory').onclick = () => { for (const sc of document.querySelectorAll('.screen')) sc.hidden = true; $('storyScr').hidden = false; paintStory(); };
 $('storyBack').onclick = () => { $('storyScr').hidden = true; $('menu').hidden = false; };
 // en la sala, el anfitrión elige arcade o un capítulo de la historia para todos
+G.vsBots = +(localStorage.getItem('rc_vsbots') || 1) || 0;
+function vsBotsBtn() {
+  const humans = 1 + (net.open ? [...net.links.values()].filter(L => L.idx > 0).length : 0), max = Math.max(0, 5 - humans);
+  G.vsBots = clamp(G.vsBots | 0, humans > 1 ? 0 : 1, max);
+  $('btnBots').hidden = !G.vsMode || G.mode !== 'host'; $('btnBots').textContent = 'BOTS: ' + G.vsBots + ' · ' + (humans + G.vsBots) + ' COCHES';
+}
+$('btnBots').onclick = () => { const humans = 1 + (net.open ? [...net.links.values()].filter(L => L.idx > 0).length : 0), max = Math.max(0, 5 - humans), min = humans > 1 ? 0 : 1; G.vsBots = (G.vsBots | 0) + 1; if (G.vsBots > max) G.vsBots = min; try { localStorage.setItem('rc_vsbots', G.vsBots); } catch (e) { } vsBotsBtn(); };
+setInterval(() => { if (!$('btnBots').hidden || G.vsMode) vsBotsBtn(); }, 1500);
 $('btnMode').onclick = () => {
   // ARCADE → capítulos de historia → VERSUS 1 VS 1 → ARCADE…
   const opts = STORY.map((S, i) => i).filter(i => STORY[i].test ? /debug=1/.test(location.search) : i <= (PROG.story | 0));
   if (G.cmap) { G.cmap = null; G.story = null; G.vsMode = false; $('btnMode').textContent = 'MODO: ARCADE'; return; }
   if (G.vsMode) { G.vsMode = false; G.story = null; }
   else { const k = G.story == null ? 0 : opts.indexOf(G.story) + 1; if (k < opts.length) G.story = opts[k]; else { G.story = null; G.vsMode = true; } }
-  $('btnMode').textContent = 'MODO: ' + (G.vsMode ? 'VERSUS 1 VS 1' : G.story == null ? 'ARCADE' : 'HISTORIA ' + (G.story + 1) + ' · ' + STORY[G.story].t);
-  if (G.vsMode) lobbyMsg('VERSUS: tú contra J2 en el campo. Si no hay nadie más en la sala, juegas contra la máquina');
+  vsBotsBtn();
+  $('btnMode').textContent = 'MODO: ' + (G.vsMode ? 'VERSUS · TODOS CONTRA TODOS' : G.story == null ? 'ARCADE' : 'HISTORIA ' + (G.story + 1) + ' · ' + STORY[G.story].t);
+  if (G.vsMode) lobbyMsg('VERSUS: todos contra todos en el campo (hasta 5 coches). Con BOTS añades coches de la máquina');
 };
 // ---------------- poción (se consigue viendo un anuncio) ----------------
 function updPot() { $('potN').textContent = (PROG.pot | 0) ? 'tienes ' + PROG.pot + ' · máx 3' : 'ver un anuncio'; }
@@ -2837,7 +2916,7 @@ function goFull() {
 }
 async function prep() { SFX.unlock(); goFull(); await look.requestGyro(); }
 
-$('btnVersus').onclick = async () => { await prep(); G.story = null; G.vsMode = true; vsHostStart(); };
+$('btnVersus').onclick = () => vsBotsPick(4, async () => { await prep(); G.story = null; G.vsMode = true; vsHostStart(); });
 $('vsMenu').onclick = () => toMenu('');
 $('vsAgain').onclick = () => { if (VSM.mode === 'guest') return; vsEnd(); vsHostStart(); };
 $('btnSolo').onclick = async () => { await prep(); G.story = null; G.mode = 'solo'; vehSelect(() => begin((Math.random() * 4294967296) >>> 0, 1, 0, 'solo')); };
@@ -2846,7 +2925,7 @@ $('btnHost').onclick = async () => {
   for (const s of document.querySelectorAll('.screen')) s.hidden = true;
   $('lobby').hidden = false;
   $('btnStart').hidden = false; $('btnStart').disabled = true;
-  $('btnMode').hidden = false; $('btnInvite').hidden = false; G.story = null; G.vsMode = false; $('btnMode').textContent = 'MODO: ARCADE';
+  $('btnMode').hidden = false; $('btnInvite').hidden = false; G.story = null; G.vsMode = false; $('btnMode').textContent = 'MODO: ARCADE'; $('btnBots').hidden = true;
   $('joinRow').hidden = true; $('lanList').hidden = true;
   const code = makeCode();
   $('lobbyCode').textContent = '····';

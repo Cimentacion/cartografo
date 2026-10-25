@@ -197,6 +197,12 @@ h1{margin:0;font:clamp(40px,9vw,78px)/.9 var(--f-title);font-style:italic;letter
 .vsSide b{font:13px var(--f-title)}.vsBar{width:min(22vw,180px);height:12px;background:#2a1a24;border-radius:3px;overflow:hidden}.vsBar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#3aff7a,#d8ff4a);transition:width .2s}.op .vsBar i{background:linear-gradient(270deg,#ff4a6a,#ffa04a);margin-left:auto}
 .vsSide em{position:absolute;top:100%;left:0;right:0;text-align:center;font:700 11px var(--f-ui);color:#ffb04a;font-style:normal;margin-top:3px}
 #vsSc{font:clamp(20px,4vw,30px) var(--f-title);color:#ffe14a;text-shadow:0 3px 0 #000}
+#vsOps{position:absolute;right:max(10px,env(safe-area-inset-right));top:52px;display:flex;flex-direction:column;gap:4px;z-index:5;pointer-events:none}body:not(.vsmode) #vsOps{display:none}
+.vsO{display:flex;align-items:center;gap:6px;background:rgba(8,6,16,.7);padding:3px 8px;border-radius:7px;border:2px solid var(--c);font:700 11px var(--f-ui);color:#fff}
+.vsO b{font:12px var(--f-title);color:var(--c);min-width:58px}.vsO .vsBar{width:min(14vw,110px);height:8px}.vsO .vsBar i{background:var(--c)}.vsO em{font-style:normal;color:#ffe14a;min-width:30px}.vsO.out{opacity:.45}
+#vsBotsScr{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:rgba(4,2,10,.72)}#vsBotsScr[hidden]{display:none}
+.vbBox{background:#141024;border:3px solid #ff5a8a;border-radius:12px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}.vbBox b{font:24px var(--f-title);color:#ff5a8a}.vbBox small{font:600 14px var(--f-ui);color:#fff}
+#vsBotsBtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 #vsPw{position:absolute;left:0;right:0;top:96px;text-align:center;font:700 13px var(--f-ui);color:#fff;text-shadow:0 2px 0 #000;pointer-events:none;z-index:5}#vsPw span{color:#ffb0c0}body:not(.vsmode) #vsPw{display:none}
 #vsCount{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);font:clamp(60px,14vw,120px) var(--f-title);color:#ffe14a;text-shadow:0 6px 0 #000}
 #vsCross{display:none;position:fixed;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border:2px solid rgba(255,255,255,.85);border-radius:50%;pointer-events:none;z-index:4;box-shadow:0 0 0 1px rgba(0,0,0,.5)}#vsCross i{position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;background:#ff3a5a;border-radius:50%}body.vsmode #vsCross{display:block}
@@ -678,10 +684,11 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
     <div id="vsHud" hidden>
       <div class="vsSide me"><b>TÚ</b><div class="vsBar"><i id="vsMeB"></i></div><span id="vsMeN">50</span><em id="vsMeW" hidden>🛞 PINCHADO</em></div>
       <div id="vsSc">0 - 0</div>
-      <div class="vsSide op"><b>RIVAL</b><div class="vsBar"><i id="vsOpB"></i></div><span id="vsOpN">50</span><em id="vsOpW" hidden>🛞 PINCHADO</em></div>
+
       <div id="vsCount"></div>
     </div>
     <div id="vsPw"></div>
+    <div id="vsOps"></div>
     <div id="vsHurt"></div><div id="vsCross"><i></i></div>
     <div id="vsEnd" hidden><b id="vsEndT"></b><span id="vsEndS"></span><div><button id="vsAgain" class="big">REVANCHA</button> <button id="vsMenu" class="big">MENÚ</button></div></div>
     <div id="style" hidden><div class="styTop"><b id="styR">D</b><span id="styN"></span></div><div class="styBar"><i id="styB"></i></div><small id="styM"></small><div id="styF"></div></div>
@@ -756,7 +763,7 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
         <button id="btnRetos" class="mmS">🏆 RETOS<i id="retosN" class="mmBadge" hidden></i></button>
         <button id="btnLoot" class="mmS">🎁 CAJAS<i id="lootN" class="mmBadge" hidden></i></button>
         <button id="btnStory" class="mmS">📖 HISTORIA <small id="storyN"></small></button>
-        <button id="btnVersus" class="mmS">⚔ VERSUS <small>vs máquina</small></button>
+        <button id="btnVersus" class="mmS">⚔ VERSUS <small>contra bots</small></button>
         <button id="btnDbgMaps" class="mmS" hidden>🛠 DEBUGMAPS</button>
         <button id="btnAdPot" class="mmS mmPot">🧪 POCIÓN GRATIS <small id="potN"></small></button>
       </div>
@@ -898,7 +905,7 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
         <div id="lbType" class="lbType"><button data-t="online"><b>🌍 ONLINE</b><small>Cualquier red, desde casa de cada uno</small></button><button data-t="lan"><b>🏠 WIFI LOCAL</b><small>Todos en la misma wifi: sin retraso</small></button></div>
         <div class="lbl" id="lbCodeLbl">CÓDIGO DE SALA</div>
         <div id="lobbyCode">····</div>
-        <div id="lbShareRow" class="row"><button id="lbCopy" class="mini">📋 COPIAR</button> <button id="lbShare" class="mini">📤 ENVIAR</button> <button id="btnMode" class="mini" hidden>MODO: ARCADE</button></div>
+        <div id="lbShareRow" class="row"><button id="lbCopy" class="mini">📋 COPIAR</button> <button id="lbShare" class="mini">📤 ENVIAR</button> <button id="btnMode" class="mini" hidden>MODO: ARCADE</button> <button id="btnBots" class="mini" hidden>BOTS: 0</button></div>
         <div id="lanList" hidden></div>
         <div id="joinRow" class="row" hidden><input id="codeIn" maxlength="4" autocomplete="off" spellcheck="false" placeholder="ABCD"><button id="btnGo" class="big">ENTRAR</button></div>
         <div id="lobbyMsg"></div>
@@ -935,5 +942,6 @@ body.nohud #hudwrap .pbox,body.nohud #route,body.nohud #mult,body.nohud #btnCal,
   <div id="err" hidden></div>
 </div>
 <script type="module" src="js/main.js"></script>
+    <div id="vsBotsScr" hidden><div class="vbBox"><b>VERSUS · TODOS CONTRA TODOS</b><small>¿Contra cuántos bots?</small><div id="vsBotsBtns"></div><button id="vsBotsNo" class="mini">CANCELAR</button></div></div>
 </body>
 </html>

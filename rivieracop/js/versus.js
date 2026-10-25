@@ -52,29 +52,31 @@ export const PW = {
   heal: ['¡+15 DE VIDA!', '', '#7dff8a'], flat: ['¡PINCHAZO!', 'Le revientas una rueda al rival', '#ff8a3d'], nade: ['¡GRANADA LISTA!', '', '#b48cff'], ammo: ['¡CARGADOR LLENO!', '', '#ffe14a'],
 };
 const RAND = ['turbo', 'dmg', 'shield', 'heal', 'flat', 'nade', 'ammo', 'turbo', 'shield'];
+// salidas de cada coche (hasta 5): la parte de fuera de cada círculo, y el quinto por dentro del primero
+const STARTS = [[0, 1.25, 1], [3, 0.25, 1], [1, 1.75, 1], [2, 0.75, 1], [0, 0.25, -1]];
+// TODOS CONTRA TODOS: de 2 a 5 coches (jugadores o bots). Cada ronda gana el último que queda; gana la partida el primero en VWIN rondas.
 export class VsSim {
-  constructor(seed) {
-    this.seed = seed; this.score = [0, 0]; this.round = 0; this.events = [];
+  constructor(seed, n = 2) {
+    this.seed = seed; this.n = Math.max(2, Math.min(5, n | 0)); this.score = new Array(this.n).fill(0); this.round = 0; this.events = [];
     this.newRound();
   }
   newRound() {
     this.round++;
-    this.P = [
-      { c: 0, th: Math.PI * 1.25, s: 1, v: 0, hp: VHP, flatT: 0, immT: 0, choice: 0, cd: 0 },
-      { c: 3, th: Math.PI * 0.25, s: 1, v: 0, hp: VHP, flatT: 0, immT: 0, choice: 0, cd: 0 },
-    ];
-    for (const P of this.P) { P.boostT = 0; P.dmgT = 0; P.shT = 0; }
+    this.P = [];
+    for (let i = 0; i < this.n; i++) { const S = STARTS[i]; this.P.push({ c: S[0], th: Math.PI * S[1], s: S[2], v: 0, hp: VHP, flatT: 0, immT: 0, choice: 0, cd: 0, boostT: 0, dmgT: 0, shT: 0, out: 0 }); }
     this.B = BOXES.map(() => 0);
     this.phase = 'count'; this.t = 3;
     this.emit('round', { r: this.round });
   }
   emit(k, o = {}) { this.events.push(Object.assign({ k }, o)); }
+  alive() { const L = []; for (let i = 0; i < this.P.length; i++) if (!this.P[i].out) L.push(i); return L; }
   step(dt) {
     if (this.phase === 'count') { this.t -= dt; if (this.t <= 0) { this.phase = 'run'; this.emit('go'); } return; }
-    if (this.phase === 'ko') { this.t -= dt; if (this.t <= 0) { if (Math.max(...this.score) >= VWIN) { this.phase = 'end'; this.emit('end', { w: this.score[0] >= VWIN ? 0 : 1 }); } else this.newRound(); } return; }
+    if (this.phase === 'ko') { this.t -= dt; if (this.t <= 0) { const best = Math.max(...this.score); if (best >= VWIN) { this.phase = 'end'; this.emit('end', { w: this.score.indexOf(best) }); } else this.newRound(); } return; }
     if (this.phase !== 'run') return;
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < this.P.length; i++) {
       const P = this.P[i];
+      if (P.out) { P.v = 0; continue; }
       if (P.flatT > 0) { P.flatT -= dt; if (P.flatT <= 0) { P.immT = 3.5; this.emit('fixed', { p: i }); } }
       if (P.immT > 0) P.immT -= dt;
       if (P.boostT > 0) P.boostT -= dt; if (P.dmgT > 0) P.dmgT -= dt; if (P.shT > 0) P.shT -= dt;
@@ -91,26 +93,14 @@ export class VsSim {
         P.th = wrap(P.th + P.s * 0.02); rem = Math.max(0, rem - 0.02 * VR);
       }
     }
-    this.collide();
+    const L = this.alive();
+    for (let a = 0; a < L.length; a++) for (let b = a + 1; b < L.length; b++) this.collide(this.P[L[a]], this.P[L[b]]);
     for (let i = 0; i < this.B.length; i++) if (this.B[i] > 0) this.B[i] = Math.max(0, this.B[i] - dt);
-  }
-  // alguien ha disparado a un cubo: se lo lleva (si está)
-  take(p, id) {
-    if (this.phase !== 'run' || !BOXES[id] || this.B[id] > 0) return;
-    this.B[id] = BOXRESP;
-    const b = BOXES[id], P = this.P[p], O = this.P[1 - p];
-    const w = b.k === 'rand' ? RAND[Math.floor(Math.random() * RAND.length)] : b.k;
-    if (w === 'turbo') { P.boostT = 3.5; P.v = Math.max(P.v, VSPEED * 1.3); }
-    else if (w === 'dmg') P.dmgT = 12;
-    else if (w === 'shield') P.shT = 10;
-    else if (w === 'heal') P.hp = Math.min(VHP, P.hp + 15);
-    else if (w === 'flat') { if (O.flatT <= 0 && O.immT <= 0 && O.shT <= 0) { O.flatT = 3; this.emit('flat', { p: 1 - p }); } }
-    this.emit('pw', { p, w, b: id });
   }
   // los coches no se atraviesan: si uno va hacia el otro, choca y se queda pegado detrás;
   // de frente, los dos rebotan y dan media vuelta (si no, se quedarían bloqueados para siempre)
-  collide() {
-    const A = this.P[0], B = this.P[1], a = carPose(A), b = carPose(B);
+  collide(A, B) {
+    const a = carPose(A), b = carPose(B);
     const dx = b.x - a.x, dz = b.z - a.z, d = Math.hypot(dx, dz), D = 5.4;
     if (d >= D || d < 1e-4) return;
     const aTo = (a.hx * dx + a.hz * dz) / d > 0.3, bTo = -(b.hx * dx + b.hz * dz) / d > 0.3;
@@ -118,37 +108,61 @@ export class VsSim {
     const back = (P, k) => { P.th = wrap(P.th - P.s * k / VR); };
     if (aTo && bTo) {
       back(A, pen / 2 + 0.2); back(B, pen / 2 + 0.2);
-      if (A.v + B.v > 1) { A.s = -A.s; B.s = -B.s; A.v = Math.min(A.v, 3); B.v = Math.min(B.v, 3); A.choice = B.choice = 0; this.emit('crash', { s: 1 }); }
+      if (A.v + B.v > 1) { A.s = -A.s; B.s = -B.s; A.v = Math.min(A.v, 3); B.v = Math.min(B.v, 3); A.choice = B.choice = 0; this.emit('crash', { s: 1, a: this.P.indexOf(A), b: this.P.indexOf(B) }); }
       return;
     }
-    // el de atrás (el que va hacia el otro) se come el golpe
     const R = aTo ? A : bTo ? B : null, F = R === A ? B : A;
     if (!R) { back(A, -pen / 2); back(B, -pen / 2); return; }
     back(R, pen);
-    if (R.v > F.v + 2) this.emit('crash', { s: 0 });
+    if (R.v > F.v + 2) this.emit('crash', { s: 0, a: this.P.indexOf(A), b: this.P.indexOf(B) });
     R.v = Math.min(R.v, F.v);
   }
-  hit(from, part, dmg) {
+  // el rival vivo más cercano a p (para el pinchazo de la caja sorpresa)
+  nearest(p) {
+    const a = carPose(this.P[p]); let best = -1, bd = 1e9;
+    for (const i of this.alive()) { if (i === p) continue; const b = carPose(this.P[i]), d = Math.hypot(a.x - b.x, a.z - b.z); if (d < bd) { bd = d; best = i; } }
+    return best;
+  }
+  take(p, id) {
+    if (this.phase !== 'run' || !BOXES[id] || this.B[id] > 0 || !this.P[p] || this.P[p].out) return;
+    this.B[id] = BOXRESP;
+    const b = BOXES[id], P = this.P[p];
+    const w = b.k === 'rand' ? RAND[Math.floor(Math.random() * RAND.length)] : b.k;
+    let to = -1;
+    if (w === 'turbo') { P.boostT = 3.5; P.v = Math.max(P.v, VSPEED * 1.3); }
+    else if (w === 'dmg') P.dmgT = 12;
+    else if (w === 'shield') P.shT = 10;
+    else if (w === 'heal') P.hp = Math.min(VHP, P.hp + 15);
+    else if (w === 'flat') { to = this.nearest(p); const O = this.P[to]; if (O && O.flatT <= 0 && O.immT <= 0 && O.shT <= 0) { O.flatT = 3; this.emit('flat', { p: to }); } }
+    this.emit('pw', { p, w, b: id, to });
+  }
+  hit(from, to, part, dmg) {
     if (this.phase !== 'run') return;
-    const T = this.P[1 - from];
-    if (this.P[from].dmgT > 0) dmg *= 2;
+    const T = this.P[to], F = this.P[from];
+    if (!T || !F || T.out || F.out || to === from) return;
+    if (F.dmgT > 0) dmg *= 2;
     if (T.shT > 0) dmg *= 0.4;
     if (part === 'wheel') {
-      if (T.flatT <= 0 && T.immT <= 0 && T.shT <= 0) { T.flatT = 3; this.emit('flat', { p: 1 - from }); }
+      if (T.flatT <= 0 && T.immT <= 0 && T.shT <= 0) { T.flatT = 3; this.emit('flat', { p: to }); }
       dmg *= 0.5;
     }
     T.hp = Math.max(0, T.hp - dmg);
-    this.emit('dmg', { p: 1 - from, d: Math.round(dmg * 10) / 10 });
-    if (T.hp <= 0) { this.score[from]++; this.phase = 'ko'; this.t = 3; this.emit('ko', { w: from, sc: this.score.slice() }); }
+    this.emit('dmg', { p: to, f: from, d: Math.round(dmg * 10) / 10 });
+    if (T.hp <= 0) {
+      T.out = 1; T.v = 0;
+      this.emit('out', { p: to, by: from });
+      const L = this.alive();
+      if (L.length <= 1) { const w = L.length ? L[0] : from; this.score[w]++; this.phase = 'ko'; this.t = 3; this.emit('ko', { w, sc: this.score.slice() }); }
+    }
   }
   choose(p, c) { if (this.P[p]) this.P[p].choice = c ? 1 : 0; }
   snapshot() {
     const r2 = v => Math.round(v * 1000) / 1000;
-    return { t: 'vss', ph: this.phase, tt: r2(this.t), sc: this.score, rd: this.round, P: this.P.map(P => [P.c, r2(P.th), P.s, r2(P.v), r2(P.hp), r2(P.flatT), r2(P.immT), P.choice, r2(P.boostT), r2(P.dmgT), r2(P.shT)]), B: this.B.map(v => Math.round(v * 10) / 10) };
+    return { t: 'vss', ph: this.phase, tt: r2(this.t), sc: this.score, rd: this.round, P: this.P.map(P => [P.c, r2(P.th), P.s, r2(P.v), r2(P.hp), r2(P.flatT), r2(P.immT), P.choice, r2(P.boostT), r2(P.dmgT), r2(P.shT), P.out]), B: this.B.map(v => Math.round(v * 10) / 10) };
   }
   static apply(snap, into) {
     into.phase = snap.ph; into.t = snap.tt; into.score = snap.sc; into.round = snap.rd;
-    into.P = snap.P.map(a => ({ c: a[0], th: a[1], s: a[2], v: a[3], hp: a[4], flatT: a[5], immT: a[6], choice: a[7], boostT: a[8] || 0, dmgT: a[9] || 0, shT: a[10] || 0 }));
+    into.P = snap.P.map(a => ({ c: a[0], th: a[1], s: a[2], v: a[3], hp: a[4], flatT: a[5], immT: a[6], choice: a[7], boostT: a[8] || 0, dmgT: a[9] || 0, shT: a[10] || 0, out: a[11] || 0 }));
     into.B = snap.B || BOXES.map(() => 0);
   }
 }
