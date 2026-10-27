@@ -206,7 +206,7 @@ for(let z=0;z<H;z++)for(let x=0;x<W;x++){
   else if(c==='$'){ poisonFog.add(i); base[i]=floorNear(x,z); }
   else { base[i]=c; if(c==='D'||DOORKEY[c])doors.push({id:i,x,z,metal:DOORKEY[c]||null}); if(c==='B')cracks.push({id:i,x,z}); if(c==='S')chapels.push({id:i,x,z});
     if(c==='L')levers.push({id:i,x,z,blk:areaKey(x,z)}); if(c==='G'||c==='I')gates.push({id:i,x,z,blk:areaKey(x,z),init:c==='I'});
-    if(c==='J')spikes.push({id:i,x,z}); if(c==='U')crumbles.push({id:i,x,z}); if(c==='C')stations.push({id:i,x,z}); if(c==='Z')portals.push({id:i,x,z}); if(c==='M')merchants.push({id:i,x,z,shop:blockAt(x,z)}); if(c==='V')secretWalls.push({id:i,x,z}); if('12346'.includes(c)) specials.push({id:i,x,z,c}); if(c==='5') warpPads.push({id:i,x,z}); }
+    if(c==='J')spikes.push({id:i,x,z}); if(c==='U')crumbles.push({id:i,x,z}); if(c==='C')stations.push({id:i,x,z}); if(c==='Z')portals.push({id:i,x,z}); if(c==='M')merchants.push({id:i,x,z,shop:'m'+i,area:blockAt(x,z)}); if(c==='V')secretWalls.push({id:i,x,z}); if('12346'.includes(c)) specials.push({id:i,x,z,c}); if(c==='5') warpPads.push({id:i,x,z}); }
 }
 const theme=(x,z)=>(AREAS[areaKey(x,z)]||{t:'forest'}).t;
 const gateById=new Map(gates.map(g=>[g.id,g]));
@@ -254,7 +254,7 @@ const warps=[];
 
 // ======================= ESTADO =======================
 const need=l=>Math.round(5+3*(l-1)+(l-1)*(l-1)/2);
-const S={x:0,z:0,hp:5,max:5,atk:1,lvl:1,exp:0,pending:0,powers:new Set(),taken:new Set(),killed:new Set(),opened:new Set(),broken:new Set(),marks:new Map(),levers:new Set(),secrets:new Set(),warps:new Set(),wild:2,playTime:0,gold:0,pots:0,elix:0,bought:new Set(),lamp:false,candil:false,bombs:0,bombMax:5,bombDmg:5,cut:new Set(),oil:0,torches:new Set(),burnt:new Set(),keys:{'7':0,'8':0,'9':0},
+const S={x:0,z:0,hp:5,max:5,atk:1,lvl:1,exp:0,pending:0,powers:new Set(),taken:new Set(),killed:new Set(),opened:new Set(),broken:new Set(),marks:new Map(),levers:new Set(),secrets:new Set(),warps:new Set(),wild:2,playTime:0,gold:0,pots:0,elix:0,bought:new Set(),lamp:false,candil:false,bombs:0,bombMax:5,bombDmg:5,cut:new Set(),oil:0,torches:new Set(),burnt:new Set(),buys:{},stock:{},keys:{'7':0,'8':0,'9':0},
   explored:new Uint8Array(W*H),dead:false,area:'',ride:null,warp:false,prevX:0,prevZ:0,spikeHit:''};
 const crumble=new Map(), temp=new Map();
 const gateOpen=i=>{ const g=gateById.get(i); if(g.lv) return g.init!==(g.lv.filter(k=>S.levers.has(k)).length%2===1); return g.init!==S.levers.has(g.blk); };
@@ -382,6 +382,10 @@ const caveTex=pxTex(32,(put,get,n)=>{
   for(let k=0;k<14;k++){ const x=R()*n|0, y=R()*n|0; put(x,y,90,82,66); }
   grime(put,get,n,16,5,[34,48,22]); grime(put,get,n,6,4,[70,46,20]); grime(put,get,n,0,3,[16,14,12]);
 });
+const limeTex=pxTex(32,(put,get,n)=>{ for(let y=0;y<n;y++)for(let x=0;x<n;x++){ let v=150+R()*14; if(y%16===0||((x+(y<16?0:8))%16===0)) v*=0.72; put(x,y,v,v*0.97,v*0.9); }
+  for(let k=0;k<9;k++){ const cx=R()*n, cy=R()*n, rad=1+R()*2.5, g=R()<.5; for(let y=-4;y<=4;y++)for(let x=-4;x<=4;x++){ if(Math.hypot(x,y)>rad||R()<.3) continue; const [r,gg,b]=get(cx+x|0,cy+y|0);
+    put(cx+x|0,cy+y|0,g?r*0.7:r*0.85,g?gg*0.78:gg*0.83,g?b*0.62:b*0.8); } }
+  grime(put,get,n,8,3,[70,72,60]); });
 const rockTex=pxTex(16,(put,get,n)=>{
   for(let y=0;y<n;y++)for(let x=0;x<n;x++){ const v=95+R()*45; put(x,y,v,v*0.97,v*0.93); }
   for(let k=0;k<3;k++){ let x=R()*n|0, y=R()*n|0; for(let s=0;s<7;s++){ put(x,y,35,33,32); x+=(R()*3|0)-1; y+=1; } }
@@ -460,7 +464,7 @@ const FLOOR={forest:{'.':0x141418,',':0x10190f},village:{'.':0x17140f,',':0x1712
   marble:{'.':0x2a2830,',':0x3a0c14},library:{'.':0x22180f,',':0x2a1a10},lab:{'.':0x18201a,',':0x18201a},cavern:{'.':0x121418,',':0x121418},
   bones:{'.':0x1a1814,',':0x1a1814},clock:{'.':0x221c16,',':0x221c16},colosseum:{'.':0x2e2618,',':0x332a1c},mine:{'.':0x1c1712,',':0x1c1712},
   chapel:{'.':0x1e1a26,',':0x2a0c18},deathtower:{'.':0x1c1418,',':0x1c1418},throne:{'.':0x1c1820,',':0x3a0a12},rampart:{'.':0x1a1e18,',':0x1a1e18},
-  city:{'.':0x1e1c1a,',':0x22201c}, garden:{'.':0x18261a,',':0x2a2620}, thick:{'.':0x0e130c,',':0x0b1409}, deepcave:{'.':0x17120d,',':0x120f0b}, manor:{'.':0x221610,',':0x3a0a10}, sewer:{'.':0x141a12,',':0x141a12}, secret:{'.':0x120c14,',':0x120c14}};
+  city:{'.':0x1e1c1a,',':0x22201c}, garden:{'.':0x18261a,',':0x2a2620}, thick:{'.':0x0e130c,',':0x0b1409}, cemetery:{'.':0x1e1c1f,',':0x151a13}, deepcave:{'.':0x17120d,',':0x120f0b}, manor:{'.':0x221610,',':0x3a0a10}, sewer:{'.':0x141a12,',':0x141a12}, secret:{'.':0x120c14,',':0x120c14}};
 const FLOOR_TEX=(t,c)=> t==='desert'?'sand' : t==='circus'?(c===','?'sand':'wood') : (t==='castle'||t==='tomb'||t==='weird')?(c===','?'dirt':'flag') : (c===':'?'wood':'dirt');
 const LIQ='~^%';
 const isLiqTile=(x,z,c)=>{ if(x<0||z<0||x>=W||z>=H) return false; const t=base[idx(x,z)];
@@ -574,9 +578,9 @@ function updateLiquids(t,px,pz){ liqMats.forEach(m=>{ m.uniforms.uTime.value=t%6
   ffGeo.attributes.position.needsUpdate=true; ffMat.opacity=0.55+Math.sin(t*3)*0.25; }
 
 // ---- niebla que se despeja a tu paso ----
-const MIST_BASE={deepcave:0.85,thick:1.0,forest:0.95,river:0.9,cliff:0.8,village:0.8,castle:0.35,weird:0.7,desert:0.45,tomb:0.4,circus:0.85,marble:0.2,library:0.3,lab:0.7,cavern:0.8,bones:0.75,clock:0.3,colosseum:0.35,mine:0.6,chapel:0.4,deathtower:0.55,throne:0.5,rampart:0.7,city:0.9,garden:0.6,manor:0.3,secret:0.7,sewer:0.85};
+const MIST_BASE={cemetery:0.9,deepcave:0.85,thick:1.0,forest:0.95,river:0.9,cliff:0.8,village:0.8,castle:0.35,weird:0.7,desert:0.45,tomb:0.4,circus:0.85,marble:0.2,library:0.3,lab:0.7,cavern:0.8,bones:0.75,clock:0.3,colosseum:0.35,mine:0.6,chapel:0.4,deathtower:0.55,throne:0.5,rampart:0.7,city:0.9,garden:0.6,manor:0.3,secret:0.7,sewer:0.85};
 const MIST_PURPLE=[118,72,160];
-const MIST_COL0={deepcave:[62,56,40],thick:[52,74,66],forest:[70,82,96],river:[66,84,104],cliff:[78,80,86],village:[86,82,76],castle:[70,66,80],weird:[96,64,124],desert:[150,128,96],tomb:[100,86,62],circus:[70,120,52],marble:[90,90,110],library:[90,74,58],lab:[60,120,70],cavern:[50,70,100],bones:[90,86,70],clock:[96,84,70],colosseum:[120,100,70],mine:[80,70,60],chapel:[90,70,120],deathtower:[110,50,60],throne:[100,40,60],rampart:[70,90,80],city:[80,90,80],garden:[70,100,80],manor:[90,70,70],sewer:[70,110,70],secret:[120,40,80]};
+const MIST_COL0={cemetery:[82,82,98],deepcave:[62,56,40],thick:[52,74,66],forest:[70,82,96],river:[66,84,104],cliff:[78,80,86],village:[86,82,76],castle:[70,66,80],weird:[96,64,124],desert:[150,128,96],tomb:[100,86,62],circus:[70,120,52],marble:[90,90,110],library:[90,74,58],lab:[60,120,70],cavern:[50,70,100],bones:[90,86,70],clock:[96,84,70],colosseum:[120,100,70],mine:[80,70,60],chapel:[90,70,120],deathtower:[110,50,60],throne:[100,40,60],rampart:[70,90,80],city:[80,90,80],garden:[70,100,80],manor:[90,70,70],sewer:[70,110,70],secret:[120,40,80]};
 const MIST_COL={}; for(const k in MIST_COL0) MIST_COL[k]=MIST_COL0[k].map((v,i)=>Math.round(v*0.6+MIST_PURPLE[i]*0.4));
 const fogBase=new Float32Array(W*H), fogD=new Float32Array(W*H), fogData=new Uint8Array(W*H*4);
 for(let z=0;z<H;z++)for(let x=0;x<W;x++){ const i=idx(x,z), t=theme(x,z); fogBase[i]=fogD[i]=MIST_BASE[t]??0.6;
@@ -729,7 +733,7 @@ function fence(x,z,face){ const [dx,dz]=face; const along=dx===0?0:Math.PI/2; co
 // jardines: los grupos de muro sueltos de hasta 3x3 son parterres (setos, árboles, flores, estatuas); el resto, muro de palacio
 const gardenIsl=new Map();
 { const seen=new Uint8Array(W*H); let nid=0;
-  for(let z0=0;z0<H;z0++)for(let x0=0;x0<W;x0++){ const i0=idx(x0,z0); if(seen[i0]||base[i0]!=='#'||(theme(x0,z0)!=='garden'&&theme(x0,z0)!=='thick'&&theme(x0,z0)!=='deepcave')) continue;
+  for(let z0=0;z0<H;z0++)for(let x0=0;x0<W;x0++){ const i0=idx(x0,z0); if(seen[i0]||base[i0]!=='#'||(theme(x0,z0)!=='garden'&&theme(x0,z0)!=='thick'&&theme(x0,z0)!=='deepcave'&&theme(x0,z0)!=='cemetery')) continue;
     const comp=[], st=[[x0,z0]]; seen[i0]=1; let ok=true;
     while(st.length){ const [x,z]=st.pop(); comp.push([x,z]); if(comp.length>9) ok=false;
       for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nx=x+dx,nz=z+dz; if(nx<0||nz<0||nx>=W||nz>=H){ ok=false; continue; } const j=idx(nx,nz);
@@ -777,6 +781,69 @@ function gardenBed(x,z,isl){
     if(edge&&isl.kind===2) hedges.push({m:mat(x,0.4,z,0.9,0.36,0.9),c:jit(0x1c2c1e,.15)});
     for(let k=0;k<7;k++) flowers.push({m:mat(x+(rnd()-.5)*.75,0.3,z+(rnd()-.5)*.75,1.3,1.3,1.3),c:deadBloom()});
     for(let k=0;k<3;k++) grass.push({m:mat(x+(rnd()-.5)*.7,0.32,z+(rnd()-.5)*.7,1.4,1.2,1.4,rnd()*6),c:jit(0x2a3424,.3)}); } }
+// ---- cementerio: muros de nichos con arcos, tumbas, farolas y panteones ----
+const cemStone=[], cemDark=[], cemBillet=[], cemDisc=[], lampMetal=[], lampLight=[], lampGlows=[], cemLamps=[];
+const cemCol=()=>jit(0xb4aa98,.1);
+// pieza en la cara de un muro: u = a lo largo del muro, d = cuánto sale hacia fuera
+function facePiece(list,x,z,dx,dz,u,y,w,h,d,c,off){ const ox=dx*(0.5+d/2+(off||0)), oz=dz*(0.5+d/2+(off||0)); const tx=dz?1:0, tz=dx?1:0;
+  list.push({m:mat(x+ox+tx*u,y,z+oz+tz*u,dx?d:w,h,dx?w:d),c}); }
+function faceDark(x,z,dx,dz,u,y,w,h,c){ const tx=dz?1:0, tz=dx?1:0; cemDark.push({m:mat(x+dx*0.506+tx*u,y,z+dz*0.506+tz*u,w,h,1,Math.atan2(dx,dz)),c}); }
+function nicheRow(x,z,dx,dz,y0){
+  facePiece(cemStone,x,z,dx,dz,0,y0+0.02,0.86,0.06,0.05,jit(0xd8d0c0,.05));              // repisa
+  faceDark(x,z,dx,dz,0,y0+0.36,0.64,0.64,hex(0x0e0c10));          // hueco del nicho
+  facePiece(cemStone,x,z,dx,dz,-0.37,y0+0.36,0.09,0.72,0.07,jit(0xd8d0c0,.05));            // jambas
+  facePiece(cemStone,x,z,dx,dz,0.37,y0+0.36,0.09,0.72,0.07,jit(0xd8d0c0,.05));
+  const cy=y0+0.66; for(let k=0;k<=8;k++){ const a=Math.PI*k/8, u=Math.cos(a)*0.36, y=cy+Math.sin(a)*0.3;   // arco ajedrezado
+    facePiece(cemBillet,x,z,dx,dz,u,y,0.09,0.09,k%2?0.1:0.05,jit(k%2?0xe2dac8:0x5a5248,.08)); }
+  faceDark(x,z,dx,dz,0,cy+0.08,0.5,0.22,hex(0x100e10));            // tímpano oscuro
+  if(rnd()<.75){ const tx=dz?1:0, tz=dx?1:0; const px=x+dx*0.53, pz=z+dz*0.53;          // medallón con cruz
+    cemDisc.push({m:mat(px,y0+0.38,pz,0.36,0.05,0.36,0,dz?Math.PI/2:0,dx?Math.PI/2:0),c:jit(0xcfc6b2,.08)});
+    facePiece(cemBillet,x,z,dx,dz,0,y0+0.38,0.04,0.22,0.06,hex(0x5a5246),0.02); facePiece(cemBillet,x,z,dx,dz,0,y0+0.42,0.16,0.04,0.06,hex(0x5a5246),0.02); }
+  if(rnd()<.18){ const px=x+dx*0.62+(dz?(rnd()-.5)*.4:0), pz=z+dz*0.62+(dx?(rnd()-.5)*.4:0);   // velas al pie
+    candles.push({m:mat(px,y0+0.05,pz,1,0.25,1),c:hex(0xd8d0c0)}); flames.push({m:mat(px,y0+0.2,pz,0.6,0.6,0.6,rnd()*6),c:jit(0xffb060,.2)}); } }
+function cemWall(x,z,faces){ const h=2.75; cemStone.push({m:mat(x,h/2,z,1,h,1),c:jit(0x9e9484,.08)});
+  for(const [dx,dz] of faces){ nicheRow(x,z,dx,dz,0.12); nicheRow(x,z,dx,dz,1.42);
+    facePiece(cemStone,x,z,dx,dz,0,1.3,1.02,0.1,0.14,jit(0xc2b8a6,.06));   // cornisa
+    facePiece(cemStone,x,z,dx,dz,0,2.7,1.02,0.12,0.16,jit(0xc2b8a6,.06));
+    if(rnd()<.3) moss.push({m:mat(x+dx*0.5,0.1,z+dz*0.5,0.8,0.12,0.4,rnd()*6),c:jit(0x2a3a24,.4)}); } }
+function cemLamp(x,z){ const g=jit(0x1e4a32,.15);
+  lampMetal.push({m:mat(x,0.15,z,0.36,0.3,0.36),c:g}); lampMetal.push({m:mat(x,0.34,z,0.26,0.1,0.26),c:g});
+  lampMetal.push({m:mat(x,1.3,z,0.1,2.0,0.1),c:g}); lampMetal.push({m:mat(x,0.75,z,0.16,0.18,0.16),c:g}); lampMetal.push({m:mat(x,2.28,z,0.18,0.06,0.18),c:g});
+  for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]]) lampMetal.push({m:mat(x+a*0.12,2.32,z+b*0.12,a?0.2:0.03,0.03,b?0.2:0.03),c:g});
+  lampLight.push({m:mat(x,2.5,z,0.24,0.32,0.24),c:hex(0xf4f6ff)});
+  for(const [a,b] of [[1,1],[1,-1],[-1,1],[-1,-1]]) lampMetal.push({m:mat(x+a*0.12,2.5,z+b*0.12,0.03,0.36,0.03),c:g});
+  lampMetal.push({m:mat(x,2.74,z,0.36,0.14,0.36,Math.PI/4),c:g}); lampMetal.push({m:mat(x,2.85,z,0.05,0.12,0.05),c:g});
+  lampGlows.push({m:mat(x,0.025,z,1,1,1),c:hex(0xffffff)}); lampGlows.push({m:mat(x,2.5,z,0.32,0.32,0.32,0,-Math.PI/2),c:hex(0xffffff)});
+  cemLamps.push([x,z]); }
+function cemTomb(x1,z1,horiz){ const cx=x1+(horiz?0.5:0), cz=z1+(horiz?0:0.5), L=1.85, W=0.9, ry=horiz?0:Math.PI/2;
+  const box=(u,v,y,l,h,w,c)=>{ const px=cx+(horiz?u:v), pz=cz+(horiz?v:u); cemStone.push({m:mat(px,y,pz,horiz?l:w,h,horiz?w:l),c}); };
+  box(0,0,0.15,L+0.1,0.3,W+0.1,jit(0x8a8070,.1)); box(0,0,0.42,L,0.24,W,cemCol()); box(0,0,0.58,L-0.1,0.08,W-0.1,jit(0xc8bea8,.06));
+  box(-L/2+0.12,0,0.95,0.14,0.8,W*0.8,cemCol()); box(-L/2+0.12,0,1.48,0.1,0.42,0.1,jit(0x8a8070,.1)); box(-L/2+0.12,0,1.55,0.1,0.08,0.34,jit(0x8a8070,.1));
+  if(rnd()<.5) for(let k=0;k<4;k++) flowers.push({m:mat(cx+(rnd()-.5)*0.8,0.64,cz+(rnd()-.5)*0.4,1,1,1),c:pick([hex(0x6a1018),hex(0xd8d0c0),hex(0x3a1030)])}); }
+function cemPantheon(cx,cz,sc,fx,fz){ // fx,fz: hacia dónde mira la puerta
+  const P=(u,v,y,a,h,b,c,list)=>{ const px=cx+(fx?v:u)*sc*(fx||1)/(fx||1), pz=cz+(fz?v:u)*sc; (list||cemStone).push({m:mat(fx?cx+v*sc*fx:cx+u*sc, y*sc, fz?cz+v*sc*fz:cz+u*sc, (fx?b:a)*sc, h*sc, (fx?a:b)*sc),c}); };
+  P(0,0,0.12,1.95,0.24,1.95,jit(0x8a8070,.08)); P(0,0.2,0.32,1.7,0.18,1.55,jit(0x9a9080,.08));
+  P(0,-0.1,1.35,1.45,1.9,1.45,jit(0xc0b6a4,.06));                       // cuerpo
+  P(0,-0.1,2.38,1.6,0.16,1.6,jit(0xd0c6b2,.05));                        // cornisa
+
+  P(0,0.66,1.15,0.46,1.2,0.03,jit(0x2a3036,.1),lampMetal);
+  for(const u of [-0.6,0.6]){ P(u,0.68,1.3,0.18,2.0,0.18,jit(0xd8cebc,.05)); P(u,0.68,2.33,0.26,0.1,0.26,jit(0xd8cebc,.05)); }
+  // frontón triangular
+  const ry=fx?(fx>0?Math.PI/2:-Math.PI/2):(fz>0?0:Math.PI);
+  cemStone.push({m:mat(cx+(fx||0)*(-0.1)*sc,2.62*sc,cz+(fz||0)*(-0.1)*sc,1.55*sc,0.45*sc,1.5*sc,ry),c:jit(0xc8bea8,.05),tri:1});
+  cemBillet.push({m:mat(cx+(fx||0)*(-0.1)*sc,3.0*sc,cz+(fz||0)*(-0.1)*sc,0.1*sc,0.5*sc,0.1*sc),c:jit(0x8a8070,.1)});
+  cemBillet.push({m:mat(cx+(fx||0)*(-0.1)*sc,3.1*sc,cz+(fz||0)*(-0.1)*sc,(fz?0.34:0.1)*sc,0.1*sc,(fx?0.34:0.1)*sc),c:jit(0x8a8070,.1)});
+  moss.push({m:mat(cx,0.25,cz,1.2*sc,0.1,1.2*sc,rnd()*6),c:jit(0x2a3a24,.4)}); }
+function cemIsland(x,z,isl){ cemStone.push({m:mat(x,-0.04,z,0.98,0.1,0.98),c:jit(0x4a4640,.12)}); if(isl.done) return; isl.done=true;
+  // la puerta del panteón mira al lado con más suelo libre
+  const openSide=()=>{ let best=[0,1], bn=-1; for(const [fx,fz] of [[0,1],[0,-1],[1,0],[-1,0]]){ let n=0;
+      for(let k=-1;k<=isl.w;k++)for(let j=-1;j<=isl.h;j++){ const tx=isl.x1+k+fx*2, tz=isl.z1+j+fz*2; if(walkAt(tx,tz)) n++; } if(n>bn){ bn=n; best=[fx,fz]; } } return best; };
+  if(isl.n===1) cemLamp(x,z);
+  else if(isl.n===2) cemTomb(isl.x1,isl.z1,isl.w===2);
+  else if(isl.w===2&&isl.h===2){ const [fx,fz]=openSide(); cemPantheon(isl.cx,isl.cz,1,fx,fz); }
+  else if(isl.w===3&&isl.h===3){ const [fx,fz]=openSide(); cemPantheon(isl.cx,isl.cz,1.35,fx,fz); }
+  else if(isl.w===1||isl.h===1){ cemTomb(isl.x1,isl.z1,isl.w>1); cemLamp(isl.x1+(isl.w-1),isl.z1+(isl.h-1)); }
+  else { const [fx,fz]=openSide(); cemPantheon(isl.cx,isl.cz,isl.n>=6?1.15:1,fx,fz); } }
 // ---- cueva peligrosa: roca en lajas sucia, estalagmitas, babas y huesos ----
 const caveSpikes=[], hangers=[], puddles=[], slabs=[], slime=[], gravel=[], mudBanks=[];
 const muck=()=>pick([hex(0x2a2416),hex(0x22200f),hex(0x1c1a14),hex(0x30261a)]);
@@ -820,6 +887,8 @@ function thickIsland(x,z,isl){ if(isl.done) return; isl.done=true;
     for(let k=0;k<4;k++) bush(isl.x1+rnd()*(isl.w-1),isl.z1+rnd()*(isl.h-1),'thick',0.6); } }
 for(let z=0;z<H;z++)for(let x=0;x<W;x++){ const c=base[idx(x,z)]; if(!'#hR'.includes(c)||(!nearOpen(x,z)&&!gardenIsl.has(idx(x,z))))continue;
   const t=theme(x,z);
+  if(t==='cemetery'&&c==='#'){ const isl=gardenIsl.get(idx(x,z)); if(isl){ cemIsland(x,z,isl); continue; }
+    cemWall(x,z,DIRS.filter(([dx,dz])=>walkAt(x+dx,z+dz))); continue; }
   if(t==='deepcave'&&c==='#'){ const isl=gardenIsl.get(idx(x,z)); if(isl){ caveIsland(x,z,isl); continue; }
     caveWall(x,z,DIRS.filter(([dx,dz])=>walkAt(x+dx,z+dz))); continue; }
   if(t==='thick'&&c==='#'){ const isl=gardenIsl.get(idx(x,z)); if(isl){ thickIsland(x,z,isl); continue; }
@@ -927,6 +996,10 @@ const occ=new Set([...enemies.map(e=>e.id),...items.map(i=>i.id),...chapels.map(
 for(let z=0;z<H;z++)for(let x=0;x<W;x++){ const i=idx(x,z), c=base[i]; if(!'.,:'.includes(c)||occ.has(i))continue;
   const t=theme(x,z); const wallN=DIRS.some(([dx,dz])=>'#hR'.includes(base[idx(x+dx,z+dz)]||'#'));
   const r=rnd();
+  if(t==='cemetery'){ if(r<.22){ for(let k=0;k<3;k++) gravel.push({m:mat(x+(rnd()-.5)*.85,0.03,z+(rnd()-.5)*.85,0.07+rnd()*0.1,0.04+rnd()*0.04,0.06+rnd()*0.1,rnd()*6,rnd(),rnd()),c:jit(0x5a5650,.3)}); }
+    else if(r<.34) litter.push({m:mat(x+(rnd()-.5)*.8,0.006,z+(rnd()-.5)*.8,0.14,1,0.1,rnd()*6),c:pick([hex(0x3a2a1c),hex(0x2a2018),hex(0x4a3a24)])});
+    else if(r<.42){ for(let k=0;k<4;k++) grass.push({m:mat(x+(rnd()-.5)*.8,0.09,z+(rnd()-.5)*.8,1,0.5+rnd()*0.5,1,rnd()*6,(rnd()-.5)*.4),c:jit(0x3a3a26,.3)}); }
+    else if(r<.44) flowers.push({m:mat(x+(rnd()-.5)*.7,0.04,z+(rnd()-.5)*.7,1,1,1),c:pick([hex(0x5a0c14),hex(0xc8c0b0)])}); continue; }
   if(t==='deepcave'){ if(r<.3){ for(let k=0;k<4;k++) gravel.push({m:mat(x+(rnd()-.5)*.85,0.03,z+(rnd()-.5)*.85,0.08+rnd()*0.14,0.05+rnd()*0.06,0.07+rnd()*0.12,rnd()*6,rnd(),rnd()),c:jit(0x4e4436,.4)}); }
     if(r>.2&&r<.31) mudBanks.push({m:mat(x+(rnd()-.5)*.4,0.012,z+(rnd()-.5)*.4,0.6+rnd()*0.7,0.03,0.5+rnd()*0.6,rnd()*6),c:muck()});
     if(r<.26&&r>.2) stalag.push({m:mat(x+(rnd()-.5)*.6,0.18,z+(rnd()-.5)*.6,1,0.35+rnd()*0.3,1,rnd()*6),c:jit(0x6a5e4c,.3)});
@@ -970,6 +1043,18 @@ for(let z=0;z<H;z++)for(let x=0;x<W;x++){ const i=idx(x,z), c=base[i]; if(!'.,:'
 addInst(new THREE.CylinderGeometry(0.09,0.13,1,6),lam(barkTex,0.08,2.4),trunks);
 addInst(new THREE.CylinderGeometry(0.42,0.5,1,8),psxMat(barkTex,1.2,0.06,6,true),bigTrunks);
 addInst(new THREE.ConeGeometry(0.5,1,6),psxMat(caveTex,1.0,0.06,3.5,true),caveSpikes);
+{ const tri=cemStone.filter(o=>o.tri), box=cemStone.filter(o=>!o.tri); const cm=psxMat(limeTex,0.9,0.42,2.6,true);
+  addInst(new THREE.BoxGeometry(1,1,1),cm,box);
+  const tg=new THREE.CylinderGeometry(0.577,0.577,1,3,1); tg.rotateX(-Math.PI/2); addInst(tg,cm,tri); }
+addInst(new THREE.PlaneGeometry(1,1),psxMat(limeTex,2,0.6,2,true),cemDark);
+addInst(new THREE.BoxGeometry(1,1,1),psxMat(limeTex,1.6,0.5,2.6,true),cemBillet);
+addInst(new THREE.CylinderGeometry(0.5,0.5,1,12),psxMat(limeTex,1.6,0.5,2.6,true),cemDisc);
+addInst(new THREE.BoxGeometry(1,1,1),lam(metalTex,0.35,3),lampMetal);
+addInst(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({color:0xffffff}),lampLight);
+{ const c=document.createElement('canvas'); c.width=c.height=64; const g=c.getContext('2d'); const gr=g.createRadialGradient(32,32,0,32,32,32);
+  gr.addColorStop(0,'rgba(235,240,255,1)'); gr.addColorStop(0.3,'rgba(200,210,255,.45)'); gr.addColorStop(1,'rgba(160,170,255,0)'); g.fillStyle=gr; g.fillRect(0,0,64,64);
+  const glowGeo=new THREE.PlaneGeometry(4.6,4.6); glowGeo.rotateX(-Math.PI/2);
+  addInst(glowGeo,new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,opacity:0.42,blending:THREE.AdditiveBlending,depthWrite:false}),lampGlows); }
 addInst(new THREE.ConeGeometry(0.5,1,5),psxMat(caveTex,1.0,0.3,3,true),hangers);
 addInst(new THREE.BoxGeometry(1,1,1),psxMat(caveTex,0.6,0.05,3,true),slabs);
 addInst(new THREE.CylinderGeometry(0.5,0.56,1,7),psxMat(caveTex,1.5,0.3,0.4),mudBanks);
@@ -1531,7 +1616,7 @@ const SAVE_KEY='capsula_azul_v3';
 const packBits=a=>{ let s=''; for(let i=0;i<a.length;i+=8){ let b=0; for(let k=0;k<8;k++) if(a[i+k]) b|=1<<k; s+=String.fromCharCode(b); } return btoa(s); };
 const unpackBits=(str,n)=>{ const out=new Uint8Array(n); try{ const s=atob(str); for(let i=0;i<s.length;i++){ const b=s.charCodeAt(i); for(let k=0;k<8;k++) if(b&(1<<k)) out[i*8+k]=1; } }catch(e){} return out; };
 function snapshot(){ return {x:S.x,z:S.z,hp:S.hp,max:S.max,atk:S.atk,lvl:S.lvl,exp:S.exp,pending:S.pending,powers:[...S.powers],taken:[...S.taken],
-  killed:[...S.killed].filter(n=>n>=0),opened:[...S.opened],broken:[...S.broken],marks:[...S.marks],levers:[...S.levers],secrets:[...S.secrets],gold:S.gold,keys:{...S.keys},pots:S.pots,elix:S.elix,bought:[...S.bought],lamp:S.lamp,candil:S.candil,bombs:S.bombs,bombMax:S.bombMax,bombDmg:S.bombDmg,cut:[...S.cut],oil:Math.round(S.oil),torches:[...S.torches],burnt:[...S.burnt],wild:S.wild,playTime:S.playTime,areaName:S.area,savedAt:Date.now(),warps:[...S.warps],explored:packBits(S.explored)}; }
+  killed:[...S.killed].filter(n=>n>=0),opened:[...S.opened],broken:[...S.broken],marks:[...S.marks],levers:[...S.levers],secrets:[...S.secrets],gold:S.gold,keys:{...S.keys},pots:S.pots,elix:S.elix,bought:[...S.bought],lamp:S.lamp,candil:S.candil,bombs:S.bombs,bombMax:S.bombMax,bombDmg:S.bombDmg,cut:[...S.cut],oil:Math.round(S.oil),torches:[...S.torches],burnt:[...S.burnt],buys:{...S.buys},stock:{...S.stock},wild:S.wild,playTime:S.playTime,areaName:S.area,savedAt:Date.now(),warps:[...S.warps],explored:packBits(S.explored)}; }
 let saved=null;
 try{ saved=JSON.parse(localStorage.getItem(SAVE_KEY)||'null'); }catch(e){ saved=null; }
 const SLOTS_KEY='capsula_azul_copias_v3', MAX_SLOTS=40;
@@ -1550,7 +1635,7 @@ function openSlots(){ $('slotList').innerHTML=slots.length?slots.map((o,n)=>`<bu
 function applyState(o,keepExplored){
   const prevExp=keepExplored?S.explored.slice():null;
   Object.assign(S,{x:o.x,z:o.z,hp:o.hp,max:o.max,atk:o.atk,lvl:o.lvl,exp:o.exp,pending:o.pending||0,dead:false,area:''});
-  S.powers=new Set(o.powers); S.taken=new Set(o.taken); S.killed=new Set(o.killed); S.opened=new Set(o.opened); S.broken=new Set(o.broken); S.marks=new Map(o.marks||[]); S.levers=new Set(o.levers||[]); S.secrets=new Set(o.secrets||[]); S.gold=o.gold||0; S.keys={'7':0,'8':0,'9':0,...(o.keys||{})}; S.pots=o.pots||0; S.elix=o.elix||0; S.bought=new Set(o.bought||[]); S.lamp=!!o.lamp; S.candil=!!o.candil; S.bombMax=o.bombMax||5; S.bombDmg=o.bombDmg||5; S.bombs=(o.bombs??((o.powers||[]).includes('O')?S.bombMax:0)); S.cut=new Set(o.cut||[]); try{ refreshGrass(); }catch(e){} S.oil=o.oil??(o.candil?OIL_BOTTLE:0); S.torches=new Set(o.torches||[]); try{ applyTorches(); }catch(e){} S.burnt=new Set(o.burnt||[]); try{ refreshWebs(); }catch(e){} applyLamp(); applyLamp(); S.wild=o.wild??2; S.playTime=o.playTime||0;
+  S.powers=new Set(o.powers); S.taken=new Set(o.taken); S.killed=new Set(o.killed); S.opened=new Set(o.opened); S.broken=new Set(o.broken); S.marks=new Map(o.marks||[]); S.levers=new Set(o.levers||[]); S.secrets=new Set(o.secrets||[]); S.gold=o.gold||0; S.keys={'7':0,'8':0,'9':0,...(o.keys||{})}; S.pots=o.pots||0; S.elix=o.elix||0; S.bought=new Set(o.bought||[]); S.lamp=!!o.lamp; S.candil=!!o.candil; S.bombMax=o.bombMax||5; S.bombDmg=o.bombDmg||5; S.bombs=(o.bombs??((o.powers||[]).includes('O')?S.bombMax:0)); S.cut=new Set(o.cut||[]); try{ refreshGrass(); }catch(e){} S.oil=o.oil??(o.candil?OIL_BOTTLE:0); S.torches=new Set(o.torches||[]); try{ applyTorches(); }catch(e){} S.burnt=new Set(o.burnt||[]); S.buys={...(o.buys||{})}; S.stock={...(o.stock||{})}; try{ refreshWebs(); }catch(e){} applyLamp(); applyLamp(); S.wild=o.wild??2; S.playTime=o.playTime||0;
   secretWalls.forEach(sw=>{ sw.fade=0; setSecretVis(sw,S.secrets.has(sw.id)?0:1); }); crumble.clear(); S.ride=null; S.warp=false; rideCart.visible=false; S.prevX=o.x; S.prevZ=o.z;
   crumbles.forEach(cb=>{ cb.g.position.set(cb.x,0,cb.z); cb.g.visible=true; }); gates.forEach(g=>{ g.inner.position.y=gateOpen(g.id)?-1.55:0; });
   S.explored=o.explored?unpackBits(o.explored,W*H):new Uint8Array(W*H); S.warps=new Set(o.warps||[]);
@@ -1673,17 +1758,23 @@ function drink(kind){ if(blocked()&&!S.ride) return; if(S.hp>=S.max){ hint('Ya t
 // ---- tiendas ----
 const SHOP_ITEMS={pot:{n:'POCIÓN',d:'Se guarda. +5 de vida'},elix:{n:'ELIXIR',d:'Se guarda. Cura toda la vida'},heart:{n:'CORAZÓN',d:'+3 de vida máxima'},
   edge:{n:'FILO',d:'+1 de ataque'},bomb:{n:'BOMBAS',d:'+3 bombas'},bombmax:{n:'BANDOLERA DE BOMBAS',d:'+3 bombas de máximo'},bombdmg:{n:'PÓLVORA NEGRA',d:'+2 de daño de bomba'},oil:{n:'ACEITE',d:'Una botella para el candil (unos 10 min)'},lamp:{n:'FAROL',d:'Ves más lejos en la oscuridad'}};
-const shopList=a=>{ const t=(AREAS[a]||{tier:0}).tier; const L=[['pot',6+t*2],['elix',30+t*5,1],['heart',30+t*6,1],['edge',40+t*8,1]]; if(t>=4&&t<=12) L.push(['lamp',45+t*2,1]); if(S.powers.has('O')) L.push(['bomb',8+t*2]); if(S.candil) L.push(['oil',10+t*2]); return L; };
+// poción, corazón y filo suben un 30% cada vez que compras uno, en cualquier mercader (sin decimales)
+const SHOP_BASE={pot:6,heart:30,edge:40}, POT_STOCK=3;
+const scaled=k=>{ let p=SHOP_BASE[k]; for(let i=0;i<(S.buys[k]||0);i++) p=Math.round(p*1.3); return p; };
+const potsLeft=sh=>POT_STOCK-(S.stock[sh]||0);
+const shopList=a=>{ const t=(AREAS[a]||{tier:0}).tier; const L=[['pot',scaled('pot')],['elix',30+t*5,1],['heart',scaled('heart'),1],['edge',scaled('edge'),1]]; if(t>=4&&t<=12) L.push(['lamp',45+t*2,1]); if(S.powers.has('O')) L.push(['bomb',8+t*2]); if(S.candil) L.push(['oil',10+t*2]); return L; };
 const SHOPS_OLD={B:[['pot',8],['heart',35,1],['edge',45,1]], D:[['pot',8],['elix',40,1],['heart',50,1],['edge',60,1]],
   X1:[['pot',10],['lamp',50,1],['edge',70,1]], X3:[['pot',12],['elix',55,1],['heart',70,1],['edge',90,1]]};
 let shopNow=null;
 function openShop(m){ shopNow=m; renderShop(); $('shop').hidden=false; }
-function renderShop(){ const list=shopList(shopNow.shop); $('shopSub').textContent='Tienes ◆ '+S.gold;
-  $('shopList').innerHTML=list.map(([k,price,once,req],n)=>{ const sold=once&&S.bought.has(shopNow.shop+':'+k), lack=req&&!S.powers.has(req);
-    return `<button data-n="${n}" ${sold||lack||S.gold<price?'disabled':''}><span>${SHOP_ITEMS[k].n}<small>${lack?'Necesitas un saco de bombas':SHOP_ITEMS[k].d}</small></span><span>${sold?'VENDIDO':lack?'SIN SACO':'◆ '+price}</span></button>`; }).join('');
+function renderShop(){ const list=shopList(shopNow.area); $('shopSub').textContent='Tienes ◆ '+S.gold;
+  $('shopList').innerHTML=list.map(([k,price,once,req],n)=>{ const left=k==='pot'?potsLeft(shopNow.shop):1; const sold=(once&&S.bought.has(shopNow.shop+':'+k))||left<=0, lack=req&&!S.powers.has(req);
+    const desc=lack?'Necesitas un saco de bombas':SHOP_ITEMS[k].d+(k==='pot'&&left>0?' · quedan '+left:'');
+    return `<button data-n="${n}" ${sold||lack||S.gold<price?'disabled':''}><span>${SHOP_ITEMS[k].n}<small>${desc}</small></span><span>${sold?(k==='pot'?'AGOTADO':'VENDIDO'):lack?'SIN SACO':'◆ '+price}</span></button>`; }).join('');
   $('shopList').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>buy(+b.dataset.n))); }
-function buy(n){ const [k,price,once,req]=shopList(shopNow.shop)[n]; if(S.gold<price) return; if(req&&!S.powers.has(req)){ hint('Necesitas un saco de bombas.'); return; } if(once&&S.bought.has(shopNow.shop+':'+k)) return;
+function buy(n){ const [k,price,once,req]=shopList(shopNow.area)[n]; if(S.gold<price) return; if(req&&!S.powers.has(req)){ hint('Necesitas un saco de bombas.'); return; } if(once&&S.bought.has(shopNow.shop+':'+k)) return; if(k==='pot'&&potsLeft(shopNow.shop)<=0) return;
   S.gold-=price; if(once) S.bought.add(shopNow.shop+':'+k);
+  if(k==='pot') S.stock[shopNow.shop]=(S.stock[shopNow.shop]||0)+1; if(SHOP_BASE[k]) S.buys[k]=(S.buys[k]||0)+1;
   if(k==='pot') S.pots++; else if(k==='elix') S.elix++; else if(k==='heart'){ S.max+=3; S.hp+=3; } else if(k==='edge') S.atk++; else if(k==='lamp'){ S.lamp=true; applyLamp(); }
   else if(k==='oil'){ if(S.oil>OIL_MAX-OIL_BOTTLE*0.5){ S.gold+=price; hint('Tu candil ya va lleno de aceite.'); } else { S.oil=Math.min(OIL_MAX,S.oil+OIL_BOTTLE); applyLamp(); } }
   else if(k==='bomb'){ if(S.bombs>=S.bombMax){ S.gold+=price; hint('Ya llevas el máximo de bombas.'); } else S.bombs=Math.min(S.bombMax,S.bombs+3); }
@@ -1770,7 +1861,7 @@ function burnWeb(i){ if(S.burnt.has(i)) return; S.burnt.add(i); const w=webs.fin
   popText(x,1.3,z,'¡ARDE!','#ff9a30'); }
 function refreshWebs(){ webs.forEach(w=>{ if(w.g) w.g.visible=!S.burnt.has(w.id); }); }
 const poisonFog0=new Set(poisonFog);
-function torchLit(x,z,r){ for(const t of torchesL){ if(S.torches.has(t.id)&&Math.hypot(t.x-x,t.z-z)<=r) return true; } return false; }
+function torchLit(x,z,r){ for(const [lx,lz] of cemLamps){ if(Math.hypot(lx-x,lz-z)<=r) return true; } for(const t of torchesL){ if(S.torches.has(t.id)&&Math.hypot(t.x-x,t.z-z)<=r) return true; } return false; }
 function lightTorch(i,fx){ const t=torchesL.find(o=>o.id===i); if(!t) return; S.torches.add(i); t.fire.forEach(m=>m.visible=true); t.coal.material.color.setHex(0xff5a10);
   for(let dz=-4;dz<=4;dz++)for(let dx=-4;dx<=4;dx++){ const x=t.x+dx, z=t.z+dz; if(x<0||z<0||x>=W||z>=H) continue; const d=Math.hypot(dx,dz); if(d>4) continue; const j=idx(x,z);
     fogBase[j]=Math.min(fogBase[j],0.06+d*0.05); fogFull=true; if(d<=2.5&&poisonFog.has(j)){ poisonFog.delete(j); if(poisonData){ poisonData[j*4+3]=0; poisonTex.needsUpdate=true; } } }
