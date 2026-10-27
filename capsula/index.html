@@ -1791,7 +1791,7 @@ function applyState(o,keepExplored){
   crumbles.forEach(cb=>{ cb.g.position.set(cb.x,0,cb.z); cb.g.visible=true; }); gates.forEach(g=>{ g.inner.position.y=gateOpen(g.id)?-1.55:0; });
   S.explored=o.explored?unpackBits(o.explored,W*H):new Uint8Array(W*H); S.warps=new Set(o.warps||[]);
   if(prevExp) for(let i=0;i<W*H;i++) S.explored[i]|=prevExp[i];
-  clearTemps(); if(typeof liveBombs!=='undefined'){ liveBombs.forEach(b=>scene.remove(b.g)); liveBombs.length=0; } enemies.forEach(e=>{ e.hp=e.max; e.dying=0; e.mesh.scale.setScalar(1); e.x=e.hx; e.z=e.hz; e.t=0; if(e.kind==='archer'){ e.arrows=3; e.warned=false; } e.mesh.position.set(e.x+(e.big?0.5:0),0,e.z+(e.big?0.5:0)); drawLabel(e.L,e.hp); }); if(typeof arrows!=='undefined'){ arrows.forEach(a=>{ scene.remove(a.mesh); scene.remove(a.mk); }); arrows.length=0; }
+  clearTemps(); if(typeof liveBombs!=='undefined'){ liveBombs.forEach(b=>scene.remove(b.g)); liveBombs.length=0; } enemies.forEach(e=>{ e.hp=e.max; e.dying=0; e.mesh.scale.setScalar(1); e.x=e.hx; e.z=e.hz; e.t=0; if(e.kind==='archer'){ e.arrows=3; e.warned=false; } if(e.kind==='skull'){ e.awake=false; e.lost=0; } e.mesh.position.set(e.x+(e.big?0.5:0),0,e.z+(e.big?0.5:0)); drawLabel(e.L,e.hp); }); if(typeof arrows!=='undefined'){ arrows.forEach(a=>{ scene.remove(a.mesh); scene.remove(a.mk); }); arrows.length=0; }
   S.stalkDone=new Set(); placeStalkers(); temp.clear(); resetTrapStates();
   player.mesh.position.set(S.x,0,S.z); player.mesh.scale.setScalar(1);
   camera.position.set(S.x,10,S.z+4.4);
@@ -2176,6 +2176,58 @@ function makeHands(e){ const g=new THREE.Group(); const m=new THREE.ShaderMateri
   ring.rotation.x=-Math.PI/2; ring.position.y=0.03; g.add(ring); g.userData.ring=ring; g.userData.mat=m; g.userData.h=0.9; return g; }
 enemies.forEach(e=>{ if(e.kind!=='hands') return; scene.remove(e.mesh); const g=makeHands(e); g.position.copy(e.mesh.position); scene.add(g);
   const d=dyn.find(o=>o.e===e); if(d) d.obj=g; e.mesh=g; e.noLabel=true; e.red=0; });
+// calavera gigante: cráneo de hueso flotante; duerme con las cuencas vacías y al verte se le encienden los ojos
+const boneMat=new THREE.MeshLambertMaterial({color:0xd6c8a8,map:dustTex}), boneDark=new THREE.MeshLambertMaterial({color:0x8a7a60,map:dustTex}), sockMat=new THREE.MeshBasicMaterial({color:0x040203});
+const eyeMat=new THREE.MeshBasicMaterial({color:0xff2a10}), eyeGlowTex=glowTexOf(255,40,20);
+function makeSkull(){ const g=new THREE.Group(), h=new THREE.Group(); h.position.y=1.3; g.add(h);
+  const M=(geo,m,x,y,z,sx,sy,sz,par)=>{ const o=new THREE.Mesh(geo,m); o.position.set(x,y,z); o.scale.set(sx||1,sy||1,sz||1); (par||h).add(o); return o; };
+  const sph=new THREE.SphereGeometry(1,16,12), box=new THREE.BoxGeometry(1,1,1);
+  M(sph,boneMat,0,0.18,-0.08,0.84,0.8,0.92);                         // cráneo
+  M(sph,boneMat,0,-0.3,0.42,0.62,0.42,0.48);                         // maxilar
+  for(const s of [-1,1]){ M(sph,boneMat,s*0.5,-0.14,0.5,0.22,0.17,0.2);   // pómulos
+    M(sph,boneMat,s*0.74,0.0,0.05,0.16,0.3,0.3); }                     // sienes
+  const brow=M(box,boneMat,0,0.16,0.68,1.08,0.16,0.26); brow.rotation.x=0.25;
+  const eyes=[], glows=[];
+  for(const s of [-1,1]){ M(sph,sockMat,s*0.3,-0.02,0.72,0.23,0.21,0.14);   // cuencas
+    const e=M(sph,eyeMat,s*0.3,-0.02,0.8,0.06,0.06,0.04); eyes.push(e);
+    const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:eyeGlowTex,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,opacity:0})); gl.position.set(s*0.3,-0.02,0.86); gl.scale.set(0.5,0.5,1); h.add(gl); glows.push(gl); }
+  const nose=M(new THREE.ConeGeometry(0.12,0.26,3),sockMat,0,-0.28,0.84,1,1,0.4);   // nariz
+  for(let k=0;k<8;k++){ const a=(k-3.5)*0.16, t=M(box,boneMat,Math.sin(a)*0.42,-0.55,0.32+Math.cos(a)*0.42,0.07,0.13,0.06); t.rotation.y=a; }   // dientes de arriba
+  const jaw=new THREE.Group(); jaw.position.set(0,-0.55,0.05); h.add(jaw);
+  M(sph,boneMat,0,-0.12,0.32,0.5,0.17,0.42,jaw); for(const s of [-1,1]) M(box,boneMat,s*0.46,0.05,0.0,0.12,0.42,0.22,jaw);
+  for(let k=0;k<8;k++){ const a=(k-3.5)*0.16, t=M(box,boneMat,Math.sin(a)*0.4,0.0,0.3+Math.cos(a)*0.38,0.07,0.11,0.06,jaw); t.rotation.y=a; }
+  for(const [x,z,r,l] of [[0.15,0.2,0.4,0.5],[-0.3,-0.1,-0.6,0.45],[0.35,-0.35,1.2,0.35]]){ const c=M(box,sockMat,x,0.92,z,0.03,0.02,l); c.rotation.y=r; c.rotation.x=-0.2; }   // grietas
+  const sh=new THREE.Mesh(new THREE.CircleGeometry(0.85,20),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.45,depthWrite:false})); sh.rotation.x=-Math.PI/2; sh.position.y=0.03; g.add(sh);
+  g.userData={head:h,jaw,eyes,glows,open:0,h:2.3}; return g; }
+enemies.forEach(e=>{ if(e.kind!=='skull') return; scene.remove(e.mesh); const g=makeSkull(); g.position.copy(e.mesh.position); scene.add(g);
+  const d=dyn.find(o=>o.e===e); if(d) d.obj=g; e.mesh=g; e.lh=2.55; e.awake=false; e.lost=0; e.yaw=0; });
+// sonidos de la calavera
+function skullScream(vol){ const a=audioCtx; if(!a||a.state!=='running') return; const t=a.currentTime;
+  const o=a.createOscillator(), o2=a.createOscillator(), f=a.createBiquadFilter(), g=a.createGain(); o.type='sawtooth'; o2.type='square';
+  o.frequency.setValueAtTime(320,t); o.frequency.exponentialRampToValueAtTime(70,t+1.1); o2.frequency.setValueAtTime(331,t); o2.frequency.exponentialRampToValueAtTime(66,t+1.1);
+  f.type='lowpass'; f.frequency.setValueAtTime(1800,t); f.frequency.exponentialRampToValueAtTime(300,t+1.1);
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.35*vol,t+0.05); g.gain.exponentialRampToValueAtTime(0.0001,t+1.2);
+  const lfo=a.createOscillator(), lg=a.createGain(); lfo.frequency.value=17; lg.gain.value=0.15*vol; lfo.connect(lg); lg.connect(g.gain);
+  o.connect(f); o2.connect(f); f.connect(g); g.connect(a.destination); o.start(t); o2.start(t); lfo.start(t); o.stop(t+1.25); o2.stop(t+1.25); lfo.stop(t+1.25); }
+function skullClack(vol){ const a=audioCtx; if(!a||a.state!=='running') return; const t=a.currentTime;
+  const len=Math.floor(a.sampleRate*0.04), b=a.createBuffer(1,len,a.sampleRate), d=b.getChannelData(0); for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,4);
+  const s=a.createBufferSource(); s.buffer=b; const f=a.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1400; const g=a.createGain(); g.gain.value=0.5*vol; s.connect(f); f.connect(g); g.connect(a.destination); s.start(t); }
+// camino para un bicho de 2x2 (por eso no cabe en pasillos de 1)
+function skullPath(e){ const R=13, fits=(x,z)=>[[0,0],[1,0],[0,1],[1,1]].every(([a,b])=>{ const tx=x+a, tz=z+b; return (tx===S.x&&tz===S.z)||freeFor(e,tx,tz); });
+  const hits=(x,z)=>S.x>=x&&S.x<=x+1&&S.z>=z&&S.z<=z+1;
+  const key=(x,z)=>x+','+z, prev=new Map([[key(e.x,e.z),null]]), q=[[e.x,e.z]]; let best=null, bd=Math.hypot(S.x-(e.x+0.5),S.z-(e.z+0.5))-0.01;
+  for(let h=0;h<q.length&&h<2200;h++){ const [x,z]=q[h]; const dd=Math.hypot(S.x-(x+0.5),S.z-(z+0.5)); if(dd<bd){ bd=dd; best=key(x,z); }
+    if(hits(x,z)&&h>0){ let k=key(x,z), p=prev.get(k); while(p&&p!==key(e.x,e.z)){ k=p; p=prev.get(k); } const [nx,nz]=k.split(',').map(Number); return {to:[nx,nz],hit:hits(nx,nz)}; }
+    for(const [dx,dz] of DIRS4){ const nx=x+dx, nz=z+dz; if(Math.abs(nx-e.x)>R||Math.abs(nz-e.z)>R) continue; const k=key(nx,nz); if(prev.has(k)||!fits(nx,nz)) continue; prev.set(k,key(x,z)); q.push([nx,nz]); } }
+  // no puede llegar: se acerca todo lo posible (a la boca del pasillo) y se queda mirando
+  if(best&&best!==key(e.x,e.z)){ let k=best, p=prev.get(k); while(p&&p!==key(e.x,e.z)){ k=p; p=prev.get(k); } const [nx,nz]=k.split(',').map(Number); return {to:[nx,nz],hit:false}; }
+  return null; }
+function updateSkulls(dt){ for(const e of enemies){ if(e.kind!=='skull') continue; const u=e.mesh.userData; if(!u||!u.head) continue;
+    const dead=S.killed.has(e.id); const want=(e.awake&&!dead)?1:0; u.open+=(want-u.open)*Math.min(1,dt*(want?7:2));
+    u.eyes.forEach(m=>m.scale.y=0.004+0.056*u.open); u.glows.forEach(s=>{ s.material.opacity=u.open*(0.75+0.25*Math.sin(time*9)); });
+    const tx=S.x-(e.x+0.5), tz=S.z-(e.z+0.5), want2=e.awake?Math.atan2(tx,tz):e.yaw; let d=want2-e.yaw; d=Math.atan2(Math.sin(d),Math.cos(d)); e.yaw+=d*Math.min(1,dt*(e.awake?6:1)); e.mesh.rotation.y=e.yaw;
+    u.head.position.y=1.3+Math.sin(time*(e.awake?3.2:1.3)+e.id)*(e.awake?0.12:0.06); u.head.rotation.x=(1-u.open)*0.32+(e.awake?Math.sin(time*7)*0.04:0);
+    u.jaw.rotation.x=e.awake?0.12+Math.abs(Math.sin(time*11))*0.32:0.02; } }
 enemies.forEach(e=>{ if(e.kind==='mummy'){ e.open=false; e.eyeT=(e.id%7)*0.4; } if(e.kind==='medusa'){ e.ph='idle'; e.pt=(e.id%5)*0.6; } if(e.kind==='likelike'){ e.cool=0; } });
 // rayo de la medusa
 // rayo de la medusa: un abanico de luz pintado en el suelo, con chispas, centro dorado y bordes morados
@@ -2341,8 +2393,13 @@ function updateArrows(dt){ for(let k=arrows.length-1;k>=0;k--){ const a=arrows[k
 function updateSpecials(dt){ if(S.dead||S.warp||!$('title').hidden) return;
   for(const e of enemies){ if(!e.kind||S.killed.has(e.id)) continue; e.t+=dt;
     const ex=e.x+(e.big?0.5:0), ez=e.z+(e.big?0.5:0), dist=Math.hypot(S.x-ex,S.z-ez);
-    if(e.kind==='skull'){ if(e.t<0.75) continue; e.t=0; if(!sees(e,S.x,S.z,8)) continue; const st=skullStep(e);
-      if(st&&st.fight) fight(e); else if(st){ e.x=st.to[0]; e.z=st.to[1]; if(dist<6) shake=Math.max(shake,0.1); } }
+    if(e.kind==='skull'){ const see=sees(e,S.x,S.z,9);
+      if(!e.awake){ if(!see) continue; e.awake=true; e.lost=0; e.t=-0.35; shake=Math.max(shake,0.35); popText(e.x+0.5,2.9,e.z+0.5,'¡!','#ff3020'); skullScream(Math.max(0.3,1-dist/12));
+        if(!S.skullWarned){ S.skullWarned=1; hint('¡La calavera te ha visto! Huye por un pasillo estrecho: no cabe.'); } continue; }
+      if(see){ e.lost=0; } else { e.lost+=dt; if(e.lost>7||dist>16){ e.awake=false; continue; } }
+      if(e.t<0.175) continue; e.t=0; const st=skullPath(e);
+      if(st){ if(st.hit){ e.t=-0.9; skullClack(1); shake=0.4; hurt(Math.max(2,Math.round(e.max*0.4)),'¡La calavera te muerde!'); }
+        else { e.x=st.to[0]; e.z=st.to[1]; if((e.step=(e.step||0)+1)%2===0) skullClack(Math.max(0.15,1-dist/10)); if(dist<5) shake=Math.max(shake,0.06); } } }
     else if(e.kind==='dog'){ const chase=sees(e,S.x,S.z,7); if(e.t<(chase?0.32:0.9)) continue; e.t=0;
       const tx=chase?S.x:e.hx, tz=chase?S.z:e.hz; let best=null, bd=Math.hypot(tx-e.x,tz-e.z);
       for(const [dx,dz] of DIRS4){ const nx=e.x+dx, nz=e.z+dz; if(Math.hypot(nx-e.hx,nz-e.hz)>3.2) continue; const onP=nx===S.x&&nz===S.z;
@@ -2459,7 +2516,7 @@ function frame(now){
   if(bump.t>0){ bump.t=Math.max(0,bump.t-dt*7); const b=Math.sin(bump.t*Math.PI)*0.15; pm.x+=bump.x*b*0.2; pm.z+=bump.z*b*0.2; }
   if(S.dead && S.hp<=0) player.mesh.scale.setScalar(Math.max(0.01,player.mesh.scale.x-dt*2));
 
-  updateBosses(dt); updateProjectiles(dt); updateTemps(); updateSpecials(dt); updateArrows(dt); updateChains(); updateOil(dt); updateTraps(dt); updateFallingBooks(dt); player.xray.visible=theme(S.x,S.z)==='library';
+  updateBosses(dt); updateProjectiles(dt); updateTemps(); updateSpecials(dt); updateArrows(dt); updateChains(); updateOil(dt); updateTraps(dt); updateFallingBooks(dt); updateSkulls(dt); player.xray.visible=theme(S.x,S.z)==='library';
   if((chunkT-=dt)<=0){ chunkT=0.2; for(const m of chunkMeshes){ const dz=m.userData.cz-pm.z; m.visible=Math.abs(m.userData.cx-pm.x)<CHUNK/2+13&&dz>-(CHUNK/2+19)&&dz<CHUNK/2+9; } }
   for(const e of enemies){ if(!e.mesh.visible) continue; const kk2=1-Math.pow(0.0005,dt); const ox=e.big?0.5:0; e.mesh.position.x+=(e.x+ox-e.mesh.position.x)*kk2; e.mesh.position.z+=(e.z+ox-e.mesh.position.z)*kk2;
     e.mesh.position.y = e.jump? Math.sin(Math.min(1,e.jump.t/0.5)*Math.PI)*1.6 : 0; }
