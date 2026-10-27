@@ -2037,12 +2037,12 @@ enemies.forEach(e=>{ if(e.kind==='mummy'){ e.open=false; e.eyeT=(e.id%7)*0.4; } 
 // rayo de la medusa
 // rayo de la medusa: un abanico de luz pintado en el suelo, con chispas, centro dorado y bordes morados
 const BEAM_FS=`uniform float uTime; uniform float uA; varying vec2 vUv;
-void main(){ float u=vUv.x; float w=mix(0.05,0.5,u); float d=abs(vUv.y-0.5)/w; if(d>1.) discard;
-  float side=1.-smoothstep(0.,1.,d); float ends=smoothstep(0.,0.1,u)*(1.-smoothstep(0.82,1.,u));
+void main(){ float u=vUv.x; float w=mix(0.012,0.5,u); float d=abs(vUv.y-0.5)/w; if(d>1.) discard;
+  float side=smoothstep(1.0,0.72,d)*(0.35+0.65*(1.-d)); float ends=smoothstep(0.,0.06,u)*(1.-smoothstep(0.86,1.,u));
   float fl=0.85+0.12*sin(uTime*38.+u*30.)+0.08*sin(u*55.-uTime*24.+vUv.y*20.);
   vec3 core=vec3(1.0,0.95,0.7), purple=vec3(0.58,0.26,0.95);
   float c=side*side; vec3 col=mix(purple,core,smoothstep(0.2,0.9,c)); col=mix(col,purple,smoothstep(0.6,1.0,u)*0.55);
-  float a=pow(side,0.9)*ends*fl*uA*0.8; gl_FragColor=vec4(col*a,1.); }`;
+  float a=side*ends*fl*uA*0.85+smoothstep(0.9,0.98,d)*smoothstep(1.0,0.97,d)*ends*uA*0.35; gl_FragColor=vec4(col*a,1.); }`;
 const beamGeo=new THREE.PlaneGeometry(1,1); beamGeo.rotateX(-Math.PI/2); beamGeo.translate(0.5,0,0);
 function makeBeam(){ const m=new THREE.ShaderMaterial({vertexShader:'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
     fragmentShader:BEAM_FS,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,uniforms:{uTime:{value:0},uA:{value:0}}});
@@ -2053,9 +2053,9 @@ function makeBeam(){ const m=new THREE.ShaderMaterial({vertexShader:'varying vec
   const pts=new THREE.Points(g,new THREE.PointsMaterial({size:0.085,vertexColors:true,transparent:true,opacity:0.9,blending:THREE.AdditiveBlending,depthWrite:false}));
   pts.visible=false; pts.frustumCulled=false; scene.add(pts); return {mesh,pts,pr,pos,g}; }
 function updBeam(B,hx,hz,tx,tz,a,dt,charge){ B.mesh.visible=B.pts.visible=a>0.01; if(a<=0.01) return;
-  const dx=tx-hx, dz=tz-hz, d0=Math.hypot(dx,dz)||1, L=d0+0.8, ux=dx/d0, uz=dz/d0, MW=2.6;
+  const dx=tx-hx, dz=tz-hz, d0=Math.hypot(dx,dz)||1, L=d0+1.2, ux=dx/d0, uz=dz/d0, MW=Math.max(2.2,L*0.62);
   B.mesh.position.set(hx,0.035,hz); B.mesh.rotation.y=Math.atan2(-dz,dx); B.mesh.scale.set(L,1,MW); B.mesh.material.uniforms.uA.value=a; B.mesh.material.uniforms.uTime.value=time%600;
-  B.pr.forEach((q,k)=>{ q.u+=dt*q.sp*(charge?-0.5:1.4); if(q.u>1) q.u-=1; if(q.u<0) q.u+=1; const w=(0.05+0.45*q.u)*MW*0.9;
+  B.pr.forEach((q,k)=>{ q.u+=dt*q.sp*(charge?-0.5:1.4); if(q.u>1) q.u-=1; if(q.u<0) q.u+=1; const w=(0.012+0.49*q.u)*MW*0.9;
     B.pos[k*3]=hx+ux*q.u*L-uz*q.off*w; B.pos[k*3+1]=0.06+q.h*0.55*(0.25+q.u)+Math.sin(time*5+q.ph)*0.05; B.pos[k*3+2]=hz+uz*q.u*L+ux*q.off*w; });
   B.g.attributes.position.needsUpdate=true; B.pts.material.opacity=Math.min(1,a*1.3); }
 // remolino de arena bajo la bruja cuando se hunde
@@ -2161,10 +2161,10 @@ function updateTraps(dt){ const pm=player.mesh.position, playing=!S.dead&&$('tit
     else if(e.kind==='medusa'){ e.pt+=dt; const vis=sees(e,S.x,S.z,8);
       if(!e.B) e.B=makeBeam(); const hx=e.mesh.position.x, hz=e.mesh.position.z;
       if(e.ph==='idle'){ updBeam(e.B,hx,hz,pm.x,pm.z,0,dt,false); if(e.pt>3.4&&vis){ e.ph='charge'; e.pt=0; setSilTex(e,'medusaA'); popText(e.x,2.1,e.z,'¡NO LA MIRES!','#e8ff90'); if(!S.medWarned){ S.medWarned=1; hint('Medusa va a mirarte: date la vuelta (mira al lado contrario).'); } } }
-      else if(e.ph==='charge'){ updBeam(e.B,hx,hz,pm.x,pm.z,vis?0.18+0.1*Math.sin(time*14):0,dt,true); if(e.pt>1.0){ e.ph='beam'; e.pt=0; } }
-      else if(e.ph==='beam'){ updBeam(e.B,hx,hz,pm.x,pm.z,(vis?1:0)*Math.min(1,e.pt*6)*(e.pt>1.35?Math.max(0,(1.6-e.pt)/0.25):1),dt,false);
-        if(vis&&!S.stone&&time>S.stoneImm){ const dx=e.x-S.x, dz=e.z-S.z, l=Math.hypot(dx,dz)||1; if((S.fx*dx+S.fz*dz)/l>-0.2){ petrify(); } }
-        if(e.pt>1.6){ e.ph='idle'; e.pt=0; updBeam(e.B,hx,hz,pm.x,pm.z,0,dt,false); setSilTex(e,'medusa'); } } } } }
+      else if(e.ph==='charge'){ updBeam(e.B,hx,hz,pm.x,pm.z,vis?(0.1+0.14*Math.min(1,e.pt/2.2))*(0.75+0.25*Math.sin(time*10)):0,dt,true); if(e.pt>2.2){ e.ph='beam'; e.pt=0; } }
+      else if(e.ph==='beam'){ updBeam(e.B,hx,hz,pm.x,pm.z,(vis?1:0)*Math.min(1,0.25+e.pt*1.4)*(e.pt>1.7?Math.max(0,(2.0-e.pt)/0.3):1),dt,false);
+        if(vis&&e.pt>0.6&&!S.stone&&time>S.stoneImm){ const dx=e.x-S.x, dz=e.z-S.z, l=Math.hypot(dx,dz)||1; if((S.fx*dx+S.fz*dz)/l>-0.2){ petrify(); } }
+        if(e.pt>2.0){ e.ph='idle'; e.pt=0; updBeam(e.B,hx,hz,pm.x,pm.z,0,dt,false); setSilTex(e,'medusa'); } } } } }
 
 // ======== MONSTRUOS ESPECIALES ========
 function sees(e,tx,tz,range){ const ex=e.x+(e.big?0.5:0), ez=e.z+(e.big?0.5:0); const d=Math.hypot(tx-ex,tz-ez); if(d>range) return false;
