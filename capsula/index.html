@@ -325,7 +325,7 @@ function grad(m,low,top){
 
 // ---- estilo PS1 para edificaciones: texturas de muy baja resolución en coordenadas de mundo ----
 const SNAP={value:new THREE.Vector2(130,280)};
-const uPl={value:new THREE.Vector3(0,0,0)}, uCamK={value:0.44};
+const uPl={value:new THREE.Vector3(0,0,0)}, uCamK={value:0.44}, uFront={value:0};
 function pxTex(n,fn){ const cv=document.createElement('canvas'); cv.width=cv.height=n; const c=cv.getContext('2d'); const img=c.createImageData(n,n);
   const put=(x,y,r,g,b,a=255)=>{ x=((x%n)+n)%n; y=((y%n)+n)%n; const i=(y*n+x)*4; img.data[i]=Math.max(0,Math.min(255,r)); img.data[i+1]=Math.max(0,Math.min(255,g)); img.data[i+2]=Math.max(0,Math.min(255,b)); img.data[i+3]=a; };
   const get=(x,y)=>{ x=((x%n)+n)%n; y=((y%n)+n)%n; const i=(y*n+x)*4; return [img.data[i],img.data[i+1],img.data[i+2]]; };
@@ -440,7 +440,7 @@ const leafMat=(tex,low,top)=>grad(new THREE.MeshLambertMaterial({color:0xffffff,
 function psxMat(tex,scale,low,top,cut){
   const m=new THREE.MeshLambertMaterial({color:0xffffff,map:tex});
   m.onBeforeCompile=sh=>{
-    Object.assign(sh.uniforms,{gLow:{value:low},gTop:{value:top},uScale:{value:scale},uSnap:SNAP,uPl,uCamK});
+    Object.assign(sh.uniforms,{gLow:{value:low},gTop:{value:top},uScale:{value:scale},uSnap:SNAP,uPl,uCamK,uFront});
     sh.vertexShader='uniform vec2 uSnap;\nvarying float vGradY;\nvarying vec3 vWP;\nvarying vec3 vWN;\n'+sh.vertexShader.replace('#include <project_vertex>',
       `#include <project_vertex>
        vec4 gW=vec4(transformed,1.0); mat3 nm=mat3(modelMatrix);
@@ -458,13 +458,13 @@ function psxMat(tex,scale,low,top,cut){
       `float gK=smoothstep(-0.1,gTop,vGradY); gl_FragColor.rgb*=mix(gLow,1.0,gK*gK*(3.0-2.0*gK));
        gl_FragColor.rgb=floor(gl_FragColor.rgb*40.0+0.5)/40.0;
        #include <fog_fragment>`);
-    if(cut){ sh.fragmentShader='uniform vec3 uPl;\nuniform float uCamK;\n'+sh.fragmentShader.replace('void main() {',`void main() {
+    if(cut){ sh.fragmentShader='uniform vec3 uPl;\nuniform float uCamK;\nuniform float uFront;\n'+sh.fragmentShader.replace('void main() {',`void main() {
       // lo alto que tapa a la bruja se abre como una ventana (con trama, estilo PS1)
       if(vWP.y>0.75 && vWP.z>uPl.z+0.4){ vec2 d=vec2(vWP.x-uPl.x,(vWP.z-vWP.y*uCamK)-uPl.z); float r=length(vec2(d.x/0.8,d.y/1.9));
         float chk=mod(floor(gl_FragCoord.x)+floor(gl_FragCoord.y),2.0);
         if(r<1.0) discard; if(r<1.3 && chk<1.0) discard;
         // lo que queda por delante (las filas de abajo) se ve a medias, con trama
-        if(vWP.z<uPl.z+2.7 && abs(d.x)<6.0 && d.y<2.6){ float k=1.0-smoothstep(4.5,6.0,abs(d.x)); if(chk<1.0 && k>0.5) discard;
+        if(uFront>0.5 && vWP.z<uPl.z+1.6 && abs(d.x)<6.0 && d.y<2.6){ float k=1.0-smoothstep(4.5,6.0,abs(d.x)); if(chk<1.0 && k>0.5) discard;
           if(k>0.85 && mod(floor(gl_FragCoord.x*0.5)+floor(gl_FragCoord.y*0.5),2.0)<1.0 && mod(floor(gl_FragCoord.y),2.0)<1.0) discard; } }`); }
   };
   m.customProgramCacheKey=()=>cut?'psxcut':'psx'; return m;
@@ -1433,11 +1433,11 @@ void main(){ vUv=uv; float sx=length(modelMatrix[0].xyz), sy=length(modelMatrix[
   gl_Position=projectionMatrix*(vc+vec4(corner,0.0,0.0));
   vec4 fz=projectionMatrix*(vc+vec4(0.0,0.0,1.3,0.0));
   gl_Position.z=fz.z/fz.w*gl_Position.w; }`;
-const SIL_FS=`uniform sampler2D map; uniform vec3 uTint; uniform float uGray; uniform float uCut; varying vec2 vUv; void main(){ if(vUv.y<uCut) discard; vec4 c=texture2D(map,vUv); if(c.a<0.5) discard; float l=dot(c.rgb,vec3(0.3,0.59,0.11)); gl_FragColor=vec4(mix(c.rgb,vec3(l*0.8+0.12)*vec3(0.95,0.95,0.9),uGray)*uTint,1.0); }`;
+const SIL_FS=`uniform sampler2D map; uniform vec3 uTint; uniform float uGray; uniform float uCut; uniform float uGrayH; varying vec2 vUv; void main(){ if(vUv.y<uCut) discard; vec4 c=texture2D(map,vUv); if(c.a<0.5) discard; float l=dot(c.rgb,vec3(0.3,0.59,0.11)); float g=uGray*(1.0-smoothstep(uGrayH-0.03,uGrayH+0.03,vUv.y)); vec3 stn=vec3(l*0.8+0.12)*vec3(0.95,0.95,0.9); if(g>0.0&&g<0.99) stn*=0.85+0.3*fract(sin(dot(floor(vUv*48.0),vec2(12.9,78.2)))*43758.5); gl_FragColor=vec4(mix(c.rgb,stn,g)*uTint,1.0); }`;
 const silGeo=new THREE.PlaneGeometry(1,1);
 function makeSil(type,col,big=1){ const def=SIL[type]||SIL.z; const g=new THREE.Group(); const s=def.s*1.15*big;
   const m=new THREE.ShaderMaterial({vertexShader:SIL_VS,fragmentShader:SIL_FS,side:THREE.DoubleSide,
-    uniforms:{map:{value:silTexture(type,col)},uScale:{value:new THREE.Vector2(s,s)},uFlip:{value:1},uLift:{value:def.float||0},uTint:{value:new THREE.Vector3(1,1,1)},uGray:{value:0},uCut:{value:0}}});
+    uniforms:{map:{value:silTexture(type,col)},uScale:{value:new THREE.Vector2(s,s)},uFlip:{value:1},uLift:{value:def.float||0},uTint:{value:new THREE.Vector3(1,1,1)},uGray:{value:0},uGrayH:{value:1.1},uCut:{value:0}}});
   const sp=new THREE.Mesh(silGeo,m); sp.frustumCulled=false; g.add(sp); g.userData.sp=sp; g.userData.h=s+(def.float||0);
   if(def.frames) g.userData.frames=[...Array(def.frames)].map((_,k)=>silTexture(type,col,k));
   return g; }
@@ -2067,6 +2067,13 @@ function makeBeam(){ const m=new THREE.ShaderMaterial({vertexShader:'varying vec
   const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3)); g.setAttribute('color',new THREE.BufferAttribute(col,3));
   const pts=new THREE.Points(g,new THREE.PointsMaterial({size:0.085,vertexColors:true,transparent:true,opacity:0.9,blending:THREE.AdditiveBlending,depthWrite:false}));
   pts.visible=false; pts.frustumCulled=false; scene.add(pts); return {mesh,pts,pr,pos,g}; }
+// ¿está la bruja dentro del abanico? (mismo ancho que se dibuja)
+function inCone(hx,hz,aim,x,z){ const dx=aim[0]-hx, dz=aim[1]-hz, d0=Math.hypot(dx,dz)||1, L=d0+1.2, ux=dx/d0, uz=dz/d0, MW=Math.max(2.2,L*0.62);
+  const px=x-hx, pz=z-hz, al=px*ux+pz*uz; if(al<0.3||al>L) return false; const lat=Math.abs(-px*uz+pz*ux); return lat<(0.012+0.49*al/L)*MW*0.85; }
+// te vas volviendo piedra de los pies a la cabeza; si sales del rayo, se pasa
+function updPetro(dt,hit){ if(S.stone) return;
+  if(hit){ if(S.petro<=0.001&&!S.petWarned){ S.petWarned=1; hint('¡Te estás volviendo piedra! Sal del rayo o date la vuelta.'); } S.petro=Math.min(1,S.petro+dt/1.3); if(S.petro>=1) petrify(); }
+  else S.petro=Math.max(0,S.petro-dt*0.7); }
 function updBeam(B,hx,hz,tx,tz,a,dt,charge){ B.mesh.visible=B.pts.visible=a>0.01; if(a<=0.01) return;
   const dx=tx-hx, dz=tz-hz, d0=Math.hypot(dx,dz)||1, L=d0+1.2, ux=dx/d0, uz=dz/d0, MW=Math.max(2.2,L*0.62);
   B.mesh.position.set(hx,0.035,hz); B.mesh.rotation.y=Math.atan2(-dz,dx); B.mesh.scale.set(L,1,MW); B.mesh.material.uniforms.uA.value=a; B.mesh.material.uniforms.uTime.value=time%600;
@@ -2090,7 +2097,7 @@ function updQuicksand(dt,on,sp,pm){ let cut=on?0.04+S.sink*0.42:0;
   if(on&&S.sink>0.05&&!S.arc){ pm.y=-0.02; pm.x+=Math.sin(time*13)*0.025*S.sink; } }
 // ---- estados de la bruja ----
 const stoneOv=$('stoneOv');
-function resetTrapStates(){ S.curse=false; S.curseAcc=0; S.stone=null; S.stoneImm=0; S.gulp=null; S.coffin=null; S.fall=null; S.qsg=null; player.mesh.userData.sp.material.uniforms.uCut.value=0; $('fade').classList.remove('on'); S.arc=null; S.sink=0; S.slideT=0; S.fx=0; S.fz=1;
+function resetTrapStates(){ S.petro=0; S.petroHit=false; S.curse=false; S.curseAcc=0; S.stone=null; S.stoneImm=0; S.gulp=null; S.coffin=null; S.fall=null; S.qsg=null; player.mesh.userData.sp.material.uniforms.uCut.value=0; $('fade').classList.remove('on'); S.arc=null; S.sink=0; S.slideT=0; S.fx=0; S.fz=1;
   S.safeX=S.x; S.safeZ=S.z; if(stoneOv) stoneOv.hidden=true; $('curseB').hidden=true; player.mesh.visible=true;
   coffins.forEach(cf=>setLid(cf,0)); enemies.forEach(e=>{ if(e.kind==='mummy'){ e.open=false; setSilTex(e,'mummy'); } if(e.kind==='medusa'){ e.ph='idle'; e.pt=0; setSilTex(e,'medusa'); if(e.B){ e.B.mesh.visible=false; e.B.pts.visible=false; } } }); }
 function setSilTex(e,type){ const sp=e.mesh.userData.sp; if(sp) sp.material.uniforms.map.value=silTexture(type,e.col); }
@@ -2100,7 +2107,7 @@ function cureAt(f){ if(S.curse){ S.curse=false; $('curseB').hidden=true; popText
   else hint('Agua bendita. Limpia cualquier maldición.'); }
 function petrify(){ S.stone={n:0,need:10,acc:0}; stoneOv.hidden=false; $('stoneFill').style.width='0%'; popText(S.x,2.2,S.z,'¡PIEDRA!','#e0e0d8'); shake=0.3; }
 function stoneTap(){ if(!S.stone) return; S.stone.n++; $('stoneFill').style.width=Math.min(100,S.stone.n/S.stone.need*100)+'%'; shake=Math.max(shake,0.06);
-  if(S.stone.n>=S.stone.need){ S.stone=null; S.stoneImm=time+2.5; stoneOv.hidden=true; popText(S.x,2.0,S.z,'¡LIBRE!','#ffffff'); } }
+  if(S.stone.n>=S.stone.need){ S.stone=null; S.petro=0; S.stoneImm=time+2.5; stoneOv.hidden=true; popText(S.x,2.0,S.z,'¡LIBRE!','#ffffff'); } }
 document.addEventListener('pointerdown',ev=>{ if(S.stone&&!S.dead){ ev.preventDefault(); ev.stopPropagation(); stoneTap(); } },true);
 addEventListener('keydown',ev=>{ if(S.stone&&!S.dead&&!ev.repeat) stoneTap(); },true);
 function startGulp(e,back){ S.gulp={e,t:0,back,done:false}; popText(e.x,1.6,e.z,'¡GLUP!','#ff9a9a'); shake=0.2; }
@@ -2113,11 +2120,11 @@ function slideStep(dx,dz){ const nx=S.x+dx, nz=S.z+dz, i=idx(nx,nz), t=tileAt(nx
   if((t==='0'||temp.get(i)?.ph==='gone')&&!S.powers.has('Y')){ S.prevX=S.x; S.prevZ=S.z; S.x=nx; S.z=nz; S.fall={t:0}; hint('¡La arena te arrastra al abismo!'); return; }
   const ok='.,:=JSZ5CU±¥'.includes(t)||!!SLIDE[t]||t==='0'||(t==='~'&&S.powers.has('N'))||(t==='^'&&S.powers.has('F'))||(t==='%'&&S.powers.has('T'));
   if(!ok) return; S.prevX=S.x; S.prevZ=S.z; S.x=nx; S.z=nz; reveal(); checkArea(); arrive(nx,nz,i,t); }
-Object.assign(S,{curse:false,curseAcc:0,stone:null,stoneImm:0,sink:0,slideT:0,fx:0,fz:1,safeX:START.x,safeZ:START.z});
+Object.assign(S,{petro:0,petroHit:false,curse:false,curseAcc:0,stone:null,stoneImm:0,sink:0,slideT:0,fx:0,fz:1,safeX:START.x,safeZ:START.z});
 const trapBusy=()=>!!(S.stone||S.gulp||S.coffin||S.fall);
 function freeAround(x,z,pref){ const opts=pref?[pref,...DIRS4]:DIRS4; for(const [dx,dz] of opts){ const nx=x+dx, nz=z+dz; if('.,:=JSZ5'.includes(tileAt(nx,nz))&&!enemyAt(nx,nz)) return [nx,nz]; } return null; }
 function updateTraps(dt){ const pm=player.mesh.position, playing=!S.dead&&$('title').hidden;
-  const sp=player.mesh.userData.sp.material.uniforms; const gray=S.stone?1:0; sp.uGray.value+=(gray-sp.uGray.value)*Math.min(1,dt*8);
+  const sp=player.mesh.userData.sp.material.uniforms; const gray=(S.stone||S.petro>0.001)?1:0; sp.uGray.value+=(gray-sp.uGray.value)*Math.min(1,dt*8); sp.uGrayH.value=S.stone?1.1:0.04+S.petro*0.96;
   if(S.curse){ const k=0.5+0.5*Math.sin(time*6); sp.uTint.value.set(1-0.2*k,0.55+0.1*k,1.15); } else sp.uTint.value.set(1,1,1);
   // hachas
   for(const a of axes){ if(!a.g.visible) continue; const ang=AXE_AMP*Math.sin(time*Math.PI*2/AXE_T+a.ph); a.piv.rotation.z=ang;
@@ -2165,6 +2172,8 @@ function updateTraps(dt){ const pm=player.mesh.position, playing=!S.dead&&$('tit
   updQuicksand(dt,here==='±',sp,pm);
   // monstruos del cementerio
   if(S.warp||S.ride) return;
+  const wasHit=S.petroHit; S.petroHit=false;
+  updPetro(dt,wasHit);
   for(const e of enemies){ if(!e.kind||S.killed.has(e.id)) continue; const dist=Math.hypot(S.x-e.x,S.z-e.z);
     if(e.kind==='mummy'){ e.eyeT+=dt; const cyc=e.eyeT%4.2, open=cyc>2.6; if(open!==e.open){ e.open=open; setSilTex(e,open?'mummyO':'mummy'); if(open&&dist<4&&!S.mumWarned){ S.mumWarned=1; hint('La momia ha abierto los ojos. No la ataques ahora.'); } }
       e.t2=(e.t2||0)+dt; if(e.t2<1.1) continue; e.t2=0; if(!sees(e,S.x,S.z,6)) continue;
@@ -2176,10 +2185,10 @@ function updateTraps(dt){ const pm=player.mesh.position, playing=!S.dead&&$('tit
     else if(e.kind==='medusa'){ e.pt+=dt; const vis=sees(e,S.x,S.z,8);
       if(!e.B) e.B=makeBeam(); const hx=e.mesh.position.x, hz=e.mesh.position.z;
       if(e.ph==='idle'){ updBeam(e.B,hx,hz,pm.x,pm.z,0,dt,false); if(e.pt>3.4&&vis){ e.ph='charge'; e.pt=0; setSilTex(e,'medusaA'); popText(e.x,2.1,e.z,'¡NO LA MIRES!','#e8ff90'); if(!S.medWarned){ S.medWarned=1; hint('Medusa va a mirarte: date la vuelta (mira al lado contrario).'); } } }
-      else if(e.ph==='charge'){ updBeam(e.B,hx,hz,pm.x,pm.z,vis?(0.1+0.14*Math.min(1,e.pt/2.2))*(0.75+0.25*Math.sin(time*10)):0,dt,true); if(e.pt>2.2){ e.ph='beam'; e.pt=0; } }
-      else if(e.ph==='beam'){ updBeam(e.B,hx,hz,pm.x,pm.z,(vis?1:0)*Math.min(1,0.25+e.pt*1.4)*(e.pt>1.7?Math.max(0,(2.0-e.pt)/0.3):1),dt,false);
-        if(vis&&e.pt>0.6&&!S.stone&&time>S.stoneImm){ const dx=e.x-S.x, dz=e.z-S.z, l=Math.hypot(dx,dz)||1; if((S.fx*dx+S.fz*dz)/l>-0.2){ petrify(); } }
-        if(e.pt>2.0){ e.ph='idle'; e.pt=0; updBeam(e.B,hx,hz,pm.x,pm.z,0,dt,false); setSilTex(e,'medusa'); } } } } }
+      else if(e.ph==='charge'){ e.aim=[pm.x,pm.z]; updBeam(e.B,hx,hz,pm.x,pm.z,vis?(0.1+0.14*Math.min(1,e.pt/2.2))*(0.75+0.25*Math.sin(time*10)):0,dt,true); if(e.pt>2.2){ e.ph='beam'; e.pt=0; e.aim=[pm.x,pm.z]; } }
+      else if(e.ph==='beam'){ updBeam(e.B,hx,hz,e.aim[0],e.aim[1],Math.min(1,0.25+e.pt*1.4)*(e.pt>2.3?Math.max(0,(2.6-e.pt)/0.3):1),dt,false);
+        if(vis&&e.pt>0.3&&e.pt<2.4&&!S.stone&&time>S.stoneImm&&inCone(hx,hz,e.aim,S.x,S.z)){ const dx=e.x-S.x, dz=e.z-S.z, l=Math.hypot(dx,dz)||1; if((S.fx*dx+S.fz*dz)/l>-0.2) S.petroHit=true; }
+        if(e.pt>2.6){ e.ph='idle'; e.pt=0; updBeam(e.B,hx,hz,pm.x,pm.z,0,dt,false); setSilTex(e,'medusa'); } } } } }
 
 // ======== MONSTRUOS ESPECIALES ========
 function sees(e,tx,tz,range){ const ex=e.x+(e.big?0.5:0), ez=e.z+(e.big?0.5:0); const d=Math.hypot(tx-ex,tz-ez); if(d>range) return false;
@@ -2343,7 +2352,7 @@ function frame(now){
   camPos.set(pm.x,0,pm.z).add(camOff);
   if(shake>0){ shake=Math.max(0,shake-dt); camPos.x+=(Math.random()-.5)*shake*0.6; camPos.z+=(Math.random()-.5)*shake*0.6; }
   camera.position.lerp(camPos,1-Math.pow(0.001,dt)); camera.lookAt(camera.position.x-camOff.x,0,camera.position.z-camOff.z);
-  pLight.position.set(pm.x,2.2,pm.z); uPl.value.set(pm.x,0,pm.z); uCamK.value=camOff.z/camOff.y;
+  pLight.position.set(pm.x,2.2,pm.z); uPl.value.set(pm.x,0,pm.z); { const fz=Math.round(pm.z)+1, fx=Math.round(pm.x), ft=tileAt(fx,fz); uFront.value=(WALLS.includes(ft)||ft==='V')?1:0; } uCamK.value=camOff.z/camOff.y;
   if(candilOn()){ cLight.position.set(pm.x+0.25,1.1,pm.z+0.2); cLight.intensity=3+Math.sin(time*11)*0.15+Math.sin(time*23.7)*0.1; }
   const blink=Math.floor(time*3)%2===0;
   if((mapT-=dt)<=0){ mapT=1/15; drawMap(mctx,mini.width,mini.height,mini.width/11,S.x+0.5,S.z+0.5,blink);
