@@ -272,11 +272,12 @@ const gateOpen=i=>{ const g=gateById.get(i); if(g.lv) return g.init!==(g.lv.filt
 function tileAt(x,z){ if(x<0||z<0||x>=W||z>=H) return '#'; const i=idx(x,z), c=base[i];
   if(c===';') return S.cut.has(i)?'.':';';
   if(c==='-') return S.burnt.has(i)?'.':'-';
+  if(c==='¢') return S.levers.has('BTN')?'¢':'.'; if(c==='£') return S.levers.has('BTN')?'.':'£'; if(c==='¤') return '.';
   if((c==='D'||DOORKEY[c])&&S.opened.has(i)) return '.'; if(c==='B'&&S.broken.has(i)) return '.';
   if(c==='G'||c==='I') return gateOpen(i)?'.':'G'; if(c==='V') return S.secrets.has(i)?'.':'V';
   if((c==='1'||c==='4')&&S.opened.has(i)) return '.'; if(c==='3'&&S.broken.has(i)) return '.';
   if(c==='6'){ const b=gateBoss.get(i); return (!b||S.killed.has(b.id))?'.':'6'; } if(c==='U'&&crumble.get(i)?.ph==='gone') return '0'; if(temp.get(i)?.ph==='gone') return '0'; return c; }
-const isWallish=t=>'#hRBDGLV1346[{}"-¶°'.includes(t);
+const isWallish=t=>'#hRBDGLV1346[{}"-¶°¢£'.includes(t);
 
 // ======================= THREE =======================
 const canvas=document.getElementById('c');
@@ -1880,6 +1881,7 @@ function tryMove(dx,dz){
   if(t==='-'){ if(candilOn()){ burnWeb(i); } else { hint(S.candil?'Una telaraña espesa. Tu candil no tiene aceite para quemarla.':'Una telaraña espesa y pegajosa. Con fuego podrías quemarla.'); return stop(); } }
   if(t==='"'){ bump={x:dx,z:dz,t:1}; if(S.torches.has(i)) hint('La antorcha arde.'); else if(candilOn()){ lightTorch(i,true); } else hint(S.candil?'Tu candil no tiene aceite para prender la antorcha.':'Una antorcha apagada. Con un candil encendido podrías prenderla.'); return; }
   if(t==='G'){ hint('Una reja cerrada. Habrá una palanca cerca.'); return stop(); }
+  if(t==='¢'||t==='£'){ hint(S.blkWarned?'':'Un bloque de color. Algún botón lo hará bajar.'); S.blkWarned=1; return stop(); }
   if(t==='¶'){ hint('Un sarcófago cubierto de polvo. Mejor no saber quién duerme dentro.'); return stop(); }
   if(t==='°'){ bump={x:dx,z:dz,t:1}; const f=fountains.find(o=>o.id===i); if(f) cureAt(f); return; }
   if(t==='_'){ hint('Son vías. Hace falta una vagoneta.'); return stop(); }
@@ -1914,6 +1916,7 @@ function arrive(nx,nz,i,t){
   if(t==='S'){ writeSave(); toast('CAPILLA','Partida guardada'); }
   if(poisonFog.has(i)&&!S.powers.has('T')){ hurt(1,S.fogWarned?'':'Niebla venenosa: cada paso te quema. El amuleto de jade te protegería.'); S.fogWarned=true; if(S.dead) return; }
   if(curseFog.has(i)) curse();
+  if(base[i]==='¤') pressButton(i);
   const bt=base[i];
   if(bt==='±'){ if(!S.qsWarned){ S.qsWarned=1; hint('Arenas movedizas: si te paras, te hundes.'); } S.sink=Math.max(0,(S.sink||0)-0.3); }
   if('.,:=SZ5C'.includes(bt)&&!poisonFog.has(i)&&!curseFog.has(i)){ S.safeX=nx; S.safeZ=nz; }
@@ -2363,6 +2366,28 @@ function updateTraps(dt){ const pm=player.mesh.position, playing=!S.dead&&$('tit
         if(vis&&e.pt>0.3&&e.pt<2.4&&!S.stone&&time>S.stoneImm&&inCone(hx,hz,e.aim,S.x,S.z)){ const dx=e.x-S.x, dz=e.z-S.z, l=Math.hypot(dx,dz)||1; if((S.fx*dx+S.fz*dz)/l>-0.2) S.petroHit=true; }
         if(e.pt>2.6){ e.ph='idle'; e.pt=0; updBeam(e.B,hx,hz,pm.x,pm.z,0,dt,false); setSilTex(e,'medusa'); } } } } }
 
+// ---- puzle: botón de suelo (¤) que alza los bloques azules (¢) y baja los amarillos (£), y al revés ----
+const btnTiles=[], blockTiles=[];
+for(let i=0;i<W*H;i++){ const c=base[i]; if(c==='¤') btnTiles.push({id:i,x:i%W,z:(i/W)|0}); else if(c==='¢'||c==='£') blockTiles.push({id:i,x:i%W,z:(i/W)|0,blue:c==='¢'}); }
+const blueUp=()=>S.levers.has('BTN');
+{ const bm=new THREE.MeshLambertMaterial({color:0x2e6ef0,emissive:0x0a1c48}), ym=new THREE.MeshLambertMaterial({color:0xf0c020,emissive:0x483406}),
+    fr=new THREE.MeshLambertMaterial({color:0x2a2a30,map:metalTex}), bg=new THREE.BoxGeometry(0.9,1.0,0.9), fg=new THREE.BoxGeometry(1.0,0.08,1.0), rim=new THREE.BoxGeometry(0.98,0.06,0.98);
+  blockTiles.forEach(b=>{ const g=new THREE.Group(); g.position.set(b.x,0,b.z); const fl=new THREE.Mesh(fg,fr); fl.position.y=-0.03; g.add(fl);
+    const p=new THREE.Group(); g.add(p); const cube=new THREE.Mesh(bg,b.blue?bm:ym); cube.position.y=0.5; p.add(cube);
+    for(const y of [0.06,0.96]){ const r=new THREE.Mesh(rim,fr); r.position.y=y; p.add(r); }
+    const mark=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.02,0.4),new THREE.MeshBasicMaterial({color:b.blue?0x9ac0ff:0xfff0a0})); mark.position.y=1.0; mark.rotation.y=Math.PI/4; p.add(mark);
+    b.p=p; b.y=-1; scene.add(g); dyn.push({obj:g,x:b.x,z:b.z,alive:()=>true}); });
+  btnTiles.forEach(b=>{ const g=new THREE.Group(); g.position.set(b.x,0,b.z);
+    const plate=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.08,0.8),fr); plate.position.y=0.04; g.add(plate);
+    const knob=new THREE.Mesh(new THREE.CylinderGeometry(0.26,0.3,0.12,12),new THREE.MeshBasicMaterial({color:0xffffff})); knob.position.y=0.12; g.add(knob);
+    b.knob=knob; b.press=0; scene.add(g); dyn.push({obj:g,x:b.x,z:b.z,alive:()=>true}); }); }
+function pressButton(i){ const b=btnTiles.find(o=>o.id===i); if(!b) return;
+  if(blueUp()) S.levers.delete('BTN'); else S.levers.add('BTN'); b.press=1; shake=Math.max(shake,0.12);
+  popText(b.x,1.0,b.z,'¡CLAC!',blueUp()?'#7aa8ff':'#ffd040'); if(!S.btnWarned){ S.btnWarned=1; hint('Al pisar el botón suben unos bloques y bajan otros.'); }
+  const a=audioCtx; if(a&&a.state==='running'){ const t=a.currentTime, o=a.createOscillator(), g=a.createGain(); o.type='square'; o.frequency.setValueAtTime(blueUp()?520:300,t); o.frequency.exponentialRampToValueAtTime(blueUp()?260:150,t+0.12); g.gain.setValueAtTime(0.18,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.18); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+0.2); } }
+function updateBlocks(dt){ const up=blueUp();
+  for(const b of blockTiles){ const target=(b.blue===up)?0:-0.97; if(b.y===-1){ b.y=target; } b.y+=(target-b.y)*Math.min(1,dt*9); b.p.position.y=b.y; }
+  for(const b of btnTiles){ b.press=Math.max(0,b.press-dt*3); const onIt=S.x===b.x&&S.z===b.z; b.knob.position.y=0.12-(onIt?0.07:0.07*b.press); b.knob.material.color.setHex(up?0xf0c020:0x2e6ef0); } }
 // ======== MONSTRUOS ESPECIALES ========
 function sees(e,tx,tz,range){ const ex=e.x+(e.big?0.5:0), ez=e.z+(e.big?0.5:0); const d=Math.hypot(tx-ex,tz-ez); if(d>range) return false;
   const n=Math.ceil(d*2); for(let k=1;k<n;k++){ const x=Math.round(ex+(tx-ex)*k/n), z=Math.round(ez+(tz-ez)*k/n); const c=tileAt(x,z); if(isWallish(c)||c===';') return false; } return true; }
@@ -2509,7 +2534,7 @@ function frame(now){
   if(bump.t>0){ bump.t=Math.max(0,bump.t-dt*7); const b=Math.sin(bump.t*Math.PI)*0.15; pm.x+=bump.x*b*0.2; pm.z+=bump.z*b*0.2; }
   if(S.dead && S.hp<=0) player.mesh.scale.setScalar(Math.max(0.01,player.mesh.scale.x-dt*2));
 
-  updateBosses(dt); updateProjectiles(dt); updateTemps(); updateSpecials(dt); updateArrows(dt); updateChains(); updateOil(dt); updateTraps(dt); updateFallingBooks(dt); updateSkulls(dt); player.xray.visible=theme(S.x,S.z)==='library';
+  updateBosses(dt); updateProjectiles(dt); updateTemps(); updateSpecials(dt); updateArrows(dt); updateChains(); updateOil(dt); updateTraps(dt); updateFallingBooks(dt); updateSkulls(dt); updateBlocks(dt); player.xray.visible=theme(S.x,S.z)==='library';
   if((chunkT-=dt)<=0){ chunkT=0.2; for(const m of chunkMeshes){ const dz=m.userData.cz-pm.z; m.visible=Math.abs(m.userData.cx-pm.x)<CHUNK/2+13&&dz>-(CHUNK/2+19)&&dz<CHUNK/2+9; } }
   for(const e of enemies){ if(!e.mesh.visible) continue; const kk2=1-Math.pow(0.0005,dt); const ox=e.big?0.5:0; e.mesh.position.x+=(e.x+ox-e.mesh.position.x)*kk2; e.mesh.position.z+=(e.z+ox-e.mesh.position.z)*kk2;
     e.mesh.position.y = e.jump? Math.sin(Math.min(1,e.jump.t/0.5)*Math.PI)*1.6 : 0; }
