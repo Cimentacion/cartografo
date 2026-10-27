@@ -1170,15 +1170,15 @@ addInst(new THREE.ConeGeometry(0.5,1,6),psxMat(caveTex,1.0,0.06,3.5,true),caveSp
   addInst(new THREE.BoxGeometry(1,1,1),cm,box);
   const tg=new THREE.CylinderGeometry(0.577,0.577,1,3,1); tg.rotateX(-Math.PI/2); addInst(tg,cm,tri); }
 addInst(new THREE.PlaneGeometry(1,1),psxMat(limeTex,2,0.6,2,true),cemDark);
-addInst(new THREE.BoxGeometry(1,1,1),psxMat(limeTex,0.9,0.55,2.4,true),libPlaster);
-addInst(new THREE.BoxGeometry(1,1,1),psxMat(woodFloorTex,1.4,0.3,2.2,true),libWood);
-addInst(new THREE.BoxGeometry(1,1,1),psxMat(woodFloorTex,1.4,0.2,1.6,true),libDark);
-addInst(new THREE.BoxGeometry(1,1,1),psxMat(spineTex,1.0,0.4,2.2,true),libBooks);
-addInst(new THREE.BoxGeometry(1,1,1),psxMat(metalTex,1.0,0.5,2.2,true),libGold);
-addInst(new THREE.CylinderGeometry(0.5,0.5,1,12),psxMat(limeTex,1.6,0.6,2.6,true),libDisc);
-addInst(new THREE.BoxGeometry(1,1,1),psxMat(limeTex,1.2,0.6,2.4,true),libMarble);
-addInst(new THREE.SphereGeometry(0.5,10,8),psxMat(limeTex,1.2,0.6,2.4,true),libMarbleS);
-addInst(new THREE.BoxGeometry(1,1,1),psxMat(metalTex,1.0,0.45,2.0,true),libGreen);
+addInst(new THREE.BoxGeometry(1,1,1),psxMat(limeTex,0.9,0.55,2.4,false),libPlaster);
+addInst(new THREE.BoxGeometry(1,1,1),psxMat(woodFloorTex,1.4,0.3,2.2,false),libWood);
+addInst(new THREE.BoxGeometry(1,1,1),psxMat(woodFloorTex,1.4,0.2,1.6,false),libDark);
+addInst(new THREE.BoxGeometry(1,1,1),psxMat(spineTex,1.0,0.4,2.2,false),libBooks);
+addInst(new THREE.BoxGeometry(1,1,1),psxMat(metalTex,1.0,0.5,2.2,false),libGold);
+addInst(new THREE.CylinderGeometry(0.5,0.5,1,12),psxMat(limeTex,1.6,0.6,2.6,false),libDisc);
+addInst(new THREE.BoxGeometry(1,1,1),psxMat(limeTex,1.2,0.6,2.4,false),libMarble);
+addInst(new THREE.SphereGeometry(0.5,10,8),psxMat(limeTex,1.2,0.6,2.4,false),libMarbleS);
+addInst(new THREE.BoxGeometry(1,1,1),psxMat(metalTex,1.0,0.45,2.0,false),libGreen);
 addInst(new THREE.BoxGeometry(1,0.1,1).translate(0,0,0),new THREE.MeshLambertMaterial({color:0xffffff,map:woodFloorTex}),libFloor);
 { const gm=new THREE.MeshLambertMaterial({map:globeTex}), rm=new THREE.MeshLambertMaterial({color:0x8a6034,map:woodFloorTex}), bm=new THREE.MeshLambertMaterial({color:0xb08a3a});
   const sg=new THREE.SphereGeometry(0.3,16,12), rg=new THREE.CylinderGeometry(0.42,0.42,0.05,8), mg=new THREE.TorusGeometry(0.33,0.014,4,24);
@@ -1572,6 +1572,11 @@ enemies.forEach(e=>{ e.strong=!e.boss&&(WORLD.strong?!!WORLD.strong[e.x+','+e.z]
 merchants.forEach(mc=>{ const g=makeSil('merchant',0xb89a50); g.position.set(mc.x,0,mc.z); scene.add(g); dyn.push({obj:g,x:mc.x,z:mc.z,alive:()=>true}); });
 
 const player={mesh:makeSil('witch',0x2f66ff),face:1}; scene.add(player.mesh);
+// silueta de la bruja a través de los muros (solo en la biblioteca, donde los muros no se abren)
+{ const sp=player.mesh.userData.sp, U=sp.material.uniforms;
+  const xm=new THREE.ShaderMaterial({vertexShader:SIL_VS,fragmentShader:`uniform sampler2D map; uniform float uOp; varying vec2 vUv; void main(){ vec4 c=texture2D(map,vUv); if(c.a<0.5) discard; float e=step(0.9,max(max(c.r,c.g),c.b)); gl_FragColor=vec4(mix(vec3(0.45,0.7,1.0),vec3(0.85,0.95,1.0),e),uOp); }`,
+    uniforms:{map:U.map,uScale:U.uScale,uFlip:U.uFlip,uLift:U.uLift,uOp:{value:0.6}},transparent:true,depthWrite:false,depthFunc:THREE.GreaterDepth,side:THREE.DoubleSide});
+  const xr=new THREE.Mesh(silGeo,xm); xr.frustumCulled=false; xr.renderOrder=20; player.mesh.add(xr); player.xray=xr; xr.visible=false; }
 
 // ======================= JEFES CON CONDUCTAS =======================
 // move: te persigue en su sala · jump: salta junto a ti y agrieta el suelo · quake: hunde el suelo bajo tus pies
@@ -2454,7 +2459,7 @@ function frame(now){
   if(bump.t>0){ bump.t=Math.max(0,bump.t-dt*7); const b=Math.sin(bump.t*Math.PI)*0.15; pm.x+=bump.x*b*0.2; pm.z+=bump.z*b*0.2; }
   if(S.dead && S.hp<=0) player.mesh.scale.setScalar(Math.max(0.01,player.mesh.scale.x-dt*2));
 
-  updateBosses(dt); updateProjectiles(dt); updateTemps(); updateSpecials(dt); updateArrows(dt); updateChains(); updateOil(dt); updateTraps(dt); updateFallingBooks(dt);
+  updateBosses(dt); updateProjectiles(dt); updateTemps(); updateSpecials(dt); updateArrows(dt); updateChains(); updateOil(dt); updateTraps(dt); updateFallingBooks(dt); player.xray.visible=theme(S.x,S.z)==='library';
   if((chunkT-=dt)<=0){ chunkT=0.2; for(const m of chunkMeshes){ const dz=m.userData.cz-pm.z; m.visible=Math.abs(m.userData.cx-pm.x)<CHUNK/2+13&&dz>-(CHUNK/2+19)&&dz<CHUNK/2+9; } }
   for(const e of enemies){ if(!e.mesh.visible) continue; const kk2=1-Math.pow(0.0005,dt); const ox=e.big?0.5:0; e.mesh.position.x+=(e.x+ox-e.mesh.position.x)*kk2; e.mesh.position.z+=(e.z+ox-e.mesh.position.z)*kk2;
     e.mesh.position.y = e.jump? Math.sin(Math.min(1,e.jump.t/0.5)*Math.PI)*1.6 : 0; }
