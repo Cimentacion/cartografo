@@ -1,0 +1,39 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.cimentacion.capsulaazul'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'com.cimentacion.capsulaazul'
+        minSdk 24
+        targetSdk 36
+        // el número de versión lo pone GitHub en cada compilación (para que se instale encima de la anterior)
+        versionCode((System.getenv('GITHUB_RUN_NUMBER') ?: '1') as int)
+        versionName "1.0." + (System.getenv('GITHUB_RUN_NUMBER') ?: '0')
+    }
+
+    // siempre la misma firma, para poder actualizar sin desinstalar
+    signingConfigs {
+        capsula {
+            storeFile file('../capsula.keystore')
+            storePassword 'capsulaazul'
+            keyAlias 'capsula'
+            keyPassword 'capsulaazul'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.capsula
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
