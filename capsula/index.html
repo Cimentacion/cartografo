@@ -53,7 +53,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);overflow:hid
 #bag #useWild{border-color:#b98aff;color:#e2d0ff}
 #bag #useBomb{border-color:#ff9a3c;color:#ffd0a0}
 .xprow{display:flex;align-items:flex-end;gap:6px}
-#oil{position:relative;width:5px;height:22px;border:1px solid #fff;background:rgba(0,0,0,.6);flex:none}
+#oil{position:relative;width:6px;height:36px;border:1px solid #fff;background:rgba(0,0,0,.6);flex:none}
 #oilf{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(#ffd070,#ff8a20)}
 #shopList button{display:flex;justify-content:space-between;gap:12px;width:100%;min-width:0;text-align:left}
 #shopList button small{display:block;color:var(--dim);font-size:10px;margin-top:3px}
@@ -106,9 +106,9 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);overflow:hid
 
 <canvas id="c"></canvas>
 <div id="hud">
-  <div class="row"><div id="hpNum">5</div><div id="bar"><div id="fill"></div></div></div>
+  <div class="row"><div id="oil" hidden title="Aceite del candil"><div id="oilf"></div></div><div id="hpNum">5</div><div id="bar"><div id="fill"></div></div></div>
   <div id="stats"><span id="atk">ATK 1</span><span id="lvl">NV 1</span><span id="gold" style="color:#e8c35a">◆ 0</span><span id="keys"></span></div>
-  <div class="xprow"><div id="oil" hidden title="Aceite del candil"><div id="oilf"></div></div><div id="xpbar"><div id="xpfill"></div></div></div>
+  <div class="xprow"><div id="xpbar"><div id="xpfill"></div></div></div>
   <div id="pw"></div>
 </div>
 <canvas id="mini" aria-label="Minimapa, toca para abrir el mapa completo"></canvas>
@@ -1404,14 +1404,25 @@ const rideCart=makeCart(); rideCart.visible=false; scene.add(rideCart);
 const mSilver=lam(metalTex,0.5,1.6); mSilver.color=new THREE.Color(0xdfe6ff);
 const mCrimson=lam(metalTex,0.4,1.6); mCrimson.color=new THREE.Color(0xc0204a);
 const mBossBar=lam(metalTex,0.4,1.6); mBossBar.color=new THREE.Color(0xff5050);
+const runeGlowTex=(()=>{ const c=document.createElement('canvas'); c.width=c.height=32; const g=c.getContext('2d'); const gr=g.createRadialGradient(16,16,0,16,16,16); gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(1,'rgba(255,255,255,0)'); g.fillStyle=gr; g.fillRect(0,0,32,32); return new THREE.CanvasTexture(c); })();
 specials.forEach(sp=>{ const g=new THREE.Group(); const wallsX=isWallish(base[idx(sp.x-1,sp.z)]||'#')&&isWallish(base[idx(sp.x+1,sp.z)]||'#');
   if(sp.c==='1'||sp.c==='4'){ const d=new THREE.Mesh(new THREE.BoxGeometry(0.98,1.5,0.24),sp.c==='1'?mSilver:mCrimson); d.position.y=0.75; g.add(d);
     const sig=new THREE.Mesh(new THREE.TorusGeometry(0.2,0.04,6,16),new THREE.MeshBasicMaterial({color:sp.c==='1'?0xa0e0ff:0xff4080})); sig.position.set(0,0.85,0.14); g.add(sig); }
-  else if(sp.c==='3'){ const r=new THREE.Mesh(new THREE.DodecahedronGeometry(0.62),psxMat(rockTex,1.0,0.2,1.2)); r.position.y=0.55; r.scale.set(1,0.95,1); g.add(r); }
+  else if(sp.c==='3'){ const rm=psxMat(rockTex,1.0,0.25,1.4); rm.color=new THREE.Color(0xb89878);
+    const r=new THREE.Mesh(new THREE.IcosahedronGeometry(0.62,1),rm); r.position.y=0.56; r.scale.set(1.12,0.92,1.0); r.rotation.set(0.3,0.7,0.1); g.add(r);
+    const r2=new THREE.Mesh(new THREE.DodecahedronGeometry(0.26),rm); r2.position.set(0.38,0.2,0.28); g.add(r2);
+    const r3=new THREE.Mesh(new THREE.DodecahedronGeometry(0.18),rm); r3.position.set(-0.4,0.14,0.3); r3.rotation.y=1; g.add(r3);
+    const moss=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,6,0,6.3,0,1.0),new THREE.MeshLambertMaterial({color:0x3a5a2a})); moss.position.y=0.62; moss.scale.set(1.25,0.9,1.15); g.add(moss);
+    const crack=new THREE.MeshBasicMaterial({color:0x1a120a}); for(const [x,y,rz,l] of [[-0.18,0.62,0.6,0.38],[0.05,0.42,-0.4,0.3],[0.24,0.68,0.2,0.22]]){ const c=new THREE.Mesh(new THREE.BoxGeometry(0.03,l,0.02),crack); c.position.set(x,y,0.58); c.rotation.z=rz; g.add(c); }
+    // runa del guantelete: un puño grabado que brilla
+    const rune=new THREE.MeshBasicMaterial({color:0xffa040}); const fist=[[0,0.62,0.22,0.16],[0,0.5,0.14,0.1],[-0.1,0.7,0.05,0.08],[-0.03,0.72,0.05,0.09],[0.04,0.72,0.05,0.09],[0.11,0.7,0.05,0.08]];
+    fist.forEach(([x,y,w,h])=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,0.02),rune); m.position.set(x,y,0.62); g.add(m); });
+    const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:runeGlowTex,color:0xffa040,transparent:true,opacity:0.5,blending:THREE.AdditiveBlending,depthWrite:false})); gl.position.set(0,0.62,0.7); gl.scale.set(0.7,0.7,1); g.add(gl);
+    sp.rock=true; }
   else if(sp.c==='2'){ for(let k=0;k<9;k++){ const b=new THREE.Mesh(new THREE.BoxGeometry(0.03,1.3,0.03),mSilver); b.position.set(-0.44+k*0.11,0.65,0); g.add(b); }
     for(const y of [0.3,0.65,1.0]){ const c=new THREE.Mesh(new THREE.BoxGeometry(0.98,0.03,0.03),mSilver); c.position.y=y; g.add(c); } }
   else if(sp.c==='6'){ for(let k=0;k<5;k++){ const b=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,1.5,5),mBossBar); b.position.set(-0.4+k*0.2,0.75,0); g.add(b); } }
-  if(!wallsX) g.rotation.y=Math.PI/2; g.position.set(sp.x,0,sp.z); scene.add(g); sp.g=g;
+  if(sp.rock){ const [fx,fz]=faceTo(sp.x,sp.z); g.rotation.y=Math.atan2(fx,fz); } else if(!wallsX) g.rotation.y=Math.PI/2; g.position.set(sp.x,0,sp.z); scene.add(g); sp.g=g;
   dyn.push({obj:g,x:sp.x,z:sp.z,alive:()=>tileAt(sp.x,sp.z)===sp.c}); });
 const warpMat=new THREE.MeshBasicMaterial({color:0x40ffff,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false});
 warpPads.forEach(wp=>{ const g=new THREE.Group(); const ring=new THREE.Mesh(new THREE.RingGeometry(0.25,0.45,20).rotateX(-Math.PI/2),warpMat); ring.position.y=0.02; g.add(ring);
@@ -1743,6 +1754,18 @@ function drawMap(ctx,pw,ph,ts,cx,cz,blink){
     else if(it.kind==='E'){ ctx.fillStyle='#ffd040'; ctx.fillRect(px+s*0.25,py+s*0.4,s*0.5,s*0.45); ctx.fillRect(px+s*0.38,py+s*0.18,s*0.24,s*0.24); }
     else { ctx.fillStyle=it.kind==='H'?'#5a8aff':it.kind==='A'?'#ff7a3a':(POWERS[it.kind]?.c||'#fff'); const c=s/2;
       ctx.beginPath(); ctx.moveTo(px+c,py+s*0.15); ctx.lineTo(px+s*0.85,py+c); ctx.lineTo(px+c,py+s*0.85); ctx.lineTo(px+s*0.15,py+c); ctx.fill(); } }
+  // iconos: capillas y mercaderes ya vistos; rocas pesadas y paredes agrietadas junto a lo explorado
+  const seenNear=(x,z)=>S.explored[idx(x,z)]||DIRS4.some(([a,b])=>S.explored[idx(x+a,z+b)]);
+  for(const c of chapels){ if(c.x<x0||c.x>x1||c.z<z0||c.z>z1||!S.explored[c.id]) continue; const px=Math.floor(ox+c.x*ts), py=Math.floor(oz+c.z*ts), s=Math.ceil(ts);
+    ctx.fillStyle='#b3122a'; ctx.fillRect(px,py,s,s); ctx.fillStyle='#ffffff'; ctx.fillRect(px+s*0.43,py+s*0.12,s*0.14,s*0.76); ctx.fillRect(px+s*0.22,py+s*0.32,s*0.56,s*0.14); }
+  for(const m of merchants){ if(m.x<x0||m.x>x1||m.z<z0||m.z>z1||!seenNear(m.x,m.z)) continue; const px=Math.floor(ox+m.x*ts), py=Math.floor(oz+m.z*ts), s=Math.ceil(ts);
+    ctx.fillStyle='#3a2a08'; ctx.fillRect(px,py,s,s); ctx.fillStyle='#f0c838'; ctx.beginPath(); ctx.arc(px+s/2,py+s*0.58,s*0.32,0,7); ctx.fill(); ctx.fillRect(px+s*0.38,py+s*0.12,s*0.24,s*0.18);
+    ctx.fillStyle='#3a2a08'; ctx.fillRect(px+s*0.45,py+s*0.4,s*0.1,s*0.36); }
+  for(const sp of specials){ if(sp.c!=='3'||tileAt(sp.x,sp.z)!=='3'||sp.x<x0||sp.x>x1||sp.z<z0||sp.z>z1||!seenNear(sp.x,sp.z)) continue; const px=Math.floor(ox+sp.x*ts), py=Math.floor(oz+sp.z*ts), s=Math.ceil(ts);
+    ctx.fillStyle='#2a1c10'; ctx.fillRect(px,py,s,s); ctx.fillStyle='#a8764a'; ctx.beginPath(); ctx.ellipse(px+s/2,py+s*0.55,s*0.4,s*0.33,0,0,7); ctx.fill();
+    ctx.fillStyle='#e0b080'; ctx.fillRect(px+s*0.3,py+s*0.32,s*0.18,s*0.1); ctx.fillStyle='#ff9a3c'; ctx.fillRect(px+s*0.48,py+s*0.45,s*0.14,s*0.26); }
+  for(const b of cracks){ if(tileAt(b.x,b.z)!=='B'||b.x<x0||b.x>x1||b.z<z0||b.z>z1||!seenNear(b.x,b.z)) continue; const px=Math.floor(ox+b.x*ts), py=Math.floor(oz+b.z*ts), s=Math.ceil(ts), u=Math.max(1,ts/7);
+    ctx.fillStyle='#4a3a30'; ctx.fillRect(px,py,s,s); ctx.fillStyle='#ff9a3c'; ctx.fillRect(px+s*0.25,py+s*0.1,u,s*0.3); ctx.fillRect(px+s*0.25,py+s*0.38,s*0.3,u); ctx.fillRect(px+s*0.52,py+s*0.38,u,s*0.3); ctx.fillRect(px+s*0.52,py+s*0.66,s*0.25,u); }
   if(blink){ ctx.fillStyle='#ffffff'; const p=Math.max(1,ts*0.2); ctx.fillRect(ox+S.x*ts+p,oz+S.z*ts+p,ts-2*p,ts-2*p); }
 }
 function reveal(){ const q=[[S.x,S.z,0]], seen=new Set([idx(S.x,S.z)]); S.explored[idx(S.x,S.z)]=1;
@@ -1943,10 +1966,10 @@ function drink(kind){ if(blocked()&&!S.ride) return; if(S.hp>=S.max){ hint('Ya t
 const SHOP_ITEMS={pot:{n:'POCIÓN',d:'Se guarda. +5 de vida'},elix:{n:'ELIXIR',d:'Se guarda. Cura toda la vida'},heart:{n:'CORAZÓN',d:'+3 de vida máxima'},
   edge:{n:'FILO',d:'+1 de ataque'},bomb:{n:'BOMBAS',d:'+3 bombas'},bombmax:{n:'BANDOLERA DE BOMBAS',d:'+3 bombas de máximo'},bombdmg:{n:'PÓLVORA NEGRA',d:'+2 de daño de bomba'},oil:{n:'ACEITE',d:'Una botella para el candil (unos 10 min)'},lamp:{n:'FAROL',d:'Ves más lejos en la oscuridad'}};
 // poción, corazón y filo suben un 30% cada vez que compras uno, en cualquier mercader (sin decimales)
-const SHOP_BASE={pot:6,heart:30,edge:40}, POT_STOCK=3;
+const SHOP_BASE={pot:6,heart:30,edge:40,bomb:8,oil:10}, POT_STOCK=3;
 const scaled=k=>{ let p=SHOP_BASE[k]; for(let i=0;i<(S.buys[k]||0);i++) p=Math.round(p*1.3); return p; };
 const potsLeft=sh=>POT_STOCK-(S.stock[sh]||0);
-const shopList=a=>{ const t=(AREAS[a]||{tier:0}).tier; const L=[['pot',scaled('pot')],['elix',30+t*5,1],['heart',scaled('heart'),1],['edge',scaled('edge'),1]]; if(t>=4&&t<=12) L.push(['lamp',45+t*2,1]); if(S.powers.has('O')) L.push(['bomb',8+t*2]); if(S.candil) L.push(['oil',10+t*2]); return L; };
+const shopList=a=>{ const t=(AREAS[a]||{tier:0}).tier; const L=[['pot',scaled('pot')],['elix',30+t*5,1],['heart',scaled('heart'),1],['edge',scaled('edge'),1]]; if(t>=4&&t<=12) L.push(['lamp',45+t*2,1]); if(S.powers.has('O')) L.push(['bomb',scaled('bomb')]); if(S.candil) L.push(['oil',scaled('oil')]); return L; };
 const SHOPS_OLD={B:[['pot',8],['heart',35,1],['edge',45,1]], D:[['pot',8],['elix',40,1],['heart',50,1],['edge',60,1]],
   X1:[['pot',10],['lamp',50,1],['edge',70,1]], X3:[['pot',12],['elix',55,1],['heart',70,1],['edge',90,1]]};
 let shopNow=null;
@@ -1957,11 +1980,13 @@ function renderShop(){ const list=shopList(shopNow.area); $('shopSub').textConte
     return `<button data-n="${n}" ${sold||lack||S.gold<price?'disabled':''}><span>${SHOP_ITEMS[k].n}<small>${desc}</small></span><span>${sold?(k==='pot'?'AGOTADO':'VENDIDO'):lack?'SIN SACO':'◆ '+price}</span></button>`; }).join('');
   $('shopList').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>buy(+b.dataset.n))); }
 function buy(n){ const [k,price,once,req]=shopList(shopNow.area)[n]; if(S.gold<price) return; if(req&&!S.powers.has(req)){ hint('Necesitas un saco de bombas.'); return; } if(once&&S.bought.has(shopNow.shop+':'+k)) return; if(k==='pot'&&potsLeft(shopNow.shop)<=0) return;
+  if(k==='oil'&&S.oil>OIL_MAX-OIL_BOTTLE*0.5){ hint('Tu candil ya va lleno de aceite.'); return; }
+  if(k==='bomb'&&S.bombs>=S.bombMax){ hint('Ya llevas el máximo de bombas.'); return; }
   S.gold-=price; if(once) S.bought.add(shopNow.shop+':'+k);
   if(k==='pot') S.stock[shopNow.shop]=(S.stock[shopNow.shop]||0)+1; if(SHOP_BASE[k]) S.buys[k]=(S.buys[k]||0)+1;
   if(k==='pot') S.pots++; else if(k==='elix') S.elix++; else if(k==='heart'){ S.max+=3; S.hp+=3; } else if(k==='edge') S.atk++; else if(k==='lamp'){ S.lamp=true; applyLamp(); }
-  else if(k==='oil'){ if(S.oil>OIL_MAX-OIL_BOTTLE*0.5){ S.gold+=price; hint('Tu candil ya va lleno de aceite.'); } else { S.oil=Math.min(OIL_MAX,S.oil+OIL_BOTTLE); applyLamp(); } }
-  else if(k==='bomb'){ if(S.bombs>=S.bombMax){ S.gold+=price; hint('Ya llevas el máximo de bombas.'); } else S.bombs=Math.min(S.bombMax,S.bombs+3); }
+  else if(k==='oil'){ S.oil=Math.min(OIL_MAX,S.oil+OIL_BOTTLE); applyLamp(); }
+  else if(k==='bomb'){ S.bombs=Math.min(S.bombMax,S.bombs+3); }
   else if(k==='bombmax'){ S.bombMax+=3; S.bombs+=3; } else if(k==='bombdmg') S.bombDmg+=2;
   updHud(); renderShop(); }
 $('shopX').addEventListener('click',()=>{ $('shop').hidden=true; });
