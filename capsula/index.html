@@ -748,7 +748,7 @@ function fence(x,z,face){ const [dx,dz]=face; const along=dx===0?0:Math.PI/2; co
 // jardines: los grupos de muro sueltos de hasta 3x3 son parterres (setos, árboles, flores, estatuas); el resto, muro de palacio
 const gardenIsl=new Map();
 { const seen=new Uint8Array(W*H); let nid=0;
-  for(let z0=0;z0<H;z0++)for(let x0=0;x0<W;x0++){ const i0=idx(x0,z0); if(seen[i0]||base[i0]!=='#'||(theme(x0,z0)!=='garden'&&theme(x0,z0)!=='thick'&&theme(x0,z0)!=='deepcave'&&theme(x0,z0)!=='cemetery')) continue;
+  for(let z0=0;z0<H;z0++)for(let x0=0;x0<W;x0++){ const i0=idx(x0,z0); if(seen[i0]||base[i0]!=='#'||(theme(x0,z0)!=='garden'&&theme(x0,z0)!=='thick'&&theme(x0,z0)!=='deepcave'&&theme(x0,z0)!=='cemetery'&&theme(x0,z0)!=='library')) continue;
     const comp=[], st=[[x0,z0]]; seen[i0]=1; let ok=true;
     while(st.length){ const [x,z]=st.pop(); comp.push([x,z]); if(comp.length>9) ok=false;
       for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nx=x+dx,nz=z+dz; if(nx<0||nz<0||nx>=W||nz>=H){ ok=false; continue; } const j=idx(nx,nz);
@@ -859,6 +859,112 @@ function cemIsland(x,z,isl){ cemStone.push({m:mat(x,-0.04,z,0.98,0.1,0.98),c:jit
   else if(isl.w===3&&isl.h===3){ const [fx,fz]=openSide(); cemPantheon(isl.cx,isl.cz,1.35,fx,fz); }
   else if(isl.w===1||isl.h===1){ cemTomb(isl.x1,isl.z1,isl.w>1); cemLamp(isl.x1+(isl.w-1),isl.z1+(isl.h-1)); }
   else { const [fx,fz]=openSide(); cemPantheon(isl.cx,isl.cz,isl.n>=6?1.15:1,fx,fz); } }
+// ---- biblioteca: estanterías contra el muro (se ve la pared detrás), estanterías con escalera, bustos, globos y mesas ----
+const libMarbleS=[], libPlaster=[], libWood=[], libDark=[], libBooks=[], libGold=[], libDisc=[], libMarble=[], libGreen=[], libFloor=[], libFaces=[], libGlobes=[];
+const BOOKC=[0x6a1c18,0x4a2a16,0x2a3a22,0x1e2a44,0x5a4a2a,0x7a5a34,0x3a1a24,0x8a7a5a,0x2a2018];
+const spineTex=(()=>{ const c=document.createElement('canvas'); c.width=64; c.height=32; const g=c.getContext('2d'); let x=0;
+  while(x<64){ const w=2+(R()*3|0), v=0.55+R()*0.6; g.fillStyle=`rgb(${200*v|0},${190*v|0},${170*v|0})`; g.fillRect(x,0,w,32);
+    g.fillStyle='rgba(230,190,90,.8)'; if(R()<.7) g.fillRect(x,5,w,1); if(R()<.5) g.fillRect(x,25,w,1); if(R()<.3) g.fillRect(x,14,w,2);
+    g.fillStyle='rgba(0,0,0,.45)'; g.fillRect(x+w-1,0,1,32); x+=w; }
+  const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.magFilter=THREE.NearestFilter; t.minFilter=THREE.NearestFilter; t.generateMipmaps=false; return t; })();
+const woodC=()=>jit(0x4a2c18,.15), darkWoodC=()=>jit(0x2a1a0e,.15);
+// libros de una balda: tramos de lomos con huecos para ver la pared del fondo
+function shelfBooks(x,z,dx,dz,ys,uMin,uMax,depthOff){ let u=uMin;
+  while(u<uMax-0.05){ if(rnd()<.22){ u+=0.07+rnd()*0.16; continue; }
+    if(rnd()<.08){ const w=0.22; if(u+w>uMax) break; for(let k=0;k<3;k++) facePiece(libBooks,x,z,dx,dz,u+w/2,ys+0.025+k*0.045,w,0.04,0.18,jit(pick(BOOKC),.15),depthOff); u+=w+0.03; continue; }
+    const w=Math.min(uMax-u,0.12+rnd()*0.26), h=0.25+rnd()*0.1; if(w<0.05) break;
+    facePiece(libBooks,x,z,dx,dz,u+w/2,ys+h/2,w,h,0.2,jit(pick(BOOKC),.2),depthOff); u+=w+0.005; } }
+// estantería en una cara: off = cuánto se mete en la casilla del muro
+function bookcase(x,z,dx,dz,top,off,books){
+  for(const u of [-0.47,0.47]) facePiece(libWood,x,z,dx,dz,u,top/2,0.07,top,0.3,woodC(),off);
+  const ys=[]; for(let y=0.08;y<top-0.1;y+=0.42) ys.push(y);
+  ys.forEach((y,k)=>{ facePiece(libWood,x,z,dx,dz,0,y,1.0,0.045,0.3,woodC(),off); if(books&&k<ys.length-1) shelfBooks(x,z,dx,dz,y+0.022,-0.42,0.42,off+0.05); });
+  facePiece(libWood,x,z,dx,dz,0,top+0.04,1.04,0.1,0.36,darkWoodC(),off);   // cornisa
+  return ys; }
+function ladder(cx,cz,ax,side,h){ // ax: 'x' = estantería a lo largo de x; side: hacia dónde se separa el pie
+  const lean=0.2, foot=Math.sin(lean)*h, len=h/Math.cos(lean);
+  for(const o of [-0.18,0.18]){ const px=cx+(ax==='x'?o:side*foot/2), pz=cz+(ax==='x'?side*foot/2:o);
+    libWood.push({m:mat(px,h/2,pz,0.06,len,0.06,0,ax==='x'?-side*lean:0,ax==='x'?0:side*lean),c:jit(0xb08050,.1)}); }
+  for(let y=0.3;y<h-0.1;y+=0.3){ const f=(1-y/h)*foot, px=cx+(ax==='x'?0:side*f), pz=cz+(ax==='x'?side*f:0);
+    libWood.push({m:mat(px,y,pz,ax==='x'?0.36:0.045,0.04,ax==='x'?0.045:0.36),c:jit(0xc09060,.1)}); } }
+function libWall(x,z,faces){ const H2=2.85; let x0=-0.5,x1=0.5,z0=-0.5,z1=0.5; const IN=0.3;
+  for(const [dx,dz] of faces){ if(dx>0) x1-=IN; if(dx<0) x0+=IN; if(dz>0) z1-=IN; if(dz<0) z0+=IN; }
+  libPlaster.push({m:mat(x+(x0+x1)/2,H2/2,z+(z0+z1)/2,x1-x0,H2,z1-z0),c:jit(0xd8cdb8,.05)});
+  for(const [dx,dz] of faces){ const top=2.3; bookcase(x,z,dx,dz,top,-0.3,true); libFaces.push({x,z,dx,dz});
+    // barandilla de la galería
+    facePiece(libWood,x,z,dx,dz,0,2.66,1.0,0.05,0.06,darkWoodC(),-0.1); for(let u=-0.4;u<=0.41;u+=0.2) facePiece(libGold,x,z,dx,dz,u,2.52,0.035,0.24,0.035,jit(0x8a6a2a,.15),-0.1);
+    if(rnd()<.28){ const px=x+dx*0.5, pz=z+dz*0.5; libDisc.push({m:mat(px,2.5,pz,0.34,0.06,0.26,0,dz?Math.PI/2:0,dx?Math.PI/2:0),c:hex(0xe8e0d0)}); libGold.push({m:mat(px-dx*0.01,2.5,pz-dz*0.01,0.4,0.05,0.32,0,dz?Math.PI/2:0,dx?Math.PI/2:0),c:jit(0xb08a3a,.1)}); }
+    if(rnd()<.06) ladder(x+dx*0.62+(dz?(rnd()-.5)*.4:0),z+dz*0.62+(dx?(rnd()-.5)*.4:0),dx?'z':'x',dx||dz,2.2); } }
+const globeTex=(()=>{ const c=document.createElement('canvas'); c.width=128; c.height=64; const g=c.getContext('2d'); g.fillStyle='#c8b080'; g.fillRect(0,0,128,64);
+  const blob=(x,y,r)=>{ for(let k=0;k<26;k++){ g.beginPath(); g.ellipse(x+(R()-.5)*r*1.6,y+(R()-.5)*r,r*(0.3+R()*0.5),r*(0.2+R()*0.4),R()*3,0,7); g.fill(); } };
+  g.fillStyle='#7a5a30'; blob(28,22,14); blob(36,46,10); blob(70,20,16); blob(78,40,9); blob(104,30,12);
+  g.strokeStyle='rgba(60,40,20,.5)'; g.lineWidth=1; for(let x=0;x<128;x+=16){ g.beginPath(); g.moveTo(x,0); g.lineTo(x,64); g.stroke(); } for(let y=8;y<64;y+=12){ g.beginPath(); g.moveTo(0,y); g.lineTo(128,y); g.stroke(); }
+  return new THREE.CanvasTexture(c); })();
+function libGlobe(x,z){ const g=jit(0x2e5a48,.1);
+  for(const [a,b] of [[1,1],[1,-1],[-1,1],[-1,-1]]) libGreen.push({m:mat(x+a*0.22,0.36,z+b*0.22,0.06,0.72,0.06,0,b*0.18,-a*0.18),c:g});
+  libGreen.push({m:mat(x,0.12,z,0.5,0.04,0.5,Math.PI/4),c:g}); libGreen.push({m:mat(x,0.02,z,0.16,0.04,0.16),c:g});
+  libGlobes.push([x,z]); }
+function libBust(x,z,faceDir){ const mc=()=>jit(0xd8d2c4,.04), fx=Math.sin(faceDir), fz=Math.cos(faceDir);
+  libMarble.push({m:mat(x,0.05,z,0.5,0.1,0.5),c:mc()}); libMarble.push({m:mat(x,0.48,z,0.34,0.76,0.34),c:mc()}); libMarble.push({m:mat(x,0.89,z,0.46,0.07,0.46),c:mc()});
+  libMarble.push({m:mat(x,0.96,z,0.22,0.08,0.18,faceDir),c:mc()});                         // peana del busto
+  libMarbleS.push({m:mat(x,1.1,z,0.5,0.32,0.3,faceDir),c:mc()});                            // hombros y pecho
+  libMarbleS.push({m:mat(x+fx*0.04,1.1,z+fz*0.04,0.3,0.26,0.2,faceDir),c:mc()});            // toga
+  libMarble.push({m:mat(x,1.27,z,0.09,0.12,0.09),c:mc()});                                  // cuello
+  libMarbleS.push({m:mat(x,1.42,z,0.21,0.26,0.23,faceDir),c:mc()});                         // cabeza
+  libMarbleS.push({m:mat(x-fx*0.02,1.49,z-fz*0.02,0.23,0.18,0.24,faceDir),c:jit(0xc8c2b4,.04)});   // pelo
+  libMarble.push({m:mat(x+fx*0.115,1.41,z+fz*0.115,0.035,0.06,0.05,faceDir),c:mc()});       /* nariz */ libGold.push({m:mat(x+Math.sin(faceDir)*0.19,0.85,z+Math.cos(faceDir)*0.19,0.22,0.08,0.02,faceDir),c:hex(0xb08a3a)}); }
+function libChair(x,z,fx,fz){ const ry=Math.atan2(fx,fz), c=jit(0x5a3820,.1);
+  libWood.push({m:mat(x,0.46,z,0.44,0.05,0.44,ry),c}); for(const [a,b] of [[1,1],[1,-1],[-1,1],[-1,-1]]) libWood.push({m:mat(x+a*0.18,0.23,z+b*0.18,0.05,0.46,0.05),c:darkWoodC()});
+  const bx=x-fx*0.2, bz=z-fz*0.2; libWood.push({m:mat(bx,0.82,bz,0.44,0.5,0.05,ry),c}); libDark.push({m:mat(bx+fx*0.03,0.86,bz+fz*0.03,0.32,0.3,0.03,ry),c:hex(0x6a4a24)}); }
+function libTable(cx,cz,lx,lz,chairs){ const c=jit(0x3a2214,.1);
+  libWood.push({m:mat(cx,0.78,cz,lx,0.07,lz),c}); libWood.push({m:mat(cx,0.7,cz,lx-0.12,0.1,lz-0.12),c:darkWoodC()});
+  for(const [a,b] of [[1,1],[1,-1],[-1,1],[-1,-1]]){ const px=cx+a*(lx/2-0.12), pz=cz+b*(lz/2-0.12); libWood.push({m:mat(px,0.36,pz,0.11,0.68,0.11),c:darkWoodC()}); libWood.push({m:mat(px,0.1,pz,0.18,0.12,0.18),c:darkWoodC()}); }
+  libWood.push({m:mat(cx,0.22,cz,lx>lz?lx-0.3:0.06,0.06,lz>=lx?lz-0.3:0.06),c:darkWoodC()});
+  // libros y una vela encima
+  const n=1+(rnd()*3|0); for(let k=0;k<n;k++){ const px=cx+(rnd()-.5)*(lx-0.5), pz=cz+(rnd()-.5)*(lz-0.4); const s=1+(rnd()*3|0);
+    for(let j=0;j<s;j++) libBooks.push({m:mat(px,0.84+j*0.045,pz,0.26,0.04,0.2,rnd()*0.6),c:jit(pick(BOOKC),.2)}); }
+  libDisc.push({m:mat(cx+0.22,0.86,cz-0.05,0.34,0.012,0.24,0.2),c:hex(0xe8dcc0)});
+  candles.push({m:mat(cx-0.3,0.85,cz+0.1,1,0.25,1),c:hex(0xd8d0c0)}); flames.push({m:mat(cx-0.3,1.0,cz+0.1,0.6,0.6,0.6,rnd()*6),c:jit(0xffb060,.2)});
+  chairs.forEach(([x,z,fx,fz])=>libChair(x,z,fx,fz)); }
+function libIsland(x,z,isl){ libFloor.push({m:mat(x,-0.04,z,0.98,0.1,0.98),c:jit(0x3a2614,.12)}); if(isl.done) return; isl.done=true;
+  const {x1,z1,w,h,n}=isl, cx=isl.cx, cz=isl.cz;
+  if(n===1){ if(isl.kind%2===0) libBust(x,z,Math.atan2(...(DIRS.find(([a,b])=>walkAt(x+a,z+b))||[0,1]))); else libGlobe(x,z); return; }
+  if((w===3&&h===1)||(w===1&&h===3)){ const ax=w===3?'x':'z'; const fs=ax==='x'?[[0,1],[0,-1]]:[[1,0],[-1,0]];
+    for(let k=0;k<3;k++){ const tx=x1+(ax==='x'?k:0), tz=z1+(ax==='x'?0:k);
+      libDark.push({m:mat(tx,1.0,tz,ax==='x'?1:0.06,2.0,ax==='x'?0.06:1),c:darkWoodC()});
+      for(const [dx,dz] of fs) bookcase(tx,tz,dx,dz,1.95,-0.5,true); }
+    const k=isl.kind, tx=x1+(ax==='x'?k:0), tz=z1+(ax==='x'?0:k), side=walkAt(tx+(ax==='x'?0:1),tz+(ax==='x'?1:0))?1:-1;
+    ladder(tx+(ax==='x'?0:side*0.42),tz+(ax==='x'?side*0.42:0),ax,side,2.0); return; }
+  if(w===2&&h===2){ libTable(cx,cz,1.5,0.9,[[cx,cz-0.72,0,1],[cx,cz+0.72,0,-1]]); return; }
+  if(n===2){ libTable(cx,cz,w===2?1.4:0.75,h===2?1.4:0.75,[]); return; }
+  const lx=Math.max(0.9,w-0.5), lz=Math.max(0.9,h-0.7), ch=[];
+  for(let k=0;k<Math.max(1,w-1);k++){ const px=cx+(w>1?(k-(w-2)/2)*0.9:0); ch.push([px,cz-lz/2-0.32,0,1]); ch.push([px,cz+lz/2+0.32,0,-1]); }
+  libTable(cx,cz,lx,lz,ch); }
+// libros que se caen solos (con un golpe sordo)
+let audioCtx=null; const getAudio=()=>{ try{ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); }catch(e){} return audioCtx; };
+addEventListener('pointerdown',getAudio,{passive:true}); addEventListener('keydown',getAudio);
+function thud(vol){ const a=audioCtx; if(!a||a.state!=='running') return; const t=a.currentTime;
+  const len=Math.floor(a.sampleRate*0.3), buf=a.createBuffer(1,len,a.sampleRate), d=buf.getChannelData(0); for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3);
+  const src=a.createBufferSource(); src.buffer=buf; const lp=a.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=520; const g=a.createGain(); g.gain.value=0.9*vol;
+  src.connect(lp); lp.connect(g); g.connect(a.destination); src.start(t);
+  const o=a.createOscillator(), og=a.createGain(); o.frequency.setValueAtTime(110,t); o.frequency.exponentialRampToValueAtTime(45,t+0.18); og.gain.setValueAtTime(0.7*vol,t); og.gain.exponentialRampToValueAtTime(0.001,t+0.22);
+  o.connect(og); og.connect(a.destination); o.start(t); o.stop(t+0.25);
+  // un segundo golpecito: el libro rebota
+  const s2=a.createBufferSource(); s2.buffer=buf; const g2=a.createGain(); g2.gain.value=0.3*vol; const l2=a.createBiquadFilter(); l2.type='lowpass'; l2.frequency.value=900; s2.connect(l2); l2.connect(g2); g2.connect(a.destination); s2.start(t+0.16); }
+const fallingBooks=[]; let bookT=14+Math.random()*10;
+const fbGeo=new THREE.BoxGeometry(0.26,0.06,0.2);
+function updateFallingBooks(dt){
+  for(let k=fallingBooks.length-1;k>=0;k--){ const b=fallingBooks[k]; b.t+=dt;
+    if(!b.down){ b.vy-=9.8*dt; b.m.position.x+=b.vx*dt; b.m.position.z+=b.vz*dt; b.m.position.y+=b.vy*dt; b.m.rotation.x+=b.rx*dt; b.m.rotation.z+=b.rz*dt;
+      if(b.m.position.y<=0.04){ b.m.position.y=0.04; b.down=true; b.m.rotation.set(0,b.m.rotation.y,0); const d=Math.hypot(b.m.position.x-S.x,b.m.position.z-S.z);
+        thud(Math.max(0.15,1-d/9)); shake=Math.max(shake,0.06); sandPuff(b.m.position.x,b.m.position.z,6,0x8a7a62,0x4a3e30); } }
+    else if(b.t>14){ b.m.material.opacity=Math.max(0,1-(b.t-14)); if(b.t>15){ scene.remove(b.m); fallingBooks.splice(k,1); } } }
+  if(S.dead||!$('title').hidden||!libFaces.length||theme(S.x,S.z)!=='library') return;
+  if((bookT-=dt)>0) return; bookT=16+Math.random()*24;
+  const near=libFaces.filter(f=>{ const d=Math.hypot(f.x-S.x,f.z-S.z); return d>2&&d<6.5&&f.z>=S.z-4; }); if(!near.length) return;
+  const f=near[Math.floor(Math.random()*near.length)], y=0.6+Math.floor(Math.random()*4)*0.42+0.15;
+  const m=new THREE.Mesh(fbGeo,new THREE.MeshLambertMaterial({color:pick(BOOKC),transparent:true})); m.position.set(f.x+f.dx*0.42+(f.dz?(Math.random()-.5)*.6:0),y,f.z+f.dz*0.42+(f.dx?(Math.random()-.5)*.6:0)); m.rotation.y=Math.random()*3; scene.add(m);
+  fallingBooks.push({m,t:0,vx:f.dx*(0.9+Math.random()*0.6),vz:f.dz*(0.9+Math.random()*0.6),vy:0.6,rx:(Math.random()-.5)*9,rz:(Math.random()-.5)*9,down:false}); }
 // ---- cueva peligrosa: roca en lajas sucia, estalagmitas, babas y huesos ----
 const caveSpikes=[], hangers=[], puddles=[], slabs=[], slime=[], gravel=[], mudBanks=[];
 const muck=()=>pick([hex(0x2a2416),hex(0x22200f),hex(0x1c1a14),hex(0x30261a)]);
@@ -902,6 +1008,8 @@ function thickIsland(x,z,isl){ if(isl.done) return; isl.done=true;
     for(let k=0;k<4;k++) bush(isl.x1+rnd()*(isl.w-1),isl.z1+rnd()*(isl.h-1),'thick',0.6); } }
 for(let z=0;z<H;z++)for(let x=0;x<W;x++){ const c=base[idx(x,z)]; if(!'#hR'.includes(c)||(!nearOpen(x,z)&&!gardenIsl.has(idx(x,z))))continue;
   const t=theme(x,z);
+  if(t==='library'&&c==='#'){ const isl=gardenIsl.get(idx(x,z)); if(isl){ libIsland(x,z,isl); continue; }
+    libWall(x,z,DIRS.filter(([dx,dz])=>walkAt(x+dx,z+dz))); continue; }
   if(t==='cemetery'&&c==='#'){ const isl=gardenIsl.get(idx(x,z)); if(isl){ cemIsland(x,z,isl); continue; }
     cemWall(x,z,DIRS.filter(([dx,dz])=>walkAt(x+dx,z+dz))); continue; }
   if(t==='deepcave'&&c==='#'){ const isl=gardenIsl.get(idx(x,z)); if(isl){ caveIsland(x,z,isl); continue; }
@@ -1062,6 +1170,21 @@ addInst(new THREE.ConeGeometry(0.5,1,6),psxMat(caveTex,1.0,0.06,3.5,true),caveSp
   addInst(new THREE.BoxGeometry(1,1,1),cm,box);
   const tg=new THREE.CylinderGeometry(0.577,0.577,1,3,1); tg.rotateX(-Math.PI/2); addInst(tg,cm,tri); }
 addInst(new THREE.PlaneGeometry(1,1),psxMat(limeTex,2,0.6,2,true),cemDark);
+addInst(new THREE.BoxGeometry(1,1,1),psxMat(limeTex,0.9,0.55,2.4,true),libPlaster);
+addInst(new THREE.BoxGeometry(1,1,1),psxMat(woodFloorTex,1.4,0.3,2.2,true),libWood);
+addInst(new THREE.BoxGeometry(1,1,1),psxMat(woodFloorTex,1.4,0.2,1.6,true),libDark);
+addInst(new THREE.BoxGeometry(1,1,1),psxMat(spineTex,1.0,0.4,2.2,true),libBooks);
+addInst(new THREE.BoxGeometry(1,1,1),psxMat(metalTex,1.0,0.5,2.2,true),libGold);
+addInst(new THREE.CylinderGeometry(0.5,0.5,1,12),psxMat(limeTex,1.6,0.6,2.6,true),libDisc);
+addInst(new THREE.BoxGeometry(1,1,1),psxMat(limeTex,1.2,0.6,2.4,true),libMarble);
+addInst(new THREE.SphereGeometry(0.5,10,8),psxMat(limeTex,1.2,0.6,2.4,true),libMarbleS);
+addInst(new THREE.BoxGeometry(1,1,1),psxMat(metalTex,1.0,0.45,2.0,true),libGreen);
+addInst(new THREE.BoxGeometry(1,0.1,1).translate(0,0,0),new THREE.MeshLambertMaterial({color:0xffffff,map:woodFloorTex}),libFloor);
+{ const gm=new THREE.MeshLambertMaterial({map:globeTex}), rm=new THREE.MeshLambertMaterial({color:0x8a6034,map:woodFloorTex}), bm=new THREE.MeshLambertMaterial({color:0xb08a3a});
+  const sg=new THREE.SphereGeometry(0.3,16,12), rg=new THREE.CylinderGeometry(0.42,0.42,0.05,8), mg=new THREE.TorusGeometry(0.33,0.014,4,24);
+  libGlobes.forEach(([x,z])=>{ const g=new THREE.Group(); g.position.set(x,0,z); const sp=new THREE.Mesh(sg,gm); sp.position.y=0.92; sp.rotation.z=0.4; g.add(sp);
+    const r=new THREE.Mesh(rg,rm); r.position.y=0.9; g.add(r); const mr=new THREE.Mesh(mg,bm); mr.position.y=0.92; mr.rotation.y=0.5; mr.rotation.z=0.4; g.add(mr);
+    scene.add(g); }); }
 addInst(new THREE.BoxGeometry(1,1,1),psxMat(limeTex,1.6,0.5,2.6,true),cemBillet);
 addInst(new THREE.CylinderGeometry(0.5,0.5,1,12),psxMat(limeTex,1.6,0.5,2.6,true),cemDisc);
 addInst(new THREE.BoxGeometry(1,1,1),lam(metalTex,0.35,3),lampMetal);
@@ -2331,7 +2454,7 @@ function frame(now){
   if(bump.t>0){ bump.t=Math.max(0,bump.t-dt*7); const b=Math.sin(bump.t*Math.PI)*0.15; pm.x+=bump.x*b*0.2; pm.z+=bump.z*b*0.2; }
   if(S.dead && S.hp<=0) player.mesh.scale.setScalar(Math.max(0.01,player.mesh.scale.x-dt*2));
 
-  updateBosses(dt); updateProjectiles(dt); updateTemps(); updateSpecials(dt); updateArrows(dt); updateChains(); updateOil(dt); updateTraps(dt);
+  updateBosses(dt); updateProjectiles(dt); updateTemps(); updateSpecials(dt); updateArrows(dt); updateChains(); updateOil(dt); updateTraps(dt); updateFallingBooks(dt);
   if((chunkT-=dt)<=0){ chunkT=0.2; for(const m of chunkMeshes){ const dz=m.userData.cz-pm.z; m.visible=Math.abs(m.userData.cx-pm.x)<CHUNK/2+13&&dz>-(CHUNK/2+19)&&dz<CHUNK/2+9; } }
   for(const e of enemies){ if(!e.mesh.visible) continue; const kk2=1-Math.pow(0.0005,dt); const ox=e.big?0.5:0; e.mesh.position.x+=(e.x+ox-e.mesh.position.x)*kk2; e.mesh.position.z+=(e.z+ox-e.mesh.position.z)*kk2;
     e.mesh.position.y = e.jump? Math.sin(Math.min(1,e.jump.t/0.5)*Math.PI)*1.6 : 0; }
