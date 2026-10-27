@@ -1732,7 +1732,7 @@ function tryMove(dx,dz){
   if(t==='-'){ if(candilOn()){ burnWeb(i); } else { hint(S.candil?'Una telaraña espesa. Tu candil no tiene aceite para quemarla.':'Una telaraña espesa y pegajosa. Con fuego podrías quemarla.'); return stop(); } }
   if(t==='"'){ bump={x:dx,z:dz,t:1}; if(S.torches.has(i)) hint('La antorcha arde.'); else if(candilOn()){ lightTorch(i,true); } else hint(S.candil?'Tu candil no tiene aceite para prender la antorcha.':'Una antorcha apagada. Con un candil encendido podrías prenderla.'); return; }
   if(t==='G'){ hint('Una reja cerrada. Habrá una palanca cerca.'); return stop(); }
-  if(t==='¶'){ hint('Un ataúd. Mejor no saber quién duerme dentro.'); return stop(); }
+  if(t==='¶'){ hint('Un sarcófago cubierto de polvo. Mejor no saber quién duerme dentro.'); return stop(); }
   if(t==='°'){ bump={x:dx,z:dz,t:1}; const f=fountains.find(o=>o.id===i); if(f) cureAt(f); return; }
   if(t==='_'){ hint('Son vías. Hace falta una vagoneta.'); return stop(); }
   if(t==='0'&&!S.powers.has('Y')){ hint('Un abismo sin fondo.'); return stop(); }
@@ -1961,23 +1961,34 @@ for(let i=0;i<W*H;i++){ const c=base[i], x=i%W, z=(i/W)|0; if(c==='¶') coffins.
     let out=null; for(const sd of [opp,hinge,...D4]){ for(const [x,z] of t){ if(floorOk(x+sd[0],z+sd[1])&&!tiles.has(idx(x+sd[0],z+sd[1]))){ out=[x+sd[0],z+sd[1]]; break; } } if(out) break; }
     list.push({id:c.id,x:c.x,z:c.z,cx,cz,tiles:t,pair:t.length===2,hinge,out}); }
   coffins.length=0; coffins.push(...list); }
-{ const P=[[-0.92,-0.15],[0.38,-0.29],[0.92,-0.2],[0.92,0.2],[0.38,0.29],[-0.92,0.15]];
-  const shp=s=>{ const sh=new THREE.Shape(); sh.moveTo(P[0][0]*s,P[0][1]*s); for(let k=1;k<P.length;k++) sh.lineTo(P[k][0]*s,P[k][1]*s); sh.closePath(); return sh; };
-  const flat=g=>{ g.rotateX(-Math.PI/2); return g; };
-  const bodyG=flat(new THREE.ExtrudeGeometry(shp(1),{depth:0.34,bevelEnabled:false}));
-  const lidG=flat(new THREE.ExtrudeGeometry(shp(1.04),{depth:0.06,bevelEnabled:false})); lidG.translate(0,0,-0.3);
-  const holeG=flat(new THREE.ShapeGeometry(shp(0.86)));
-  const wood=new THREE.MeshLambertMaterial({color:0x5a3420,map:woodFloorTex}), lidWood=new THREE.MeshLambertMaterial({color:0x6a3e24,map:woodFloorTex});
-  const brass=new THREE.MeshLambertMaterial({color:0xb09858}), hole=new THREE.MeshBasicMaterial({color:0x050304});
-  coffins.forEach(cf=>{ const g=new THREE.Group(); g.position.set(cf.cx,0,cf.cz); g.rotation.y=Math.atan2(cf.hinge[0],cf.hinge[1]); if(!cf.pair) g.scale.set(0.52,1,0.85);
-    const body=new THREE.Mesh(bodyG,wood); g.add(body); const h=new THREE.Mesh(holeG,hole); h.position.y=0.343; g.add(h);
-    const piv=new THREE.Group(); piv.position.set(0,0.34,0.3); g.add(piv);
-    piv.add(new THREE.Mesh(lidG,lidWood));
-    const cv=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.025,0.06),brass); cv.position.set(0.02,0.07,-0.3); piv.add(cv);
-    const ch=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.025,0.34),brass); ch.position.set(0.3,0.07,-0.3); piv.add(ch);
-    for(const sx of [-0.5,0.5]){ const hd=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.05,0.04),brass); hd.position.set(sx,0.2-0.34,0.02); piv.add(hd); }
+// sarcófago de piedra: zócalo, molduras, paneles tallados, pilastras y una figura yacente en la tapa; polvo y telarañas
+const dustTex=pxTex(32,(put,get,n)=>{ for(let y=0;y<n;y++)for(let x=0;x<n;x++){ const v=118+R()*30; put(x,y,v,v*0.95,v*0.86); }
+  for(let k=0;k<40;k++){ const x=R()*n|0, y=R()*n|0, v=150+R()*50; put(x,y,v,v*0.97,v*0.9); }
+  grime(put,get,n,7,5,[60,54,44]); grime(put,get,n,0,3,[40,36,30]); });
+{ const st=new THREE.MeshLambertMaterial({color:0xb4ac9c,map:dustTex}), stD=new THREE.MeshLambertMaterial({color:0x6a6456,map:dustTex}),
+    stL=new THREE.MeshLambertMaterial({color:0xe0d8c6,map:dustTex}), hole=new THREE.MeshBasicMaterial({color:0x040303}),
+    web=new THREE.MeshBasicMaterial({map:webTex,transparent:true,opacity:0.55,side:THREE.DoubleSide,depthWrite:false});
+  const B=(g,m,w,h,d,x,y,z)=>{ const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); o.position.set(x,y,z); g.add(o); return o; };
+  coffins.forEach(cf=>{ const g=new THREE.Group(); g.position.set(cf.cx,0,cf.cz); g.rotation.y=Math.atan2(cf.hinge[0],cf.hinge[1]); if(!cf.pair) g.scale.set(0.52,1,0.9);
+    B(g,stD,1.94,0.1,0.88,0,0.05,0);                 // zócalo
+    B(g,st,1.78,0.42,0.72,0,0.31,0);                  // caja
+    B(g,stL,1.84,0.05,0.78,0,0.13,0); B(g,stL,1.84,0.05,0.78,0,0.5,0);   // molduras
+    for(const sz of [-1,1]){ for(const px of [-0.56,0,0.56]){ B(g,stD,0.44,0.22,0.03,px,0.315,sz*0.365); B(g,stL,0.3,0.05,0.035,px,0.315,sz*0.37); } }   // paneles con una banda tallada
+    for(const sx of [-1,1]){ B(g,stD,0.03,0.22,0.44,sx*0.895,0.315,0); B(g,stL,0.035,0.12,0.04,sx*0.9,0.33,0); B(g,stL,0.035,0.04,0.2,sx*0.9,0.36,0); }  // cruces en los extremos
+    for(const sx of [-1,1]) for(const sz of [-1,1]) B(g,stL,0.09,0.46,0.09,sx*0.88,0.3,sz*0.36);   // pilastras
+    const ho=new THREE.Mesh(new THREE.PlaneGeometry(1.62,0.56),hole); ho.rotation.x=-Math.PI/2; ho.position.y=0.528; g.add(ho);
+    const piv=new THREE.Group(); piv.position.set(0,0.525,0.39); g.add(piv);
+    const L=new THREE.Group(); L.position.z=-0.39; piv.add(L);
+    B(L,st,1.88,0.1,0.82,0,0.05,0); B(L,stL,1.7,0.06,0.66,0,0.12,0);                 // losa y su resalte
+    // figura yacente tallada
+    const head=new THREE.Mesh(new THREE.SphereGeometry(0.13,8,6),stL); head.position.set(0.6,0.24,0); head.scale.set(1,0.75,1); L.add(head);
+    B(L,stD,0.24,0.08,0.4,0.66,0.19,0); B(L,stL,0.8,0.16,0.36,0.1,0.22,0); B(L,stL,0.14,0.08,0.24,0.3,0.32,0);   // almohada, cuerpo, manos
+    B(L,stL,0.5,0.12,0.28,-0.44,0.2,0); B(L,stL,0.1,0.2,0.24,-0.72,0.24,0);       // piernas y pies
+    B(L,stD,0.06,0.03,0.4,0.3,0.365,0); B(L,stD,0.62,0.03,0.05,-0.02,0.315,0.06);  // espada sobre el pecho
+    // telarañas en dos esquinas
+    for(const [sx,sz] of [[-1,1],[1,-1]]){ const w=new THREE.Mesh(new THREE.PlaneGeometry(0.34,0.3),web); w.position.set(sx*0.9,0.3,sz*0.42); w.rotation.y=sx*sz>0?Math.PI/4:-Math.PI/4; g.add(w); }
     scene.add(g); cf.g=g; cf.piv=piv; cf.ang=0; dyn.push({obj:g,x:cf.cx,z:cf.cz,alive:()=>true}); }); }
-function setLid(cf,a){ cf.ang=a; cf.piv.rotation.x=a; const k=Math.max(0,(a-2.2)/(Math.PI-2.2)); cf.piv.position.y=0.34-0.3*k; cf.piv.position.z=0.3+0.12*k; }
+function setLid(cf,a){ cf.ang=a; cf.piv.rotation.x=a; const k=Math.max(0,(a-2.2)/(Math.PI-2.2)); cf.piv.position.y=0.525-0.42*k; cf.piv.position.z=0.39+0.14*k; }
 // fuente de agua bendita: pila hexagonal, pilar cuadrado y cruz
 const holyMat=new THREE.MeshBasicMaterial({color:0x6ab0ff,transparent:true,opacity:0.85}), holyGlow=glowTexOf(120,190,255);
 { const st=new THREE.MeshLambertMaterial({color:0x9a948a,map:flagTex}), st2=new THREE.MeshLambertMaterial({color:0xc8c2b4,map:flagTex});
@@ -2064,7 +2075,7 @@ const swirlTex=(()=>{ const c=document.createElement('canvas'); c.width=c.height
   g.strokeStyle='rgba(180,140,80,.55)'; g.lineWidth=2.5; for(let a=0;a<3;a++){ g.beginPath(); for(let k=0;k<40;k++){ const t=k/40, ang=a*2.09+t*4.5, r=4+t*26; g.lineTo(32+Math.cos(ang)*r,32+Math.sin(ang)*r); } g.stroke(); }
   const t=new THREE.CanvasTexture(c); return t; })();
 const swirl=new THREE.Mesh(new THREE.CircleGeometry(0.62,24),new THREE.MeshBasicMaterial({map:swirlTex,transparent:true,opacity:0,depthWrite:false})); swirl.rotation.x=-Math.PI/2; swirl.renderOrder=2; scene.add(swirl);
-function sandPuff(x,z,n){ for(let k=0;k<n;k++){ const m=new THREE.Mesh(new THREE.BoxGeometry(0.07,0.07,0.07),new THREE.MeshBasicMaterial({color:k%3?0xa8844c:0x5a4224}));
+function sandPuff(x,z,n,c1,c2){ for(let k=0;k<n;k++){ const m=new THREE.Mesh(new THREE.BoxGeometry(0.07,0.07,0.07),new THREE.MeshBasicMaterial({color:k%3?(c1||0xa8844c):(c2||0x5a4224)}));
     const a=Math.random()*6.28, r=0.15+Math.random()*0.25; m.position.set(x+Math.cos(a)*r,0.1,z+Math.sin(a)*r); m.userData.v=new THREE.Vector3(Math.cos(a)*1.2,1.5+Math.random()*2.2,Math.sin(a)*1.2); m.userData.l=0.55; scene.add(m); sparks.push(m); } }
 function updQuicksand(dt,on,sp,pm){ let cut=on?0.04+S.sink*0.42:0;
   if(S.qsg){ const q=S.qsg; q.t+=dt; const t=q.t; cut=t<0.25?q.from+(1-q.from)*(t/0.25):t<0.6?1:1-(1-(0.04+0.5*0.42))*Math.min(1,(t-0.6)/0.35);
@@ -2136,7 +2147,7 @@ function updateTraps(dt){ const pm=player.mesh.position, playing=!S.dead&&$('tit
         S.x=cf.x; S.z=cf.z; pm.set(cf.cx,0.2,cf.cz); camera.position.set(cf.cx,10,cf.cz+4.4); reveal(); checkArea(); setLid(cf,0); } }
     else if(c.ph===1){ pm.set(cf.cx,0.2,cf.cz); if(c.t>=0.7&&!c.unfade){ c.unfade=1; $('fade').classList.remove('on'); }
       if(c.t>1.0&&c.t<1.6){ setLid(cf,Math.max(0,Math.sin(c.t*26))*0.07); if(!c.knock){ c.knock=1; popText(cf.cx,1.4,cf.cz,'¡TOC TOC!','#c8a878'); } }
-      if(c.t>=1.6){ const u=Math.min(1,(c.t-1.6)/0.7); setLid(cf,u*u*(Math.PI-0.03)); }
+      if(c.t>=1.6){ const u=Math.min(1,(c.t-1.6)/0.7); setLid(cf,u*u*(Math.PI-0.03)); if(u>=1&&!c.dust){ c.dust=1; shake=0.25; const hx=cf.cx+cf.hinge[0]*0.9, hz=cf.cz+cf.hinge[1]*0.9; sandPuff(hx,hz,22,0xb8b0a0,0x6a6458); sandPuff(cf.cx,cf.cz,10,0xb8b0a0,0x6a6458); } }
       if(c.t>=2.0&&!player.mesh.visible){ player.mesh.visible=true; }
       if(c.t>=2.3){ c.ph=2; shake=0.18; cf.shut=time+6; const to=cf.out||[S.prevX,S.prevZ]; S.prevX=cf.x; S.prevZ=cf.z; S.x=to[0]; S.z=to[1]; S.arc={t:0,dur:0.5,h:1.0}; reveal(); } }
     else if(c.t>=2.8){ S.coffin=null; } }
