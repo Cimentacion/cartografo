@@ -461,7 +461,11 @@ function psxMat(tex,scale,low,top,cut){
     if(cut){ sh.fragmentShader='uniform vec3 uPl;\nuniform float uCamK;\n'+sh.fragmentShader.replace('void main() {',`void main() {
       // lo alto que tapa a la bruja se abre como una ventana (con trama, estilo PS1)
       if(vWP.y>0.75 && vWP.z>uPl.z+0.4){ vec2 d=vec2(vWP.x-uPl.x,(vWP.z-vWP.y*uCamK)-uPl.z); float r=length(vec2(d.x/0.8,d.y/1.9));
-        if(r<1.0) discard; if(r<1.3 && mod(floor(gl_FragCoord.x)+floor(gl_FragCoord.y),2.0)<1.0) discard; }`); }
+        float chk=mod(floor(gl_FragCoord.x)+floor(gl_FragCoord.y),2.0);
+        if(r<1.0) discard; if(r<1.3 && chk<1.0) discard;
+        // lo que queda por delante (las filas de abajo) se ve a medias, con trama
+        if(vWP.z<uPl.z+2.7 && abs(d.x)<6.0 && d.y<2.6){ float k=1.0-smoothstep(4.5,6.0,abs(d.x)); if(chk<1.0 && k>0.5) discard;
+          if(k>0.85 && mod(floor(gl_FragCoord.x*0.5)+floor(gl_FragCoord.y*0.5),2.0)<1.0 && mod(floor(gl_FragCoord.y),2.0)<1.0) discard; } }`); }
   };
   m.customProgramCacheKey=()=>cut?'psxcut':'psx'; return m;
 }
