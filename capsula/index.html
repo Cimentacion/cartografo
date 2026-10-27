@@ -1429,11 +1429,11 @@ void main(){ vUv=uv; float sx=length(modelMatrix[0].xyz), sy=length(modelMatrix[
   gl_Position=projectionMatrix*(vc+vec4(corner,0.0,0.0));
   vec4 fz=projectionMatrix*(vc+vec4(0.0,0.0,1.3,0.0));
   gl_Position.z=fz.z/fz.w*gl_Position.w; }`;
-const SIL_FS=`uniform sampler2D map; uniform vec3 uTint; uniform float uGray; varying vec2 vUv; void main(){ vec4 c=texture2D(map,vUv); if(c.a<0.5) discard; float l=dot(c.rgb,vec3(0.3,0.59,0.11)); gl_FragColor=vec4(mix(c.rgb,vec3(l*0.8+0.12)*vec3(0.95,0.95,0.9),uGray)*uTint,1.0); }`;
+const SIL_FS=`uniform sampler2D map; uniform vec3 uTint; uniform float uGray; uniform float uCut; varying vec2 vUv; void main(){ if(vUv.y<uCut) discard; vec4 c=texture2D(map,vUv); if(c.a<0.5) discard; float l=dot(c.rgb,vec3(0.3,0.59,0.11)); gl_FragColor=vec4(mix(c.rgb,vec3(l*0.8+0.12)*vec3(0.95,0.95,0.9),uGray)*uTint,1.0); }`;
 const silGeo=new THREE.PlaneGeometry(1,1);
 function makeSil(type,col,big=1){ const def=SIL[type]||SIL.z; const g=new THREE.Group(); const s=def.s*1.15*big;
   const m=new THREE.ShaderMaterial({vertexShader:SIL_VS,fragmentShader:SIL_FS,side:THREE.DoubleSide,
-    uniforms:{map:{value:silTexture(type,col)},uScale:{value:new THREE.Vector2(s,s)},uFlip:{value:1},uLift:{value:def.float||0},uTint:{value:new THREE.Vector3(1,1,1)},uGray:{value:0}}});
+    uniforms:{map:{value:silTexture(type,col)},uScale:{value:new THREE.Vector2(s,s)},uFlip:{value:1},uLift:{value:def.float||0},uTint:{value:new THREE.Vector3(1,1,1)},uGray:{value:0},uCut:{value:0}}});
   const sp=new THREE.Mesh(silGeo,m); sp.frustumCulled=false; g.add(sp); g.userData.sp=sp; g.userData.h=s+(def.float||0);
   if(def.frames) g.userData.frames=[...Array(def.frames)].map((_,k)=>silTexture(type,col,k));
   return g; }
@@ -2035,13 +2035,49 @@ enemies.forEach(e=>{ if(e.kind!=='hands') return; scene.remove(e.mesh); const g=
   const d=dyn.find(o=>o.e===e); if(d) d.obj=g; e.mesh=g; e.noLabel=true; e.red=0; });
 enemies.forEach(e=>{ if(e.kind==='mummy'){ e.open=false; e.eyeT=(e.id%7)*0.4; } if(e.kind==='medusa'){ e.ph='idle'; e.pt=(e.id%5)*0.6; } if(e.kind==='likelike'){ e.cool=0; } });
 // rayo de la medusa
-const beamMat=new THREE.MeshBasicMaterial({color:0xfff2b0,transparent:true,opacity:0.2,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
-const beamGeo=new THREE.CylinderGeometry(0.75,0.05,1,12,1,true); beamGeo.rotateX(Math.PI/2); beamGeo.translate(0,0,0.5);
+// rayo de la medusa: un abanico de luz pintado en el suelo, con chispas, centro dorado y bordes morados
+const BEAM_FS=`uniform float uTime; uniform float uA; varying vec2 vUv;
+void main(){ float u=vUv.x; float w=mix(0.05,0.5,u); float d=abs(vUv.y-0.5)/w; if(d>1.) discard;
+  float side=1.-smoothstep(0.,1.,d); float ends=smoothstep(0.,0.1,u)*(1.-smoothstep(0.82,1.,u));
+  float fl=0.85+0.12*sin(uTime*38.+u*30.)+0.08*sin(u*55.-uTime*24.+vUv.y*20.);
+  vec3 core=vec3(1.0,0.95,0.7), purple=vec3(0.58,0.26,0.95);
+  float c=side*side; vec3 col=mix(purple,core,smoothstep(0.2,0.9,c)); col=mix(col,purple,smoothstep(0.6,1.0,u)*0.55);
+  float a=pow(side,0.9)*ends*fl*uA*0.8; gl_FragColor=vec4(col*a,1.); }`;
+const beamGeo=new THREE.PlaneGeometry(1,1); beamGeo.rotateX(-Math.PI/2); beamGeo.translate(0.5,0,0);
+function makeBeam(){ const m=new THREE.ShaderMaterial({vertexShader:'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+    fragmentShader:BEAM_FS,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,uniforms:{uTime:{value:0},uA:{value:0}}});
+  const mesh=new THREE.Mesh(beamGeo,m); mesh.renderOrder=7; mesh.visible=false; mesh.frustumCulled=false; scene.add(mesh);
+  const N=48, pos=new Float32Array(N*3), col=new Float32Array(N*3), pr=[];
+  for(let k=0;k<N;k++){ const off=Math.random()*2-1; pr.push({u:Math.random(),off,sp:0.5+Math.random()*0.9,h:Math.random(),ph:Math.random()*6.28}); col.set(Math.abs(off)>0.55?[0.72,0.38,1.0]:[1.0,0.93,0.6],k*3); }
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3)); g.setAttribute('color',new THREE.BufferAttribute(col,3));
+  const pts=new THREE.Points(g,new THREE.PointsMaterial({size:0.085,vertexColors:true,transparent:true,opacity:0.9,blending:THREE.AdditiveBlending,depthWrite:false}));
+  pts.visible=false; pts.frustumCulled=false; scene.add(pts); return {mesh,pts,pr,pos,g}; }
+function updBeam(B,hx,hz,tx,tz,a,dt,charge){ B.mesh.visible=B.pts.visible=a>0.01; if(a<=0.01) return;
+  const dx=tx-hx, dz=tz-hz, d0=Math.hypot(dx,dz)||1, L=d0+0.8, ux=dx/d0, uz=dz/d0, MW=2.6;
+  B.mesh.position.set(hx,0.035,hz); B.mesh.rotation.y=Math.atan2(-dz,dx); B.mesh.scale.set(L,1,MW); B.mesh.material.uniforms.uA.value=a; B.mesh.material.uniforms.uTime.value=time%600;
+  B.pr.forEach((q,k)=>{ q.u+=dt*q.sp*(charge?-0.5:1.4); if(q.u>1) q.u-=1; if(q.u<0) q.u+=1; const w=(0.05+0.45*q.u)*MW*0.9;
+    B.pos[k*3]=hx+ux*q.u*L-uz*q.off*w; B.pos[k*3+1]=0.06+q.h*0.55*(0.25+q.u)+Math.sin(time*5+q.ph)*0.05; B.pos[k*3+2]=hz+uz*q.u*L+ux*q.off*w; });
+  B.g.attributes.position.needsUpdate=true; B.pts.material.opacity=Math.min(1,a*1.3); }
+// remolino de arena bajo la bruja cuando se hunde
+const swirlTex=(()=>{ const c=document.createElement('canvas'); c.width=c.height=64; const g=c.getContext('2d'); const gr=g.createRadialGradient(32,32,2,32,32,32);
+  gr.addColorStop(0,'rgba(10,6,2,.95)'); gr.addColorStop(0.45,'rgba(40,26,10,.6)'); gr.addColorStop(1,'rgba(60,40,15,0)'); g.fillStyle=gr; g.fillRect(0,0,64,64);
+  g.strokeStyle='rgba(180,140,80,.55)'; g.lineWidth=2.5; for(let a=0;a<3;a++){ g.beginPath(); for(let k=0;k<40;k++){ const t=k/40, ang=a*2.09+t*4.5, r=4+t*26; g.lineTo(32+Math.cos(ang)*r,32+Math.sin(ang)*r); } g.stroke(); }
+  const t=new THREE.CanvasTexture(c); return t; })();
+const swirl=new THREE.Mesh(new THREE.CircleGeometry(0.62,24),new THREE.MeshBasicMaterial({map:swirlTex,transparent:true,opacity:0,depthWrite:false})); swirl.rotation.x=-Math.PI/2; swirl.renderOrder=2; scene.add(swirl);
+function sandPuff(x,z,n){ for(let k=0;k<n;k++){ const m=new THREE.Mesh(new THREE.BoxGeometry(0.07,0.07,0.07),new THREE.MeshBasicMaterial({color:k%3?0xa8844c:0x5a4224}));
+    const a=Math.random()*6.28, r=0.15+Math.random()*0.25; m.position.set(x+Math.cos(a)*r,0.1,z+Math.sin(a)*r); m.userData.v=new THREE.Vector3(Math.cos(a)*1.2,1.5+Math.random()*2.2,Math.sin(a)*1.2); m.userData.l=0.55; scene.add(m); sparks.push(m); } }
+function updQuicksand(dt,on,sp,pm){ let cut=on?0.04+S.sink*0.42:0;
+  if(S.qsg){ const q=S.qsg; q.t+=dt; const t=q.t; cut=t<0.25?q.from+(1-q.from)*(t/0.25):t<0.6?1:1-(1-(0.04+0.5*0.42))*Math.min(1,(t-0.6)/0.35);
+    if(t>=0.6&&!q.up){ q.up=1; sandPuff(S.x,S.z,10); popText(S.x,1.4,S.z,'¡PUAJ!','#d8b070'); } if(t>=0.95) S.qsg=null; }
+  sp.uCut.value+=(cut-sp.uCut.value)*Math.min(1,dt*(S.qsg?30:8));
+  const k=on?Math.min(1,0.25+S.sink):0; swirl.visible=k>0.01||swirl.material.opacity>0.01; swirl.material.opacity+=(k*0.85-swirl.material.opacity)*Math.min(1,dt*6);
+  swirl.position.set(pm.x,0.03,pm.z); swirl.rotation.z+=dt*(1.5+S.sink*3); swirl.scale.setScalar(0.7+S.sink*0.6+(S.qsg?0.4:0));
+  if(on&&S.sink>0.05&&!S.arc){ pm.y=-0.02; pm.x+=Math.sin(time*13)*0.025*S.sink; } }
 // ---- estados de la bruja ----
 const stoneOv=$('stoneOv');
-function resetTrapStates(){ S.curse=false; S.curseAcc=0; S.stone=null; S.stoneImm=0; S.gulp=null; S.coffin=null; S.fall=null; S.arc=null; S.sink=0; S.slideT=0; S.fx=0; S.fz=1;
+function resetTrapStates(){ S.curse=false; S.curseAcc=0; S.stone=null; S.stoneImm=0; S.gulp=null; S.coffin=null; S.fall=null; S.qsg=null; player.mesh.userData.sp.material.uniforms.uCut.value=0; $('fade').classList.remove('on'); S.arc=null; S.sink=0; S.slideT=0; S.fx=0; S.fz=1;
   S.safeX=S.x; S.safeZ=S.z; if(stoneOv) stoneOv.hidden=true; $('curseB').hidden=true; player.mesh.visible=true;
-  coffins.forEach(cf=>setLid(cf,0)); enemies.forEach(e=>{ if(e.kind==='mummy'){ e.open=false; setSilTex(e,'mummy'); } if(e.kind==='medusa'){ e.ph='idle'; e.pt=0; setSilTex(e,'medusa'); if(e.beam) e.beam.visible=false; } }); }
+  coffins.forEach(cf=>setLid(cf,0)); enemies.forEach(e=>{ if(e.kind==='mummy'){ e.open=false; setSilTex(e,'mummy'); } if(e.kind==='medusa'){ e.ph='idle'; e.pt=0; setSilTex(e,'medusa'); if(e.B){ e.B.mesh.visible=false; e.B.pts.visible=false; } } }); }
 function setSilTex(e,type){ const sp=e.mesh.userData.sp; if(sp) sp.material.uniforms.map.value=silTexture(type,e.col); }
 function curse(){ if(S.curse) return; S.curse=true; S.curseAcc=0; $('curseB').hidden=false; shake=0.2;
   toast('MALDICIÓN','Pierdes vida sin parar. ¡Busca una fuente de agua bendita!',3200); }
@@ -2056,7 +2092,7 @@ function startGulp(e,back){ S.gulp={e,t:0,back,done:false}; popText(e.x,1.6,e.z,
 function startCoffin(e){ let cf=null, bd=1e9; for(const c of coffins){ const d=Math.hypot(c.cx-e.x,c.cz-e.z); if(d<bd){ bd=d; cf=c; } }
   popText(e.x,1.7,e.z,'¡SUS OJOS!','#c0ff40'); shake=0.3;
   if(!cf){ hint('La mirada de la momia te repele.'); return; }
-  S.coffin={c:cf,t:0,ph:0}; hint('La mirada maldita de la momia te arrastra...'); }
+  S.coffin={c:cf,t:0,ph:0}; $('fade').classList.add('on'); hint('La mirada maldita de la momia te arrastra...'); }
 function slideStep(dx,dz){ const nx=S.x+dx, nz=S.z+dz, i=idx(nx,nz), t=tileAt(nx,nz);
   if(enemyAt(nx,nz)) return;
   if((t==='0'||temp.get(i)?.ph==='gone')&&!S.powers.has('Y')){ S.prevX=S.x; S.prevZ=S.z; S.x=nx; S.z=nz; S.fall={t:0}; hint('¡La arena te arrastra al abismo!'); return; }
@@ -2096,40 +2132,39 @@ function updateTraps(dt){ const pm=player.mesh.position, playing=!S.dead&&$('tit
     if(g.t>=1.55) S.gulp=null; }
   // ataúd de la momia
   if(S.coffin){ const c=S.coffin, cf=c.c; c.t+=dt;
-    if(c.ph===0){ player.mesh.scale.setScalar(Math.max(0.01,1-c.t*2.4)); if(c.t>=0.45){ c.ph=1; player.mesh.visible=false; player.mesh.scale.setScalar(1);
+    if(c.ph===0){ if(c.t>=0.5){ c.ph=1; player.mesh.visible=false;
         S.x=cf.x; S.z=cf.z; pm.set(cf.cx,0.2,cf.cz); camera.position.set(cf.cx,10,cf.cz+4.4); reveal(); checkArea(); setLid(cf,0); } }
-    else if(c.ph===1){ pm.set(cf.cx,0.2,cf.cz);
-      if(c.t>0.9&&c.t<1.6){ setLid(cf,Math.max(0,Math.sin(c.t*26))*0.07); if(!c.knock){ c.knock=1; popText(cf.cx,1.4,cf.cz,'¡TOC TOC!','#c8a878'); } }
+    else if(c.ph===1){ pm.set(cf.cx,0.2,cf.cz); if(c.t>=0.7&&!c.unfade){ c.unfade=1; $('fade').classList.remove('on'); }
+      if(c.t>1.0&&c.t<1.6){ setLid(cf,Math.max(0,Math.sin(c.t*26))*0.07); if(!c.knock){ c.knock=1; popText(cf.cx,1.4,cf.cz,'¡TOC TOC!','#c8a878'); } }
       if(c.t>=1.6){ const u=Math.min(1,(c.t-1.6)/0.7); setLid(cf,u*u*(Math.PI-0.03)); }
       if(c.t>=2.0&&!player.mesh.visible){ player.mesh.visible=true; }
       if(c.t>=2.3){ c.ph=2; shake=0.18; cf.shut=time+6; const to=cf.out||[S.prevX,S.prevZ]; S.prevX=cf.x; S.prevZ=cf.z; S.x=to[0]; S.z=to[1]; S.arc={t:0,dur:0.5,h:1.0}; reveal(); } }
     else if(c.t>=2.8){ S.coffin=null; } }
   if(S.arc){ S.arc.t+=dt; const u=Math.min(1,S.arc.t/S.arc.dur); pm.y=Math.sin(u*Math.PI)*S.arc.h+(S.coffin?0.1*(1-u):0); if(u>=1) S.arc=null; }
-  if(S.gulp||S.coffin||S.stone) return;
+  if(S.gulp||S.coffin||S.stone){ for(const e of enemies) if(e.B){ e.B.mesh.visible=e.B.pts.visible=false; } return; }
   // arena que arrastra
   const here=base[idx(S.x,S.z)], dir=SLIDE[here];
   if(dir&&!blocked()){ S.slideT+=dt; if(S.slideT>=0.17){ S.slideT=0; slideStep(dir[0],dir[1]); } } else S.slideT=0;
   // arenas movedizas
-  if(here==='±'&&!blocked()){ S.sink+=dt*0.42; if(S.sink>=1){ S.sink=0.5; hurt(2,'¡La arena te traga!'); } } else if(here!=='±') S.sink=Math.max(0,S.sink-dt*3);
-  if(S.sink>0&&!S.arc) pm.y=-S.sink*0.6;
+  if(here==='±'&&!blocked()&&!S.qsg){ S.sink+=dt*0.42; if(S.sink>=1){ S.sink=0.5; S.qsg={t:0,from:sp.uCut.value}; sandPuff(S.x,S.z,16); hurt(2,'¡La arena te traga!'); } } else if(here!=='±') S.sink=Math.max(0,S.sink-dt*3);
+  updQuicksand(dt,here==='±',sp,pm);
   // monstruos del cementerio
   if(S.warp||S.ride) return;
   for(const e of enemies){ if(!e.kind||S.killed.has(e.id)) continue; const dist=Math.hypot(S.x-e.x,S.z-e.z);
     if(e.kind==='mummy'){ e.eyeT+=dt; const cyc=e.eyeT%4.2, open=cyc>2.6; if(open!==e.open){ e.open=open; setSilTex(e,open?'mummyO':'mummy'); if(open&&dist<4&&!S.mumWarned){ S.mumWarned=1; hint('La momia ha abierto los ojos. No la ataques ahora.'); } }
       e.t2=(e.t2||0)+dt; if(e.t2<1.1) continue; e.t2=0; if(!sees(e,S.x,S.z,6)) continue;
       let best=null, bd=dist; for(const [dx,dz] of DIRS4){ const nx=e.x+dx, nz=e.z+dz, onP=nx===S.x&&nz===S.z; if(!onP&&!freeFor(e,nx,nz)) continue; const d=Math.hypot(S.x-nx,S.z-nz); if(d<bd){ bd=d; best=[nx,nz,onP]; } }
-      if(best){ if(best[2]){ if(!e.open) fight(e); } else { e.x=best[0]; e.z=best[1]; } } }
+      if(best){ if(best[2]){ if(e.open){ startCoffin(e); return; } fight(e); } else { e.x=best[0]; e.z=best[1]; } } }
     else if(e.kind==='likelike'){ e.t2=(e.t2||0)+dt; if(e.t2<1.0||time<e.cool) continue; e.t2=0; if(!sees(e,S.x,S.z,6)) continue;
       let best=null, bd=dist; for(const [dx,dz] of DIRS4){ const nx=e.x+dx, nz=e.z+dz, onP=nx===S.x&&nz===S.z; if(!onP&&!freeFor(e,nx,nz)) continue; const d=Math.hypot(S.x-nx,S.z-nz); if(d<bd){ bd=d; best=[nx,nz,onP]; } }
       if(best){ if(best[2]){ startGulp(e,[S.x,S.z]); return; } else { e.x=best[0]; e.z=best[1]; } } }
     else if(e.kind==='medusa'){ e.pt+=dt; const vis=sees(e,S.x,S.z,8);
-      if(!e.beam){ e.beam=new THREE.Mesh(beamGeo,beamMat); e.beam.visible=false; scene.add(e.beam); }
-      if(e.ph==='idle'){ e.beam.visible=false; if(e.pt>3.4&&vis){ e.ph='charge'; e.pt=0; setSilTex(e,'medusaA'); popText(e.x,2.1,e.z,'¡NO LA MIRES!','#e8ff90'); if(!S.medWarned){ S.medWarned=1; hint('Medusa va a mirarte: date la vuelta (mira al lado contrario).'); } } }
-      else if(e.ph==='charge'){ if(e.pt>1.0){ e.ph='beam'; e.pt=0; } }
-      else if(e.ph==='beam'){ const hx=e.mesh.position.x, hz=e.mesh.position.z; e.beam.visible=true; e.beam.position.set(hx,1.25,hz); e.beam.lookAt(pm.x,0.8,pm.z);
-        e.beam.scale.set(1,1,Math.max(0.5,Math.hypot(pm.x-hx,pm.z-hz,0.45))); beamMat.opacity=0.14+0.08*Math.sin(time*30);
+      if(!e.B) e.B=makeBeam(); const hx=e.mesh.position.x, hz=e.mesh.position.z;
+      if(e.ph==='idle'){ updBeam(e.B,hx,hz,pm.x,pm.z,0,dt,false); if(e.pt>3.4&&vis){ e.ph='charge'; e.pt=0; setSilTex(e,'medusaA'); popText(e.x,2.1,e.z,'¡NO LA MIRES!','#e8ff90'); if(!S.medWarned){ S.medWarned=1; hint('Medusa va a mirarte: date la vuelta (mira al lado contrario).'); } } }
+      else if(e.ph==='charge'){ updBeam(e.B,hx,hz,pm.x,pm.z,vis?0.18+0.1*Math.sin(time*14):0,dt,true); if(e.pt>1.0){ e.ph='beam'; e.pt=0; } }
+      else if(e.ph==='beam'){ updBeam(e.B,hx,hz,pm.x,pm.z,(vis?1:0)*Math.min(1,e.pt*6)*(e.pt>1.35?Math.max(0,(1.6-e.pt)/0.25):1),dt,false);
         if(vis&&!S.stone&&time>S.stoneImm){ const dx=e.x-S.x, dz=e.z-S.z, l=Math.hypot(dx,dz)||1; if((S.fx*dx+S.fz*dz)/l>-0.2){ petrify(); } }
-        if(e.pt>1.6){ e.ph='idle'; e.pt=0; e.beam.visible=false; setSilTex(e,'medusa'); } } } } }
+        if(e.pt>1.6){ e.ph='idle'; e.pt=0; updBeam(e.B,hx,hz,pm.x,pm.z,0,dt,false); setSilTex(e,'medusa'); } } } } }
 
 // ======== MONSTRUOS ESPECIALES ========
 function sees(e,tx,tz,range){ const ex=e.x+(e.big?0.5:0), ez=e.z+(e.big?0.5:0); const d=Math.hypot(tx-ex,tz-ez); if(d>range) return false;
