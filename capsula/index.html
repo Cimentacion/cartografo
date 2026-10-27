@@ -460,7 +460,7 @@ function psxMat(tex,scale,low,top,cut){
        #include <fog_fragment>`);
     if(cut){ sh.fragmentShader='uniform vec3 uPl;\nuniform float uCamK;\n'+sh.fragmentShader.replace('void main() {',`void main() {
       // lo alto que tapa a la bruja se abre como una ventana (con trama, estilo PS1)
-      if(vWP.y>0.75 && vWP.z>uPl.z-0.6){ vec2 d=vec2(vWP.x-uPl.x,(vWP.z-vWP.y*uCamK)-uPl.z); float r=length(d*vec2(1.0,1.2));
+      if(vWP.y>0.75 && vWP.z>uPl.z+0.4){ vec2 d=vec2(vWP.x-uPl.x,(vWP.z-vWP.y*uCamK)-uPl.z); float r=length(d*vec2(1.0,1.2));
         if(r<2.1) discard; if(r<3.0 && mod(floor(gl_FragCoord.x)+floor(gl_FragCoord.y),2.0)<1.0) discard; }`); }
   };
   m.customProgramCacheKey=()=>cut?'psxcut':'psx'; return m;
@@ -1732,7 +1732,7 @@ function tryMove(dx,dz){
   if(t==='-'){ if(candilOn()){ burnWeb(i); } else { hint(S.candil?'Una telaraña espesa. Tu candil no tiene aceite para quemarla.':'Una telaraña espesa y pegajosa. Con fuego podrías quemarla.'); return stop(); } }
   if(t==='"'){ bump={x:dx,z:dz,t:1}; if(S.torches.has(i)) hint('La antorcha arde.'); else if(candilOn()){ lightTorch(i,true); } else hint(S.candil?'Tu candil no tiene aceite para prender la antorcha.':'Una antorcha apagada. Con un candil encendido podrías prenderla.'); return; }
   if(t==='G'){ hint('Una reja cerrada. Habrá una palanca cerca.'); return stop(); }
-  if(t==='¶'){ hint('Un ataúd de pie. Mejor no saber quién duerme dentro.'); return stop(); }
+  if(t==='¶'){ hint('Un ataúd. Mejor no saber quién duerme dentro.'); return stop(); }
   if(t==='°'){ bump={x:dx,z:dz,t:1}; const f=fountains.find(o=>o.id===i); if(f) cureAt(f); return; }
   if(t==='_'){ hint('Son vías. Hace falta una vagoneta.'); return stop(); }
   if(t==='0'&&!S.powers.has('Y')){ hint('Un abismo sin fondo.'); return stop(); }
@@ -1948,23 +1948,36 @@ const glowTexOf=(r,g,b)=>{ const c=document.createElement('canvas'); c.width=c.h
   gr.addColorStop(0,`rgba(${r},${g},${b},1)`); gr.addColorStop(0.4,`rgba(${r},${g},${b},.35)`); gr.addColorStop(1,`rgba(${r},${g},${b},0)`); x.fillStyle=gr; x.fillRect(0,0,64,64); return new THREE.CanvasTexture(c); };
 const coffins=[], fountains=[], axes=[];
 for(let i=0;i<W*H;i++){ const c=base[i], x=i%W, z=(i/W)|0; if(c==='¶') coffins.push({id:i,x,z}); else if(c==='°') fountains.push({id:i,x,z}); else if(c==='¥') axes.push({id:i,x,z}); }
-// ataúd de pie: la tapa se abre hacia delante
-{ const P=[[-0.15,0],[0.15,0],[0.27,1.28],[0.18,1.78],[-0.18,1.78],[-0.27,1.28]];
-  const shp=s=>{ const sh=new THREE.Shape(); sh.moveTo(P[0][0]*s,P[0][1]*s+(1-s)*0.9); for(let k=1;k<P.length;k++) sh.lineTo(P[k][0]*s,P[k][1]*s+(1-s)*0.9); sh.closePath(); return sh; };
-  const bodyG=new THREE.ExtrudeGeometry(shp(1),{depth:0.34,bevelEnabled:false}); bodyG.translate(0,0,-0.34);
-  const lidG=new THREE.ExtrudeGeometry(shp(1.04),{depth:0.06,bevelEnabled:false});
-  const holeG=new THREE.ShapeGeometry(shp(0.84));
+// ataúd tumbado en el suelo (2x1 si pintas dos juntos): la tapa se abre de lado y cae al suelo
+{ const tiles=new Set(coffins.map(c=>c.id)), used=new Set(), list=[];
+  const floorOk=(x,z)=>'.,:=SZ5'.includes(base[idx(x,z)]||'#');
+  for(const c of coffins){ if(used.has(c.id)) continue; used.add(c.id); let t=[[c.x,c.z]], ax='x';
+    const r=idx(c.x+1,c.z), d=idx(c.x,c.z+1);
+    if(tiles.has(r)&&!used.has(r)){ used.add(r); t.push([c.x+1,c.z]); } else if(tiles.has(d)&&!used.has(d)){ used.add(d); t.push([c.x,c.z+1]); ax='z'; }
+    else ax=(floorOk(c.x,c.z-1)||floorOk(c.x,c.z+1))?'x':'z';
+    const cx=t.reduce((s,q)=>s+q[0],0)/t.length, cz=t.reduce((s,q)=>s+q[1],0)/t.length;
+    const sides=ax==='x'?[[0,1],[0,-1]]:[[1,0],[-1,0]]; const freeS=sides.filter(([dx,dz])=>t.some(([x,z])=>floorOk(x+dx,z+dz)));
+    const hinge=freeS[0]||sides[0], opp=[-hinge[0],-hinge[1]];
+    let out=null; for(const sd of [opp,hinge,...D4]){ for(const [x,z] of t){ if(floorOk(x+sd[0],z+sd[1])&&!tiles.has(idx(x+sd[0],z+sd[1]))){ out=[x+sd[0],z+sd[1]]; break; } } if(out) break; }
+    list.push({id:c.id,x:c.x,z:c.z,cx,cz,tiles:t,pair:t.length===2,hinge,out}); }
+  coffins.length=0; coffins.push(...list); }
+{ const P=[[-0.92,-0.15],[0.38,-0.29],[0.92,-0.2],[0.92,0.2],[0.38,0.29],[-0.92,0.15]];
+  const shp=s=>{ const sh=new THREE.Shape(); sh.moveTo(P[0][0]*s,P[0][1]*s); for(let k=1;k<P.length;k++) sh.lineTo(P[k][0]*s,P[k][1]*s); sh.closePath(); return sh; };
+  const flat=g=>{ g.rotateX(-Math.PI/2); return g; };
+  const bodyG=flat(new THREE.ExtrudeGeometry(shp(1),{depth:0.34,bevelEnabled:false}));
+  const lidG=flat(new THREE.ExtrudeGeometry(shp(1.04),{depth:0.06,bevelEnabled:false})); lidG.translate(0,0,-0.3);
+  const holeG=flat(new THREE.ShapeGeometry(shp(0.86)));
   const wood=new THREE.MeshLambertMaterial({color:0x5a3420,map:woodFloorTex}), lidWood=new THREE.MeshLambertMaterial({color:0x6a3e24,map:woodFloorTex});
   const brass=new THREE.MeshLambertMaterial({color:0xb09858}), hole=new THREE.MeshBasicMaterial({color:0x050304});
-  coffins.forEach(cf=>{ const [fx,fz]=faceTo(cf.x,cf.z); cf.f=[fx,fz]; const g=new THREE.Group(); g.position.set(cf.x-fx*0.2,0,cf.z-fz*0.2); g.rotation.y=Math.atan2(fx,fz);
-    const body=new THREE.Mesh(bodyG,wood); g.add(body); const h=new THREE.Mesh(holeG,hole); h.position.z=0.004; g.add(h);
-    const base0=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.08,0.5),wood); base0.position.set(0,0.04,-0.12); g.add(base0);
-    const piv=new THREE.Group(); piv.position.set(0,0.02,0.005); g.add(piv);
-    const lid=new THREE.Mesh(lidG,lidWood); piv.add(lid);
-    const cv=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.62,0.025),brass); cv.position.set(0,1.08,0.07); piv.add(cv);
-    const ch=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.05,0.025),brass); ch.position.set(0,1.24,0.07); piv.add(ch);
-    for(const sx of [-1,1]){ const hd=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.1,0.03),brass); hd.position.set(sx*0.2,0.75,0.07); piv.add(hd); }
-    scene.add(g); cf.g=g; cf.piv=piv; cf.ang=0; dyn.push({obj:g,x:cf.x,z:cf.z,alive:()=>true}); }); }
+  coffins.forEach(cf=>{ const g=new THREE.Group(); g.position.set(cf.cx,0,cf.cz); g.rotation.y=Math.atan2(cf.hinge[0],cf.hinge[1]); if(!cf.pair) g.scale.set(0.52,1,0.85);
+    const body=new THREE.Mesh(bodyG,wood); g.add(body); const h=new THREE.Mesh(holeG,hole); h.position.y=0.343; g.add(h);
+    const piv=new THREE.Group(); piv.position.set(0,0.34,0.3); g.add(piv);
+    piv.add(new THREE.Mesh(lidG,lidWood));
+    const cv=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.025,0.06),brass); cv.position.set(0.02,0.07,-0.3); piv.add(cv);
+    const ch=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.025,0.34),brass); ch.position.set(0.3,0.07,-0.3); piv.add(ch);
+    for(const sx of [-0.5,0.5]){ const hd=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.05,0.04),brass); hd.position.set(sx,0.2-0.34,0.02); piv.add(hd); }
+    scene.add(g); cf.g=g; cf.piv=piv; cf.ang=0; dyn.push({obj:g,x:cf.cx,z:cf.cz,alive:()=>true}); }); }
+function setLid(cf,a){ cf.ang=a; cf.piv.rotation.x=a; const k=Math.max(0,(a-2.2)/(Math.PI-2.2)); cf.piv.position.y=0.34-0.3*k; cf.piv.position.z=0.3+0.12*k; }
 // fuente de agua bendita: pila hexagonal, pilar cuadrado y cruz
 const holyMat=new THREE.MeshBasicMaterial({color:0x6ab0ff,transparent:true,opacity:0.85}), holyGlow=glowTexOf(120,190,255);
 { const st=new THREE.MeshLambertMaterial({color:0x9a948a,map:flagTex}), st2=new THREE.MeshLambertMaterial({color:0xc8c2b4,map:flagTex});
@@ -2028,7 +2041,7 @@ const beamGeo=new THREE.CylinderGeometry(0.75,0.05,1,12,1,true); beamGeo.rotateX
 const stoneOv=$('stoneOv');
 function resetTrapStates(){ S.curse=false; S.curseAcc=0; S.stone=null; S.stoneImm=0; S.gulp=null; S.coffin=null; S.fall=null; S.arc=null; S.sink=0; S.slideT=0; S.fx=0; S.fz=1;
   S.safeX=S.x; S.safeZ=S.z; if(stoneOv) stoneOv.hidden=true; $('curseB').hidden=true; player.mesh.visible=true;
-  coffins.forEach(cf=>{ cf.ang=0; cf.piv.rotation.x=0; }); enemies.forEach(e=>{ if(e.kind==='mummy'){ e.open=false; setSilTex(e,'mummy'); } if(e.kind==='medusa'){ e.ph='idle'; e.pt=0; setSilTex(e,'medusa'); if(e.beam) e.beam.visible=false; } }); }
+  coffins.forEach(cf=>setLid(cf,0)); enemies.forEach(e=>{ if(e.kind==='mummy'){ e.open=false; setSilTex(e,'mummy'); } if(e.kind==='medusa'){ e.ph='idle'; e.pt=0; setSilTex(e,'medusa'); if(e.beam) e.beam.visible=false; } }); }
 function setSilTex(e,type){ const sp=e.mesh.userData.sp; if(sp) sp.material.uniforms.map.value=silTexture(type,e.col); }
 function curse(){ if(S.curse) return; S.curse=true; S.curseAcc=0; $('curseB').hidden=false; shake=0.2;
   toast('MALDICIÓN','Pierdes vida sin parar. ¡Busca una fuente de agua bendita!',3200); }
@@ -2040,7 +2053,7 @@ function stoneTap(){ if(!S.stone) return; S.stone.n++; $('stoneFill').style.widt
 document.addEventListener('pointerdown',ev=>{ if(S.stone&&!S.dead){ ev.preventDefault(); ev.stopPropagation(); stoneTap(); } },true);
 addEventListener('keydown',ev=>{ if(S.stone&&!S.dead&&!ev.repeat) stoneTap(); },true);
 function startGulp(e,back){ S.gulp={e,t:0,back,done:false}; popText(e.x,1.6,e.z,'¡GLUP!','#ff9a9a'); shake=0.2; }
-function startCoffin(e){ let cf=null, bd=1e9; for(const c of coffins){ const d=Math.hypot(c.x-e.x,c.z-e.z); if(d<bd){ bd=d; cf=c; } }
+function startCoffin(e){ let cf=null, bd=1e9; for(const c of coffins){ const d=Math.hypot(c.cx-e.x,c.cz-e.z); if(d<bd){ bd=d; cf=c; } }
   popText(e.x,1.7,e.z,'¡SUS OJOS!','#c0ff40'); shake=0.3;
   if(!cf){ hint('La mirada de la momia te repele.'); return; }
   S.coffin={c:cf,t:0,ph:0}; hint('La mirada maldita de la momia te arrastra...'); }
@@ -2061,7 +2074,7 @@ function updateTraps(dt){ const pm=player.mesh.position, playing=!S.dead&&$('tit
     const hx=a.ax==='x'?a.x+k:a.x, hz=a.ax==='x'?a.z:a.z-k; if(hx===S.x&&hz===S.z&&Math.abs(off-k)<0.42&&time>(S.axeCD||0)){ S.axeCD=time+0.8; hurt(4,'¡El hacha péndulo!'); } }
   holyMat.opacity=0.7+Math.sin(time*2.2)*0.15; fountains.forEach(f=>{ if(f.glow) f.glow.material.opacity=0.45+Math.sin(time*1.7+f.x)*0.12; });
   // ataúdes: la tapa vuelve a subir sola
-  for(const cf of coffins){ if(S.coffin&&S.coffin.c===cf) continue; if(cf.ang>0){ cf.ang=Math.max(0,cf.ang-dt*0.5); cf.piv.rotation.x=cf.ang; } }
+  for(const cf of coffins){ if(S.coffin&&S.coffin.c===cf) continue; if(cf.ang>0&&time>(cf.shut||0)) setLid(cf,Math.max(0,cf.ang-dt*0.6)); }
   // manos espectrales
   for(const e of enemies){ if(e.kind!=='hands') continue; const m=e.mesh.userData.mat; m.uniforms.uTime.value=time%600;
     const near=!S.killed.has(e.id)&&Math.hypot(S.x-e.x,S.z-e.z)<=1.6; e.red+=((near?1:0)-e.red)*Math.min(1,dt*4); m.uniforms.uRed.value=e.red;
@@ -2084,12 +2097,13 @@ function updateTraps(dt){ const pm=player.mesh.position, playing=!S.dead&&$('tit
   // ataúd de la momia
   if(S.coffin){ const c=S.coffin, cf=c.c; c.t+=dt;
     if(c.ph===0){ player.mesh.scale.setScalar(Math.max(0.01,1-c.t*2.4)); if(c.t>=0.45){ c.ph=1; player.mesh.visible=false; player.mesh.scale.setScalar(1);
-        S.x=cf.x; S.z=cf.z; pm.set(cf.x,0,cf.z); camera.position.set(cf.x,10,cf.z+4.4); reveal(); checkArea(); cf.ang=0; } }
-    else if(c.ph===1){ pm.set(cf.x,0,cf.z); if(c.t>0.9&&c.t<1.6){ cf.g.rotation.z=Math.sin(c.t*42)*0.035; if(!c.knock){ c.knock=1; popText(cf.x,2.1,cf.z,'¡TOC TOC!','#c8a878'); } }
-      else cf.g.rotation.z=0;
-      if(c.t>=1.6){ const u=Math.min(1,(c.t-1.6)/0.45); cf.ang=u*u*(Math.PI/2-0.04); cf.piv.rotation.x=cf.ang; }
-      if(c.t>=2.05){ c.ph=2; shake=0.18; player.mesh.visible=true; const to=freeAround(cf.x,cf.z,cf.f)||[S.prevX,S.prevZ]; S.prevX=cf.x; S.prevZ=cf.z; S.x=to[0]; S.z=to[1]; S.arc={t:0,dur:0.5,h:1.0}; reveal(); } }
-    else if(c.t>=2.6){ S.coffin=null; cf.ang=Math.PI/2-0.04; } }
+        S.x=cf.x; S.z=cf.z; pm.set(cf.cx,0.2,cf.cz); camera.position.set(cf.cx,10,cf.cz+4.4); reveal(); checkArea(); setLid(cf,0); } }
+    else if(c.ph===1){ pm.set(cf.cx,0.2,cf.cz);
+      if(c.t>0.9&&c.t<1.6){ setLid(cf,Math.max(0,Math.sin(c.t*26))*0.07); if(!c.knock){ c.knock=1; popText(cf.cx,1.4,cf.cz,'¡TOC TOC!','#c8a878'); } }
+      if(c.t>=1.6){ const u=Math.min(1,(c.t-1.6)/0.7); setLid(cf,u*u*(Math.PI-0.03)); }
+      if(c.t>=2.0&&!player.mesh.visible){ player.mesh.visible=true; }
+      if(c.t>=2.3){ c.ph=2; shake=0.18; cf.shut=time+6; const to=cf.out||[S.prevX,S.prevZ]; S.prevX=cf.x; S.prevZ=cf.z; S.x=to[0]; S.z=to[1]; S.arc={t:0,dur:0.5,h:1.0}; reveal(); } }
+    else if(c.t>=2.8){ S.coffin=null; } }
   if(S.arc){ S.arc.t+=dt; const u=Math.min(1,S.arc.t/S.arc.dur); pm.y=Math.sin(u*Math.PI)*S.arc.h+(S.coffin?0.1*(1-u):0); if(u>=1) S.arc=null; }
   if(S.gulp||S.coffin||S.stone) return;
   // arena que arrastra
