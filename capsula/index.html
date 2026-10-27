@@ -62,6 +62,13 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);overflow:hid
 #slotList button small{display:block;color:var(--dim);font-size:10px;margin-top:3px;line-height:1.4}
 #fade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .4s}
 #fade.on{opacity:1}
+#stoneOv{position:fixed;left:50%;top:28%;transform:translate(-50%,-50%);z-index:40;pointer-events:none;text-align:center;color:#eee;text-shadow:0 2px 6px #000;font-family:inherit}
+#stoneOv b{display:block;font-size:30px;letter-spacing:2px;color:#e8e6dc;animation:stoneP .25s infinite alternate}
+#stoneOv span{display:block;font-size:14px;margin:6px 0 10px}
+#stoneOv .sbar{width:200px;height:12px;border:2px solid #ddd;margin:0 auto;background:#222}
+#stoneFill{height:100%;width:0;background:#e8e6dc}
+@keyframes stoneP{from{transform:scale(1)}to{transform:scale(1.08)}}
+#curseB{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 58px);transform:translateX(-50%);z-index:30;pointer-events:none;color:#e0a0ff;background:rgba(40,0,60,.72);border:1px solid #b060e0;padding:3px 10px;font-size:13px;letter-spacing:1px;animation:stoneP .6s infinite alternate}
 #toast b{display:block;font-size:14px;margin-bottom:3px}
 #joy{position:fixed;left:0;right:0;bottom:0;height:58%}
 #base{position:absolute;width:130px;height:130px;margin:-65px 0 0 -65px;border:2px solid rgba(233,236,242,.25);border-radius:50%;display:none}
@@ -109,6 +116,8 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);overflow:hid
 <div id="zone"></div>
 <div id="banner"></div>
 <div id="toast"></div>
+<div id="stoneOv" hidden><b>¡PETRIFICADA!</b><span>Toca la pantalla muy rápido</span><div class="sbar"><div id="stoneFill"></div></div></div>
+<div id="curseB" hidden>✠ MALDITA · busca agua bendita</div>
 <div id="fade"></div>
 <div id="joy"><div id="base"></div><div id="knob"></div></div>
 <div id="bag"><button id="useBomb" hidden>BOMBA ×0</button><button id="useWild" hidden>COMODÍN ×0</button><button id="useElix" hidden>ELIXIR ×0</button><button id="usePot" hidden>POCIÓN ×0</button></div>
@@ -168,7 +177,7 @@ const ENEMY={c:{n:'Cuervo',hp:1},r:{n:'Rata',hp:2},z:{n:'Zombi',hp:4},y:{n:'Zomb
  f:{n:'Espectro',hp:12},x:{n:'Demonio',hp:24},d:{n:'Drácula',hp:34,final:true},
  e:{n:'Escorpión',hp:7},j:{n:'Chacal',hp:9},m:{n:'Momia',hp:12},n:{n:'Reina momia',hp:20},
  p:{n:'Payaso',hp:13},u:{n:'Acróbata',hp:11},o:{n:'Forzudo',hp:18},q:{n:'Jefe de pista',hp:24},
- k:{n:'Gólem',hp:20},skull:{n:'Calavera gigante',hp:20},dog:{n:'Perro encadenado',hp:8},archer:{n:'Arquero',hp:6},shade:{n:'Lobo de sombra',hp:3},v:{n:'Verdugo',hp:18},t:{n:'Médico de la peste',hp:14},i:{n:'Caballero maldito',hp:22}};
+ k:{n:'Gólem',hp:20},skull:{n:'Calavera gigante',hp:20},dog:{n:'Perro encadenado',hp:8},archer:{n:'Arquero',hp:6},shade:{n:'Lobo de sombra',hp:3},hands:{n:'Manos espectrales',hp:2},likelike:{n:'Tragón',hp:8},mummy:{n:'Momia maldita',hp:3},medusa:{n:'Medusa',hp:6},v:{n:'Verdugo',hp:18},t:{n:'Médico de la peste',hp:14},i:{n:'Caballero maldito',hp:22}};
 const POWERS={O:{n:'SACO DE BOMBAS',d:'Llevas 5 bombas. Pon una con el botón BOMBA (o la tecla B): 5 de daño alrededor. También rompen las paredes agrietadas.',c:'#ff9a3c',k:'B'},
  K:{n:'LLAVE MAESTRA',d:'Abres las puertas cerradas.',c:'#e8c35a',k:'L'},
  T:{n:'AMULETO DE JADE',d:'El veneno ya no te afecta.',c:'#62d26f',k:'V'},
@@ -192,7 +201,8 @@ const idx=(x,z)=>z*W+x;
 const base=new Array(W*H);
 const enemies=[], items=[], doors=[], cracks=[], chapels=[], levers=[], gates=[], spikes=[], crumbles=[], stations=[], portals=[], merchants=[], secretWalls=[], specials=[], warpPads=[];
 let START={x:1,z:1};
-const poisonFog=new Set(), torchesL=[], webs=[];
+const poisonFog=new Set(), curseFog=new Set(), torchesL=[], webs=[];
+const SLIDE={'»':[1,0],'«':[-1,0],'ª':[0,-1],'º':[0,1]}; const isSand=c=>c==='±'||!!SLIDE[c];
 function floorNear(x,z){ for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){ const c=(GRID[z+dz]||'')[x+dx]; if(c && '.,:'.includes(c)) return c; } return '.'; }
 for(let z=0;z<H;z++)for(let x=0;x<W;x++){
   const c=GRID[z][x], i=idx(x,z);
@@ -204,6 +214,7 @@ for(let z=0;z<H;z++)for(let x=0;x<W;x++){
   else if(ITEMS[c]||POWERS[c]){ items.push({id:i,x,z,kind:c}); base[i]=floorNear(x,z); }
   else if(c==='@'){ START={x,z}; base[i]=floorNear(x,z); }
   else if(c==='$'){ poisonFog.add(i); base[i]=floorNear(x,z); }
+  else if(c==='¬'){ curseFog.add(i); base[i]=floorNear(x,z); }
   else { base[i]=c; if(c==='D'||DOORKEY[c])doors.push({id:i,x,z,metal:DOORKEY[c]||null}); if(c==='B')cracks.push({id:i,x,z}); if(c==='S')chapels.push({id:i,x,z});
     if(c==='L')levers.push({id:i,x,z,blk:areaKey(x,z)}); if(c==='G'||c==='I')gates.push({id:i,x,z,blk:areaKey(x,z),init:c==='I'});
     if(c==='J')spikes.push({id:i,x,z}); if(c==='U')crumbles.push({id:i,x,z}); if(c==='C')stations.push({id:i,x,z}); if(c==='Z')portals.push({id:i,x,z}); if(c==='M')merchants.push({id:i,x,z,shop:'m'+i,area:blockAt(x,z)}); if(c==='V')secretWalls.push({id:i,x,z}); if('12346'.includes(c)) specials.push({id:i,x,z,c}); if(c==='5') warpPads.push({id:i,x,z}); }
@@ -265,7 +276,7 @@ function tileAt(x,z){ if(x<0||z<0||x>=W||z>=H) return '#'; const i=idx(x,z), c=b
   if(c==='G'||c==='I') return gateOpen(i)?'.':'G'; if(c==='V') return S.secrets.has(i)?'.':'V';
   if((c==='1'||c==='4')&&S.opened.has(i)) return '.'; if(c==='3'&&S.broken.has(i)) return '.';
   if(c==='6'){ const b=gateBoss.get(i); return (!b||S.killed.has(b.id))?'.':'6'; } if(c==='U'&&crumble.get(i)?.ph==='gone') return '0'; if(temp.get(i)?.ph==='gone') return '0'; return c; }
-const isWallish=t=>'#hRBDGLV1346[{}"-'.includes(t);
+const isWallish=t=>'#hRBDGLV1346[{}"-¶°'.includes(t);
 
 // ======================= THREE =======================
 const canvas=document.getElementById('c');
@@ -1377,6 +1388,14 @@ const SIL={
     rect(c,12,34,3,12); rect(c,17,35,3,11); rect(c,27,34,3,12); rect(c,31,33,3,13); rect(c,29,24,3,8); },eyes:[[39,25]],eyeCol:'#ffdd40'},
   archer:{s:1.0,draw:c=>{ humanoid(c,{}); poly(c,[34,4,38,14,38,32,34,42,35,42,40,32,40,14,35,4]); rect(c,30,22,8,2); rect(c,12,14,4,14); poly(c,[12,12,16,10,16,14]); },eyes:[[22,10],[26,10]],eyeCol:'#ffe060'},
   shade:{s:0.95,draw:c=>{ SIL.w.draw(c); poly(c,[22,23,25,15,28,23]); poly(c,[14,27,6,18,10,28]); },eyes:[[38,25],[36,25]],eyeCol:'#80f0ff'},
+  likelike:{s:1.15,draw:c=>{ ell(c,24,42,13,4.5); poly(c,[11,42,37,42,36,26,33,14,15,14,12,26]); ell(c,24,14,10,3.5); },
+    detail:c=>{ c.fillStyle='rgba(0,0,0,.75)'; ell(c,24,14,7,2.2); c.fillStyle='rgba(0,0,0,.28)'; for(let k=0;k<5;k++) c.fillRect(10,19+k*5,28,1.5); c.fillStyle='rgba(255,255,255,.25)'; c.fillRect(16,12,16,1); },eyes:[]},
+  mummy:{s:1.0,draw:c=>{ humanoid(c,{}); poly(c,[29,19,43,21,43,25,29,24]); poly(c,[19,19,33,23,33,27,19,24]); poly(c,[16,33,12,42,15,42,19,34]); },eyes:[],bands:true},
+  mummyO:{s:1.0,draw:c=>SIL.mummy.draw(c),eyes:[[21,9],[22,9],[21,10],[22,10],[25,9],[26,9],[25,10],[26,10]],eyeCol:'#d0ff40',bands:true},
+  medusa:{s:1.15,draw:c=>{ ell(c,24,11,4.5,5); [[20,8,13,2,11,5,18,10],[22,6,19,0,22,0,24,6],[26,6,28,-1,31,1,27,7],[28,8,35,3,36,6,30,11],[19,12,11,12,11,15,19,14],[29,12,37,13,36,16,29,15]].forEach(q=>poly(c,q));
+    poly(c,[19,16,29,16,30,30,18,30]); poly(c,[29,18,38,24,37,26,28,21]); poly(c,[19,18,10,24,11,26,20,21]);
+    poly(c,[18,30,30,30,33,37,41,40,45,37,47,41,40,46,22,46,14,42]); },eyes:[[22,11],[26,11]],eyeCol:'#f0e060'},
+  medusaA:{s:1.15,draw:c=>SIL.medusa.draw(c),eyes:[[21,10],[22,10],[21,11],[22,11],[25,10],[26,10],[25,11],[26,11]],eyeCol:'#ffffb0'},
   k:{s:1.25,draw:c=>{ rect(c,17,4,14,10); rect(c,11,14,26,16); rect(c,6,15,7,16); rect(c,35,15,7,16); ell(c,9,32,5,4); ell(c,39,32,5,4); rect(c,14,30,8,16); rect(c,26,30,8,16); },eyes:[[20,8],[27,8]],eyeCol:'#ffb040'},
   v:{s:1.15,draw:c=>{ poly(c,[18,2,30,2,31,16,17,16]); poly(c,[14,17,34,17,33,33,15,33]); rect(c,16,33,6,13); rect(c,26,33,6,13); rect(c,34,6,3,30); poly(c,[33,4,46,2,46,16,33,14]); rect(c,10,18,5,13); },eyes:[[21,9],[26,9]],eyeCol:'#ff3030'},
   t:{s:1.05,draw:c=>{ poly(c,[15,6,33,6,30,1,18,1]); ell(c,24,7,12,1.8); ell(c,24,12,5,5); poly(c,[27,11,40,17,28,16]); poly(c,[17,16,31,16,36,46,12,46]); rect(c,35,20,2,26); },eyes:[[22,11],[26,11]],eyeCol:'#80ff80'},
@@ -1410,16 +1429,16 @@ void main(){ vUv=uv; float sx=length(modelMatrix[0].xyz), sy=length(modelMatrix[
   gl_Position=projectionMatrix*(vc+vec4(corner,0.0,0.0));
   vec4 fz=projectionMatrix*(vc+vec4(0.0,0.0,1.3,0.0));
   gl_Position.z=fz.z/fz.w*gl_Position.w; }`;
-const SIL_FS=`uniform sampler2D map; varying vec2 vUv; void main(){ vec4 c=texture2D(map,vUv); if(c.a<0.5) discard; gl_FragColor=c; }`;
+const SIL_FS=`uniform sampler2D map; uniform vec3 uTint; uniform float uGray; varying vec2 vUv; void main(){ vec4 c=texture2D(map,vUv); if(c.a<0.5) discard; float l=dot(c.rgb,vec3(0.3,0.59,0.11)); gl_FragColor=vec4(mix(c.rgb,vec3(l*0.8+0.12)*vec3(0.95,0.95,0.9),uGray)*uTint,1.0); }`;
 const silGeo=new THREE.PlaneGeometry(1,1);
 function makeSil(type,col,big=1){ const def=SIL[type]||SIL.z; const g=new THREE.Group(); const s=def.s*1.15*big;
   const m=new THREE.ShaderMaterial({vertexShader:SIL_VS,fragmentShader:SIL_FS,side:THREE.DoubleSide,
-    uniforms:{map:{value:silTexture(type,col)},uScale:{value:new THREE.Vector2(s,s)},uFlip:{value:1},uLift:{value:def.float||0}}});
+    uniforms:{map:{value:silTexture(type,col)},uScale:{value:new THREE.Vector2(s,s)},uFlip:{value:1},uLift:{value:def.float||0},uTint:{value:new THREE.Vector3(1,1,1)},uGray:{value:0}}});
   const sp=new THREE.Mesh(silGeo,m); sp.frustumCulled=false; g.add(sp); g.userData.sp=sp; g.userData.h=s+(def.float||0);
   if(def.frames) g.userData.frames=[...Array(def.frames)].map((_,k)=>silTexture(type,col,k));
   return g; }
 
-enemies.forEach(e=>{ e.strong=!e.boss&&(WORLD.strong?!!WORLD.strong[e.x+','+e.z]:e.max>=ENEMY[e.type].hp*1.5); const mesh=makeSil(e.type,e.kind==='shade'?0x2a2440:e.strong?0x9a0c1c:0xc81f24,e.boss?1.45:e.strong?1.3:1);
+enemies.forEach(e=>{ e.strong=!e.boss&&(WORLD.strong?!!WORLD.strong[e.x+','+e.z]:e.max>=ENEMY[e.type].hp*1.5); e.col=e.kind==='shade'?0x2a2440:e.strong?0x9a0c1c:0xc81f24; const mesh=makeSil(e.type,e.col,e.boss?1.45:e.strong?1.3:1);
   e.L=makeLabel(); e.lh=mesh.userData.h+0.12; drawLabel(e.L,e.hp);
   mesh.position.set(e.x,0,e.z); scene.add(mesh); e.mesh=mesh; e.dying=0;
   dyn.push({obj:mesh,e,x:e.x,z:e.z,alive:()=>!S.killed.has(e.id)||e.dying>0}); });
@@ -1641,7 +1660,7 @@ function applyState(o,keepExplored){
   S.explored=o.explored?unpackBits(o.explored,W*H):new Uint8Array(W*H); S.warps=new Set(o.warps||[]);
   if(prevExp) for(let i=0;i<W*H;i++) S.explored[i]|=prevExp[i];
   clearTemps(); if(typeof liveBombs!=='undefined'){ liveBombs.forEach(b=>scene.remove(b.g)); liveBombs.length=0; } enemies.forEach(e=>{ e.hp=e.max; e.dying=0; e.mesh.scale.setScalar(1); e.x=e.hx; e.z=e.hz; e.t=0; if(e.kind==='archer'){ e.arrows=3; e.warned=false; } e.mesh.position.set(e.x+(e.big?0.5:0),0,e.z+(e.big?0.5:0)); drawLabel(e.L,e.hp); }); if(typeof arrows!=='undefined'){ arrows.forEach(a=>{ scene.remove(a.mesh); scene.remove(a.mk); }); arrows.length=0; }
-  S.stalkDone=new Set(); placeStalkers(); temp.clear();
+  S.stalkDone=new Set(); placeStalkers(); temp.clear(); resetTrapStates();
   player.mesh.position.set(S.x,0,S.z); player.mesh.scale.setScalar(1);
   camera.position.set(S.x,10,S.z+4.4);
   ['over','title','mapov','slots','shop','warp'].forEach(id=>$(id).hidden=true);
@@ -1678,7 +1697,7 @@ function fight(e){
   }
   updHud();
 }
-function die(){ S.dead=true; $('lvlup').hidden=true;
+function die(){ S.dead=true; $('lvlup').hidden=true; S.stone=null; if($('stoneOv')) $('stoneOv').hidden=true;
   $('ovT').textContent='HAS CAÍDO';
   $('ovP').textContent=saved?'Vuelves a la última capilla. Lo que lograste desde entonces se pierde, pero el mapa se queda.':'Aún no has rezado en ninguna capilla.';
   $('ovBtn').textContent=saved?'Volver a la última capilla':'Empezar de nuevo'; $('ovSlots').hidden=slots.length<2;
@@ -1697,9 +1716,12 @@ $('ovBtn').addEventListener('click',()=>{
 function checkArea(){ const a=AREAS[areaKey(S.x,S.z)]; if(!a)return; if(a.n!==S.area){ if(S.area) banner(a.n); S.area=a.n; $('zone').textContent=a.n;
   applyLamp(); if(a.dark&&!S.lamp){ const cc=candilOn(); scene.fog.near=cc?6:4; scene.fog.far=cc?13:10; pLight.distance=cc?8:6; if(!S.darkWarned){ S.darkWarned=1; hint('Está muy oscuro. Un farol ayudaría.'); } } } }
 let lastMove=0, bump={x:0,z:0,t:0}, lastNear=-1;
-const blocked=()=>S.dead||!!S.ride||S.warp||!$('shop').hidden||!$('warp').hidden||!$('lvlup').hidden||!$('mapov').hidden||!$('title').hidden;
+const blocked=()=>S.dead||!!S.ride||S.warp||!!S.stone||!!S.gulp||!!S.coffin||!!S.fall||!$('shop').hidden||!$('warp').hidden||!$('lvlup').hidden||!$('mapov').hidden||!$('title').hidden;
 function tryMove(dx,dz){
-  if(blocked())return; lastMove=performance.now(); if(dx) player.face=dx;
+  if(blocked())return; const nowM=performance.now(), bh=base[idx(S.x,S.z)];
+  if(bh==='±'&&nowM-lastMove<380) return;
+  lastMove=nowM; if(dx) player.face=dx; S.fx=dx; S.fz=dz;
+  if(SLIDE[bh]&&SLIDE[bh][0]===-dx&&SLIDE[bh][1]===-dz){ bump={x:dx,z:dz,t:1}; if(!S.slideWarned){ S.slideWarned=1; hint('La arena te arrastra: no puedes ir contra ella.'); } return; }
   const nx=S.x+dx, nz=S.z+dz, i=idx(nx,nz), t=tileAt(nx,nz);
   const stop=()=>{ bump={x:dx,z:dz,t:1}; if('BD~^%0G12346[{}-'.includes(t)){ S.marks.set(i,t); S.explored[i]=1; } };
   if(WALLS.includes(t)) return stop();
@@ -1710,6 +1732,8 @@ function tryMove(dx,dz){
   if(t==='-'){ if(candilOn()){ burnWeb(i); } else { hint(S.candil?'Una telaraña espesa. Tu candil no tiene aceite para quemarla.':'Una telaraña espesa y pegajosa. Con fuego podrías quemarla.'); return stop(); } }
   if(t==='"'){ bump={x:dx,z:dz,t:1}; if(S.torches.has(i)) hint('La antorcha arde.'); else if(candilOn()){ lightTorch(i,true); } else hint(S.candil?'Tu candil no tiene aceite para prender la antorcha.':'Una antorcha apagada. Con un candil encendido podrías prenderla.'); return; }
   if(t==='G'){ hint('Una reja cerrada. Habrá una palanca cerca.'); return stop(); }
+  if(t==='¶'){ hint('Un ataúd de pie. Mejor no saber quién duerme dentro.'); return stop(); }
+  if(t==='°'){ bump={x:dx,z:dz,t:1}; const f=fountains.find(o=>o.id===i); if(f) cureAt(f); return; }
   if(t==='_'){ hint('Son vías. Hace falta una vagoneta.'); return stop(); }
   if(t==='0'&&!S.powers.has('Y')){ hint('Un abismo sin fondo.'); return stop(); }
   if(t==='B'){ if(S.powers.has('O')&&S.bombs>0){ S.bombs--; S.broken.add(i); shake=0.35; popText(nx,1,nz,'¡BUM!','#ff9a3c'); boom(nx,nz); updHud(); } else if(S.powers.has('O')) hint('Te has quedado sin bombas. Búscalas o cómpralas a un mercader.'); else hint(crackMsg(nx,nz)); return stop(); }
@@ -1726,7 +1750,13 @@ function tryMove(dx,dz){
   if(t==='~'&&!S.powers.has('N')){ hint('El agua es profunda. Necesitas saber nadar.'); return stop(); }
   if(t==='^'&&!S.powers.has('F')){ hint('La lava te abrasaría.'); return stop(); }
   if(t==='%'&&!S.powers.has('T')){ hint('Un pantano venenoso.'); return stop(); }
-  S.prevX=S.x; S.prevZ=S.z; S.x=nx; S.z=nz; reveal(); checkArea();
+  const e0=enemyAt(nx,nz);
+  if(e0&&e0.kind==='hands'){ if(S.powers.has('Q')){ killEnemy(e0); popText(nx,1.3,nz,'SE DESVANECEN','#dfe4f0'); }
+    else { bump={x:dx,z:dz,t:1}; hurt(3,S.handsWarned?'':'Unas manos espectrales te agarran. Algo sagrado las ahuyentaría.'); S.handsWarned=1; return; } }
+  if(e0&&e0.kind==='likelike'&&S.atk<e0.hp){ bump={x:dx,z:dz,t:1}; if(time<e0.cool) return; e0.hp-=S.atk; drawLabel(e0.L,e0.hp); popText(e0.x,1.4,e0.z,'-'+S.atk,'#ff6b6b'); startGulp(e0,[S.x,S.z]); return; }
+  if(e0&&e0.kind==='mummy'&&e0.open){ bump={x:dx,z:dz,t:1}; startCoffin(e0); return; }
+  S.prevX=S.x; S.prevZ=S.z; S.x=nx; S.z=nz; reveal(); checkArea(); arrive(nx,nz,i,t); }
+function arrive(nx,nz,i,t){
   // al acercarse a algo rompible, avisa una vez
   for(const [ax,az] of DIRS4){ const j=idx(nx+ax,nz+az); if(base[j]==='B' && !S.broken.has(j) && !S.powers.has('O') && lastNear!==j){ lastNear=j; hint(crackMsg(nx+ax,nz+az)); } }
   const e=enemyAt(nx,nz); if(e) fight(e);
@@ -1735,7 +1765,10 @@ function tryMove(dx,dz){
   if(it) pickup(it);
   if(t==='S'){ writeSave(); toast('CAPILLA','Partida guardada'); }
   if(poisonFog.has(i)&&!S.powers.has('T')){ hurt(1,S.fogWarned?'':'Niebla venenosa: cada paso te quema. El amuleto de jade te protegería.'); S.fogWarned=true; if(S.dead) return; }
+  if(curseFog.has(i)) curse();
   const bt=base[i];
+  if(bt==='±'){ if(!S.qsWarned){ S.qsWarned=1; hint('Arenas movedizas: si te paras, te hundes.'); } S.sink=Math.max(0,(S.sink||0)-0.3); }
+  if('.,:=SZ5C'.includes(bt)&&!poisonFog.has(i)&&!curseFog.has(i)){ S.safeX=nx; S.safeZ=nz; }
   if(bt==='U' && !crumble.has(i)){ crumble.set(i,{ph:'crack',t:time}); }
   if(bt==='C') startRide(i);
   if(bt==='Z') usePortal(i);
@@ -1870,6 +1903,220 @@ function applyTorches(){ for(const i of poisonFog0) poisonFog.add(i); if(poisonD
   for(let i=0;i<W*H;i++) fogBase[i]=MIST_BASE[theme(i%W,(i/W)|0)]??0.6; fogFull=true;
   torchesL.forEach(t=>{ t.fire.forEach(m=>m.visible=false); t.coal.material.color.setHex(0x1a1210); }); for(const i of S.torches) lightTorch(i,false); }
 const litAt=(x,z)=>torchLit(x,z,3.2)||(candilOn()&&Math.hypot(x-S.x,z-S.z)<=2.5);
+// ======== TRAMPAS, MALDICIONES Y MONSTRUOS DEL CEMENTERIO ========
+// arena que arrastra (» « ª º), arenas movedizas (±), hacha péndulo (¥), ataúd (¶), fuente de agua bendita (°), niebla maldita (¬)
+const SAND_VS=`attribute vec4 aEdge; attribute vec3 aDir; varying vec4 vEdge; varying vec3 vDir; varying vec2 vUv; varying vec3 vW;
+void main(){ vUv=uv; vEdge=aEdge; vDir=aDir; vec4 w=modelMatrix*instanceMatrix*vec4(position,1.0); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }`;
+const SAND_FS=`precision highp float; uniform float uTime; uniform sampler2D tNoise; uniform vec3 uPl; varying vec4 vEdge; varying vec3 vDir; varying vec2 vUv; varying vec3 vW;
+float nz(vec2 p){ return texture2D(tNoise,p/16.).r*0.9375; }
+void main(){ vec2 p=floor(vW.xz*16.)/16.+1./32.; vec2 q=floor(vUv*16.)/16.+1./32.; float t=uTime;
+  vec3 cD=vec3(0.15,0.10,0.05), cM=vec3(0.44,0.32,0.16), cH=vec3(0.86,0.70,0.42); vec3 col;
+  if(vDir.z<0.5){ vec2 d=vDir.xy; float al=dot(p,d), ac=dot(p,vec2(-d.y,d.x));
+    float wv=nz(vec2(ac*0.9,al*0.35-t*0.6));
+    float rip=sin((al-t*1.6)*8.0+wv*5.0);
+    float gr=nz(vec2(al*3.0-t*5.0,ac*7.0));
+    col=mix(cD,cM,0.5+0.5*rip); col=mix(col,cH,smoothstep(0.55,0.98,rip)*0.4+smoothstep(0.6,0.8,gr)*0.45);
+    float fl=nz(vec2(al*1.3-t*2.4,ac*3.0)+wv); col*=0.82+0.36*fl;
+  } else { float a=nz(p*0.8+vec2(t*0.05,-t*0.04)), b=nz(p*1.7-vec2(t*0.08,t*0.03)+a*2.0);
+    col=mix(cD*0.85,cM*0.8,smoothstep(0.25,0.8,b)); col=mix(col,vec3(0.07,0.05,0.025),smoothstep(0.55,0.75,a)*0.55);
+    float bub=smoothstep(0.86,0.97,nz(p*3.1+vec2(0.,t*0.02)))*(0.5+0.5*sin(t*2.5+a*20.)); col=mix(col,cH*0.75,bub*0.7);
+    float ring=sin(length(fract(p*0.5)-0.5)*30.-t*3.); col*=0.9+0.1*ring; }
+  float d=9.; if(vEdge.x>.5) d=min(d,1.-q.y); if(vEdge.y>.5) d=min(d,q.y); if(vEdge.z>.5) d=min(d,1.-q.x); if(vEdge.w>.5) d=min(d,q.x);
+  col*=0.55+0.45*smoothstep(0.,0.2,d);
+  vec2 dp=p-uPl.xz; col+=cH*0.22/(1.+dot(dp,dp)*0.5);
+  float fd=length(vW-cameraPosition); col*=1.-smoothstep(9.,16.,fd);
+  gl_FragColor=vec4(col,1.); }`;
+{ const list=[]; for(let i=0;i<W*H;i++){ const c=base[i]; if(!isSand(c)) continue; const x=i%W, z=(i/W)|0;
+    const e=[[0,-1],[0,1],[1,0],[-1,0]].map(([a,b])=>isSand(base[idx(x+a,z+b)])?0:1); const d=SLIDE[c]; list.push({x,z,e,d:d?[d[0],d[1],0]:[0,0,1]}); }
+  if(list.length){ const m=new THREE.ShaderMaterial({vertexShader:SAND_VS,fragmentShader:SAND_FS,uniforms:{uTime:{value:0},uPl:{value:new THREE.Vector3()},tNoise:{value:NOISE_TEX}}});
+    liqMats.push(m); const groups=new Map();
+    for(const l of list){ const k=Math.floor(l.x/CHUNK)+','+Math.floor(l.z/CHUNK); if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(l); }
+    for(const [k,arr] of groups){ const geo=planeGeo.clone(); const edge=new Float32Array(arr.length*4), dir=new Float32Array(arr.length*3);
+      arr.forEach((l,i)=>{ edge.set(l.e,i*4); dir.set(l.d,i*3); });
+      geo.setAttribute('aEdge',new THREE.InstancedBufferAttribute(edge,4)); geo.setAttribute('aDir',new THREE.InstancedBufferAttribute(dir,3));
+      const mesh=new THREE.InstancedMesh(geo,m,arr.length); arr.forEach((l,i)=>mesh.setMatrixAt(i,mat(l.x,0.012,l.z,1,1,1))); const [cx,cz]=k.split(',').map(Number);
+      mesh.userData.cx=(cx+0.5)*CHUNK; mesh.userData.cz=(cz+0.5)*CHUNK; mesh.frustumCulled=false; scene.add(mesh); chunkMeshes.push(mesh); } } }
+// niebla maldita (morada)
+if(curseFog.size){ const pd=new Uint8Array(W*H*4); for(const i of curseFog){ pd[i*4]=150; pd[i*4+1]=50; pd[i*4+2]=205; pd[i*4+3]=255; }
+  const pt=new THREE.DataTexture(pd,W,H,THREE.RGBAFormat); pt.magFilter=pt.minFilter=THREE.LinearFilter; pt.needsUpdate=true;
+  [[0.25,6.0,1.0],[0.7,7.0,0.85],[1.2,8.0,0.55]].forEach(([y,layer,alpha])=>{ const g=new THREE.PlaneGeometry(W+2,H+2); g.rotateX(-Math.PI/2);
+    const m=new THREE.ShaderMaterial({vertexShader:'varying vec3 vW; void main(){ vec4 w=modelMatrix*vec4(position,1.0); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }',
+      fragmentShader:MIST_FS,transparent:true,depthWrite:false,
+      uniforms:{tFog:{value:pt},tNoise:{value:NOISE_TEX},uTime:{value:0},uLayer:{value:layer},uAlpha:{value:alpha},uSize:{value:new THREE.Vector2(W,H)}}});
+    const mesh=new THREE.Mesh(g,m); mesh.position.set(W/2-0.5,y,H/2-0.5); mesh.renderOrder=6; scene.add(mesh); mistMats.push(m); }); }
+const glowTexOf=(r,g,b)=>{ const c=document.createElement('canvas'); c.width=c.height=64; const x=c.getContext('2d'); const gr=x.createRadialGradient(32,32,0,32,32,32);
+  gr.addColorStop(0,`rgba(${r},${g},${b},1)`); gr.addColorStop(0.4,`rgba(${r},${g},${b},.35)`); gr.addColorStop(1,`rgba(${r},${g},${b},0)`); x.fillStyle=gr; x.fillRect(0,0,64,64); return new THREE.CanvasTexture(c); };
+const coffins=[], fountains=[], axes=[];
+for(let i=0;i<W*H;i++){ const c=base[i], x=i%W, z=(i/W)|0; if(c==='¶') coffins.push({id:i,x,z}); else if(c==='°') fountains.push({id:i,x,z}); else if(c==='¥') axes.push({id:i,x,z}); }
+// ataúd de pie: la tapa se abre hacia delante
+{ const P=[[-0.15,0],[0.15,0],[0.27,1.28],[0.18,1.78],[-0.18,1.78],[-0.27,1.28]];
+  const shp=s=>{ const sh=new THREE.Shape(); sh.moveTo(P[0][0]*s,P[0][1]*s+(1-s)*0.9); for(let k=1;k<P.length;k++) sh.lineTo(P[k][0]*s,P[k][1]*s+(1-s)*0.9); sh.closePath(); return sh; };
+  const bodyG=new THREE.ExtrudeGeometry(shp(1),{depth:0.34,bevelEnabled:false}); bodyG.translate(0,0,-0.34);
+  const lidG=new THREE.ExtrudeGeometry(shp(1.04),{depth:0.06,bevelEnabled:false});
+  const holeG=new THREE.ShapeGeometry(shp(0.84));
+  const wood=new THREE.MeshLambertMaterial({color:0x5a3420,map:woodFloorTex}), lidWood=new THREE.MeshLambertMaterial({color:0x6a3e24,map:woodFloorTex});
+  const brass=new THREE.MeshLambertMaterial({color:0xb09858}), hole=new THREE.MeshBasicMaterial({color:0x050304});
+  coffins.forEach(cf=>{ const [fx,fz]=faceTo(cf.x,cf.z); cf.f=[fx,fz]; const g=new THREE.Group(); g.position.set(cf.x-fx*0.2,0,cf.z-fz*0.2); g.rotation.y=Math.atan2(fx,fz);
+    const body=new THREE.Mesh(bodyG,wood); g.add(body); const h=new THREE.Mesh(holeG,hole); h.position.z=0.004; g.add(h);
+    const base0=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.08,0.5),wood); base0.position.set(0,0.04,-0.12); g.add(base0);
+    const piv=new THREE.Group(); piv.position.set(0,0.02,0.005); g.add(piv);
+    const lid=new THREE.Mesh(lidG,lidWood); piv.add(lid);
+    const cv=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.62,0.025),brass); cv.position.set(0,1.08,0.07); piv.add(cv);
+    const ch=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.05,0.025),brass); ch.position.set(0,1.24,0.07); piv.add(ch);
+    for(const sx of [-1,1]){ const hd=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.1,0.03),brass); hd.position.set(sx*0.2,0.75,0.07); piv.add(hd); }
+    scene.add(g); cf.g=g; cf.piv=piv; cf.ang=0; dyn.push({obj:g,x:cf.x,z:cf.z,alive:()=>true}); }); }
+// fuente de agua bendita: pila hexagonal, pilar cuadrado y cruz
+const holyMat=new THREE.MeshBasicMaterial({color:0x6ab0ff,transparent:true,opacity:0.85}), holyGlow=glowTexOf(120,190,255);
+{ const st=new THREE.MeshLambertMaterial({color:0x9a948a,map:flagTex}), st2=new THREE.MeshLambertMaterial({color:0xc8c2b4,map:flagTex});
+  fountains.forEach(f=>{ const g=new THREE.Group(); g.position.set(f.x,0,f.z); g.rotation.y=Math.PI/6;
+    const add=(geo,m,y)=>{ const o=new THREE.Mesh(geo,m); o.position.y=y; g.add(o); return o; };
+    add(new THREE.CylinderGeometry(0.47,0.44,0.08,6),st,0.04);
+    add(new THREE.CylinderGeometry(0.44,0.4,0.3,6),st,0.22);
+    add(new THREE.CylinderGeometry(0.48,0.48,0.06,6),st2,0.39);
+    add(new THREE.CylinderGeometry(0.38,0.38,0.02,6),holyMat,0.37);
+    const up=new THREE.Group(); up.rotation.y=-Math.PI/6; g.add(up);
+    const add2=(geo,m,y)=>{ const o=new THREE.Mesh(geo,m); o.position.y=y; up.add(o); return o; };
+    add2(new THREE.BoxGeometry(0.2,0.08,0.2),st2,0.42); add2(new THREE.BoxGeometry(0.14,0.85,0.14),st,0.84); add2(new THREE.BoxGeometry(0.22,0.07,0.22),st2,1.29);
+    add2(new THREE.BoxGeometry(0.08,0.55,0.08),st2,1.6); add2(new THREE.BoxGeometry(0.34,0.08,0.08),st2,1.7);
+    const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:holyGlow,color:0xffffff,transparent:true,opacity:0.55,blending:THREE.AdditiveBlending,depthWrite:false}));
+    gl.scale.set(1.8,1.8,1); gl.position.y=0.5; g.add(gl); f.glow=gl;
+    scene.add(g); f.g=g; dyn.push({obj:g,x:f.x,z:f.z,alive:()=>true}); }); }
+// hacha péndulo: cuelga de una viga y barre 3 casillas de lado a lado
+const AXE_Y=2.9, AXE_L=2.55, AXE_AMP=0.52, AXE_T=2.4;
+{ const wd=new THREE.MeshLambertMaterial({color:0x4a3020,map:woodFloorTex}), ir=new THREE.MeshLambertMaterial({color:0x5a5a60,map:metalTex}), bl=new THREE.MeshLambertMaterial({color:0xb8bcc4,map:metalTex});
+  const bs=new THREE.Shape(); bs.moveTo(-0.13,0.16); bs.lineTo(0.13,0.16); bs.lineTo(0.46,0.0); bs.quadraticCurveTo(0.0,-0.55,-0.46,0.0); bs.closePath();
+  const bladeG=new THREE.ExtrudeGeometry(bs,{depth:0.04,bevelEnabled:false}); bladeG.translate(0,0,-0.02);
+  const es=new THREE.Shape(); es.moveTo(0.46,0.0); es.quadraticCurveTo(0.0,-0.55,-0.46,0.0); es.quadraticCurveTo(0.0,-0.44,0.46,0.0);
+  const edgeG=new THREE.ExtrudeGeometry(es,{depth:0.05,bevelEnabled:false}); edgeG.translate(0,0,-0.025);
+  const edgeM=new THREE.MeshBasicMaterial({color:0xe8ecf4});
+  axes.forEach(a=>{ const ox=walkAt(a.x-1,a.z)&&walkAt(a.x+1,a.z), oz=walkAt(a.x,a.z-1)&&walkAt(a.x,a.z+1); a.ax=(ox||!oz)?'x':'z'; a.ph=((a.x*13+a.z*7)%10)/10*Math.PI*2;
+    const g=new THREE.Group(); g.position.set(a.x,AXE_Y,a.z); if(a.ax==='z') g.rotation.y=Math.PI/2;
+    const beam=new THREE.Mesh(new THREE.BoxGeometry(0.24,0.22,1.05),wd); beam.position.y=0.2; g.add(beam);
+    const br=new THREE.Mesh(new THREE.BoxGeometry(0.14,0.16,0.14),ir); br.position.y=0.05; g.add(br);
+    const piv=new THREE.Group(); g.add(piv);
+    const rod=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,AXE_L-0.25,5),ir); rod.position.y=-(AXE_L-0.25)/2; piv.add(rod);
+    const blade=new THREE.Mesh(bladeG,bl); blade.position.y=-AXE_L+0.3; piv.add(blade);
+    const edge=new THREE.Mesh(edgeG,edgeM); edge.position.y=-AXE_L+0.3; piv.add(edge);
+    scene.add(g); a.g=g; a.piv=piv; dyn.push({obj:g,x:a.x,z:a.z,alive:()=>true}); }); }
+const axeOff=a=>AXE_L*Math.sin(AXE_AMP*Math.sin(time*Math.PI*2/AXE_T+a.ph));
+// manos espectrales: brazos que salen del suelo, fuertes arriba y transparentes abajo
+const handTex=(()=>{ const c=document.createElement('canvas'); c.width=32; c.height=64; const g=c.getContext('2d'); g.fillStyle='#fff';
+  g.beginPath(); g.moveTo(12,64); g.lineTo(20,64); g.lineTo(19,30); g.lineTo(13,30); g.closePath(); g.fill();
+  g.beginPath(); g.ellipse(16,25,6.5,7,0,0,Math.PI*2); g.fill();
+  [[9,20,6,6],[12,19,11,2],[16,19,16,1],[20,19,21,2],[23,21,27,8]].forEach(([x0,y0,x1,y1])=>{ g.beginPath(); g.lineWidth=3; g.strokeStyle='#fff'; g.lineCap='round'; g.moveTo(x0,y0); g.lineTo(x1,y1); g.stroke(); });
+  const t=new THREE.CanvasTexture(c); t.magFilter=t.minFilter=THREE.NearestFilter; t.generateMipmaps=false; return t; })();
+const HAND_VS=`uniform float uTime; varying vec2 vUv; varying float vPh; void main(){ vUv=uv; vec3 p=position; float ph=modelMatrix[3].x*3.1+modelMatrix[3].z*1.7; vPh=ph; float k=uv.y*uv.y;
+  p.x+=sin(uTime*2.3+ph)*0.09*k; p.z+=cos(uTime*1.7+ph*1.3)*0.05*k; gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0); }`;
+const HAND_FS=`uniform sampler2D map; uniform float uRed; uniform float uTime; uniform float uFade; varying vec2 vUv; varying float vPh;
+void main(){ float m=texture2D(map,vUv).a; if(m<0.5) discard; vec3 cA=mix(vec3(0.3,1.0,0.78),vec3(1.0,0.12,0.08),uRed);
+  float g=smoothstep(0.0,0.9,vUv.y); vec3 low=vec3(dot(cA,vec3(0.33)))*0.35; vec3 col=mix(low,cA*1.6,g*g);
+  float a=g*(0.7+0.3*sin(uTime*3.+vPh+vUv.y*9.))*uFade; gl_FragColor=vec4(col*a,1.0); }`;
+const handGeo=new THREE.PlaneGeometry(0.3,0.95); handGeo.translate(0,0.475,0);
+function makeHands(e){ const g=new THREE.Group(); const m=new THREE.ShaderMaterial({vertexShader:HAND_VS,fragmentShader:HAND_FS,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,
+    uniforms:{map:{value:handTex},uTime:{value:0},uRed:{value:0},uFade:{value:1}}});
+  const n=5; for(let k=0;k<n;k++){ const a=new THREE.Mesh(handGeo,m); const r=k===0?0:0.16+((k*37)%10)/45, an=k*2.4+e.x;
+    a.position.set(Math.cos(an)*r,-0.05,Math.sin(an)*r*0.8); a.rotation.y=((k*53)%10-5)/12; const s=0.95+((k*29+e.z)%10)/22; a.scale.set(s,s,s); a.userData.s=s; a.userData.ph=k*1.7; g.add(a); }
+  const ring=new THREE.Mesh(new THREE.CircleGeometry(0.42,14),new THREE.MeshBasicMaterial({map:holyGlow,color:0x40ffc0,transparent:true,opacity:0.35,blending:THREE.AdditiveBlending,depthWrite:false}));
+  ring.rotation.x=-Math.PI/2; ring.position.y=0.03; g.add(ring); g.userData.ring=ring; g.userData.mat=m; g.userData.h=0.9; return g; }
+enemies.forEach(e=>{ if(e.kind!=='hands') return; scene.remove(e.mesh); const g=makeHands(e); g.position.copy(e.mesh.position); scene.add(g);
+  const d=dyn.find(o=>o.e===e); if(d) d.obj=g; e.mesh=g; e.noLabel=true; e.red=0; });
+enemies.forEach(e=>{ if(e.kind==='mummy'){ e.open=false; e.eyeT=(e.id%7)*0.4; } if(e.kind==='medusa'){ e.ph='idle'; e.pt=(e.id%5)*0.6; } if(e.kind==='likelike'){ e.cool=0; } });
+// rayo de la medusa
+const beamMat=new THREE.MeshBasicMaterial({color:0xfff2b0,transparent:true,opacity:0.2,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+const beamGeo=new THREE.CylinderGeometry(0.75,0.05,1,12,1,true); beamGeo.rotateX(Math.PI/2); beamGeo.translate(0,0,0.5);
+// ---- estados de la bruja ----
+const stoneOv=$('stoneOv');
+function resetTrapStates(){ S.curse=false; S.curseAcc=0; S.stone=null; S.stoneImm=0; S.gulp=null; S.coffin=null; S.fall=null; S.arc=null; S.sink=0; S.slideT=0; S.fx=0; S.fz=1;
+  S.safeX=S.x; S.safeZ=S.z; if(stoneOv) stoneOv.hidden=true; $('curseB').hidden=true; player.mesh.visible=true;
+  coffins.forEach(cf=>{ cf.ang=0; cf.piv.rotation.x=0; }); enemies.forEach(e=>{ if(e.kind==='mummy'){ e.open=false; setSilTex(e,'mummy'); } if(e.kind==='medusa'){ e.ph='idle'; e.pt=0; setSilTex(e,'medusa'); if(e.beam) e.beam.visible=false; } }); }
+function setSilTex(e,type){ const sp=e.mesh.userData.sp; if(sp) sp.material.uniforms.map.value=silTexture(type,e.col); }
+function curse(){ if(S.curse) return; S.curse=true; S.curseAcc=0; $('curseB').hidden=false; shake=0.2;
+  toast('MALDICIÓN','Pierdes vida sin parar. ¡Busca una fuente de agua bendita!',3200); }
+function cureAt(f){ if(S.curse){ S.curse=false; $('curseB').hidden=true; popText(f.x,1.9,f.z,'¡PURIFICADA!','#9ad0ff'); toast('AGUA BENDITA','La maldición se ha ido.',1800); }
+  else hint('Agua bendita. Limpia cualquier maldición.'); }
+function petrify(){ S.stone={n:0,need:10,acc:0}; stoneOv.hidden=false; $('stoneFill').style.width='0%'; popText(S.x,2.2,S.z,'¡PIEDRA!','#e0e0d8'); shake=0.3; }
+function stoneTap(){ if(!S.stone) return; S.stone.n++; $('stoneFill').style.width=Math.min(100,S.stone.n/S.stone.need*100)+'%'; shake=Math.max(shake,0.06);
+  if(S.stone.n>=S.stone.need){ S.stone=null; S.stoneImm=time+2.5; stoneOv.hidden=true; popText(S.x,2.0,S.z,'¡LIBRE!','#ffffff'); } }
+document.addEventListener('pointerdown',ev=>{ if(S.stone&&!S.dead){ ev.preventDefault(); ev.stopPropagation(); stoneTap(); } },true);
+addEventListener('keydown',ev=>{ if(S.stone&&!S.dead&&!ev.repeat) stoneTap(); },true);
+function startGulp(e,back){ S.gulp={e,t:0,back,done:false}; popText(e.x,1.6,e.z,'¡GLUP!','#ff9a9a'); shake=0.2; }
+function startCoffin(e){ let cf=null, bd=1e9; for(const c of coffins){ const d=Math.hypot(c.x-e.x,c.z-e.z); if(d<bd){ bd=d; cf=c; } }
+  popText(e.x,1.7,e.z,'¡SUS OJOS!','#c0ff40'); shake=0.3;
+  if(!cf){ hint('La mirada de la momia te repele.'); return; }
+  S.coffin={c:cf,t:0,ph:0}; hint('La mirada maldita de la momia te arrastra...'); }
+function slideStep(dx,dz){ const nx=S.x+dx, nz=S.z+dz, i=idx(nx,nz), t=tileAt(nx,nz);
+  if(enemyAt(nx,nz)) return;
+  if((t==='0'||temp.get(i)?.ph==='gone')&&!S.powers.has('Y')){ S.prevX=S.x; S.prevZ=S.z; S.x=nx; S.z=nz; S.fall={t:0}; hint('¡La arena te arrastra al abismo!'); return; }
+  const ok='.,:=JSZ5CU±¥'.includes(t)||!!SLIDE[t]||t==='0'||(t==='~'&&S.powers.has('N'))||(t==='^'&&S.powers.has('F'))||(t==='%'&&S.powers.has('T'));
+  if(!ok) return; S.prevX=S.x; S.prevZ=S.z; S.x=nx; S.z=nz; reveal(); checkArea(); arrive(nx,nz,i,t); }
+Object.assign(S,{curse:false,curseAcc:0,stone:null,stoneImm:0,sink:0,slideT:0,fx:0,fz:1,safeX:START.x,safeZ:START.z});
+const trapBusy=()=>!!(S.stone||S.gulp||S.coffin||S.fall);
+function freeAround(x,z,pref){ const opts=pref?[pref,...DIRS4]:DIRS4; for(const [dx,dz] of opts){ const nx=x+dx, nz=z+dz; if('.,:=JSZ5'.includes(tileAt(nx,nz))&&!enemyAt(nx,nz)) return [nx,nz]; } return null; }
+function updateTraps(dt){ const pm=player.mesh.position, playing=!S.dead&&$('title').hidden;
+  const sp=player.mesh.userData.sp.material.uniforms; const gray=S.stone?1:0; sp.uGray.value+=(gray-sp.uGray.value)*Math.min(1,dt*8);
+  if(S.curse){ const k=0.5+0.5*Math.sin(time*6); sp.uTint.value.set(1-0.2*k,0.55+0.1*k,1.15); } else sp.uTint.value.set(1,1,1);
+  // hachas
+  for(const a of axes){ if(!a.g.visible) continue; const ang=AXE_AMP*Math.sin(time*Math.PI*2/AXE_T+a.ph); a.piv.rotation.z=ang;
+    if(!playing||S.ride||trapBusy()) continue; const off=AXE_L*Math.sin(ang), k=Math.max(-1,Math.min(1,Math.round(off)));
+    const hx=a.ax==='x'?a.x+k:a.x, hz=a.ax==='x'?a.z:a.z-k; if(hx===S.x&&hz===S.z&&Math.abs(off-k)<0.42&&time>(S.axeCD||0)){ S.axeCD=time+0.8; hurt(4,'¡El hacha péndulo!'); } }
+  holyMat.opacity=0.7+Math.sin(time*2.2)*0.15; fountains.forEach(f=>{ if(f.glow) f.glow.material.opacity=0.45+Math.sin(time*1.7+f.x)*0.12; });
+  // ataúdes: la tapa vuelve a subir sola
+  for(const cf of coffins){ if(S.coffin&&S.coffin.c===cf) continue; if(cf.ang>0){ cf.ang=Math.max(0,cf.ang-dt*0.5); cf.piv.rotation.x=cf.ang; } }
+  // manos espectrales
+  for(const e of enemies){ if(e.kind!=='hands') continue; const m=e.mesh.userData.mat; m.uniforms.uTime.value=time%600;
+    const near=!S.killed.has(e.id)&&Math.hypot(S.x-e.x,S.z-e.z)<=1.6; e.red+=((near?1:0)-e.red)*Math.min(1,dt*4); m.uniforms.uRed.value=e.red;
+    m.uniforms.uFade.value=S.killed.has(e.id)?Math.max(0,e.dying):1; e.mesh.userData.ring.material.color.setRGB(0.25+0.75*e.red,1-0.8*e.red,0.75-0.7*e.red);
+    e.mesh.children.forEach(c=>{ if(c.userData.s) c.scale.y=c.userData.s*(0.92+0.1*Math.sin(time*2+c.userData.ph)); }); }
+  if(!playing) return;
+  // maldición: -5 por segundo
+  if(S.curse&&!S.coffin){ S.curseAcc+=dt*5; while(S.curseAcc>=1&&!S.dead){ S.curseAcc-=1; S.hp-=1; S.curseN=(S.curseN||0)+1; if(S.curseN%2===0) popText(S.x,2.0,S.z,'-2','#d070ff'); if(S.hp<=0){ S.hp=0; updHud(); die(); return; } } updHud(); }
+  // piedra: -10 por segundo hasta que te sueltes
+  if(S.stone){ S.stone.acc+=dt*10; while(S.stone&&S.stone.acc>=1){ S.stone.acc-=1; S.hp-=1; if(S.hp<=0){ S.hp=0; S.stone=null; stoneOv.hidden=true; updHud(); die(); return; } } updHud(); }
+  // caída al abismo
+  if(S.fall){ S.fall.t+=dt; pm.y=-S.fall.t*S.fall.t*9; player.mesh.scale.setScalar(Math.max(0.05,1-S.fall.t*1.4));
+    if(S.fall.t>0.6){ S.fall=null; player.mesh.scale.setScalar(1); S.x=S.safeX; S.z=S.safeZ; S.prevX=S.x; S.prevZ=S.z; pm.set(S.x,0,S.z); reveal(); checkArea(); hurt(3,'Caes al abismo.'); } return; }
+  // tragón
+  if(S.gulp){ const g=S.gulp, e=g.e; g.t+=dt; const s=Math.sin(g.t*18);
+    if(!g.done){ pm.x+=(e.x-pm.x)*Math.min(1,dt*14); pm.z+=(e.z-pm.z)*Math.min(1,dt*14); player.mesh.visible=g.t<0.15; e.mesh.scale.set(1+0.16*s,1-0.1*s,1);
+      if(g.t>=1.1){ g.done=true; player.mesh.visible=true; const n=Math.min(10,S.gold); S.gold-=n; popText(e.x,1.9,e.z,n?'-'+n+' ◆':'¡PUAJ!','#ffe080');
+        if(n) hint('El tragón te escupe y se queda con tu dinero.'); S.x=g.back[0]; S.z=g.back[1]; S.arc={t:0,dur:0.45,h:0.9}; e.cool=time+3; updHud(); } }
+    if(g.t>=1.55) S.gulp=null; }
+  // ataúd de la momia
+  if(S.coffin){ const c=S.coffin, cf=c.c; c.t+=dt;
+    if(c.ph===0){ player.mesh.scale.setScalar(Math.max(0.01,1-c.t*2.4)); if(c.t>=0.45){ c.ph=1; player.mesh.visible=false; player.mesh.scale.setScalar(1);
+        S.x=cf.x; S.z=cf.z; pm.set(cf.x,0,cf.z); camera.position.set(cf.x,10,cf.z+4.4); reveal(); checkArea(); cf.ang=0; } }
+    else if(c.ph===1){ pm.set(cf.x,0,cf.z); if(c.t>0.9&&c.t<1.6){ cf.g.rotation.z=Math.sin(c.t*42)*0.035; if(!c.knock){ c.knock=1; popText(cf.x,2.1,cf.z,'¡TOC TOC!','#c8a878'); } }
+      else cf.g.rotation.z=0;
+      if(c.t>=1.6){ const u=Math.min(1,(c.t-1.6)/0.45); cf.ang=u*u*(Math.PI/2-0.04); cf.piv.rotation.x=cf.ang; }
+      if(c.t>=2.05){ c.ph=2; shake=0.18; player.mesh.visible=true; const to=freeAround(cf.x,cf.z,cf.f)||[S.prevX,S.prevZ]; S.prevX=cf.x; S.prevZ=cf.z; S.x=to[0]; S.z=to[1]; S.arc={t:0,dur:0.5,h:1.0}; reveal(); } }
+    else if(c.t>=2.6){ S.coffin=null; cf.ang=Math.PI/2-0.04; } }
+  if(S.arc){ S.arc.t+=dt; const u=Math.min(1,S.arc.t/S.arc.dur); pm.y=Math.sin(u*Math.PI)*S.arc.h+(S.coffin?0.1*(1-u):0); if(u>=1) S.arc=null; }
+  if(S.gulp||S.coffin||S.stone) return;
+  // arena que arrastra
+  const here=base[idx(S.x,S.z)], dir=SLIDE[here];
+  if(dir&&!blocked()){ S.slideT+=dt; if(S.slideT>=0.17){ S.slideT=0; slideStep(dir[0],dir[1]); } } else S.slideT=0;
+  // arenas movedizas
+  if(here==='±'&&!blocked()){ S.sink+=dt*0.42; if(S.sink>=1){ S.sink=0.5; hurt(2,'¡La arena te traga!'); } } else if(here!=='±') S.sink=Math.max(0,S.sink-dt*3);
+  if(S.sink>0&&!S.arc) pm.y=-S.sink*0.6;
+  // monstruos del cementerio
+  if(S.warp||S.ride) return;
+  for(const e of enemies){ if(!e.kind||S.killed.has(e.id)) continue; const dist=Math.hypot(S.x-e.x,S.z-e.z);
+    if(e.kind==='mummy'){ e.eyeT+=dt; const cyc=e.eyeT%4.2, open=cyc>2.6; if(open!==e.open){ e.open=open; setSilTex(e,open?'mummyO':'mummy'); if(open&&dist<4&&!S.mumWarned){ S.mumWarned=1; hint('La momia ha abierto los ojos. No la ataques ahora.'); } }
+      e.t2=(e.t2||0)+dt; if(e.t2<1.1) continue; e.t2=0; if(!sees(e,S.x,S.z,6)) continue;
+      let best=null, bd=dist; for(const [dx,dz] of DIRS4){ const nx=e.x+dx, nz=e.z+dz, onP=nx===S.x&&nz===S.z; if(!onP&&!freeFor(e,nx,nz)) continue; const d=Math.hypot(S.x-nx,S.z-nz); if(d<bd){ bd=d; best=[nx,nz,onP]; } }
+      if(best){ if(best[2]){ if(!e.open) fight(e); } else { e.x=best[0]; e.z=best[1]; } } }
+    else if(e.kind==='likelike'){ e.t2=(e.t2||0)+dt; if(e.t2<1.0||time<e.cool) continue; e.t2=0; if(!sees(e,S.x,S.z,6)) continue;
+      let best=null, bd=dist; for(const [dx,dz] of DIRS4){ const nx=e.x+dx, nz=e.z+dz, onP=nx===S.x&&nz===S.z; if(!onP&&!freeFor(e,nx,nz)) continue; const d=Math.hypot(S.x-nx,S.z-nz); if(d<bd){ bd=d; best=[nx,nz,onP]; } }
+      if(best){ if(best[2]){ startGulp(e,[S.x,S.z]); return; } else { e.x=best[0]; e.z=best[1]; } } }
+    else if(e.kind==='medusa'){ e.pt+=dt; const vis=sees(e,S.x,S.z,8);
+      if(!e.beam){ e.beam=new THREE.Mesh(beamGeo,beamMat); e.beam.visible=false; scene.add(e.beam); }
+      if(e.ph==='idle'){ e.beam.visible=false; if(e.pt>3.4&&vis){ e.ph='charge'; e.pt=0; setSilTex(e,'medusaA'); popText(e.x,2.1,e.z,'¡NO LA MIRES!','#e8ff90'); if(!S.medWarned){ S.medWarned=1; hint('Medusa va a mirarte: date la vuelta (mira al lado contrario).'); } } }
+      else if(e.ph==='charge'){ if(e.pt>1.0){ e.ph='beam'; e.pt=0; } }
+      else if(e.ph==='beam'){ const hx=e.mesh.position.x, hz=e.mesh.position.z; e.beam.visible=true; e.beam.position.set(hx,1.25,hz); e.beam.lookAt(pm.x,0.8,pm.z);
+        e.beam.scale.set(1,1,Math.max(0.5,Math.hypot(pm.x-hx,pm.z-hz,0.45))); beamMat.opacity=0.14+0.08*Math.sin(time*30);
+        if(vis&&!S.stone&&time>S.stoneImm){ const dx=e.x-S.x, dz=e.z-S.z, l=Math.hypot(dx,dz)||1; if((S.fx*dx+S.fz*dz)/l>-0.2){ petrify(); } }
+        if(e.pt>1.6){ e.ph='idle'; e.pt=0; e.beam.visible=false; setSilTex(e,'medusa'); } } } } }
+
 // ======== MONSTRUOS ESPECIALES ========
 function sees(e,tx,tz,range){ const ex=e.x+(e.big?0.5:0), ez=e.z+(e.big?0.5:0); const d=Math.hypot(tx-ex,tz-ez); if(d>range) return false;
   const n=Math.ceil(d*2); for(let k=1;k<n;k++){ const x=Math.round(ex+(tx-ex)*k/n), z=Math.round(ez+(tz-ez)*k/n); const c=tileAt(x,z); if(isWallish(c)||c===';') return false; } return true; }
@@ -1976,7 +2223,7 @@ function frame(now){
   const dt=Math.min(0.05,(now-prev)/1000); prev=now; time+=dt;
   if(!S.dead && $('title').hidden && $('slots').hidden) S.playTime+=dt;
   const held=jDir||keyDir();
-  if(held && now-lastMove>170) tryMove(held[0],held[1]);
+  if(held && now-lastMove>(base[idx(S.x,S.z)]==='±'?380:170)) tryMove(held[0],held[1]);
 
   const pm=player.mesh.position, k=1-Math.pow(0.0001,dt);
   const here=tileAt(S.x,S.z), onE=enemyAt(S.x,S.z);
@@ -2011,7 +2258,7 @@ function frame(now){
   if(bump.t>0){ bump.t=Math.max(0,bump.t-dt*7); const b=Math.sin(bump.t*Math.PI)*0.15; pm.x+=bump.x*b*0.2; pm.z+=bump.z*b*0.2; }
   if(S.dead && S.hp<=0) player.mesh.scale.setScalar(Math.max(0.01,player.mesh.scale.x-dt*2));
 
-  updateBosses(dt); updateProjectiles(dt); updateTemps(); updateSpecials(dt); updateArrows(dt); updateChains(); updateOil(dt);
+  updateBosses(dt); updateProjectiles(dt); updateTemps(); updateSpecials(dt); updateArrows(dt); updateChains(); updateOil(dt); updateTraps(dt);
   if((chunkT-=dt)<=0){ chunkT=0.2; for(const m of chunkMeshes){ const dz=m.userData.cz-pm.z; m.visible=Math.abs(m.userData.cx-pm.x)<CHUNK/2+13&&dz>-(CHUNK/2+19)&&dz<CHUNK/2+9; } }
   for(const e of enemies){ if(!e.mesh.visible) continue; const kk2=1-Math.pow(0.0005,dt); const ox=e.big?0.5:0; e.mesh.position.x+=(e.x+ox-e.mesh.position.x)*kk2; e.mesh.position.z+=(e.z+ox-e.mesh.position.z)*kk2;
     e.mesh.position.y = e.jump? Math.sin(Math.min(1,e.jump.t/0.5)*Math.PI)*1.6 : 0; }
@@ -2042,7 +2289,7 @@ function frame(now){
 
   const lv=new THREE.Vector3();
   for(const e of enemies){ const show=e.mesh.visible && !S.killed.has(e.id) && $('title').hidden;
-    if(!show){ if(e.L.el.style.display!=='none') e.L.el.style.display='none'; continue; }
+    if(!show||e.noLabel){ if(e.L.el.style.display!=='none') e.L.el.style.display='none'; continue; }
     lv.set(e.mesh.position.x,e.lh,e.mesh.position.z).project(camera);
     if(lv.z>1||Math.abs(lv.x)>1.1||Math.abs(lv.y)>1.1){ e.L.el.style.display='none'; continue; }
     e.L.el.style.display=''; e.L.el.style.transform=`translate(${((lv.x+1)/2*innerWidth).toFixed(1)}px,${((1-lv.y)/2*innerHeight).toFixed(1)}px) translate(-50%,-100%)`; }
