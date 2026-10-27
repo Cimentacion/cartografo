@@ -1,4 +1,4 @@
-name: Compilar APK Cápsula Azul
+name: Compilar APK Witchstep
 on:
   push:
     branches: [capsula-azul]
@@ -32,7 +32,7 @@ jobs:
         with:
           tag_name: capsulaazul
           target_commitish: capsula-azul
-          name: "Cápsula Azul (APK)"
-          body: "APK de Cápsula Azul compilado automáticamente. Build #${{ github.run_number }}. Se instala encima de la versión anterior sin perder las partidas."
+          name: "Witchstep: Castle of Night (APK)"
+          body: "APK de Witchstep: Castle of Night compilado automáticamente. Build #${{ github.run_number }}. Se instala encima de la versión anterior sin perder las partidas."
           files: capsula-azul.apk
           make_latest: false

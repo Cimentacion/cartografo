@@ -1,6 +1,6 @@
-# Cápsula Azul
+# Witchstep: Castle of Night
 
-Metroidvania de casillas con vista cenital: una bruja azul contra siluetas rojas, del bosque al castillo.
+(Antes "Cápsula Azul".) Metroidvania de casillas con vista cenital: una bruja azul contra siluetas rojas, del bosque al castillo.
 
 - `index.html` — el juego completo (funciona sin internet). Jugar en el navegador:
   https://raw.githack.com/Cimentacion/cartografo/capsula-azul/capsula/index.html

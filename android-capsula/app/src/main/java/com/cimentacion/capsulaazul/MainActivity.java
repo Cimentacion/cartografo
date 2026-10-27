@@ -14,7 +14,7 @@ import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 /**
- * Cápsula Azul: el juego es una página web (assets/index.html) dentro de un WebView
+ * Witchstep: Castle of Night: el juego es una página web (assets/index.html) dentro de un WebView
  * a pantalla completa. Las partidas se guardan en el almacenamiento del WebView
  * (localStorage), que queda dentro de la app y no se borra al actualizarla.
  */
