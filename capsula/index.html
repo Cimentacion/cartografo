@@ -2370,16 +2370,47 @@ function updateTraps(dt){ const pm=player.mesh.position, playing=!S.dead&&$('tit
 const btnTiles=[], blockTiles=[];
 for(let i=0;i<W*H;i++){ const c=base[i]; if(c==='¤') btnTiles.push({id:i,x:i%W,z:(i/W)|0}); else if(c==='¢'||c==='£') blockTiles.push({id:i,x:i%W,z:(i/W)|0,blue:c==='¢'}); }
 const blueUp=()=>S.levers.has('BTN');
-{ const bm=new THREE.MeshLambertMaterial({color:0x2e6ef0,emissive:0x0a1c48}), ym=new THREE.MeshLambertMaterial({color:0xf0c020,emissive:0x483406}),
-    fr=new THREE.MeshLambertMaterial({color:0x2a2a30,map:metalTex}), bg=new THREE.BoxGeometry(0.9,1.0,0.9), fg=new THREE.BoxGeometry(1.0,0.08,1.0), rim=new THREE.BoxGeometry(0.98,0.06,0.98);
+// texturas pixeladas de los bloques: degradado, marco biselado, panel hundido con rombo y motas
+function blockTex(top,hue){ const N=64, c=document.createElement('canvas'); c.width=c.height=N; const g=c.getContext('2d');
+  const P=hue==='b'?{hi:[150,200,255],mid:[46,110,240],lo:[10,30,110],ink:[4,12,50],glow:[200,235,255]}:{hi:[255,240,150],mid:[240,190,32],lo:[140,80,8],ink:[60,30,0],glow:[255,250,210]};
+  const rgb=(a,k=1)=>`rgb(${a[0]*k|0},${a[1]*k|0},${a[2]*k|0})`, mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
+  if(top){ const gr=g.createRadialGradient(32,32,4,32,32,44); gr.addColorStop(0,rgb(P.hi)); gr.addColorStop(0.55,rgb(P.mid)); gr.addColorStop(1,rgb(P.lo)); g.fillStyle=gr; }
+  else { const gr=g.createLinearGradient(0,0,0,N); gr.addColorStop(0,rgb(P.hi)); gr.addColorStop(0.35,rgb(P.mid)); gr.addColorStop(1,rgb(P.lo)); g.fillStyle=gr; }
+  g.fillRect(0,0,N,N);
+  // bisel: luz arriba/izquierda, sombra abajo/derecha
+  g.fillStyle=rgb(P.glow); g.fillRect(0,0,N,3); g.fillRect(0,0,3,N); g.fillStyle=rgb(P.ink); g.fillRect(0,N-3,N,3); g.fillRect(N-3,0,3,N);
+  g.fillStyle='rgba(0,0,0,.35)'; g.fillRect(3,N-6,N-6,3); g.fillRect(N-6,3,3,N-6);
+  // panel hundido
+  const m=12; g.fillStyle=rgb(mix(P.lo,P.mid,0.35)); g.fillRect(m,m,N-2*m,N-2*m);
+  const pg=g.createLinearGradient(0,m,0,N-m); pg.addColorStop(0,rgb(mix(P.mid,P.lo,0.5))); pg.addColorStop(1,rgb(P.mid,1.05)); g.fillStyle=pg; g.fillRect(m+2,m+2,N-2*m-4,N-2*m-4);
+  g.fillStyle=rgb(P.ink); g.fillRect(m,m,N-2*m,2); g.fillRect(m,m,2,N-2*m); g.fillStyle=rgb(P.glow,0.9); g.fillRect(m,N-m-2,N-2*m,2); g.fillRect(N-m-2,m,2,N-2*m);
+  // rombo con brillo
+  g.beginPath(); g.moveTo(32,19); g.lineTo(45,32); g.lineTo(32,45); g.lineTo(19,32); g.closePath(); g.fillStyle=rgb(P.ink); g.fill();
+  g.beginPath(); g.moveTo(32,22); g.lineTo(42,32); g.lineTo(32,42); g.lineTo(22,32); g.closePath(); const dg=g.createLinearGradient(22,22,42,42); dg.addColorStop(0,rgb(P.glow)); dg.addColorStop(1,rgb(P.mid)); g.fillStyle=dg; g.fill();
+  g.fillStyle=rgb(P.glow); g.fillRect(29,26,3,3);
+  // remaches en las esquinas
+  for(const [x,y] of [[6,6],[N-9,6],[6,N-9],[N-9,N-9]]){ g.fillStyle=rgb(P.ink); g.fillRect(x,y,3,3); g.fillStyle=rgb(P.glow); g.fillRect(x,y,1,1); }
+  // motas y desgaste
+  const im=g.getImageData(0,0,N,N); for(let i=0;i<im.data.length;i+=4){ const n=(Math.random()-.5)*18; im.data[i]+=n; im.data[i+1]+=n; im.data[i+2]+=n; } g.putImageData(im,0,0);
+  for(let k=0;k<10;k++){ g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(Math.random()*N|0,Math.random()*N|0,1+(Math.random()*3|0),1); }
+  const t=new THREE.CanvasTexture(c); t.magFilter=t.minFilter=THREE.NearestFilter; t.generateMipmaps=false; return t; }
+function blockMats(h){ const side=blockTex(false,h), top=blockTex(true,h);
+  const mk=t=>new THREE.MeshLambertMaterial({map:t,emissive:0xffffff,emissiveMap:t,emissiveIntensity:0.32});
+  const ms=mk(side), mt=mk(top); return [ms,ms,mt,ms,ms,ms]; }
+const plateTex=(()=>{ const N=32, c=document.createElement('canvas'); c.width=c.height=N; const g=c.getContext('2d'); const gr=g.createLinearGradient(0,0,N,N); gr.addColorStop(0,'#5a5a66'); gr.addColorStop(1,'#24242c'); g.fillStyle=gr; g.fillRect(0,0,N,N);
+  g.fillStyle='#16161c'; g.fillRect(0,N-2,N,2); g.fillRect(N-2,0,2,N); g.fillStyle='#8a8a98'; g.fillRect(0,0,N,1); g.fillRect(0,0,1,N);
+  for(const [x,y] of [[3,3],[N-5,3],[3,N-5],[N-5,N-5]]){ g.fillStyle='#101014'; g.fillRect(x,y,2,2); g.fillStyle='#b0b0c0'; g.fillRect(x,y,1,1); }
+  g.strokeStyle='rgba(0,0,0,.5)'; g.strokeRect(6.5,6.5,N-13,N-13); const t=new THREE.CanvasTexture(c); t.magFilter=t.minFilter=THREE.NearestFilter; t.generateMipmaps=false; return t; })();
+const knobTex=(()=>{ const N=32, c=document.createElement('canvas'); c.width=c.height=N; const g=c.getContext('2d'); const gr=g.createRadialGradient(12,11,1,16,16,16); gr.addColorStop(0,'#ffffff'); gr.addColorStop(0.35,'#d8d8d8'); gr.addColorStop(1,'#5a5a5a'); g.fillStyle=gr; g.fillRect(0,0,N,N);
+  const t=new THREE.CanvasTexture(c); t.magFilter=t.minFilter=THREE.NearestFilter; t.generateMipmaps=false; return t; })();
+{ const bm=blockMats('b'), ym=blockMats('y'), fr=new THREE.MeshLambertMaterial({map:plateTex}), bg=new THREE.BoxGeometry(0.92,1.0,0.92), fg=new THREE.BoxGeometry(1.0,0.08,1.0);
   blockTiles.forEach(b=>{ const g=new THREE.Group(); g.position.set(b.x,0,b.z); const fl=new THREE.Mesh(fg,fr); fl.position.y=-0.03; g.add(fl);
     const p=new THREE.Group(); g.add(p); const cube=new THREE.Mesh(bg,b.blue?bm:ym); cube.position.y=0.5; p.add(cube);
-    for(const y of [0.06,0.96]){ const r=new THREE.Mesh(rim,fr); r.position.y=y; p.add(r); }
-    const mark=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.02,0.4),new THREE.MeshBasicMaterial({color:b.blue?0x9ac0ff:0xfff0a0})); mark.position.y=1.0; mark.rotation.y=Math.PI/4; p.add(mark);
     b.p=p; b.y=-1; scene.add(g); dyn.push({obj:g,x:b.x,z:b.z,alive:()=>true}); });
   btnTiles.forEach(b=>{ const g=new THREE.Group(); g.position.set(b.x,0,b.z);
-    const plate=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.08,0.8),fr); plate.position.y=0.04; g.add(plate);
-    const knob=new THREE.Mesh(new THREE.CylinderGeometry(0.26,0.3,0.12,12),new THREE.MeshBasicMaterial({color:0xffffff})); knob.position.y=0.12; g.add(knob);
+    const plate=new THREE.Mesh(new THREE.BoxGeometry(0.84,0.08,0.84),fr); plate.position.y=0.04; g.add(plate);
+    const ring=new THREE.Mesh(new THREE.CylinderGeometry(0.33,0.35,0.06,16),new THREE.MeshLambertMaterial({color:0x1a1a20})); ring.position.y=0.1; g.add(ring);
+    const knob=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.29,0.12,16),new THREE.MeshLambertMaterial({map:knobTex,emissive:0xffffff,emissiveMap:knobTex,emissiveIntensity:0.25})); knob.position.y=0.12; g.add(knob);
     b.knob=knob; b.press=0; scene.add(g); dyn.push({obj:g,x:b.x,z:b.z,alive:()=>true}); }); }
 function pressButton(i){ const b=btnTiles.find(o=>o.id===i); if(!b) return;
   if(blueUp()) S.levers.delete('BTN'); else S.levers.add('BTN'); b.press=1; shake=Math.max(shake,0.12);
@@ -2387,7 +2418,7 @@ function pressButton(i){ const b=btnTiles.find(o=>o.id===i); if(!b) return;
   const a=audioCtx; if(a&&a.state==='running'){ const t=a.currentTime, o=a.createOscillator(), g=a.createGain(); o.type='square'; o.frequency.setValueAtTime(blueUp()?520:300,t); o.frequency.exponentialRampToValueAtTime(blueUp()?260:150,t+0.12); g.gain.setValueAtTime(0.18,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.18); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+0.2); } }
 function updateBlocks(dt){ const up=blueUp();
   for(const b of blockTiles){ const target=(b.blue===up)?0:-0.97; if(b.y===-1){ b.y=target; } b.y+=(target-b.y)*Math.min(1,dt*9); b.p.position.y=b.y; }
-  for(const b of btnTiles){ b.press=Math.max(0,b.press-dt*3); const onIt=S.x===b.x&&S.z===b.z; b.knob.position.y=0.12-(onIt?0.07:0.07*b.press); b.knob.material.color.setHex(up?0xf0c020:0x2e6ef0); } }
+  for(const b of btnTiles){ b.press=Math.max(0,b.press-dt*3); const onIt=S.x===b.x&&S.z===b.z; b.knob.position.y=0.12-(onIt?0.07:0.07*b.press); b.knob.material.color.setHex(up?0xf0c020:0x3a7cff); b.knob.material.emissive.setHex(up?0x705008:0x10306a); } }
 // ======== MONSTRUOS ESPECIALES ========
 function sees(e,tx,tz,range){ const ex=e.x+(e.big?0.5:0), ez=e.z+(e.big?0.5:0); const d=Math.hypot(tx-ex,tz-ez); if(d>range) return false;
   const n=Math.ceil(d*2); for(let k=1;k<n;k++){ const x=Math.round(ex+(tx-ex)*k/n), z=Math.round(ez+(tz-ez)*k/n); const c=tileAt(x,z); if(isWallish(c)||c===';') return false; } return true; }
