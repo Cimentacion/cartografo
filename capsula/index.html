@@ -16,7 +16,7 @@
 [hidden]{display:none!important}
 html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);overflow:hidden;
   touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated}
 #hud{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);left:max(14px,env(safe-area-inset-left,0px));
   font-family:var(--font);display:grid;gap:5px;pointer-events:none}
 .row{display:flex;align-items:center;gap:8px}
@@ -266,8 +266,14 @@ const isWallish=t=>'#hRBDGLV1346[{}"-'.includes(t);
 
 // ======================= THREE =======================
 const canvas=document.getElementById('c');
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const renderer=new THREE.WebGLRenderer({canvas,antialias:false,powerPreference:'high-performance'});
+// resolución interna: como mucho ~1280 px en el lado largo; si el móvil no llega a ~45 fps, baja sola (y sube si sobra)
+const QMAX=()=>Math.min(devicePixelRatio,1280/Math.max(innerWidth,innerHeight));
+let qScale=1, qAcc=0, qN=0, qWait=2;
+renderer.setPixelRatio(QMAX());
+function qualityTick(dt){ if((qWait-=dt)>0) return; qAcc+=dt; qN++; if(qAcc<1.5) return; const avg=qAcc/qN; qAcc=0; qN=0;
+  let ns=qScale; if(avg>0.024&&qScale>0.5) ns=Math.max(0.5,qScale*0.85); else if(avg<0.0135&&qScale<1) ns=Math.min(1,qScale*1.1);
+  if(ns!==qScale){ qScale=ns; renderer.setPixelRatio(QMAX()*qScale); resize(); qWait=1.5; } }
 renderer.setClearColor(0x000000);
 const scene=new THREE.Scene();
 scene.fog=new THREE.Fog(0x000000,9,16);
@@ -573,12 +579,18 @@ const fogBase=new Float32Array(W*H), fogD=new Float32Array(W*H), fogData=new Uin
 for(let z=0;z<H;z++)for(let x=0;x<W;x++){ const i=idx(x,z), t=theme(x,z); fogBase[i]=fogD[i]=MIST_BASE[t]??0.6;
   const c=MIST_COL[t]||[70,80,90]; fogData[i*4]=c[0]; fogData[i*4+1]=c[1]; fogData[i*4+2]=c[2]; fogData[i*4+3]=fogD[i]*255; }
 const fogTex=new THREE.DataTexture(fogData,W,H,THREE.RGBAFormat); fogTex.magFilter=fogTex.minFilter=THREE.LinearFilter; fogTex.needsUpdate=true;
-const MIST_FS=`precision highp float; uniform sampler2D tFog; uniform float uTime; uniform float uLayer; uniform float uAlpha; uniform vec2 uSize; varying vec3 vW;
-float hash(vec2 p){ vec3 p3=fract(vec3(p.xyx)*0.1031); p3+=dot(p3,p3.yzx+33.33); return fract((p3.x+p3.y)*p3.z); }
-float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
-float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*noise(p);p*=2.03;a*=.5;}return v;}
-void main(){ vec4 f=texture2D(tFog,vec2((vW.x+0.5)/uSize.x,(vW.z+0.5)/uSize.y));
-  float n=fbm(vW.xz*0.32+vec2(uTime*0.06,uTime*0.025)+uLayer*7.3);
+// ruido fbm de 4 octavas, periódico cada 16 unidades, en una textura (mismo aspecto, una sola lectura por píxel)
+const NOISE_TEX=(()=>{ const N=128, P=16, d=new Uint8Array(N*N*4);
+  const h=(x,y,o)=>{ let n=(x*374761393+y*668265263+o*1442695041)|0; n=(n^(n>>>13))*1274126177|0; return ((n^(n>>>16))>>>0)/4294967295; };
+  const vn=(x,y,per,o)=>{ const xi=Math.floor(x), yi=Math.floor(y), fx=x-xi, fy=y-yi, sx=fx*fx*(3-2*fx), sy=fy*fy*(3-2*fy);
+    const g=(a,b)=>h(((a%per)+per)%per,((b%per)+per)%per,o);
+    return (g(xi,yi)*(1-sx)+g(xi+1,yi)*sx)*(1-sy)+(g(xi,yi+1)*(1-sx)+g(xi+1,yi+1)*sx)*sy; };
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){ const px=x/N*P, py=y/N*P; let v=0,a=0.5,f=1;
+    for(let o=0;o<4;o++){ v+=a*vn(px*f,py*f,P*f,o); f*=2; a*=0.5; } const i=(y*N+x)*4; d[i]=d[i+1]=d[i+2]=Math.round(v/0.9375*255); d[i+3]=255; }
+  const t=new THREE.DataTexture(d,N,N,THREE.RGBAFormat); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.magFilter=t.minFilter=THREE.LinearFilter; t.needsUpdate=true; return t; })();
+const MIST_FS=`precision mediump float; uniform sampler2D tFog; uniform sampler2D tNoise; uniform float uTime; uniform float uLayer; uniform float uAlpha; uniform vec2 uSize; varying vec3 vW;
+void main(){ vec4 f=texture2D(tFog,vec2((vW.x+0.5)/uSize.x,(vW.z+0.5)/uSize.y)); if(f.a<0.01) discard;
+  float n=texture2D(tNoise,(vW.xz*0.32+vec2(uTime*0.06,uTime*0.025)+uLayer*7.3)/16.).r*0.9375;
   float a=f.a*smoothstep(0.3,0.75,n)*uAlpha;
   a*=1.-smoothstep(10.,16.,length(vW-cameraPosition));
   gl_FragColor=vec4(f.rgb*(0.7+0.5*n),a); }`;
@@ -587,7 +599,7 @@ const mistMats=[];
   const g=new THREE.PlaneGeometry(W+2,H+2); g.rotateX(-Math.PI/2);
   const m=new THREE.ShaderMaterial({vertexShader:'varying vec3 vW; void main(){ vec4 w=modelMatrix*vec4(position,1.0); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }',
     fragmentShader:MIST_FS,transparent:true,depthWrite:false,
-    uniforms:{tFog:{value:fogTex},uTime:{value:0},uLayer:{value:layer},uAlpha:{value:alpha},uSize:{value:new THREE.Vector2(W,H)}}});
+    uniforms:{tFog:{value:fogTex},tNoise:{value:NOISE_TEX},uTime:{value:0},uLayer:{value:layer},uAlpha:{value:alpha},uSize:{value:new THREE.Vector2(W,H)}}});
   const mesh=new THREE.Mesh(g,m); mesh.position.set(W/2-0.5,y,H/2-0.5); mesh.renderOrder=5; scene.add(mesh); mistMats.push(m); });
 let poisonData=null, poisonTex=null;
 if(poisonFog.size){ const pd=new Uint8Array(W*H*4); poisonData=pd; for(const i of poisonFog){ pd[i*4]=120; pd[i*4+1]=170; pd[i*4+2]=70; pd[i*4+3]=255; }
@@ -595,17 +607,19 @@ if(poisonFog.size){ const pd=new Uint8Array(W*H*4); poisonData=pd; for(const i o
   [[0.25,3.0,1.0],[0.7,4.0,0.85],[1.2,5.0,0.55]].forEach(([y,layer,alpha])=>{ const g=new THREE.PlaneGeometry(W+2,H+2); g.rotateX(-Math.PI/2);
     const m=new THREE.ShaderMaterial({vertexShader:'varying vec3 vW; void main(){ vec4 w=modelMatrix*vec4(position,1.0); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }',
       fragmentShader:MIST_FS,transparent:true,depthWrite:false,
-      uniforms:{tFog:{value:pt},uTime:{value:0},uLayer:{value:layer},uAlpha:{value:alpha},uSize:{value:new THREE.Vector2(W,H)}}});
+      uniforms:{tFog:{value:pt},tNoise:{value:NOISE_TEX},uTime:{value:0},uLayer:{value:layer},uAlpha:{value:alpha},uSize:{value:new THREE.Vector2(W,H)}}});
     const mesh=new THREE.Mesh(g,m); mesh.position.set(W/2-0.5,y,H/2-0.5); mesh.renderOrder=6; scene.add(mesh); mistMats.push(m); }); }
 let mistTick=0;
+// solo se tocan las casillas cuya niebla está cambiando (antes se recorrían las 40.000 cada décima de segundo)
+const fogDirty=new Set(); let fogFull=true;
 function updateMist(t,dt,px,pz){ mistMats.forEach(m=>m.uniforms.uTime.value=t%600); mistTick+=dt; if(mistTick<0.1)return; mistTick=0;
-  const R0=(S.candil&&S.oil>0)?6:4;
-  for(let i=0;i<W*H;i++){ fogD[i]+=(fogBase[i]-fogD[i])*0.004; }
+  if(fogFull){ fogFull=false; for(let i=0;i<W*H;i++) if(fogD[i]!==fogBase[i]) fogDirty.add(i); }
+  const R0=(S.candil&&S.oil>0)?6:4; let changed=false;
+  for(const i of fogDirty){ const d=fogBase[i]-fogD[i]; if(Math.abs(d)<0.003){ fogD[i]=fogBase[i]; fogDirty.delete(i); } else fogD[i]+=d*0.004; fogData[i*4+3]=fogD[i]*255; changed=true; }
   for(let z=Math.floor(pz)-R0;z<=Math.ceil(pz)+R0;z++)for(let x=Math.floor(px)-R0;x<=Math.ceil(px)+R0;x++){
     if(x<0||z<0||x>=W||z>=H)continue; const i=idx(x,z); const d=Math.hypot(x-px,z-pz);
-    const target=fogBase[i]*Math.min(1,Math.max(0,(d-1.2)/(R0-1.2))); if(fogD[i]>target) fogD[i]=Math.max(target,fogD[i]-0.12); }
-  for(let i=0;i<W*H;i++) fogData[i*4+3]=fogD[i]*255;
-  fogTex.needsUpdate=true; }
+    const target=fogBase[i]*Math.min(1,Math.max(0,(d-1.2)/(R0-1.2))); if(fogD[i]>target){ fogD[i]=Math.max(target,fogD[i]-0.12); fogData[i*4+3]=fogD[i]*255; fogDirty.add(i); changed=true; } }
+  if(changed) fogTex.needsUpdate=true; }
 
 // ---- postproceso: desenfoque por distancia (lejos = parte alta de la pantalla) ----
 const rt=new THREE.WebGLRenderTarget(4,4,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:true});
@@ -615,7 +629,7 @@ const postMat=new THREE.ShaderMaterial({uniforms:{tDiff:{value:rt.texture},uRes:
   fragmentShader:`precision highp float; uniform sampler2D tDiff; uniform vec2 uRes; uniform float uMax; varying vec2 vUv;
   void main(){ float far=smoothstep(0.52,1.0,vUv.y); float a=far*far*uMax + smoothstep(0.14,0.0,vUv.y)*uMax*0.4;
     vec3 c=texture2D(tDiff,vUv).rgb; vec3 acc=c; float w=1.;
-    if(a>0.4){ for(int i=0;i<16;i++){ float fi=float(i); float ang=fi*2.39996; float r=sqrt((fi+0.5)/16.);
+    if(a>0.4){ for(int i=0;i<10;i++){ float fi=float(i); float ang=fi*2.39996; float r=sqrt((fi+0.5)/10.);
       acc+=texture2D(tDiff,vUv+vec2(cos(ang),sin(ang))*r*a/uRes).rgb; w+=1.; } }
     vec3 col=acc/w; vec2 q=vUv-0.5; col*=1.-dot(q,q)*0.55;
     float lum=dot(col,vec3(0.299,0.587,0.114)); col=max(mix(vec3(lum),col,1.45),0.0);   // más saturación
@@ -623,7 +637,7 @@ const postMat=new THREE.ShaderMaterial({uniforms:{tDiff:{value:rt.texture},uRes:
     gl_FragColor=vec4(col,1.); }`});
 postScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),postMat));
 function sizePost(){ const v=new THREE.Vector2(); renderer.getDrawingBufferSize(v); rt.setSize(v.x,v.y); postMat.uniforms.uRes.value.copy(v);
-  postMat.uniforms.uMax.value=7*Math.min(devicePixelRatio,2); }
+  postMat.uniforms.uMax.value=7*renderer.getPixelRatio(); }
 
 // ---- texturas de muro ----
 function texCanvas(fn){ const cv=document.createElement('canvas'); cv.width=cv.height=64; fn(cv.getContext('2d'));
@@ -1329,7 +1343,7 @@ const player={mesh:makeSil('witch',0x2f66ff),face:1}; scene.add(player.mesh);
 // move: te persigue en su sala · jump: salta junto a ti y agrieta el suelo · quake: hunde el suelo bajo tus pies
 // throw: lanza proyectiles en línea · teleport: desaparece al recibir golpes · summon: invoca esbirros
 // split: se divide al recibir golpes · regen: se cura si no estás encima · stalker: te sigue por toda la zona hasta su guarida
-let chunkT=0, dynId=0; const projectiles=[], tempMeshes=[];
+let chunkT=0, mapT=0, dynId=0; const projectiles=[], tempMeshes=[];
 const enemyFree=(x,z,area,self)=>{ const t=tileAt(x,z); if(!'.,:=JSZ5C'.includes(t)) return false; if(typeof area==='object'?!area.has(idx(x,z)):areaKey(x,z)!==area) return false;
   return !enemies.some(o=>o!==self&&!S.killed.has(o.id)&&occT(o,x,z)); };
 const bossDmg=e=>Math.max(1,Math.round(e.max*0.08));
@@ -1748,10 +1762,10 @@ const poisonFog0=new Set(poisonFog);
 function torchLit(x,z,r){ for(const t of torchesL){ if(S.torches.has(t.id)&&Math.hypot(t.x-x,t.z-z)<=r) return true; } return false; }
 function lightTorch(i,fx){ const t=torchesL.find(o=>o.id===i); if(!t) return; S.torches.add(i); t.fire.forEach(m=>m.visible=true); t.coal.material.color.setHex(0xff5a10);
   for(let dz=-4;dz<=4;dz++)for(let dx=-4;dx<=4;dx++){ const x=t.x+dx, z=t.z+dz; if(x<0||z<0||x>=W||z>=H) continue; const d=Math.hypot(dx,dz); if(d>4) continue; const j=idx(x,z);
-    fogBase[j]=Math.min(fogBase[j],0.06+d*0.05); if(d<=2.5&&poisonFog.has(j)){ poisonFog.delete(j); if(poisonData){ poisonData[j*4+3]=0; poisonTex.needsUpdate=true; } } }
+    fogBase[j]=Math.min(fogBase[j],0.06+d*0.05); fogFull=true; if(d<=2.5&&poisonFog.has(j)){ poisonFog.delete(j); if(poisonData){ poisonData[j*4+3]=0; poisonTex.needsUpdate=true; } } }
   if(fx){ popText(t.x,1.9,t.z,'¡ENCENDIDA!','#ffb050'); hint('La antorcha disipa la niebla a su alrededor.'); shake=0.08; } }
 function applyTorches(){ for(const i of poisonFog0) poisonFog.add(i); if(poisonData){ for(const i of poisonFog0) poisonData[i*4+3]=255; poisonTex.needsUpdate=true; }
-  for(let i=0;i<W*H;i++) fogBase[i]=MIST_BASE[theme(i%W,(i/W)|0)]??0.6;
+  for(let i=0;i<W*H;i++) fogBase[i]=MIST_BASE[theme(i%W,(i/W)|0)]??0.6; fogFull=true;
   torchesL.forEach(t=>{ t.fire.forEach(m=>m.visible=false); t.coal.material.color.setHex(0x1a1210); }); for(const i of S.torches) lightTorch(i,false); }
 const litAt=(x,z)=>torchLit(x,z,3.2)||(candilOn()&&Math.hypot(x-S.x,z-S.z)<=2.5);
 // ======== MONSTRUOS ESPECIALES ========
@@ -1896,7 +1910,7 @@ function frame(now){
   if(S.dead && S.hp<=0) player.mesh.scale.setScalar(Math.max(0.01,player.mesh.scale.x-dt*2));
 
   updateBosses(dt); updateProjectiles(dt); updateTemps(); updateSpecials(dt); updateArrows(dt); updateChains(); updateOil(dt);
-  if((chunkT-=dt)<=0){ chunkT=0.2; for(const m of chunkMeshes) m.visible=Math.abs(m.userData.cx-pm.x)<30&&Math.abs(m.userData.cz-pm.z)<30; }
+  if((chunkT-=dt)<=0){ chunkT=0.2; for(const m of chunkMeshes){ const dz=m.userData.cz-pm.z; m.visible=Math.abs(m.userData.cx-pm.x)<CHUNK/2+13&&dz>-(CHUNK/2+19)&&dz<CHUNK/2+9; } }
   for(const e of enemies){ if(!e.mesh.visible) continue; const kk2=1-Math.pow(0.0005,dt); const ox=e.big?0.5:0; e.mesh.position.x+=(e.x+ox-e.mesh.position.x)*kk2; e.mesh.position.z+=(e.z+ox-e.mesh.position.z)*kk2;
     e.mesh.position.y = e.jump? Math.sin(Math.min(1,e.jump.t/0.5)*Math.PI)*1.6 : 0; }
   enemies.forEach(e=>{ if(e.dying>0){ e.dying-=dt*3; const s=Math.max(0.001,e.dying); e.mesh.scale.set(1+(1-s)*0.4,s,1); }
@@ -1919,8 +1933,9 @@ function frame(now){
   pLight.position.set(pm.x,2.2,pm.z); uPl.value.set(pm.x,0,pm.z); uCamK.value=camOff.z/camOff.y;
   if(candilOn()){ cLight.position.set(pm.x+0.25,1.1,pm.z+0.2); cLight.intensity=3+Math.sin(time*11)*0.15+Math.sin(time*23.7)*0.1; }
   const blink=Math.floor(time*3)%2===0;
-  drawMap(mctx,mini.width,mini.height,mini.width/11,S.x+0.5,S.z+0.5,blink);
-  if(!$('mapov').hidden) drawMap(bctx,bigmap.width,bigmap.height,MV.ts,MV.cx,MV.cz,blink);
+  if((mapT-=dt)<=0){ mapT=1/15; drawMap(mctx,mini.width,mini.height,mini.width/11,S.x+0.5,S.z+0.5,blink);
+    if(!$('mapov').hidden) drawMap(bctx,bigmap.width,bigmap.height,MV.ts,MV.cx,MV.cz,blink); }
+  qualityTick(dt);
   const fl=0.75+Math.sin(time*17)*0.12+Math.sin(time*29)*0.08; flameMat.color.setRGB(1,fl,fl*0.55);
 
   const lv=new THREE.Vector3();
