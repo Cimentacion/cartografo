@@ -195,7 +195,7 @@ const POWERS={O:{n:'SACO DE BOMBAS',d:'Llevas 5 bombas. Pon una con el botón BO
  '/':{n:'FILO CORTANTE',d:'Cortas la hierba alta a tu paso. Lo que cortes, cortado se queda.',c:'#9ad070',k:'/'}};
 const KEYM={'7':{n:'bronce',door:'[',c:'#c8844a',hex:0xc8844a},'8':{n:'plata',door:'{',c:'#d8dcea',hex:0xd8dcea},'9':{n:'oro',door:'}',c:'#f0c838',hex:0xf0c838}};
 const DOORKEY={'[':'7','{':'8','}':'9'};
-const ITEMS={'>':{n:'BOLSA DE MONEDAS',d:'+10 ◆'},'(':{n:'BOMBAS',d:'+3 bombas.'},')':{n:'BANDOLERA DE BOMBAS',d:'Puedes llevar 3 bombas más.'},'?':{n:'PÓLVORA NEGRA',d:'Tus bombas hacen +2 de daño.'},'<':{n:'CANDIL',d:'Una llama cálida. Ves mucho mejor a tu alrededor.'},'7':{n:'LLAVE DE BRONCE',d:'Abre una puerta de bronce.'},'8':{n:'LLAVE DE PLATA',d:'Abre una puerta de plata.'},'9':{n:'LLAVE DE ORO',d:'Abre una puerta de oro.'},'+':{n:'POCIÓN',d:'Se guarda. Bébela para +5 de vida.'},'E':{n:'ELIXIR',d:'Se guarda. Cura toda la vida.'},'H':{n:'CORAZÓN',d:'+3 de vida máxima'},'A':{n:'FILO',d:'+1 de ataque'}};
+const ITEMS={'¹':{n:'1 LVL UP',d:'¡Subes un nivel al instante!'},'>':{n:'BOLSA DE MONEDAS',d:'+10 ◆'},'(':{n:'BOMBAS',d:'+3 bombas.'},')':{n:'BANDOLERA DE BOMBAS',d:'Puedes llevar 3 bombas más.'},'?':{n:'PÓLVORA NEGRA',d:'Tus bombas hacen +2 de daño.'},'<':{n:'CANDIL',d:'Una llama cálida. Ves mucho mejor a tu alrededor.'},'7':{n:'LLAVE DE BRONCE',d:'Abre una puerta de bronce.'},'8':{n:'LLAVE DE PLATA',d:'Abre una puerta de plata.'},'9':{n:'LLAVE DE ORO',d:'Abre una puerta de oro.'},'+':{n:'POCIÓN',d:'Se guarda. Bébela para +5 de vida.'},'E':{n:'ELIXIR',d:'Se guarda. Cura toda la vida.'},'H':{n:'CORAZÓN',d:'+3 de vida máxima'},'A':{n:'FILO',d:'+1 de ataque'}};
 </script>
 
 <script>
@@ -1321,7 +1321,16 @@ chapels.forEach(ch=>{ const g=new THREE.Group();
   g.position.set(ch.x,0,ch.z); scene.add(g); dyn.push({obj:g,x:ch.x,z:ch.z,alive:()=>true,chapel:true}); });
 
 const itemMeshes=new Map();
+function lvlTex(){ const c=document.createElement('canvas'); c.width=128; c.height=64; const g=c.getContext('2d');
+  g.fillStyle='#1a3a10'; g.fillRect(4,10,120,44); g.fillStyle='#62ff6a'; g.fillRect(4,10,120,4); g.fillRect(4,50,120,4); g.fillRect(4,10,4,44); g.fillRect(120,10,4,44);
+  const gr=g.createLinearGradient(0,16,0,50); gr.addColorStop(0,'#3a9a2a'); gr.addColorStop(1,'#1c5a14'); g.fillStyle=gr; g.fillRect(8,14,112,36);
+  g.font='bold 22px monospace'; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#062a04'; g.fillText('1LVLUP',65,34); g.fillStyle='#e8ffd0'; g.fillText('1LVLUP',64,33);
+  g.fillStyle='#ffffff'; g.fillRect(10,16,30,3);
+  const t=new THREE.CanvasTexture(c); t.magFilter=THREE.NearestFilter; return t; }
 function makeItem(k){ const g=new THREE.Group(); let core;
+  if(k==='¹'){ core=new THREE.Sprite(new THREE.SpriteMaterial({map:lvlTex(),transparent:true})); core.scale.set(1.05,0.53,1);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(0.34,0.04,6,24),new THREE.MeshBasicMaterial({color:0x62ff6a})); ring.rotation.x=Math.PI/2; g.add(ring); g.userData.ring=ring;
+    core.position.y=0; g.add(core); g.userData.core=core; return g; }
   if(k==='+'||k==='E'){ core=new THREE.Mesh(new THREE.SphereGeometry(0.17,12,10),new THREE.MeshBasicMaterial({color:k==='E'?0xe8b830:0xd8243a}));
     const neck=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.12,8),new THREE.MeshBasicMaterial({color:0xddddcc})); neck.position.y=0.18; core.add(neck); }
   else if(k==='>'){ core=new THREE.Group(); const sack=new THREE.Mesh(new THREE.SphereGeometry(0.17,8,6),new THREE.MeshBasicMaterial({color:0x7a5a30})); sack.scale.y=0.85; core.add(sack);
@@ -1755,6 +1764,7 @@ function drawMap(ctx,pw,ph,ts,cx,cz,blink){
     const px=Math.floor(ox+it.x*ts), py=Math.floor(oz+it.z*ts), s=Math.ceil(ts);
     if(it.kind==='+'){ ctx.fillStyle='#ff3a4a'; ctx.fillRect(px+s*0.25,py+s*0.4,s*0.5,s*0.45); ctx.fillRect(px+s*0.38,py+s*0.18,s*0.24,s*0.24);
       ctx.fillStyle='#ffffff'; ctx.fillRect(px+s*0.34,py+s*0.12,s*0.32,Math.max(1,s*0.1)); }
+    else if(it.kind==='¹'){ ctx.fillStyle='#62ff6a'; ctx.fillRect(px+s*0.15,py+s*0.3,s*0.7,s*0.4); ctx.fillStyle='#0a3a08'; ctx.fillRect(px+s*0.45,py+s*0.35,s*0.1,s*0.3); }
     else if(it.kind==='>'){ ctx.fillStyle='#f0c838'; ctx.beginPath(); ctx.arc(px+s/2,py+s*0.55,s*0.3,0,7); ctx.fill(); }
     else if('()?'.includes(it.kind)){ ctx.fillStyle='#ff9a3c'; ctx.beginPath(); ctx.arc(px+s/2,py+s*0.58,s*0.28,0,7); ctx.fill(); ctx.fillStyle='#fff'; ctx.fillRect(px+s*0.48,py+s*0.12,s*0.1,s*0.2); }
     else if(it.kind==='<'){ ctx.fillStyle='#ffa850'; ctx.fillRect(px+s*0.3,py+s*0.25,s*0.4,s*0.55); ctx.fillStyle='#fff0c0'; ctx.fillRect(px+s*0.43,py+s*0.4,s*0.14,s*0.22); }
@@ -2034,6 +2044,7 @@ function pickup(it){ S.taken.add(it.id); const k=it.kind;
   else if(k==='?'){ S.bombDmg+=2; toast(ITEMS[k].n,ITEMS[k].d+' Ahora: '+S.bombDmg+'.',2200); }
   else if(k==='<'){ S.candil=true; S.oil=Math.max(S.oil,OIL_BOTTLE); applyLamp(); toast(ITEMS[k].n,ITEMS[k].d+' Gasta aceite: una botella dura unos 10 minutos.',3200); }
   else if(k==='>'){ S.gold+=10; toast(ITEMS[k].n,ITEMS[k].d,1500); }
+  else if(k==='¹'){ toast(ITEMS[k].n,ITEMS[k].d,1800); popText(S.x,2.2,S.z,'¡NIVEL!','#62ff6a'); gainExp(Math.max(1,need(S.lvl)-S.exp)); }
   else if(KEYM[k]){ S.keys[k]++; toast(ITEMS[k].n,ITEMS[k].d,1800); }
   else if(k==='H'){ S.max+=3; S.hp+=3; toast(ITEMS[k].n,ITEMS[k].d); }
   else if(k==='A'){ S.atk+=1; toast(ITEMS[k].n,ITEMS[k].d); }
