@@ -29,6 +29,8 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);overflow:hid
 #xpfill{position:absolute;inset:0 auto 0 0;background:var(--xp);transition:width .25s}
 #pw{display:flex;gap:4px}
 .pwi{width:16px;height:16px;border:1px solid currentColor;font-size:10px;display:grid;place-items:center}
+#dbgBtn{position:fixed;top:calc(env(safe-area-inset-top,0px) + 166px);right:max(14px,env(safe-area-inset-right,0px));z-index:3;background:rgba(0,0,0,.6);color:#9a9aa8;border:2px solid #5a5a68;font-family:var(--font);font-size:11px;padding:5px 8px;letter-spacing:1px;cursor:pointer}
+#dbgBtn.on{color:#40ff80;border-color:#40ff80;background:rgba(0,40,10,.75)}
 #sunBtn{position:fixed;top:calc(env(safe-area-inset-top,0px) + 126px);right:max(14px,env(safe-area-inset-right,0px));z-index:3;
   font-family:var(--font);font-size:12px;background:rgba(0,0,0,.7);color:#ffe9a0;border:2px solid #e8c35a;padding:5px 9px;cursor:pointer}
 #mini{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);right:max(14px,env(safe-area-inset-right,0px));
@@ -113,6 +115,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);overflow:hid
 </div>
 <canvas id="mini" aria-label="Minimapa, toca para abrir el mapa completo"></canvas>
 <button id="sunBtn" aria-label="Brillo y saturación">LUZ 1</button>
+<button id="dbgBtn" aria-label="Modo debug: atravesar paredes">DEBUG</button>
 <div id="zone"></div>
 <div id="banner"></div>
 <div id="toast"></div>
@@ -1856,7 +1859,7 @@ function killEnemy(e){ popText(e.x,1.4,e.z,'-'+e.hp,'#ff6b6b');
     setTimeout(()=>popText(S.x,1.9,S.z,'+'+e.max+' EXP','#d8b24a'),150); setTimeout(()=>popText(S.x,2.4,S.z,bombDrop?'+2 BOMBAS':'+'+gold+' ◆',bombDrop?'#ff9a3c':'#ffe080'),380);
     if(ENEMY[e.type].final){ setTimeout(win,900); }
     else { gainExp(e.max); if(e.boss){ S.wild++; setTimeout(()=>toast('COMODÍN','Has vencido a '+ENEMY[e.type].n+'. +1 comodín. La reja se abre.',2800),700); } } }
-function fight(e){
+function fight(e){ if(S.noclip) return;
   if(S.atk>=e.hp){ killEnemy(e);
   } else {
     const lose=e.hp-S.atk;
@@ -1891,8 +1894,10 @@ let lastMove=0, bump={x:0,z:0,t:0}, lastNear=-1;
 const blocked=()=>S.dead||!!S.ride||S.warp||!!S.stone||!!S.gulp||!!S.coffin||!!S.fall||!$('shop').hidden||!$('warp').hidden||!$('lvlup').hidden||!$('mapov').hidden||!$('title').hidden;
 function tryMove(dx,dz){
   if(blocked())return; const nowM=performance.now(), bh=base[idx(S.x,S.z)];
-  if(bh==='±'&&nowM-lastMove<380) return;
+  if(bh==='±'&&nowM-lastMove<380&&!S.noclip) return;
   lastMove=nowM; if(dx) player.face=dx; S.fx=dx; S.fz=dz;
+  if(S.noclip){ const nx=S.x+dx, nz=S.z+dz; if(nx<0||nz<0||nx>=W||nz>=H) return; S.prevX=S.x; S.prevZ=S.z; S.x=nx; S.z=nz; S.sink=0; reveal(); checkArea();
+    const i=idx(nx,nz), it=items.find(o=>o.id===i&&!S.taken.has(o.id)); if(it) pickup(it); return; }
   if(SLIDE[bh]&&SLIDE[bh][0]===-dx&&SLIDE[bh][1]===-dz){ bump={x:dx,z:dz,t:1}; if(!S.slideWarned){ S.slideWarned=1; hint('La arena te arrastra: no puedes ir contra ella.'); } return; }
   const nx=S.x+dx, nz=S.z+dz, i=idx(nx,nz), t=tileAt(nx,nz);
   const stop=()=>{ bump={x:dx,z:dz,t:1}; if('BD~^%0G12346[{}-'.includes(t)){ S.marks.set(i,t); S.explored[i]=1; } };
@@ -2002,7 +2007,7 @@ function startRide(i){ const path=RIDES.get(i); if(!path)return; S.ride={from:i,
 function usePortal(i){ const d=PORTAL_DEST.get(i); if(!d)return; S.warp=true; const f=$('fade'); f.classList.add('on');
   setTimeout(()=>{ S.x=d.x; S.z=d.z; S.prevX=d.x; S.prevZ=d.z; player.mesh.position.set(d.x,0,d.z); camera.position.set(d.x,10,d.z+4.4);
     reveal(); checkArea(); f.classList.remove('on'); setTimeout(()=>{S.warp=false;},250); },450); }
-function hurt(n,txt){ S.hp-=n; shake=0.3; popText(S.x,2.0,S.z,'-'+n,'#ffffff'); if(txt) hint(txt); if(S.hp<=0){ S.hp=0; die(); } updHud(); }
+function hurt(n,txt){ if(S.noclip) return; S.hp-=n; shake=0.3; popText(S.x,2.0,S.z,'-'+n,'#ffffff'); if(txt) hint(txt); if(S.hp<=0){ S.hp=0; die(); } updHud(); }
 function pickup(it){ S.taken.add(it.id); const k=it.kind;
   if(k==='+'){ S.pots++; toast(ITEMS[k].n,ITEMS[k].d,1600); }
   else if(k==='E'){ S.elix++; toast(ITEMS[k].n,ITEMS[k].d,2200); }
@@ -2021,6 +2026,9 @@ const SUN=[{n:'1',sat:1.45,gam:0.86,gain:1.06},{n:'2',sat:1.65,gam:0.7,gain:1.22
 let sunLv=0; try{ sunLv=Math.min(2,Math.max(0,+(localStorage.getItem('witchstep_brillo')||0))); }catch(e){}
 function applySun(){ const L=SUN[sunLv]; postMat.uniforms.uSat.value=L.sat; postMat.uniforms.uGam.value=L.gam; postMat.uniforms.uGain.value=L.gain; $('sunBtn').textContent='LUZ '+L.n; }
 $('sunBtn').addEventListener('pointerdown',ev=>ev.stopPropagation());
+// DEBUG: atraviesas paredes, agua, abismos y monstruos sin que pase nada
+$('dbgBtn').addEventListener('pointerdown',ev=>ev.stopPropagation());
+$('dbgBtn').addEventListener('click',()=>{ S.noclip=!S.noclip; $('dbgBtn').classList.toggle('on',S.noclip); $('dbgBtn').textContent=S.noclip?'DEBUG ON':'DEBUG'; hint(S.noclip?'Noclip activado: atraviesas todo.':'Noclip desactivado.'); });
 $('sunBtn').addEventListener('click',()=>{ sunLv=(sunLv+1)%SUN.length; try{ localStorage.setItem('witchstep_brillo',sunLv); }catch(e){} applySun();
   hint(['Brillo normal','Brillo alto','Brillo máximo (para el sol)'][sunLv]); });
 applySun();
@@ -2302,17 +2310,17 @@ function resetTrapStates(){ S.petro=0; S.petroHit=false; S.curse=false; S.curseA
   S.safeX=S.x; S.safeZ=S.z; if(stoneOv) stoneOv.hidden=true; $('curseB').hidden=true; player.mesh.visible=true;
   coffins.forEach(cf=>setLid(cf,0)); enemies.forEach(e=>{ if(e.kind==='mummy'){ e.open=false; setSilTex(e,'mummy'); } if(e.kind==='medusa'){ e.ph='idle'; e.pt=0; setSilTex(e,'medusa'); if(e.B){ e.B.mesh.visible=false; e.B.pts.visible=false; } } }); }
 function setSilTex(e,type){ const sp=e.mesh.userData.sp; if(sp) sp.material.uniforms.map.value=silTexture(type,e.col); }
-function curse(){ if(S.curse) return; S.curse=true; S.curseAcc=0; $('curseB').hidden=false; shake=0.2;
+function curse(){ if(S.curse||S.noclip) return; S.curse=true; S.curseAcc=0; $('curseB').hidden=false; shake=0.2;
   toast('MALDICIÓN','Pierdes vida sin parar. ¡Busca una fuente de agua bendita!',3200); }
 function cureAt(f){ if(S.curse){ S.curse=false; $('curseB').hidden=true; popText(f.x,1.9,f.z,'¡PURIFICADA!','#9ad0ff'); toast('AGUA BENDITA','La maldición se ha ido.',1800); }
   else hint('Agua bendita. Limpia cualquier maldición.'); }
-function petrify(){ S.stone={n:0,need:10,acc:0}; stoneOv.hidden=false; $('stoneFill').style.width='0%'; popText(S.x,2.2,S.z,'¡PIEDRA!','#e0e0d8'); shake=0.3; }
+function petrify(){ if(S.noclip) return; S.stone={n:0,need:10,acc:0}; stoneOv.hidden=false; $('stoneFill').style.width='0%'; popText(S.x,2.2,S.z,'¡PIEDRA!','#e0e0d8'); shake=0.3; }
 function stoneTap(){ if(!S.stone) return; S.stone.n++; $('stoneFill').style.width=Math.min(100,S.stone.n/S.stone.need*100)+'%'; shake=Math.max(shake,0.06);
   if(S.stone.n>=S.stone.need){ S.stone=null; S.petro=0; S.stoneImm=time+2.5; stoneOv.hidden=true; popText(S.x,2.0,S.z,'¡LIBRE!','#ffffff'); } }
 document.addEventListener('pointerdown',ev=>{ if(S.stone&&!S.dead){ ev.preventDefault(); ev.stopPropagation(); stoneTap(); } },true);
 addEventListener('keydown',ev=>{ if(S.stone&&!S.dead&&!ev.repeat) stoneTap(); },true);
-function startGulp(e,back){ S.gulp={e,t:0,back,done:false}; popText(e.x,1.6,e.z,'¡GLUP!','#ff9a9a'); shake=0.2; }
-function startCoffin(e){ let cf=null, bd=1e9; for(const c of coffins){ const d=Math.hypot(c.cx-e.x,c.cz-e.z); if(d<bd){ bd=d; cf=c; } }
+function startGulp(e,back){ if(S.noclip) return; S.gulp={e,t:0,back,done:false}; popText(e.x,1.6,e.z,'¡GLUP!','#ff9a9a'); shake=0.2; }
+function startCoffin(e){ if(S.noclip) return; let cf=null, bd=1e9; for(const c of coffins){ const d=Math.hypot(c.cx-e.x,c.cz-e.z); if(d<bd){ bd=d; cf=c; } }
   popText(e.x,1.7,e.z,'¡SUS OJOS!','#c0ff40'); shake=0.3;
   if(!cf){ hint('La mirada de la momia te repele.'); return; }
   S.coffin={c:cf,t:0,ph:0}; $('fade').classList.add('on'); hint('La mirada maldita de la momia te arrastra...'); }
@@ -2367,9 +2375,9 @@ function updateTraps(dt){ const pm=player.mesh.position, playing=!S.dead&&$('tit
   if(S.gulp||S.coffin||S.stone){ for(const e of enemies) if(e.B){ e.B.mesh.visible=e.B.pts.visible=false; } return; }
   // arena que arrastra
   const here=base[idx(S.x,S.z)], dir=SLIDE[here];
-  if(dir&&!blocked()){ S.slideT+=dt; if(S.slideT>=0.17){ S.slideT=0; slideStep(dir[0],dir[1]); } } else S.slideT=0;
+  if(dir&&!blocked()&&!S.noclip){ S.slideT+=dt; if(S.slideT>=0.17){ S.slideT=0; slideStep(dir[0],dir[1]); } } else S.slideT=0;
   // arenas movedizas
-  if(here==='±'&&!blocked()&&!S.qsg){ S.sink+=dt*0.42; if(S.sink>=1){ S.sink=0.5; S.qsg={t:0,from:sp.uCut.value}; sandPuff(S.x,S.z,16); hurt(2,'¡La arena te traga!'); } } else if(here!=='±') S.sink=Math.max(0,S.sink-dt*3);
+  if(here==='±'&&!blocked()&&!S.qsg&&!S.noclip){ S.sink+=dt*0.42; if(S.sink>=1){ S.sink=0.5; S.qsg={t:0,from:sp.uCut.value}; sandPuff(S.x,S.z,16); hurt(2,'¡La arena te traga!'); } } else if(here!=='±') S.sink=Math.max(0,S.sink-dt*3);
   updQuicksand(dt,here==='±',sp,pm);
   // monstruos del cementerio
   if(S.warp||S.ride) return;
