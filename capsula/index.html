@@ -50,6 +50,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);overflow:hid
 .hpl{position:absolute;left:0;top:0;font-family:var(--font);font-weight:700;font-size:15px;color:#fff;line-height:1;
   text-shadow:-2px 0 #000,2px 0 #000,0 -2px #000,0 2px #000,-1px -1px #000,1px 1px #000,-1px 1px #000,1px -1px #000;will-change:transform}
 #bag{position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 40px);display:grid;gap:8px;z-index:3}
+#bag #useThrow{border-color:#d08a40;color:#ffd0a0}
 #bag button{font-family:var(--font);font-size:12px;background:rgba(0,0,0,.7);color:var(--fg);border:2px solid #ff4a5a;padding:9px 12px;cursor:pointer}
 #bag #useElix{border-color:#e8c35a;color:#ffe9a0}
 #bag #useWild{border-color:#b98aff;color:#e2d0ff}
@@ -123,7 +124,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);overflow:hid
 <div id="curseB" hidden>✠ MALDITA · busca agua bendita</div>
 <div id="fade"></div>
 <div id="joy"><div id="base"></div><div id="knob"></div></div>
-<div id="bag"><button id="useBomb" hidden>BOMBA ×0</button><button id="useWild" hidden>COMODÍN ×0</button><button id="useElix" hidden>ELIXIR ×0</button><button id="usePot" hidden>POCIÓN ×0</button></div>
+<div id="bag"><button id="useThrow" hidden>LANZAR</button><button id="useBomb" hidden>BOMBA ×0</button><button id="useWild" hidden>COMODÍN ×0</button><button id="useElix" hidden>ELIXIR ×0</button><button id="usePot" hidden>POCIÓN ×0</button></div>
 
 <div id="warp" class="ov" hidden><div style="width:min(340px,100%)">
   <h2>TELETRANSPORTE</h2><p>¿A qué sala quieres viajar?</p>
@@ -188,7 +189,7 @@ const POWERS={O:{n:'SACO DE BOMBAS',d:'Llevas 5 bombas. Pon una con el botón BO
  Y:{n:'CAPA DE MURCIÉLAGO',d:'Planeas sobre los abismos.',c:'#b04ad0',k:'C'},
  X:{n:'MANTO DE NIEBLA',d:'Te vuelves niebla al cruzar rejillas.',c:'#b8c8e8',k:'M'},
  Q:{n:'SELLO DE PLATA',d:'Rompes los sellos de plata.',c:'#dfe4f0',k:'S'},
- P:{n:'GUANTELETE',d:'Apartas las rocas pesadas.',c:'#d08a40',k:'G'},
+ P:{n:'GUANTELETE',d:'Levantas rocas chocando con ellas y las lanzas con LANZAR (tecla B) hacia donde miras: dañan monstruos y rompen paredes agrietadas.',c:'#d08a40',k:'G'},
  F:{n:'BOTAS ÍGNEAS',d:'Caminas sobre la lava.',c:'#ff5a2a',k:'F'},
  W:{n:'ROSARIO DEL AMO',d:'Abre el sello del amo.',c:'#ff5a8a',k:'R'},
  '/':{n:'FILO CORTANTE',d:'Cortas la hierba alta a tu paso. Lo que cortes, cortado se queda.',c:'#9ad070',k:'/'}};
@@ -275,6 +276,7 @@ const gateOpen=i=>{ const g=gateById.get(i); if(g.lv) return g.init!==(g.lv.filt
 function tileAt(x,z){ if(x<0||z<0||x>=W||z>=H) return '#'; const i=idx(x,z), c=base[i];
   if(c===';') return S.cut.has(i)?'.':';';
   if(c==='-') return S.burnt.has(i)?'.':'-';
+  if(c==='R') return S.broken.has(i)?'.':'R';
   if(c==='¢') return S.levers.has('BTN')?'¢':'.'; if(c==='£') return S.levers.has('BTN')?'.':'£'; if(c==='¤') return '.';
   if((c==='D'||DOORKEY[c])&&S.opened.has(i)) return '.'; if(c==='B'&&S.broken.has(i)) return '.';
   if(c==='G'||c==='I') return gateOpen(i)?'.':'G'; if(c==='V') return S.secrets.has(i)?'.':'V';
@@ -1043,8 +1045,8 @@ for(let z=0;z<H;z++)for(let x=0;x<W;x++){ const c=base[idx(x,z)]; if(!'#hR'.incl
     faces.forEach(([dx,dz])=>{ if(rnd()<.4){ const lit=rnd()<.25;
       windows.push({m:mat(x+dx*0.53,0.78,z+dz*0.505,0.32,0.36,1,Math.atan2(dx,dz)),c:lit?jit(0x8a5a18,.3):hex(0x0b0805)}); } });
     continue; }
-  if(c==='R'){ boulder(x,z);
-    if(faces.length){ const [dx,dz]=faces[0]; pebbles.push({m:mat(x+dx*0.4+(rnd()-.5)*.4,0.08,z+dz*0.4+(rnd()-.5)*.4,0.5,0.4,0.5,rnd()*6),c:jit(0x6a6460,.4)}); }
+  if(c==='R'){ // las rocas son piezas sueltas que se pueden levantar (se dibujan aparte)
+    if(false&&faces.length){ const [dx,dz]=faces[0]; pebbles.push({m:mat(x+dx*0.4+(rnd()-.5)*.4,0.08,z+dz*0.4+(rnd()-.5)*.4,0.5,0.4,0.5,rnd()*6),c:jit(0x6a6460,.4)}); }
     continue; }
   if(STONE[t]){ const [tk,col,hb,merl]=STONE[t]; const tall=rnd()<.12; const h=tall?hb+1:hb+rnd()*0.4;
     stoneLists[tk].push({m:mat(x,h/2,z,1,h,1),c:jit(col,.12).multiplyScalar(tall?0.88:1)});
@@ -1697,6 +1699,7 @@ function updHud(){
   $('atk').textContent='ATK '+S.atk; $('lvl').textContent='NV '+S.lvl; $('gold').textContent='◆ '+S.gold;
   $('usePot').hidden=S.pots<=0; $('usePot').textContent='POCIÓN ×'+S.pots; $('useElix').hidden=S.elix<=0; $('useElix').textContent='ELIXIR ×'+S.elix; $('useWild').hidden=S.wild<=0; $('useWild').textContent='COMODÍN ×'+S.wild;
   $('oil').hidden=!S.candil; $('oilf').style.height=Math.max(0,Math.min(100,S.oil/OIL_MAX*100))+'%';
+  $('useThrow').hidden=!S.carry;
   $('useBomb').hidden=!S.powers.has('O'); $('useBomb').textContent='BOMBA '+S.bombs+'/'+S.bombMax; $('useBomb').disabled=S.bombs<=0; $('useBomb').style.opacity=S.bombs>0?1:.45;
   $('keys').innerHTML=Object.keys(KEYM).filter(k=>S.keys[k]>0).map(k=>`<span style="color:${KEYM[k].c}">⚷${S.keys[k]}</span>`).join(' ');
   $('xpfill').style.width=Math.min(100,S.exp/need(S.lvl)*100)+'%';
@@ -1901,6 +1904,7 @@ function tryMove(dx,dz){
   if(SLIDE[bh]&&SLIDE[bh][0]===-dx&&SLIDE[bh][1]===-dz){ bump={x:dx,z:dz,t:1}; if(!S.slideWarned){ S.slideWarned=1; hint('La arena te arrastra: no puedes ir contra ella.'); } return; }
   const nx=S.x+dx, nz=S.z+dz, i=idx(nx,nz), t=tileAt(nx,nz);
   const stop=()=>{ bump={x:dx,z:dz,t:1}; if('BD~^%0G12346[{}-'.includes(t)){ S.marks.set(i,t); S.explored[i]=1; } };
+  if(t==='R'||t==='3'){ bump={x:dx,z:dz,t:1}; if(S.powers.has('P')) liftRock(i); else hint(t==='3'?'Una roca enorme. Necesitas más fuerza.':'Rocas. Con más fuerza podrías levantarlas.'); return; }
   if(WALLS.includes(t)) return stop();
   if(t===';'){ if(S.powers.has('/')){ cutGrass(i); } else { hint('Hierba alta y espesa. No hay manera de pasar.'); return stop(); } }
   if(t==='M'){ const m=merchants.find(o=>o.id===i); if(m) openShop(m); bump={x:dx,z:dz,t:1}; return; }
@@ -2306,7 +2310,7 @@ function updQuicksand(dt,on,sp,pm){ let cut=on?0.04+S.sink*0.42:0;
   if(on&&S.sink>0.05&&!S.arc){ pm.y=-0.02; pm.x+=Math.sin(time*13)*0.025*S.sink; } }
 // ---- estados de la bruja ----
 const stoneOv=$('stoneOv');
-function resetTrapStates(){ S.petro=0; S.petroHit=false; S.curse=false; S.curseAcc=0; S.stone=null; S.stoneImm=0; S.gulp=null; S.coffin=null; S.fall=null; S.qsg=null; player.mesh.userData.sp.material.uniforms.uCut.value=0; $('fade').classList.remove('on'); S.arc=null; S.sink=0; S.slideT=0; S.fx=0; S.fz=1;
+function resetTrapStates(){ S.petro=0; S.petroHit=false; S.curse=false; S.curseAcc=0; S.stone=null; S.stoneImm=0; if(S.carry){ scene.remove(S.carry.m); S.carry=null; } S.gulp=null; S.coffin=null; S.fall=null; S.qsg=null; player.mesh.userData.sp.material.uniforms.uCut.value=0; $('fade').classList.remove('on'); S.arc=null; S.sink=0; S.slideT=0; S.fx=0; S.fz=1;
   S.safeX=S.x; S.safeZ=S.z; if(stoneOv) stoneOv.hidden=true; $('curseB').hidden=true; player.mesh.visible=true;
   coffins.forEach(cf=>setLid(cf,0)); enemies.forEach(e=>{ if(e.kind==='mummy'){ e.open=false; setSilTex(e,'mummy'); } if(e.kind==='medusa'){ e.ph='idle'; e.pt=0; setSilTex(e,'medusa'); if(e.B){ e.B.mesh.visible=false; e.B.pts.visible=false; } } }); }
 function setSilTex(e,type){ const sp=e.mesh.userData.sp; if(sp) sp.material.uniforms.map.value=silTexture(type,e.col); }
@@ -2452,6 +2456,40 @@ function pressButton(i){ const b=btnTiles.find(o=>o.id===i); if(!b) return;
 function updateBlocks(dt){ const up=blueUp();
   for(const b of blockTiles){ const target=(b.blue===up)?0:-0.97; if(b.y===-1){ b.y=target; } b.y+=(target-b.y)*Math.min(1,dt*9); b.p.position.y=b.y; }
   for(const b of btnTiles){ b.press=Math.max(0,b.press-dt*3); const onIt=S.x===b.x&&S.z===b.z; b.knob.position.y=0.12-(onIt?0.07:0.07*b.press); b.knob.material.color.setHex(up?0xf0c020:0x3a7cff); b.knob.material.emissive.setHex(up?0x705008:0x10306a); } }
+// ---- rocas que se levantan con el guantelete y se lanzan (las "Rocas" del editor y la roca pesada) ----
+const liftMat=psxMat(rockTex,1.0,0.25,1.3); liftMat.color=new THREE.Color(0xa09482);
+const rockGeo=new THREE.DodecahedronGeometry(0.5);
+for(let i=0;i<W*H;i++){ if(base[i]!=='R') continue; const x=i%W, z=(i/W)|0;
+  const fl=new THREE.Mesh(new THREE.BoxGeometry(1,0.1,1),new THREE.MeshLambertMaterial({color:(FLOOR[theme(x,z)]||FLOOR.forest)['.'],map:dirtTex})); fl.position.set(x,-0.05,z); scene.add(fl);
+  dyn.push({obj:fl,x,z,alive:()=>true});
+  const g=new THREE.Group(); g.position.set(x,0,z); const h=((x*73+z*37)%100)/100, s=0.86+h*0.3;
+  const r=new THREE.Mesh(rockGeo,liftMat); r.scale.set(s*1.12,s*0.88,s); r.position.y=0.4*s; r.rotation.set(h*3,h*5,h*2); g.add(r);
+  if(h>0.4){ const r2=new THREE.Mesh(rockGeo,liftMat); r2.scale.setScalar(0.32); r2.position.set(0.32,0.12,0.3); g.add(r2); }
+  scene.add(g); dyn.push({obj:g,x,z,alive:()=>!S.broken.has(i)}); }
+const flyingRocks=[];
+function liftRock(i){ if(S.carry){ hint('Ya llevas una roca. Lánzala primero.'); return; }
+  S.broken.add(i); const x=i%W, z=(i/W)|0, m=new THREE.Mesh(rockGeo,liftMat); m.scale.set(0.8,0.7,0.75); m.position.set(x,0.4,z); scene.add(m);
+  S.carry={m,t:0}; shake=0.15; popText(x,1.2,z,'¡ARRIBA!','#d08a40'); updHud();
+  if(!S.liftWarned){ S.liftWarned=1; hint('Llevas la roca. Lánzala con LANZAR (tecla B) hacia donde miras.'); } }
+function throwRock(){ const c=S.carry; if(!c||S.dead) return; S.carry=null; updHud();
+  let dx=S.fx||0, dz=S.fz||0; if(!dx&&!dz) dz=1; const path=[]; let x=S.x, z=S.z, hit=null;
+  for(let k=0;k<6;k++){ const nx=x+dx, nz=z+dz, t=tileAt(nx,nz), e=enemyAt(nx,nz);
+    if(e){ hit={e}; path.push([nx,nz]); break; }
+    if(t==='B'){ hit={crack:idx(nx,nz)}; break; }
+    if(isWallish(t)||WALLS.includes(t)) break;
+    path.push([nx,nz]); x=nx; z=nz; }
+  const end=path.length?path[path.length-1]:[S.x,S.z];
+  flyingRocks.push({m:c.m,t:0,dur:0.08+0.07*path.length,from:c.m.position.clone(),to:new THREE.Vector3(end[0],0.3,end[1]),hit}); }
+function updateCarry(dt){ const pm=player.mesh.position;
+  if(S.carry){ const c=S.carry; c.t=Math.min(1,c.t+dt*4); const tx=pm.x, ty=pm.y+2.05+Math.sin(time*4)*0.03, tz=pm.z;
+    c.m.position.x+=(tx-c.m.position.x)*Math.min(1,dt*(c.t<1?8:20)); c.m.position.y+=(ty-c.m.position.y)*Math.min(1,dt*(c.t<1?8:20)); c.m.position.z+=(tz-c.m.position.z)*Math.min(1,dt*(c.t<1?8:20)); }
+  for(let k=flyingRocks.length-1;k>=0;k--){ const f=flyingRocks[k]; f.t+=dt; const u=Math.min(1,f.t/f.dur);
+    f.m.position.lerpVectors(f.from,f.to,u); f.m.position.y+=Math.sin(u*Math.PI)*0.8; f.m.rotation.x+=dt*12; f.m.rotation.z+=dt*7;
+    if(u>=1){ scene.remove(f.m); flyingRocks.splice(k,1); boom(f.to.x,f.to.z); shake=Math.max(shake,0.25);
+      sandPuff(f.to.x,f.to.z,12,0x9a8e7e,0x5a5248); thud(0.9);
+      if(f.hit&&f.hit.e&&!S.killed.has(f.hit.e.id)){ const e=f.hit.e, dmg=6+S.atk*2; if(e.kind==='hands'){ popText(e.x,1.4,e.z,'¡NADA!','#aaa'); }
+        else if(e.hp<=dmg){ killEnemy(e); } else { e.hp-=dmg; drawLabel(e.L,e.hp); popText(e.x,1.4,e.z,'-'+dmg,'#ff6b6b'); if(e.boss||e.minion) onBossHit(e); } }
+      if(f.hit&&f.hit.crack!==undefined){ S.broken.add(f.hit.crack); popText(f.to.x,1.2,f.to.z,'¡CRAC!','#ff9a3c'); } } } }
 // ======== MONSTRUOS ESPECIALES ========
 function sees(e,tx,tz,range){ const ex=e.x+(e.big?0.5:0), ez=e.z+(e.big?0.5:0); const d=Math.hypot(tx-ex,tz-ez); if(d>range) return false;
   const n=Math.ceil(d*2); for(let k=1;k<n;k++){ const x=Math.round(ex+(tx-ex)*k/n), z=Math.round(ez+(tz-ez)*k/n); const c=tileAt(x,z); if(isWallish(c)||c===';') return false; } return true; }
@@ -2523,13 +2561,14 @@ function updateBombs(dt){ for(let k=liveBombs.length-1;k>=0;k--){ const b=liveBo
     b.g.children[0].scale.setScalar(1+Math.max(0,0.5-b.t)*0.4*Math.sin(b.t*40));
     if(b.t<=0){ liveBombs.splice(k,1); explodeBomb(b); } } }
 $('useBomb').addEventListener('pointerdown',ev=>ev.stopPropagation()); $('useBomb').addEventListener('click',dropBomb);
+$('useThrow').addEventListener('pointerdown',ev=>ev.stopPropagation()); $('useThrow').addEventListener('click',throwRock);
 function boom(x,z){ for(let k=0;k<14;k++){ const m=new THREE.Mesh(new THREE.BoxGeometry(0.14,0.14,0.14),new THREE.MeshBasicMaterial({color:k%2?0xff9a3c:0x6a5a4a}));
   m.position.set(x,0.6,z); m.userData.v=new THREE.Vector3((Math.random()-.5)*4,2+Math.random()*3,(Math.random()-.5)*4); m.userData.l=0.8; scene.add(m); sparks.push(m); } }
 
 // teclado (PC)
 const keys={};
 addEventListener('keydown',ev=>{ const k=ev.key.toLowerCase(); if(k==='m'||k==='tab'){ev.preventDefault(); $('mapov').hidden?openMap():($('mapov').hidden=true); return;}
-  if(k==='b'&&!ev.repeat){ dropBomb(); return; }
+  if(k==='b'&&!ev.repeat){ if(S.carry) throwRock(); else dropBomb(); return; }
   if(keys[k])return; keys[k]=true; const d=keyDir(); if(d) tryMove(d[0],d[1]); });
 addEventListener('keyup',ev=>{ keys[ev.key.toLowerCase()]=false; });
 function keyDir(){ if(keys.arrowup||keys.w)return[0,-1]; if(keys.arrowdown||keys.s)return[0,1];
@@ -2598,7 +2637,7 @@ function frame(now){
   if(bump.t>0){ bump.t=Math.max(0,bump.t-dt*7); const b=Math.sin(bump.t*Math.PI)*0.15; pm.x+=bump.x*b*0.2; pm.z+=bump.z*b*0.2; }
   if(S.dead && S.hp<=0) player.mesh.scale.setScalar(Math.max(0.01,player.mesh.scale.x-dt*2));
 
-  updateBosses(dt); updateProjectiles(dt); updateTemps(); updateSpecials(dt); updateArrows(dt); updateChains(); updateOil(dt); updateTraps(dt); updateFallingBooks(dt); updateSkulls(dt); updateBlocks(dt); player.xray.visible=theme(S.x,S.z)==='library';
+  updateBosses(dt); updateProjectiles(dt); updateTemps(); updateSpecials(dt); updateArrows(dt); updateChains(); updateOil(dt); updateTraps(dt); updateFallingBooks(dt); updateSkulls(dt); updateBlocks(dt); updateCarry(dt); player.xray.visible=theme(S.x,S.z)==='library';
   if((chunkT-=dt)<=0){ chunkT=0.2; for(const m of chunkMeshes){ const dz=m.userData.cz-pm.z; m.visible=Math.abs(m.userData.cx-pm.x)<CHUNK/2+13&&dz>-(CHUNK/2+19)&&dz<CHUNK/2+9; } }
   for(const e of enemies){ if(!e.mesh.visible) continue; const kk2=1-Math.pow(0.0005,dt); const ox=e.big?0.5:0; e.mesh.position.x+=(e.x+ox-e.mesh.position.x)*kk2; e.mesh.position.z+=(e.z+ox-e.mesh.position.z)*kk2;
     e.mesh.position.y = e.jump? Math.sin(Math.min(1,e.jump.t/0.5)*Math.PI)*1.6 : 0; }
