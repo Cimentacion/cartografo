@@ -228,7 +228,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
         <dl class="keys" id="ctl-list"></dl>
       </div>
     </div>
-    <p class="ver">Kebab Poniente · 2026-10-31 21:11 UTC</p>
+    <p class="ver">Kebab Poniente · 2026-10-31 21:15 UTC</p>
   </div></section>
 
   <section id="note" class="ov" hidden><div class="paper">
@@ -2880,8 +2880,11 @@ function bindInput() {
   });
 }
 function pollPad(dt) {
-  const gp = navigator.getGamepads ? navigator.getGamepads() : []; let p = null; for (const g of gp) if (g && g.connected) { p = g; break; }
-  IN.pf = 0; IN.ps = 0; if (!p) return;
+  IN.pf = 0; IN.ps = 0; if (IN.noPad) return;
+  // algunos visores (el de archivos de la app de Claude, por ejemplo) no dejan usar mandos: entonces se ignoran
+  let gp = []; try { gp = navigator.getGamepads ? navigator.getGamepads() || [] : []; } catch (e) { IN.noPad = true; return; }
+  let p = null; for (const g of gp) if (g && g.connected) { p = g; break; }
+  if (!p) return;
   const dz = v => Math.abs(v) < 0.18 ? 0 : v, ax = p.axes, b = i => p.buttons[i] && p.buttons[i].pressed, edge = i => { const now = !!b(i), was = IN.padPrev[i]; IN.padPrev[i] = now; return now && !was; };
   const mx = dz(ax[0] || 0), my = dz(ax[1] || 0), rx = dz(ax[2] || 0), ry = dz(ax[3] || 0);
   if (mx || my || rx || ry || p.buttons.some(q => q.pressed)) { IN.dev = 'pad'; AU.init(); }
