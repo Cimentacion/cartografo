@@ -99,6 +99,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-mono);font-size:1
 #sug-txt{width:100%;min-height:120px;box-sizing:border-box;background:#0d0e12;color:#e8e2d0;border:1px solid #3a3630;border-radius:6px;padding:10px;font:inherit;font-size:16px;resize:vertical}
 .sug-msg{min-height:1.2em;color:#ffc878}
 #upd{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:50;background:#1a120a;border:1px solid #ffb23a;color:#ffd8a0;padding:8px 12px;border-radius:8px;font-size:14px;max-width:calc(100% - 32px)}
+a.apk-dl{display:inline-flex;align-items:center;text-decoration:none;font-family:var(--f-mono);font-size:13px;color:#7dffa8;border:1px solid #2e6a44;padding:9px 14px}
+a.apk-dl[hidden]{display:none}
 .ov>.in{margin:auto;width:100%;max-width:760px;min-width:0}
 .sign{font-family:var(--f-sign);font-weight:400;font-size:clamp(40px,10vw,84px);line-height:.92;letter-spacing:.02em;margin:0;color:var(--neon);text-shadow:0 0 6px rgba(255,74,56,.9),0 0 26px rgba(255,74,56,.55);text-wrap:balance;text-transform:uppercase}
 .sign em{font-style:normal;color:var(--neon-2);text-shadow:0 0 6px rgba(109,255,160,.9),0 0 22px rgba(109,255,160,.5);font-size:.42em;vertical-align:top;margin-left:.2em;animation:buzz 5s infinite}
@@ -200,7 +202,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
   <section id="menu" class="ov"><div class="in">
     <h1 class="sign">Kebab Poniente<em>24H</em></h1>
     <p class="sub" data-t="sub">Turno de noche · Benidorm · de 23:00 a 06:00</p>
-    <div class="row"><button class="big" id="btn-start" type="button">Abrir el local</button><button class="ghost" id="btn-full" type="button" data-t="full">Pantalla completa</button><button class="ghost sug-open" type="button" data-t="sug_btn">Sugerencias</button><span class="langs" role="group" aria-label="Idioma · Language · Limbă"><button class="ghost" type="button" data-lang="es" aria-pressed="true">Español</button><button class="ghost" type="button" data-lang="en" aria-pressed="false">English</button><button class="ghost" type="button" data-lang="ro" aria-pressed="false">Română</button></span></div>
+    <div class="row"><button class="big" id="btn-start" type="button">Abrir el local</button><button class="ghost" id="btn-full" type="button" data-t="full">Pantalla completa</button><button class="ghost sug-open" type="button" data-t="sug_btn">Sugerencias</button><a class="ghost apk-dl" id="apk-dl" href="https://github.com/Cimentacion/cartografo/releases/download/kebab/kebab-poniente.apk" target="_blank" rel="noopener" download data-t="apk_dl">Descargar APK (Android)</a><span class="langs" role="group" aria-label="Idioma · Language · Limbă"><button class="ghost" type="button" data-lang="es" aria-pressed="true">Español</button><button class="ghost" type="button" data-lang="en" aria-pressed="false">English</button><button class="ghost" type="button" data-lang="ro" aria-pressed="false">Română</button></span></div>
     <p class="status" id="menu-msg" data-t="loading">Cargando el local…</p>
     <div id="p2p" hidden>
       <h2 data-t="p2p_h">Jugar online con un amigo</h2>
@@ -223,7 +225,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
         <dl class="keys" id="ctl-list"></dl>
       </div>
     </div>
-    <p class="ver">Kebab Poniente · 2026-10-31 21:27 UTC</p>
+    <p class="ver">Kebab Poniente · 2026-10-31 21:39 UTC</p>
   </div></section>
 
   <section id="note" class="ov" hidden><div class="paper">
@@ -649,7 +651,7 @@ const STR = {
     u_ring: 'Llamar al timbre', u_wrongdoor: 'No es aquí. Va a {0}', u_wait_door: 'Ya has llamado. Espera.', u_give_bag: 'Dar la bolsa a {0}',
     ride_kb: '[W] gas · [S] freno · [A/D] girar · [E] bajar', ride_touch: 'joystick: gas y dirección · Usar: bajar', ride_pad: 'stick: gas y dirección · (A) bajar',
     pause_t: 'Pausa', pause_p: 'El turno está parado. Nadie se mueve.', resume: 'Seguir', tb_pause: 'Pausa',
-    sug_btn: 'Sugerencias', sug_t: 'Sugerencias', sug_p: '¿Qué le falta al juego? ¿Qué falla? Escríbelo tal cual.', sug_send: 'Enviar', sug_close: 'Cerrar', sug_ok: 'Enviada. Le llega directamente a Claude.', sug_saved: 'Guardada en este móvil ({0} pendiente/s). Pulsa Compartir y elige la app de Claude para mandarlas.', sug_share: 'Compartir', sug_copied: 'Copiadas. Pégalas en el chat de Claude.', sug_empty: 'Escribe algo primero.', upd_ready: 'Hay una versión nueva del juego.', upd_now: 'Actualizar ahora',
+    sug_btn: 'Sugerencias', apk_dl: 'Descargar APK (Android)', sug_t: 'Sugerencias', sug_p: '¿Qué le falta al juego? ¿Qué falla? Escríbelo tal cual.', sug_send: 'Enviar', sug_close: 'Cerrar', sug_ok: 'Enviada. Le llega directamente a Claude.', sug_saved: 'Guardada en este móvil ({0} pendiente/s). Pulsa Compartir y elige la app de Claude para mandarlas.', sug_share: 'Compartir', sug_copied: 'Copiadas. Pégalas en el chat de Claude.', sug_empty: 'Escribe algo primero.', upd_ready: 'Hay una versión nueva del juego.', upd_now: 'Actualizar ahora',
     p2p_h: 'Jugar online con un amigo', p2p_create: 'Crear sala', p2p_join: 'Unirse', p2p_code: 'Código', p2p_copy: 'Copiar enlace', p2p_copied: 'Enlace copiado',
     p2p_note: 'Uno crea la sala y le pasa al otro el código de 4 cifras o el enlace. No hacen falta cuentas.', p2p_wait: 'Conectando…',
     p2p_ready: 'Sala {0} abierta. Pásale a tu amigo el código o este enlace:', p2p_joined: 'Dentro de la sala {0}.',
@@ -691,7 +693,7 @@ const STR = {
     u_ring: 'Ring the bell', u_wrongdoor: 'Not here. It goes to {0}', u_wait_door: 'You already rang. Wait.', u_give_bag: 'Give the bag to {0}',
     ride_kb: '[W] throttle · [S] brake · [A/D] steer · [E] get off', ride_touch: 'joystick: throttle and steering · Use: get off', ride_pad: 'stick: throttle and steering · (A) get off',
     pause_t: 'Paused', pause_p: 'The shift is on hold. Nothing moves.', resume: 'Resume', tb_pause: 'Pause',
-    sug_btn: 'Suggestions', sug_t: 'Suggestions', sug_p: 'What is the game missing? What is broken? Just write it.', sug_send: 'Send', sug_close: 'Close', sug_ok: 'Sent. It goes straight to Claude.', sug_saved: 'Saved on this phone ({0} pending). Tap Share and pick the Claude app to send them.', sug_share: 'Share', sug_copied: 'Copied. Paste them into the Claude chat.', sug_empty: 'Write something first.', upd_ready: 'A new version of the game is ready.', upd_now: 'Update now',
+    sug_btn: 'Suggestions', apk_dl: 'Download APK (Android)', sug_t: 'Suggestions', sug_p: 'What is the game missing? What is broken? Just write it.', sug_send: 'Send', sug_close: 'Close', sug_ok: 'Sent. It goes straight to Claude.', sug_saved: 'Saved on this phone ({0} pending). Tap Share and pick the Claude app to send them.', sug_share: 'Share', sug_copied: 'Copied. Paste them into the Claude chat.', sug_empty: 'Write something first.', upd_ready: 'A new version of the game is ready.', upd_now: 'Update now',
     p2p_h: 'Play online with a friend', p2p_create: 'Create room', p2p_join: 'Join', p2p_code: 'Code', p2p_copy: 'Copy link', p2p_copied: 'Link copied',
     p2p_note: 'One of you creates the room and gives the other the 4-digit code or the link. No accounts needed.', p2p_wait: 'Connecting…',
     p2p_ready: 'Room {0} is open. Give your friend the code or this link:', p2p_joined: 'You are in room {0}.',
@@ -733,7 +735,7 @@ const STR = {
     u_ring: 'Sună la ușă', u_wrongdoor: 'Nu e aici. Merge la {0}', u_wait_door: 'Ai sunat deja. Așteaptă.', u_give_bag: '{0}: dă-i geanta',
     ride_kb: '[W] accelerezi · [S] frânezi · [A/D] virezi · [E] cobori', ride_touch: 'joystick: accelerație și direcție · Apasă: cobori', ride_pad: 'stick: accelerație și direcție · (A) cobori',
     pause_t: 'Pauză', pause_p: 'Tura e oprită. Nu se mișcă nimic.', resume: 'Continuă', tb_pause: 'Pauză',
-    sug_btn: 'Sugestii', sug_t: 'Sugestii', sug_p: 'Ce-i lipsește jocului? Ce nu merge? Scrie-o așa cum e.', sug_send: 'Trimite', sug_close: 'Închide', sug_ok: 'Trimisă. Ajunge direct la Claude.', sug_saved: 'Salvată pe telefon ({0} în așteptare). Apasă Distribuie și alege aplicația Claude ca să le trimiți.', sug_share: 'Distribuie', sug_copied: 'Copiate. Lipește-le în chatul cu Claude.', sug_empty: 'Scrie ceva mai întâi.', upd_ready: 'Există o versiune nouă a jocului.', upd_now: 'Actualizează acum',
+    sug_btn: 'Sugestii', apk_dl: 'Descarcă APK (Android)', sug_t: 'Sugestii', sug_p: 'Ce-i lipsește jocului? Ce nu merge? Scrie-o așa cum e.', sug_send: 'Trimite', sug_close: 'Închide', sug_ok: 'Trimisă. Ajunge direct la Claude.', sug_saved: 'Salvată pe telefon ({0} în așteptare). Apasă Distribuie și alege aplicația Claude ca să le trimiți.', sug_share: 'Distribuie', sug_copied: 'Copiate. Lipește-le în chatul cu Claude.', sug_empty: 'Scrie ceva mai întâi.', upd_ready: 'Există o versiune nouă a jocului.', upd_now: 'Actualizează acum',
     p2p_h: 'Joacă online cu un prieten', p2p_create: 'Creează o cameră', p2p_join: 'Intră', p2p_code: 'Cod', p2p_copy: 'Copiază linkul', p2p_copied: 'Link copiat',
     p2p_note: 'Unul creează camera și îi dă celuilalt codul din 4 cifre sau linkul. Nu e nevoie de conturi.', p2p_wait: 'Se conectează…',
     p2p_ready: 'Camera {0} e deschisă. Dă-i prietenului codul sau linkul acesta:', p2p_joined: 'Ești în camera {0}.',
@@ -3479,6 +3481,7 @@ async function sugShare() {
 let sugBound = false;
 function bindSuggest() {
   if (sugBound || !$('sug-send')) return; sugBound = true;
+  if (window.KPAndroid && $('apk-dl')) $('apk-dl').hidden = true;   // dentro de la APK no hace falta
   document.querySelectorAll('.sug-open').forEach(b => b.addEventListener('click', sugOpen));
   $('sug-send').addEventListener('click', sugSend); $('sug-share').addEventListener('click', sugShare); $('sug-close').addEventListener('click', sugClose);
   $('upd-go').addEventListener('click', () => { try { KPAndroid.applyUpdate(); } catch (e) { location.reload(); } });

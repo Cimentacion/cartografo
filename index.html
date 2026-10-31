@@ -105,6 +105,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-mono);font-size:1
 #sug-txt{width:100%;min-height:120px;box-sizing:border-box;background:#0d0e12;color:#e8e2d0;border:1px solid #3a3630;border-radius:6px;padding:10px;font:inherit;font-size:16px;resize:vertical}
 .sug-msg{min-height:1.2em;color:#ffc878}
 #upd{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:50;background:#1a120a;border:1px solid #ffb23a;color:#ffd8a0;padding:8px 12px;border-radius:8px;font-size:14px;max-width:calc(100% - 32px)}
+a.apk-dl{display:inline-flex;align-items:center;text-decoration:none;font-family:var(--f-mono);font-size:13px;color:#7dffa8;border:1px solid #2e6a44;padding:9px 14px}
+a.apk-dl[hidden]{display:none}
 .ov>.in{margin:auto;width:100%;max-width:760px;min-width:0}
 .sign{font-family:var(--f-sign);font-weight:400;font-size:clamp(40px,10vw,84px);line-height:.92;letter-spacing:.02em;margin:0;color:var(--neon);text-shadow:0 0 6px rgba(255,74,56,.9),0 0 26px rgba(255,74,56,.55);text-wrap:balance;text-transform:uppercase}
 .sign em{font-style:normal;color:var(--neon-2);text-shadow:0 0 6px rgba(109,255,160,.9),0 0 22px rgba(109,255,160,.5);font-size:.42em;vertical-align:top;margin-left:.2em;animation:buzz 5s infinite}
@@ -208,7 +210,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
   <section id="menu" class="ov"><div class="in">
     <h1 class="sign">Kebab Poniente<em>24H</em></h1>
     <p class="sub" data-t="sub">Turno de noche · Benidorm · de 23:00 a 06:00</p>
-    <div class="row"><button class="big" id="btn-start" type="button">Abrir el local</button><button class="ghost" id="btn-full" type="button" data-t="full">Pantalla completa</button><button class="ghost sug-open" type="button" data-t="sug_btn">Sugerencias</button><span class="langs" role="group" aria-label="Idioma · Language · Limbă"><button class="ghost" type="button" data-lang="es" aria-pressed="true">Español</button><button class="ghost" type="button" data-lang="en" aria-pressed="false">English</button><button class="ghost" type="button" data-lang="ro" aria-pressed="false">Română</button></span></div>
+    <div class="row"><button class="big" id="btn-start" type="button">Abrir el local</button><button class="ghost" id="btn-full" type="button" data-t="full">Pantalla completa</button><button class="ghost sug-open" type="button" data-t="sug_btn">Sugerencias</button><a class="ghost apk-dl" id="apk-dl" href="https://github.com/Cimentacion/cartografo/releases/download/kebab/kebab-poniente.apk" target="_blank" rel="noopener" download data-t="apk_dl">Descargar APK (Android)</a><span class="langs" role="group" aria-label="Idioma · Language · Limbă"><button class="ghost" type="button" data-lang="es" aria-pressed="true">Español</button><button class="ghost" type="button" data-lang="en" aria-pressed="false">English</button><button class="ghost" type="button" data-lang="ro" aria-pressed="false">Română</button></span></div>
     <p class="status" id="menu-msg" data-t="loading">Cargando el local…</p>
     <div id="p2p" hidden>
       <h2 data-t="p2p_h">Jugar online con un amigo</h2>
@@ -231,7 +233,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
         <dl class="keys" id="ctl-list"></dl>
       </div>
     </div>
-    <p class="ver">Kebab Poniente · 2026-10-31 21:27 UTC</p>
+    <p class="ver">Kebab Poniente · 2026-10-31 21:39 UTC</p>
   </div></section>
 
   <section id="note" class="ov" hidden><div class="paper">
