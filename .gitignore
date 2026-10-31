@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 node_modules/
 .DS_Store
+android/app/build/
+android/.gradle/
+android/app/src/main/assets/

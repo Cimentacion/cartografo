@@ -88,6 +88,17 @@ def main():
             + head + '</head>\n<body>\n' + body + '</body>\n</html>\n')
     with open(os.path.join(ROOT, 'index.html'), 'w', encoding='utf-8') as f:
         f.write(page)
+    # 3) Un solo HTML con todo dentro (librerías incluidas): se abre con doble clic, sin internet salvo el modo online.
+    inl = page
+    for t in tags:
+        src = t.split('"')[1]
+        body_js = open(os.path.join(ROOT, src), encoding='utf-8').read()
+        if '</script' in body_js:
+            sys.exit('</script dentro de ' + src)
+        inl = inl.replace(t, '<script>\n' + body_js + '\n</script>')
+    with open(os.path.join(ROOT, 'dist', 'kebab-poniente.html'), 'w', encoding='utf-8') as f:
+        f.write(inl)
+    print('dist/kebab-poniente.html %d KB' % (len(inl) // 1024))
     print('index.html %d KB · js/game.js %d KB · %d trozos de texturas · artefacto %d KB' % (len(page) // 1024, len(code) // 1024, len(chunks), len(one) // 1024))
 
 
