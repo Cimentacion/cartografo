@@ -69,6 +69,14 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-mono);font-size:1
 #diag{position:absolute;left:0;right:0;bottom:0;z-index:50;background:var(--blood);color:#fff;font-size:13px;line-height:1.35;padding:8px 16px;-webkit-user-select:text;user-select:text;word-break:break-word}
 .ver{color:var(--dim);font-size:11px;letter-spacing:.08em;margin:18px 0 0}
 #prompt.low{top:auto;bottom:96px}
+#map{position:absolute;left:50%;top:10px;transform:translateX(-50%);width:132px;height:132px;border-radius:50%;border:2px solid rgba(236,229,208,.35);box-shadow:0 0 0 1px rgba(0,0,0,.6)}
+#map-st{position:absolute;left:50%;top:148px;transform:translateX(-50%);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);background:var(--panel);padding:2px 8px;white-space:nowrap}
+#map-st:empty{display:none}
+.tk.dl{background:#f2d8c0}
+.tk-n{font-size:11px;margin:-1px 0 4px;opacity:.75}
+.tk-s{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+#tb-pause{position:absolute;top:14px;left:150px;pointer-events:auto;font-family:var(--f-mono);font-size:12px;color:var(--ink);background:rgba(8,9,12,.6);border:1px solid rgba(236,229,208,.4);padding:6px 10px}
+@media (max-width:620px){#map{left:16px;top:176px;transform:none;width:108px;height:108px}#map-st{left:16px;top:288px;transform:none}}
 #prompt:empty{display:none}
 #subs{position:absolute;left:50%;bottom:52px;transform:translateX(-50%);width:max-content;max-width:min(640px,calc(100% - 32px));text-align:center;font-size:14px;line-height:1.35;background:var(--panel);padding:5px 11px}
 #subs:empty{display:none}
@@ -185,6 +193,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
 
   <div id="touch" hidden>
     <div id="joy"><div id="joy-knob"></div></div>
+    <button id="tb-pause" type="button" hidden data-t="tb_pause">Pausa</button>
     <div id="tbs">
       <button id="tb-back" type="button" hidden data-t="tb_back">Salir</button>
       <button id="tb-rel" type="button" hidden data-t="tb_rel">Recarga</button>
@@ -219,7 +228,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
         <dl class="keys" id="ctl-list"></dl>
       </div>
     </div>
-    <p class="ver">Kebab Poniente · 2026-10-10 17:05 UTC</p>
+    <p class="ver">Kebab Poniente · 2026-10-31 20:43 UTC</p>
   </div></section>
 
   <section id="note" class="ov" hidden><div class="paper">
@@ -233,6 +242,12 @@ button.ghost:disabled{opacity:.4;cursor:default}
     <canvas id="peep-cv" width="200" height="200"></canvas>
     <p id="peep-txt"></p>
     <button class="ghost" type="button" data-close data-t="peep_close">Apartarse de la mirilla</button>
+  </div></section>
+
+  <section id="pause" class="ov" hidden><div class="in card">
+    <h2 data-t="pause_t">Pausa</h2>
+    <p data-t="pause_p">El turno está parado. Nadie se mueve.</p>
+    <button class="big" id="btn-resume" type="button" data-t="resume">Seguir</button>
   </div></section>
 
   <section id="end" class="ov" hidden><div class="in card">
