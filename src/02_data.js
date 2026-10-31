@@ -261,7 +261,7 @@ const MSG = {
   robgone: 'El atracador sale corriendo.', deliv: 'Reparto recibido: verdura y cartuchos.', nodeliv: 'El repartidor se ha cansado de llamar.',
   blackout: 'Se ha ido la luz. El cuadro está en el almacén.', power: 'Vuelve la luz.', binfull: 'Verdura cortada y a la cubeta.',
   gone: 'Lo de la puerta deja de arañar.', lost: 'Un cliente se ha ido sin cenar.', ko: 'Te has desmayado. Te despiertas en la cocina.',
-  last: 'Son las seis. Persiana abajo cuando salga el último.', killed: 'Eso no era un cliente.', nowit: 'Nadie lo ha visto. Todavía.', phone: 'Suena el teléfono.', callmiss: 'Nadie ha cogido el teléfono.', spirits: 'El local está lleno de espíritus. Dejaste el cartel en ABIERTO.', dlcancel: 'Han cancelado un pedido a domicilio.', bikehit: 'Te han tirado de la moto.',
+  last: 'Son las seis. Persiana abajo cuando salga el último.', killed: 'Eso no era un cliente.', nowit: 'Nadie lo ha visto. Todavía.', phone: 'Suena el teléfono.', callmiss: 'Nadie ha cogido el teléfono.', spirits: 'El local está lleno de espíritus. Dejaste el cartel en ABIERTO.', dlcancel: 'Han cancelado un pedido a domicilio.', bikehit: 'Te han tirado de la moto.', carhit: 'Te ha atropellado un coche.',
 };
 const RULES = [
   'Los clientes de verdad parpadean. Si no parpadea y tiene los ojos negros, no es un cliente.',

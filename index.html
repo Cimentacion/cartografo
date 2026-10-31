@@ -102,6 +102,9 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-mono);font-size:1
 #tbs #tb-fire{border-color:var(--neon);color:var(--neon)}
 
 .ov{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(4,5,7,.8);padding-block:24px;padding-inline:16px;display:flex;touch-action:pan-y}
+#sug-txt{width:100%;min-height:120px;box-sizing:border-box;background:#0d0e12;color:#e8e2d0;border:1px solid #3a3630;border-radius:6px;padding:10px;font:inherit;font-size:16px;resize:vertical}
+.sug-msg{min-height:1.2em;color:#ffc878}
+#upd{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:50;background:#1a120a;border:1px solid #ffb23a;color:#ffd8a0;padding:8px 12px;border-radius:8px;font-size:14px;max-width:calc(100% - 32px)}
 .ov>.in{margin:auto;width:100%;max-width:760px;min-width:0}
 .sign{font-family:var(--f-sign);font-weight:400;font-size:clamp(40px,10vw,84px);line-height:.92;letter-spacing:.02em;margin:0;color:var(--neon);text-shadow:0 0 6px rgba(255,74,56,.9),0 0 26px rgba(255,74,56,.55);text-wrap:balance;text-transform:uppercase}
 .sign em{font-style:normal;color:var(--neon-2);text-shadow:0 0 6px rgba(109,255,160,.9),0 0 22px rgba(109,255,160,.5);font-size:.42em;vertical-align:top;margin-left:.2em;animation:buzz 5s infinite}
@@ -205,7 +208,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
   <section id="menu" class="ov"><div class="in">
     <h1 class="sign">Kebab Poniente<em>24H</em></h1>
     <p class="sub" data-t="sub">Turno de noche · Benidorm · de 23:00 a 06:00</p>
-    <div class="row"><button class="big" id="btn-start" type="button">Abrir el local</button><button class="ghost" id="btn-full" type="button" data-t="full">Pantalla completa</button><span class="langs" role="group" aria-label="Idioma · Language · Limbă"><button class="ghost" type="button" data-lang="es" aria-pressed="true">Español</button><button class="ghost" type="button" data-lang="en" aria-pressed="false">English</button><button class="ghost" type="button" data-lang="ro" aria-pressed="false">Română</button></span></div>
+    <div class="row"><button class="big" id="btn-start" type="button">Abrir el local</button><button class="ghost" id="btn-full" type="button" data-t="full">Pantalla completa</button><button class="ghost sug-open" type="button" data-t="sug_btn">Sugerencias</button><span class="langs" role="group" aria-label="Idioma · Language · Limbă"><button class="ghost" type="button" data-lang="es" aria-pressed="true">Español</button><button class="ghost" type="button" data-lang="en" aria-pressed="false">English</button><button class="ghost" type="button" data-lang="ro" aria-pressed="false">Română</button></span></div>
     <p class="status" id="menu-msg" data-t="loading">Cargando el local…</p>
     <div id="p2p" hidden>
       <h2 data-t="p2p_h">Jugar online con un amigo</h2>
@@ -228,7 +231,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
         <dl class="keys" id="ctl-list"></dl>
       </div>
     </div>
-    <p class="ver">Kebab Poniente · 2026-10-31 21:15 UTC</p>
+    <p class="ver">Kebab Poniente · 2026-10-31 21:27 UTC</p>
   </div></section>
 
   <section id="note" class="ov" hidden><div class="paper">
@@ -247,8 +250,17 @@ button.ghost:disabled{opacity:.4;cursor:default}
   <section id="pause" class="ov" hidden><div class="in card">
     <h2 data-t="pause_t">Pausa</h2>
     <p data-t="pause_p">El turno está parado. Nadie se mueve.</p>
-    <button class="big" id="btn-resume" type="button" data-t="resume">Seguir</button>
+    <div class="row"><button class="big" id="btn-resume" type="button" data-t="resume">Seguir</button><button class="ghost sug-open" type="button" data-t="sug_btn">Sugerencias</button></div>
   </div></section>
+
+  <section id="sug" class="ov" hidden><div class="in card">
+    <h2 data-t="sug_t">Sugerencias</h2>
+    <p data-t="sug_p">¿Qué le falta al juego?</p>
+    <textarea id="sug-txt" rows="5" maxlength="2000" aria-label="Sugerencia"></textarea>
+    <p id="sug-msg" class="sug-msg" aria-live="polite"></p>
+    <div class="row"><button class="big" id="sug-send" type="button" data-t="sug_send">Enviar</button><button class="ghost" id="sug-share" type="button" hidden data-t="sug_share">Compartir</button><button class="ghost" id="sug-close" type="button" data-t="sug_close">Cerrar</button></div>
+  </div></section>
+  <div id="upd" hidden><span data-t="upd_ready">Hay una versión nueva.</span> <button class="ghost" id="upd-go" type="button" data-t="upd_now">Actualizar ahora</button></div>
 
   <section id="end" class="ov" hidden><div class="in card">
     <h2 id="end-t">Noche terminada</h2>

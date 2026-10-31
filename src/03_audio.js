@@ -92,6 +92,8 @@ const AU = {
       case 'ring': for (let i = 0; i < 2; i++) for (let k = 0; k < 10; k++) { this.tone(440, 0.05, 'square', 0.05 * v, i * 0.9 + k * 0.05, 0, d); this.tone(480, 0.05, 'square', 0.05 * v, i * 0.9 + k * 0.05 + 0.025, 0, d); } break;
       case 'bell2': this.tone(784, 0.6, 'sine', 0.2 * Math.max(v, 0.5), 0, 0, d); this.tone(622, 0.9, 'sine', 0.2 * Math.max(v, 0.5), 0.45, 0, d); break;
       case 'bark': for (let i = 0; i < 2; i++) { this.tone(380, 0.12, 'sawtooth', 0.22 * Math.max(v, 0.15), i * 0.22, 170, d); this.nz(0.12, 'bandpass', 900, 2, 0.25 * Math.max(v, 0.15), i * 0.22, 0, d); } break;
+      case 'horn': this.tone(392, 0.55, 'sawtooth', 0.13 * Math.max(v, 0.3), 0, 0, d); this.tone(466, 0.55, 'sawtooth', 0.11 * Math.max(v, 0.3), 0, 0, d); break;
+      case 'carby': this.nz(1.6, 'lowpass', 500, 0.8, 0.35 * v, 0, 90, d); this.tone(55, 1.4, 'sawtooth', 0.12 * v, 0, 42, d); break;
       case 'crash': this.nz(0.5, 'lowpass', 1800, 0.5, 0.7 * Math.max(v, 0.4), 0, 120, d); this.tone(80, 0.3, 'sine', 0.6 * Math.max(v, 0.4), 0, 40, d); this.nz(0.6, 'highpass', 4000, 0.5, 0.2, 0.05, 0, d); break;
     }
   },

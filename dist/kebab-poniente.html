@@ -102,6 +102,9 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-mono);font-size:1
 #tbs #tb-fire{border-color:var(--neon);color:var(--neon)}
 
 .ov{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(4,5,7,.8);padding-block:24px;padding-inline:16px;display:flex;touch-action:pan-y}
+#sug-txt{width:100%;min-height:120px;box-sizing:border-box;background:#0d0e12;color:#e8e2d0;border:1px solid #3a3630;border-radius:6px;padding:10px;font:inherit;font-size:16px;resize:vertical}
+.sug-msg{min-height:1.2em;color:#ffc878}
+#upd{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:50;background:#1a120a;border:1px solid #ffb23a;color:#ffd8a0;padding:8px 12px;border-radius:8px;font-size:14px;max-width:calc(100% - 32px)}
 .ov>.in{margin:auto;width:100%;max-width:760px;min-width:0}
 .sign{font-family:var(--f-sign);font-weight:400;font-size:clamp(40px,10vw,84px);line-height:.92;letter-spacing:.02em;margin:0;color:var(--neon);text-shadow:0 0 6px rgba(255,74,56,.9),0 0 26px rgba(255,74,56,.55);text-wrap:balance;text-transform:uppercase}
 .sign em{font-style:normal;color:var(--neon-2);text-shadow:0 0 6px rgba(109,255,160,.9),0 0 22px rgba(109,255,160,.5);font-size:.42em;vertical-align:top;margin-left:.2em;animation:buzz 5s infinite}
@@ -205,7 +208,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
   <section id="menu" class="ov"><div class="in">
     <h1 class="sign">Kebab Poniente<em>24H</em></h1>
     <p class="sub" data-t="sub">Turno de noche · Benidorm · de 23:00 a 06:00</p>
-    <div class="row"><button class="big" id="btn-start" type="button">Abrir el local</button><button class="ghost" id="btn-full" type="button" data-t="full">Pantalla completa</button><span class="langs" role="group" aria-label="Idioma · Language · Limbă"><button class="ghost" type="button" data-lang="es" aria-pressed="true">Español</button><button class="ghost" type="button" data-lang="en" aria-pressed="false">English</button><button class="ghost" type="button" data-lang="ro" aria-pressed="false">Română</button></span></div>
+    <div class="row"><button class="big" id="btn-start" type="button">Abrir el local</button><button class="ghost" id="btn-full" type="button" data-t="full">Pantalla completa</button><button class="ghost sug-open" type="button" data-t="sug_btn">Sugerencias</button><span class="langs" role="group" aria-label="Idioma · Language · Limbă"><button class="ghost" type="button" data-lang="es" aria-pressed="true">Español</button><button class="ghost" type="button" data-lang="en" aria-pressed="false">English</button><button class="ghost" type="button" data-lang="ro" aria-pressed="false">Română</button></span></div>
     <p class="status" id="menu-msg" data-t="loading">Cargando el local…</p>
     <div id="p2p" hidden>
       <h2 data-t="p2p_h">Jugar online con un amigo</h2>
@@ -228,7 +231,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
         <dl class="keys" id="ctl-list"></dl>
       </div>
     </div>
-    <p class="ver">Kebab Poniente · 2026-10-31 21:15 UTC</p>
+    <p class="ver">Kebab Poniente · 2026-10-31 21:27 UTC</p>
   </div></section>
 
   <section id="note" class="ov" hidden><div class="paper">
@@ -247,8 +250,17 @@ button.ghost:disabled{opacity:.4;cursor:default}
   <section id="pause" class="ov" hidden><div class="in card">
     <h2 data-t="pause_t">Pausa</h2>
     <p data-t="pause_p">El turno está parado. Nadie se mueve.</p>
-    <button class="big" id="btn-resume" type="button" data-t="resume">Seguir</button>
+    <div class="row"><button class="big" id="btn-resume" type="button" data-t="resume">Seguir</button><button class="ghost sug-open" type="button" data-t="sug_btn">Sugerencias</button></div>
   </div></section>
+
+  <section id="sug" class="ov" hidden><div class="in card">
+    <h2 data-t="sug_t">Sugerencias</h2>
+    <p data-t="sug_p">¿Qué le falta al juego?</p>
+    <textarea id="sug-txt" rows="5" maxlength="2000" aria-label="Sugerencia"></textarea>
+    <p id="sug-msg" class="sug-msg" aria-live="polite"></p>
+    <div class="row"><button class="big" id="sug-send" type="button" data-t="sug_send">Enviar</button><button class="ghost" id="sug-share" type="button" hidden data-t="sug_share">Compartir</button><button class="ghost" id="sug-close" type="button" data-t="sug_close">Cerrar</button></div>
+  </div></section>
+  <div id="upd" hidden><span data-t="upd_ready">Hay una versión nueva.</span> <button class="ghost" id="upd-go" type="button" data-t="upd_now">Actualizar ahora</button></div>
 
   <section id="end" class="ov" hidden><div class="in card">
     <h2 id="end-t">Noche terminada</h2>
@@ -560,7 +572,7 @@ const MSG = {
   robgone: 'El atracador sale corriendo.', deliv: 'Reparto recibido: verdura y cartuchos.', nodeliv: 'El repartidor se ha cansado de llamar.',
   blackout: 'Se ha ido la luz. El cuadro está en el almacén.', power: 'Vuelve la luz.', binfull: 'Verdura cortada y a la cubeta.',
   gone: 'Lo de la puerta deja de arañar.', lost: 'Un cliente se ha ido sin cenar.', ko: 'Te has desmayado. Te despiertas en la cocina.',
-  last: 'Son las seis. Persiana abajo cuando salga el último.', killed: 'Eso no era un cliente.', nowit: 'Nadie lo ha visto. Todavía.', phone: 'Suena el teléfono.', callmiss: 'Nadie ha cogido el teléfono.', spirits: 'El local está lleno de espíritus. Dejaste el cartel en ABIERTO.', dlcancel: 'Han cancelado un pedido a domicilio.', bikehit: 'Te han tirado de la moto.',
+  last: 'Son las seis. Persiana abajo cuando salga el último.', killed: 'Eso no era un cliente.', nowit: 'Nadie lo ha visto. Todavía.', phone: 'Suena el teléfono.', callmiss: 'Nadie ha cogido el teléfono.', spirits: 'El local está lleno de espíritus. Dejaste el cartel en ABIERTO.', dlcancel: 'Han cancelado un pedido a domicilio.', bikehit: 'Te han tirado de la moto.', carhit: 'Te ha atropellado un coche.',
 };
 const RULES = [
   'Los clientes de verdad parpadean. Si no parpadea y tiene los ojos negros, no es un cliente.',
@@ -675,6 +687,7 @@ const STR = {
     u_ring: 'Llamar al timbre', u_wrongdoor: 'No es aquí. Va a {0}', u_wait_door: 'Ya has llamado. Espera.', u_give_bag: 'Dar la bolsa a {0}',
     ride_kb: '[W] gas · [S] freno · [A/D] girar · [E] bajar', ride_touch: 'joystick: gas y dirección · Usar: bajar', ride_pad: 'stick: gas y dirección · (A) bajar',
     pause_t: 'Pausa', pause_p: 'El turno está parado. Nadie se mueve.', resume: 'Seguir', tb_pause: 'Pausa',
+    sug_btn: 'Sugerencias', sug_t: 'Sugerencias', sug_p: '¿Qué le falta al juego? ¿Qué falla? Escríbelo tal cual.', sug_send: 'Enviar', sug_close: 'Cerrar', sug_ok: 'Enviada. Le llega directamente a Claude.', sug_saved: 'Guardada en este móvil ({0} pendiente/s). Pulsa Compartir y elige la app de Claude para mandarlas.', sug_share: 'Compartir', sug_copied: 'Copiadas. Pégalas en el chat de Claude.', sug_empty: 'Escribe algo primero.', upd_ready: 'Hay una versión nueva del juego.', upd_now: 'Actualizar ahora',
     p2p_h: 'Jugar online con un amigo', p2p_create: 'Crear sala', p2p_join: 'Unirse', p2p_code: 'Código', p2p_copy: 'Copiar enlace', p2p_copied: 'Enlace copiado',
     p2p_note: 'Uno crea la sala y le pasa al otro el código de 4 cifras o el enlace. No hacen falta cuentas.', p2p_wait: 'Conectando…',
     p2p_ready: 'Sala {0} abierta. Pásale a tu amigo el código o este enlace:', p2p_joined: 'Dentro de la sala {0}.',
@@ -716,6 +729,7 @@ const STR = {
     u_ring: 'Ring the bell', u_wrongdoor: 'Not here. It goes to {0}', u_wait_door: 'You already rang. Wait.', u_give_bag: 'Give the bag to {0}',
     ride_kb: '[W] throttle · [S] brake · [A/D] steer · [E] get off', ride_touch: 'joystick: throttle and steering · Use: get off', ride_pad: 'stick: throttle and steering · (A) get off',
     pause_t: 'Paused', pause_p: 'The shift is on hold. Nothing moves.', resume: 'Resume', tb_pause: 'Pause',
+    sug_btn: 'Suggestions', sug_t: 'Suggestions', sug_p: 'What is the game missing? What is broken? Just write it.', sug_send: 'Send', sug_close: 'Close', sug_ok: 'Sent. It goes straight to Claude.', sug_saved: 'Saved on this phone ({0} pending). Tap Share and pick the Claude app to send them.', sug_share: 'Share', sug_copied: 'Copied. Paste them into the Claude chat.', sug_empty: 'Write something first.', upd_ready: 'A new version of the game is ready.', upd_now: 'Update now',
     p2p_h: 'Play online with a friend', p2p_create: 'Create room', p2p_join: 'Join', p2p_code: 'Code', p2p_copy: 'Copy link', p2p_copied: 'Link copied',
     p2p_note: 'One of you creates the room and gives the other the 4-digit code or the link. No accounts needed.', p2p_wait: 'Connecting…',
     p2p_ready: 'Room {0} is open. Give your friend the code or this link:', p2p_joined: 'You are in room {0}.',
@@ -757,6 +771,7 @@ const STR = {
     u_ring: 'Sună la ușă', u_wrongdoor: 'Nu e aici. Merge la {0}', u_wait_door: 'Ai sunat deja. Așteaptă.', u_give_bag: '{0}: dă-i geanta',
     ride_kb: '[W] accelerezi · [S] frânezi · [A/D] virezi · [E] cobori', ride_touch: 'joystick: accelerație și direcție · Apasă: cobori', ride_pad: 'stick: accelerație și direcție · (A) cobori',
     pause_t: 'Pauză', pause_p: 'Tura e oprită. Nu se mișcă nimic.', resume: 'Continuă', tb_pause: 'Pauză',
+    sug_btn: 'Sugestii', sug_t: 'Sugestii', sug_p: 'Ce-i lipsește jocului? Ce nu merge? Scrie-o așa cum e.', sug_send: 'Trimite', sug_close: 'Închide', sug_ok: 'Trimisă. Ajunge direct la Claude.', sug_saved: 'Salvată pe telefon ({0} în așteptare). Apasă Distribuie și alege aplicația Claude ca să le trimiți.', sug_share: 'Distribuie', sug_copied: 'Copiate. Lipește-le în chatul cu Claude.', sug_empty: 'Scrie ceva mai întâi.', upd_ready: 'Există o versiune nouă a jocului.', upd_now: 'Actualizează acum',
     p2p_h: 'Joacă online cu un prieten', p2p_create: 'Creează o cameră', p2p_join: 'Intră', p2p_code: 'Cod', p2p_copy: 'Copiază linkul', p2p_copied: 'Link copiat',
     p2p_note: 'Unul creează camera și îi dă celuilalt codul din 4 cifre sau linkul. Nu e nevoie de conturi.', p2p_wait: 'Se conectează…',
     p2p_ready: 'Camera {0} e deschisă. Dă-i prietenului codul sau linkul acesta:', p2p_joined: 'Ești în camera {0}.',
@@ -782,8 +797,8 @@ const RULESX = {
 };
 const MSGX = {
   es: MSG,
-  en: { karma: 'Julián leaves fed. The neighbourhood hears about it. (+reputation)', sinpa: 'He left without paying.', robbed: 'They emptied the till.', robgone: 'The robber runs off.', deliv: 'Delivery received: vegetables and shells.', nodeliv: 'The delivery man got tired of knocking.', blackout: 'The power is out. The fuse box is in the storeroom.', power: 'The lights are back.', binfull: 'Vegetables chopped and in the tub.', gone: 'The thing at the door stops scratching.', lost: 'A customer left without dinner.', ko: 'You passed out. You wake up in the kitchen.', last: "It's six. Shutters down when the last one leaves.", killed: 'That was not a customer.', nowit: 'Nobody saw it. Yet.', phone: 'The phone is ringing.', callmiss: 'Nobody picked up the phone.', spirits: 'The shop is full of spirits. You left the sign on OPEN.', dlcancel: 'A delivery order was cancelled.', bikehit: 'You got knocked off the moped.' },
-  ro: { karma: 'Julián pleacă sătul. Află tot cartierul. (+reputație)', sinpa: 'A plecat fără să plătească.', robbed: 'Ți-au golit casa de marcat.', robgone: 'Hoțul o ia la fugă.', deliv: 'Livrare primită: legume și cartușe.', nodeliv: 'Livratorul s-a săturat să bată la ușă.', blackout: 'S-a luat curentul. Tabloul e în magazie.', power: 'A revenit curentul.', binfull: 'Legume tăiate și puse în tavă.', gone: 'Ce era la ușă nu mai zgârie.', lost: 'Un client a plecat nemâncat.', ko: 'Ai leșinat. Te trezești în bucătărie.', last: 'E șase. Tragi oblonul când pleacă ultimul.', killed: 'Ăla nu era client.', nowit: 'Nu a văzut nimeni. Încă.', phone: 'Sună telefonul.', callmiss: 'N-a răspuns nimeni la telefon.', spirits: 'Localul e plin de spirite. Ai lăsat plăcuța pe DESCHIS.', dlcancel: 'S-a anulat o comandă la domiciliu.', bikehit: 'Te-au dat jos de pe moped.' },
+  en: { karma: 'Julián leaves fed. The neighbourhood hears about it. (+reputation)', sinpa: 'He left without paying.', robbed: 'They emptied the till.', robgone: 'The robber runs off.', deliv: 'Delivery received: vegetables and shells.', nodeliv: 'The delivery man got tired of knocking.', blackout: 'The power is out. The fuse box is in the storeroom.', power: 'The lights are back.', binfull: 'Vegetables chopped and in the tub.', gone: 'The thing at the door stops scratching.', lost: 'A customer left without dinner.', ko: 'You passed out. You wake up in the kitchen.', last: "It's six. Shutters down when the last one leaves.", killed: 'That was not a customer.', nowit: 'Nobody saw it. Yet.', phone: 'The phone is ringing.', callmiss: 'Nobody picked up the phone.', spirits: 'The shop is full of spirits. You left the sign on OPEN.', dlcancel: 'A delivery order was cancelled.', bikehit: 'You got knocked off the moped.', carhit: 'A car ran you over.' },
+  ro: { karma: 'Julián pleacă sătul. Află tot cartierul. (+reputație)', sinpa: 'A plecat fără să plătească.', robbed: 'Ți-au golit casa de marcat.', robgone: 'Hoțul o ia la fugă.', deliv: 'Livrare primită: legume și cartușe.', nodeliv: 'Livratorul s-a săturat să bată la ușă.', blackout: 'S-a luat curentul. Tabloul e în magazie.', power: 'A revenit curentul.', binfull: 'Legume tăiate și puse în tavă.', gone: 'Ce era la ușă nu mai zgârie.', lost: 'Un client a plecat nemâncat.', ko: 'Ai leșinat. Te trezești în bucătărie.', last: 'E șase. Tragi oblonul când pleacă ultimul.', killed: 'Ăla nu era client.', nowit: 'Nu a văzut nimeni. Încă.', phone: 'Sună telefonul.', callmiss: 'N-a răspuns nimeni la telefon.', spirits: 'Localul e plin de spirite. Ai lăsat plăcuța pe DESCHIS.', dlcancel: 'S-a anulat o comandă la domiciliu.', bikehit: 'Te-au dat jos de pe moped.', carhit: 'Te-a lovit o mașină.' },
 };
 const GENX = {
   es: GEN,
@@ -1034,6 +1049,8 @@ const AU = {
       case 'ring': for (let i = 0; i < 2; i++) for (let k = 0; k < 10; k++) { this.tone(440, 0.05, 'square', 0.05 * v, i * 0.9 + k * 0.05, 0, d); this.tone(480, 0.05, 'square', 0.05 * v, i * 0.9 + k * 0.05 + 0.025, 0, d); } break;
       case 'bell2': this.tone(784, 0.6, 'sine', 0.2 * Math.max(v, 0.5), 0, 0, d); this.tone(622, 0.9, 'sine', 0.2 * Math.max(v, 0.5), 0.45, 0, d); break;
       case 'bark': for (let i = 0; i < 2; i++) { this.tone(380, 0.12, 'sawtooth', 0.22 * Math.max(v, 0.15), i * 0.22, 170, d); this.nz(0.12, 'bandpass', 900, 2, 0.25 * Math.max(v, 0.15), i * 0.22, 0, d); } break;
+      case 'horn': this.tone(392, 0.55, 'sawtooth', 0.13 * Math.max(v, 0.3), 0, 0, d); this.tone(466, 0.55, 'sawtooth', 0.11 * Math.max(v, 0.3), 0, 0, d); break;
+      case 'carby': this.nz(1.6, 'lowpass', 500, 0.8, 0.35 * v, 0, 90, d); this.tone(55, 1.4, 'sawtooth', 0.12 * v, 0, 42, d); break;
       case 'crash': this.nz(0.5, 'lowpass', 1800, 0.5, 0.7 * Math.max(v, 0.4), 0, 120, d); this.tone(80, 0.3, 'sine', 0.6 * Math.max(v, 0.4), 0, 40, d); this.nz(0.6, 'highpass', 4000, 0.5, 0.2, 0.05, 0, d); break;
     }
   },
@@ -1276,7 +1293,7 @@ function buildWorld() {
   // exterior
   cyl(0.06, 0.08, 4.4, 6, M.dark, 1.6, 2.2, 8.4); box(0.9, 0.08, 0.14, M.dark, 1.2, 4.4, 8.4);
   D.lampHead = box(0.4, 0.06, 0.16, bas(0xffb45a), 0.9, 4.35, 8.4);
-  box(1.9, 1.25, 4.3, lam(null, 0x16181d), -7.5, 0.7, 10.2, { col: true }); box(1.7, 0.6, 2.3, lam(null, 0x0d0e12), -7.5, 1.55, 10.3);
+  
   // --- almacén: x[0.5,4] z[-7.5,-4.2] ---
   plane(3.5, 3.3, M.concf, 2.25, 0.001, -5.85, -PI / 2, 0, 1.5, true);
   plane(3.5, 3.3, lam('conc', 0x6f6d68), 2.25, 2.6, -5.85, PI / 2, 0, 2, true);
@@ -1412,14 +1429,31 @@ function buildWorld() {
    Todo se genera con una semilla fija, así que todos los jugadores ven el mismo barrio.
    x = este-oeste, z crece hacia el sur (alejándose del local). El local está en x[-5,5], z[-8,5]. */
 const STREETS = [
-  { n: 'Avenida del Faro', ax: 'x', c: 11.5, w: 7, a0: -40, a1: 40 },
-  { n: 'Calle del Pozo', ax: 'z', c: 0, w: 7, a0: 15, a1: 168 },
+  { n: 'Avenida del Faro', ax: 'x', c: 11.5, w: 7, a0: -135, a1: 135 },
+  { n: 'Calle del Pozo', ax: 'z', c: 0, w: 7, a0: 15, a1: 178.5 },
+  { n: 'Calle Ánimas', ax: 'z', c: -48, w: 7, a0: 15, a1: 178.5 },
+  { n: 'Calle Cuervo', ax: 'z', c: 48, w: 7, a0: 15, a1: 178.5 },
+  { n: 'Calle Ceniza', ax: 'x', c: 175, w: 7, a0: -51.5, a1: 51.5 },
 ];
-const DL_STREET = 1, STREET_END = 168;
+const DL_STREET = 1, AV_END = 118;
 const SOLAR = { x0: 5.5, x1: 20, z0: 72, z1: 96 };
 const DOG_ZONE = { x0: -3, x1: 19.5, z0: 66, z1: 102 }, DOG_HOME = [[12, 80], [15, 90]];
 const BUS_STOP = { x: -28, z: 16.2 };
+const CAR_COLS = [0x2a2f36, 0x5a1a16, 0x2c3a2c, 0x6a6a66, 0x1a2a4a, 0x8a7a5a];
 const TOWN = layoutTown();
+/* tráfico: posiciones deterministas a partir del reloj de la noche, así todos los jugadores ven lo mismo */
+const TRAFFIC = [
+  { st: 0, c: 3, li: 1, ax: 'x', l: 10.6, a0: 128, a1: -128, v: 10.5, ph: 0 },
+  { st: 2, c: 5, li: 1, ax: 'x', l: 12.5, a0: -128, a1: 128, v: 9.5, ph: 9 },
+  { st: 1, c: 1, li: 1, ax: 'x', l: 10.6, a0: 128, a1: -128, v: 12, ph: 15 },
+  { st: 0, c: 0, li: 0, ax: 'z', l: -0.6, a0: 176, a1: 22, v: 2.6, ph: 30, gap: 150 },   // el coche negro sin luces de la calle del Pozo
+];
+function trafficPos(t, time) {
+  const len = Math.abs(t.a1 - t.a0), cyc = len / t.v + (t.gap || 6), u = ((time + t.ph) % cyc) / (len / t.v);
+  if (u > 1) return null;
+  const a = lerp(t.a0, t.a1, u), dir = Math.sign(t.a1 - t.a0);
+  return t.ax === 'x' ? { x: a, z: t.l, ry: dir > 0 ? -PI / 2 : PI / 2, dx: dir, dz: 0 } : { x: t.l, z: a, ry: dir > 0 ? PI : 0, dx: 0, dz: dir };
+}
 
 function streetAt(x, z) {
   for (let i = 0; i < STREETS.length; i++) {
@@ -1439,44 +1473,50 @@ function layoutTown() {
     else if (side === 'W') { x = x0; nx = -1; z = lerp(z0, z1, t); } else { x = x1; nx = 1; z = lerp(z0, z1, t); }
     T.doors.push({ x, z, nx, nz, b: T.bld.length - 1, lamp: r() < 0.3 });
   };
-  // fila del local, frente a la avenida
-  for (const [x0, x1] of [[-40, -26], [-26, -14], [-14, -5], [5, 14], [14, 26], [26, 40]]) addB(x0, x1, -10, 5, 'S');
-  // al otro lado de la avenida
-  addB(-40, -20, 17, 32, 'N'); addB(20, 40, 17, 32, 'N');
-  // la calle: dos hileras de casas desde la avenida hasta el fondo
-  for (const side of [-1, 1]) {
-    let z = 17;
-    while (z < STREET_END - 4) {
-      if (side === 1 && z >= SOLAR.z0 - 0.1 && z < SOLAR.z1) { z = SOLAR.z1; continue; }
-      if (side === -1 && z > 108 && z < 112) { z = 114; continue; }          // callejón
-      let z1 = Math.min(STREET_END, z + 9 + r() * 7);
-      if (side === 1 && z < SOLAR.z0 && z1 > SOLAR.z0) z1 = SOLAR.z0;
-      if (side === -1 && z < 110 && z1 > 110) z1 = 110;
-      if (STREET_END - z1 < 6) z1 = STREET_END;
-      if (side < 0) addB(-20, -5.5, z, z1, 'E', 9); else addB(5.5, 20, z, z1, 'W', 9);
-      z = z1;
+  // una hilera de casas pegadas, con huecos donde haga falta
+  const row = (ax, f0, f1, a0, a1, side, gaps, minH) => {
+    let a = a0;
+    while (a < a1 - 3) {
+      const g = (gaps || []).find(([g0, g1]) => a >= g0 - 0.1 && a < g1); if (g) { a = g[1]; continue; }
+      let b = Math.min(a1, a + 9 + r() * 7); const ng = (gaps || []).find(([g0]) => a < g0 && b > g0); if (ng) b = ng[0];
+      if (a1 - b < 6 && !ng) b = a1;
+      if (ax === 'z') addB(f0, f1, a, b, side, minH); else addB(a, b, f0, f1, side, minH);
+      a = b;
     }
-  }
-  // portales y numeración: impares a un lado, pares al otro (y el 13 no está donde debería)
+  };
+  row('x', -10, 5, -120, -5, 'S'); row('x', -10, 5, 5, 120, 'S');                       // la acera del local
+  row('x', 17, 32, -120, -66, 'N'); row('x', 17, 32, 66, 120, 'N');                      // enfrente, en los extremos de la avenida
+  row('z', -66, -53.5, 17, 194, 'E', null, 9); row('z', 53.5, 66, 17, 194, 'W', null, 9); // Ánimas y Cuervo, lado de fuera
+  row('z', -42.5, -24, 17, 169.5, 'W', null, 9); row('z', -24, -5.5, 17, 169.5, 'E', [[108, 114]], 9);
+  row('z', 5.5, 24, 17, 169.5, 'W', [[SOLAR.z0, SOLAR.z1]], 9); row('z', 24, 42.5, 17, 169.5, 'E', null, 9);
+  row('x', 180.5, 194, -53.5, 53.5, 'N', null, 9);                                         // Calle Ceniza, al fondo
+  // portales y numeración: impares a un lado, pares al otro (el 13 no está donde debería)
   for (const d of T.doors) d.st = streetAt(d.x + d.nx * 3, d.z + d.nz * 3);
   STREETS.forEach((s, si) => {
     const list = T.doors.filter(d => d.st === si).sort((a, b) => s.ax === 'x' ? a.x - b.x : a.z - b.z), cnt = [1, 2];
-    for (const d of list) { const side = (s.ax === 'x' ? d.z - s.c : d.x - s.c) > 0 ? 0 : 1; let n = cnt[side]; if (n === 13) n += 2; d.num = n; cnt[side] = n + 2; }
+    for (const d of list) { const side = (s.ax === 'x' ? d.z - s.c : d.x - s.c) > 0 ? 0 : 1; let n = cnt[side]; if (n === 13) n += 2; d.num = Math.min(79, n); cnt[side] = n + 2; }
   });
   let far = -1; T.doors.forEach((d, k) => { if (d.st === DL_STREET && d.nx > 0 && (far < 0 || d.z > T.doors[far].z)) far = k; });
   if (far >= 0) { const d = T.doors[far]; d.num = 13; d.x13 = 1; d.lamp = false; T.c13 = far; }
-  // farolas: pocas, y no todas funcionan (md 0 bien, 1 parpadea, 2 fundida)
-  const lamp = (x, z, ax, az, md) => { T.lamps.push({ x, z, ax, az, md, ph: r() * 10, fig: z > 18 && md !== 2 }); T.cols.push({ x0: x - 0.16, x1: x + 0.16, z0: z - 0.16, z1: z + 0.16 }); };
-  for (const x of [-30, -14, 14, 30]) lamp(x, 7.6, 0, 1, 0);
-  for (const x of [-24, 24]) lamp(x, 15.4, 0, -1, 0);
-  [[24, 1, 0], [44, -1, 1], [64, 1, 0], [86, -1, 2], [104, 1, 1], [126, -1, 0], [146, 1, 2], [162, -1, 1]].forEach(([z, sd, md]) => lamp(sd * 4.2, z, -sd, 0, md));
-  // coches aparcados y contenedores
-  for (const [x, z, along] of [[-30, 14.1, 1], [28, 14.1, 1], [-2.4, 52, 0], [2.4, 118, 0], [-2.4, 140, 0]]) {
-    const w = along ? 4.2 : 1.8, d = along ? 1.8 : 4.2; T.cars.push({ x, z, along, c: r() * 4 | 0 }); T.cols.push({ x0: x - w / 2, x1: x + w / 2, z0: z - d / 2, z1: z + d / 2 });
+  // farolas: en la avenida casi todas van; en las calles de detrás, muchas no
+  const lamp = (x, z, ax, az, md, fig) => { T.lamps.push({ x, z, ax, az, md, ph: r() * 10, fig: fig && md !== 2 }); T.cols.push({ x0: x - 0.16, x1: x + 0.16, z0: z - 0.16, z1: z + 0.16 }); };
+  const nearV = (x, m) => STREETS.some(o => o.ax === 'z' && Math.abs(x - o.c) < m);
+  for (let x = -110; x <= 110; x += 16) if (Math.abs(x) > 8) lamp(x, 7.6, 0, 1, r() < 0.15 ? 1 : 0, false);
+  for (let x = -102; x <= 102; x += 22) if (!nearV(x, 6.5)) lamp(x, 15.4, 0, -1, r() < 0.2 ? 1 : 0, false);
+  const md = () => { const v = r(); return v < 0.25 ? 2 : v < 0.55 ? 1 : 0; };
+  for (const s of STREETS) {
+    if (s.ax === 'z') { let sd = 1; for (let z = 24; z < 168; z += 18 + r() * 5) { lamp(s.c + sd * 4.2, z, -sd, 0, z < 30 ? 0 : md(), true); sd = -sd; } }
+    else if (s.c > 100) { let sd = -1; for (let x = -40; x <= 40; x += 13) { if (nearV(x, 6)) continue; lamp(x, s.c + sd * 4.2, 0, -sd, md(), true); sd = -sd; } }
   }
-  for (const [x, z] of [[-8, 16], [-4.6, 60], [4.6, 100], [-4.6, 132], [20, 7.2]]) { T.bins.push({ x, z }); T.cols.push({ x0: x - 0.6, x1: x + 0.6, z0: z - 0.5, z1: z + 0.5 }); }
-  // límites
-  T.cols.push({ x0: -50, x1: -40, z0: -12, z1: 40 }, { x0: 40, x1: 50, z0: -12, z1: 40 }, { x0: -50, x1: -20, z0: 32, z1: 180 }, { x0: 20, x1: 50, z0: 32, z1: 180 }, { x0: -50, x1: 50, z0: STREET_END, z1: 180 }, { x0: -20.5, x1: -20, z0: 108, z1: 116 });
+  // coches aparcados (pegados al bordillo) y contenedores
+  const park = (x, z, ry) => { const st = r() * 3 | 0, w = 1.85, l = st === 1 ? 3.7 : 4.3; T.cars.push({ x, z, ry, st, c: r() * CAR_COLS.length | 0 }); const along = Math.abs(Math.sin(ry)) > 0.5; T.cols.push(along ? { x0: x - l / 2, x1: x + l / 2, z0: z - w / 2, z1: z + w / 2 } : { x0: x - w / 2, x1: x + w / 2, z0: z - l / 2, z1: z + l / 2 }); };
+  for (const x of [-92, -64, -30, 28, 70, 98]) park(x, 14.3, -PI / 2);
+  park(-8, 8.9, PI / 2); park(-60, 8.9, PI / 2); park(84, 8.9, PI / 2);
+  for (const s of STREETS) if (s.ax === 'z') for (let k = 0; k < 3; k++) { const z = 40 + k * 42 + r() * 20, sd = r() < 0.5 ? -1 : 1; park(s.c + sd * 2.45, z, sd > 0 ? PI : 0); }
+  park(-20, 177.4, PI / 2); park(30, 172.6, -PI / 2);
+  for (const [x, z] of [[-8, 16], [-4.6, 60], [4.6, 100], [-4.6, 132], [20, 7.2], [-43.4, 90], [52.6, 120], [-30, 169.2]]) { T.bins.push({ x, z }); T.cols.push({ x0: x - 0.6, x1: x + 0.6, z0: z - 0.5, z1: z + 0.5 }); }
+  // límites: vallas de obra al final de la avenida y casas en todo lo demás
+  T.cols.push({ x0: -160, x1: -AV_END, z0: -12, z1: 20 }, { x0: AV_END, x1: 160, z0: -12, z1: 20 }, { x0: -160, x1: -66, z0: 20, z1: 210 }, { x0: 66, x1: 160, z0: 20, z1: 210 }, { x0: -160, x1: 160, z0: 194, z1: 210 });
   return T;
 }
 function addrOf(k) { const d = TOWN.doors[k]; return d ? STREETS[d.st].n + ' ' + d.num : '?'; }
@@ -1544,37 +1584,92 @@ function textPlate(text, w, h, bg, fg, border) {
 
 /* ---------- vehículos y bichos ---------- */
 function makeVespa() {
-  const g = new THREE.Group(), body = lam('steel2', 0xd8c890, { emissive: 0x2a2618 }), dk = lam(null, 0x1a1a1c), P = (geo, m, x, y, z, rx, rz) => { const me = new THREE.Mesh(geo, m); me.position.set(x, y, z); if (rx) me.rotation.x = rx; if (rz) me.rotation.z = rz; g.add(me); return me; };
-  P(new THREE.BoxGeometry(0.4, 0.36, 0.7), body, 0, 0.5, 0.2);
-  P(new THREE.BoxGeometry(0.34, 0.06, 0.55), dk, 0, 0.28, -0.22);
-  P(new THREE.BoxGeometry(0.3, 0.1, 0.55), lam(null, 0x221a16), 0, 0.73, 0.18);
-  P(new THREE.BoxGeometry(0.3, 0.55, 0.1), body, 0, 0.55, -0.48, -0.25);
-  P(new THREE.BoxGeometry(0.07, 0.4, 0.07), lam('steel', 0x8a8c90), 0, 0.85, -0.55, -0.3);
-  P(new THREE.BoxGeometry(0.64, 0.04, 0.04), dk, 0, 1.03, -0.62);
-  P(new THREE.CylinderGeometry(0.075, 0.085, 0.07, 8), bas(0xfff0c0), 0, 0.95, -0.66, PI / 2);
-  for (const z of [-0.55, 0.42]) P(new THREE.CylinderGeometry(0.2, 0.2, 0.09, 10), dk, 0, 0.2, z, 0, PI / 2);
-  P(new THREE.BoxGeometry(0.2, 0.08, 0.3), body, 0, 0.42, -0.55);
-  P(new THREE.BoxGeometry(0.44, 0.38, 0.42), lam(null, 0xa0201a, { emissive: 0x300806 }), 0, 0.98, 0.5);
-  P(new THREE.BoxGeometry(0.46, 0.05, 0.44), lam(null, 0x6a1410), 0, 1.18, 0.5);
-  P(new THREE.BoxGeometry(0.1, 0.05, 0.02), bas(0x8a0a08), 0, 0.62, 0.56);
+  const g = new THREE.Group(), body = lam('steel2', 0xd8c890, { emissive: 0x2a2618 }), chrome = lam('steel', 0xb8bcc0, { emissive: 0x1a1a1c }), dk = lam(null, 0x161618), rub = lam(null, 0x0c0c0c);
+  const P = (geo, m, x, y, z, rx, ry, rz) => { const me = new THREE.Mesh(geo, m); me.position.set(x, y, z); me.rotation.set(rx || 0, ry || 0, rz || 0); g.add(me); return me; };
+  const B = (w, h, d) => new THREE.BoxGeometry(w, h, d), C = (rt, rb, h, n) => new THREE.CylinderGeometry(rt, rb, h, n || 10);
+  // ruedas con llanta
+  for (const z of [-0.56, 0.44]) { P(C(0.21, 0.21, 0.1, 12), rub, 0, 0.21, z, 0, 0, PI / 2); P(C(0.11, 0.11, 0.105, 8), chrome, 0, 0.21, z, 0, 0, PI / 2); }
+  // carrocería trasera redondeada (el "culo" del Vespino) y tapas laterales
+  const rear = P(C(0.24, 0.2, 0.78, 12), body, 0, 0.5, 0.22, PI / 2); rear.scale.set(0.95, 1, 1.15);
+  P(B(0.44, 0.06, 0.62), dk, 0, 0.3, -0.14);                       // plataforma
+  P(B(0.46, 0.7, 0.07), body, 0, 0.62, -0.46, -0.18);              // escudo
+  P(B(0.3, 0.06, 0.4), body, 0, 0.47, -0.58, 0.15);                // guardabarros
+  P(C(0.02, 0.02, 0.45, 6), chrome, 0.05, 0.42, -0.56, 0.2); P(C(0.02, 0.02, 0.45, 6), chrome, -0.05, 0.42, -0.56, 0.2);
+  P(B(0.07, 0.42, 0.07), chrome, 0, 0.93, -0.55, -0.28);           // columna
+  P(B(0.32, 0.12, 0.6), lam(null, 0x2a1a14), 0, 0.8, 0.16);        // asiento
+  P(B(0.34, 0.03, 0.62), lam(null, 0x3a2418), 0, 0.875, 0.16);
+  // manillar, faro, espejos
+  P(C(0.016, 0.016, 0.68, 6), chrome, 0, 1.1, -0.62, 0, 0, PI / 2);
+  P(B(0.2, 0.12, 0.14), body, 0, 1.08, -0.64);
+  P(C(0.07, 0.08, 0.06, 12), bas(0xfff4cc), 0, 1.08, -0.72, PI / 2);
+  for (const sd of [-1, 1]) { P(C(0.022, 0.022, 0.11, 6), rub, sd * 0.36, 1.1, -0.62, 0, 0, PI / 2); P(C(0.008, 0.008, 0.2, 4), chrome, sd * 0.27, 1.2, -0.6, 0, 0, -sd * 0.3); P(C(0.05, 0.05, 0.012, 10), lam(null, 0x3a4248, { emissive: 0x0e1012 }), sd * 0.3, 1.3, -0.6, PI / 2); }
+  // escape, piloto, matrícula, caballete
+  P(C(0.035, 0.045, 0.5, 8), chrome, 0.2, 0.28, 0.42, PI / 2);
+  D.tail = P(B(0.12, 0.05, 0.03), bas(0x8a0a08), 0, 0.66, 0.62);
+  P(B(0.18, 0.08, 0.01), lam(null, 0xe8e4d8), 0, 0.55, 0.64);
+  P(B(0.03, 0.22, 0.03), dk, -0.12, 0.12, 0.05, 0, 0, 0.5);
+  // portabultos y baúl de reparto con letrero
+  P(B(0.4, 0.03, 0.36), chrome, 0, 0.9, 0.5);
+  const tb = textPlate('KEBAB PONIENTE', 128, 40, '#a0201a', '#ffd8a0');
+  P(B(0.46, 0.4, 0.44), [lam(null, 0xa0201a, { emissive: 0x300806 }), lam(null, 0xa0201a, { emissive: 0x300806 }), lam(null, 0x7a1812), lam(null, 0xa0201a), new THREE.MeshLambertMaterial({ map: tb, emissive: 0x401010 }), new THREE.MeshLambertMaterial({ map: tb, emissive: 0x401010 })], 0, 1.12, 0.5);
+  P(B(0.48, 0.05, 0.46), lam(null, 0x6a1410), 0, 1.33, 0.5);
+  // haz del faro (solo se ve cuando alguien la conduce)
+  const cone = new THREE.Mesh(new THREE.ConeGeometry(1.6, 7, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0xfff0c0, transparent: true, opacity: 0.06, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
+  cone.rotation.x = -PI / 2; cone.position.set(0, 0.7, -4.2); cone.visible = false; g.add(cone); g.cone = cone;
   const hb = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.4, 1.7), M.inv); hb.position.y = 0.7; hb.visible = false; hb.userData.key = 'vespa'; g.add(hb); rayTargets.push(hb);
   scene.add(g); return g;
 }
 function makeHandle() {
-  const g = new THREE.Group(), body = lam('steel2', 0xd8c890), dk = lam(null, 0x1a1a1c), skin = lam(null, 0xc8906a);
-  const P = (w, h, d, m, x, y, z, rx, ry) => { const me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); me.position.set(x, y, z); me.rotation.set(rx || 0, ry || 0, 0); g.add(me); return me; };
-  P(0.72, 0.035, 0.035, dk, 0, 0, 0);
-  for (const s of [-1, 1]) { P(0.1, 0.05, 0.05, lam(null, 0x111111), s * 0.36, 0, 0); P(0.012, 0.16, 0.012, dk, s * 0.27, 0.09, 0.02); P(0.1, 0.06, 0.012, lam(null, 0x40484e, { emissive: 0x0a0c0e }), s * 0.27, 0.18, 0.02); P(0.08, 0.08, 0.5, skin, s * 0.33, -0.1, 0.27, -0.4, -s * 0.2); }
-  P(0.22, 0.12, 0.14, body, 0, 0.04, 0.03);
-  P(0.18, 0.1, 0.32, body, 0, -0.42, -0.55);
-  D.speedo = ctex(64, 32, () => { }); D.speedoG = D.speedo.image.getContext('2d');
-  const sp = new THREE.Mesh(new THREE.PlaneGeometry(0.11, 0.055), new THREE.MeshBasicMaterial({ map: D.speedo, fog: false })); sp.position.set(0, 0.115, 0.075); sp.rotation.x = -0.75; g.add(sp);
-  g.position.set(0, -0.36, -0.6); g.visible = false; return g;
+  const g = new THREE.Group(), body = lam('steel2', 0xd8c890, { emissive: 0x2a2618 }), chrome = lam('steel', 0xc8ccd0, { emissive: 0x2a2a2c }), rub = lam(null, 0x101010), glove = lam(null, 0x2a2622);
+  const P = (geo, m, x, y, z, rx, ry, rz) => { const me = new THREE.Mesh(geo, m); me.position.set(x, y, z); me.rotation.set(rx || 0, ry || 0, rz || 0); g.add(me); return me; };
+  const B = (w, h, d) => new THREE.BoxGeometry(w, h, d), C = (rt, rb, h, n) => new THREE.CylinderGeometry(rt, rb, h, n || 10);
+  P(C(0.016, 0.016, 0.62, 8), chrome, 0, 0, 0, 0, 0, PI / 2);                       // manillar
+  for (const sd of [-1, 1]) {
+    P(C(0.026, 0.026, 0.12, 8), rub, sd * 0.35, 0, 0, 0, 0, PI / 2);                  // puños
+    P(B(0.13, 0.012, 0.02), chrome, sd * 0.3, 0.012, -0.05, 0, sd * 0.25);            // manetas
+    P(C(0.005, 0.005, 0.16, 4), chrome, sd * 0.29, 0.07, 0.02, 0, 0, -sd * 0.5);       // brazo del espejo
+    P(C(0.034, 0.034, 0.01, 12), lam(null, 0x3a444c, { emissive: 0x10141a }), sd * 0.35, 0.13, 0.03, PI / 2 - 0.15);
+    const hand = P(B(0.09, 0.07, 0.11), glove, sd * 0.35, 0.025, 0.01); hand.rotation.x = 0.2;
+    P(B(0.085, 0.085, 0.5), glove, sd * 0.36, -0.12, 0.26, -0.45, -sd * 0.12);        // brazos
+  }
+  const shell = P(C(0.085, 0.07, 0.08, 14), body, 0, -0.035, -0.02, 0, 0, 0); shell.scale.set(1.25, 1, 0.9);   // carcasa del faro
+  D.speedo = ctex(64, 64, () => { }); D.speedoG = D.speedo.image.getContext('2d');
+  const sp = new THREE.Mesh(new THREE.CircleGeometry(0.05, 16), new THREE.MeshBasicMaterial({ map: D.speedo, fog: false })); sp.position.set(0, 0.012, 0.0); sp.rotation.x = -0.75; g.add(sp);
+  P(C(0.056, 0.056, 0.01, 16), chrome, 0, 0.007, 0.004, -0.75 + PI / 2);
+  P(B(0.48, 0.06, 0.05), body, 0, -0.33, -0.36, -0.4);                             // borde del escudo
+  g.position.set(0, -0.36, -0.6); g.visible = false; drawSpeedo(0); return g;
 }
 function drawSpeedo(kmh) {
   const g = D.speedoG; if (!g) return;
-  g.fillStyle = '#d8d0a8'; g.fillRect(0, 0, 64, 32); g.fillStyle = '#2a2018'; g.font = 'bold 20px monospace'; g.textAlign = 'center'; g.fillText(String(kmh), 32, 22);
-  g.font = '7px sans-serif'; g.fillText('km/h', 32, 30); D.speedo.needsUpdate = true;
+  g.fillStyle = '#e4dcc0'; g.fillRect(0, 0, 64, 64); g.strokeStyle = '#2a2018'; g.fillStyle = '#2a2018'; g.lineWidth = 2; g.font = 'bold 8px sans-serif'; g.textAlign = 'center';
+  for (let v = 0; v <= 60; v += 10) { const a = PI * 0.8 + (v / 60) * PI * 1.4, c = Math.cos(a), s = Math.sin(a); g.beginPath(); g.moveTo(32 + c * 22, 34 + s * 22); g.lineTo(32 + c * 27, 34 + s * 27); g.stroke(); g.fillText(String(v), 32 + c * 15, 37 + s * 15); }
+  const a = PI * 0.8 + Math.min(60, kmh) / 60 * PI * 1.4; g.strokeStyle = '#c0201a'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(32, 34); g.lineTo(32 + Math.cos(a) * 25, 34 + Math.sin(a) * 25); g.stroke();
+  g.fillStyle = '#2a2018'; g.beginPath(); g.arc(32, 34, 3, 0, 7); g.fill(); g.font = '6px sans-serif'; g.fillText('km/h', 32, 55);
+  D.speedo.needsUpdate = true;
+}
+/* coches: 0 turismo, 1 utilitario, 2 furgoneta. Mismas piezas para los aparcados (fusionados) y los que circulan. */
+function carParts(st) {
+  const L = st === 1 ? 3.7 : 4.3, h = L / 2, P = [];
+  P.push(['b', 1.8, 0.56, L, 0, 0.55, 0]);
+  if (st === 2) { P.push(['b', 1.78, 0.9, L * 0.72, 0, 1.28, h * 0.25]); P.push(['g', 1.74, 0.42, 0.05, 0, 1.25, -h * 0.47]); }
+  else { P.push(['g', 1.6, 0.5, L * (st === 1 ? 0.62 : 0.5), 0, 1.07, st === 1 ? h * 0.12 : h * 0.1]); P.push(['b', 1.56, 0.06, L * (st === 1 ? 0.56 : 0.44), 0, 1.35, st === 1 ? h * 0.14 : h * 0.1]); }
+  P.push(['d', 1.84, 0.2, 0.16, 0, 0.36, -h], ['d', 1.84, 0.2, 0.16, 0, 0.36, h]);
+  for (const sx of [-0.84, 0.84]) for (const sz of [-h * 0.62, h * 0.62]) P.push(['w', 0.34, 0.24, 0, sx, 0.34, sz]);
+  P.push(['f', 0.32, 0.12, 0.04, -0.6, 0.62, -h - 0.01], ['f', 0.32, 0.12, 0.04, 0.6, 0.62, -h - 0.01], ['t', 0.3, 0.1, 0.04, -0.62, 0.66, h + 0.01], ['t', 0.3, 0.1, 0.04, 0.62, 0.66, h + 0.01], ['p', 0.5, 0.12, 0.03, 0, 0.42, h + 0.09]);
+  return P;
+}
+function partGeo(p) {
+  if (p[0] === 'w') { const g = new THREE.CylinderGeometry(p[1], p[1], p[2], 10); g.rotateZ(PI / 2); g.translate(p[4], p[5], p[6]); return g; }
+  const g = new THREE.BoxGeometry(p[1], p[2], p[3]); uvBox(g, p[1], p[2], p[3], 1.2); g.translate(p[4], p[5], p[6]); return g;
+}
+function carMats(c, lights) {
+  return { b: lam(null, CAR_COLS[c], { emissive: 0x0a0a0a }), g: lam(null, 0x0b0e12, { emissive: 0x050608 }), d: lam(null, 0x141416), w: lam(null, 0x0c0c0c), f: lights ? bas(0xfff2cc) : lam(null, 0x8a8a80), t: lights ? bas(0xff2010) : lam(null, 0x5a1010), p: lam(null, 0xd8d8d0) };
+}
+function makeCar(st, c, lights) {
+  const g = new THREE.Group(), M2 = carMats(c, lights);
+  for (const p of carParts(st)) g.add(new THREE.Mesh(partGeo(p), M2[p[0]]));
+  if (lights) { const cone = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 11), new THREE.MeshBasicMaterial({ map: D.beamTex, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending })); cone.rotation.x = -PI / 2; cone.position.set(0, 0.03, -(carParts(st)[0][3] / 2) - 5.4); g.add(cone); }
+  g.visible = false; scene.add(g); return g;
 }
 function makeDog() {
   const g = new THREE.Group(), fur = lam(null, 0x2a2420), P = (w, h, d, m, x, y, z) => { const me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); me.position.set(x, y, z); g.add(me); return me; };
@@ -1592,15 +1687,27 @@ function makeDog() {
 function buildTown() {
   const F = facadeMats(), r = mulberry32(31337);
   const off = { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 };
-  // suelo: aceras y calzada encima
-  gplane(-40, 40, 5, 17, lam('pave', 0x8a8a8c), 0, 1.8, 2.5); gplane(-5.5, 5.5, 17, STREET_END, lam('pave', 0x7a7a7c), 0, 1.8, 2.5);
-  gplane(-20, -5.5, 108, 116, lam('concf', 0x4a4844), 0, 2, 2.5);
-  const road = lam('asphalt', 0x86868e, off);
-  gplane(-40, 40, 8, 15, road, 0.004, 3.5, 2.5); gplane(-3.5, 3.5, 15, STREET_END, road, 0.004, 3.5, 2.5);
-  const paint = [];
-  for (let a = -38; a < 38; a += 6) if (Math.abs(a) > 5) paint.push(bgeo(2.6, 0.01, 0.14, a, 0.02, 11.5, 0, 1));
-  for (let a = 18; a < STREET_END - 2; a += 6) paint.push(bgeo(0.14, 0.01, 2.6, 0, 0.02, a, 0, 1));
+  // suelo: aceras y calzada encima, para todas las calles
+  const pave = lam('pave', 0x828284), road = lam('asphalt', 0x86868e, off), paint = [];
+  gplane(-135, 135, 5, 17, pave, 0, 1.8, 2.5);
+  for (const st of STREETS) {
+    const h = st.w / 2;
+    if (st.ax === 'z') { gplane(st.c - h - 2, st.c + h + 2, 17, st.a1 + 2, pave, 0, 1.8, 2.5); gplane(st.c - h, st.c + h, 15, st.a1, road, 0.004, 3.5, 2.5); for (let a = 19; a < st.a1 - 9; a += 6) paint.push(bgeo(0.14, 0.01, 2.6, st.c, 0.02, a, 0, 1)); }
+    else { if (st.c > 100) gplane(st.a0 - 2, st.a1 + 2, st.c - h - 2, st.c + h + 2, pave, 0.001, 1.8, 2.5); gplane(st.a0, st.a1, st.c - h, st.c + h, road, 0.005, 3.5, 2.5); for (let a = st.a0 + 3; a < st.a1 - 3; a += 6) if (!STREETS.some(o => o.ax === 'z' && Math.abs(a - o.c) < 5)) paint.push(bgeo(2.6, 0.01, 0.14, a, 0.022, st.c, 0, 1)); }
+  }
+  for (const st of STREETS) if (st.ax === 'z') for (let k = 0; k < 6; k++) paint.push(bgeo(0.5, 0.01, 3.2, st.c - 2.6 + k * 1.05, 0.021, 16.8, 0, 1));   // pasos de cebra
+  gplane(-24, -5.5, 108, 114, lam('concf', 0x4a4844), 0.002, 2, 2.5);
   addMerged(paint, lam(null, 0x8a8778));
+  // vallas de obra al final de la avenida: luces ámbar que parpadean en la niebla
+  const bar = [], barW = []; D.amber = [];
+  for (const sx of [-1, 1]) {
+    const x = sx * (AV_END - 0.6);
+    for (let k = 0; k < 4; k++) { const z = 8.6 + k * 1.95; bar.push(bgeo(0.12, 0.9, 1.7, x, 0.75, z, 0, 1)); barW.push(bgeo(0.14, 0.22, 1.6, x, 0.95, z, 0, 1), bgeo(0.14, 0.22, 1.6, x, 0.55, z, 0, 1)); D.amber.push(box(0.16, 0.16, 0.16, bas(0xffa020), x, 1.32, z)); }
+    gplane(sx > 0 ? AV_END : -135, sx > 0 ? 135 : -AV_END, 8, 15, lam('concf', 0x3a3834, off), 0.007, 3, 2.5);
+    box(2.2, 2.0, 0.08, lam(null, 0xd8d4c4), x + sx * 0.6, 1.9, 6.6, { ry: PI / 2 });
+    plane(1.6, 1.0, new THREE.MeshLambertMaterial({ map: textPlate('CALLE CORTADA', 256, 128, '#e8c020', '#141414', '#141414'), side: THREE.DoubleSide }), x - sx * 0.05, 1.6, 15.8, 0, PI / 2);
+  }
+  addMerged(bar, lam(null, 0x9a2a1a)); addMerged(barW, lam(null, 0xd8d8d0));
   // edificios
   const byF = [[], [], [], []];
   for (const b of TOWN.bld) { const w = b.x1 - b.x0, d = b.z1 - b.z0; byF[b.f].push(bgeo(w, b.h, d, (b.x0 + b.x1) / 2, b.h / 2, (b.z0 + b.z1) / 2, 0, 6)); }
@@ -1649,17 +1756,16 @@ function buildTown() {
   }
   addMerged(poles, M.dark);
   LG.pool = [0, 1, 2, 3].map(() => { const l = new THREE.PointLight(0xffa850, 0, 13, 1.6); scene.add(l); return l; });
-  // coches aparcados
-  const carCols = [0x2a2f36, 0x3a1a18, 0x2c3a2c, 0x5a5a58], carB = [[], [], [], []], glass = [];
+  // coches aparcados: modelos de verdad fusionados por color y pieza
+  D.beamTex = ctex(64, 128, (g) => { const gr = g.createLinearGradient(0, 128, 0, 0); gr.addColorStop(0, 'rgba(255,240,200,0.9)'); gr.addColorStop(1, 'rgba(255,240,200,0)'); g.fillStyle = gr; g.beginPath(); g.moveTo(26, 128); g.lineTo(38, 128); g.lineTo(64, 0); g.lineTo(0, 0); g.fill(); });
+  const cg = {}, tmp = new THREE.Object3D();
   for (const c of TOWN.cars) {
-    const w = c.along ? 4.2 : 1.8, d = c.along ? 1.8 : 4.2;
-    carB[c.c].push(bgeo(w, 0.75, d, c.x, 0.55, c.z, 0, 1));
-    glass.push(bgeo(c.along ? 2.2 : 1.6, 0.55, c.along ? 1.6 : 2.2, c.x, 1.18, c.z, 0, 1));
+    tmp.position.set(c.x, 0, c.z); tmp.rotation.set(0, c.ry, 0); tmp.updateMatrix();
+    for (const p of carParts(c.st)) { const key = p[0] === 'b' ? 'b' + c.c : p[0]; const g = partGeo(p); g.applyMatrix4(tmp.matrix); (cg[key] = cg[key] || []).push(g); }
   }
-  carB.forEach((l, i) => addMerged(l, lam(null, carCols[i]), true)); addMerged(glass, lam(null, 0x0d1014), true);
+  const pm = carMats(0, false);
+  for (const key in cg) addMerged(cg[key], key[0] === 'b' ? lam(null, CAR_COLS[+key.slice(1)], { emissive: 0x0a0a0a }) : pm[key], true);
   addMerged(TOWN.bins.map(b => bgeo(1.2, 1.25, 0.9, b.x, 0.62, b.z, 0, 1)), lam('rust', 0x3a5a3a), true);
-  // tapias: fondo de la calle, extremos de la avenida y fondo del callejón
-  addMerged([bgeo(11, 3.4, 0.5, 0, 1.7, STREET_END + 0.2, 0, 1.6), bgeo(0.5, 3.4, 11.4, -40.2, 1.7, 11.5, 0, 1.6), bgeo(0.5, 3.4, 11.4, 40.2, 1.7, 11.5, 0, 1.6), bgeo(0.5, 4, 8, -20.2, 2, 112, 0, 1.6)], M.brick, true);
   // rótulos de calle
   const signPoles = [];
   const streetSign = (si, x, z, ry) => {
@@ -1667,7 +1773,8 @@ function buildTown() {
     const t = textPlate(STREETS[si].n.toUpperCase(), 256, 64, '#e8e4d8', '#1a2a6a', '#1a2a6a');
     const p = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.38), new THREE.MeshLambertMaterial({ map: t, side: THREE.DoubleSide })); p.position.set(x, 2.95, z); p.rotation.y = ry; scene.add(p);
   };
-  streetSign(1, 4.6, 16.4, 0); streetSign(0, -4.6, 7.4, 0);
+  streetSign(0, -4.6, 7.4, 0);
+  for (let si = 1; si < STREETS.length; si++) { const st = STREETS[si]; if (st.ax === 'z') { streetSign(si, st.c + 4.6, 16.4, 0); streetSign(si, st.c - 4.6, 168.2, 0); } else { streetSign(si, -45.4, st.c - 4.6, PI / 2); streetSign(si, 45.4, st.c - 4.6, PI / 2); } }
   addMerged(signPoles, M.dark);
   // ventana con figura (sale de madrugada)
   const fw = ctex(64, 64, (g) => { g.fillStyle = '#ffcf80'; g.fillRect(0, 0, 64, 64); g.fillStyle = '#060404'; g.beginPath(); g.arc(32, 22, 9, 0, 7); g.fill(); g.fillRect(20, 30, 24, 34); });
@@ -1699,12 +1806,13 @@ function buildTown() {
   for (let i = 0; i < 6; i++) cyl(0.32, 0.28, 0.6, 7, M.bag, 8 + r() * 10, 0.3, 74 + r() * 20);
   plane(1.5, 0.5, new THREE.MeshLambertMaterial({ map: textPlate('PROHIBIDO EL PASO', 256, 80, '#d8d0b8', '#8a1a12'), side: THREE.DoubleSide }), S.x0 - 0.08, 1.9, 80.5, 0, -PI / 2);
   // fondo del callejón: algo colgado
-  box(0.6, 1.2, 0.05, lam('bag', 0x3a3632), -19.6, 1.6, 112, { ry: PI / 2 });
+  box(0.6, 1.2, 0.05, lam('bag', 0x3a3632), -23.6, 1.6, 112, { ry: PI / 2 });
 
   /* moto, perros, baliza de destino, faro */
   D.bike = makeVespa(); D.dogs = DOG_HOME.map(() => makeDog());
   D.beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 40, 8, 1, true), new THREE.MeshBasicMaterial({ color: 0x7dffa8, transparent: true, opacity: 0.16, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, side: THREE.DoubleSide }));
   D.beacon.visible = false; scene.add(D.beacon);
+  D.traffic = TRAFFIC.map(t => makeCar(t.st, t.c, t.li));
   LG.porch = new THREE.PointLight(0xffc880, 0, 8, 1.4); scene.add(LG.porch); D.porch = box(0.24, 0.14, 0.18, bas(0xffe0a0), 0, -10, 0);
   LG.head = new THREE.SpotLight(0xfff0d0, 0, 26, 0.55, 0.55, 1.2); scene.add(LG.head); scene.add(LG.head.target);
   // teléfono de pedidos y bolsa térmica
@@ -2245,6 +2353,7 @@ function applyAction(pid, a) {
   else if (k === 'shoot') doShoot(pid, a[2], a[3]);
   else if (k === 'dropbody') { const P = W.pl[pid], p = PP[pid]; if (P && P.h && P.h.k === 'body' && p) { W.cu.push({ i: W.id++, a: P.h.a, s: P.h.s, x: r2(p.x), z: r2(p.z), y: 0, st: S_DEAD, p: 0, g: [], l: '', ln: 0, sl: -1, qi: -1, an: 0, hp: 0, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, cr: P.h.cr | 0 }); P.h = 0; } }
   else if (k === 'offbike') { const V = W.vs; if (V.r === pid) { V.r = 0; V.x = r2(+a[2] || V.x); V.z = r2(+a[3] || V.z); V.y = r2(+a[4] || 0); const P = W.pl[pid]; if (V.b && P && !P.h) { P.h = { k: 'bag', d: V.b }; V.b = 0; } } }
+  else if (k === 'carhit') carHit(pid);
   else if (k === 'reload') { const P = W.pl[pid]; if (P && P.h && P.h.k === 'gun' && W.am < 2 && W.shl > 0) { const n = Math.min(2 - W.am, W.shl); W.am += n; W.shl -= n; } }
 }
 
@@ -2331,7 +2440,7 @@ function simulate(dt) {
 }
 
 /* ================= RED: cooperativo por presencia ================= */
-const NETV = 6;   // versión del protocolo: todos tienen que jugar con la misma
+const NETV = 7;   // versión del protocolo: todos tienen que jugar con la misma
 const NET = { room: null, myId: 'solo', isHost: true, joined: false, acts: [], seq: 0, lastSeq: {}, lastHost: null, hostGone: 0, sendT: 0, others: [], remote: null, count: 1, evInit: false, code: '', badVer: false, lostSaid: false };
 
 /* Fuera de Claude (GitHub) la sala va por PeerJS, de navegador a navegador y sin cuentas.
@@ -2463,7 +2572,7 @@ function inShop(x, z) { return z < 5.3 && x > -4.2 && x < 4.2; }
 function dlPat(o) { return (230 + 40 * Math.max(0, genOrder(o.a, o.s).length - 1)) * (W.n === 1 ? 1.15 : 1); }
 function newDelivery(an) {
   const busy = W.dl.map(o => o.d), free = [];
-  TOWN.doors.forEach((d, k) => { if (!d.x13 && busy.indexOf(k) < 0 && d.st === DL_STREET) free.push(k); });
+  TOWN.doors.forEach((d, k) => { if (!d.x13 && busy.indexOf(k) < 0 && d.st >= 1) free.push(k); });
   if (an && TOWN.c13 < 0) return;
   const d = an ? TOWN.c13 : free[Math.random() * free.length | 0], a = RES_IDX[Math.random() * RES_IDX.length | 0], s = (Math.random() * 1e6) | 0;
   const o = { i: W.id++, a, s, d, st: 0, g: genOrder(a, s).map(() => 0), sc: 0, p: 1, an: an ? 1 : 0, lt: 0 }; W.dl.push(o); return o;
@@ -2575,6 +2684,10 @@ function payDelivery(c, pid) {
   say(c, o.lt ? 'late' : avg > 0.6 ? (o.hm ? 'hm' : 'ok') : 'bad');
   W.dl = W.dl.filter(q => q !== o); c.st = S_BACK; c.t = 0;
 }
+function carHit(pid) {
+  const P = W.pl[pid]; if (!P || P.ko > 0) return;
+  const p = PP[pid]; ev('crash', p ? p.x : 0, p ? p.z : 0); if (W.vs.r === pid) knockOff(pid); hurt(pid); ev('msg', 0, 0, 'carhit');
+}
 function knockOff(pid, x, z) {
   const V = W.vs; if (V.r !== pid) return;
   V.r = 0; const p = PP[pid]; if (p) { V.x = r2(p.x); V.z = r2(p.z); V.y = r2(p.yaw); }
@@ -2678,7 +2791,7 @@ function myDelivery() {
 function syncTown(dt) {
   // niebla: fuera se ve un poco más lejos
   const out = camera.position.z > 5.3;
-  scene.fog.near = lerp(scene.fog.near, out ? 6 : 4, Math.min(1, dt * 3)); scene.fog.far = lerp(scene.fog.far, out ? 36 : 25, Math.min(1, dt * 3));
+  scene.fog.near = lerp(scene.fog.near, out ? 6 : 4, Math.min(1, dt * 3)); scene.fog.far = lerp(scene.fog.far, out ? (ride.on ? 46 : 38) : 25, Math.min(1, dt * 3));
   // las cuatro farolas encendidas más cercanas dan luz de verdad
   const flick = L => L.md === 2 || (L.sc > 0 && Math.sin(TIME * 70 + L.ph) > 0) || (L.md === 1 && (Math.sin(TIME * 23 + L.ph) + Math.sin(TIME * 37 + L.ph * 2) + Math.sin(TIME * 3.1 + L.ph)) > 1.1);
   for (const L of TOWN.lamps) if (L.sc > 0) L.sc -= dt;
@@ -2713,6 +2826,26 @@ function syncTown(dt) {
   if (dl) { const d = TOWN.doors[dl.d], x = d.x + d.nx * 0.2, z = d.z + d.nz * 0.2, on = !dl.an || Math.sin(TIME * 9) + Math.sin(TIME * 21) > -0.6; D.porch.position.set(x, 2.55, z); D.porch.material.color.setHex(on ? (dl.an ? 0xff6050 : 0xffe0a0) : 0x1a1410); LG.porch.position.set(d.x + d.nx * 1.2, 2.4, d.z + d.nz * 1.2); LG.porch.color.setHex(dl.an ? 0xff5040 : 0xffc880); LG.porch.intensity = on ? 1.5 : 0; }
   else { LG.porch.intensity = 0; D.porch.position.y = -10; }
   updFigures(dt);
+  // tráfico y vallas de obra
+  for (const m of D.amber) m.visible = Math.sin(TIME * 5 + m.position.z) > -0.2;
+  const tt = W.ph === 'play' || W.ph === 'end' ? W.t : TIME, cx = camera.position.x, cz = camera.position.z;
+  carHitT = Math.max(0, carHitT - dt);
+  TRAFFIC.forEach((t, k) => {
+    const m = D.traffic[k], q = trafficPos(t, tt);
+    if (!q || Math.hypot(q.x - cx, q.z - cz) > 80) { m.visible = false; t.pass = 0; return; }
+    m.visible = true; m.position.set(q.x, 0, q.z); m.rotation.y = q.ry;
+    // ¿me pilla? (en coordenadas del coche)
+    const dx = me.x - q.x, dz = me.z - q.z, along = dx * q.dx + dz * q.dz, side = Math.abs(dx * q.dz - dz * q.dx), d = Math.hypot(dx, dz);
+    if (W.ph === 'play' && !(myP() && myP().ko > 0)) {
+      if (along > 2 && along < 16 && side < 1.6 && t.li && !t.hn) { t.hn = 1; AU.play('horn', q.x, q.z); }
+      if (along < -4) t.hn = 0;
+      if (Math.abs(along) < 2.5 && side < 1.25 && carHitT <= 0) {
+        carHitT = 3; act('carhit'); AU.play('crash');
+        const sg = (dx * q.dz - dz * q.dx) >= 0 ? 1 : -1; me.x += q.dz * sg * 2.2; me.z -= q.dx * sg * 2.2; if (ride.on) { ride.spd = 0; }
+      }
+    }
+    if (d < 18 && !t.pass) { t.pass = 1; AU.play('carby', q.x, q.z); } else if (d > 26) t.pass = 0;
+  });
   // faro de la moto
   LG.head.intensity = ride.on ? 1.9 : 0;
   if (ride.on) { LG.head.position.set(camera.position.x, 1.0, camera.position.z); LG.head.target.position.set(me.x - Math.sin(me.yaw) * 12, 0, me.z - Math.cos(me.yaw) * 12); }
@@ -2734,7 +2867,7 @@ function syncTown(dt) {
   }
 }
 /* figuras bajo las farolas: aparecen al acercarte, te miran y gritan. Cada uno ve las suyas. */
-const FIG = [];
+const FIG = []; let carHitT = 0;
 function updFigures(dt) {
   if (!FIG.length) TOWN.lamps.forEach(L => { if (L.fig) FIG.push({ L, ch: null, st: 0, t: 0, cd: 6 + Math.random() * 20 }); });
   const cx = camera.position.x, cz = camera.position.z, outside = cz > 16 && W.ph === 'play';
@@ -2806,7 +2939,7 @@ function bindInput() {
   const cv = $('gl'), st = $('stage');
   const KEYS = { KeyW: 1, KeyA: 1, KeyS: 1, KeyD: 1, ArrowUp: 1, ArrowDown: 1, ArrowLeft: 1, ArrowRight: 1, Space: 1, KeyE: 1, KeyR: 1, KeyF: 1 };
   window.addEventListener('keydown', e => {
-    if (e.target && e.target.tagName === 'INPUT') return;
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
     if (KEYS[e.code]) e.preventDefault();
     if (e.repeat) return; IN.dev = 'kb'; IN.keys[e.code] = true; AU.init();
     if (e.code === 'KeyE' || e.code === 'Enter') IN.use = true;
@@ -2898,7 +3031,7 @@ function keyHint() { return IN.dev === 'kb' ? '[E] ' : IN.dev === 'pad' ? '(A) '
 /* ---------- pantallas ---------- */
 function setOverlay(o) {
   overlay = o;
-  for (const id of ['menu', 'note', 'peep', 'end', 'over', 'pause']) $(id).hidden = id !== o;
+  for (const id of ['menu', 'note', 'peep', 'end', 'over', 'pause', 'sug']) $(id).hidden = id !== o;
   if (o && document.exitPointerLock && IN.locked) document.exitPointerLock();
   $('hud').classList.toggle('dim', !!o);
 }
@@ -3352,6 +3485,47 @@ function frame(now) {
 }
 window.KP = { get W() { return W; }, NET, me, IN, act, SV, cut, ride, setLang, get chars() { return chars; } };
 boot();
+
+/* ================= SUGERENCIAS Y ACTUALIZACIONES =================
+   Dentro de Claude se guardan en la base de datos del artefacto (Claude las lee).
+   Fuera (APK, HTML suelto) se guardan en el móvil y se mandan con Compartir → app de Claude. */
+const SUG_KEY = 'kp-sug';
+let sugDb = null, sugFrom = null;
+function sugLocal() { try { return JSON.parse(localStorage.getItem(SUG_KEY) || '[]'); } catch (e) { return []; } }
+function sugSaveLocal(a) { try { localStorage.setItem(SUG_KEY, JSON.stringify(a)); } catch (e) { } }
+function sugText(a) { return 'Sugerencias para Kebab Poniente:\n' + a.map((s, i) => (i + 1) + '. ' + s.txt).join('\n'); }
+function sugOpen() { sugFrom = overlay; setOverlay('sug'); $('sug-msg').textContent = ''; const n = sugLocal().length; $('sug-share').hidden = !n || !!sugDb; if (n && !sugDb) $('sug-msg').textContent = T('sug_saved', n); setTimeout(() => { try { $('sug-txt').focus(); } catch (e) { } }, 50); }
+function sugClose() { setOverlay(sugFrom === 'pause' ? 'pause' : sugFrom === 'menu' ? 'menu' : null); }
+async function sugSend() {
+  const txt = $('sug-txt').value.trim(); if (!txt) { $('sug-msg').textContent = T('sug_empty'); return; }
+  const item = { txt: txt.slice(0, 2000), t: Date.now(), lang: LANG, v: (document.querySelector('.ver') || {}).textContent || '', where: window.KPAndroid ? 'apk' : window.claude ? 'claude' : 'web', night: W ? W.n : 0 };
+  if (sugDb) {
+    try { await sugDb.doc('sugerencias/s' + item.t + Math.floor(Math.random() * 1e4)).set(item); $('sug-txt').value = ''; $('sug-msg').textContent = T('sug_ok'); return; }
+    catch (e) { /* sin permiso de escritura: se guarda en local */ }
+  }
+  const a = sugLocal(); a.push(item); sugSaveLocal(a); $('sug-txt').value = '';
+  $('sug-msg').textContent = T('sug_saved', a.length); $('sug-share').hidden = false;
+}
+async function sugShare() {
+  const a = sugLocal(); if (!a.length) return; const text = sugText(a);
+  const done = () => { sugSaveLocal([]); $('sug-share').hidden = true; };
+  try { if (window.KPAndroid && KPAndroid.share) { KPAndroid.share(text); done(); return; } } catch (e) { }
+  try { if (navigator.share) { await navigator.share({ title: 'Kebab Poniente', text }); done(); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(text); $('sug-msg').textContent = T('sug_copied'); done(); }
+  catch (e) { $('sug-txt').value = text; $('sug-txt').select(); $('sug-msg').textContent = T('sug_copied'); done(); }
+}
+let sugBound = false;
+function bindSuggest() {
+  if (sugBound || !$('sug-send')) return; sugBound = true;
+  document.querySelectorAll('.sug-open').forEach(b => b.addEventListener('click', sugOpen));
+  $('sug-send').addEventListener('click', sugSend); $('sug-share').addEventListener('click', sugShare); $('sug-close').addEventListener('click', sugClose);
+  $('upd-go').addEventListener('click', () => { try { KPAndroid.applyUpdate(); } catch (e) { location.reload(); } });
+  (async () => { try { if (window.claude && window.claude.use) sugDb = await window.claude.use('db'); } catch (e) { sugDb = null; } })();
+}
+// la APK avisa cuando ha bajado una versión nueva
+window.KP_updateReady = function () { const u = $('upd'); if (u) u.hidden = false; };
+window.addEventListener('DOMContentLoaded', () => { try { bindSuggest(); } catch (e) { } });
+if (document.readyState !== 'loading') { try { bindSuggest(); } catch (e) { } }
 
 
 </script>

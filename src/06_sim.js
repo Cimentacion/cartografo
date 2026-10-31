@@ -364,6 +364,7 @@ function applyAction(pid, a) {
   else if (k === 'shoot') doShoot(pid, a[2], a[3]);
   else if (k === 'dropbody') { const P = W.pl[pid], p = PP[pid]; if (P && P.h && P.h.k === 'body' && p) { W.cu.push({ i: W.id++, a: P.h.a, s: P.h.s, x: r2(p.x), z: r2(p.z), y: 0, st: S_DEAD, p: 0, g: [], l: '', ln: 0, sl: -1, qi: -1, an: 0, hp: 0, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, cr: P.h.cr | 0 }); P.h = 0; } }
   else if (k === 'offbike') { const V = W.vs; if (V.r === pid) { V.r = 0; V.x = r2(+a[2] || V.x); V.z = r2(+a[3] || V.z); V.y = r2(+a[4] || 0); const P = W.pl[pid]; if (V.b && P && !P.h) { P.h = { k: 'bag', d: V.b }; V.b = 0; } } }
+  else if (k === 'carhit') carHit(pid);
   else if (k === 'reload') { const P = W.pl[pid]; if (P && P.h && P.h.k === 'gun' && W.am < 2 && W.shl > 0) { const n = Math.min(2 - W.am, W.shl); W.am += n; W.shl -= n; } }
 }
 
@@ -450,7 +451,7 @@ function simulate(dt) {
 }
 
 /* ================= RED: cooperativo por presencia ================= */
-const NETV = 6;   // versión del protocolo: todos tienen que jugar con la misma
+const NETV = 7;   // versión del protocolo: todos tienen que jugar con la misma
 const NET = { room: null, myId: 'solo', isHost: true, joined: false, acts: [], seq: 0, lastSeq: {}, lastHost: null, hostGone: 0, sendT: 0, others: [], remote: null, count: 1, evInit: false, code: '', badVer: false, lostSaid: false };
 
 /* Fuera de Claude (GitHub) la sala va por PeerJS, de navegador a navegador y sin cuentas.

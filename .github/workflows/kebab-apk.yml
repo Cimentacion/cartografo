@@ -21,6 +21,8 @@ jobs:
         run: |
           mkdir -p android/app/src/main/assets/game
           cp -r index.html js lib android/app/src/main/assets/game/
+          echo "${{ github.run_number }}" > android/app/src/main/assets/game/version.txt
+          echo "${{ github.run_number }}" > version.txt
       - name: Compilar
         working-directory: android
         run: gradle assembleRelease --no-daemon --stacktrace
@@ -38,4 +40,5 @@ jobs:
           files: |
             kebab-poniente.apk
             kebab-poniente.html
+            version.txt
           make_latest: false

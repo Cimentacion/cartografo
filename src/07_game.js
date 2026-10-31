@@ -38,7 +38,7 @@ function bindInput() {
   const cv = $('gl'), st = $('stage');
   const KEYS = { KeyW: 1, KeyA: 1, KeyS: 1, KeyD: 1, ArrowUp: 1, ArrowDown: 1, ArrowLeft: 1, ArrowRight: 1, Space: 1, KeyE: 1, KeyR: 1, KeyF: 1 };
   window.addEventListener('keydown', e => {
-    if (e.target && e.target.tagName === 'INPUT') return;
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
     if (KEYS[e.code]) e.preventDefault();
     if (e.repeat) return; IN.dev = 'kb'; IN.keys[e.code] = true; AU.init();
     if (e.code === 'KeyE' || e.code === 'Enter') IN.use = true;
@@ -130,7 +130,7 @@ function keyHint() { return IN.dev === 'kb' ? '[E] ' : IN.dev === 'pad' ? '(A) '
 /* ---------- pantallas ---------- */
 function setOverlay(o) {
   overlay = o;
-  for (const id of ['menu', 'note', 'peep', 'end', 'over', 'pause']) $(id).hidden = id !== o;
+  for (const id of ['menu', 'note', 'peep', 'end', 'over', 'pause', 'sug']) $(id).hidden = id !== o;
   if (o && document.exitPointerLock && IN.locked) document.exitPointerLock();
   $('hud').classList.toggle('dim', !!o);
 }

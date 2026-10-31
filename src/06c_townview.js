@@ -7,7 +7,7 @@ function myDelivery() {
 function syncTown(dt) {
   // niebla: fuera se ve un poco más lejos
   const out = camera.position.z > 5.3;
-  scene.fog.near = lerp(scene.fog.near, out ? 6 : 4, Math.min(1, dt * 3)); scene.fog.far = lerp(scene.fog.far, out ? 36 : 25, Math.min(1, dt * 3));
+  scene.fog.near = lerp(scene.fog.near, out ? 6 : 4, Math.min(1, dt * 3)); scene.fog.far = lerp(scene.fog.far, out ? (ride.on ? 46 : 38) : 25, Math.min(1, dt * 3));
   // las cuatro farolas encendidas más cercanas dan luz de verdad
   const flick = L => L.md === 2 || (L.sc > 0 && Math.sin(TIME * 70 + L.ph) > 0) || (L.md === 1 && (Math.sin(TIME * 23 + L.ph) + Math.sin(TIME * 37 + L.ph * 2) + Math.sin(TIME * 3.1 + L.ph)) > 1.1);
   for (const L of TOWN.lamps) if (L.sc > 0) L.sc -= dt;
@@ -42,6 +42,26 @@ function syncTown(dt) {
   if (dl) { const d = TOWN.doors[dl.d], x = d.x + d.nx * 0.2, z = d.z + d.nz * 0.2, on = !dl.an || Math.sin(TIME * 9) + Math.sin(TIME * 21) > -0.6; D.porch.position.set(x, 2.55, z); D.porch.material.color.setHex(on ? (dl.an ? 0xff6050 : 0xffe0a0) : 0x1a1410); LG.porch.position.set(d.x + d.nx * 1.2, 2.4, d.z + d.nz * 1.2); LG.porch.color.setHex(dl.an ? 0xff5040 : 0xffc880); LG.porch.intensity = on ? 1.5 : 0; }
   else { LG.porch.intensity = 0; D.porch.position.y = -10; }
   updFigures(dt);
+  // tráfico y vallas de obra
+  for (const m of D.amber) m.visible = Math.sin(TIME * 5 + m.position.z) > -0.2;
+  const tt = W.ph === 'play' || W.ph === 'end' ? W.t : TIME, cx = camera.position.x, cz = camera.position.z;
+  carHitT = Math.max(0, carHitT - dt);
+  TRAFFIC.forEach((t, k) => {
+    const m = D.traffic[k], q = trafficPos(t, tt);
+    if (!q || Math.hypot(q.x - cx, q.z - cz) > 80) { m.visible = false; t.pass = 0; return; }
+    m.visible = true; m.position.set(q.x, 0, q.z); m.rotation.y = q.ry;
+    // ¿me pilla? (en coordenadas del coche)
+    const dx = me.x - q.x, dz = me.z - q.z, along = dx * q.dx + dz * q.dz, side = Math.abs(dx * q.dz - dz * q.dx), d = Math.hypot(dx, dz);
+    if (W.ph === 'play' && !(myP() && myP().ko > 0)) {
+      if (along > 2 && along < 16 && side < 1.6 && t.li && !t.hn) { t.hn = 1; AU.play('horn', q.x, q.z); }
+      if (along < -4) t.hn = 0;
+      if (Math.abs(along) < 2.5 && side < 1.25 && carHitT <= 0) {
+        carHitT = 3; act('carhit'); AU.play('crash');
+        const sg = (dx * q.dz - dz * q.dx) >= 0 ? 1 : -1; me.x += q.dz * sg * 2.2; me.z -= q.dx * sg * 2.2; if (ride.on) { ride.spd = 0; }
+      }
+    }
+    if (d < 18 && !t.pass) { t.pass = 1; AU.play('carby', q.x, q.z); } else if (d > 26) t.pass = 0;
+  });
   // faro de la moto
   LG.head.intensity = ride.on ? 1.9 : 0;
   if (ride.on) { LG.head.position.set(camera.position.x, 1.0, camera.position.z); LG.head.target.position.set(me.x - Math.sin(me.yaw) * 12, 0, me.z - Math.cos(me.yaw) * 12); }
@@ -63,7 +83,7 @@ function syncTown(dt) {
   }
 }
 /* figuras bajo las farolas: aparecen al acercarte, te miran y gritan. Cada uno ve las suyas. */
-const FIG = [];
+const FIG = []; let carHitT = 0;
 function updFigures(dt) {
   if (!FIG.length) TOWN.lamps.forEach(L => { if (L.fig) FIG.push({ L, ch: null, st: 0, t: 0, cd: 6 + Math.random() * 20 }); });
   const cx = camera.position.x, cz = camera.position.z, outside = cz > 16 && W.ph === 'play';

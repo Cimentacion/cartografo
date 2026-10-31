@@ -13,7 +13,7 @@ function inShop(x, z) { return z < 5.3 && x > -4.2 && x < 4.2; }
 function dlPat(o) { return (230 + 40 * Math.max(0, genOrder(o.a, o.s).length - 1)) * (W.n === 1 ? 1.15 : 1); }
 function newDelivery(an) {
   const busy = W.dl.map(o => o.d), free = [];
-  TOWN.doors.forEach((d, k) => { if (!d.x13 && busy.indexOf(k) < 0 && d.st === DL_STREET) free.push(k); });
+  TOWN.doors.forEach((d, k) => { if (!d.x13 && busy.indexOf(k) < 0 && d.st >= 1) free.push(k); });
   if (an && TOWN.c13 < 0) return;
   const d = an ? TOWN.c13 : free[Math.random() * free.length | 0], a = RES_IDX[Math.random() * RES_IDX.length | 0], s = (Math.random() * 1e6) | 0;
   const o = { i: W.id++, a, s, d, st: 0, g: genOrder(a, s).map(() => 0), sc: 0, p: 1, an: an ? 1 : 0, lt: 0 }; W.dl.push(o); return o;
@@ -124,6 +124,10 @@ function payDelivery(c, pid) {
   W.rep = clamp(W.rep + (o.lt ? -2 : avg > 0.85 ? 3 : avg > 0.6 ? 1 : -4) - (o.raw ? 3 : 0), 0, 100);
   say(c, o.lt ? 'late' : avg > 0.6 ? (o.hm ? 'hm' : 'ok') : 'bad');
   W.dl = W.dl.filter(q => q !== o); c.st = S_BACK; c.t = 0;
+}
+function carHit(pid) {
+  const P = W.pl[pid]; if (!P || P.ko > 0) return;
+  const p = PP[pid]; ev('crash', p ? p.x : 0, p ? p.z : 0); if (W.vs.r === pid) knockOff(pid); hurt(pid); ev('msg', 0, 0, 'carhit');
 }
 function knockOff(pid, x, z) {
   const V = W.vs; if (V.r !== pid) return;
