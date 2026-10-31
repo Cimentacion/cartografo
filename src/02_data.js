@@ -1,5 +1,5 @@
 /* ================= DATOS ================= */
-const HOUR_LEN = 54, NIGHT_LEN = HOUR_LEN * 7;      // 23:00 -> 06:00
+const HOUR_LEN = 96, NIGHT_LEN = HOUR_LEN * 7;      // 23:00 -> 06:00
 const BASES = [{ n: 'dürüm', art: 'un', price: 6 }, { n: 'pita', art: 'una', price: 5 }, { n: 'caja', art: 'una', price: 7.5 }];
 const MEATS = ['pollo', 'ternera', 'mixto'];
 const VEGS = ['lechuga', 'tomate', 'cebolla'];
@@ -214,14 +214,46 @@ A('yolanda', 'Yolanda', 'busca a su hijo',
   { g: ['¿Has visto a un chaval con la camisa abierta? Es mi hijo.'], pre: ['Ya que estoy, ponme'], post: ['Como lo pille, se le acaba Benidorm.'],
     w: ['Date prisa, que sigo buscándolo.'], ok: ['Gracias. Si lo ves, dile que su madre lo busca.'], x: ['No puedo esperar. Sigo buscando.'] });
 
+/* ---------- vecinos del barrio que piden a domicilio ---------- */
+const RES = { sp: 'res', hrs: [99, 99] };
+A('rosario', 'Rosario', 'vive con seis gatos',
+  { skin: SK.pale, hair: '#c4c0b8', hs: 'bun', top: '#5a4a5a', ts: 'jacket', legs: '#3a3040', h: 1.55, fem: 1, age: 1, gl: 1 },
+  { b: [2, 6, 1], m: [7, 2, 1], fr: 0.1, dr: 0.3, drk: [1, 8, 1], all: 0.3, hot: 0.05 }, Object.assign({ tip: 0.15, voice: 1.25 }, RES),
+  { g: ['¿Eres el del kebab? No pases, que se escapan los gatos.', 'Ay, qué rápido. Los gatos te oían desde la esquina.'], ok: ['Toma, hijo. Y una propinilla.', 'Que Dios te guarde por estas calles.'], late: ['Se ha enfriado, hijo. Lo calentaré.'], bad: ['Esto no se lo comen ni los gatos.'] });
+A('tomas', 'Tomás', 'no duerme desde hace días',
+  { skin: SK.light, hair: '#5a4a3a', top: '#7a6a5a', ts: 'jacket', legs: '#4a4a50', age: 0.6, beard: 1, bags: 1 },
+  { b: [5, 3, 2], m: [3, 4, 3], fr: 0.3, dr: 0.5, drk: [5, 4, 1] }, Object.assign({ tip: 0.1, voice: 0.9 }, RES),
+  { g: ['Llevo tres noches sin dormir. Tres.', 'Ah, eres tú. Creía que era otra vez el que llama y no habla.'], ok: ['Gracias. Cierra bien la verja al salir.'], late: ['Da igual. Ya no tengo hambre. Tengo miedo.'], bad: ['Esto no es lo que pedí. Creo. Ya no sé.'] });
+A('quique', 'Quique', 'partida de póker en casa',
+  { skin: SK.tan, hair: '#17130f', top: '#2a4a7a', ts: 'tee', w: 1.2, beard: 1, acc: 'cap' },
+  { b: [5, 2, 4], m: [3, 4, 3], fr: 0.7, dr: 0.9, drk: [3, 0, 7], all: 0.7, n2: 0.9 }, Object.assign({ tip: 0.2, voice: 1 }, RES),
+  { g: ['¡Por fin! ¡Chicos, el kebab!', '¿Cuánto es? Que vamos perdiendo al póker.'], ok: ['Toma, y quédate el cambio, que hoy gano.'], late: ['Frío como mi racha. Bueno, trae.'], bad: ['¿Esto qué es? Bah, con hambre todo entra.'] });
+A('nadia', 'Nadia', 'teletrabaja de noche',
+  { skin: SK.light, hair: '#3b2a1c', hs: 'long', top: '#9a8ab0', ts: 'hood', fem: 1, gl: 1, bags: 1 },
+  { b: [4, 3, 4], m: [6, 2, 2], fr: 0.4, dr: 0.6, drk: [4, 6, 0], all: 0.4, hot: 0.3 }, Object.assign({ tip: 0.15, voice: 1.3 }, RES),
+  { g: ['Hola... perdona las pintas, llevo diez horas delante de la pantalla.'], ok: ['Gracias. Eres la única persona que he visto hoy.'], late: ['Tarde, pero vale. Total, sigo despierta.'], bad: ['Mmm. Vale. No pasa nada.'] });
+A('bruno', 'Bruno', 'vigilante de la obra de enfrente',
+  { skin: SK.olive, hair: '#111', hs: 'bald', top: '#d8d21f', ts: 'vest', legs: '#2f3a2a', w: 1.25, beard: 2, age: 0.5 },
+  { b: [2, 1, 7], m: [2, 5, 3], fr: 0.5, dr: 0.6, drk: [5, 2, 3], all: 0.7 }, Object.assign({ tip: 0.1, voice: 0.7 }, RES),
+  { g: ['Buenas. Vigilo la obra de enfrente. Ahí no hay nadie... pero se oyen cosas.'], ok: ['Gracias, chaval. Si ves luz en la obra, no te acerques.'], late: ['Frío. Como la caseta.'], bad: ['Comida de obra. Bueno.'] });
+A('angela', 'Ángela', 'nunca enciende la luz',
+  { skin: SK.pale, hair: '#0e0c0b', hs: 'long', top: '#e8e4dc', ts: 'shirt', legs: '#e8e4dc', fem: 1, age: 0.3 },
+  { b: [3, 5, 2], m: [5, 3, 2], fr: 0.2, dr: 0.4, drk: [2, 8, 0], all: 0.2 }, Object.assign({ tip: 0.2, voice: 1.1 }, RES),
+  { g: ['No enciendas la luz del rellano.', '...Pensaba que no vendrías.'], ok: ['Gracias. Ahora vete. Rápido.'], late: ['Has tardado. Él también tarda siempre.'], bad: ['No importa. Ya no como mucho.'] });
+A('pepe', 'Pepe', 'abre solo una rendija',
+  { skin: SK.light, hair: '#8a8a88', top: '#4a5a3a', ts: 'jacket', age: 0.85, beard: 3, gl: 1 },
+  { fix: [{ k: 'kb', b: 0, m: 1, v: 7, s: 1 }, { k: 'dr', t: 2 }] }, Object.assign({ tip: 0.1, voice: 0.75 }, RES),
+  { g: ['Lo de siempre. No abro más.', 'Pásamelo por aquí.'], ok: ['Bien. El dinero, por la rendija.'], late: ['Tarde. Apuntado.'], bad: ['No. Así no lo hacía el de antes.'] });
+
 const GEN = {
   w: ['¿Falta mucho?', 'Oye, que llevo un rato.'], ok: ['Gracias. Buenas noches.'], bad: ['Esto no está muy allá...', 'Está regular, la verdad.'],
   x: ['Paso. Me voy a otro sitio.'], no: ['Eso no es lo que he pedido.'], raw: ['¡Esto está crudo!', 'Oye, la carne está sin hacer.'],
   burnt: ['Está carbonizado.'], unw: ['¿Y me lo das así, sin envolver?'], flee: ['¡¡Tiros!!', '¡Ay, madre!', '¡Corre!'], dark: ['¿Se ha ido la luz?', 'Eh, que no se ve nada.'],
-  nofr: ['¿Y las patatas de la caja?'], hm: ['Hoy sabe distinto. Está buenísimo.', '¿Has cambiado de proveedor? Mejor que nunca.'], gun: ['...'], g: ['Buenas noches.'], pre: ['Ponme'], post: [''],
+  nofr: ['¿Y las patatas de la caja?'], late: ['Llega frío, pero bueno.'], hm: ['Hoy sabe distinto. Está buenísimo.', '¿Has cambiado de proveedor? Mejor que nunca.'], gun: ['...'], g: ['Buenas noches.'], pre: ['Ponme'], post: [''],
 };
 const ANOM = {
   g: ['...', 'Buenas. Noches.'], o: ['Carne. Cruda. Sin pan.', 'Dame la carne. Sin hacer.', 'Tengo hambre. Cruda.'],
+  pasa: ['Pasa. Pasa dentro.', 'Aquí no vive nadie desde hace años.', 'Deja la bolsa. Y pasa.'],
   w: ['Hueles a caliente.', 'No me mires los ojos.', 'Llevas mucho rato despierto.', 'El de antes tampoco me sirvió.'], no: ['No. Cruda.'], atk: ['HAMBRE.'],
 };
 const MSG = {
@@ -229,7 +261,7 @@ const MSG = {
   robgone: 'El atracador sale corriendo.', deliv: 'Reparto recibido: verdura y cartuchos.', nodeliv: 'El repartidor se ha cansado de llamar.',
   blackout: 'Se ha ido la luz. El cuadro está en el almacén.', power: 'Vuelve la luz.', binfull: 'Verdura cortada y a la cubeta.',
   gone: 'Lo de la puerta deja de arañar.', lost: 'Un cliente se ha ido sin cenar.', ko: 'Te has desmayado. Te despiertas en la cocina.',
-  last: 'Son las seis. Persiana abajo cuando salga el último.', killed: 'Eso no era un cliente.', nowit: 'Nadie lo ha visto. Todavía.',
+  last: 'Son las seis. Persiana abajo cuando salga el último.', killed: 'Eso no era un cliente.', nowit: 'Nadie lo ha visto. Todavía.', phone: 'Suena el teléfono.', callmiss: 'Nadie ha cogido el teléfono.', spirits: 'El local está lleno de espíritus. Dejaste el cartel en ABIERTO.', dlcancel: 'Han cancelado un pedido a domicilio.', bikehit: 'Te han tirado de la moto.',
 };
 const RULES = [
   'Los clientes de verdad parpadean. Si no parpadea y tiene los ojos negros, no es un cliente.',
@@ -239,6 +271,9 @@ const RULES = [
   'Si se va la luz: el cuadro está en el almacén. No te quedes quieto a oscuras.',
   'Puerta de atrás: usa SIEMPRE la mirilla antes de abrir.',
   'A las 3:33 viene alguien. Siempre viene alguien.',
+  'Si llaman y no se oye nada, no vayas. El 13 de la Calle del Pozo no existe.',
+  'Si sales a repartir, cartel de CERRADO. Si lo dejas abierto y vacío, entran ellos.',
+  'Los perros del solar no son de nadie. Ni te bajes de la moto cerca.',
   'Lo que pase cuando no mira nadie, se queda en la cocina. La mesa del almacén sirve para algo más que verdura.',
 ];
 

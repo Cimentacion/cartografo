@@ -1,6 +1,7 @@
 /* ================= PERSONAJES ================= */
 const PLAYER_LOOK = Object.assign({}, LOOK0, { skin: SK.tan, hair: '#1d1a17', top: '#2b2f36', ts: 'apron', legs: '#22252b', h: 1.76, acc: 'cap', beard: 1 });
 const SHADOW_LOOK = Object.assign({}, LOOK0, { h: 2.3, w: 0.78, hs: 'bald', top: '#000', legs: '#000', skin: '#000' });
+const GHOST_LOOK = Object.assign({}, LOOK0, { skin: '#c8d4dc', hair: '#d8e0e4', hs: 'long', top: '#d8e0e8', ts: 'shirt', legs: '#c8d0d8', h: 1.8, w: 0.85, fem: 1 });
 const RIDER_LOOK = Object.assign({}, LOOK0, { skin: SK.olive, hair: '#1d1a17', beard: 1, top: '#3a5a3a', acc: 'cap', bags: 1 });
 function shade(hex, f) { const c = new THREE.Color(hex); c.multiplyScalar(f); return '#' + c.getHexString(); }
 const _gc = {};

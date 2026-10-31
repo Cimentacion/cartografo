@@ -1,5 +1,5 @@
 /* ================= DATOS ================= */
-const HOUR_LEN = 54, NIGHT_LEN = HOUR_LEN * 7;      // 23:00 -> 06:00
+const HOUR_LEN = 96, NIGHT_LEN = HOUR_LEN * 7;      // 23:00 -> 06:00
 const BASES = [{ n: 'dürüm', art: 'un', price: 6 }, { n: 'pita', art: 'una', price: 5 }, { n: 'caja', art: 'una', price: 7.5 }];
 const MEATS = ['pollo', 'ternera', 'mixto'];
 const VEGS = ['lechuga', 'tomate', 'cebolla'];
@@ -214,14 +214,46 @@ A('yolanda', 'Yolanda', 'busca a su hijo',
   { g: ['¿Has visto a un chaval con la camisa abierta? Es mi hijo.'], pre: ['Ya que estoy, ponme'], post: ['Como lo pille, se le acaba Benidorm.'],
     w: ['Date prisa, que sigo buscándolo.'], ok: ['Gracias. Si lo ves, dile que su madre lo busca.'], x: ['No puedo esperar. Sigo buscando.'] });
 
+/* ---------- vecinos del barrio que piden a domicilio ---------- */
+const RES = { sp: 'res', hrs: [99, 99] };
+A('rosario', 'Rosario', 'vive con seis gatos',
+  { skin: SK.pale, hair: '#c4c0b8', hs: 'bun', top: '#5a4a5a', ts: 'jacket', legs: '#3a3040', h: 1.55, fem: 1, age: 1, gl: 1 },
+  { b: [2, 6, 1], m: [7, 2, 1], fr: 0.1, dr: 0.3, drk: [1, 8, 1], all: 0.3, hot: 0.05 }, Object.assign({ tip: 0.15, voice: 1.25 }, RES),
+  { g: ['¿Eres el del kebab? No pases, que se escapan los gatos.', 'Ay, qué rápido. Los gatos te oían desde la esquina.'], ok: ['Toma, hijo. Y una propinilla.', 'Que Dios te guarde por estas calles.'], late: ['Se ha enfriado, hijo. Lo calentaré.'], bad: ['Esto no se lo comen ni los gatos.'] });
+A('tomas', 'Tomás', 'no duerme desde hace días',
+  { skin: SK.light, hair: '#5a4a3a', top: '#7a6a5a', ts: 'jacket', legs: '#4a4a50', age: 0.6, beard: 1, bags: 1 },
+  { b: [5, 3, 2], m: [3, 4, 3], fr: 0.3, dr: 0.5, drk: [5, 4, 1] }, Object.assign({ tip: 0.1, voice: 0.9 }, RES),
+  { g: ['Llevo tres noches sin dormir. Tres.', 'Ah, eres tú. Creía que era otra vez el que llama y no habla.'], ok: ['Gracias. Cierra bien la verja al salir.'], late: ['Da igual. Ya no tengo hambre. Tengo miedo.'], bad: ['Esto no es lo que pedí. Creo. Ya no sé.'] });
+A('quique', 'Quique', 'partida de póker en casa',
+  { skin: SK.tan, hair: '#17130f', top: '#2a4a7a', ts: 'tee', w: 1.2, beard: 1, acc: 'cap' },
+  { b: [5, 2, 4], m: [3, 4, 3], fr: 0.7, dr: 0.9, drk: [3, 0, 7], all: 0.7, n2: 0.9 }, Object.assign({ tip: 0.2, voice: 1 }, RES),
+  { g: ['¡Por fin! ¡Chicos, el kebab!', '¿Cuánto es? Que vamos perdiendo al póker.'], ok: ['Toma, y quédate el cambio, que hoy gano.'], late: ['Frío como mi racha. Bueno, trae.'], bad: ['¿Esto qué es? Bah, con hambre todo entra.'] });
+A('nadia', 'Nadia', 'teletrabaja de noche',
+  { skin: SK.light, hair: '#3b2a1c', hs: 'long', top: '#9a8ab0', ts: 'hood', fem: 1, gl: 1, bags: 1 },
+  { b: [4, 3, 4], m: [6, 2, 2], fr: 0.4, dr: 0.6, drk: [4, 6, 0], all: 0.4, hot: 0.3 }, Object.assign({ tip: 0.15, voice: 1.3 }, RES),
+  { g: ['Hola... perdona las pintas, llevo diez horas delante de la pantalla.'], ok: ['Gracias. Eres la única persona que he visto hoy.'], late: ['Tarde, pero vale. Total, sigo despierta.'], bad: ['Mmm. Vale. No pasa nada.'] });
+A('bruno', 'Bruno', 'vigilante de la obra de enfrente',
+  { skin: SK.olive, hair: '#111', hs: 'bald', top: '#d8d21f', ts: 'vest', legs: '#2f3a2a', w: 1.25, beard: 2, age: 0.5 },
+  { b: [2, 1, 7], m: [2, 5, 3], fr: 0.5, dr: 0.6, drk: [5, 2, 3], all: 0.7 }, Object.assign({ tip: 0.1, voice: 0.7 }, RES),
+  { g: ['Buenas. Vigilo la obra de enfrente. Ahí no hay nadie... pero se oyen cosas.'], ok: ['Gracias, chaval. Si ves luz en la obra, no te acerques.'], late: ['Frío. Como la caseta.'], bad: ['Comida de obra. Bueno.'] });
+A('angela', 'Ángela', 'nunca enciende la luz',
+  { skin: SK.pale, hair: '#0e0c0b', hs: 'long', top: '#e8e4dc', ts: 'shirt', legs: '#e8e4dc', fem: 1, age: 0.3 },
+  { b: [3, 5, 2], m: [5, 3, 2], fr: 0.2, dr: 0.4, drk: [2, 8, 0], all: 0.2 }, Object.assign({ tip: 0.2, voice: 1.1 }, RES),
+  { g: ['No enciendas la luz del rellano.', '...Pensaba que no vendrías.'], ok: ['Gracias. Ahora vete. Rápido.'], late: ['Has tardado. Él también tarda siempre.'], bad: ['No importa. Ya no como mucho.'] });
+A('pepe', 'Pepe', 'abre solo una rendija',
+  { skin: SK.light, hair: '#8a8a88', top: '#4a5a3a', ts: 'jacket', age: 0.85, beard: 3, gl: 1 },
+  { fix: [{ k: 'kb', b: 0, m: 1, v: 7, s: 1 }, { k: 'dr', t: 2 }] }, Object.assign({ tip: 0.1, voice: 0.75 }, RES),
+  { g: ['Lo de siempre. No abro más.', 'Pásamelo por aquí.'], ok: ['Bien. El dinero, por la rendija.'], late: ['Tarde. Apuntado.'], bad: ['No. Así no lo hacía el de antes.'] });
+
 const GEN = {
   w: ['¿Falta mucho?', 'Oye, que llevo un rato.'], ok: ['Gracias. Buenas noches.'], bad: ['Esto no está muy allá...', 'Está regular, la verdad.'],
   x: ['Paso. Me voy a otro sitio.'], no: ['Eso no es lo que he pedido.'], raw: ['¡Esto está crudo!', 'Oye, la carne está sin hacer.'],
   burnt: ['Está carbonizado.'], unw: ['¿Y me lo das así, sin envolver?'], flee: ['¡¡Tiros!!', '¡Ay, madre!', '¡Corre!'], dark: ['¿Se ha ido la luz?', 'Eh, que no se ve nada.'],
-  nofr: ['¿Y las patatas de la caja?'], hm: ['Hoy sabe distinto. Está buenísimo.', '¿Has cambiado de proveedor? Mejor que nunca.'], gun: ['...'], g: ['Buenas noches.'], pre: ['Ponme'], post: [''],
+  nofr: ['¿Y las patatas de la caja?'], late: ['Llega frío, pero bueno.'], hm: ['Hoy sabe distinto. Está buenísimo.', '¿Has cambiado de proveedor? Mejor que nunca.'], gun: ['...'], g: ['Buenas noches.'], pre: ['Ponme'], post: [''],
 };
 const ANOM = {
   g: ['...', 'Buenas. Noches.'], o: ['Carne. Cruda. Sin pan.', 'Dame la carne. Sin hacer.', 'Tengo hambre. Cruda.'],
+  pasa: ['Pasa. Pasa dentro.', 'Aquí no vive nadie desde hace años.', 'Deja la bolsa. Y pasa.'],
   w: ['Hueles a caliente.', 'No me mires los ojos.', 'Llevas mucho rato despierto.', 'El de antes tampoco me sirvió.'], no: ['No. Cruda.'], atk: ['HAMBRE.'],
 };
 const MSG = {
@@ -229,7 +261,7 @@ const MSG = {
   robgone: 'El atracador sale corriendo.', deliv: 'Reparto recibido: verdura y cartuchos.', nodeliv: 'El repartidor se ha cansado de llamar.',
   blackout: 'Se ha ido la luz. El cuadro está en el almacén.', power: 'Vuelve la luz.', binfull: 'Verdura cortada y a la cubeta.',
   gone: 'Lo de la puerta deja de arañar.', lost: 'Un cliente se ha ido sin cenar.', ko: 'Te has desmayado. Te despiertas en la cocina.',
-  last: 'Son las seis. Persiana abajo cuando salga el último.', killed: 'Eso no era un cliente.', nowit: 'Nadie lo ha visto. Todavía.',
+  last: 'Son las seis. Persiana abajo cuando salga el último.', killed: 'Eso no era un cliente.', nowit: 'Nadie lo ha visto. Todavía.', phone: 'Suena el teléfono.', callmiss: 'Nadie ha cogido el teléfono.', spirits: 'El local está lleno de espíritus. Dejaste el cartel en ABIERTO.', dlcancel: 'Han cancelado un pedido a domicilio.', bikehit: 'Te han tirado de la moto.',
 };
 const RULES = [
   'Los clientes de verdad parpadean. Si no parpadea y tiene los ojos negros, no es un cliente.',
@@ -239,6 +271,9 @@ const RULES = [
   'Si se va la luz: el cuadro está en el almacén. No te quedes quieto a oscuras.',
   'Puerta de atrás: usa SIEMPRE la mirilla antes de abrir.',
   'A las 3:33 viene alguien. Siempre viene alguien.',
+  'Si llaman y no se oye nada, no vayas. El 13 de la Calle del Pozo no existe.',
+  'Si sales a repartir, cartel de CERRADO. Si lo dejas abierto y vacío, entran ellos.',
+  'Los perros del solar no son de nadie. Ni te bajes de la moto cerca.',
   'Lo que pase cuando no mira nadie, se queda en la cocina. La mesa del almacén sirve para algo más que verdura.',
 ];
 
@@ -283,24 +318,24 @@ const LX = {
     base: ['dürüm', 'pita', 'caja'], bart: ['un', 'una', 'una'], meat: ['pollo', 'ternera', 'mixto'], veg: ['lechuga', 'tomate', 'cebolla'], sauce: ['salsa blanca', 'picante'], drink: ['cola', 'agua', 'cerveza'],
     vAll: 'con todo', vNone: 'sin verdura', vNo: 'sin {0}', vOnly: 'solo con {0}', sPh: ['sin salsa', 'salsa blanca', 'picante', 'las dos salsas'],
     frPh: 'unas patatas', drPh: ['una cola', 'un agua', 'una cerveza'], and: ' y ', fries: 'patatas', wfries: 'con patatas',
-    nm: { gun: 'la escopeta', fr: 'las patatas', dr: ['la cola', 'el agua', 'la cerveza'], vg: ['la lechuga', 'los tomates', 'las cebollas'], kb: ['el dürüm', 'la pita', 'la caja'], none: 'nada', body: 'el cuerpo', cone: 'la carne' },
-    h: { nomeat: 'sin carne', raw: ' (cruda)', closed: 'cerrada', wrapped: 'en aluminio', bad: ' (malas)', uncut: ' sin cortar', gun: 'ESCOPETA', body: 'CUERPO', cone: 'CARNE PARA EL ASADOR' },
+    nm: { gun: 'la escopeta', fr: 'las patatas', dr: ['la cola', 'el agua', 'la cerveza'], vg: ['la lechuga', 'los tomates', 'las cebollas'], kb: ['el dürüm', 'la pita', 'la caja'], none: 'nada', bag: 'la bolsa', body: 'el cuerpo', cone: 'la carne' },
+    h: { nomeat: 'sin carne', raw: ' (cruda)', closed: 'cerrada', wrapped: 'en aluminio', bad: ' (malas)', uncut: ' sin cortar', gun: 'ESCOPETA', bag: 'BOLSA DE REPARTO', body: 'CUERPO', cone: 'CARNE PARA EL ASADOR' },
     done: ['CRUDA', 'poco hecha', 'DORADA', 'pasada', 'QUEMADA'], fs: ['crudas', 'doradas', 'pasadas', 'quemadas'],
   },
   en: {
     base: ['dürüm', 'pita', 'kebab box'], bart: ['a', 'a', 'a'], meat: ['chicken', 'beef', 'mixed'], veg: ['lettuce', 'tomato', 'onion'], sauce: ['white sauce', 'hot sauce'], drink: ['cola', 'water', 'beer'],
     vAll: 'with everything', vNone: 'no salad', vNo: 'no {0}', vOnly: 'only {0}', sPh: ['no sauce', 'white sauce', 'hot sauce', 'both sauces'],
     frPh: 'some fries', drPh: ['a cola', 'a water', 'a beer'], and: ' and ', fries: 'fries', wfries: 'with fries',
-    nm: { gun: 'the shotgun', fr: 'the fries', dr: ['the cola', 'the water', 'the beer'], vg: ['the lettuce', 'the tomatoes', 'the onions'], kb: ['the dürüm', 'the pita', 'the box'], none: 'nothing', body: 'the body', cone: 'the meat' },
-    h: { nomeat: 'no meat', raw: ' (raw)', closed: 'closed', wrapped: 'wrapped', bad: ' (bad)', uncut: ', uncut', gun: 'SHOTGUN', body: 'BODY', cone: 'MEAT FOR THE SPIT' },
+    nm: { gun: 'the shotgun', fr: 'the fries', dr: ['the cola', 'the water', 'the beer'], vg: ['the lettuce', 'the tomatoes', 'the onions'], kb: ['the dürüm', 'the pita', 'the box'], none: 'nothing', bag: 'the bag', body: 'the body', cone: 'the meat' },
+    h: { nomeat: 'no meat', raw: ' (raw)', closed: 'closed', wrapped: 'wrapped', bad: ' (bad)', uncut: ', uncut', gun: 'SHOTGUN', bag: 'DELIVERY BAG', body: 'BODY', cone: 'MEAT FOR THE SPIT' },
     done: ['RAW', 'underdone', 'GOLDEN', 'overdone', 'BURNT'], fs: ['raw', 'golden', 'overdone', 'burnt'],
   },
   ro: {
     base: ['dürüm', 'pita', 'cutie'], bart: ['un', 'o', 'o'], meat: ['pui', 'vită', 'mixt'], veg: ['salată', 'roșii', 'ceapă'], sauce: ['sos alb', 'sos iute'], drink: ['cola', 'apă', 'bere'],
     vAll: 'cu de toate', vNone: 'fără legume', vNo: 'fără {0}', vOnly: 'doar cu {0}', sPh: ['fără sos', 'sos alb', 'sos iute', 'ambele sosuri'],
     frPh: 'niște cartofi', drPh: ['o cola', 'o apă', 'o bere'], and: ' și ', fries: 'cartofi', wfries: 'cu cartofi',
-    nm: { gun: 'pușca', fr: 'cartofii', dr: ['cola', 'apa', 'berea'], vg: ['salata', 'roșiile', 'ceapa'], kb: ['dürümul', 'pita', 'cutia'], none: 'nimic', body: 'trupul', cone: 'carnea' },
-    h: { nomeat: 'fără carne', raw: ' (crudă)', closed: 'închisă', wrapped: 'în folie', bad: ' (proști)', uncut: ' (de tăiat)', gun: 'PUȘCĂ', body: 'TRUP', cone: 'CARNE PENTRU ROTISOR' },
+    nm: { gun: 'pușca', fr: 'cartofii', dr: ['cola', 'apa', 'berea'], vg: ['salata', 'roșiile', 'ceapa'], kb: ['dürümul', 'pita', 'cutia'], none: 'nimic', bag: 'geanta', body: 'trupul', cone: 'carnea' },
+    h: { nomeat: 'fără carne', raw: ' (crudă)', closed: 'închisă', wrapped: 'în folie', bad: ' (proști)', uncut: ' (de tăiat)', gun: 'PUȘCĂ', bag: 'GEANTĂ DE LIVRARE', body: 'TRUP', cone: 'CARNE PENTRU ROTISOR' },
     done: ['CRUDĂ', 'puțin făcută', 'RUMENITĂ', 'trecută', 'ARSĂ'], fs: ['cruzi', 'aurii', 'trecuți', 'arși'],
   },
 };
@@ -327,12 +362,20 @@ const STR = {
     u_gun_take: 'Coger la escopeta', u_gun_hang: 'Colgar la escopeta', u_gun_busy: 'Escopeta (manos ocupadas)', u_gun_gone: 'La escopeta no está',
     u_trash: 'Tirar {0}', u_bin: 'Cubo de basura', u_fry_full: 'La bandeja de patatas está llena', u_fry_in: 'Echar patatas a la freidora', u_fry_out: 'Sacar las patatas ({0})',
     u_ft_none: 'No hay patatas hechas', u_ft_take: 'Coger patatas', u_ft_box: 'Añadir patatas a la caja', u_ft_n: 'Patatas hechas: {0}',
-    u_chop_put: 'Poner {0} en la tabla', u_chop: 'Cortar {0} ({1}/6)', u_hands: 'Suelta lo que llevas para cortar', u_chop_idle: 'Tabla de cortar (trae verdura del almacén)',
+    u_chop_put: 'Poner {0} en la tabla', u_chop: 'Cortar {0} ({1}/4)', u_hands: 'Suelta lo que llevas para cortar', u_chop_idle: 'Tabla de cortar (trae verdura del almacén)',
     u_fuse: 'Subir el diferencial', u_fusebox: 'Cuadro eléctrico', u_peep: 'Mirar por la mirilla', u_rules: 'Leer la nota del anterior cocinero', u_bdoor_closed: 'Puerta trasera. Cerrada.', u_bdoor_open: 'Abrir la puerta',
     u_carve: 'Cortar {0}', u_tray_n: 'Carne de {0} cortada · raciones: {1}', u_tray_low: 'Falta carne de {0} cortada', u_tray_full: 'No cabe más carne', u_tray_add: 'Echar {0}', u_raw: ' (está cruda)',
     u_has: 'Ya lleva {0}', u_out: 'No queda {0}. Hay que cortar más.', u_add: 'Añadir {0}', u_pour: 'Echar {0}', u_busy: '{0} (manos ocupadas)',
     u_base0: 'Coger una tortilla de dürüm', u_base1: 'Coger un pan de pita', u_base2: 'Coger una caja', u_pass_put: 'Dejar {0} en el pase', u_take: 'Coger {0}', u_pass_full: 'Pase (ocupado)', u_pass: 'Pase: deja aquí algo para tu compañero',
     u_drink: 'Coger {0}', u_veg: 'Coger {0} para cortar', u_give: 'Dar {0} a {1}', u_wait: '{0} espera su pedido',
+    u_phone: 'Teléfono', u_answer: 'Descolgar el teléfono', u_sign_close: 'Poner el cartel de CERRADO', u_sign_open: 'Poner el cartel de ABIERTO',
+    call_v: '«Hola, quería {0}. A la {1}, por favor.»', call_s: '…No se oye nada. Pero el pedido entra igual.', call_b: '…Solo una respiración. Cuelgan.', call_who: 'Teléfono',
+    dl_new: 'Pedido a domicilio: {0}', dl_head: 'REPARTO', dl_road: 'en camino', dl_late: 'llega tarde', dl_anon: 'número oculto', e_dl: 'Repartos', map_shop: 'KEBAB',
+    u_bag_put: 'Meter {0} en la bolsa', u_bag_take: 'Coger la bolsa para {0}', u_bag_none: 'Bolsa de reparto (no hay pedidos)', u_bag_nomatch: 'Eso no va en ningún pedido a domicilio', u_bag_fill: 'Bolsa de reparto · {0}',
+    u_bike_on: 'Subir a la Vespino', u_bike_busy: 'La Vespino está ocupada', u_bike_hands: 'En la moto solo cabe la bolsa de reparto', u_bike_off: 'Bajar de la moto', u_bike_slow: 'Frena para bajar',
+    u_ring: 'Llamar al timbre', u_wrongdoor: 'No es aquí. Va a {0}', u_wait_door: 'Ya has llamado. Espera.', u_give_bag: 'Dar la bolsa a {0}',
+    ride_kb: '[W] gas · [S] freno · [A/D] girar · [E] bajar', ride_touch: 'joystick: gas y dirección · Usar: bajar', ride_pad: 'stick: gas y dirección · (A) bajar',
+    pause_t: 'Pausa', pause_p: 'El turno está parado. Nadie se mueve.', resume: 'Seguir', tb_pause: 'Pausa',
     p2p_h: 'Jugar online con un amigo', p2p_create: 'Crear sala', p2p_join: 'Unirse', p2p_code: 'Código', p2p_copy: 'Copiar enlace', p2p_copied: 'Enlace copiado',
     p2p_note: 'Uno crea la sala y le pasa al otro el código de 4 cifras o el enlace. No hacen falta cuentas.', p2p_wait: 'Conectando…',
     p2p_ready: 'Sala {0} abierta. Pásale a tu amigo el código o este enlace:', p2p_joined: 'Dentro de la sala {0}.',
@@ -360,12 +403,20 @@ const STR = {
     u_gun_take: 'Take the shotgun', u_gun_hang: 'Hang the shotgun back', u_gun_busy: 'Shotgun (hands full)', u_gun_gone: 'The shotgun is gone',
     u_trash: 'Throw away {0}', u_bin: 'Bin', u_fry_full: 'The fries tray is full', u_fry_in: 'Drop fries in the fryer', u_fry_out: 'Lift the fries ({0})',
     u_ft_none: 'No fries ready', u_ft_take: 'Take fries', u_ft_box: 'Add fries to the box', u_ft_n: 'Fries ready: {0}',
-    u_chop_put: 'Put {0} on the board', u_chop: 'Chop {0} ({1}/6)', u_hands: 'Empty your hands to cut', u_chop_idle: 'Chopping board (bring vegetables from the storeroom)',
+    u_chop_put: 'Put {0} on the board', u_chop: 'Chop {0} ({1}/4)', u_hands: 'Empty your hands to cut', u_chop_idle: 'Chopping board (bring vegetables from the storeroom)',
     u_fuse: 'Flip the breaker', u_fusebox: 'Fuse box', u_peep: 'Look through the peephole', u_rules: "Read the last cook's note", u_bdoor_closed: 'Back door. Locked.', u_bdoor_open: 'Open the door',
     u_carve: 'Carve the {0}', u_tray_n: 'Carved {0} · portions: {1}', u_tray_low: 'Not enough carved {0}', u_tray_full: 'No room for more meat', u_tray_add: 'Add {0}', u_raw: " (it's raw)",
     u_has: 'Already has {0}', u_out: 'Out of {0}. Chop some more.', u_add: 'Add {0}', u_pour: 'Add {0}', u_busy: '{0} (hands full)',
     u_base0: 'Take a dürüm wrap', u_base1: 'Take a pita bread', u_base2: 'Take a box', u_pass_put: 'Leave {0} on the pass', u_take: 'Take {0}', u_pass_full: 'Pass (taken)', u_pass: 'Pass: leave something here for your partner',
     u_drink: 'Take {0}', u_veg: 'Take {0} to chop', u_give: 'Give {0} to {1}', u_wait: '{0} is waiting for the order',
+    u_phone: 'Phone', u_answer: 'Answer the phone', u_sign_close: 'Turn the sign to CLOSED', u_sign_open: 'Turn the sign to OPEN',
+    call_v: '"Hi, I\'d like {0}. To {1}, please."', call_s: '...Nothing on the line. But the order comes through anyway.', call_b: '...Just breathing. They hang up.', call_who: 'Phone',
+    dl_new: 'Delivery order: {0}', dl_head: 'DELIVERY', dl_road: 'on the way', dl_late: 'running late', dl_anon: 'withheld number', e_dl: 'Deliveries', map_shop: 'KEBAB',
+    u_bag_put: 'Put {0} in the bag', u_bag_take: 'Take the bag for {0}', u_bag_none: 'Delivery bag (no orders)', u_bag_nomatch: "That isn't part of any delivery order", u_bag_fill: 'Delivery bag · {0}',
+    u_bike_on: 'Get on the Vespino', u_bike_busy: 'Someone is on the Vespino', u_bike_hands: 'Only the delivery bag fits on the moped', u_bike_off: 'Get off', u_bike_slow: 'Slow down to get off',
+    u_ring: 'Ring the bell', u_wrongdoor: 'Not here. It goes to {0}', u_wait_door: 'You already rang. Wait.', u_give_bag: 'Give the bag to {0}',
+    ride_kb: '[W] throttle · [S] brake · [A/D] steer · [E] get off', ride_touch: 'joystick: throttle and steering · Use: get off', ride_pad: 'stick: throttle and steering · (A) get off',
+    pause_t: 'Paused', pause_p: 'The shift is on hold. Nothing moves.', resume: 'Resume', tb_pause: 'Pause',
     p2p_h: 'Play online with a friend', p2p_create: 'Create room', p2p_join: 'Join', p2p_code: 'Code', p2p_copy: 'Copy link', p2p_copied: 'Link copied',
     p2p_note: 'One of you creates the room and gives the other the 4-digit code or the link. No accounts needed.', p2p_wait: 'Connecting…',
     p2p_ready: 'Room {0} is open. Give your friend the code or this link:', p2p_joined: 'You are in room {0}.',
@@ -393,12 +444,20 @@ const STR = {
     u_gun_take: 'Ia pușca', u_gun_hang: 'Pune pușca la loc', u_gun_busy: 'Pușcă (ai mâinile ocupate)', u_gun_gone: 'Pușca nu e aici',
     u_trash: 'Aruncă {0}', u_bin: 'Coș de gunoi', u_fry_full: 'Tava de cartofi e plină', u_fry_in: 'Pune cartofi în friteuză', u_fry_out: 'Scoate cartofii ({0})',
     u_ft_none: 'Nu sunt cartofi gata', u_ft_take: 'Ia cartofi', u_ft_box: 'Pune cartofi în cutie', u_ft_n: 'Cartofi gata: {0}',
-    u_chop_put: 'Pune {0} pe tocător', u_chop: 'Taie {0} ({1}/6)', u_hands: 'Eliberează-ți mâinile ca să tai', u_chop_idle: 'Tocător (adu legume din magazie)',
+    u_chop_put: 'Pune {0} pe tocător', u_chop: 'Taie {0} ({1}/4)', u_hands: 'Eliberează-ți mâinile ca să tai', u_chop_idle: 'Tocător (adu legume din magazie)',
     u_fuse: 'Ridică siguranța', u_fusebox: 'Tablou electric', u_peep: 'Uită-te pe vizor', u_rules: 'Citește biletul fostului bucătar', u_bdoor_closed: 'Ușa din spate. Încuiată.', u_bdoor_open: 'Deschide ușa',
     u_carve: 'Taie carne de {0}', u_tray_n: 'Carne de {0} tăiată · porții: {1}', u_tray_low: 'Nu e destulă carne de {0} tăiată', u_tray_full: 'Nu mai încape carne', u_tray_add: 'Pune carne de {0}', u_raw: ' (e crudă)',
     u_has: 'Are deja {0}', u_out: 'S-a terminat: {0}. Trebuie tăiat.', u_add: 'Adaugă {0}', u_pour: 'Pune {0}', u_busy: '{0} (ai mâinile ocupate)',
     u_base0: 'Ia o lipie de dürüm', u_base1: 'Ia o pita', u_base2: 'Ia o cutie', u_pass_put: 'Lasă {0} pe blat', u_take: 'Ia {0}', u_pass_full: 'Blat (ocupat)', u_pass: 'Blat: lasă aici ceva pentru coleg',
     u_drink: 'Ia {0}', u_veg: 'Ia {0} de tăiat', u_give: '{1}: dă-i {0}', u_wait: '{0} își așteaptă comanda',
+    u_phone: 'Telefon', u_answer: 'Răspunde la telefon', u_sign_close: 'Întoarce plăcuța pe ÎNCHIS', u_sign_open: 'Întoarce plăcuța pe DESCHIS',
+    call_v: '„Bună, aș vrea {0}. La {1}, vă rog.”', call_s: '...Nu se aude nimic. Dar comanda intră oricum.', call_b: '...Doar o respirație. Închid.', call_who: 'Telefon',
+    dl_new: 'Comandă la domiciliu: {0}', dl_head: 'LIVRARE', dl_road: 'pe drum', dl_late: 'întârzie', dl_anon: 'număr ascuns', e_dl: 'Livrări', map_shop: 'KEBAB',
+    u_bag_put: 'Pune {0} în geantă', u_bag_take: 'Ia geanta pentru {0}', u_bag_none: 'Geantă de livrare (nicio comandă)', u_bag_nomatch: 'Asta nu e în nicio comandă la domiciliu', u_bag_fill: 'Geantă de livrare · {0}',
+    u_bike_on: 'Urcă pe Vespino', u_bike_busy: 'Vespino e ocupată', u_bike_hands: 'Pe moped încape doar geanta de livrare', u_bike_off: 'Coboară de pe moped', u_bike_slow: 'Frânează ca să cobori',
+    u_ring: 'Sună la ușă', u_wrongdoor: 'Nu e aici. Merge la {0}', u_wait_door: 'Ai sunat deja. Așteaptă.', u_give_bag: '{0}: dă-i geanta',
+    ride_kb: '[W] accelerezi · [S] frânezi · [A/D] virezi · [E] cobori', ride_touch: 'joystick: accelerație și direcție · Apasă: cobori', ride_pad: 'stick: accelerație și direcție · (A) cobori',
+    pause_t: 'Pauză', pause_p: 'Tura e oprită. Nu se mișcă nimic.', resume: 'Continuă', tb_pause: 'Pauză',
     p2p_h: 'Joacă online cu un prieten', p2p_create: 'Creează o cameră', p2p_join: 'Intră', p2p_code: 'Cod', p2p_copy: 'Copiază linkul', p2p_copied: 'Link copiat',
     p2p_note: 'Unul creează camera și îi dă celuilalt codul din 4 cifre sau linkul. Nu e nevoie de conturi.', p2p_wait: 'Se conectează…',
     p2p_ready: 'Camera {0} e deschisă. Dă-i prietenului codul sau linkul acesta:', p2p_joined: 'Ești în camera {0}.',
@@ -408,34 +467,34 @@ const STR = {
   },
 };
 const JOB = {
-  es: ['El cliente llega al mostrador y pide. Su comanda aparece a la derecha.', 'Coge el pan o la caja. Corta carne del asador con el cuchillo: solo la dorada.', 'Echa la carne de la bandeja, la verdura y las salsas que ha pedido. Envuelve.', 'Patatas en la freidora, bebidas en la nevera. Entrégalo todo en mano.', 'Hay una nota del cocinero anterior junto a la freidora. Léela.'],
-  en: ['The customer walks up to the counter and orders. The ticket shows up on the right.', 'Grab the bread or the box. Carve meat off the spit with the knife: only the golden part.', 'Add the meat from the tray, then the vegetables and sauces they asked for. Wrap it.', 'Fries go in the fryer, drinks are in the fridge. Hand everything over yourself.', "There's a note from the last cook next to the fryer. Read it."],
-  ro: ['Clientul vine la tejghea și comandă. Bonul apare în dreapta.', 'Ia lipia, pita sau cutia. Taie carne de pe rotisor cu cuțitul: doar partea rumenită.', 'Pune carnea din tavă, apoi legumele și sosurile cerute. Împachetează.', 'Cartofii se fac în friteuză, băuturile sunt în frigider. Dă-i totul în mână.', 'Lângă friteuză e un bilet de la fostul bucătar. Citește-l.'],
+  es: ['El cliente llega al mostrador y pide. Su comanda aparece a la derecha.', 'Coge el pan o la caja. Corta carne del asador con el cuchillo: solo la dorada.', 'Echa la carne de la bandeja, la verdura y las salsas que ha pedido. Envuelve.', 'Patatas en la freidora, bebidas en la nevera. Entrégalo todo en mano.', 'Hay una nota del cocinero anterior junto a la freidora. Léela.', 'Descuelga el teléfono: es un pedido a domicilio. Mételo en la bolsa roja junto a la puerta, pon el cartel de CERRADO y baja en la Vespino por la Calle del Pozo. El portal bueno tiene la luz encendida.'],
+  en: ['The customer walks up to the counter and orders. The ticket shows up on the right.', 'Grab the bread or the box. Carve meat off the spit with the knife: only the golden part.', 'Add the meat from the tray, then the vegetables and sauces they asked for. Wrap it.', 'Fries go in the fryer, drinks are in the fridge. Hand everything over yourself.', "There's a note from the last cook next to the fryer. Read it.", "Answer the phone: it's a delivery. Pack it in the red bag by the door, turn the sign to CLOSED and take the Vespino down Calle del Pozo. The right doorway has its light on."],
+  ro: ['Clientul vine la tejghea și comandă. Bonul apare în dreapta.', 'Ia lipia, pita sau cutia. Taie carne de pe rotisor cu cuțitul: doar partea rumenită.', 'Pune carnea din tavă, apoi legumele și sosurile cerute. Împachetează.', 'Cartofii se fac în friteuză, băuturile sunt în frigider. Dă-i totul în mână.', 'Lângă friteuză e un bilet de la fostul bucătar. Citește-l.', 'Răspunde la telefon: e o comandă la domiciliu. Pune-o în geanta roșie de lângă ușă, întoarce plăcuța pe ÎNCHIS și ia Vespino pe Calle del Pozo. La ușa bună e lumina aprinsă.'],
 };
 const CTL = {
-  es: [['WASD + ratón', 'moverse y mirar'], ['E o clic', 'usar, coger, entregar'], ['Clic con escopeta', 'disparar · R recarga'], ['Mando', 'sticks · A usar · RT disparar/cortar · X recarga · B salir'], ['Táctil', 'izquierda mover · derecha mirar · toque para usar']],
-  en: [['WASD + mouse', 'move and look'], ['E or click', 'use, pick up, hand over'], ['Click with shotgun', 'fire · R reloads'], ['Gamepad', 'sticks · A use · RT fire/carve · X reload · B exit'], ['Touch', 'left side moves · right side looks · tap to use']],
-  ro: [['WASD + mouse', 'mers și privit'], ['E sau clic', 'folosești, iei, predai'], ['Clic cu pușca', 'tragi · R reîncarcă'], ['Controller', 'stickuri · A folosește · RT trage/taie · X reîncarcă · B ieșire'], ['Tactil', 'stânga mers · dreapta privit · atingere ca să folosești']],
+  es: [['WASD + ratón', 'moverse y mirar'], ['E o clic', 'usar, coger, entregar'], ['Clic con escopeta', 'disparar · R recarga'], ['Mando', 'sticks · A usar · RT disparar/cortar · X recarga · B salir'], ['Táctil', 'izquierda mover · derecha mirar · toque para usar'], ['Vespino', 'E subir y bajar · W/S gas y freno · A/D girar · P pausa']],
+  en: [['WASD + mouse', 'move and look'], ['E or click', 'use, pick up, hand over'], ['Click with shotgun', 'fire · R reloads'], ['Gamepad', 'sticks · A use · RT fire/carve · X reload · B exit'], ['Touch', 'left side moves · right side looks · tap to use'], ['Vespino', 'E on/off · W/S throttle and brake · A/D steer · P pause']],
+  ro: [['WASD + mouse', 'mers și privit'], ['E sau clic', 'folosești, iei, predai'], ['Clic cu pușca', 'tragi · R reîncarcă'], ['Controller', 'stickuri · A folosește · RT trage/taie · X reîncarcă · B ieșire'], ['Tactil', 'stânga mers · dreapta privit · atingere ca să folosești'], ['Vespino', 'E urci/cobori · W/S accelerezi și frânezi · A/D virezi · P pauză']],
 };
 const RULESX = {
   es: RULES,
-  en: ["Real customers blink. If it doesn't blink and its eyes are black, it is not a customer.", "If it asks for the meat raw, don't give it. Shotgun.", 'Never shoot a real customer. Never.', 'Aiming is enough for a robber. Same for the one who leaves without paying.', "If the power goes out: the fuse box is in the storeroom. Don't stand still in the dark.", 'Back door: ALWAYS use the peephole before opening.', 'At 3:33 someone comes. Someone always comes.', 'What happens when nobody is watching stays in the kitchen. The table in the storeroom is good for more than vegetables.'],
-  ro: ['Clienții adevărați clipesc. Dacă nu clipește și are ochii negri, nu e client.', 'Dacă cere carnea crudă, nu i-o da. Pușca.', 'Nu trage niciodată într-un client adevărat. Niciodată.', 'Pe un hoț e de ajuns să-l ții în cătare. La fel și pe cel care pleacă fără să plătească.', 'Dacă se ia curentul: tabloul e în magazie. Nu sta pe loc pe întuneric.', 'Ușa din spate: uită-te ÎNTOTDEAUNA pe vizor înainte să deschizi.', 'La 3:33 vine cineva. Întotdeauna vine cineva.', 'Ce se întâmplă când nu se uită nimeni rămâne în bucătărie. Masa din magazie e bună și la altceva decât legume.'],
+  en: ["Real customers blink. If it doesn't blink and its eyes are black, it is not a customer.", "If it asks for the meat raw, don't give it. Shotgun.", 'Never shoot a real customer. Never.', 'Aiming is enough for a robber. Same for the one who leaves without paying.', "If the power goes out: the fuse box is in the storeroom. Don't stand still in the dark.", 'Back door: ALWAYS use the peephole before opening.', 'At 3:33 someone comes. Someone always comes.', 'If they call and you hear nothing, do not go. Number 13 on Calle del Pozo does not exist.', 'If you go out to deliver, turn the sign to CLOSED. Left open and empty, they come in.', "The dogs in the empty lot belong to nobody. Don't even get off the moped near them.", 'What happens when nobody is watching stays in the kitchen. The table in the storeroom is good for more than vegetables.'],
+  ro: ['Clienții adevărați clipesc. Dacă nu clipește și are ochii negri, nu e client.', 'Dacă cere carnea crudă, nu i-o da. Pușca.', 'Nu trage niciodată într-un client adevărat. Niciodată.', 'Pe un hoț e de ajuns să-l ții în cătare. La fel și pe cel care pleacă fără să plătească.', 'Dacă se ia curentul: tabloul e în magazie. Nu sta pe loc pe întuneric.', 'Ușa din spate: uită-te ÎNTOTDEAUNA pe vizor înainte să deschizi.', 'La 3:33 vine cineva. Întotdeauna vine cineva.', 'Dacă sună și nu se aude nimic, nu te duce. Numărul 13 de pe Calle del Pozo nu există.', 'Dacă ieși cu livrări, întoarce plăcuța pe ÎNCHIS. Dacă rămâne deschis și gol, intră ei.', 'Câinii de pe maidan nu sunt ai nimănui. Nici să nu cobori de pe moped lângă ei.', 'Ce se întâmplă când nu se uită nimeni rămâne în bucătărie. Masa din magazie e bună și la altceva decât legume.'],
 };
 const MSGX = {
   es: MSG,
-  en: { karma: 'Julián leaves fed. The neighbourhood hears about it. (+reputation)', sinpa: 'He left without paying.', robbed: 'They emptied the till.', robgone: 'The robber runs off.', deliv: 'Delivery received: vegetables and shells.', nodeliv: 'The delivery man got tired of knocking.', blackout: 'The power is out. The fuse box is in the storeroom.', power: 'The lights are back.', binfull: 'Vegetables chopped and in the tub.', gone: 'The thing at the door stops scratching.', lost: 'A customer left without dinner.', ko: 'You passed out. You wake up in the kitchen.', last: "It's six. Shutters down when the last one leaves.", killed: 'That was not a customer.', nowit: 'Nobody saw it. Yet.' },
-  ro: { karma: 'Julián pleacă sătul. Află tot cartierul. (+reputație)', sinpa: 'A plecat fără să plătească.', robbed: 'Ți-au golit casa de marcat.', robgone: 'Hoțul o ia la fugă.', deliv: 'Livrare primită: legume și cartușe.', nodeliv: 'Livratorul s-a săturat să bată la ușă.', blackout: 'S-a luat curentul. Tabloul e în magazie.', power: 'A revenit curentul.', binfull: 'Legume tăiate și puse în tavă.', gone: 'Ce era la ușă nu mai zgârie.', lost: 'Un client a plecat nemâncat.', ko: 'Ai leșinat. Te trezești în bucătărie.', last: 'E șase. Tragi oblonul când pleacă ultimul.', killed: 'Ăla nu era client.', nowit: 'Nu a văzut nimeni. Încă.' },
+  en: { karma: 'Julián leaves fed. The neighbourhood hears about it. (+reputation)', sinpa: 'He left without paying.', robbed: 'They emptied the till.', robgone: 'The robber runs off.', deliv: 'Delivery received: vegetables and shells.', nodeliv: 'The delivery man got tired of knocking.', blackout: 'The power is out. The fuse box is in the storeroom.', power: 'The lights are back.', binfull: 'Vegetables chopped and in the tub.', gone: 'The thing at the door stops scratching.', lost: 'A customer left without dinner.', ko: 'You passed out. You wake up in the kitchen.', last: "It's six. Shutters down when the last one leaves.", killed: 'That was not a customer.', nowit: 'Nobody saw it. Yet.', phone: 'The phone is ringing.', callmiss: 'Nobody picked up the phone.', spirits: 'The shop is full of spirits. You left the sign on OPEN.', dlcancel: 'A delivery order was cancelled.', bikehit: 'You got knocked off the moped.' },
+  ro: { karma: 'Julián pleacă sătul. Află tot cartierul. (+reputație)', sinpa: 'A plecat fără să plătească.', robbed: 'Ți-au golit casa de marcat.', robgone: 'Hoțul o ia la fugă.', deliv: 'Livrare primită: legume și cartușe.', nodeliv: 'Livratorul s-a săturat să bată la ușă.', blackout: 'S-a luat curentul. Tabloul e în magazie.', power: 'A revenit curentul.', binfull: 'Legume tăiate și puse în tavă.', gone: 'Ce era la ușă nu mai zgârie.', lost: 'Un client a plecat nemâncat.', ko: 'Ai leșinat. Te trezești în bucătărie.', last: 'E șase. Tragi oblonul când pleacă ultimul.', killed: 'Ăla nu era client.', nowit: 'Nu a văzut nimeni. Încă.', phone: 'Sună telefonul.', callmiss: 'N-a răspuns nimeni la telefon.', spirits: 'Localul e plin de spirite. Ai lăsat plăcuța pe DESCHIS.', dlcancel: 'S-a anulat o comandă la domiciliu.', bikehit: 'Te-au dat jos de pe moped.' },
 };
 const GENX = {
   es: GEN,
-  en: { w: ['Is it going to be long?', "Hey, I've been here a while."], ok: ['Thanks. Good night.'], bad: ["This isn't great...", "It's so-so, honestly."], x: ["Forget it. I'm going somewhere else."], no: ["That's not what I ordered."], raw: ['This is raw!', "Hey, the meat's not cooked."], burnt: ["It's charred."], unw: ['And you hand it to me like that, unwrapped?'], flee: ['Gunshots!!', 'Oh my God!', 'Run!'], dark: ['Did the lights go out?', "Hey, I can't see a thing."], nofr: ['Where are the fries in the box?'], hm: ["Tastes different today. It's really good.", 'New supplier? Best one yet.'], gun: ['...'], g: ['Good evening.'], pre: ['Give me'], post: [''] },
-  ro: { w: ['Mai durează mult?', 'Auzi, stau de ceva vreme.'], ok: ['Mersi. Noapte bună.'], bad: ['Nu-i cine știe ce...', 'E așa și așa, sincer.'], x: ['Las-o. Mă duc în altă parte.'], no: ['Nu asta am cerut.'], raw: ['E crud!', 'Auzi, carnea nu-i făcută.'], burnt: ['E carbonizat.'], unw: ['Și mi-l dai așa, neîmpachetat?'], flee: ['Împușcături!!', 'Vai de mine!', 'Fugi!'], dark: ['S-a luat curentul?', 'Hei, nu se vede nimic.'], nofr: ['Și cartofii din cutie?'], hm: ['Azi are alt gust. E foarte bun.', 'Ai schimbat furnizorul? Mai bun ca oricând.'], gun: ['...'], g: ['Bună seara.'], pre: ['Dă-mi'], post: [''] },
+  en: { w: ['Is it going to be long?', "Hey, I've been here a while."], ok: ['Thanks. Good night.'], bad: ["This isn't great...", "It's so-so, honestly."], x: ["Forget it. I'm going somewhere else."], no: ["That's not what I ordered."], raw: ['This is raw!', "Hey, the meat's not cooked."], burnt: ["It's charred."], unw: ['And you hand it to me like that, unwrapped?'], flee: ['Gunshots!!', 'Oh my God!', 'Run!'], dark: ['Did the lights go out?', "Hey, I can't see a thing."], nofr: ['Where are the fries in the box?'], late: ["It's cold, but fine."], hm: ["Tastes different today. It's really good.", 'New supplier? Best one yet.'], gun: ['...'], g: ['Good evening.'], pre: ['Give me'], post: [''] },
+  ro: { w: ['Mai durează mult?', 'Auzi, stau de ceva vreme.'], ok: ['Mersi. Noapte bună.'], bad: ['Nu-i cine știe ce...', 'E așa și așa, sincer.'], x: ['Las-o. Mă duc în altă parte.'], no: ['Nu asta am cerut.'], raw: ['E crud!', 'Auzi, carnea nu-i făcută.'], burnt: ['E carbonizat.'], unw: ['Și mi-l dai așa, neîmpachetat?'], flee: ['Împușcături!!', 'Vai de mine!', 'Fugi!'], dark: ['S-a luat curentul?', 'Hei, nu se vede nimic.'], nofr: ['Și cartofii din cutie?'], late: ['A venit rece, dar fie.'], hm: ['Azi are alt gust. E foarte bun.', 'Ai schimbat furnizorul? Mai bun ca oricând.'], gun: ['...'], g: ['Bună seara.'], pre: ['Dă-mi'], post: [''] },
 };
 const ANOMX = {
   es: ANOM,
-  en: { g: ['...', 'Good. Evening.'], o: ['Meat. Raw. No bread.', 'Give me the meat. Uncooked.', "I'm hungry. Raw."], w: ['You smell warm.', "Don't look at my eyes.", "You've been awake a long time.", "The last one didn't serve me either."], no: ['No. Raw.'], atk: ['HUNGRY.'] },
-  ro: { g: ['...', 'Bună. Seara.'], o: ['Carne. Crudă. Fără pâine.', 'Dă-mi carnea. Nefăcută.', 'Mi-e foame. Crudă.'], w: ['Miroși a cald.', 'Nu te uita în ochii mei.', 'Ești treaz de mult.', 'Nici cel dinainte nu m-a servit.'], no: ['Nu. Crudă.'], atk: ['FOAME.'] },
+  en: { pasa: ['Come in. Come inside.', 'Nobody has lived here for years.', 'Leave the bag. And come in.'], g: ['...', 'Good. Evening.'], o: ['Meat. Raw. No bread.', 'Give me the meat. Uncooked.', "I'm hungry. Raw."], w: ['You smell warm.', "Don't look at my eyes.", "You've been awake a long time.", "The last one didn't serve me either."], no: ['No. Raw.'], atk: ['HUNGRY.'] },
+  ro: { pasa: ['Intră. Intră înăuntru.', 'Aici nu mai locuiește nimeni de ani de zile.', 'Lasă geanta. Și intră.'], g: ['...', 'Bună. Seara.'], o: ['Carne. Crudă. Fără pâine.', 'Dă-mi carnea. Nefăcută.', 'Mi-e foame. Crudă.'], w: ['Miroși a cald.', 'Nu te uita în ochii mei.', 'Ești treaz de mult.', 'Nici cel dinainte nu m-a servit.'], no: ['Nu. Crudă.'], atk: ['FOAME.'] },
 };
 
 /* ---------- los 28 clientes, traducidos ---------- */
@@ -469,6 +528,13 @@ const XL = {
     oscar: { role: 'ambulance technician', g: ["Evening. I've got five minutes between calls."], pre: ['Give me'], post: ["And if the radio goes off, I'm running."], w: ["Come on, a call's about to come in."], ok: ['Perfect. Take care tonight.'], x: ['Call. I have to go.'] },
     fermin: { role: 'walks the dog at four', g: ["Evening. The dog's staying outside. He won't come in. That's never happened before."], pre: ['Give me'], post: ["He's been barking at your back door all night."], w: ["Come on, the dog's getting nervous."], ok: ["Thanks. Come on, Toby, let's get out of here."], x: ["The dog's pulling me away. I'm off."] },
     yolanda: { role: 'looking for her son', g: ["Have you seen a lad with his shirt open? He's my son."], pre: ["While I'm here, give me"], post: ['When I catch him, Benidorm is over for him.'], w: ["Hurry up, I'm still looking for him."], ok: ["Thanks. If you see him, tell him his mother's looking for him."], x: ["I can't wait. I'll keep looking."] },
+    rosario: { role: 'lives with six cats', g: ["Are you the kebab man? Don't come in, the cats will get out.", 'Oh, that was quick. The cats heard you from the corner.'], ok: ['Here, love. And a little tip.', 'God keep you on these streets.'], late: ["It's gone cold, love. I'll warm it up."], bad: ['Not even the cats would eat this.'] },
+    tomas: { role: "hasn't slept in days", g: ['Three nights without sleep. Three.', "Oh, it's you. I thought it was the one who calls and doesn't speak."], ok: ['Thanks. Close the gate properly on your way out.'], late: ["Doesn't matter. I'm not hungry anymore. I'm scared."], bad: ["This isn't what I ordered. I think. I don't know anymore."] },
+    quique: { role: 'poker night at home', g: ['Finally! Guys, the kebab!', "How much? We're losing at poker."], ok: ["Here, keep the change, I'm winning tonight."], late: ['Cold as my luck. Fine, hand it over.'], bad: ['What is this? Bah, when you are hungry anything goes.'] },
+    nadia: { role: 'works from home at night', g: ['Hi... sorry about the state of me, ten hours in front of the screen.'], ok: ["Thanks. You're the only person I've seen today."], late: ["Late, but fine. I'm still awake anyway."], bad: ["Hmm. OK. It's fine."] },
+    bruno: { role: 'guards the building site opposite', g: ["Evening. I guard the site across the road. Nobody's there... but you hear things."], ok: ['Thanks, kid. If you see a light on the site, stay away.'], late: ['Cold. Like the hut.'], bad: ['Site food. Fine.'] },
+    angela: { name: 'Ángela', role: 'never turns the light on', g: ["Don't turn on the landing light.", "...I thought you wouldn't come."], ok: ['Thank you. Now go. Quickly.'], late: ['You took your time. He always does too.'], bad: ["It doesn't matter. I don't eat much anymore."] },
+    pepe: { role: 'only opens the door a crack', g: ["The usual. I'm not opening any wider.", 'Pass it through here.'], ok: ['Good. The money, through the gap.'], late: ['Late. Noted.'], bad: ["No. The last one didn't do it like that."] },
   },
   ro: {
     dave: { role: 'petrecerea burlacilor', g: ['Amigo! Amigooo...', "Oi oi. Bună seara, șefu'."], pre: ['One... uno... ăă,', 'Mate, dă-mi'], post: ['Por favor. Cheers.', 'Și repede, că pic din picioare.'], w: ['Mate... mai durează mult?', 'Amigo, mor de foame, pe bune.'], ok: ['Legend! Ești o legendă.', 'Cheers, amigo. Cel mai bun kebab din Spania.'], bad: ["E... ciudat. Da' îl mănânc."], x: ['Bah. Mă duc la burgeri.'], no: ['Nu, nu, nu. Ăsta nu-i al meu, mate.'] },
@@ -499,6 +565,13 @@ const XL = {
     oscar: { role: 'paramedic pe ambulanță', g: ['Bună seara. Am cinci minute între apeluri.'], pre: ['Dă-mi'], post: ['Și dacă sună stația, am fugit.'], w: ['Hai, că vine un apel.'], ok: ['Perfect. Aveți grijă în noaptea asta.'], x: ['Apel. Trebuie să plec.'] },
     fermin: { role: 'plimbă câinele la patru dimineața', g: ['Bună seara. Câinele rămâne afară. Nu vrea să intre. Nu i s-a mai întâmplat.'], pre: ['Dă-mi'], post: ['Toată noaptea a lătrat la ușa voastră din spate.'], w: ['Hai, că se agită câinele.'], ok: ['Mersi. Hai, Toby, să plecăm de aici.'], x: ['Mă trage câinele. Am plecat.'] },
     yolanda: { role: 'își caută fiul', g: ['Ai văzut un băiat cu cămașa descheiată? E fiu-meu.'], pre: ['Dacă tot sunt aici, dă-mi'], post: ['Când pun mâna pe el, s-a terminat cu Benidormul.'], w: ['Grăbește-te, că încă îl caut.'], ok: ['Mersi. Dacă îl vezi, spune-i că îl caută maică-sa.'], x: ['Nu pot să aștept. Mai caut.'] },
+    rosario: { role: 'locuiește cu șase pisici', g: ['Tu ești cel cu kebabul? Nu intra, că fug pisicile.', 'Vai, ce repede. Pisicile te-au auzit de la colț.'], ok: ['Ține, maică. Și un mic bacșiș.', 'Să te păzească Dumnezeu pe străzile astea.'], late: ['S-a răcit, maică. Îl încălzesc eu.'], bad: ['Asta n-o mănâncă nici pisicile.'] },
+    tomas: { role: 'nu mai doarme de zile întregi', g: ['De trei nopți nu dorm. Trei.', 'A, tu ești. Credeam că e iar cel care sună și nu vorbește.'], ok: ['Mersi. Închide bine poarta când ieși.'], late: ['Nu mai contează. Nu mi-e foame. Mi-e frică.'], bad: ['Nu asta am comandat. Cred. Nu mai știu.'] },
+    quique: { role: 'partidă de poker acasă', g: ['În sfârșit! Băieți, a venit kebabul!', 'Cât face? Că pierdem la poker.'], ok: ['Ține și păstrează restul, că azi câștig.'], late: ['Rece ca norocul meu. Bine, dă-l încoace.'], bad: ['Ce-i asta? Bah, când ți-e foame merge orice.'] },
+    nadia: { role: 'lucrează de acasă noaptea', g: ['Bună... scuze cum arăt, stau de zece ore în fața ecranului.'], ok: ['Mersi. Ești singurul om pe care l-am văzut azi.'], late: ['Târziu, dar e bine. Oricum sunt trează.'], bad: ['Mmm. Bine. Nu-i nimic.'] },
+    bruno: { role: 'paznicul șantierului de vizavi', g: ['Bună seara. Păzesc șantierul de vizavi. Nu e nimeni acolo... dar se aud lucruri.'], ok: ['Mersi, puștiule. Dacă vezi lumină pe șantier, nu te apropia.'], late: ['Rece. Ca baraca.'], bad: ['Mâncare de șantier. Fie.'] },
+    angela: { role: 'nu aprinde niciodată lumina', g: ['Nu aprinde lumina de pe palier.', '...Credeam că n-o să vii.'], ok: ['Mulțumesc. Acum pleacă. Repede.'], late: ['Ai întârziat. Și el întârzie mereu.'], bad: ['Nu contează. Nu mai mănânc mult.'] },
+    pepe: { role: 'deschide ușa doar o crăpătură', g: ['Ca de obicei. Nu deschid mai mult.', 'Dă-mi-l pe aici.'], ok: ['Bine. Banii, prin crăpătură.'], late: ['Târziu. Notat.'], bad: ['Nu. Cel dinainte nu-l făcea așa.'] },
   },
 };
 
@@ -541,7 +614,7 @@ function orderPhrase(ord) {
 }
 function itemName(h) {
   const N = LX[LANG].nm; if (!h) return N.none;
-  if (h.k === 'body') return N.body; if (h.k === 'cone') return N.cone;
+  if (h.k === 'bag') return N.bag; if (h.k === 'body') return N.body; if (h.k === 'cone') return N.cone;
   if (h.k === 'gun') return N.gun; if (h.k === 'fr') return N.fr; if (h.k === 'dr') return N.dr[h.t]; if (h.k === 'vg') return N.vg[h.t]; if (h.k === 'kb') return N.kb[h.b];
   return '?';
 }
@@ -557,6 +630,7 @@ function handDesc(h) {
   if (h.k === 'dr') return X.drink[h.t].toUpperCase();
   if (h.k === 'vg') return X.veg[h.t].toUpperCase() + Hh.uncut;
   if (h.k === 'gun') return Hh.gun;
+  if (h.k === 'bag') { const o = W && W.dl ? W.dl.find(q => q.i === h.d) : null; return Hh.bag + (o ? ' · ' + addrOf(o.d) : ''); }
   if (h.k === 'body') return Hh.body; if (h.k === 'cone') return Hh.cone;
   return '';
 }
@@ -588,6 +662,10 @@ const AU = {
       this.L.fry = this.loopNoise('bandpass', 2600, 0.6, 0);
       // viento de la calle
       this.L.wind = this.loopNoise('lowpass', 260, 0.4, 0.03);
+      // motor de dos tiempos de la Vespino: diente de sierra + cuadrada desafinada, filtradas
+      const eg = c.createGain(), ef = c.createBiquadFilter(); ef.type = 'lowpass'; ef.frequency.value = 900; eg.gain.value = 0; ef.connect(eg); eg.connect(this.out);
+      this.engO = [['sawtooth', 48], ['square', 49.5]].map(([t, f]) => { const o = c.createOscillator(); o.type = t; o.frequency.value = f; o.connect(ef); o.start(); return o; });
+      this.L.eng = eg; this.engF = ef; this.dogT = 8;
     } catch (e) { this.ctx = null; }
   },
   loopOsc(type, f, vol, lp) {
@@ -654,13 +732,19 @@ const AU = {
       case 'grab': this.nz(0.05, 'lowpass', 900, 0.7, 0.14, 0); break;
       case 'die': this.tone(140, 0.5, 'sine', 0.5 * v, 0, 40, d); this.nz(0.3, 'lowpass', 400, 0.7, 0.5 * v, 0.1, 0, d); break;
       case 'door': this.nz(0.9, 'bandpass', 500, 6, 0.3 * v, 0, 220, d); break;
+      case 'ring': for (let i = 0; i < 2; i++) for (let k = 0; k < 10; k++) { this.tone(440, 0.05, 'square', 0.05 * v, i * 0.9 + k * 0.05, 0, d); this.tone(480, 0.05, 'square', 0.05 * v, i * 0.9 + k * 0.05 + 0.025, 0, d); } break;
+      case 'bell2': this.tone(784, 0.6, 'sine', 0.2 * Math.max(v, 0.5), 0, 0, d); this.tone(622, 0.9, 'sine', 0.2 * Math.max(v, 0.5), 0.45, 0, d); break;
+      case 'bark': for (let i = 0; i < 2; i++) { this.tone(380, 0.12, 'sawtooth', 0.22 * Math.max(v, 0.15), i * 0.22, 170, d); this.nz(0.12, 'bandpass', 900, 2, 0.25 * Math.max(v, 0.15), i * 0.22, 0, d); } break;
+      case 'crash': this.nz(0.5, 'lowpass', 1800, 0.5, 0.7 * Math.max(v, 0.4), 0, 120, d); this.tone(80, 0.3, 'sine', 0.6 * Math.max(v, 0.4), 0, 40, d); this.nz(0.6, 'highpass', 4000, 0.5, 0.2, 0.05, 0, d); break;
     }
   },
   frame(dt, env) {
     const c = this.ctx; if (!c) return;
     const t = c.currentTime, set = (g, v) => g.gain.setTargetAtTime(v, t, 0.08);
     set(this.L.hum, env.power ? 0.012 : 0); set(this.L.hum2, env.power ? 0.03 : 0.004);
-    set(this.L.siz, 0.05 * env.siz); set(this.L.fry, 0.09 * env.fry); set(this.L.wind, 0.02 + 0.03 * env.out);
+    set(this.L.siz, 0.05 * env.siz); set(this.L.eng, 0.045 * (env.eng || 0));
+    if (env.eng) { const f = 44 + (env.rpm || 0) * 120; this.engO[0].frequency.setTargetAtTime(f, t, 0.05); this.engO[1].frequency.setTargetAtTime(f * 1.03, t, 0.05); this.engF.frequency.setTargetAtTime(600 + (env.rpm || 0) * 1800, t, 0.05); }
+    if (env.out > 0.5) { this.dogT -= dt; if (this.dogT <= 0) { this.dogT = 9 + Math.random() * 20; this.play('bark', this.lis.x + (Math.random() - 0.5) * 60, this.lis.z + 30 + Math.random() * 20); } } set(this.L.fry, 0.09 * env.fry); set(this.L.wind, 0.02 + 0.03 * env.out);
     // bombo lejano de alguna discoteca
     this.kick -= dt;
     if (this.kick <= 0) { this.kick += 0.48; this.tone(62, 0.16, 'sine', 0.035 * (env.club || 0), 0, 38); }
@@ -821,6 +905,11 @@ function itemMesh(h) {
     for (let i = 0; i < 9; i++) { const f = add(new THREE.BoxGeometry(0.012, 0.09, 0.012), fm, Math.cos(i * 2.4) * 0.03, 0.11, Math.sin(i * 2.4) * 0.03); f.rotation.set(Math.sin(i) * 0.3, 0, Math.cos(i * 1.7) * 0.3); }
     return g;
   }
+  if (h.k === 'bag') {
+    add(new THREE.BoxGeometry(0.34, 0.3, 0.28), lam(null, 0xa0201a), 0, 0.15, 0); add(new THREE.BoxGeometry(0.35, 0.04, 0.29), lam(null, 0x6a1410), 0, 0.31, 0);
+    add(new THREE.BoxGeometry(0.2, 0.06, 0.02), lam(null, 0x1a1a1a), 0, 0.36, 0); add(new THREE.BoxGeometry(0.16, 0.06, 0.005), lam(null, 0xe8d8b0), 0, 0.17, -0.142);
+    return g;
+  }
   if (h.k === 'body') {
     const m = lam('bag', 0x8a8a92), rope = lam(null, 0xa89060);
     add(new THREE.BoxGeometry(0.62, 0.2, 0.26), m, 0, 0.1, 0); add(new THREE.SphereGeometry(0.11, 6, 5), m, -0.37, 0.11, 0);
@@ -886,14 +975,9 @@ function buildWorld() {
   const dr = box(1.15, 2.1, 0.05, lam(null, 0x30363a, { transparent: true, opacity: 0.55 }), -3.2 + 0.1, 1.05, 4.45, { ry: PI / 2 - 0.25 });
   D.frontDoor = dr;
   // exterior
-  plane(44, 3, M.pave, 0, -0.02, 6.5, -PI / 2, 0, 1.5);
-  plane(44, 7, M.asph, 0, -0.03, 11.5, -PI / 2, 0, 3);
-  plane(44, 9, M.brick, 0, 4.5, 15, 0, PI, 2.2);
-  for (let i = 0; i < 7; i++) plane(1.1, 1.4, bas(i === 4 ? 0x3a3214 : 0x07080a), -13 + i * 4.3, 4.4, 14.95, 0, PI);
-  D.figWin = plane(0.42, 0.9, bas(0x050505), -13 + 4 * 4.3, 4.2, 14.9, 0, PI);
   cyl(0.06, 0.08, 4.4, 6, M.dark, 1.6, 2.2, 8.4); box(0.9, 0.08, 0.14, M.dark, 1.2, 4.4, 8.4);
   D.lampHead = box(0.4, 0.06, 0.16, bas(0xffb45a), 0.9, 4.35, 8.4);
-  box(1.9, 1.25, 4.3, lam(null, 0x16181d), -7.5, 0.7, 10.2); box(1.7, 0.6, 2.3, lam(null, 0x0d0e12), -7.5, 1.55, 10.3);
+  box(1.9, 1.25, 4.3, lam(null, 0x16181d), -7.5, 0.7, 10.2, { col: true }); box(1.7, 0.6, 2.3, lam(null, 0x0d0e12), -7.5, 1.55, 10.3);
   // --- almacén: x[0.5,4] z[-7.5,-4.2] ---
   plane(3.5, 3.3, M.concf, 2.25, 0.001, -5.85, -PI / 2, 0, 1.5, true);
   plane(3.5, 3.3, lam('conc', 0x6f6d68), 2.25, 2.6, -5.85, PI / 2, 0, 2, true);
@@ -902,7 +986,7 @@ function buildWorld() {
   plane(0.2, 2.1, M.conc, 2.4, 1.05, -4.1, 0, PI / 2); plane(0.2, 2.1, M.conc, 3.5, 1.05, -4.1, 0, -PI / 2);
   plane(1.1, 0.2, M.concf, 2.95, 0.001, -4.1, -PI / 2, 0); plane(1.1, 0.2, M.conc, 2.95, 2.1, -4.1, PI / 2, 0);
   // colisiones de muros
-  colliders.push({ x0: -5, x1: -4, z0: -5, z1: 6 }, { x0: 4, x1: 5, z0: -8, z1: 6 }, { x0: -5, x1: 5, z0: 5, z1: 5.5 },
+  colliders.push({ x0: -5, x1: -4, z0: -5, z1: 5.5 }, { x0: 4, x1: 5, z0: -8, z1: 5.5 }, { x0: -5, x1: -3.2, z0: 5, z1: 5.5 }, { x0: -2.0, x1: 5, z0: 5, z1: 5.5 },
     { x0: -5, x1: 2.4, z0: -4.2, z1: -4 }, { x0: 3.5, x1: 5, z0: -4.2, z1: -4 }, { x0: 0.2, x1: 0.5, z0: -7.7, z1: -4.2 }, { x0: 0, x1: 5, z0: -7.9, z1: -7.5 }, { x0: -5, x1: 0.5, z0: -5, z1: -4.2 });
 
   // --- luces ---
@@ -1022,11 +1106,327 @@ function buildWorld() {
   decal('grime1', -3.99, 1.3, -1.6, 0, PI / 2, 2.0, 1.6, 0.6); decal('grime1', 0.2, 1.5, -3.99, 0, 0, 1.6, 1.4, 0.7); decal('st1', 3.99, 1.1, 3.4, 0, -PI / 2, 1.2, 1.2, 0.55);
   decal('drip1', 2.2, 1.9, -7.49, 0, 0, 2.6, 1.4, 0.8); decal('st2', 0.51, 1.0, -6.4, 0, PI / 2, 1.3, 1.3, 0.7); decal('drip3', 1.5, 2.0, -4.21, 0, PI, 1.6, 1.2, 0.7);
   decal('st3', 3.05, 1.0, -7.435, 0, 0, 0.9, 0.9, 0.7); decal('grime2', 1, 0.45, 4.99, 0, PI, 3.6, 0.9, 0.5);
+  buildTown();
+}
+
+/* ================= EL BARRIO: Avenida del Faro y las calles de detrás =================
+   Todo se genera con una semilla fija, así que todos los jugadores ven el mismo barrio.
+   x = este-oeste, z crece hacia el sur (alejándose del local). El local está en x[-5,5], z[-8,5]. */
+const STREETS = [
+  { n: 'Avenida del Faro', ax: 'x', c: 11.5, w: 7, a0: -40, a1: 40 },
+  { n: 'Calle del Pozo', ax: 'z', c: 0, w: 7, a0: 15, a1: 168 },
+];
+const DL_STREET = 1, STREET_END = 168;
+const SOLAR = { x0: 5.5, x1: 20, z0: 72, z1: 96 };
+const DOG_ZONE = { x0: -3, x1: 19.5, z0: 66, z1: 102 }, DOG_HOME = [[12, 80], [15, 90]];
+const BUS_STOP = { x: -28, z: 16.2 };
+const TOWN = layoutTown();
+
+function streetAt(x, z) {
+  for (let i = 0; i < STREETS.length; i++) {
+    const s = STREETS[i], h = s.w / 2 + 2.2;
+    if (s.ax === 'x' ? (z > s.c - h && z < s.c + h && x >= s.a0 && x <= s.a1) : (x > s.c - h && x < s.c + h && z >= s.a0 - 2 && z <= s.a1)) return i;
+  }
+  return -1;
+}
+function layoutTown() {
+  const r = mulberry32(4471), T = { bld: [], doors: [], lamps: [], cols: [], cars: [], bins: [], c13: -1, blk: { solar: SOLAR } };
+  const addB = (x0, x1, z0, z1, side, minH) => {
+    let h = [6, 9, 9, 12, 12, 15][r() * 6 | 0]; if (minH && h < minH) h = minH;
+    T.bld.push({ x0, x1, z0, z1, h, f: r() * 4 | 0 }); T.cols.push({ x0, x1, z0, z1 });
+    if (!side) return;
+    const t = 0.5 + (r() - 0.5) * 0.4; let x, z, nx = 0, nz = 0;
+    if (side === 'N') { z = z0; nz = -1; x = lerp(x0, x1, t); } else if (side === 'S') { z = z1; nz = 1; x = lerp(x0, x1, t); }
+    else if (side === 'W') { x = x0; nx = -1; z = lerp(z0, z1, t); } else { x = x1; nx = 1; z = lerp(z0, z1, t); }
+    T.doors.push({ x, z, nx, nz, b: T.bld.length - 1, lamp: r() < 0.3 });
+  };
+  // fila del local, frente a la avenida
+  for (const [x0, x1] of [[-40, -26], [-26, -14], [-14, -5], [5, 14], [14, 26], [26, 40]]) addB(x0, x1, -10, 5, 'S');
+  // al otro lado de la avenida
+  addB(-40, -20, 17, 32, 'N'); addB(20, 40, 17, 32, 'N');
+  // la calle: dos hileras de casas desde la avenida hasta el fondo
+  for (const side of [-1, 1]) {
+    let z = 17;
+    while (z < STREET_END - 4) {
+      if (side === 1 && z >= SOLAR.z0 - 0.1 && z < SOLAR.z1) { z = SOLAR.z1; continue; }
+      if (side === -1 && z > 108 && z < 112) { z = 114; continue; }          // callejón
+      let z1 = Math.min(STREET_END, z + 9 + r() * 7);
+      if (side === 1 && z < SOLAR.z0 && z1 > SOLAR.z0) z1 = SOLAR.z0;
+      if (side === -1 && z < 110 && z1 > 110) z1 = 110;
+      if (STREET_END - z1 < 6) z1 = STREET_END;
+      if (side < 0) addB(-20, -5.5, z, z1, 'E', 9); else addB(5.5, 20, z, z1, 'W', 9);
+      z = z1;
+    }
+  }
+  // portales y numeración: impares a un lado, pares al otro (y el 13 no está donde debería)
+  for (const d of T.doors) d.st = streetAt(d.x + d.nx * 3, d.z + d.nz * 3);
+  STREETS.forEach((s, si) => {
+    const list = T.doors.filter(d => d.st === si).sort((a, b) => s.ax === 'x' ? a.x - b.x : a.z - b.z), cnt = [1, 2];
+    for (const d of list) { const side = (s.ax === 'x' ? d.z - s.c : d.x - s.c) > 0 ? 0 : 1; let n = cnt[side]; if (n === 13) n += 2; d.num = n; cnt[side] = n + 2; }
+  });
+  let far = -1; T.doors.forEach((d, k) => { if (d.st === DL_STREET && d.nx > 0 && (far < 0 || d.z > T.doors[far].z)) far = k; });
+  if (far >= 0) { const d = T.doors[far]; d.num = 13; d.x13 = 1; d.lamp = false; T.c13 = far; }
+  // farolas: pocas, y no todas funcionan (md 0 bien, 1 parpadea, 2 fundida)
+  const lamp = (x, z, ax, az, md) => { T.lamps.push({ x, z, ax, az, md, ph: r() * 10, fig: z > 18 && md !== 2 }); T.cols.push({ x0: x - 0.16, x1: x + 0.16, z0: z - 0.16, z1: z + 0.16 }); };
+  for (const x of [-30, -14, 14, 30]) lamp(x, 7.6, 0, 1, 0);
+  for (const x of [-24, 24]) lamp(x, 15.4, 0, -1, 0);
+  [[24, 1, 0], [44, -1, 1], [64, 1, 0], [86, -1, 2], [104, 1, 1], [126, -1, 0], [146, 1, 2], [162, -1, 1]].forEach(([z, sd, md]) => lamp(sd * 4.2, z, -sd, 0, md));
+  // coches aparcados y contenedores
+  for (const [x, z, along] of [[-30, 14.1, 1], [28, 14.1, 1], [-2.4, 52, 0], [2.4, 118, 0], [-2.4, 140, 0]]) {
+    const w = along ? 4.2 : 1.8, d = along ? 1.8 : 4.2; T.cars.push({ x, z, along, c: r() * 4 | 0 }); T.cols.push({ x0: x - w / 2, x1: x + w / 2, z0: z - d / 2, z1: z + d / 2 });
+  }
+  for (const [x, z] of [[-8, 16], [-4.6, 60], [4.6, 100], [-4.6, 132], [20, 7.2]]) { T.bins.push({ x, z }); T.cols.push({ x0: x - 0.6, x1: x + 0.6, z0: z - 0.5, z1: z + 0.5 }); }
+  // límites
+  T.cols.push({ x0: -50, x1: -40, z0: -12, z1: 40 }, { x0: 40, x1: 50, z0: -12, z1: 40 }, { x0: -50, x1: -20, z0: 32, z1: 180 }, { x0: 20, x1: 50, z0: 32, z1: 180 }, { x0: -50, x1: 50, z0: STREET_END, z1: 180 }, { x0: -20.5, x1: -20, z0: 108, z1: 116 });
+  return T;
+}
+function addrOf(k) { const d = TOWN.doors[k]; return d ? STREETS[d.st].n + ' ' + d.num : '?'; }
+
+/* ---------- geometría ---------- */
+function mergeGeos(list) {
+  let nv = 0, ni = 0; for (const g of list) { nv += g.attributes.position.count; ni += g.index.count; }
+  const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), uv = new Float32Array(nv * 2), idx = new Uint32Array(ni);
+  let vo = 0, io = 0;
+  for (const g of list) {
+    pos.set(g.attributes.position.array, vo * 3); nor.set(g.attributes.normal.array, vo * 3); uv.set(g.attributes.uv.array, vo * 2);
+    const ia = g.index.array; for (let i = 0; i < ia.length; i++) idx[io + i] = ia[i] + vo;
+    io += ia.length; vo += g.attributes.position.count; g.dispose();
+  }
+  const m = new THREE.BufferGeometry();
+  m.setAttribute('position', new THREE.BufferAttribute(pos, 3)); m.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); m.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); m.setIndex(new THREE.BufferAttribute(idx, 1));
+  m.computeBoundingSphere(); return m;
+}
+const _mx = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _s1 = new THREE.Vector3(1, 1, 1), _p = new THREE.Vector3();
+function bgeo(w, h, d, x, y, z, ry, tile, rx, rz) {
+  const g = new THREE.BoxGeometry(w, h, d); uvBox(g, w, h, d, tile || 1.2);
+  _e.set(rx || 0, ry || 0, rz || 0); _q.setFromEuler(_e); _p.set(x, y, z); _mx.compose(_p, _q, _s1); g.applyMatrix4(_mx); return g;
+}
+function cgeo(rt, rb, h, seg, x, y, z) { const g = new THREE.CylinderGeometry(rt, rb, h, seg); g.translate(x, y, z); return g; }
+function gplane(x0, x1, z0, z1, mat, y, tile, seg) {
+  const w = x1 - x0, h = z1 - z0, g = new THREE.PlaneGeometry(w, h, Math.max(1, Math.ceil(w / seg)), Math.max(1, Math.ceil(h / seg)));
+  const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * w / tile, uv.getY(i) * h / tile);
+  const me = new THREE.Mesh(g, mat); me.rotation.x = -PI / 2; me.position.set((x0 + x1) / 2, y, (z0 + z1) / 2); scene.add(me); return me;
+}
+function addMerged(list, mat, occ) { if (!list.length) return null; const me = new THREE.Mesh(mergeGeos(list), mat); me.frustumCulled = false; scene.add(me); if (occ) rayTargets.push(me); return me; }
+function facadeMats() {
+  return [['brick', '#b0a498'], ['wall', '#a69c86'], ['grimew', '#a8a898'], ['conc', '#9a9a94']].map(([k, tint], vi) => {
+    const r = mulberry32(900 + vi * 77), cv = document.createElement('canvas'), ce = document.createElement('canvas');
+    cv.width = cv.height = ce.width = ce.height = 256;
+    const g = cv.getContext('2d'), e = ce.getContext('2d');
+    if (TX[k] && TX[k].image) g.drawImage(TX[k].image, 0, 0, 256, 256); else { g.fillStyle = tint; g.fillRect(0, 0, 256, 256); }
+    g.globalCompositeOperation = 'multiply'; g.fillStyle = tint; g.fillRect(0, 0, 256, 256); g.globalCompositeOperation = 'source-over';
+    e.fillStyle = '#000'; e.fillRect(0, 0, 256, 256);
+    for (let by = 0; by < 2; by++) for (let bx = 0; bx < 2; bx++) {
+      const x = bx * 128 + 30, y = by * 128 + 24, w = 68, h = 78, lit = r() < 0.3, tv = lit && r() < 0.3, shut = !lit && r() < 0.45;
+      g.fillStyle = '#2a2622'; g.fillRect(x - 5, y - 5, w + 10, h + 10);
+      if (lit) {
+        g.fillStyle = tv ? '#7d98ff' : r() < 0.5 ? '#ffd08a' : '#ffae55'; g.fillRect(x, y, w, h);
+        e.fillStyle = tv ? '#4a64a0' : '#b88a50'; e.fillRect(x, y, w, h);
+        g.fillStyle = 'rgba(90,40,20,.45)'; g.fillRect(x, y, w * 0.28, h); g.fillRect(x + w * 0.72, y, w * 0.28, h);
+        e.fillStyle = '#2a1a0c'; e.fillRect(x, y, w * 0.28, h); e.fillRect(x + w * 0.72, y, w * 0.28, h);
+        if (r() < 0.3) { g.fillStyle = '#0a0808'; e.fillStyle = '#000'; for (const c of [g, e]) { c.beginPath(); c.arc(x + w * 0.55, y + h * 0.36, 9, 0, 7); c.fill(); c.fillRect(x + w * 0.55 - 14, y + h * 0.36 + 8, 28, h * 0.6); } }
+      } else { g.fillStyle = '#0b0d12'; g.fillRect(x, y, w, h); g.fillStyle = 'rgba(120,140,160,.14)'; g.fillRect(x + 5, y + 5, 9, h - 10); }
+      if (shut) { g.fillStyle = '#5a5248'; g.fillRect(x, y, w, h * 0.72); g.fillStyle = 'rgba(0,0,0,.35)'; for (let s = 0; s < h * 0.72; s += 5) g.fillRect(x, y + s, w, 1); }
+      g.fillStyle = '#34302a'; g.fillRect(x - 8, y + h + 5, w + 16, 6);
+    }
+    const map = new THREE.CanvasTexture(cv), emi = new THREE.CanvasTexture(ce);
+    for (const t of [map, emi]) t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    return new THREE.MeshLambertMaterial({ map, emissive: 0xffffff, emissiveMap: emi });
+  });
+}
+function textPlate(text, w, h, bg, fg, border) {
+  return ctex(w, h, (g) => {
+    g.fillStyle = bg; g.fillRect(0, 0, w, h); if (border) { g.strokeStyle = border; g.lineWidth = 4; g.strokeRect(4, 4, w - 8, h - 8); }
+    g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle'; let fs = Math.round(h * 0.5); g.font = 'bold ' + fs + 'px sans-serif';
+    while (g.measureText(text).width > w - 20 && fs > 8) { fs--; g.font = 'bold ' + fs + 'px sans-serif'; }
+    g.fillText(text, w / 2, h / 2 + 1);
+  });
+}
+
+/* ---------- vehículos y bichos ---------- */
+function makeVespa() {
+  const g = new THREE.Group(), body = lam('steel2', 0xd8c890, { emissive: 0x2a2618 }), dk = lam(null, 0x1a1a1c), P = (geo, m, x, y, z, rx, rz) => { const me = new THREE.Mesh(geo, m); me.position.set(x, y, z); if (rx) me.rotation.x = rx; if (rz) me.rotation.z = rz; g.add(me); return me; };
+  P(new THREE.BoxGeometry(0.4, 0.36, 0.7), body, 0, 0.5, 0.2);
+  P(new THREE.BoxGeometry(0.34, 0.06, 0.55), dk, 0, 0.28, -0.22);
+  P(new THREE.BoxGeometry(0.3, 0.1, 0.55), lam(null, 0x221a16), 0, 0.73, 0.18);
+  P(new THREE.BoxGeometry(0.3, 0.55, 0.1), body, 0, 0.55, -0.48, -0.25);
+  P(new THREE.BoxGeometry(0.07, 0.4, 0.07), lam('steel', 0x8a8c90), 0, 0.85, -0.55, -0.3);
+  P(new THREE.BoxGeometry(0.64, 0.04, 0.04), dk, 0, 1.03, -0.62);
+  P(new THREE.CylinderGeometry(0.075, 0.085, 0.07, 8), bas(0xfff0c0), 0, 0.95, -0.66, PI / 2);
+  for (const z of [-0.55, 0.42]) P(new THREE.CylinderGeometry(0.2, 0.2, 0.09, 10), dk, 0, 0.2, z, 0, PI / 2);
+  P(new THREE.BoxGeometry(0.2, 0.08, 0.3), body, 0, 0.42, -0.55);
+  P(new THREE.BoxGeometry(0.44, 0.38, 0.42), lam(null, 0xa0201a, { emissive: 0x300806 }), 0, 0.98, 0.5);
+  P(new THREE.BoxGeometry(0.46, 0.05, 0.44), lam(null, 0x6a1410), 0, 1.18, 0.5);
+  P(new THREE.BoxGeometry(0.1, 0.05, 0.02), bas(0x8a0a08), 0, 0.62, 0.56);
+  const hb = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.4, 1.7), M.inv); hb.position.y = 0.7; hb.visible = false; hb.userData.key = 'vespa'; g.add(hb); rayTargets.push(hb);
+  scene.add(g); return g;
+}
+function makeHandle() {
+  const g = new THREE.Group(), body = lam('steel2', 0xd8c890), dk = lam(null, 0x1a1a1c), skin = lam(null, 0xc8906a);
+  const P = (w, h, d, m, x, y, z, rx, ry) => { const me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); me.position.set(x, y, z); me.rotation.set(rx || 0, ry || 0, 0); g.add(me); return me; };
+  P(0.72, 0.035, 0.035, dk, 0, 0, 0);
+  for (const s of [-1, 1]) { P(0.1, 0.05, 0.05, lam(null, 0x111111), s * 0.36, 0, 0); P(0.012, 0.16, 0.012, dk, s * 0.27, 0.09, 0.02); P(0.1, 0.06, 0.012, lam(null, 0x40484e, { emissive: 0x0a0c0e }), s * 0.27, 0.18, 0.02); P(0.08, 0.08, 0.5, skin, s * 0.33, -0.1, 0.27, -0.4, -s * 0.2); }
+  P(0.22, 0.12, 0.14, body, 0, 0.04, 0.03);
+  P(0.18, 0.1, 0.32, body, 0, -0.42, -0.55);
+  D.speedo = ctex(64, 32, () => { }); D.speedoG = D.speedo.image.getContext('2d');
+  const sp = new THREE.Mesh(new THREE.PlaneGeometry(0.11, 0.055), new THREE.MeshBasicMaterial({ map: D.speedo, fog: false })); sp.position.set(0, 0.115, 0.075); sp.rotation.x = -0.75; g.add(sp);
+  g.position.set(0, -0.36, -0.6); g.visible = false; return g;
+}
+function drawSpeedo(kmh) {
+  const g = D.speedoG; if (!g) return;
+  g.fillStyle = '#d8d0a8'; g.fillRect(0, 0, 64, 32); g.fillStyle = '#2a2018'; g.font = 'bold 20px monospace'; g.textAlign = 'center'; g.fillText(String(kmh), 32, 22);
+  g.font = '7px sans-serif'; g.fillText('km/h', 32, 30); D.speedo.needsUpdate = true;
+}
+function makeDog() {
+  const g = new THREE.Group(), fur = lam(null, 0x2a2420), P = (w, h, d, m, x, y, z) => { const me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); me.position.set(x, y, z); g.add(me); return me; };
+  P(0.26, 0.28, 0.72, fur, 0, 0.52, 0);
+  const head = P(0.22, 0.22, 0.26, fur, 0, 0.66, -0.44); P(0.12, 0.1, 0.14, fur, 0, 0.62, -0.62);
+  for (const s of [-1, 1]) P(0.04, 0.03, 0.02, bas(0xffd24a, { fog: false }), s * 0.06, 0.7, -0.575);
+  P(0.05, 0.1, 0.04, fur, -0.07, 0.8, -0.42); P(0.05, 0.1, 0.04, fur, 0.07, 0.8, -0.42);
+  g.legs = [];
+  for (const [x, z] of [[-0.09, -0.26], [0.09, -0.26], [-0.09, 0.26], [0.09, 0.26]]) { const p = new THREE.Group(); p.position.set(x, 0.42, z); g.add(p); const l = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.42, 0.07), fur); l.position.y = -0.21; p.add(l); g.legs.push(p); }
+  const tail = P(0.04, 0.04, 0.3, fur, 0, 0.62, 0.48); tail.rotation.x = 0.6; g.head = head;
+  g.visible = false; scene.add(g); return g;
+}
+
+/* ---------- construcción ---------- */
+function buildTown() {
+  const F = facadeMats(), r = mulberry32(31337);
+  const off = { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 };
+  // suelo: aceras y calzada encima
+  gplane(-40, 40, 5, 17, lam('pave', 0x8a8a8c), 0, 1.8, 2.5); gplane(-5.5, 5.5, 17, STREET_END, lam('pave', 0x7a7a7c), 0, 1.8, 2.5);
+  gplane(-20, -5.5, 108, 116, lam('concf', 0x4a4844), 0, 2, 2.5);
+  const road = lam('asphalt', 0x86868e, off);
+  gplane(-40, 40, 8, 15, road, 0.004, 3.5, 2.5); gplane(-3.5, 3.5, 15, STREET_END, road, 0.004, 3.5, 2.5);
+  const paint = [];
+  for (let a = -38; a < 38; a += 6) if (Math.abs(a) > 5) paint.push(bgeo(2.6, 0.01, 0.14, a, 0.02, 11.5, 0, 1));
+  for (let a = 18; a < STREET_END - 2; a += 6) paint.push(bgeo(0.14, 0.01, 2.6, 0, 0.02, a, 0, 1));
+  addMerged(paint, lam(null, 0x8a8778));
+  // edificios
+  const byF = [[], [], [], []];
+  for (const b of TOWN.bld) { const w = b.x1 - b.x0, d = b.z1 - b.z0; byF[b.f].push(bgeo(w, b.h, d, (b.x0 + b.x1) / 2, b.h / 2, (b.z0 + b.z1) / 2, 0, 6)); }
+  // la parte de arriba del propio local (no hay plantas encima por dentro, pero desde la calle sí)
+  byF[1].push(bgeo(10, 6, 13.2, 0, 2.95 + 3, -1.6, 0, 6));
+  F.forEach((m, i) => addMerged(byF[i], m, true));
+  // fachada del local vista desde la calle
+  const shopF = lam('tilegrey', 0x6a6a64), fr = [];
+  for (const [x0, x1, y0, y1] of [[-5, -3.2, 0, 2.95], [-2.0, -1.2, 0, 2.95], [3.2, 5, 0, 2.95], [-3.2, -2.0, 2.15, 2.95], [-1.2, 3.2, 0, 0.9], [-1.2, 3.2, 2.3, 2.95]]) fr.push(bgeo(x1 - x0, y1 - y0, 0.06, (x0 + x1) / 2, (y0 + y1) / 2, 5.08, 0, 1));
+  addMerged(fr, shopF);
+  const sign = textPlate('KEBAB PONIENTE · 24H', 512, 72, '#140c08', '#ffb23a', '#5a1a10');
+  box(7.2, 0.8, 0.25, M.dark, 0, 3.45, 5.25); plane(7.0, 0.7, bas(0xffffff, { map: sign }), 0, 3.45, 5.38, 0, 0); box(7.4, 0.06, 0.4, M.dark, 0, 3.02, 5.3);
+  // persiana medio bajada encima de la puerta
+  box(1.3, 0.35, 0.05, lam('corr', 0x8a8a84), -2.6, 2.0, 5.12);
+  // portales
+  const atlas = ctex(512, 512, (g) => {
+    g.fillStyle = '#d8d4c4'; g.fillRect(0, 0, 512, 512); g.fillStyle = '#1a2a5a'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = 'bold 30px sans-serif';
+    for (let n = 0; n < 80; n++) { const cx = (n % 8) * 64, cy = (n / 8 | 0) * 48; g.strokeStyle = '#1a2a5a'; g.lineWidth = 3; g.strokeRect(cx + 4, cy + 4, 56, 40); g.fillText(String(n), cx + 32, cy + 25); }
+  });
+  const plateM = new THREE.MeshLambertMaterial({ map: atlas }), doorM = lam('wood', 0x5a4232), holeM = bas(0x020203), lampM = bas(0xffc678), boardM = lam('rust', 0x8a6a50);
+  const frames = [], lamps = [];
+  D.doors = [];
+  TOWN.doors.forEach((d, k) => {
+    const ry = Math.atan2(d.nx, d.nz), grp = new THREE.Group(); grp.position.set(d.x + d.nx * 0.01, 0, d.z + d.nz * 0.01); grp.rotation.y = ry; scene.add(grp);
+    const hole = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 2.2), holeM); hole.position.set(0, 1.1, 0.005); grp.add(hole);
+    const piv = new THREE.Group(); piv.position.set(-0.56, 0, 0.06); grp.add(piv);
+    const door = new THREE.Mesh(new THREE.BoxGeometry(1.12, 2.18, 0.08), doorM); door.position.set(0.56, 1.09, 0); piv.add(door);
+    const n = Math.min(79, d.num), pg = new THREE.PlaneGeometry(0.34, 0.24), uv = pg.attributes.uv, cx = (n % 8) / 8, cy = 1 - ((n / 8 | 0) + 1) * 48 / 512;
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, cx + uv.getX(i) / 8, cy + uv.getY(i) * 48 / 512);
+    const plate = new THREE.Mesh(pg, plateM); plate.position.set(0.9, 1.9, 0.03); grp.add(plate);
+    const wv = new THREE.Vector3(); grp.updateMatrixWorld();
+    for (const [x, y, w, h] of [[-0.62, 1.15, 0.1, 2.3], [0.62, 1.15, 0.1, 2.3], [0, 2.32, 1.34, 0.12]]) { wv.set(x, y, 0.06); grp.localToWorld(wv); frames.push(bgeo(w, h, 0.12, wv.x, wv.y, wv.z, ry, 1)); }
+    if (d.lamp) { wv.set(0, 2.55, 0.12); grp.localToWorld(wv); lamps.push(bgeo(0.22, 0.12, 0.16, wv.x, wv.y, wv.z, ry, 1)); }
+    if (d.x13) { for (const [y, rz] of [[0.7, 0.35], [1.2, -0.3], [1.7, 0.25]]) { const b = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.16, 0.05), boardM); b.position.set(0, y, 0.13); b.rotation.z = rz; grp.add(b); } }
+    const hb = hit('pt' + k, d.x + d.nx * 0.5, 1.2, d.z + d.nz * 0.5, d.nx ? 0.9 : 1.4, 2.4, d.nz ? 0.9 : 1.4);
+    D.doors.push({ piv, open: 0, hb });
+  });
+  addMerged(frames, lam(null, 0x2a2622)); addMerged(lamps, lampM);
+  // farolas
+  const poles = []; D.lamps = [];
+  for (const L of TOWN.lamps) {
+    poles.push(cgeo(0.06, 0.09, 4.6, 6, L.x, 2.3, L.z));
+    poles.push(bgeo(L.ax ? 1.1 : 0.08, 0.08, L.az ? 1.1 : 0.08, L.x + L.ax * 0.5, 4.55, L.z + L.az * 0.5, 0, 1));
+    L.hx = L.x + L.ax * 1.0; L.hz = L.z + L.az * 1.0;
+    D.lamps.push({ L, h: box(0.42, 0.08, 0.42, bas(L.md === 2 ? 0x1c1a16 : 0xffb45a), L.hx, 4.48, L.hz) });
+  }
+  addMerged(poles, M.dark);
+  LG.pool = [0, 1, 2, 3].map(() => { const l = new THREE.PointLight(0xffa850, 0, 13, 1.6); scene.add(l); return l; });
+  // coches aparcados
+  const carCols = [0x2a2f36, 0x3a1a18, 0x2c3a2c, 0x5a5a58], carB = [[], [], [], []], glass = [];
+  for (const c of TOWN.cars) {
+    const w = c.along ? 4.2 : 1.8, d = c.along ? 1.8 : 4.2;
+    carB[c.c].push(bgeo(w, 0.75, d, c.x, 0.55, c.z, 0, 1));
+    glass.push(bgeo(c.along ? 2.2 : 1.6, 0.55, c.along ? 1.6 : 2.2, c.x, 1.18, c.z, 0, 1));
+  }
+  carB.forEach((l, i) => addMerged(l, lam(null, carCols[i]), true)); addMerged(glass, lam(null, 0x0d1014), true);
+  addMerged(TOWN.bins.map(b => bgeo(1.2, 1.25, 0.9, b.x, 0.62, b.z, 0, 1)), lam('rust', 0x3a5a3a), true);
+  // tapias: fondo de la calle, extremos de la avenida y fondo del callejón
+  addMerged([bgeo(11, 3.4, 0.5, 0, 1.7, STREET_END + 0.2, 0, 1.6), bgeo(0.5, 3.4, 11.4, -40.2, 1.7, 11.5, 0, 1.6), bgeo(0.5, 3.4, 11.4, 40.2, 1.7, 11.5, 0, 1.6), bgeo(0.5, 4, 8, -20.2, 2, 112, 0, 1.6)], M.brick, true);
+  // rótulos de calle
+  const signPoles = [];
+  const streetSign = (si, x, z, ry) => {
+    signPoles.push(cgeo(0.04, 0.04, 2.9, 5, x, 1.45, z));
+    const t = textPlate(STREETS[si].n.toUpperCase(), 256, 64, '#e8e4d8', '#1a2a6a', '#1a2a6a');
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.38), new THREE.MeshLambertMaterial({ map: t, side: THREE.DoubleSide })); p.position.set(x, 2.95, z); p.rotation.y = ry; scene.add(p);
+  };
+  streetSign(1, 4.6, 16.4, 0); streetSign(0, -4.6, 7.4, 0);
+  addMerged(signPoles, M.dark);
+  // ventana con figura (sale de madrugada)
+  const fw = ctex(64, 64, (g) => { g.fillStyle = '#ffcf80'; g.fillRect(0, 0, 64, 64); g.fillStyle = '#060404'; g.beginPath(); g.arc(32, 22, 9, 0, 7); g.fill(); g.fillRect(20, 30, 24, 34); });
+  D.figWin = plane(1.1, 1.3, new THREE.MeshBasicMaterial({ map: fw }), -5.47, 7.5, 40, 0, PI / 2);
+  D.figWin.visible = false;
+
+  /* parada de bus */
+  const bs = BUS_STOP;
+  box(3.2, 2.2, 0.05, lam(null, 0x9ab0b8, { transparent: true, opacity: 0.25, depthWrite: false }), bs.x, 1.25, bs.z + 0.9, { col: true });
+  box(3.4, 0.08, 1.4, M.dark, bs.x, 2.4, bs.z + 0.4); box(2.4, 0.08, 0.4, M.wood, bs.x, 0.48, bs.z + 0.6);
+  for (const s of [-1, 1]) box(0.06, 2.4, 0.06, M.dark, bs.x + s * 1.6, 1.2, bs.z + 0.9);
+  plane(0.6, 0.6, new THREE.MeshLambertMaterial({ map: textPlate('L3 NOCTURNO', 128, 128, '#1a3a6a', '#ffffff'), side: THREE.DoubleSide }), bs.x + 2.2, 2.6, bs.z, 0, 0); box(0.06, 2.9, 0.06, M.dark, bs.x + 2.2, 1.45, bs.z);
+
+  /* solar con perros, a un lado de la calle */
+  const S = SOLAR, dirt = lam('concf', 0x5a4a3a, off);
+  gplane(S.x0, S.x1, S.z0, S.z1, dirt, 0.006, 3, 2.5);
+  const link = ctex(64, 64, (g) => { g.clearRect(0, 0, 64, 64); g.strokeStyle = '#9a9a92'; g.lineWidth = 2.5; for (let i = -64; i < 128; i += 16) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 64, 64); g.stroke(); g.beginPath(); g.moveTo(i + 64, 0); g.lineTo(i, 64); g.stroke(); } });
+  const linkM = new THREE.MeshLambertMaterial({ map: link, transparent: true, alphaTest: 0.4, side: THREE.DoubleSide }), fposts = [];
+  const fence = (x0, z0, x1, z1) => {
+    const len = Math.hypot(x1 - x0, z1 - z0), p = new THREE.Mesh(new THREE.PlaneGeometry(len, 2.4), linkM); p.position.set((x0 + x1) / 2, 1.2, (z0 + z1) / 2); p.rotation.y = -Math.atan2(z1 - z0, x1 - x0);
+    const uv = p.geometry.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * len / 1.2, uv.getY(i) * 2); scene.add(p);
+    colliders.push({ x0: Math.min(x0, x1) - 0.06, x1: Math.max(x0, x1) + 0.06, z0: Math.min(z0, z1) - 0.06, z1: Math.max(z0, z1) + 0.06 });
+    for (let t = 0; t <= len; t += 3) fposts.push(cgeo(0.04, 0.04, 2.5, 4, lerp(x0, x1, t / len), 1.25, lerp(z0, z1, t / len)));
+  };
+  fence(S.x0, S.z0, S.x0, 82); fence(S.x0, 86, S.x0, S.z1); fence(S.x0, S.z0, S.x1, S.z0); fence(S.x0, S.z1, S.x1, S.z1); fence(S.x1, S.z0, S.x1, S.z1);
+  addMerged(fposts, M.steelD);
+  box(4.0, 1.1, 1.8, lam('rust', 0x4a3a32), 14, 0.55, 88, { col: true, ry: 0.3 }); box(2.0, 0.5, 1.6, lam('rust', 0x2a2420), 14, 1.35, 88, { ry: 0.3 });
+  box(1.9, 0.3, 1.0, lam('bag', 0x6a6050), 10, 0.15, 76, { ry: 0.4 });
+  for (let i = 0; i < 6; i++) cyl(0.32, 0.28, 0.6, 7, M.bag, 8 + r() * 10, 0.3, 74 + r() * 20);
+  plane(1.5, 0.5, new THREE.MeshLambertMaterial({ map: textPlate('PROHIBIDO EL PASO', 256, 80, '#d8d0b8', '#8a1a12'), side: THREE.DoubleSide }), S.x0 - 0.08, 1.9, 80.5, 0, -PI / 2);
+  // fondo del callejón: algo colgado
+  box(0.6, 1.2, 0.05, lam('bag', 0x3a3632), -19.6, 1.6, 112, { ry: PI / 2 });
+
+  /* moto, perros, baliza de destino, faro */
+  D.bike = makeVespa(); D.dogs = DOG_HOME.map(() => makeDog());
+  D.beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 40, 8, 1, true), new THREE.MeshBasicMaterial({ color: 0x7dffa8, transparent: true, opacity: 0.16, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, side: THREE.DoubleSide }));
+  D.beacon.visible = false; scene.add(D.beacon);
+  LG.porch = new THREE.PointLight(0xffc880, 0, 8, 1.4); scene.add(LG.porch); D.porch = box(0.24, 0.14, 0.18, bas(0xffe0a0), 0, -10, 0);
+  LG.head = new THREE.SpotLight(0xfff0d0, 0, 26, 0.55, 0.55, 1.2); scene.add(LG.head); scene.add(LG.head.target);
+  // teléfono de pedidos y bolsa térmica
+  box(0.08, 0.3, 0.2, lam(null, 0xd8d4c4), 3.95, 1.55, 1.75); box(0.1, 0.22, 0.06, lam(null, 0xb8b4a4), 3.89, 1.58, 1.75);
+  D.phoneLed = box(0.02, 0.03, 0.03, bas(0x300404), 3.9, 1.7, 1.66); hit('phone', 3.85, 1.55, 1.75, 0.4, 0.5, 0.5);
+  // cartel ABIERTO / CERRADO colgado en la puerta (se ve desde dentro y desde fuera)
+  const sg = (t, bg) => textPlate(t, 128, 64, bg, '#ffffff', '#ffffff');
+  D.signTex = [sg('ABIERTO', '#1a6a2a'), sg('CERRADO', '#8a1a12')];
+  D.signF = plane(0.56, 0.28, new THREE.MeshLambertMaterial({ map: D.signTex[0], emissive: 0x333333 }), -0.6, 1.45, 5.03, 0, 0);
+  D.signB = plane(0.56, 0.28, new THREE.MeshLambertMaterial({ map: D.signTex[0], emissive: 0x333333 }), -0.6, 1.45, 4.97, 0, PI);
+  cyl(0.004, 0.004, 0.5, 3, M.dark, -0.6, 1.83, 5.0); hit('sign', -0.6, 1.45, 4.85, 0.8, 0.8, 0.4);
+  box(0.6, 0.06, 0.5, M.wood, 3.62, 1.0, 2.7); box(0.06, 1.0, 0.06, M.dark, 3.62, 0.5, 2.7); colliders.push({ x0: 3.3, x1: 4, z0: 2.42, z1: 2.98 });
+  D.bagSt = new THREE.Group(); D.bagSt.position.set(3.62, 1.03, 2.7); scene.add(D.bagSt); D.bagKey = '';
+  hit('bag', 3.62, 1.2, 2.7, 0.7, 0.6, 0.6);
+  for (const c of TOWN.cols) colliders.push(c);
 }
 
 /* ================= PERSONAJES ================= */
 const PLAYER_LOOK = Object.assign({}, LOOK0, { skin: SK.tan, hair: '#1d1a17', top: '#2b2f36', ts: 'apron', legs: '#22252b', h: 1.76, acc: 'cap', beard: 1 });
 const SHADOW_LOOK = Object.assign({}, LOOK0, { h: 2.3, w: 0.78, hs: 'bald', top: '#000', legs: '#000', skin: '#000' });
+const GHOST_LOOK = Object.assign({}, LOOK0, { skin: '#c8d4dc', hair: '#d8e0e4', hs: 'long', top: '#d8e0e8', ts: 'shirt', legs: '#c8d0d8', h: 1.8, w: 0.85, fem: 1 });
 const RIDER_LOOK = Object.assign({}, LOOK0, { skin: SK.olive, hair: '#1d1a17', beard: 1, top: '#3a5a3a', acc: 'cap', bags: 1 });
 function shade(hex, f) { const c = new THREE.Color(hex); c.multiplyScalar(f); return '#' + c.getHexString(); }
 const _gc = {};
@@ -1191,9 +1591,10 @@ function newWorld(n, prev) {
   const w = {
     v: NETV, hs: prev ? prev.hs : Date.now(), ph: 'play', why: 0, n, t: 0, cash: keep ? prev.cash : 0, rep: keep ? prev.rep : 60,
     s: { sv: 0, ls: 0, e: 0, tp: 0 }, pw: 1, fk: 0, sx: 0, sd: (Math.random() * 2e9) | 0, bo: 0, fl: 0,
-    sp: [spitWire(), spitWire()], bin: [8, 8, 8], chop: { t: -1, n: 0 }, fry: { s: 0, t: 0, u: 0, q: 1 }, sh: [0, 0, 0], gr: 1, am: 2, shl: 6,
-    bd: { s: 0, t: 0, o: 0 }, bt: 0, cu: [], pl: {}, ev: prev ? prev.ev : [], es: prev ? prev.es : 0, id: prev ? prev.id : 1, used: [], nx: 4,
+    sp: [spitWire(), spitWire()], bin: [12, 12, 12], chop: { t: -1, n: 0 }, fry: { s: 0, t: 0, u: 0, q: 1 }, sh: [0, 0, 0], gr: 1, am: 2, shl: 6,
+    bd: { s: 0, t: 0, o: 0 }, bt: 0, cu: [], pl: {}, ev: prev ? prev.ev : [], es: prev ? prev.es : 0, id: prev ? prev.id : 1, used: [], nx: 6,
   };
+  newStreet(w);
   if (prev) for (const k in prev.pl) w.pl[k] = { h: 0, hp: 3, ko: 0 };
   return w;
 }
@@ -1210,6 +1611,7 @@ function genSchedule(n, seed) {
   S.push({ t: H(3.25) + r() * 20, k: 'black' });
   S.push({ t: H(4.55), k: 'hungry' });                  // 03:33
   S.push({ t: H(5.5) + r() * 25, k: 'knockF' });
+  S.push({ t: H(3.3) + r() * H(1.2), k: 'dlAnom' });
   if (r() < 0.6 + 0.1 * n) S.push({ t: H(1 + r() * 4), k: 'rob' });
   for (let i = 1; i < n; i++) { S.push({ t: H(0.8 + r() * 5.4), k: 'hungry' }); if (i % 2 === 0) S.push({ t: H(1 + r() * 5), k: 'black' }); else S.push({ t: H(1 + r() * 5), k: 'knockF' }); }
   S.sort((a, b) => a.t - b.t); return S;
@@ -1219,7 +1621,7 @@ function say(c, key, idx) { c.l = key + ':' + (idx == null ? (Math.random() * 8 
 function lineOf(c) {
   if (!c.l) return '';
   const sp = c.l.split(':'), key = sp[0], idx = +sp[1] || 0;
-  if (c.an === 1) { const A2 = ANOMX[LANG], arr = A2[key] || A2.w; return arr[idx % arr.length]; }
+  if (c.an === 1 || c.an === 3) { const A2 = ANOMX[LANG], arr = A2[key] || A2.w; return arr[idx % arr.length]; }
   if (!ARCH[c.a]) return '';
   if (key === 'o') { const pre = aLines(c.a, 'pre'), post = aLines(c.a, 'post'); return (pre[idx % pre.length] + ' ' + orderPhrase(genOrder(c.a, c.s)) + '. ' + post[(idx >> 1) % post.length]).trim(); }
   const arr = aLines(c.a, key); return arr[idx % arr.length];
@@ -1234,7 +1636,7 @@ function assignSpot(c) {
 }
 function spawn(a, an, opt) {
   const sd = Math.random() < 0.5 ? -1 : 1;
-  const c = { i: W.id++, a, s: (Math.random() * 1e6) | 0, x: sd * 11, z: 6.4 + Math.random() * 0.5, y: -sd * PI / 2, st: S_IN, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: an || 0, hp: an === 1 ? 6 : 2, t: 0, wp: 0, sc: 0, f: 0, b: 0, sd };
+  const c = { i: W.id++, a, s: (Math.random() * 1e6) | 0, x: sd * 16, z: 6.4 + Math.random() * 0.5, y: -sd * PI / 2, st: S_IN, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: an || 0, hp: an === 1 ? 6 : 2, t: 0, wp: 0, sc: 0, f: 0, b: 0, sd };
   W.cu.push(c);
   if (opt) Object.assign(c, opt); else assignSpot(c);
   return c;
@@ -1252,12 +1654,12 @@ function moveTo(c, tx, tz, sp, dt) {
   const s = Math.min(d, sp * dt); c.x += dx / d * s; c.z += dz / d * s; c.y = Math.atan2(dx, dz);
   return d - s < 0.06;
 }
-function patTotal(c) { const n = genOrder(c.a, c.s).length; return (58 + 20 * Math.max(0, n - 1)) * ARCH[c.a].pat * (W.n === 1 ? 1.15 : Math.max(0.75, 1.05 - 0.05 * W.n)); }
+function patTotal(c) { const n = genOrder(c.a, c.s).length; return (100 + 30 * Math.max(0, n - 1)) * ARCH[c.a].pat * (W.n === 1 ? 1.2 : Math.max(0.8, 1.08 - 0.04 * W.n)); }
 function leave(c, happy) { c.st = S_OUT; c.b = happy ? 1 : 0; c.sl = -1; c.qi = -1; c.wp = 0; c.t = 0; }
 function flee(c) { c.st = S_FLEE; c.sl = -1; c.qi = -1; c.wp = c.z > 4.6 ? 2 : 0; c.t = 0; }
 function panic() {
   for (const c of W.cu) {
-    if (c.an || c.st === S_DEAD || c.st === S_FLEE || c.st === S_ROB) continue;
+    if (c.an || c.o || c.st === S_DEAD || c.st === S_FLEE || c.st === S_ROB) continue;
     if (c.st === S_OUT && c.z > 5) continue;
     if (c.st <= S_WAIT) W.s.ls++;
     say(c, 'flee'); flee(c);
@@ -1286,30 +1688,11 @@ function finishOrder(c, ord) {
   pay(c, ord);
 }
 function deliver(c, pid) {
-  const P = W.pl[pid], H = P.h, Ar = ARCH[c.a], ord = genOrder(c.a, c.s);
-  let idx = -1, score = 1, line = null;
-  if (Ar.sp === 'beggar') idx = 0;
-  else if (H.k === 'dr') idx = ord.findIndex((o, i) => !c.g[i] && o.k === 'dr' && o.t === H.t);
-  else if (H.k === 'fr') { idx = ord.findIndex((o, i) => !c.g[i] && o.k === 'fr'); score = H.q; if (H.q < 0.4) line = 'bad'; }
-  else if (H.k === 'kb') {
-    const mt = H.m[0] && H.m[1] ? 2 : H.m[0] ? 0 : H.m[1] ? 1 : -1;
-    idx = ord.findIndex((o, i) => !c.g[i] && o.k === 'kb' && o.b === H.b && o.m === mt);
-    if (idx >= 0) {
-      const o = ord[idx], dv = bits(o.v ^ H.v), ds = bits(o.s ^ H.s);
-      if (Ar.sp === 'picky' && (H.v & ~o.v)) idx = -1;
-      else {
-        score = H.q - dv * 0.2 - ds * 0.2;
-        if (H.q < 0.5 || dv + ds >= 2) line = 'bad';
-        if (!H.w) { score -= 0.25; line = 'unw'; }
-        if (H.b === 2 && !H.f) { score -= 0.3; line = 'nofr'; }
-        if (H.r > 0.4) { score -= 0.5; line = 'raw'; W.rep = clamp(W.rep - 3, 0, 100); }
-        score = clamp(score, 0, 1);
-      }
-    }
-  }
-  if (idx < 0) { say(c, 'no'); ev('bad', c.x, c.z); return; }
-  c.g[idx] = 1; c.sc = r2(c.sc + score); if (H.hm) c.hm = 1; P.h = 0; ev('ok', c.x, c.z);
-  if (c.g.every(v => v)) finishOrder(c, ord); else if (line) say(c, line);
+  const P = W.pl[pid], H = P.h, ord = genOrder(c.a, c.s), m = matchItem(ord, c.g, H, ARCH[c.a]);
+  if (m.idx < 0) { say(c, 'no'); ev('bad', c.x, c.z); return; }
+  if (m.line === 'raw') W.rep = clamp(W.rep - 3, 0, 100);
+  c.g[m.idx] = 1; c.sc = r2(c.sc + m.score); if (H.hm) c.hm = 1; P.h = 0; ev('ok', c.x, c.z);
+  if (c.g.every(v => v)) finishOrder(c, ord); else if (m.line) say(c, m.line);
 }
 function nearestPlayer(x, z) {
   let best = null, bd = 1e9;
@@ -1341,7 +1724,9 @@ function updShadow(c, dt) {
 function updCustomer(c, dt) {
   c.t += dt;
   if (c.an === 2) return updShadow(c, dt);
-  const Ar = ARCH[c.a], OUT = [[-2.6, 4.4], [-2.6, 6.3], [c.sd * 11.5, 6.6]];
+  if (c.an === 3) return updSpirit(c, dt);
+  if (c.o) return updOutdoor(c, dt);
+  const Ar = ARCH[c.a], OUT = [[-2.6, 4.4], [-2.6, 6.3], [c.sd * 16.5, 6.6]];
   switch (c.st) {
     case S_IN: {
       const tgt = c.sl >= 0 ? SLOTS[c.sl] : QUEUE[clamp(c.qi, 0, 2)], wp = c.wp < 2 ? DOOR_IN[c.wp] : tgt;
@@ -1352,7 +1737,7 @@ function updCustomer(c, dt) {
     case S_QUEUE:
       c.y = angLerp(c.y, PI, Math.min(1, dt * 4));
       if (c.an === 1) { if (c.t > 13) startAtk(c); }
-      else { c.p -= dt / patTotal(c) * 0.4; if (c.p <= 0) angryLeave(c); }
+      else { c.p -= dt / patTotal(c) * 0.3 * (SHOP_IN ? 1 : 0.4); if (c.p <= 0) angryLeave(c); }
       break;
     case S_GREET:
       c.y = angLerp(c.y, PI, Math.min(1, dt * 5));
@@ -1363,7 +1748,7 @@ function updCustomer(c, dt) {
       break;
     case S_WAIT:
       c.y = angLerp(c.y, PI, Math.min(1, dt * 5));
-      c.p -= dt / patTotal(c) * (W.pw ? 1 : 1.4);
+      c.p -= dt / patTotal(c) * (W.pw ? 1 : 1.4) * (SHOP_IN ? 1 : 0.4);
       if (!W.pw && !(c.f & 8)) { c.f |= 8; say(c, 'dark'); }
       if (c.p < 0.5 && !(c.f & 2)) { c.f |= 2; say(c, 'w'); }
       if (c.p < 0.22 && !(c.f & 4)) { c.f |= 4; say(c, 'w'); }
@@ -1403,7 +1788,7 @@ function updCustomer(c, dt) {
 }
 
 /* ---------- acciones de los jugadores ---------- */
-function fryState(t) { const k = t < 9 ? 0 : t < 19 ? 1 : t < 27 ? 2 : 3; return [LX[LANG].fs[k], [0.3, 1, 0.6, 0.15][k]]; }
+function fryState(t) { const k = t < 7 ? 0 : t < 22 ? 1 : t < 32 ? 2 : 3; return [LX[LANG].fs[k], [0.3, 1, 0.6, 0.15][k]]; }
 function useLogic(pid, key, doIt) {
   if (!W) return null;
   const P = W.pl[pid]; if (!P || P.ko > 0) return null;
@@ -1426,7 +1811,11 @@ function useLogic(pid, key, doIt) {
     if (!H && B) return R(T('u_table_cut', B.n), true, () => { B.n++; if (B.n >= 8) { W.bt = 0; P.h = { k: 'cone' }; } });
     return R(T(B ? 'u_hands' : 'u_table_idle'), false);
   }
-  if (key === 'trash') { if (H && H.k !== 'gun' && H.k !== 'body') return R(T('u_trash', itemName(H)), true, () => { P.h = 0; }); return R(T('u_bin'), false); }
+  if (key === 'bag') return bagLogic(pid, R, H, P);
+  if (key === 'phone') return phoneLogic(pid, R);
+  if (key === 'sign') return signLogic(pid, R);
+  if (key === 'vespa') return bikeLogic(pid, R, H, P);
+  if (key === 'trash') { if (H && H.k !== 'gun' && H.k !== 'body' && !(H.k === 'bag' && W.dl.some(o => o.i === H.d))) return R(T('u_trash', itemName(H)), true, () => { P.h = 0; }); return R(T('u_bin'), false); }
   if (key === 'fz') {
     const F = W.fry;
     if (F.s === 0) { if (F.u >= 4) return R(T('u_fry_full'), false); return R(T('u_fry_in'), true, () => { F.s = 1; F.t = 0; }); }
@@ -1442,7 +1831,7 @@ function useLogic(pid, key, doIt) {
   if (key === 'chop') {
     const C = W.chop;
     if (H && H.k === 'vg' && C.t < 0) return R(T('u_chop_put', itemName(H)), true, () => { C.t = H.t; C.n = 0; P.h = 0; });
-    if (!H && C.t >= 0) return R(T('u_chop', X.veg[C.t], C.n), true, () => { C.n++; if (C.n >= 6) { W.bin[C.t] = Math.min(16, W.bin[C.t] + 8); C.t = -1; C.n = 0; ev('msg', 0, 0, 'binfull'); } });
+    if (!H && C.t >= 0) return R(T('u_chop', X.veg[C.t], C.n), true, () => { C.n++; if (C.n >= 4) { W.bin[C.t] = Math.min(16, W.bin[C.t] + 10); C.t = -1; C.n = 0; ev('msg', 0, 0, 'binfull'); } });
     return R(T(C.t >= 0 ? 'u_hands' : 'u_chop_idle'), false);
   }
   if (key === 'fuse') { if (!W.pw) return R(T('u_fuse'), true, () => { W.pw = 1; ev('pwr1', 0.6, -5.3); ev('msg', 0, 0, 'power'); }); return R(T('u_fusebox'), false); }
@@ -1458,14 +1847,15 @@ function useLogic(pid, key, doIt) {
     });
   }
   const kind = key.slice(0, 2);
+  if (kind === 'pt') return doorLogic(pid, n, R, H);
   if (kind === 'sp' && H && H.k === 'cone') return R(T('u_cone_mount', X.meat[n]), true, () => { const S = SV[n]; S.lv.fill(7); S.dn.fill(0.12); S.pend.fill(0); S.dirty = true; W.sp[n].h = 1; encodeSpit(n); P.h = 0; });
   if (kind === 'sp') return H ? R(T('u_hands'), false) : R(T('u_carve', X.meat[n]), true, null, 'cut');
   if (kind === 'tr') {
     const Tr = W.sp[n];
-    if (!openKb) return R(T('u_tray_n', X.meat[n], Math.floor(Tr.u / 8)), false);
-    if (Tr.u < 8) return R(T('u_tray_low', X.meat[n]), false);
+    if (!openKb) return R(T('u_tray_n', X.meat[n], Math.floor(Tr.u / 6)), false);
+    if (Tr.u < 6) return R(T('u_tray_low', X.meat[n]), false);
     if (H.m[0] + H.m[1] >= 3) return R(T('u_tray_full'), false);
-    return R(T('u_tray_add', X.meat[n]) + (Tr.r > 0.4 ? T('u_raw') : ''), true, () => { const k = H.m[0] + H.m[1]; H.q = r2((H.q * k + Tr.q) / (k + 1)); H.r = r2(Math.max(H.r, Tr.r)); H.m[n]++; if (Tr.h) H.hm = 1; Tr.u -= 8; if (Tr.u <= 0) { Tr.u = 0; Tr.q = 1; Tr.r = 0; Tr.h = 0; } });
+    return R(T('u_tray_add', X.meat[n]) + (Tr.r > 0.4 ? T('u_raw') : ''), true, () => { const k = H.m[0] + H.m[1]; H.q = r2((H.q * k + Tr.q) / (k + 1)); H.r = r2(Math.max(H.r, Tr.r)); H.m[n]++; if (Tr.h) H.hm = 1; Tr.u -= 6; if (Tr.u <= 0) { Tr.u = 0; Tr.q = 1; Tr.r = 0; Tr.h = 0; } });
   }
   if (kind === 'bn') {
     if (!openKb) return R(X.veg[n] + ': ' + W.bin[n], false);
@@ -1489,6 +1879,7 @@ function useLogic(pid, key, doIt) {
   if (kind === 'vc') { if (H) return R(T('u_busy', X.veg[n]), false); return R(T('u_veg', X.veg[n]), true, () => { P.h = { k: 'vg', t: n }; }); }
   if (kind === 'cu') {
     const c = W.cu.find(q => q.i === n); if (!c || c.an === 2) return null;
+    if (c.o) return residentLogic(c, pid, R, H, P);
     const nm = aName(c.a);
     if (c.an === 1) { if (H && H.k !== 'gun' && (c.st === S_STALK || c.st === S_GREET)) return R(T('u_give', itemName(H), nm), true, () => { say(c, 'no'); }); return R(nm, false); }
     if (c.st === S_DEAD) return H ? R(T('u_drag'), false) : R(T('u_drag'), true, () => { P.h = { k: 'body', a: c.a, s: c.s, cr: c.cr | 0 }; c.rm = 1; });
@@ -1520,7 +1911,7 @@ function doShoot(pid, o, d) {
     const den = dx * dx + dz * dz; if (den < 1e-6) continue;
     let best = null, bt = 15;
     for (const c of W.cu) {
-      if (c.st === S_DEAD || c.st === S_DIS) continue;
+      if (c.st === S_DEAD || c.st === S_DIS || c.hid || c.st === S_BACK) continue;
       const t = ((c.x - o[0]) * dx + (c.z - o[2]) * dz) / den; if (t < 0.15 || t > bt) continue;
       const px = o[0] + dx * t - c.x, pz = o[2] + dz * t - c.z; if (px * px + pz * pz > 0.115) continue;
       const y = o[1] + dy * t; if (y < 0 || y > (c.an === 2 ? 2.35 : 1.9)) continue;
@@ -1528,18 +1919,21 @@ function doShoot(pid, o, d) {
     }
     if (best) hits[best.i] = (hits[best.i] || 0) + 1;
   }
-  let human = false;
+  shootDogs(o, d);
+  let human = null;
   for (const id in hits) {
     const c = W.cu.find(q => q.i === +id), n = hits[id]; ev('blood', c.x, c.z);
     if (c.an === 2) { ev('scream', c.x, c.z); c.x = -2.6; c.z = 4.3; c.sc = 7; continue; }
     c.hp -= n;
+    if (c.an === 3) { c.st = S_DIS; c.t = 0; ev('scream', c.x, c.z); continue; }
     if (c.an === 1) { if (c.hp <= 0) { c.st = S_DIS; c.t = 0; c.sl = -1; c.qi = -1; ev('scream', c.x, c.z); ev('msg', 0, 0, 'killed'); } else if (c.st !== S_ATK) startAtk(c); continue; }
     if (ARCH[c.a].sp === 'robber') { if (c.hp <= 0) { c.st = S_DEAD; c.t = 0; c.sl = -1; ev('die', c.x, c.z); } else { say(c, 'robflee'); flee(c); } }
-    else { c.st = S_DEAD; c.cr = 1; c.t = 0; c.sl = -1; c.qi = -1; ev('die', c.x, c.z); human = true; }
+    else { c.st = S_DEAD; c.cr = 1; c.t = 0; c.sl = -1; c.qi = -1; ev('die', c.x, c.z); human = c; if (c.dl) W.dl = W.dl.filter(q => q.i !== c.dl); }
   }
   panic();
   // Matar a un cliente solo acaba la partida si alguien lo ha visto (dentro del local o en la puerta).
-  if (human) { if (W.cu.some(o => !o.an && o.st !== S_DEAD && ARCH[o.a].sp !== 'robber' && o.z < 5.6)) { W.ph = 'over'; W.why = 1; } else ev('msg', 0, 0, 'nowit'); }
+  // Testigo: alguien vivo cerca del muerto, o dentro del local si ha pasado en el local.
+  if (human) { const v = human; if (W.cu.some(o => o !== v && !o.an && !o.hid && o.st !== S_DEAD && o.st !== S_BACK && ARCH[o.a].sp !== 'robber' && (Math.hypot(o.x - v.x, o.z - v.z) < 14 || (o.z < 5.6 && v.z < 5.6)))) { W.ph = 'over'; W.why = 1; } else ev('msg', 0, 0, 'nowit'); }
 }
 function applyAction(pid, a) {
   if (!W) return;
@@ -1551,6 +1945,7 @@ function applyAction(pid, a) {
   else if (k === 'cut') doCut(pid, a[2], a[3]);
   else if (k === 'shoot') doShoot(pid, a[2], a[3]);
   else if (k === 'dropbody') { const P = W.pl[pid], p = PP[pid]; if (P && P.h && P.h.k === 'body' && p) { W.cu.push({ i: W.id++, a: P.h.a, s: P.h.s, x: r2(p.x), z: r2(p.z), y: 0, st: S_DEAD, p: 0, g: [], l: '', ln: 0, sl: -1, qi: -1, an: 0, hp: 0, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, cr: P.h.cr | 0 }); P.h = 0; } }
+  else if (k === 'offbike') { const V = W.vs; if (V.r === pid) { V.r = 0; V.x = r2(+a[2] || V.x); V.z = r2(+a[3] || V.z); V.y = r2(+a[4] || 0); const P = W.pl[pid]; if (V.b && P && !P.h) { P.h = { k: 'bag', d: V.b }; V.b = 0; } } }
   else if (k === 'reload') { const P = W.pl[pid]; if (P && P.h && P.h.k === 'gun' && W.am < 2 && W.shl > 0) { const n = Math.min(2 - W.am, W.shl); W.am += n; W.shl -= n; } }
 }
 
@@ -1583,6 +1978,7 @@ function fire(k) {
   if (k === 'flick') { W.fk = 2.2; ev('flick'); ev('whisper', 0, 4); }
   else if (k === 'black') { if (W.pw) { W.pw = 0; W.bo = 0; ev('pwr0'); ev('msg', 0, 0, 'blackout'); } }
   else if (k === 'hungry') { const pool = W.used.filter(a => !ARCH[a].sp && !W.cu.some(c => c.a === a)); const a = pool.length ? pool[Math.random() * pool.length | 0] : 2; spawn(a, 1); }
+  else if (k === 'dlAnom') { if (!startCall(1)) SCHED.push({ t: W.t + 15, k: 'dlAnom' }), SCHED.sort((a, b) => a.t - b.t); }
   else if (k === 'rob') { if (!W.cu.some(c => !c.an && ARCH[c.a].sp === 'cop' && c.st < S_OUT)) spawn(ARCH.findIndex(x => x.sp === 'robber'), 0); }
   else if (k === 'knockR' || k === 'knockF') { if (!W.bd.s) { W.bd.s = k === 'knockR' ? 1 : 2; W.bd.t = 0; W.bd.k = -1; } }
 }
@@ -1593,11 +1989,11 @@ function simulate(dt) {
   for (const pid in W.pl) { const P = W.pl[pid]; if (P.ko > 0) { P.ko -= dt; if (P.ko <= 0) { P.ko = 0; P.hp = 3; } } }
   while (W.sx < SCHED.length && W.t >= SCHED[W.sx].t) { fire(SCHED[W.sx].k); W.sx++; }
   // clientes nuevos
-  if (W.t >= W.nx && W.t < NIGHT_LEN - 14) {
+  if (W.t >= W.nx && W.t < NIGHT_LEN - 14 && !W.cl) {
     const humans = W.cu.filter(c => !c.an && c.st <= S_WAIT).length;
-    if (humans < 5) { const a = pickArch(); if (a >= 0) spawn(a, 0); }
-    const hr = W.t / HOUR_LEN, base = Math.max(11, 25 - W.n * 2);
-    W.nx = W.t + base * (hr > 2.6 && hr < 5.6 ? 0.8 : 1) * (np > 1 ? 0.68 : 1) * (0.75 + Math.random() * 0.5);
+    if (humans < (np > 1 ? 5 : 4)) { const a = pickArch(); if (a >= 0) spawn(a, 0); }
+    const hr = W.t / HOUR_LEN, base = Math.max(17, 34 - W.n * 2.5);
+    W.nx = W.t + base * (hr > 2.6 && hr < 5.6 ? 0.8 : 1) * (np > 1 ? 0.7 : 1) * (SHOP_IN ? 1 : 1.6) * (0.75 + Math.random() * 0.5);
   }
   // apagón
   if (!W.pw) { W.bo += dt; if (W.bo > 6 && !W.cu.some(c => c.an === 2)) { W.cu.push({ i: W.id++, a: -1, s: 1, x: -2.6, z: 4.3, y: PI, st: S_ATK, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: 2, hp: 99, t: 0, wp: 0, sc: 2, f: 0, b: 0, sd: 1 }); ev('whisper', -2.6, 4.3); } }
@@ -1606,6 +2002,7 @@ function simulate(dt) {
   if (B.s) { B.t += dt; const k = Math.floor(B.t / 3.4); if (k !== B.k) { B.k = k; ev(B.s === 1 ? 'knock' : 'knockf', 3.05, -7.4); } if (B.t > 25) { ev('msg', 0, 0, B.s === 1 ? 'nodeliv' : 'gone'); B.s = 0; } }
   if (B.o > 0) B.o = Math.max(0, B.o - dt);
   simSpits(dt);
+  simStreet(dt, np);
   if (W.fry.s === 1) W.fry.t += dt;
   for (const c of W.cu) updCustomer(c, dt);
   if (W.cu.some(c => c.rm)) W.cu = W.cu.filter(c => !c.rm);
@@ -1622,19 +2019,20 @@ function simulate(dt) {
   if (W.t >= NIGHT_LEN) {
     if (!W.fl) { W.fl = 1; ev('msg', 0, 0, 'last'); }
     const left = W.cu.some(c => !c.an && c.st <= S_WAIT);
-    if (!left || W.t > NIGHT_LEN + 40) { W.cu = []; W.pw = 1; W.bd.s = 0; W.ph = 'end'; }
+    if (!left || W.t > NIGHT_LEN + 40) { W.cu = []; W.pw = 1; W.bd.s = 0; W.dl = []; W.vs.r = 0; W.call = 0; W.ph = 'end'; }
   }
   // Un cuerpo a la vista en la zona de clientes (en el suelo o a cuestas) y alguien que entra: se acabó.
   if (W.ph === 'play') {
-    let body = W.cu.some(c => c.st === S_DEAD && c.cr && c.z > 1.3);
-    if (!body) for (const pid in W.pl) { const h = W.pl[pid].h; if (h && h.k === 'body' && h.cr && PP[pid] && PP[pid].z > 1.3) body = true; }
-    if (body && W.cu.some(o => !o.an && o.st <= S_WAIT && o.wp >= 2 && o.z < 4.7 && ARCH[o.a].sp !== 'robber')) { W.ph = 'over'; W.why = 2; }
+    const front = (x, z) => z > 1.3 && z < 9 && x > -9 && x < 9;
+    let body = W.cu.some(c => c.st === S_DEAD && c.cr && front(c.x, c.z));
+    if (!body) for (const pid in W.pl) { const h = W.pl[pid].h; if (h && h.k === 'body' && h.cr && PP[pid] && front(PP[pid].x, PP[pid].z)) body = true; }
+    if (body && W.cu.some(o => !o.an && o.st <= S_WAIT && o.wp >= 2 && o.z < 4.7 && !o.o && ARCH[o.a].sp !== 'robber')) { W.ph = 'over'; W.why = 2; }
   }
   if (W.rep <= 0 && W.ph === 'play') { W.ph = 'over'; W.why = 0; }
 }
 
 /* ================= RED: cooperativo por presencia ================= */
-const NETV = 4;   // versión del protocolo: todos tienen que jugar con la misma
+const NETV = 6;   // versión del protocolo: todos tienen que jugar con la misma
 const NET = { room: null, myId: 'solo', isHost: true, joined: false, acts: [], seq: 0, lastSeq: {}, lastHost: null, hostGone: 0, sendT: 0, others: [], remote: null, count: 1, evInit: false, code: '', badVer: false, lostSaid: false };
 
 /* Fuera de Claude (GitHub) la sala va por PeerJS, de navegador a navegador y sin cuentas.
@@ -1720,7 +2118,7 @@ function netUpdate(dt, me) {
   if (!NET.isHost) {
     if (hp) {
       NET.hostGone = 0;
-      if (hp.presence !== NET.lastHost) { NET.lastHost = hp.presence; try { const nw = JSON.parse(JSON.stringify(hp.presence.w)); if (nw && nw.v !== NETV) NET.badVer = true; else if (nw && Array.isArray(nw.cu) && Array.isArray(nw.sp) && nw.pl && nw.fry && nw.bd && Array.isArray(nw.ev)) { nw.cu = nw.cu.filter(c => c && (c.an === 2 || ARCH[c.a])); if (!W || W.hs !== nw.hs) NET.acts = []; W = nw; } } catch (e) { } }
+      if (hp.presence !== NET.lastHost) { NET.lastHost = hp.presence; try { const nw = JSON.parse(JSON.stringify(hp.presence.w)); if (nw && nw.v !== NETV) NET.badVer = true; else if (nw && Array.isArray(nw.cu) && Array.isArray(nw.sp) && nw.pl && nw.fry && nw.bd && Array.isArray(nw.ev) && nw.vs && Array.isArray(nw.dl) && Array.isArray(nw.dg)) { nw.cu = nw.cu.filter(c => c && (c.an === 2 || ARCH[c.a])); if (!W || W.hs !== nw.hs) NET.acts = []; W = nw; } } catch (e) { } }
     } else {
       NET.hostGone += dt;
       if (NET.hostGone > 3.5) {
@@ -1751,11 +2149,331 @@ function netUpdate(dt, me) {
   }
 }
 
+/* ================= REPARTO A DOMICILIO, VESPINO Y BARRIO (lo lleva el anfitrión) ================= */
+const S_DOOR = 12, S_BACK = 13, DL_FEE = 2.5;
+const BIKE_HOME = { x: -6.6, z: 7.7, y: -PI / 2 };
+const RES_IDX = ARCH.map((a, i) => a.sp === 'res' ? i : -1).filter(i => i >= 0);
+let SHOP_IN = true;
+
+function newStreet(w) {
+  w.vs = { x: BIKE_HOME.x, z: BIKE_HOME.z, y: BIKE_HOME.y, r: 0, b: 0 };
+  w.dl = []; w.nd = HOUR_LEN * 0.5; w.s.dl = 0; w.call = 0; w.cl = 0; w.ua = 0; w.sps = 0;
+  w.dg = DOG_HOME.map(([x, z]) => ({ x, z, y: 0, st: 0, hp: 2, cd: 0, bk: 0 }));
+}
+function inShop(x, z) { return z < 5.3 && x > -4.2 && x < 4.2; }
+function dlPat(o) { return (230 + 40 * Math.max(0, genOrder(o.a, o.s).length - 1)) * (W.n === 1 ? 1.15 : 1); }
+function newDelivery(an) {
+  const busy = W.dl.map(o => o.d), free = [];
+  TOWN.doors.forEach((d, k) => { if (!d.x13 && busy.indexOf(k) < 0 && d.st === DL_STREET) free.push(k); });
+  if (an && TOWN.c13 < 0) return;
+  const d = an ? TOWN.c13 : free[Math.random() * free.length | 0], a = RES_IDX[Math.random() * RES_IDX.length | 0], s = (Math.random() * 1e6) | 0;
+  const o = { i: W.id++, a, s, d, st: 0, g: genOrder(a, s).map(() => 0), sc: 0, p: 1, an: an ? 1 : 0, lt: 0 }; W.dl.push(o); return o;
+}
+// el teléfono: hay que descolgar. k 0 pedido normal, 1 no se oye nada (y el pedido es al 13), 2 solo una respiración
+function startCall(k) { if (W.call) return false; W.call = { k, t: 0, rk: -1 }; ev('msg', 0, 0, 'phone'); return true; }
+function phoneLogic(pid, R) {
+  if (!W.call) return R(T('u_phone'), false);
+  return R(T('u_answer'), true, () => {
+    const c = W.call; W.call = 0;
+    if (c.k === 2) { ev('call', 3.9, 1.75, 'b'); W.fk = Math.max(W.fk, 2); return; }
+    const o = newDelivery(c.k === 1); if (o) ev('call', 3.9, 1.75, (c.k === 1 ? 's' : 'v') + o.i);
+  });
+}
+function signLogic(pid, R) { return R(T(W.cl ? 'u_sign_open' : 'u_sign_close'), true, () => { W.cl = W.cl ? 0 : 1; }); }
+// espíritus: entran si el local se queda vacío con el cartel en ABIERTO
+function spawnSpirit() {
+  if (!W.cu.some(c => c.an === 3)) panic();
+  W.rep = clamp(W.rep - 3, 0, 100);
+  W.cu.push({ i: W.id++, a: RES_IDX[Math.random() * RES_IDX.length | 0], s: (Math.random() * 1e6) | 0, x: r2(-3 + Math.random() * 6), z: r2(-2.5 + Math.random() * 6.5), y: Math.random() * 6, st: S_STALK, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: 3, hp: 1, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1 });
+}
+function updSpirit(c, dt) {
+  if (c.st === S_DIS) { if (c.t > 1.2) c.rm = 1; return; }
+  let n = null; for (const pid in W.pl) { const p = PP[pid]; if (!p || W.pl[pid].ko > 0 || !inShop(p.x, p.z)) continue; const d = Math.hypot(p.x - c.x, p.z - c.z); if (!n || d < n.d) n = { pid, d, x: p.x, z: p.z }; }
+  if (!n) { if (Math.random() < dt * 0.4) c.y += (Math.random() - 0.5) * 3; c.x = clamp(c.x + Math.sin(c.y) * 0.3 * dt, -3.6, 3.6); c.z = clamp(c.z + Math.cos(c.y) * 0.3 * dt, -3.4, 4.6); return; }
+  if (c.st !== S_ATK) { c.st = S_ATK; c.t = 0; say(c, 'w'); ev('scream', c.x, c.z); if (!W.sps) { W.sps = 1; ev('msg', 0, 0, 'spirits'); } }
+  W.fk = Math.max(W.fk, 0.2);
+  moveTo(c, n.x, n.z, 1.8 + 0.1 * W.n, dt);
+  if (n.d < 0.75) { hurt(n.pid); ev('scream', c.x, c.z); c.st = S_DIS; c.t = 0; }
+  if (c.t > 35) { c.st = S_DIS; c.t = 0; }
+}
+// encaja un producto en un pedido; lo usan el mostrador y la bolsa de reparto
+function matchItem(ord, g, H, Ar) {
+  let idx = -1, score = 1, line = null;
+  if (Ar.sp === 'beggar') idx = 0;
+  else if (H.k === 'dr') idx = ord.findIndex((o, i) => !g[i] && o.k === 'dr' && o.t === H.t);
+  else if (H.k === 'fr') { idx = ord.findIndex((o, i) => !g[i] && o.k === 'fr'); score = H.q; if (H.q < 0.4) line = 'bad'; }
+  else if (H.k === 'kb') {
+    const mt = H.m[0] && H.m[1] ? 2 : H.m[0] ? 0 : H.m[1] ? 1 : -1;
+    idx = ord.findIndex((o, i) => !g[i] && o.k === 'kb' && o.b === H.b && o.m === mt);
+    if (idx >= 0) {
+      const o = ord[idx], dv = bits(o.v ^ H.v), ds = bits(o.s ^ H.s);
+      if (Ar.sp === 'picky' && (H.v & ~o.v)) idx = -1;
+      else {
+        score = H.q - dv * 0.2 - ds * 0.2;
+        if (H.q < 0.5 || dv + ds >= 2) line = 'bad';
+        if (!H.w) { score -= 0.25; line = 'unw'; }
+        if (H.b === 2 && !H.f) { score -= 0.3; line = 'nofr'; }
+        if (H.r > 0.4) { score -= 0.5; line = 'raw'; }
+        score = clamp(score, 0, 1);
+      }
+    }
+  }
+  return { idx, score, line };
+}
+function bagLogic(pid, R, H, P) {
+  const ready = W.dl.find(o => o.st === 0 && o.g.every(v => v)), open = W.dl.filter(o => o.st === 0 && !o.g.every(v => v));
+  if (!H) {
+    if (ready) return R(T('u_bag_take', addrOf(ready.d)), true, () => { ready.st = 1; P.h = { k: 'bag', d: ready.i }; });
+    return R(open.length ? T('u_bag_fill', addrOf(open[0].d)) : T('u_bag_none'), false);
+  }
+  if (H.k === 'kb' || H.k === 'dr' || H.k === 'fr') {
+    for (const o of open) {
+      const m = matchItem(genOrder(o.a, o.s), o.g, H, ARCH[o.a]);
+      if (m.idx >= 0) return R(T('u_bag_put', itemName(H)), true, () => { o.g[m.idx] = 1; o.sc = r2(o.sc + m.score); if (H.hm) o.hm = 1; if (H.r > 0.4) o.raw = 1; P.h = 0; });
+    }
+    return R(open.length ? T('u_bag_nomatch') : T('u_bag_none'), false);
+  }
+  return R(T('u_bag_none'), false);
+}
+function bikeLogic(pid, R, H, P) {
+  const V = W.vs;
+  if (V.r) return R(T('u_bike_busy'), false);
+  if (H && H.k !== 'bag') return R(T('u_bike_hands'), false);
+  return R(T('u_bike_on'), true, () => { V.r = pid; V.mt = W.t; if (H) { V.b = H.d; P.h = 0; } });
+}
+function doorLogic(pid, n, R, H) {
+  const adr = addrOf(n);
+  if (!H || H.k !== 'bag') return R(adr, false);
+  const o = W.dl.find(q => q.i === H.d);
+  if (!o) return R(adr, false);
+  if (o.d !== n) return R(T('u_wrongdoor', addrOf(o.d)), false);
+  const at = W.cu.find(c => c.dl === o.i && c.st !== S_DEAD);
+  if (at) return at.st === S_DOOR && !at.hid ? residentLogic(at, pid, R, H, W.pl[pid]) : R(T('u_wait_door'), false);
+  return R(T('u_ring'), true, () => {
+    const D = TOWN.doors[n];
+    W.cu.push({ i: W.id++, a: o.a, s: o.s, x: r2(D.x + D.nx * 0.3), z: r2(D.z + D.nz * 0.3), y: r2(Math.atan2(D.nx, D.nz)), st: S_DOOR, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: o.an, hp: o.an ? 6 : 2, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, o: 1, dl: o.i, dk: n, hid: 1 });
+    ev('bell2', D.x, D.z);
+  });
+}
+function residentLogic(c, pid, R, H, P) {
+  const nm = c.an ? '???' : aName(c.a);
+  if (c.st === S_DEAD) return H ? R(T('u_drag'), false) : R(T('u_drag'), true, () => { P.h = { k: 'body', a: c.a, s: c.s, cr: c.cr | 0 }; c.rm = 1; });
+  if (c.st !== S_DOOR || c.hid || c.an) return R(nm, false);
+  if (H && H.k === 'bag' && H.d === c.dl) return R(T('u_give_bag', nm), true, () => payDelivery(c, pid));
+  return R(nm + ' · ' + aRole(c.a), false);
+}
+function payDelivery(c, pid) {
+  const P = W.pl[pid], o = W.dl.find(q => q.i === c.dl); P.h = 0;
+  if (!o) { c.st = S_BACK; c.t = 0; return; }
+  const ord = genOrder(o.a, o.s), avg = ord.length ? o.sc / ord.length : 1, Ar = ARCH[o.a];
+  const price = orderPrice(ord) + DL_FEE, amt = avg < 0.4 ? Math.round(price * 50) / 100 : price;
+  let tip = 0;
+  if (!o.lt && avg > 0.6) tip = Math.round((0.5 + o.p * 3 + price * Ar.tip) * 2) / 2;
+  if (o.hm && avg > 0.6) tip += 1;
+  W.cash = r2(W.cash + amt + tip); W.s.e = r2(W.s.e + amt); W.s.tp = r2(W.s.tp + tip); W.s.sv++; W.s.dl++;
+  ev('cash', c.x, c.z, r2(amt)); if (tip > 0) ev('tip', c.x, c.z, tip);
+  W.rep = clamp(W.rep + (o.lt ? -2 : avg > 0.85 ? 3 : avg > 0.6 ? 1 : -4) - (o.raw ? 3 : 0), 0, 100);
+  say(c, o.lt ? 'late' : avg > 0.6 ? (o.hm ? 'hm' : 'ok') : 'bad');
+  W.dl = W.dl.filter(q => q !== o); c.st = S_BACK; c.t = 0;
+}
+function knockOff(pid, x, z) {
+  const V = W.vs; if (V.r !== pid) return;
+  V.r = 0; const p = PP[pid]; if (p) { V.x = r2(p.x); V.z = r2(p.z); V.y = r2(p.yaw); }
+  const P = W.pl[pid]; if (V.b && P && !P.h) { P.h = { k: 'bag', d: V.b }; V.b = 0; }
+  ev('crash', V.x, V.z); ev('msg', 0, 0, 'bikehit');
+}
+function updOutdoor(c, dt) {
+  switch (c.st) {
+    case S_DOOR:
+      if (c.hid && c.t > 2.2) { c.hid = 0; ev('door', c.x, c.z); say(c, c.an ? 'pasa' : 'g'); }
+      if (c.an && c.t > 7.5) {
+        const n = nearestPlayer(c.x, c.z);
+        if (n && n.d < 13) { c.st = S_ATK; c.t = 0; c.sc = 0.4; say(c, 'atk'); ev('scream', c.x, c.z); W.dl = W.dl.filter(q => q.i !== c.dl); }
+        else { c.st = S_BACK; c.t = 0; }
+      }
+      if (!c.an && c.t > 45) { c.st = S_BACK; c.t = 0; }
+      break;
+    case S_BACK: if (c.t > (c.an ? 0.5 : 2.6)) c.rm = 1; break;
+    case S_ATK: {
+      const n = nearestPlayer(c.x, c.z); W.fk = Math.max(W.fk, 0.15);
+      if (!n || c.t > 45 || inShop(n.x, n.z) || n.d > 45) { c.st = S_DIS; c.t = 0; ev('scream', c.x, c.z); break; }
+      c.sc -= dt;
+      if (c.sc <= 0) moveTo(c, n.x, n.z, 4.6 + 0.15 * W.n, dt); else c.y = Math.atan2(n.x - c.x, n.z - c.z);
+      if (n.d < 0.85 && c.sc <= 0) {
+        knockOff(n.pid); const ko = hurt(n.pid); c.sc = 1.4;
+        const dx = c.x - n.x, dz = c.z - n.z, d = Math.max(0.1, Math.hypot(dx, dz)); c.x += dx / d * 1.2; c.z += dz / d * 1.2;
+        if (ko) { c.st = S_DIS; c.t = 0; ev('scream', c.x, c.z); }
+      }
+      break;
+    }
+    case S_DIS: if (c.t > 1.2) c.rm = 1; break;
+    case S_DEAD: break;
+  }
+}
+function updDogs(dt) {
+  const Z = DOG_ZONE;
+  W.dg.forEach((d, k) => {
+    if (d.st === 2) return;
+    d.cd -= dt; d.bk -= dt;
+    let tgt = null, td = 1e9;
+    for (const pid in W.pl) { const p = PP[pid]; if (!p || W.pl[pid].ko > 0 || inShop(p.x, p.z)) continue; const dd = Math.hypot(p.x - d.x, p.z - d.z); if (dd < td) { td = dd; tgt = pid; } }
+    const p = tgt && PP[tgt], inZ = p && p.x > Z.x0 - 4 && p.x < Z.x1 + 4 && p.z > Z.z0 - 4 && p.z < Z.z1 + 4;
+    if (p && inZ && td < (d.st === 1 ? 22 : 12)) {
+      if (d.st !== 1) { d.st = 1; d.bk = 0; }
+      if (d.bk <= 0) { d.bk = 1.4 + Math.random(); ev('bark', d.x, d.z); }
+      const riding = W.vs.r === tgt;
+      moveTo(d, p.x + (k ? 0.6 : -0.6), p.z, riding ? 6.6 : 5.0, dt);
+      if (td < 0.95 && d.cd <= 0) { d.cd = 1.7; ev('bark', d.x, d.z); if (!riding) hurt(tgt); }
+    } else {
+      d.st = 0; const h = DOG_HOME[k];
+      if (Math.hypot(d.x - h[0], d.z - h[1]) > 4) moveTo(d, h[0], h[1], 1.6, dt);
+      else if (Math.random() < dt * 0.3) d.y += (Math.random() - 0.5) * 2;
+      if (p && td < 26 && d.bk <= 0 && Math.random() < dt * 0.5) { d.bk = 3; ev('bark', d.x, d.z); }
+    }
+    d.x = clamp(d.x, Z.x0, Z.x1); d.z = clamp(d.z, Z.z0, Z.z1);
+  });
+}
+function shootDogs(o, d) {
+  const den = d[0] * d[0] + d[2] * d[2]; if (den < 1e-6) return;
+  for (const g of W.dg) {
+    if (g.st === 2) continue;
+    const t = ((g.x - o[0]) * d[0] + (g.z - o[2]) * d[2]) / den; if (t < 0.2 || t > 16) continue;
+    const px = o[0] + d[0] * t - g.x, pz = o[2] + d[2] * t - g.z, y = o[1] + d[1] * t;
+    if (px * px + pz * pz < 0.25 && y > 0 && y < 1.1) { g.st = 2; ev('blood', g.x, g.z); ev('die', g.x, g.z); }
+  }
+}
+function simStreet(dt, np) {
+  // ¿hay alguien atendiendo dentro?
+  SHOP_IN = false; for (const pid in W.pl) { const p = PP[pid]; if (p && inShop(p.x, p.z) && !(W.vs.r === pid)) SHOP_IN = true; }
+  // la moto va donde va su piloto
+  const V = W.vs;
+  if (V.r) { const p = PP[V.r], P = W.pl[V.r]; if (!P || P.ko > 0) { V.r = 0; } else if (p && W.t - (V.mt || 0) > 1.0) { V.x = r2(p.x); V.z = r2(p.z); V.y = r2(p.yaw); } }
+  // pedidos a domicilio
+  if (W.t >= W.nd && W.t < NIGHT_LEN - 70) {
+    if (W.dl.filter(o => !o.an).length < (np > 1 ? 3 : 2) && startCall(Math.random() < 0.22 ? 2 : 0)) W.nd = W.t + (np > 1 ? 100 : 160) * (0.8 + Math.random() * 0.4);
+    else W.nd = W.t + 12;
+  }
+  if (W.call) { const c = W.call; c.t += dt; const k = Math.floor(c.t / 2.4); if (k !== c.rk) { c.rk = k; ev('ring', 3.9, 1.75); } if (c.t > 20) { W.call = 0; if (c.k === 0) { W.rep = clamp(W.rep - 2, 0, 100); ev('msg', 0, 0, 'callmiss'); } } }
+  if (!SHOP_IN && !W.cl) { W.ua += dt; if (W.ua > 12 && W.cu.filter(c => c.an === 3).length < 5) { W.ua = 0; spawnSpirit(); } } else W.ua = 0;
+  for (const o of W.dl.slice()) {
+    o.p -= dt / dlPat(o);
+    if (o.p <= 0 && o.st === 0) { W.dl = W.dl.filter(q => q !== o); if (!o.an) { W.rep = clamp(W.rep - 5, 0, 100); W.s.ls++; ev('msg', 0, 0, 'dlcancel'); } }
+    else if (o.p <= 0 && o.st === 1 && !o.lt) { o.lt = 1; }
+    else if (o.p < -0.8) { W.dl = W.dl.filter(q => q !== o); if (!o.an) { W.rep = clamp(W.rep - 4, 0, 100); ev('msg', 0, 0, 'dlcancel'); } }
+  }
+  // si alguien cae con la bolsa, el pedido vuelve a la cocina vacío
+  for (const o of W.dl) if (o.st === 1) {
+    let held = V.b === o.i; for (const pid in W.pl) { const h = W.pl[pid].h; if (h && h.k === 'bag' && h.d === o.i) held = true; }
+    for (const s of W.sh) if (s && s.k === 'bag' && s.d === o.i) held = true;
+    if (!held) { o.st = 0; o.g = o.g.map(() => 0); o.sc = 0; }
+  }
+  updDogs(dt);
+}
+
+/* ================= LO QUE SE VE EN LA CALLE: farolas, portales, moto, perros, mapa ================= */
+function myDelivery() {
+  const P = myP(); if (!W || !W.dl) return null;
+  const id = P && P.h && P.h.k === 'bag' ? P.h.d : ride.on && W.vs.b ? W.vs.b : 0;
+  return id ? W.dl.find(o => o.i === id) || null : null;
+}
+function syncTown(dt) {
+  // niebla: fuera se ve un poco más lejos
+  const out = camera.position.z > 5.3;
+  scene.fog.near = lerp(scene.fog.near, out ? 6 : 4, Math.min(1, dt * 3)); scene.fog.far = lerp(scene.fog.far, out ? 36 : 25, Math.min(1, dt * 3));
+  // las cuatro farolas encendidas más cercanas dan luz de verdad
+  const flick = L => L.md === 2 || (L.sc > 0 && Math.sin(TIME * 70 + L.ph) > 0) || (L.md === 1 && (Math.sin(TIME * 23 + L.ph) + Math.sin(TIME * 37 + L.ph * 2) + Math.sin(TIME * 3.1 + L.ph)) > 1.1);
+  for (const L of TOWN.lamps) if (L.sc > 0) L.sc -= dt;
+  lampT -= dt;
+  if (lampT <= 0) { lampT = 0.25; const cx = camera.position.x, cz = camera.position.z; D.near = TOWN.lamps.filter(L => L.md !== 2).map(L => [L, (L.hx - cx) ** 2 + (L.hz - cz) ** 2]).sort((a, b) => a[1] - b[1]).slice(0, 4).map(a => a[0]); }
+  LG.pool.forEach((l, i) => { const L = D.near && D.near[i]; if (!L) { l.intensity = 0; return; } l.position.set(L.hx, (L.hy || 4.48) - 0.3, L.hz); l.color.setHex(L.nopole ? 0xc8e8ff : 0xffa850); l.intensity = flick(L) ? 0.08 : 1.6; });
+  for (const o of D.lamps) o.h.material.color.setHex(flick(o.L) ? 0x1c1a16 : o.L.nopole ? 0xd8f0ff : 0xffb45a);
+  // portales abiertos
+  const open = {}; for (const c of W.cu) if (c.o && c.dk !== undefined && ((c.st === S_DOOR && !c.hid) || (c.st === S_BACK && c.t < 1.6) || (c.st === S_ATK && c.t < 1))) open[c.dk] = 1;
+  D.doors.forEach((d, k) => { const t = open[k] ? 1 : 0; d.piv.rotation.y = lerp(d.piv.rotation.y, t * 1.3, Math.min(1, dt * 4)); });
+  // la Vespino
+  const V = W.vs; D.bike.visible = !ride.on;
+  if (!ride.on) {
+    let bx = V.x, bz = V.z, by = V.y; const rc = V.r && rchars.get(V.r);
+    if (rc) { bx = rc.g.position.x; bz = rc.g.position.z; by = rc.g.rotation.y - PI; }
+    const far = Math.hypot(D.bike.position.x - bx, D.bike.position.z - bz) > 4, k = far ? 1 : Math.min(1, dt * 12);
+    D.bike.position.x = lerp(D.bike.position.x, bx, k); D.bike.position.z = lerp(D.bike.position.z, bz, k); D.bike.rotation.y = angLerp(D.bike.rotation.y, by, k);
+  }
+  // perros del solar
+  W.dg.forEach((g, k) => {
+    const m = D.dogs[k]; if (!m) return; m.visible = true;
+    const px = m.position.x, pz = m.position.z, far = Math.hypot(g.x - px, g.z - pz) > 5, f = far ? 1 : Math.min(1, dt * 10);
+    m.position.x = lerp(px, g.x, f); m.position.z = lerp(pz, g.z, f);
+    const sp = far ? 0 : Math.hypot(m.position.x - px, m.position.z - pz) / Math.max(dt, 1e-3);
+    if (sp > 0.3) m.rotation.y = angLerp(m.rotation.y, Math.atan2(-(m.position.x - px), -(m.position.z - pz)), Math.min(1, dt * 10));
+    m.rotation.z = g.st === 2 ? lerp(m.rotation.z, PI / 2, Math.min(1, dt * 6)) : 0; m.position.y = g.st === 2 ? 0.25 : 0;
+    const ph = TIME * (6 + sp * 2.5); m.legs.forEach((l, i) => { l.rotation.x = g.st === 2 ? 0 : Math.sin(ph + (i % 2 ? PI : 0) + (i > 1 ? PI / 2 : 0)) * Math.min(0.8, sp * 0.15); });
+    m.head.rotation.x = g.st === 1 ? Math.sin(TIME * 18) * 0.15 : 0;
+  });
+  // el portal de mi pedido tiene la luz del rellano encendida
+  const dl = myDelivery();
+  if (dl) { const d = TOWN.doors[dl.d], x = d.x + d.nx * 0.2, z = d.z + d.nz * 0.2, on = !dl.an || Math.sin(TIME * 9) + Math.sin(TIME * 21) > -0.6; D.porch.position.set(x, 2.55, z); D.porch.material.color.setHex(on ? (dl.an ? 0xff6050 : 0xffe0a0) : 0x1a1410); LG.porch.position.set(d.x + d.nx * 1.2, 2.4, d.z + d.nz * 1.2); LG.porch.color.setHex(dl.an ? 0xff5040 : 0xffc880); LG.porch.intensity = on ? 1.5 : 0; }
+  else { LG.porch.intensity = 0; D.porch.position.y = -10; }
+  updFigures(dt);
+  // faro de la moto
+  LG.head.intensity = ride.on ? 1.9 : 0;
+  if (ride.on) { LG.head.position.set(camera.position.x, 1.0, camera.position.z); LG.head.target.position.set(me.x - Math.sin(me.yaw) * 12, 0, me.z - Math.cos(me.yaw) * 12); }
+  // el de la parada del bus: mira hacia ti y, si te acercas, ya no está
+  if (!watch) { watch = makeChar(SHADOW_LOOK, 9, 2, null); watch.g.position.set(BUS_STOP.x + 0.5, 0, BUS_STOP.z + 0.35); watch.g.rotation.y = PI; }
+  const wk = W.hs + ':' + W.n, wv = W.ph === 'play' && W.t > HOUR_LEN && W.t < HOUR_LEN * 5 && watchGone !== wk;
+  watch.g.visible = wv;
+  if (wv) {
+    animChar(watch, dt, 0, false, TIME);
+    const dx = camera.position.x - watch.g.position.x, dz = camera.position.z - watch.g.position.z;
+    let a = Math.atan2(dx, dz) - PI; a = Math.atan2(Math.sin(a), Math.cos(a)); watch.head.rotation.y = clamp(a, -1.3, 1.3);
+    if (Math.hypot(dx, dz) < 4.5) { watchGone = wk; AU.play('whisper', watch.g.position.x, watch.g.position.z); }
+  }
+  // bolsa térmica junto a la puerta (con tapa verde si ya está completa)
+  const open0 = W.dl.filter(o => o.st === 0), bk = open0.length + ':' + open0.map(o => o.g.join('')).join(',');
+  if (bk !== D.bagKey) {
+    D.bagKey = bk; clearGroup(D.bagSt);
+    if (open0.length) { D.bagSt.add(itemMesh({ k: 'bag' })); if (open0.some(o => o.g.every(v => v))) { const t = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.02, 0.3), bas(0x6dffa0)); t.position.y = 0.38; D.bagSt.add(t); } }
+  }
+}
+/* figuras bajo las farolas: aparecen al acercarte, te miran y gritan. Cada uno ve las suyas. */
+const FIG = [];
+function updFigures(dt) {
+  if (!FIG.length) TOWN.lamps.forEach(L => { if (L.fig) FIG.push({ L, ch: null, st: 0, t: 0, cd: 6 + Math.random() * 20 }); });
+  const cx = camera.position.x, cz = camera.position.z, outside = cz > 16 && W.ph === 'play';
+  for (const f of FIG) {
+    const L = f.L, fx = L.hx - L.ax * 0.3, fz = L.hz, d = Math.hypot(cx - fx, cz - fz);
+    if (f.st === 0) {
+      f.cd -= dt;
+      if (outside && f.cd <= 0 && d < 22 && d > 8 && Math.random() < dt * 0.9) {
+        f.st = 1; f.t = 0;
+        if (!f.ch) { const an = Math.random() < 0.5 ? 2 : 1, look = an === 2 ? SHADOW_LOOK : ARCH[RES_IDX[Math.random() * RES_IDX.length | 0]].look; f.ch = makeChar(look, (Math.random() * 999) | 0, an, null); }
+        f.ch.g.position.set(fx, 0, fz); f.ch.g.visible = true; L.sc = 0.4;
+      }
+      continue;
+    }
+    f.t += dt; const ch = f.ch;
+    ch.g.rotation.y = Math.atan2(cx - fx, cz - fz);
+    if (f.st === 1) { animChar(ch, dt, 0, false, TIME); if (f.t > 0.6 && (d < 10 || f.t > 2.8)) { f.st = 2; f.t = 0; AU.play('scream', fx, fz); L.sc = 1.6; } }
+    else if (f.st === 2) { animChar(ch, dt, 1, false, TIME); if (f.t > 1.4) { f.st = 0; ch.g.visible = false; f.cd = 35 + Math.random() * 60; L.sc = 0.8; } }
+  }
+}
+function dlTicketHTML(o) {
+  const ord = genOrder(o.a, o.s), X = LX[LANG], nm = o.an ? '???' : aName(o.a);
+  let h = '<div class="tk dl' + (o.p < 0.25 ? ' hot' : '') + '"><div class="tk-h"><b>' + T('dl_head') + '</b><i>' + addrOf(o.d) + '</i></div><div class="tk-n">' + nm + (o.an ? ' · ' + T('dl_anon') : '') + '</div>';
+  ord.forEach((it, i) => {
+    const t = it.k === 'kb' ? '<u>' + kbShort(it) + '</u><br>' + vegPhrase(it.v) + ' · ' + saucePhrase(it.s) + (it.b === 2 ? ' · ' + X.wfries : '') : '<u>' + (it.k === 'fr' ? X.fries : X.drink[it.t]) + '</u>';
+    h += '<div class="tk-i' + (o.g[i] ? ' done' : '') + '">' + t + '</div>';
+  });
+  if (o.st === 1) h += '<div class="tk-s">' + T(o.lt ? 'dl_late' : 'dl_road') + '</div>';
+  return h + '<div class="tk-p"><span style="width:' + Math.round(clamp(o.p, 0, 1) * 100) + '%"></span></div></div>';
+}
+
 /* ================= JUEGO: entrada, cámara, HUD, bucle ================= */
 const $ = id => document.getElementById(id);
 const me = { x: 1.6, z: -1.6, yaw: PI, pitch: 0, aim: 0, bob: 0, stepT: 0 };
 const IN = { f: 0, s: 0, lx: 0, ly: 0, use: false, fire: false, held: false, reload: false, back: false, dev: 'kb', keys: {}, locked: false, noLock: false, drag: null, joy: null, look: null, padPrev: {} };
 const cut = { on: false, i: 0, y: 1.9, press: false, last: 7, cam: 0 };
+const ride = { on: false, spd: 0, look: 0, lean: 0, offT: 0, st: 0, thr: 0, spT: 0 };
+let lampT = 0, mapT = 0, watch = null, watchGone = '';
 let overlay = 'menu', TIME = 0, Tsm = 0, lastEv = 0, lastT = 0, useCd = 0, reloadT = 0, shotCd = 0, hurtFlash = 0, flashT = 0, prevKo = 0, prevN = 0, prevPh = '', hudT = 0, vmKey = '', vmKick = 0, vmRecoil = 0, target = null, targetKey = null, started = false, toastQ = [];
 let vm, vmItem, knife, PR = 0.28, noGL = false;
 const chars = new Map(), rchars = new Map(), bubbles = new Map(), slices = [], bloods = [];
@@ -1773,6 +2491,7 @@ async function boot() {
   camera = new THREE.PerspectiveCamera(66, 16 / 9, 0.05, 60); camera.rotation.order = 'YXZ';
   buildWorld(); scene.add(camera); raycaster = new THREE.Raycaster();
   vm = new THREE.Group(); camera.add(vm); vmItem = new THREE.Group(); vm.add(vmItem);
+  D.handle = makeHandle(); camera.add(D.handle);
   knife = new THREE.Group(); knife.add(new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.06, 0.005), lam(null, 0xe4e8ec, { emissive: 0x3a3d40 }))); const ke = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.008, 0.007), bas(0xffffff)); ke.position.y = -0.03; knife.add(ke); const ka = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.09, 0.5), lam(null, 0xc8906a)); ka.position.set(0.36, -0.03, 0.27); ka.rotation.x = 0.25; knife.add(ka); const kh = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.034, 0.022), lam(null, 0x15161a)); kh.position.x = 0.275; knife.add(kh); knife.visible = false; scene.add(knife);
   resize(); window.addEventListener('resize', resize);
   bindInput(); netInit(); setOverlay('menu'); setLang(LANG); p2pInit();
@@ -1793,7 +2512,8 @@ function bindInput() {
     if (e.repeat) return; IN.dev = 'kb'; IN.keys[e.code] = true; AU.init();
     if (e.code === 'KeyE' || e.code === 'Enter') IN.use = true;
     if (e.code === 'KeyR') IN.reload = true;
-    if (e.code === 'Escape' || e.code === 'KeyQ') IN.back = true;
+    if (e.code === 'Escape' || e.code === 'KeyQ') { IN.back = true; if (e.code === 'Escape' && !cut.on && !overlay) setPause(true); }
+    if (e.code === 'KeyP') setPause(overlay !== 'pause');
     if (e.code === 'Space' || e.code === 'KeyF') { IN.fire = true; IN.held = true; }
   });
   window.addEventListener('keyup', e => { IN.keys[e.code] = false; if (e.code === 'Space' || e.code === 'KeyF') IN.held = false; });
@@ -1814,7 +2534,7 @@ function bindInput() {
     if (IN.locked) { IN.lx += e.movementX; IN.ly += e.movementY; }
     else if (IN.drag) { const dx = e.clientX - IN.drag.x, dy = e.clientY - IN.drag.y; IN.drag.x = e.clientX; IN.drag.y = e.clientY; IN.drag.moved += Math.abs(dx) + Math.abs(dy); IN.lx += dx * 1.6; IN.ly += dy * 1.6; }
   });
-  document.addEventListener('pointerlockchange', () => { IN.locked = document.pointerLockElement === cv; });
+  document.addEventListener('pointerlockchange', () => { IN.locked = document.pointerLockElement === cv; if (!IN.locked && !overlay && !cut.on && IN.dev === 'kb') setPause(true); });
   document.addEventListener('pointerlockerror', () => { IN.noLock = true; });
   // táctil
   st.addEventListener('touchstart', e => {
@@ -1841,9 +2561,10 @@ function bindInput() {
   };
   st.addEventListener('touchend', tend); st.addEventListener('touchcancel', tend);
   const tb = (id, fn) => { const b = $(id); const h = e => { e.preventDefault(); e.stopPropagation(); IN.dev = 'touch'; AU.init(); fn(); }; b.addEventListener('touchstart', h, { passive: false }); b.addEventListener('mousedown', h); };
-  tb('tb-use', () => { IN.use = true; }); tb('tb-fire', () => { IN.fire = true; }); tb('tb-rel', () => { IN.reload = true; }); tb('tb-back', () => { IN.back = true; });
+  tb('tb-use', () => { IN.use = true; }); tb('tb-pause', () => setPause(true)); tb('tb-fire', () => { IN.fire = true; }); tb('tb-rel', () => { IN.reload = true; }); tb('tb-back', () => { IN.back = true; });
   // botones de las pantallas
   $('btn-start').addEventListener('click', startGame);
+  $('btn-resume').addEventListener('click', () => { setPause(false); if (IN.dev === 'kb' && !IN.noLock) { try { const p = $('gl').requestPointerLock(); if (p && p.catch) p.catch(() => { }); } catch (e) { } } });
   $('btn-next').addEventListener('click', () => { act('next'); });
   $('btn-again').addEventListener('click', () => { act('restart'); });
   $('btn-full').addEventListener('click', () => { try { const p = $('stage').requestFullscreen(); if (p && p.catch) p.catch(() => { }); } catch (e) { } });
@@ -1875,9 +2596,14 @@ function keyHint() { return IN.dev === 'kb' ? '[E] ' : IN.dev === 'pad' ? '(A) '
 /* ---------- pantallas ---------- */
 function setOverlay(o) {
   overlay = o;
-  for (const id of ['menu', 'note', 'peep', 'end', 'over']) $(id).hidden = id !== o;
+  for (const id of ['menu', 'note', 'peep', 'end', 'over', 'pause']) $(id).hidden = id !== o;
   if (o && document.exitPointerLock && IN.locked) document.exitPointerLock();
   $('hud').classList.toggle('dim', !!o);
+}
+function soloNow() { return NET.isHost && NET.count <= 1; }
+function setPause(on) {
+  if (on) { if (!started || overlay || !W || W.ph !== 'play' || !soloNow()) return; setOverlay('pause'); }
+  else if (overlay === 'pause') setOverlay(null);
 }
 function startGame() {
   AU.init();
@@ -1955,6 +2681,12 @@ function collide(p) {
 function myP() { return W && W.pl[NET.myId] || null; }
 function updatePlayer(dt) {
   const P = myP(), ko = P && P.ko > 0;
+  ride.offT = Math.max(0, ride.offT - dt);
+  const should = !!(W && W.vs && W.vs.r === NET.myId && W.ph === 'play') && ride.offT <= 0;
+  if (should && !ride.on) { ride.on = true; ride.spd = 0; ride.look = 0; me.x = W.vs.x; me.z = W.vs.z; me.yaw = W.vs.y; me.pitch = -0.08; cut.on = false; AU.play('reload'); }
+  else if (!should && ride.on) { ride.on = false; ride.spd = 0; }
+  D.handle.visible = ride.on;
+  if (ride.on) { updateRide(dt, ko); return; }
   const sens = IN.dev === 'touch' ? 0.0026 : 0.0022;
   if (!cut.on && !ko) { me.yaw -= IN.lx * sens; me.pitch = clamp(me.pitch - IN.ly * sens, -1.35, 1.35); }
   if (!cut.on) { IN.lx = 0; IN.ly = 0; }
@@ -1979,6 +2711,44 @@ function updatePlayer(dt) {
   camera.rotation.y = angLerp(me.yaw, 0, k); camera.rotation.x = lerp(me.pitch, -0.07, k); camera.rotation.z = ko ? 1.2 : 0;
   if (hurtFlash > 0) { camera.rotation.z += Math.sin(TIME * 60) * 0.03 * hurtFlash; }
   AU.lis.x = me.x; AU.lis.z = me.z; AU.lis.yaw = me.yaw;
+}
+
+function updateRide(dt, ko) {
+  const K = IN.keys, sens = IN.dev === 'touch' ? 0.0026 : 0.0022, MAX = 11.5;
+  let thr = (K.KeyW || K.ArrowUp ? 1 : 0) - (K.KeyS || K.ArrowDown ? 1 : 0) + (IN.pf || 0), st = (K.KeyD || K.ArrowRight ? 1 : 0) - (K.KeyA || K.ArrowLeft ? 1 : 0) + (IN.ps || 0);
+  if (IN.joy && IN.joy.fx !== undefined) { thr -= IN.joy.fy; st += IN.joy.fx; }
+  if (overlay || ko) { thr = 0; st = 0; }
+  thr = clamp(thr, -1, 1); st = clamp(st, -1, 1); ride.st = st; ride.thr = thr;
+  if (thr > 0) ride.spd += thr * (ride.spd < 0 ? 8 : 3.8 * (1 - 0.55 * ride.spd / MAX)) * dt;
+  else if (thr < 0) ride.spd += thr * (ride.spd > 0.2 ? 9 : 2) * dt;
+  else ride.spd -= Math.sign(ride.spd) * Math.min(Math.abs(ride.spd), 1.3 * dt);
+  ride.spd = clamp(ride.spd, -2.2, MAX);
+  const turn = Math.min(1, Math.abs(ride.spd) / 2.2) * (1 - 0.35 * Math.abs(ride.spd) / MAX);
+  me.yaw -= st * 1.9 * turn * (ride.spd < 0 ? -1 : 1) * dt;
+  const mouse = IN.lx !== 0 || IN.ly !== 0;
+  if (!overlay) { ride.look = clamp(ride.look - IN.lx * sens, -1.6, 1.6); me.pitch = clamp(me.pitch - IN.ly * sens, -0.9, 0.6); }
+  IN.lx = 0; IN.ly = 0;
+  if (!mouse && Math.abs(ride.spd) > 1) ride.look *= 1 - Math.min(1, dt * 1.2);
+  const fx = -Math.sin(me.yaw), fz = -Math.cos(me.yaw), ox = me.x, oz = me.z, want = ride.spd * dt;
+  me.x += fx * want; me.z += fz * want;
+  const pr = PR; PR = 0.62; collide(me); collide(me); PR = pr;
+  const got = (me.x - ox) * fx + (me.z - oz) * fz;
+  if (Math.abs(want) > 1e-4 && Math.abs(got) < Math.abs(want) * 0.55) { if (Math.abs(ride.spd) > 4.5) { AU.play('crash'); hurtFlash = Math.max(hurtFlash, 0.4); } ride.spd = got / dt * 0.6; }
+  ride.lean = lerp(ride.lean, -st * clamp(Math.abs(ride.spd) / MAX, 0, 1) * 0.16, Math.min(1, dt * 5));
+  const vib = Math.sin(TIME * 47) * 0.004 * (0.3 + Math.abs(ride.spd) / MAX);
+  camera.position.set(me.x - fx * 0.1, 1.42 + vib, me.z - fz * 0.1);
+  camera.rotation.set(me.pitch, me.yaw + ride.look, ride.lean + (hurtFlash > 0 ? Math.sin(TIME * 60) * 0.03 * hurtFlash : 0));
+  D.handle.position.set(0.6 * Math.sin(ride.look), -0.36 - 0.6 * Math.sin(me.pitch) * 0.2, -0.6 * Math.cos(ride.look));
+  D.handle.rotation.set(0, -ride.look + st * 0.2 * (1 - 0.5 * Math.abs(ride.spd) / MAX), 0);
+  ride.spT -= dt; if (ride.spT <= 0) { ride.spT = 0.2; drawSpeedo(Math.round(Math.abs(ride.spd) * 3.6)); }
+  AU.lis.x = me.x; AU.lis.z = me.z; AU.lis.yaw = me.yaw + ride.look;
+}
+function getOffBike() {
+  if (Math.abs(ride.spd) > 2.5) { AU.play('bad'); return; }
+  act('offbike', r2(me.x), r2(me.z), r2(me.yaw));
+  ride.on = false; ride.offT = 1.0; ride.spd = 0; D.handle.visible = false;
+  me.x += Math.cos(me.yaw) * 0.85; me.z -= Math.sin(me.yaw) * 0.85; collide(me); collide(me);
+  me.pitch = 0; AU.play('grab');
 }
 
 /* ---------- corte de la carne ---------- */
@@ -2015,7 +2785,7 @@ function updateCut(dt) {
 
 /* ---------- mano y escopeta ---------- */
 function updateViewmodel(dt) {
-  const P = myP(), h = P && !cut.on && !(P.ko > 0) ? P.h : 0, key = h ? JSON.stringify(h) : '';
+  const P = myP(), h = P && !cut.on && !ride.on && !(P.ko > 0) ? P.h : 0, key = h ? JSON.stringify(h) : '';
   if (key !== vmKey) {
     vmKey = key; vm.remove(vmItem); vmItem = new THREE.Group(); vm.add(vmItem);
     if (h) {
@@ -2023,6 +2793,7 @@ function updateViewmodel(dt) {
       const arm = new THREE.Mesh(G(0.075, 0.075, 0.4), lam(null, 0xc8906a));
       if (h.k === 'gun') { it.scale.setScalar(1.15); vmItem.position.set(0.19, -0.2, -0.36); arm.position.set(0.02, -0.07, 0.3); }
       else if (h.k === 'kb') { it.scale.setScalar(1.25); it.rotation.x = 0.85; it.rotation.y = h.w && h.b === 0 ? 0.5 : 0; vmItem.position.set(0.04, -0.2, -0.44); arm.position.set(0.12, -0.1, 0.22); arm.rotation.y = 0.3; }
+      else if (h.k === 'bag') { it.scale.setScalar(0.85); it.rotation.y = 0.5; vmItem.position.set(0.3, -0.46, -0.6); arm.position.set(0.02, 0.1, 0.22); }
       else if (h.k === 'body') { it.scale.setScalar(1.15); it.rotation.y = 0.35; vmItem.position.set(0.06, -0.4, -0.52); arm.position.set(0.22, 0.02, 0.2); }
       else { it.scale.setScalar(1.3); vmItem.position.set(0.2, -0.3, -0.45); arm.position.set(0.02, -0.06, 0.24); }
       vmItem.add(arm); vmKick = 1;
@@ -2053,6 +2824,7 @@ function useSound(key) {
 function updateInteract(dt) {
   target = null; targetKey = null; me.aim = 0; useCd -= dt;
   const P = myP(); if (!W || W.ph !== 'play' || !P || overlay || cut.on) { IN.use = IN.fire = IN.reload = false; return; }
+  if (ride.on) { if ((IN.use || IN.fire) && useCd <= 0) { getOffBike(); useCd = 0.4; } IN.use = IN.fire = IN.reload = false; return; }
   if (P.ko > 0) { IN.use = IN.fire = IN.reload = false; return; }
   const gun = P.h && P.h.k === 'gun';
   raycaster.setFromCamera(_c0, camera); raycaster.far = gun ? 18 : 3.1;
@@ -2078,7 +2850,7 @@ function updateInteract(dt) {
 function clearGroup(g) { while (g.children.length) g.remove(g.children[0]); }
 function showSay(c, ch) {
   const text = lineOf(c); if (!text) return;
-  const nm = c.an === 2 ? '' : aName(c.a), dur = 1.8 + text.length * 0.06;
+  const nm = c.an === 2 ? '' : c.o && c.an ? '???' : aName(c.a), dur = 1.8 + text.length * 0.06;
   let b = bubbles.get(c.i); if (!b) { b = { el: document.createElement('div') }; b.el.className = 'bub'; $('bubs').appendChild(b.el); bubbles.set(c.i, b); }
   b.el.innerHTML = ''; const n = document.createElement('b'); n.textContent = nm; const s = document.createElement('span'); s.textContent = text; b.el.appendChild(n); b.el.appendChild(s);
   b.el.classList.toggle('an', c.an === 1); b.t = dur; ch.sayT = Math.min(dur, 2.5);
@@ -2090,15 +2862,17 @@ function syncChars(dt) {
   const seen = {};
   if (W) for (const c of W.cu) {
     seen[c.i] = 1; let ch = chars.get(c.i);
-    if (!ch) { ch = makeChar(c.an === 2 ? SHADOW_LOOK : ARCH[c.a].look, c.s, c.an, 'cu' + c.i); ch.g.position.set(c.x, 0, c.z); ch.g.rotation.y = c.y; ch.ln = 0; chars.set(c.i, ch); }
+    if (!ch) { ch = makeChar(c.an === 2 ? SHADOW_LOOK : c.an === 3 ? GHOST_LOOK : ARCH[c.a].look, c.s, c.an === 3 ? 1 : c.an, 'cu' + c.i); if (c.an === 3) for (const m of ch.mats) { m.transparent = true; m.opacity = 0.42; m.depthWrite = false; m.emissive && m.emissive.setHex(0x3a4a5a); } ch.g.position.set(c.x, 0, c.z); ch.g.rotation.y = c.y; ch.ln = 0; chars.set(c.i, ch); }
     const px = ch.g.position.x, pz = ch.g.position.z, far = Math.hypot(c.x - px, c.z - pz) > 3, k = far ? 1 : Math.min(1, dt * 12);
     const nx = lerp(px, c.x, k), nz = lerp(pz, c.z, k);
     ch.spd = far ? 0 : lerp(ch.spd, Math.hypot(nx - px, nz - pz) / Math.max(dt, 0.001), 0.25);
     ch.g.position.x = nx; ch.g.position.z = nz; ch.g.rotation.y = angLerp(ch.g.rotation.y, c.y, Math.min(1, dt * 9));
-    const mode = c.st === S_DEAD ? 3 : c.st === S_DIS ? 4 : (c.st === S_ATK && c.an === 1) ? 1 : c.st === S_ROB ? 2 : 0;
+    const mode = c.st === S_DEAD ? 3 : c.st === S_DIS ? 4 : (c.st === S_ATK && (c.an === 1 || c.an === 3)) ? 1 : c.st === S_ROB ? 2 : 0;
     animChar(ch, dt, mode, c.an === 0 && ARCH[c.a].sp === 'drunk', TIME);
     if (ch.bag) ch.bag.visible = (c.st === S_OUT && c.b === 1) || c.st === S_RUN;
     if (c.an === 2) ch.g.visible = !W.pw || c.st === S_DIS;
+    if (c.o) ch.g.visible = !c.hid;
+    if (c.an === 3) { ch.g.position.y = 0.18 + Math.sin(TIME * 2 + c.i) * 0.08; for (const m of ch.mats) m.opacity = 0.3 + 0.15 * Math.sin(TIME * 7 + c.i); }
     if (c.ln !== ch.ln) { ch.ln = c.ln; showSay(c, ch); }
     ch.cx = c;
   }
@@ -2123,6 +2897,7 @@ function syncChars(dt) {
     ch.g.rotation.y = angLerp(ch.g.rotation.y, pr[2] + PI, Math.min(1, dt * 10));
     const Q = W.pl[p.peer], hk = Q && Q.h ? JSON.stringify(Q.h) : '';
     animChar(ch, dt, Q && Q.ko > 0 ? 3 : 0, false, TIME);
+    if (W.vs && W.vs.r === p.peer) { ch.g.position.y = 0.32; ch.lL.rotation.x = ch.lR.rotation.x = -1.35; ch.aL.rotation.x = ch.aR.rotation.x = -1.1; ch.spd = 0; }
     if (hk !== ch.hk) { ch.hk = hk; if (ch.held) ch.aR.remove(ch.held); ch.held = null; if (hk) { ch.held = itemMesh(Q.h); ch.held.position.set(0, -0.66, 0.12); ch.held.rotation.x = Q.h.k === 'gun' ? PI / 2 : 1.2; ch.aR.add(ch.held); } }
     if (hk) ch.aR.rotation.x = -1.1; ch.head.rotation.x = -pr[3] * 0.6;
   }
@@ -2165,6 +2940,9 @@ function syncWorld(dt) {
   const B = W.bd; D.bdoor.position.z = -7.47 + (B.s ? Math.max(0, Math.sin(B.t * 1.85 * PI)) * (B.s === 2 ? 0.02 : 0.008) : 0);
   const ok = clamp(B.o / 0.6, 0, 1); D.bdoor.rotation.y = -ok * 1.1; D.bdoor.position.x = 3.05 - ok * 0.2;
   D.figWin.visible = W.t > HOUR_LEN * 4.3 && W.t < HOUR_LEN * 4.9;
+  syncTown(dt);
+  const st = W.cl ? 1 : 0; if (D.signF.material.map !== D.signTex[st]) { D.signF.material.map = D.signB.material.map = D.signTex[st]; D.signF.material.needsUpdate = D.signB.material.needsUpdate = true; }
+  D.phoneLed.material.color.setHex(W.call && Math.sin(TIME * 14) > 0 ? 0xff3020 : 0x300404);
 }
 
 /* ---------- HUD ---------- */
@@ -2183,9 +2961,16 @@ function updateHUD(dt) {
     if (!NET.evInit) { NET.evInit = true; lastEv = NET.isHost ? 0 : W.es; }
     for (const e of W.ev) {
       if (e[0] <= lastEv) continue; lastEv = e[0]; const type = e[1], x = e[2], z = e[3], a = e[4];
-      if (type === 'msg') toast(MSGX[LANG][a] || MSG[a], a === 'deliv' || a === 'power' || a === 'karma' || a === 'robgone' || a === 'killed' ? 'good' : 'bad');
+      if (type === 'msg') toast(MSGX[LANG][a] || MSG[a], a === 'phone' || a === 'deliv' || a === 'power' || a === 'karma' || a === 'robgone' || a === 'killed' ? 'good' : 'bad');
       else if (type === 'cash') { toast('+' + eur(a), 'good'); AU.play('cash', x, z); }
       else if (type === 'tip') toast(T('tip', eur(a)), 'good');
+      else if (type === 'ring') AU.play('ring', x, z);
+      else if (type === 'call') {
+        const k = String(a)[0], o = W.dl.find(q => q.i === +String(a).slice(1)), sb = $('subs'); let who = T('call_who'), txt;
+        if (k === 'v' && o) { who = aName(o.a); txt = T('call_v', orderPhrase(genOrder(o.a, o.s)), addrOf(o.d)); toast(T('dl_new', addrOf(o.d)), 'good'); }
+        else { txt = T(k === 's' ? 'call_s' : 'call_b'); AU.play('whisper', x, z); if (o) toast(T('dl_new', addrOf(o.d)), 'bad'); }
+        sb.innerHTML = ''; const b = document.createElement('b'); b.textContent = who + ': '; sb.appendChild(b); sb.appendChild(document.createTextNode(txt)); sb.classList.toggle('an', k !== 'v'); subT = 3 + txt.length * 0.05;
+      }
       else if (type === 'shot') { if (a !== NET.myId) AU.play('shot', x, z); }
       else if (type === 'cut') { if (a !== NET.myId) AU.play('cut', x, z); }
       else if (type === 'hurt') { if (a === NET.myId) { hurtFlash = 1; AU.play('hurt'); } }
@@ -2199,18 +2984,20 @@ function updateHUD(dt) {
   $('ko').hidden = !(P && P.ko > 0 && W.ph === 'play');
   // indicación
   const pr = $('prompt');
-  if (cut.on) { pr.className = 'ok low'; pr.textContent = (cut.empty ? T('cut_empty') : T('cut_front', doneWord(cut.dn || 0))) + T(IN.dev === 'touch' ? 'cut_touch' : IN.dev === 'pad' ? 'cut_pad' : 'cut_kb'); }
+  if (ride.on) { pr.className = 'ok low'; pr.textContent = Math.abs(ride.spd) > 2.5 ? T('u_bike_slow') : T(IN.dev === 'touch' ? 'ride_touch' : IN.dev === 'pad' ? 'ride_pad' : 'ride_kb'); }
+  else if (cut.on) { pr.className = 'ok low'; pr.textContent = (cut.empty ? T('cut_empty') : T('cut_front', doneWord(cut.dn || 0))) + T(IN.dev === 'touch' ? 'cut_touch' : IN.dev === 'pad' ? 'cut_pad' : 'cut_kb'); }
   else if (target) { pr.className = target.ok ? 'ok' : 'no'; pr.textContent = (target.ok ? keyHint() : '') + target.t; }
   else if (P && P.h && P.h.k === 'body' && W.ph === 'play' && !overlay) { pr.className = 'ok'; pr.textContent = keyHint() + T('u_drop_body'); }
   else { pr.className = ''; pr.textContent = ''; }
-  $('cross').classList.toggle('on', !!(target && target.ok)); $('cross').classList.toggle('aim', !!me.aim);
+  $('cross').classList.toggle('on', !!(target && target.ok)); $('cross').classList.toggle('aim', !!me.aim); $('cross').hidden = ride.on;
+
   hudT -= dt; if (hudT > 0) return; hudT = 0.12;
   document.body.dataset.dev = IN.dev; $('touch').hidden = IN.dev !== 'touch' || !!overlay;
   // fases
   const ph = W ? W.ph : '';
   if (W && started) {
     if (ph !== prevPh || W.n !== prevN) {
-      if (ph === 'end') { $('end-t').textContent = T('end_t', W.n); $('end-s').innerHTML = '<dt>' + T('e_sv') + '</dt><dd>' + W.s.sv + '</dd><dt>' + T('e_ls') + '</dt><dd>' + W.s.ls + '</dd><dt>' + T('e_e') + '</dt><dd>' + eur(W.s.e) + '</dd><dt>' + T('e_tp') + '</dt><dd>' + eur(W.s.tp) + '</dd><dt>' + T('e_cash') + '</dt><dd>' + eur(W.cash) + '</dd><dt>' + T('rep') + '</dt><dd>' + Math.round(W.rep) + ' / 100</dd>'; if (overlay !== 'end') setOverlay('end'); }
+      if (ph === 'end') { $('end-t').textContent = T('end_t', W.n); $('end-s').innerHTML = '<dt>' + T('e_sv') + '</dt><dd>' + W.s.sv + '</dd><dt>' + T('e_ls') + '</dt><dd>' + W.s.ls + '</dd><dt>' + T('e_e') + '</dt><dd>' + eur(W.s.e) + '</dd><dt>' + T('e_dl') + '</dt><dd>' + (W.s.dl | 0) + '</dd><dt>' + T('e_tp') + '</dt><dd>' + eur(W.s.tp) + '</dd><dt>' + T('e_cash') + '</dt><dd>' + eur(W.cash) + '</dd><dt>' + T('rep') + '</dt><dd>' + Math.round(W.rep) + ' / 100</dd>'; if (overlay !== 'end') setOverlay('end'); }
       else if (ph === 'over') { $('over-t').textContent = T('over' + (W.why | 0) + '_t'); $('over-p').textContent = T('over' + (W.why | 0) + '_p'); $('over-s').textContent = T('over_s', W.n - 1, eur(W.cash)); if (overlay !== 'over') setOverlay('over'); }
       else if (ph === 'play') { if (overlay === 'end' || overlay === 'over') setOverlay(null); if (W.n !== prevN || (prevPh !== 'play' && prevPh !== '')) { me.x = 1.6; me.z = -1.6; me.yaw = PI; me.pitch = 0; } if (W.n !== prevN || (prevPh !== 'play' && prevPh !== '') || !greeted) { greeted = true; toast(T('t_night', W.n), 'good'); } }
       prevPh = ph; prevN = W.n;
@@ -2222,10 +3009,10 @@ function updateHUD(dt) {
   $('clock').textContent = clockStr(W.t); $('night').textContent = T('night', W.n); $('cash').textContent = eur(W.cash);
   $('rep-f').style.width = Math.round(W.rep) + '%'; $('rep-f').classList.toggle('low', W.rep < 30);
   $('coop').textContent = (NET.code ? T('room_code', NET.code) + (NET.count > 1 ? ' · ' : '') : '') + (NET.count > 1 ? T('coop', NET.count) : '');
-  let th = ''; for (const c of W.cu) if (!c.an && c.st === S_WAIT) th += ticketHTML(c); $('tickets').innerHTML = th;
+  let th = ''; for (const c of W.cu) if (!c.an && !c.o && c.st === S_WAIT) th += ticketHTML(c); for (const o of W.dl || []) th += dlTicketHTML(o); $('tickets').innerHTML = th;
   const h = P ? P.h : 0; let hd = handDesc(h); if (h && h.k === 'gun') hd += '  ' + '●'.repeat(W.am) + '○'.repeat(2 - W.am) + '  +' + W.shl;
   $('hand').textContent = hd; $('hp').textContent = P ? '♥'.repeat(P.hp) + '♡'.repeat(Math.max(0, 3 - P.hp)) : '';
-  $('tb-fire').hidden = !(h && h.k === 'gun'); $('tb-rel').hidden = !(h && h.k === 'gun'); $('tb-back').hidden = !cut.on;
+  $('tb-fire').hidden = !(h && h.k === 'gun'); $('tb-rel').hidden = !(h && h.k === 'gun'); $('tb-back').hidden = !cut.on; $('tb-pause').hidden = !soloNow();
   $('clock').classList.toggle('witch', Math.abs(W.t - HOUR_LEN * 4.55) < 6);
 }
 function updateMenu() {
@@ -2245,11 +3032,11 @@ function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.min(0.05, Math.max(0.001, (now - lastT) / 1000)); lastT = now; TIME += dt;
   pollPad(dt);
-  if (overlay && (IN.use || IN.back)) { if (overlay === 'note' || overlay === 'peep') setOverlay(null); else if (overlay === 'menu' && IN.use) startGame(); else if (overlay === 'end' && IN.use) act('next'); else if (overlay === 'over' && IN.use) act('restart'); IN.use = IN.back = false; }
+  if (overlay && (IN.use || IN.back)) { if (overlay === 'note' || overlay === 'peep' || overlay === 'pause') setOverlay(null); else if (overlay === 'menu' && IN.use) startGame(); else if (overlay === 'end' && IN.use) act('next'); else if (overlay === 'over' && IN.use) act('restart'); IN.use = IN.back = false; }
   if (overlay) { IN.fire = false; IN.reload = false; }
   if (started) {
     updateCut(dt); updatePlayer(dt); updateInteract(dt);
-    if (NET.isHost) simulate(dt);
+    if (NET.isHost && overlay !== 'pause') simulate(dt);
   } else { camera.position.set(Math.sin(TIME * 0.1) * 0.6 - 0.5, 1.5, 3.9); camera.rotation.set(-0.06, 0.18 + Math.sin(TIME * 0.13) * 0.14, 0); IN.lx = IN.ly = 0; }
   IN.back = false;
   netUpdate(dt, me);
@@ -2257,9 +3044,10 @@ function frame(now) {
   // sonido ambiente
   let danger = 0; if (W) for (const c of W.cu) if (c.an && c.st !== S_DIS) { const d = Math.hypot(c.x - me.x, c.z - me.z); danger = Math.max(danger, clamp(1 - d / 9, 0, 1) * (c.st === S_ATK ? 1 : 0.55)); }
   const ds = Math.hypot(me.x + 2.4, me.z + 3.6), df = Math.hypot(me.x + 0.5, me.z + 3.6), dd = Math.hypot(me.x + 2.6, me.z - 5);
-  AU.frame(dt, { power: W ? W.pw : 1, siz: 1 / (1 + ds * ds / 7), fry: W && W.fry.s ? 1 / (1 + df * df / 6) : 0, out: 1 / (1 + dd * dd / 9), club: 0.5 + 0.5 / (1 + dd * dd / 9), danger });
+  const outside = me.z > 5.3 || ride.on;
+  AU.frame(dt, { power: W ? W.pw : 1, siz: 1 / (1 + ds * ds / 7), fry: W && W.fry.s ? 1 / (1 + df * df / 6) : 0, out: outside ? 1 : 1 / (1 + dd * dd / 9), club: outside ? 0.25 : 0.5 + 0.5 / (1 + dd * dd / 9), danger, eng: ride.on && overlay !== 'pause' ? 1 : 0, rpm: Math.abs(ride.spd) / 11.5 + ride.thr * 0.12 });
   renderer.render(scene, camera);
 }
-window.KP = { get W() { return W; }, NET, me, IN, act, SV, cut, setLang, get chars() { return chars; } };
+window.KP = { get W() { return W; }, NET, me, IN, act, SV, cut, ride, setLang, get chars() { return chars; } };
 boot();
 

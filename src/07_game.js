@@ -3,6 +3,8 @@ const $ = id => document.getElementById(id);
 const me = { x: 1.6, z: -1.6, yaw: PI, pitch: 0, aim: 0, bob: 0, stepT: 0 };
 const IN = { f: 0, s: 0, lx: 0, ly: 0, use: false, fire: false, held: false, reload: false, back: false, dev: 'kb', keys: {}, locked: false, noLock: false, drag: null, joy: null, look: null, padPrev: {} };
 const cut = { on: false, i: 0, y: 1.9, press: false, last: 7, cam: 0 };
+const ride = { on: false, spd: 0, look: 0, lean: 0, offT: 0, st: 0, thr: 0, spT: 0 };
+let lampT = 0, mapT = 0, watch = null, watchGone = '';
 let overlay = 'menu', TIME = 0, Tsm = 0, lastEv = 0, lastT = 0, useCd = 0, reloadT = 0, shotCd = 0, hurtFlash = 0, flashT = 0, prevKo = 0, prevN = 0, prevPh = '', hudT = 0, vmKey = '', vmKick = 0, vmRecoil = 0, target = null, targetKey = null, started = false, toastQ = [];
 let vm, vmItem, knife, PR = 0.28, noGL = false;
 const chars = new Map(), rchars = new Map(), bubbles = new Map(), slices = [], bloods = [];
@@ -20,6 +22,7 @@ async function boot() {
   camera = new THREE.PerspectiveCamera(66, 16 / 9, 0.05, 60); camera.rotation.order = 'YXZ';
   buildWorld(); scene.add(camera); raycaster = new THREE.Raycaster();
   vm = new THREE.Group(); camera.add(vm); vmItem = new THREE.Group(); vm.add(vmItem);
+  D.handle = makeHandle(); camera.add(D.handle);
   knife = new THREE.Group(); knife.add(new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.06, 0.005), lam(null, 0xe4e8ec, { emissive: 0x3a3d40 }))); const ke = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.008, 0.007), bas(0xffffff)); ke.position.y = -0.03; knife.add(ke); const ka = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.09, 0.5), lam(null, 0xc8906a)); ka.position.set(0.36, -0.03, 0.27); ka.rotation.x = 0.25; knife.add(ka); const kh = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.034, 0.022), lam(null, 0x15161a)); kh.position.x = 0.275; knife.add(kh); knife.visible = false; scene.add(knife);
   resize(); window.addEventListener('resize', resize);
   bindInput(); netInit(); setOverlay('menu'); setLang(LANG); p2pInit();
@@ -40,7 +43,8 @@ function bindInput() {
     if (e.repeat) return; IN.dev = 'kb'; IN.keys[e.code] = true; AU.init();
     if (e.code === 'KeyE' || e.code === 'Enter') IN.use = true;
     if (e.code === 'KeyR') IN.reload = true;
-    if (e.code === 'Escape' || e.code === 'KeyQ') IN.back = true;
+    if (e.code === 'Escape' || e.code === 'KeyQ') { IN.back = true; if (e.code === 'Escape' && !cut.on && !overlay) setPause(true); }
+    if (e.code === 'KeyP') setPause(overlay !== 'pause');
     if (e.code === 'Space' || e.code === 'KeyF') { IN.fire = true; IN.held = true; }
   });
   window.addEventListener('keyup', e => { IN.keys[e.code] = false; if (e.code === 'Space' || e.code === 'KeyF') IN.held = false; });
@@ -61,7 +65,7 @@ function bindInput() {
     if (IN.locked) { IN.lx += e.movementX; IN.ly += e.movementY; }
     else if (IN.drag) { const dx = e.clientX - IN.drag.x, dy = e.clientY - IN.drag.y; IN.drag.x = e.clientX; IN.drag.y = e.clientY; IN.drag.moved += Math.abs(dx) + Math.abs(dy); IN.lx += dx * 1.6; IN.ly += dy * 1.6; }
   });
-  document.addEventListener('pointerlockchange', () => { IN.locked = document.pointerLockElement === cv; });
+  document.addEventListener('pointerlockchange', () => { IN.locked = document.pointerLockElement === cv; if (!IN.locked && !overlay && !cut.on && IN.dev === 'kb') setPause(true); });
   document.addEventListener('pointerlockerror', () => { IN.noLock = true; });
   // táctil
   st.addEventListener('touchstart', e => {
@@ -88,9 +92,10 @@ function bindInput() {
   };
   st.addEventListener('touchend', tend); st.addEventListener('touchcancel', tend);
   const tb = (id, fn) => { const b = $(id); const h = e => { e.preventDefault(); e.stopPropagation(); IN.dev = 'touch'; AU.init(); fn(); }; b.addEventListener('touchstart', h, { passive: false }); b.addEventListener('mousedown', h); };
-  tb('tb-use', () => { IN.use = true; }); tb('tb-fire', () => { IN.fire = true; }); tb('tb-rel', () => { IN.reload = true; }); tb('tb-back', () => { IN.back = true; });
+  tb('tb-use', () => { IN.use = true; }); tb('tb-pause', () => setPause(true)); tb('tb-fire', () => { IN.fire = true; }); tb('tb-rel', () => { IN.reload = true; }); tb('tb-back', () => { IN.back = true; });
   // botones de las pantallas
   $('btn-start').addEventListener('click', startGame);
+  $('btn-resume').addEventListener('click', () => { setPause(false); if (IN.dev === 'kb' && !IN.noLock) { try { const p = $('gl').requestPointerLock(); if (p && p.catch) p.catch(() => { }); } catch (e) { } } });
   $('btn-next').addEventListener('click', () => { act('next'); });
   $('btn-again').addEventListener('click', () => { act('restart'); });
   $('btn-full').addEventListener('click', () => { try { const p = $('stage').requestFullscreen(); if (p && p.catch) p.catch(() => { }); } catch (e) { } });
@@ -122,9 +127,14 @@ function keyHint() { return IN.dev === 'kb' ? '[E] ' : IN.dev === 'pad' ? '(A) '
 /* ---------- pantallas ---------- */
 function setOverlay(o) {
   overlay = o;
-  for (const id of ['menu', 'note', 'peep', 'end', 'over']) $(id).hidden = id !== o;
+  for (const id of ['menu', 'note', 'peep', 'end', 'over', 'pause']) $(id).hidden = id !== o;
   if (o && document.exitPointerLock && IN.locked) document.exitPointerLock();
   $('hud').classList.toggle('dim', !!o);
+}
+function soloNow() { return NET.isHost && NET.count <= 1; }
+function setPause(on) {
+  if (on) { if (!started || overlay || !W || W.ph !== 'play' || !soloNow()) return; setOverlay('pause'); }
+  else if (overlay === 'pause') setOverlay(null);
 }
 function startGame() {
   AU.init();
@@ -202,6 +212,12 @@ function collide(p) {
 function myP() { return W && W.pl[NET.myId] || null; }
 function updatePlayer(dt) {
   const P = myP(), ko = P && P.ko > 0;
+  ride.offT = Math.max(0, ride.offT - dt);
+  const should = !!(W && W.vs && W.vs.r === NET.myId && W.ph === 'play') && ride.offT <= 0;
+  if (should && !ride.on) { ride.on = true; ride.spd = 0; ride.look = 0; me.x = W.vs.x; me.z = W.vs.z; me.yaw = W.vs.y; me.pitch = -0.08; cut.on = false; AU.play('reload'); }
+  else if (!should && ride.on) { ride.on = false; ride.spd = 0; }
+  D.handle.visible = ride.on;
+  if (ride.on) { updateRide(dt, ko); return; }
   const sens = IN.dev === 'touch' ? 0.0026 : 0.0022;
   if (!cut.on && !ko) { me.yaw -= IN.lx * sens; me.pitch = clamp(me.pitch - IN.ly * sens, -1.35, 1.35); }
   if (!cut.on) { IN.lx = 0; IN.ly = 0; }
@@ -226,6 +242,44 @@ function updatePlayer(dt) {
   camera.rotation.y = angLerp(me.yaw, 0, k); camera.rotation.x = lerp(me.pitch, -0.07, k); camera.rotation.z = ko ? 1.2 : 0;
   if (hurtFlash > 0) { camera.rotation.z += Math.sin(TIME * 60) * 0.03 * hurtFlash; }
   AU.lis.x = me.x; AU.lis.z = me.z; AU.lis.yaw = me.yaw;
+}
+
+function updateRide(dt, ko) {
+  const K = IN.keys, sens = IN.dev === 'touch' ? 0.0026 : 0.0022, MAX = 11.5;
+  let thr = (K.KeyW || K.ArrowUp ? 1 : 0) - (K.KeyS || K.ArrowDown ? 1 : 0) + (IN.pf || 0), st = (K.KeyD || K.ArrowRight ? 1 : 0) - (K.KeyA || K.ArrowLeft ? 1 : 0) + (IN.ps || 0);
+  if (IN.joy && IN.joy.fx !== undefined) { thr -= IN.joy.fy; st += IN.joy.fx; }
+  if (overlay || ko) { thr = 0; st = 0; }
+  thr = clamp(thr, -1, 1); st = clamp(st, -1, 1); ride.st = st; ride.thr = thr;
+  if (thr > 0) ride.spd += thr * (ride.spd < 0 ? 8 : 3.8 * (1 - 0.55 * ride.spd / MAX)) * dt;
+  else if (thr < 0) ride.spd += thr * (ride.spd > 0.2 ? 9 : 2) * dt;
+  else ride.spd -= Math.sign(ride.spd) * Math.min(Math.abs(ride.spd), 1.3 * dt);
+  ride.spd = clamp(ride.spd, -2.2, MAX);
+  const turn = Math.min(1, Math.abs(ride.spd) / 2.2) * (1 - 0.35 * Math.abs(ride.spd) / MAX);
+  me.yaw -= st * 1.9 * turn * (ride.spd < 0 ? -1 : 1) * dt;
+  const mouse = IN.lx !== 0 || IN.ly !== 0;
+  if (!overlay) { ride.look = clamp(ride.look - IN.lx * sens, -1.6, 1.6); me.pitch = clamp(me.pitch - IN.ly * sens, -0.9, 0.6); }
+  IN.lx = 0; IN.ly = 0;
+  if (!mouse && Math.abs(ride.spd) > 1) ride.look *= 1 - Math.min(1, dt * 1.2);
+  const fx = -Math.sin(me.yaw), fz = -Math.cos(me.yaw), ox = me.x, oz = me.z, want = ride.spd * dt;
+  me.x += fx * want; me.z += fz * want;
+  const pr = PR; PR = 0.62; collide(me); collide(me); PR = pr;
+  const got = (me.x - ox) * fx + (me.z - oz) * fz;
+  if (Math.abs(want) > 1e-4 && Math.abs(got) < Math.abs(want) * 0.55) { if (Math.abs(ride.spd) > 4.5) { AU.play('crash'); hurtFlash = Math.max(hurtFlash, 0.4); } ride.spd = got / dt * 0.6; }
+  ride.lean = lerp(ride.lean, -st * clamp(Math.abs(ride.spd) / MAX, 0, 1) * 0.16, Math.min(1, dt * 5));
+  const vib = Math.sin(TIME * 47) * 0.004 * (0.3 + Math.abs(ride.spd) / MAX);
+  camera.position.set(me.x - fx * 0.1, 1.42 + vib, me.z - fz * 0.1);
+  camera.rotation.set(me.pitch, me.yaw + ride.look, ride.lean + (hurtFlash > 0 ? Math.sin(TIME * 60) * 0.03 * hurtFlash : 0));
+  D.handle.position.set(0.6 * Math.sin(ride.look), -0.36 - 0.6 * Math.sin(me.pitch) * 0.2, -0.6 * Math.cos(ride.look));
+  D.handle.rotation.set(0, -ride.look + st * 0.2 * (1 - 0.5 * Math.abs(ride.spd) / MAX), 0);
+  ride.spT -= dt; if (ride.spT <= 0) { ride.spT = 0.2; drawSpeedo(Math.round(Math.abs(ride.spd) * 3.6)); }
+  AU.lis.x = me.x; AU.lis.z = me.z; AU.lis.yaw = me.yaw + ride.look;
+}
+function getOffBike() {
+  if (Math.abs(ride.spd) > 2.5) { AU.play('bad'); return; }
+  act('offbike', r2(me.x), r2(me.z), r2(me.yaw));
+  ride.on = false; ride.offT = 1.0; ride.spd = 0; D.handle.visible = false;
+  me.x += Math.cos(me.yaw) * 0.85; me.z -= Math.sin(me.yaw) * 0.85; collide(me); collide(me);
+  me.pitch = 0; AU.play('grab');
 }
 
 /* ---------- corte de la carne ---------- */
@@ -262,7 +316,7 @@ function updateCut(dt) {
 
 /* ---------- mano y escopeta ---------- */
 function updateViewmodel(dt) {
-  const P = myP(), h = P && !cut.on && !(P.ko > 0) ? P.h : 0, key = h ? JSON.stringify(h) : '';
+  const P = myP(), h = P && !cut.on && !ride.on && !(P.ko > 0) ? P.h : 0, key = h ? JSON.stringify(h) : '';
   if (key !== vmKey) {
     vmKey = key; vm.remove(vmItem); vmItem = new THREE.Group(); vm.add(vmItem);
     if (h) {
@@ -270,6 +324,7 @@ function updateViewmodel(dt) {
       const arm = new THREE.Mesh(G(0.075, 0.075, 0.4), lam(null, 0xc8906a));
       if (h.k === 'gun') { it.scale.setScalar(1.15); vmItem.position.set(0.19, -0.2, -0.36); arm.position.set(0.02, -0.07, 0.3); }
       else if (h.k === 'kb') { it.scale.setScalar(1.25); it.rotation.x = 0.85; it.rotation.y = h.w && h.b === 0 ? 0.5 : 0; vmItem.position.set(0.04, -0.2, -0.44); arm.position.set(0.12, -0.1, 0.22); arm.rotation.y = 0.3; }
+      else if (h.k === 'bag') { it.scale.setScalar(0.85); it.rotation.y = 0.5; vmItem.position.set(0.3, -0.46, -0.6); arm.position.set(0.02, 0.1, 0.22); }
       else if (h.k === 'body') { it.scale.setScalar(1.15); it.rotation.y = 0.35; vmItem.position.set(0.06, -0.4, -0.52); arm.position.set(0.22, 0.02, 0.2); }
       else { it.scale.setScalar(1.3); vmItem.position.set(0.2, -0.3, -0.45); arm.position.set(0.02, -0.06, 0.24); }
       vmItem.add(arm); vmKick = 1;
@@ -300,6 +355,7 @@ function useSound(key) {
 function updateInteract(dt) {
   target = null; targetKey = null; me.aim = 0; useCd -= dt;
   const P = myP(); if (!W || W.ph !== 'play' || !P || overlay || cut.on) { IN.use = IN.fire = IN.reload = false; return; }
+  if (ride.on) { if ((IN.use || IN.fire) && useCd <= 0) { getOffBike(); useCd = 0.4; } IN.use = IN.fire = IN.reload = false; return; }
   if (P.ko > 0) { IN.use = IN.fire = IN.reload = false; return; }
   const gun = P.h && P.h.k === 'gun';
   raycaster.setFromCamera(_c0, camera); raycaster.far = gun ? 18 : 3.1;
@@ -325,7 +381,7 @@ function updateInteract(dt) {
 function clearGroup(g) { while (g.children.length) g.remove(g.children[0]); }
 function showSay(c, ch) {
   const text = lineOf(c); if (!text) return;
-  const nm = c.an === 2 ? '' : aName(c.a), dur = 1.8 + text.length * 0.06;
+  const nm = c.an === 2 ? '' : c.o && c.an ? '???' : aName(c.a), dur = 1.8 + text.length * 0.06;
   let b = bubbles.get(c.i); if (!b) { b = { el: document.createElement('div') }; b.el.className = 'bub'; $('bubs').appendChild(b.el); bubbles.set(c.i, b); }
   b.el.innerHTML = ''; const n = document.createElement('b'); n.textContent = nm; const s = document.createElement('span'); s.textContent = text; b.el.appendChild(n); b.el.appendChild(s);
   b.el.classList.toggle('an', c.an === 1); b.t = dur; ch.sayT = Math.min(dur, 2.5);
@@ -337,15 +393,17 @@ function syncChars(dt) {
   const seen = {};
   if (W) for (const c of W.cu) {
     seen[c.i] = 1; let ch = chars.get(c.i);
-    if (!ch) { ch = makeChar(c.an === 2 ? SHADOW_LOOK : ARCH[c.a].look, c.s, c.an, 'cu' + c.i); ch.g.position.set(c.x, 0, c.z); ch.g.rotation.y = c.y; ch.ln = 0; chars.set(c.i, ch); }
+    if (!ch) { ch = makeChar(c.an === 2 ? SHADOW_LOOK : c.an === 3 ? GHOST_LOOK : ARCH[c.a].look, c.s, c.an === 3 ? 1 : c.an, 'cu' + c.i); if (c.an === 3) for (const m of ch.mats) { m.transparent = true; m.opacity = 0.42; m.depthWrite = false; m.emissive && m.emissive.setHex(0x3a4a5a); } ch.g.position.set(c.x, 0, c.z); ch.g.rotation.y = c.y; ch.ln = 0; chars.set(c.i, ch); }
     const px = ch.g.position.x, pz = ch.g.position.z, far = Math.hypot(c.x - px, c.z - pz) > 3, k = far ? 1 : Math.min(1, dt * 12);
     const nx = lerp(px, c.x, k), nz = lerp(pz, c.z, k);
     ch.spd = far ? 0 : lerp(ch.spd, Math.hypot(nx - px, nz - pz) / Math.max(dt, 0.001), 0.25);
     ch.g.position.x = nx; ch.g.position.z = nz; ch.g.rotation.y = angLerp(ch.g.rotation.y, c.y, Math.min(1, dt * 9));
-    const mode = c.st === S_DEAD ? 3 : c.st === S_DIS ? 4 : (c.st === S_ATK && c.an === 1) ? 1 : c.st === S_ROB ? 2 : 0;
+    const mode = c.st === S_DEAD ? 3 : c.st === S_DIS ? 4 : (c.st === S_ATK && (c.an === 1 || c.an === 3)) ? 1 : c.st === S_ROB ? 2 : 0;
     animChar(ch, dt, mode, c.an === 0 && ARCH[c.a].sp === 'drunk', TIME);
     if (ch.bag) ch.bag.visible = (c.st === S_OUT && c.b === 1) || c.st === S_RUN;
     if (c.an === 2) ch.g.visible = !W.pw || c.st === S_DIS;
+    if (c.o) ch.g.visible = !c.hid;
+    if (c.an === 3) { ch.g.position.y = 0.18 + Math.sin(TIME * 2 + c.i) * 0.08; for (const m of ch.mats) m.opacity = 0.3 + 0.15 * Math.sin(TIME * 7 + c.i); }
     if (c.ln !== ch.ln) { ch.ln = c.ln; showSay(c, ch); }
     ch.cx = c;
   }
@@ -370,6 +428,7 @@ function syncChars(dt) {
     ch.g.rotation.y = angLerp(ch.g.rotation.y, pr[2] + PI, Math.min(1, dt * 10));
     const Q = W.pl[p.peer], hk = Q && Q.h ? JSON.stringify(Q.h) : '';
     animChar(ch, dt, Q && Q.ko > 0 ? 3 : 0, false, TIME);
+    if (W.vs && W.vs.r === p.peer) { ch.g.position.y = 0.32; ch.lL.rotation.x = ch.lR.rotation.x = -1.35; ch.aL.rotation.x = ch.aR.rotation.x = -1.1; ch.spd = 0; }
     if (hk !== ch.hk) { ch.hk = hk; if (ch.held) ch.aR.remove(ch.held); ch.held = null; if (hk) { ch.held = itemMesh(Q.h); ch.held.position.set(0, -0.66, 0.12); ch.held.rotation.x = Q.h.k === 'gun' ? PI / 2 : 1.2; ch.aR.add(ch.held); } }
     if (hk) ch.aR.rotation.x = -1.1; ch.head.rotation.x = -pr[3] * 0.6;
   }
@@ -412,6 +471,9 @@ function syncWorld(dt) {
   const B = W.bd; D.bdoor.position.z = -7.47 + (B.s ? Math.max(0, Math.sin(B.t * 1.85 * PI)) * (B.s === 2 ? 0.02 : 0.008) : 0);
   const ok = clamp(B.o / 0.6, 0, 1); D.bdoor.rotation.y = -ok * 1.1; D.bdoor.position.x = 3.05 - ok * 0.2;
   D.figWin.visible = W.t > HOUR_LEN * 4.3 && W.t < HOUR_LEN * 4.9;
+  syncTown(dt);
+  const st = W.cl ? 1 : 0; if (D.signF.material.map !== D.signTex[st]) { D.signF.material.map = D.signB.material.map = D.signTex[st]; D.signF.material.needsUpdate = D.signB.material.needsUpdate = true; }
+  D.phoneLed.material.color.setHex(W.call && Math.sin(TIME * 14) > 0 ? 0xff3020 : 0x300404);
 }
 
 /* ---------- HUD ---------- */
@@ -430,9 +492,16 @@ function updateHUD(dt) {
     if (!NET.evInit) { NET.evInit = true; lastEv = NET.isHost ? 0 : W.es; }
     for (const e of W.ev) {
       if (e[0] <= lastEv) continue; lastEv = e[0]; const type = e[1], x = e[2], z = e[3], a = e[4];
-      if (type === 'msg') toast(MSGX[LANG][a] || MSG[a], a === 'deliv' || a === 'power' || a === 'karma' || a === 'robgone' || a === 'killed' ? 'good' : 'bad');
+      if (type === 'msg') toast(MSGX[LANG][a] || MSG[a], a === 'phone' || a === 'deliv' || a === 'power' || a === 'karma' || a === 'robgone' || a === 'killed' ? 'good' : 'bad');
       else if (type === 'cash') { toast('+' + eur(a), 'good'); AU.play('cash', x, z); }
       else if (type === 'tip') toast(T('tip', eur(a)), 'good');
+      else if (type === 'ring') AU.play('ring', x, z);
+      else if (type === 'call') {
+        const k = String(a)[0], o = W.dl.find(q => q.i === +String(a).slice(1)), sb = $('subs'); let who = T('call_who'), txt;
+        if (k === 'v' && o) { who = aName(o.a); txt = T('call_v', orderPhrase(genOrder(o.a, o.s)), addrOf(o.d)); toast(T('dl_new', addrOf(o.d)), 'good'); }
+        else { txt = T(k === 's' ? 'call_s' : 'call_b'); AU.play('whisper', x, z); if (o) toast(T('dl_new', addrOf(o.d)), 'bad'); }
+        sb.innerHTML = ''; const b = document.createElement('b'); b.textContent = who + ': '; sb.appendChild(b); sb.appendChild(document.createTextNode(txt)); sb.classList.toggle('an', k !== 'v'); subT = 3 + txt.length * 0.05;
+      }
       else if (type === 'shot') { if (a !== NET.myId) AU.play('shot', x, z); }
       else if (type === 'cut') { if (a !== NET.myId) AU.play('cut', x, z); }
       else if (type === 'hurt') { if (a === NET.myId) { hurtFlash = 1; AU.play('hurt'); } }
@@ -446,18 +515,20 @@ function updateHUD(dt) {
   $('ko').hidden = !(P && P.ko > 0 && W.ph === 'play');
   // indicación
   const pr = $('prompt');
-  if (cut.on) { pr.className = 'ok low'; pr.textContent = (cut.empty ? T('cut_empty') : T('cut_front', doneWord(cut.dn || 0))) + T(IN.dev === 'touch' ? 'cut_touch' : IN.dev === 'pad' ? 'cut_pad' : 'cut_kb'); }
+  if (ride.on) { pr.className = 'ok low'; pr.textContent = Math.abs(ride.spd) > 2.5 ? T('u_bike_slow') : T(IN.dev === 'touch' ? 'ride_touch' : IN.dev === 'pad' ? 'ride_pad' : 'ride_kb'); }
+  else if (cut.on) { pr.className = 'ok low'; pr.textContent = (cut.empty ? T('cut_empty') : T('cut_front', doneWord(cut.dn || 0))) + T(IN.dev === 'touch' ? 'cut_touch' : IN.dev === 'pad' ? 'cut_pad' : 'cut_kb'); }
   else if (target) { pr.className = target.ok ? 'ok' : 'no'; pr.textContent = (target.ok ? keyHint() : '') + target.t; }
   else if (P && P.h && P.h.k === 'body' && W.ph === 'play' && !overlay) { pr.className = 'ok'; pr.textContent = keyHint() + T('u_drop_body'); }
   else { pr.className = ''; pr.textContent = ''; }
-  $('cross').classList.toggle('on', !!(target && target.ok)); $('cross').classList.toggle('aim', !!me.aim);
+  $('cross').classList.toggle('on', !!(target && target.ok)); $('cross').classList.toggle('aim', !!me.aim); $('cross').hidden = ride.on;
+
   hudT -= dt; if (hudT > 0) return; hudT = 0.12;
   document.body.dataset.dev = IN.dev; $('touch').hidden = IN.dev !== 'touch' || !!overlay;
   // fases
   const ph = W ? W.ph : '';
   if (W && started) {
     if (ph !== prevPh || W.n !== prevN) {
-      if (ph === 'end') { $('end-t').textContent = T('end_t', W.n); $('end-s').innerHTML = '<dt>' + T('e_sv') + '</dt><dd>' + W.s.sv + '</dd><dt>' + T('e_ls') + '</dt><dd>' + W.s.ls + '</dd><dt>' + T('e_e') + '</dt><dd>' + eur(W.s.e) + '</dd><dt>' + T('e_tp') + '</dt><dd>' + eur(W.s.tp) + '</dd><dt>' + T('e_cash') + '</dt><dd>' + eur(W.cash) + '</dd><dt>' + T('rep') + '</dt><dd>' + Math.round(W.rep) + ' / 100</dd>'; if (overlay !== 'end') setOverlay('end'); }
+      if (ph === 'end') { $('end-t').textContent = T('end_t', W.n); $('end-s').innerHTML = '<dt>' + T('e_sv') + '</dt><dd>' + W.s.sv + '</dd><dt>' + T('e_ls') + '</dt><dd>' + W.s.ls + '</dd><dt>' + T('e_e') + '</dt><dd>' + eur(W.s.e) + '</dd><dt>' + T('e_dl') + '</dt><dd>' + (W.s.dl | 0) + '</dd><dt>' + T('e_tp') + '</dt><dd>' + eur(W.s.tp) + '</dd><dt>' + T('e_cash') + '</dt><dd>' + eur(W.cash) + '</dd><dt>' + T('rep') + '</dt><dd>' + Math.round(W.rep) + ' / 100</dd>'; if (overlay !== 'end') setOverlay('end'); }
       else if (ph === 'over') { $('over-t').textContent = T('over' + (W.why | 0) + '_t'); $('over-p').textContent = T('over' + (W.why | 0) + '_p'); $('over-s').textContent = T('over_s', W.n - 1, eur(W.cash)); if (overlay !== 'over') setOverlay('over'); }
       else if (ph === 'play') { if (overlay === 'end' || overlay === 'over') setOverlay(null); if (W.n !== prevN || (prevPh !== 'play' && prevPh !== '')) { me.x = 1.6; me.z = -1.6; me.yaw = PI; me.pitch = 0; } if (W.n !== prevN || (prevPh !== 'play' && prevPh !== '') || !greeted) { greeted = true; toast(T('t_night', W.n), 'good'); } }
       prevPh = ph; prevN = W.n;
@@ -469,10 +540,10 @@ function updateHUD(dt) {
   $('clock').textContent = clockStr(W.t); $('night').textContent = T('night', W.n); $('cash').textContent = eur(W.cash);
   $('rep-f').style.width = Math.round(W.rep) + '%'; $('rep-f').classList.toggle('low', W.rep < 30);
   $('coop').textContent = (NET.code ? T('room_code', NET.code) + (NET.count > 1 ? ' · ' : '') : '') + (NET.count > 1 ? T('coop', NET.count) : '');
-  let th = ''; for (const c of W.cu) if (!c.an && c.st === S_WAIT) th += ticketHTML(c); $('tickets').innerHTML = th;
+  let th = ''; for (const c of W.cu) if (!c.an && !c.o && c.st === S_WAIT) th += ticketHTML(c); for (const o of W.dl || []) th += dlTicketHTML(o); $('tickets').innerHTML = th;
   const h = P ? P.h : 0; let hd = handDesc(h); if (h && h.k === 'gun') hd += '  ' + '●'.repeat(W.am) + '○'.repeat(2 - W.am) + '  +' + W.shl;
   $('hand').textContent = hd; $('hp').textContent = P ? '♥'.repeat(P.hp) + '♡'.repeat(Math.max(0, 3 - P.hp)) : '';
-  $('tb-fire').hidden = !(h && h.k === 'gun'); $('tb-rel').hidden = !(h && h.k === 'gun'); $('tb-back').hidden = !cut.on;
+  $('tb-fire').hidden = !(h && h.k === 'gun'); $('tb-rel').hidden = !(h && h.k === 'gun'); $('tb-back').hidden = !cut.on; $('tb-pause').hidden = !soloNow();
   $('clock').classList.toggle('witch', Math.abs(W.t - HOUR_LEN * 4.55) < 6);
 }
 function updateMenu() {
@@ -492,11 +563,11 @@ function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.min(0.05, Math.max(0.001, (now - lastT) / 1000)); lastT = now; TIME += dt;
   pollPad(dt);
-  if (overlay && (IN.use || IN.back)) { if (overlay === 'note' || overlay === 'peep') setOverlay(null); else if (overlay === 'menu' && IN.use) startGame(); else if (overlay === 'end' && IN.use) act('next'); else if (overlay === 'over' && IN.use) act('restart'); IN.use = IN.back = false; }
+  if (overlay && (IN.use || IN.back)) { if (overlay === 'note' || overlay === 'peep' || overlay === 'pause') setOverlay(null); else if (overlay === 'menu' && IN.use) startGame(); else if (overlay === 'end' && IN.use) act('next'); else if (overlay === 'over' && IN.use) act('restart'); IN.use = IN.back = false; }
   if (overlay) { IN.fire = false; IN.reload = false; }
   if (started) {
     updateCut(dt); updatePlayer(dt); updateInteract(dt);
-    if (NET.isHost) simulate(dt);
+    if (NET.isHost && overlay !== 'pause') simulate(dt);
   } else { camera.position.set(Math.sin(TIME * 0.1) * 0.6 - 0.5, 1.5, 3.9); camera.rotation.set(-0.06, 0.18 + Math.sin(TIME * 0.13) * 0.14, 0); IN.lx = IN.ly = 0; }
   IN.back = false;
   netUpdate(dt, me);
@@ -504,8 +575,9 @@ function frame(now) {
   // sonido ambiente
   let danger = 0; if (W) for (const c of W.cu) if (c.an && c.st !== S_DIS) { const d = Math.hypot(c.x - me.x, c.z - me.z); danger = Math.max(danger, clamp(1 - d / 9, 0, 1) * (c.st === S_ATK ? 1 : 0.55)); }
   const ds = Math.hypot(me.x + 2.4, me.z + 3.6), df = Math.hypot(me.x + 0.5, me.z + 3.6), dd = Math.hypot(me.x + 2.6, me.z - 5);
-  AU.frame(dt, { power: W ? W.pw : 1, siz: 1 / (1 + ds * ds / 7), fry: W && W.fry.s ? 1 / (1 + df * df / 6) : 0, out: 1 / (1 + dd * dd / 9), club: 0.5 + 0.5 / (1 + dd * dd / 9), danger });
+  const outside = me.z > 5.3 || ride.on;
+  AU.frame(dt, { power: W ? W.pw : 1, siz: 1 / (1 + ds * ds / 7), fry: W && W.fry.s ? 1 / (1 + df * df / 6) : 0, out: outside ? 1 : 1 / (1 + dd * dd / 9), club: outside ? 0.25 : 0.5 + 0.5 / (1 + dd * dd / 9), danger, eng: ride.on && overlay !== 'pause' ? 1 : 0, rpm: Math.abs(ride.spd) / 11.5 + ride.thr * 0.12 });
   renderer.render(scene, camera);
 }
-window.KP = { get W() { return W; }, NET, me, IN, act, SV, cut, setLang, get chars() { return chars; } };
+window.KP = { get W() { return W; }, NET, me, IN, act, SV, cut, ride, setLang, get chars() { return chars; } };
 boot();

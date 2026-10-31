@@ -9,9 +9,10 @@ function newWorld(n, prev) {
   const w = {
     v: NETV, hs: prev ? prev.hs : Date.now(), ph: 'play', why: 0, n, t: 0, cash: keep ? prev.cash : 0, rep: keep ? prev.rep : 60,
     s: { sv: 0, ls: 0, e: 0, tp: 0 }, pw: 1, fk: 0, sx: 0, sd: (Math.random() * 2e9) | 0, bo: 0, fl: 0,
-    sp: [spitWire(), spitWire()], bin: [8, 8, 8], chop: { t: -1, n: 0 }, fry: { s: 0, t: 0, u: 0, q: 1 }, sh: [0, 0, 0], gr: 1, am: 2, shl: 6,
-    bd: { s: 0, t: 0, o: 0 }, bt: 0, cu: [], pl: {}, ev: prev ? prev.ev : [], es: prev ? prev.es : 0, id: prev ? prev.id : 1, used: [], nx: 4,
+    sp: [spitWire(), spitWire()], bin: [12, 12, 12], chop: { t: -1, n: 0 }, fry: { s: 0, t: 0, u: 0, q: 1 }, sh: [0, 0, 0], gr: 1, am: 2, shl: 6,
+    bd: { s: 0, t: 0, o: 0 }, bt: 0, cu: [], pl: {}, ev: prev ? prev.ev : [], es: prev ? prev.es : 0, id: prev ? prev.id : 1, used: [], nx: 6,
   };
+  newStreet(w);
   if (prev) for (const k in prev.pl) w.pl[k] = { h: 0, hp: 3, ko: 0 };
   return w;
 }
@@ -28,6 +29,7 @@ function genSchedule(n, seed) {
   S.push({ t: H(3.25) + r() * 20, k: 'black' });
   S.push({ t: H(4.55), k: 'hungry' });                  // 03:33
   S.push({ t: H(5.5) + r() * 25, k: 'knockF' });
+  S.push({ t: H(3.3) + r() * H(1.2), k: 'dlAnom' });
   if (r() < 0.6 + 0.1 * n) S.push({ t: H(1 + r() * 4), k: 'rob' });
   for (let i = 1; i < n; i++) { S.push({ t: H(0.8 + r() * 5.4), k: 'hungry' }); if (i % 2 === 0) S.push({ t: H(1 + r() * 5), k: 'black' }); else S.push({ t: H(1 + r() * 5), k: 'knockF' }); }
   S.sort((a, b) => a.t - b.t); return S;
@@ -37,7 +39,7 @@ function say(c, key, idx) { c.l = key + ':' + (idx == null ? (Math.random() * 8 
 function lineOf(c) {
   if (!c.l) return '';
   const sp = c.l.split(':'), key = sp[0], idx = +sp[1] || 0;
-  if (c.an === 1) { const A2 = ANOMX[LANG], arr = A2[key] || A2.w; return arr[idx % arr.length]; }
+  if (c.an === 1 || c.an === 3) { const A2 = ANOMX[LANG], arr = A2[key] || A2.w; return arr[idx % arr.length]; }
   if (!ARCH[c.a]) return '';
   if (key === 'o') { const pre = aLines(c.a, 'pre'), post = aLines(c.a, 'post'); return (pre[idx % pre.length] + ' ' + orderPhrase(genOrder(c.a, c.s)) + '. ' + post[(idx >> 1) % post.length]).trim(); }
   const arr = aLines(c.a, key); return arr[idx % arr.length];
@@ -52,7 +54,7 @@ function assignSpot(c) {
 }
 function spawn(a, an, opt) {
   const sd = Math.random() < 0.5 ? -1 : 1;
-  const c = { i: W.id++, a, s: (Math.random() * 1e6) | 0, x: sd * 11, z: 6.4 + Math.random() * 0.5, y: -sd * PI / 2, st: S_IN, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: an || 0, hp: an === 1 ? 6 : 2, t: 0, wp: 0, sc: 0, f: 0, b: 0, sd };
+  const c = { i: W.id++, a, s: (Math.random() * 1e6) | 0, x: sd * 16, z: 6.4 + Math.random() * 0.5, y: -sd * PI / 2, st: S_IN, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: an || 0, hp: an === 1 ? 6 : 2, t: 0, wp: 0, sc: 0, f: 0, b: 0, sd };
   W.cu.push(c);
   if (opt) Object.assign(c, opt); else assignSpot(c);
   return c;
@@ -70,12 +72,12 @@ function moveTo(c, tx, tz, sp, dt) {
   const s = Math.min(d, sp * dt); c.x += dx / d * s; c.z += dz / d * s; c.y = Math.atan2(dx, dz);
   return d - s < 0.06;
 }
-function patTotal(c) { const n = genOrder(c.a, c.s).length; return (58 + 20 * Math.max(0, n - 1)) * ARCH[c.a].pat * (W.n === 1 ? 1.15 : Math.max(0.75, 1.05 - 0.05 * W.n)); }
+function patTotal(c) { const n = genOrder(c.a, c.s).length; return (100 + 30 * Math.max(0, n - 1)) * ARCH[c.a].pat * (W.n === 1 ? 1.2 : Math.max(0.8, 1.08 - 0.04 * W.n)); }
 function leave(c, happy) { c.st = S_OUT; c.b = happy ? 1 : 0; c.sl = -1; c.qi = -1; c.wp = 0; c.t = 0; }
 function flee(c) { c.st = S_FLEE; c.sl = -1; c.qi = -1; c.wp = c.z > 4.6 ? 2 : 0; c.t = 0; }
 function panic() {
   for (const c of W.cu) {
-    if (c.an || c.st === S_DEAD || c.st === S_FLEE || c.st === S_ROB) continue;
+    if (c.an || c.o || c.st === S_DEAD || c.st === S_FLEE || c.st === S_ROB) continue;
     if (c.st === S_OUT && c.z > 5) continue;
     if (c.st <= S_WAIT) W.s.ls++;
     say(c, 'flee'); flee(c);
@@ -104,30 +106,11 @@ function finishOrder(c, ord) {
   pay(c, ord);
 }
 function deliver(c, pid) {
-  const P = W.pl[pid], H = P.h, Ar = ARCH[c.a], ord = genOrder(c.a, c.s);
-  let idx = -1, score = 1, line = null;
-  if (Ar.sp === 'beggar') idx = 0;
-  else if (H.k === 'dr') idx = ord.findIndex((o, i) => !c.g[i] && o.k === 'dr' && o.t === H.t);
-  else if (H.k === 'fr') { idx = ord.findIndex((o, i) => !c.g[i] && o.k === 'fr'); score = H.q; if (H.q < 0.4) line = 'bad'; }
-  else if (H.k === 'kb') {
-    const mt = H.m[0] && H.m[1] ? 2 : H.m[0] ? 0 : H.m[1] ? 1 : -1;
-    idx = ord.findIndex((o, i) => !c.g[i] && o.k === 'kb' && o.b === H.b && o.m === mt);
-    if (idx >= 0) {
-      const o = ord[idx], dv = bits(o.v ^ H.v), ds = bits(o.s ^ H.s);
-      if (Ar.sp === 'picky' && (H.v & ~o.v)) idx = -1;
-      else {
-        score = H.q - dv * 0.2 - ds * 0.2;
-        if (H.q < 0.5 || dv + ds >= 2) line = 'bad';
-        if (!H.w) { score -= 0.25; line = 'unw'; }
-        if (H.b === 2 && !H.f) { score -= 0.3; line = 'nofr'; }
-        if (H.r > 0.4) { score -= 0.5; line = 'raw'; W.rep = clamp(W.rep - 3, 0, 100); }
-        score = clamp(score, 0, 1);
-      }
-    }
-  }
-  if (idx < 0) { say(c, 'no'); ev('bad', c.x, c.z); return; }
-  c.g[idx] = 1; c.sc = r2(c.sc + score); if (H.hm) c.hm = 1; P.h = 0; ev('ok', c.x, c.z);
-  if (c.g.every(v => v)) finishOrder(c, ord); else if (line) say(c, line);
+  const P = W.pl[pid], H = P.h, ord = genOrder(c.a, c.s), m = matchItem(ord, c.g, H, ARCH[c.a]);
+  if (m.idx < 0) { say(c, 'no'); ev('bad', c.x, c.z); return; }
+  if (m.line === 'raw') W.rep = clamp(W.rep - 3, 0, 100);
+  c.g[m.idx] = 1; c.sc = r2(c.sc + m.score); if (H.hm) c.hm = 1; P.h = 0; ev('ok', c.x, c.z);
+  if (c.g.every(v => v)) finishOrder(c, ord); else if (m.line) say(c, m.line);
 }
 function nearestPlayer(x, z) {
   let best = null, bd = 1e9;
@@ -159,7 +142,9 @@ function updShadow(c, dt) {
 function updCustomer(c, dt) {
   c.t += dt;
   if (c.an === 2) return updShadow(c, dt);
-  const Ar = ARCH[c.a], OUT = [[-2.6, 4.4], [-2.6, 6.3], [c.sd * 11.5, 6.6]];
+  if (c.an === 3) return updSpirit(c, dt);
+  if (c.o) return updOutdoor(c, dt);
+  const Ar = ARCH[c.a], OUT = [[-2.6, 4.4], [-2.6, 6.3], [c.sd * 16.5, 6.6]];
   switch (c.st) {
     case S_IN: {
       const tgt = c.sl >= 0 ? SLOTS[c.sl] : QUEUE[clamp(c.qi, 0, 2)], wp = c.wp < 2 ? DOOR_IN[c.wp] : tgt;
@@ -170,7 +155,7 @@ function updCustomer(c, dt) {
     case S_QUEUE:
       c.y = angLerp(c.y, PI, Math.min(1, dt * 4));
       if (c.an === 1) { if (c.t > 13) startAtk(c); }
-      else { c.p -= dt / patTotal(c) * 0.4; if (c.p <= 0) angryLeave(c); }
+      else { c.p -= dt / patTotal(c) * 0.3 * (SHOP_IN ? 1 : 0.4); if (c.p <= 0) angryLeave(c); }
       break;
     case S_GREET:
       c.y = angLerp(c.y, PI, Math.min(1, dt * 5));
@@ -181,7 +166,7 @@ function updCustomer(c, dt) {
       break;
     case S_WAIT:
       c.y = angLerp(c.y, PI, Math.min(1, dt * 5));
-      c.p -= dt / patTotal(c) * (W.pw ? 1 : 1.4);
+      c.p -= dt / patTotal(c) * (W.pw ? 1 : 1.4) * (SHOP_IN ? 1 : 0.4);
       if (!W.pw && !(c.f & 8)) { c.f |= 8; say(c, 'dark'); }
       if (c.p < 0.5 && !(c.f & 2)) { c.f |= 2; say(c, 'w'); }
       if (c.p < 0.22 && !(c.f & 4)) { c.f |= 4; say(c, 'w'); }
@@ -221,7 +206,7 @@ function updCustomer(c, dt) {
 }
 
 /* ---------- acciones de los jugadores ---------- */
-function fryState(t) { const k = t < 9 ? 0 : t < 19 ? 1 : t < 27 ? 2 : 3; return [LX[LANG].fs[k], [0.3, 1, 0.6, 0.15][k]]; }
+function fryState(t) { const k = t < 7 ? 0 : t < 22 ? 1 : t < 32 ? 2 : 3; return [LX[LANG].fs[k], [0.3, 1, 0.6, 0.15][k]]; }
 function useLogic(pid, key, doIt) {
   if (!W) return null;
   const P = W.pl[pid]; if (!P || P.ko > 0) return null;
@@ -244,7 +229,11 @@ function useLogic(pid, key, doIt) {
     if (!H && B) return R(T('u_table_cut', B.n), true, () => { B.n++; if (B.n >= 8) { W.bt = 0; P.h = { k: 'cone' }; } });
     return R(T(B ? 'u_hands' : 'u_table_idle'), false);
   }
-  if (key === 'trash') { if (H && H.k !== 'gun' && H.k !== 'body') return R(T('u_trash', itemName(H)), true, () => { P.h = 0; }); return R(T('u_bin'), false); }
+  if (key === 'bag') return bagLogic(pid, R, H, P);
+  if (key === 'phone') return phoneLogic(pid, R);
+  if (key === 'sign') return signLogic(pid, R);
+  if (key === 'vespa') return bikeLogic(pid, R, H, P);
+  if (key === 'trash') { if (H && H.k !== 'gun' && H.k !== 'body' && !(H.k === 'bag' && W.dl.some(o => o.i === H.d))) return R(T('u_trash', itemName(H)), true, () => { P.h = 0; }); return R(T('u_bin'), false); }
   if (key === 'fz') {
     const F = W.fry;
     if (F.s === 0) { if (F.u >= 4) return R(T('u_fry_full'), false); return R(T('u_fry_in'), true, () => { F.s = 1; F.t = 0; }); }
@@ -260,7 +249,7 @@ function useLogic(pid, key, doIt) {
   if (key === 'chop') {
     const C = W.chop;
     if (H && H.k === 'vg' && C.t < 0) return R(T('u_chop_put', itemName(H)), true, () => { C.t = H.t; C.n = 0; P.h = 0; });
-    if (!H && C.t >= 0) return R(T('u_chop', X.veg[C.t], C.n), true, () => { C.n++; if (C.n >= 6) { W.bin[C.t] = Math.min(16, W.bin[C.t] + 8); C.t = -1; C.n = 0; ev('msg', 0, 0, 'binfull'); } });
+    if (!H && C.t >= 0) return R(T('u_chop', X.veg[C.t], C.n), true, () => { C.n++; if (C.n >= 4) { W.bin[C.t] = Math.min(16, W.bin[C.t] + 10); C.t = -1; C.n = 0; ev('msg', 0, 0, 'binfull'); } });
     return R(T(C.t >= 0 ? 'u_hands' : 'u_chop_idle'), false);
   }
   if (key === 'fuse') { if (!W.pw) return R(T('u_fuse'), true, () => { W.pw = 1; ev('pwr1', 0.6, -5.3); ev('msg', 0, 0, 'power'); }); return R(T('u_fusebox'), false); }
@@ -276,14 +265,15 @@ function useLogic(pid, key, doIt) {
     });
   }
   const kind = key.slice(0, 2);
+  if (kind === 'pt') return doorLogic(pid, n, R, H);
   if (kind === 'sp' && H && H.k === 'cone') return R(T('u_cone_mount', X.meat[n]), true, () => { const S = SV[n]; S.lv.fill(7); S.dn.fill(0.12); S.pend.fill(0); S.dirty = true; W.sp[n].h = 1; encodeSpit(n); P.h = 0; });
   if (kind === 'sp') return H ? R(T('u_hands'), false) : R(T('u_carve', X.meat[n]), true, null, 'cut');
   if (kind === 'tr') {
     const Tr = W.sp[n];
-    if (!openKb) return R(T('u_tray_n', X.meat[n], Math.floor(Tr.u / 8)), false);
-    if (Tr.u < 8) return R(T('u_tray_low', X.meat[n]), false);
+    if (!openKb) return R(T('u_tray_n', X.meat[n], Math.floor(Tr.u / 6)), false);
+    if (Tr.u < 6) return R(T('u_tray_low', X.meat[n]), false);
     if (H.m[0] + H.m[1] >= 3) return R(T('u_tray_full'), false);
-    return R(T('u_tray_add', X.meat[n]) + (Tr.r > 0.4 ? T('u_raw') : ''), true, () => { const k = H.m[0] + H.m[1]; H.q = r2((H.q * k + Tr.q) / (k + 1)); H.r = r2(Math.max(H.r, Tr.r)); H.m[n]++; if (Tr.h) H.hm = 1; Tr.u -= 8; if (Tr.u <= 0) { Tr.u = 0; Tr.q = 1; Tr.r = 0; Tr.h = 0; } });
+    return R(T('u_tray_add', X.meat[n]) + (Tr.r > 0.4 ? T('u_raw') : ''), true, () => { const k = H.m[0] + H.m[1]; H.q = r2((H.q * k + Tr.q) / (k + 1)); H.r = r2(Math.max(H.r, Tr.r)); H.m[n]++; if (Tr.h) H.hm = 1; Tr.u -= 6; if (Tr.u <= 0) { Tr.u = 0; Tr.q = 1; Tr.r = 0; Tr.h = 0; } });
   }
   if (kind === 'bn') {
     if (!openKb) return R(X.veg[n] + ': ' + W.bin[n], false);
@@ -307,6 +297,7 @@ function useLogic(pid, key, doIt) {
   if (kind === 'vc') { if (H) return R(T('u_busy', X.veg[n]), false); return R(T('u_veg', X.veg[n]), true, () => { P.h = { k: 'vg', t: n }; }); }
   if (kind === 'cu') {
     const c = W.cu.find(q => q.i === n); if (!c || c.an === 2) return null;
+    if (c.o) return residentLogic(c, pid, R, H, P);
     const nm = aName(c.a);
     if (c.an === 1) { if (H && H.k !== 'gun' && (c.st === S_STALK || c.st === S_GREET)) return R(T('u_give', itemName(H), nm), true, () => { say(c, 'no'); }); return R(nm, false); }
     if (c.st === S_DEAD) return H ? R(T('u_drag'), false) : R(T('u_drag'), true, () => { P.h = { k: 'body', a: c.a, s: c.s, cr: c.cr | 0 }; c.rm = 1; });
@@ -338,7 +329,7 @@ function doShoot(pid, o, d) {
     const den = dx * dx + dz * dz; if (den < 1e-6) continue;
     let best = null, bt = 15;
     for (const c of W.cu) {
-      if (c.st === S_DEAD || c.st === S_DIS) continue;
+      if (c.st === S_DEAD || c.st === S_DIS || c.hid || c.st === S_BACK) continue;
       const t = ((c.x - o[0]) * dx + (c.z - o[2]) * dz) / den; if (t < 0.15 || t > bt) continue;
       const px = o[0] + dx * t - c.x, pz = o[2] + dz * t - c.z; if (px * px + pz * pz > 0.115) continue;
       const y = o[1] + dy * t; if (y < 0 || y > (c.an === 2 ? 2.35 : 1.9)) continue;
@@ -346,18 +337,21 @@ function doShoot(pid, o, d) {
     }
     if (best) hits[best.i] = (hits[best.i] || 0) + 1;
   }
-  let human = false;
+  shootDogs(o, d);
+  let human = null;
   for (const id in hits) {
     const c = W.cu.find(q => q.i === +id), n = hits[id]; ev('blood', c.x, c.z);
     if (c.an === 2) { ev('scream', c.x, c.z); c.x = -2.6; c.z = 4.3; c.sc = 7; continue; }
     c.hp -= n;
+    if (c.an === 3) { c.st = S_DIS; c.t = 0; ev('scream', c.x, c.z); continue; }
     if (c.an === 1) { if (c.hp <= 0) { c.st = S_DIS; c.t = 0; c.sl = -1; c.qi = -1; ev('scream', c.x, c.z); ev('msg', 0, 0, 'killed'); } else if (c.st !== S_ATK) startAtk(c); continue; }
     if (ARCH[c.a].sp === 'robber') { if (c.hp <= 0) { c.st = S_DEAD; c.t = 0; c.sl = -1; ev('die', c.x, c.z); } else { say(c, 'robflee'); flee(c); } }
-    else { c.st = S_DEAD; c.cr = 1; c.t = 0; c.sl = -1; c.qi = -1; ev('die', c.x, c.z); human = true; }
+    else { c.st = S_DEAD; c.cr = 1; c.t = 0; c.sl = -1; c.qi = -1; ev('die', c.x, c.z); human = c; if (c.dl) W.dl = W.dl.filter(q => q.i !== c.dl); }
   }
   panic();
   // Matar a un cliente solo acaba la partida si alguien lo ha visto (dentro del local o en la puerta).
-  if (human) { if (W.cu.some(o => !o.an && o.st !== S_DEAD && ARCH[o.a].sp !== 'robber' && o.z < 5.6)) { W.ph = 'over'; W.why = 1; } else ev('msg', 0, 0, 'nowit'); }
+  // Testigo: alguien vivo cerca del muerto, o dentro del local si ha pasado en el local.
+  if (human) { const v = human; if (W.cu.some(o => o !== v && !o.an && !o.hid && o.st !== S_DEAD && o.st !== S_BACK && ARCH[o.a].sp !== 'robber' && (Math.hypot(o.x - v.x, o.z - v.z) < 14 || (o.z < 5.6 && v.z < 5.6)))) { W.ph = 'over'; W.why = 1; } else ev('msg', 0, 0, 'nowit'); }
 }
 function applyAction(pid, a) {
   if (!W) return;
@@ -369,6 +363,7 @@ function applyAction(pid, a) {
   else if (k === 'cut') doCut(pid, a[2], a[3]);
   else if (k === 'shoot') doShoot(pid, a[2], a[3]);
   else if (k === 'dropbody') { const P = W.pl[pid], p = PP[pid]; if (P && P.h && P.h.k === 'body' && p) { W.cu.push({ i: W.id++, a: P.h.a, s: P.h.s, x: r2(p.x), z: r2(p.z), y: 0, st: S_DEAD, p: 0, g: [], l: '', ln: 0, sl: -1, qi: -1, an: 0, hp: 0, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, cr: P.h.cr | 0 }); P.h = 0; } }
+  else if (k === 'offbike') { const V = W.vs; if (V.r === pid) { V.r = 0; V.x = r2(+a[2] || V.x); V.z = r2(+a[3] || V.z); V.y = r2(+a[4] || 0); const P = W.pl[pid]; if (V.b && P && !P.h) { P.h = { k: 'bag', d: V.b }; V.b = 0; } } }
   else if (k === 'reload') { const P = W.pl[pid]; if (P && P.h && P.h.k === 'gun' && W.am < 2 && W.shl > 0) { const n = Math.min(2 - W.am, W.shl); W.am += n; W.shl -= n; } }
 }
 
@@ -401,6 +396,7 @@ function fire(k) {
   if (k === 'flick') { W.fk = 2.2; ev('flick'); ev('whisper', 0, 4); }
   else if (k === 'black') { if (W.pw) { W.pw = 0; W.bo = 0; ev('pwr0'); ev('msg', 0, 0, 'blackout'); } }
   else if (k === 'hungry') { const pool = W.used.filter(a => !ARCH[a].sp && !W.cu.some(c => c.a === a)); const a = pool.length ? pool[Math.random() * pool.length | 0] : 2; spawn(a, 1); }
+  else if (k === 'dlAnom') { if (!startCall(1)) SCHED.push({ t: W.t + 15, k: 'dlAnom' }), SCHED.sort((a, b) => a.t - b.t); }
   else if (k === 'rob') { if (!W.cu.some(c => !c.an && ARCH[c.a].sp === 'cop' && c.st < S_OUT)) spawn(ARCH.findIndex(x => x.sp === 'robber'), 0); }
   else if (k === 'knockR' || k === 'knockF') { if (!W.bd.s) { W.bd.s = k === 'knockR' ? 1 : 2; W.bd.t = 0; W.bd.k = -1; } }
 }
@@ -411,11 +407,11 @@ function simulate(dt) {
   for (const pid in W.pl) { const P = W.pl[pid]; if (P.ko > 0) { P.ko -= dt; if (P.ko <= 0) { P.ko = 0; P.hp = 3; } } }
   while (W.sx < SCHED.length && W.t >= SCHED[W.sx].t) { fire(SCHED[W.sx].k); W.sx++; }
   // clientes nuevos
-  if (W.t >= W.nx && W.t < NIGHT_LEN - 14) {
+  if (W.t >= W.nx && W.t < NIGHT_LEN - 14 && !W.cl) {
     const humans = W.cu.filter(c => !c.an && c.st <= S_WAIT).length;
-    if (humans < 5) { const a = pickArch(); if (a >= 0) spawn(a, 0); }
-    const hr = W.t / HOUR_LEN, base = Math.max(11, 25 - W.n * 2);
-    W.nx = W.t + base * (hr > 2.6 && hr < 5.6 ? 0.8 : 1) * (np > 1 ? 0.68 : 1) * (0.75 + Math.random() * 0.5);
+    if (humans < (np > 1 ? 5 : 4)) { const a = pickArch(); if (a >= 0) spawn(a, 0); }
+    const hr = W.t / HOUR_LEN, base = Math.max(17, 34 - W.n * 2.5);
+    W.nx = W.t + base * (hr > 2.6 && hr < 5.6 ? 0.8 : 1) * (np > 1 ? 0.7 : 1) * (SHOP_IN ? 1 : 1.6) * (0.75 + Math.random() * 0.5);
   }
   // apagón
   if (!W.pw) { W.bo += dt; if (W.bo > 6 && !W.cu.some(c => c.an === 2)) { W.cu.push({ i: W.id++, a: -1, s: 1, x: -2.6, z: 4.3, y: PI, st: S_ATK, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: 2, hp: 99, t: 0, wp: 0, sc: 2, f: 0, b: 0, sd: 1 }); ev('whisper', -2.6, 4.3); } }
@@ -424,6 +420,7 @@ function simulate(dt) {
   if (B.s) { B.t += dt; const k = Math.floor(B.t / 3.4); if (k !== B.k) { B.k = k; ev(B.s === 1 ? 'knock' : 'knockf', 3.05, -7.4); } if (B.t > 25) { ev('msg', 0, 0, B.s === 1 ? 'nodeliv' : 'gone'); B.s = 0; } }
   if (B.o > 0) B.o = Math.max(0, B.o - dt);
   simSpits(dt);
+  simStreet(dt, np);
   if (W.fry.s === 1) W.fry.t += dt;
   for (const c of W.cu) updCustomer(c, dt);
   if (W.cu.some(c => c.rm)) W.cu = W.cu.filter(c => !c.rm);
@@ -440,19 +437,20 @@ function simulate(dt) {
   if (W.t >= NIGHT_LEN) {
     if (!W.fl) { W.fl = 1; ev('msg', 0, 0, 'last'); }
     const left = W.cu.some(c => !c.an && c.st <= S_WAIT);
-    if (!left || W.t > NIGHT_LEN + 40) { W.cu = []; W.pw = 1; W.bd.s = 0; W.ph = 'end'; }
+    if (!left || W.t > NIGHT_LEN + 40) { W.cu = []; W.pw = 1; W.bd.s = 0; W.dl = []; W.vs.r = 0; W.call = 0; W.ph = 'end'; }
   }
   // Un cuerpo a la vista en la zona de clientes (en el suelo o a cuestas) y alguien que entra: se acabó.
   if (W.ph === 'play') {
-    let body = W.cu.some(c => c.st === S_DEAD && c.cr && c.z > 1.3);
-    if (!body) for (const pid in W.pl) { const h = W.pl[pid].h; if (h && h.k === 'body' && h.cr && PP[pid] && PP[pid].z > 1.3) body = true; }
-    if (body && W.cu.some(o => !o.an && o.st <= S_WAIT && o.wp >= 2 && o.z < 4.7 && ARCH[o.a].sp !== 'robber')) { W.ph = 'over'; W.why = 2; }
+    const front = (x, z) => z > 1.3 && z < 9 && x > -9 && x < 9;
+    let body = W.cu.some(c => c.st === S_DEAD && c.cr && front(c.x, c.z));
+    if (!body) for (const pid in W.pl) { const h = W.pl[pid].h; if (h && h.k === 'body' && h.cr && PP[pid] && front(PP[pid].x, PP[pid].z)) body = true; }
+    if (body && W.cu.some(o => !o.an && o.st <= S_WAIT && o.wp >= 2 && o.z < 4.7 && !o.o && ARCH[o.a].sp !== 'robber')) { W.ph = 'over'; W.why = 2; }
   }
   if (W.rep <= 0 && W.ph === 'play') { W.ph = 'over'; W.why = 0; }
 }
 
 /* ================= RED: cooperativo por presencia ================= */
-const NETV = 4;   // versión del protocolo: todos tienen que jugar con la misma
+const NETV = 6;   // versión del protocolo: todos tienen que jugar con la misma
 const NET = { room: null, myId: 'solo', isHost: true, joined: false, acts: [], seq: 0, lastSeq: {}, lastHost: null, hostGone: 0, sendT: 0, others: [], remote: null, count: 1, evInit: false, code: '', badVer: false, lostSaid: false };
 
 /* Fuera de Claude (GitHub) la sala va por PeerJS, de navegador a navegador y sin cuentas.
@@ -538,7 +536,7 @@ function netUpdate(dt, me) {
   if (!NET.isHost) {
     if (hp) {
       NET.hostGone = 0;
-      if (hp.presence !== NET.lastHost) { NET.lastHost = hp.presence; try { const nw = JSON.parse(JSON.stringify(hp.presence.w)); if (nw && nw.v !== NETV) NET.badVer = true; else if (nw && Array.isArray(nw.cu) && Array.isArray(nw.sp) && nw.pl && nw.fry && nw.bd && Array.isArray(nw.ev)) { nw.cu = nw.cu.filter(c => c && (c.an === 2 || ARCH[c.a])); if (!W || W.hs !== nw.hs) NET.acts = []; W = nw; } } catch (e) { } }
+      if (hp.presence !== NET.lastHost) { NET.lastHost = hp.presence; try { const nw = JSON.parse(JSON.stringify(hp.presence.w)); if (nw && nw.v !== NETV) NET.badVer = true; else if (nw && Array.isArray(nw.cu) && Array.isArray(nw.sp) && nw.pl && nw.fry && nw.bd && Array.isArray(nw.ev) && nw.vs && Array.isArray(nw.dl) && Array.isArray(nw.dg)) { nw.cu = nw.cu.filter(c => c && (c.an === 2 || ARCH[c.a])); if (!W || W.hs !== nw.hs) NET.acts = []; W = nw; } } catch (e) { } }
     } else {
       NET.hostGone += dt;
       if (NET.hostGone > 3.5) {

@@ -8,24 +8,24 @@ const LX = {
     base: ['dürüm', 'pita', 'caja'], bart: ['un', 'una', 'una'], meat: ['pollo', 'ternera', 'mixto'], veg: ['lechuga', 'tomate', 'cebolla'], sauce: ['salsa blanca', 'picante'], drink: ['cola', 'agua', 'cerveza'],
     vAll: 'con todo', vNone: 'sin verdura', vNo: 'sin {0}', vOnly: 'solo con {0}', sPh: ['sin salsa', 'salsa blanca', 'picante', 'las dos salsas'],
     frPh: 'unas patatas', drPh: ['una cola', 'un agua', 'una cerveza'], and: ' y ', fries: 'patatas', wfries: 'con patatas',
-    nm: { gun: 'la escopeta', fr: 'las patatas', dr: ['la cola', 'el agua', 'la cerveza'], vg: ['la lechuga', 'los tomates', 'las cebollas'], kb: ['el dürüm', 'la pita', 'la caja'], none: 'nada', body: 'el cuerpo', cone: 'la carne' },
-    h: { nomeat: 'sin carne', raw: ' (cruda)', closed: 'cerrada', wrapped: 'en aluminio', bad: ' (malas)', uncut: ' sin cortar', gun: 'ESCOPETA', body: 'CUERPO', cone: 'CARNE PARA EL ASADOR' },
+    nm: { gun: 'la escopeta', fr: 'las patatas', dr: ['la cola', 'el agua', 'la cerveza'], vg: ['la lechuga', 'los tomates', 'las cebollas'], kb: ['el dürüm', 'la pita', 'la caja'], none: 'nada', bag: 'la bolsa', body: 'el cuerpo', cone: 'la carne' },
+    h: { nomeat: 'sin carne', raw: ' (cruda)', closed: 'cerrada', wrapped: 'en aluminio', bad: ' (malas)', uncut: ' sin cortar', gun: 'ESCOPETA', bag: 'BOLSA DE REPARTO', body: 'CUERPO', cone: 'CARNE PARA EL ASADOR' },
     done: ['CRUDA', 'poco hecha', 'DORADA', 'pasada', 'QUEMADA'], fs: ['crudas', 'doradas', 'pasadas', 'quemadas'],
   },
   en: {
     base: ['dürüm', 'pita', 'kebab box'], bart: ['a', 'a', 'a'], meat: ['chicken', 'beef', 'mixed'], veg: ['lettuce', 'tomato', 'onion'], sauce: ['white sauce', 'hot sauce'], drink: ['cola', 'water', 'beer'],
     vAll: 'with everything', vNone: 'no salad', vNo: 'no {0}', vOnly: 'only {0}', sPh: ['no sauce', 'white sauce', 'hot sauce', 'both sauces'],
     frPh: 'some fries', drPh: ['a cola', 'a water', 'a beer'], and: ' and ', fries: 'fries', wfries: 'with fries',
-    nm: { gun: 'the shotgun', fr: 'the fries', dr: ['the cola', 'the water', 'the beer'], vg: ['the lettuce', 'the tomatoes', 'the onions'], kb: ['the dürüm', 'the pita', 'the box'], none: 'nothing', body: 'the body', cone: 'the meat' },
-    h: { nomeat: 'no meat', raw: ' (raw)', closed: 'closed', wrapped: 'wrapped', bad: ' (bad)', uncut: ', uncut', gun: 'SHOTGUN', body: 'BODY', cone: 'MEAT FOR THE SPIT' },
+    nm: { gun: 'the shotgun', fr: 'the fries', dr: ['the cola', 'the water', 'the beer'], vg: ['the lettuce', 'the tomatoes', 'the onions'], kb: ['the dürüm', 'the pita', 'the box'], none: 'nothing', bag: 'the bag', body: 'the body', cone: 'the meat' },
+    h: { nomeat: 'no meat', raw: ' (raw)', closed: 'closed', wrapped: 'wrapped', bad: ' (bad)', uncut: ', uncut', gun: 'SHOTGUN', bag: 'DELIVERY BAG', body: 'BODY', cone: 'MEAT FOR THE SPIT' },
     done: ['RAW', 'underdone', 'GOLDEN', 'overdone', 'BURNT'], fs: ['raw', 'golden', 'overdone', 'burnt'],
   },
   ro: {
     base: ['dürüm', 'pita', 'cutie'], bart: ['un', 'o', 'o'], meat: ['pui', 'vită', 'mixt'], veg: ['salată', 'roșii', 'ceapă'], sauce: ['sos alb', 'sos iute'], drink: ['cola', 'apă', 'bere'],
     vAll: 'cu de toate', vNone: 'fără legume', vNo: 'fără {0}', vOnly: 'doar cu {0}', sPh: ['fără sos', 'sos alb', 'sos iute', 'ambele sosuri'],
     frPh: 'niște cartofi', drPh: ['o cola', 'o apă', 'o bere'], and: ' și ', fries: 'cartofi', wfries: 'cu cartofi',
-    nm: { gun: 'pușca', fr: 'cartofii', dr: ['cola', 'apa', 'berea'], vg: ['salata', 'roșiile', 'ceapa'], kb: ['dürümul', 'pita', 'cutia'], none: 'nimic', body: 'trupul', cone: 'carnea' },
-    h: { nomeat: 'fără carne', raw: ' (crudă)', closed: 'închisă', wrapped: 'în folie', bad: ' (proști)', uncut: ' (de tăiat)', gun: 'PUȘCĂ', body: 'TRUP', cone: 'CARNE PENTRU ROTISOR' },
+    nm: { gun: 'pușca', fr: 'cartofii', dr: ['cola', 'apa', 'berea'], vg: ['salata', 'roșiile', 'ceapa'], kb: ['dürümul', 'pita', 'cutia'], none: 'nimic', bag: 'geanta', body: 'trupul', cone: 'carnea' },
+    h: { nomeat: 'fără carne', raw: ' (crudă)', closed: 'închisă', wrapped: 'în folie', bad: ' (proști)', uncut: ' (de tăiat)', gun: 'PUȘCĂ', bag: 'GEANTĂ DE LIVRARE', body: 'TRUP', cone: 'CARNE PENTRU ROTISOR' },
     done: ['CRUDĂ', 'puțin făcută', 'RUMENITĂ', 'trecută', 'ARSĂ'], fs: ['cruzi', 'aurii', 'trecuți', 'arși'],
   },
 };
@@ -52,12 +52,20 @@ const STR = {
     u_gun_take: 'Coger la escopeta', u_gun_hang: 'Colgar la escopeta', u_gun_busy: 'Escopeta (manos ocupadas)', u_gun_gone: 'La escopeta no está',
     u_trash: 'Tirar {0}', u_bin: 'Cubo de basura', u_fry_full: 'La bandeja de patatas está llena', u_fry_in: 'Echar patatas a la freidora', u_fry_out: 'Sacar las patatas ({0})',
     u_ft_none: 'No hay patatas hechas', u_ft_take: 'Coger patatas', u_ft_box: 'Añadir patatas a la caja', u_ft_n: 'Patatas hechas: {0}',
-    u_chop_put: 'Poner {0} en la tabla', u_chop: 'Cortar {0} ({1}/6)', u_hands: 'Suelta lo que llevas para cortar', u_chop_idle: 'Tabla de cortar (trae verdura del almacén)',
+    u_chop_put: 'Poner {0} en la tabla', u_chop: 'Cortar {0} ({1}/4)', u_hands: 'Suelta lo que llevas para cortar', u_chop_idle: 'Tabla de cortar (trae verdura del almacén)',
     u_fuse: 'Subir el diferencial', u_fusebox: 'Cuadro eléctrico', u_peep: 'Mirar por la mirilla', u_rules: 'Leer la nota del anterior cocinero', u_bdoor_closed: 'Puerta trasera. Cerrada.', u_bdoor_open: 'Abrir la puerta',
     u_carve: 'Cortar {0}', u_tray_n: 'Carne de {0} cortada · raciones: {1}', u_tray_low: 'Falta carne de {0} cortada', u_tray_full: 'No cabe más carne', u_tray_add: 'Echar {0}', u_raw: ' (está cruda)',
     u_has: 'Ya lleva {0}', u_out: 'No queda {0}. Hay que cortar más.', u_add: 'Añadir {0}', u_pour: 'Echar {0}', u_busy: '{0} (manos ocupadas)',
     u_base0: 'Coger una tortilla de dürüm', u_base1: 'Coger un pan de pita', u_base2: 'Coger una caja', u_pass_put: 'Dejar {0} en el pase', u_take: 'Coger {0}', u_pass_full: 'Pase (ocupado)', u_pass: 'Pase: deja aquí algo para tu compañero',
     u_drink: 'Coger {0}', u_veg: 'Coger {0} para cortar', u_give: 'Dar {0} a {1}', u_wait: '{0} espera su pedido',
+    u_phone: 'Teléfono', u_answer: 'Descolgar el teléfono', u_sign_close: 'Poner el cartel de CERRADO', u_sign_open: 'Poner el cartel de ABIERTO',
+    call_v: '«Hola, quería {0}. A la {1}, por favor.»', call_s: '…No se oye nada. Pero el pedido entra igual.', call_b: '…Solo una respiración. Cuelgan.', call_who: 'Teléfono',
+    dl_new: 'Pedido a domicilio: {0}', dl_head: 'REPARTO', dl_road: 'en camino', dl_late: 'llega tarde', dl_anon: 'número oculto', e_dl: 'Repartos', map_shop: 'KEBAB',
+    u_bag_put: 'Meter {0} en la bolsa', u_bag_take: 'Coger la bolsa para {0}', u_bag_none: 'Bolsa de reparto (no hay pedidos)', u_bag_nomatch: 'Eso no va en ningún pedido a domicilio', u_bag_fill: 'Bolsa de reparto · {0}',
+    u_bike_on: 'Subir a la Vespino', u_bike_busy: 'La Vespino está ocupada', u_bike_hands: 'En la moto solo cabe la bolsa de reparto', u_bike_off: 'Bajar de la moto', u_bike_slow: 'Frena para bajar',
+    u_ring: 'Llamar al timbre', u_wrongdoor: 'No es aquí. Va a {0}', u_wait_door: 'Ya has llamado. Espera.', u_give_bag: 'Dar la bolsa a {0}',
+    ride_kb: '[W] gas · [S] freno · [A/D] girar · [E] bajar', ride_touch: 'joystick: gas y dirección · Usar: bajar', ride_pad: 'stick: gas y dirección · (A) bajar',
+    pause_t: 'Pausa', pause_p: 'El turno está parado. Nadie se mueve.', resume: 'Seguir', tb_pause: 'Pausa',
     p2p_h: 'Jugar online con un amigo', p2p_create: 'Crear sala', p2p_join: 'Unirse', p2p_code: 'Código', p2p_copy: 'Copiar enlace', p2p_copied: 'Enlace copiado',
     p2p_note: 'Uno crea la sala y le pasa al otro el código de 4 cifras o el enlace. No hacen falta cuentas.', p2p_wait: 'Conectando…',
     p2p_ready: 'Sala {0} abierta. Pásale a tu amigo el código o este enlace:', p2p_joined: 'Dentro de la sala {0}.',
@@ -85,12 +93,20 @@ const STR = {
     u_gun_take: 'Take the shotgun', u_gun_hang: 'Hang the shotgun back', u_gun_busy: 'Shotgun (hands full)', u_gun_gone: 'The shotgun is gone',
     u_trash: 'Throw away {0}', u_bin: 'Bin', u_fry_full: 'The fries tray is full', u_fry_in: 'Drop fries in the fryer', u_fry_out: 'Lift the fries ({0})',
     u_ft_none: 'No fries ready', u_ft_take: 'Take fries', u_ft_box: 'Add fries to the box', u_ft_n: 'Fries ready: {0}',
-    u_chop_put: 'Put {0} on the board', u_chop: 'Chop {0} ({1}/6)', u_hands: 'Empty your hands to cut', u_chop_idle: 'Chopping board (bring vegetables from the storeroom)',
+    u_chop_put: 'Put {0} on the board', u_chop: 'Chop {0} ({1}/4)', u_hands: 'Empty your hands to cut', u_chop_idle: 'Chopping board (bring vegetables from the storeroom)',
     u_fuse: 'Flip the breaker', u_fusebox: 'Fuse box', u_peep: 'Look through the peephole', u_rules: "Read the last cook's note", u_bdoor_closed: 'Back door. Locked.', u_bdoor_open: 'Open the door',
     u_carve: 'Carve the {0}', u_tray_n: 'Carved {0} · portions: {1}', u_tray_low: 'Not enough carved {0}', u_tray_full: 'No room for more meat', u_tray_add: 'Add {0}', u_raw: " (it's raw)",
     u_has: 'Already has {0}', u_out: 'Out of {0}. Chop some more.', u_add: 'Add {0}', u_pour: 'Add {0}', u_busy: '{0} (hands full)',
     u_base0: 'Take a dürüm wrap', u_base1: 'Take a pita bread', u_base2: 'Take a box', u_pass_put: 'Leave {0} on the pass', u_take: 'Take {0}', u_pass_full: 'Pass (taken)', u_pass: 'Pass: leave something here for your partner',
     u_drink: 'Take {0}', u_veg: 'Take {0} to chop', u_give: 'Give {0} to {1}', u_wait: '{0} is waiting for the order',
+    u_phone: 'Phone', u_answer: 'Answer the phone', u_sign_close: 'Turn the sign to CLOSED', u_sign_open: 'Turn the sign to OPEN',
+    call_v: '"Hi, I\'d like {0}. To {1}, please."', call_s: '...Nothing on the line. But the order comes through anyway.', call_b: '...Just breathing. They hang up.', call_who: 'Phone',
+    dl_new: 'Delivery order: {0}', dl_head: 'DELIVERY', dl_road: 'on the way', dl_late: 'running late', dl_anon: 'withheld number', e_dl: 'Deliveries', map_shop: 'KEBAB',
+    u_bag_put: 'Put {0} in the bag', u_bag_take: 'Take the bag for {0}', u_bag_none: 'Delivery bag (no orders)', u_bag_nomatch: "That isn't part of any delivery order", u_bag_fill: 'Delivery bag · {0}',
+    u_bike_on: 'Get on the Vespino', u_bike_busy: 'Someone is on the Vespino', u_bike_hands: 'Only the delivery bag fits on the moped', u_bike_off: 'Get off', u_bike_slow: 'Slow down to get off',
+    u_ring: 'Ring the bell', u_wrongdoor: 'Not here. It goes to {0}', u_wait_door: 'You already rang. Wait.', u_give_bag: 'Give the bag to {0}',
+    ride_kb: '[W] throttle · [S] brake · [A/D] steer · [E] get off', ride_touch: 'joystick: throttle and steering · Use: get off', ride_pad: 'stick: throttle and steering · (A) get off',
+    pause_t: 'Paused', pause_p: 'The shift is on hold. Nothing moves.', resume: 'Resume', tb_pause: 'Pause',
     p2p_h: 'Play online with a friend', p2p_create: 'Create room', p2p_join: 'Join', p2p_code: 'Code', p2p_copy: 'Copy link', p2p_copied: 'Link copied',
     p2p_note: 'One of you creates the room and gives the other the 4-digit code or the link. No accounts needed.', p2p_wait: 'Connecting…',
     p2p_ready: 'Room {0} is open. Give your friend the code or this link:', p2p_joined: 'You are in room {0}.',
@@ -118,12 +134,20 @@ const STR = {
     u_gun_take: 'Ia pușca', u_gun_hang: 'Pune pușca la loc', u_gun_busy: 'Pușcă (ai mâinile ocupate)', u_gun_gone: 'Pușca nu e aici',
     u_trash: 'Aruncă {0}', u_bin: 'Coș de gunoi', u_fry_full: 'Tava de cartofi e plină', u_fry_in: 'Pune cartofi în friteuză', u_fry_out: 'Scoate cartofii ({0})',
     u_ft_none: 'Nu sunt cartofi gata', u_ft_take: 'Ia cartofi', u_ft_box: 'Pune cartofi în cutie', u_ft_n: 'Cartofi gata: {0}',
-    u_chop_put: 'Pune {0} pe tocător', u_chop: 'Taie {0} ({1}/6)', u_hands: 'Eliberează-ți mâinile ca să tai', u_chop_idle: 'Tocător (adu legume din magazie)',
+    u_chop_put: 'Pune {0} pe tocător', u_chop: 'Taie {0} ({1}/4)', u_hands: 'Eliberează-ți mâinile ca să tai', u_chop_idle: 'Tocător (adu legume din magazie)',
     u_fuse: 'Ridică siguranța', u_fusebox: 'Tablou electric', u_peep: 'Uită-te pe vizor', u_rules: 'Citește biletul fostului bucătar', u_bdoor_closed: 'Ușa din spate. Încuiată.', u_bdoor_open: 'Deschide ușa',
     u_carve: 'Taie carne de {0}', u_tray_n: 'Carne de {0} tăiată · porții: {1}', u_tray_low: 'Nu e destulă carne de {0} tăiată', u_tray_full: 'Nu mai încape carne', u_tray_add: 'Pune carne de {0}', u_raw: ' (e crudă)',
     u_has: 'Are deja {0}', u_out: 'S-a terminat: {0}. Trebuie tăiat.', u_add: 'Adaugă {0}', u_pour: 'Pune {0}', u_busy: '{0} (ai mâinile ocupate)',
     u_base0: 'Ia o lipie de dürüm', u_base1: 'Ia o pita', u_base2: 'Ia o cutie', u_pass_put: 'Lasă {0} pe blat', u_take: 'Ia {0}', u_pass_full: 'Blat (ocupat)', u_pass: 'Blat: lasă aici ceva pentru coleg',
     u_drink: 'Ia {0}', u_veg: 'Ia {0} de tăiat', u_give: '{1}: dă-i {0}', u_wait: '{0} își așteaptă comanda',
+    u_phone: 'Telefon', u_answer: 'Răspunde la telefon', u_sign_close: 'Întoarce plăcuța pe ÎNCHIS', u_sign_open: 'Întoarce plăcuța pe DESCHIS',
+    call_v: '„Bună, aș vrea {0}. La {1}, vă rog.”', call_s: '...Nu se aude nimic. Dar comanda intră oricum.', call_b: '...Doar o respirație. Închid.', call_who: 'Telefon',
+    dl_new: 'Comandă la domiciliu: {0}', dl_head: 'LIVRARE', dl_road: 'pe drum', dl_late: 'întârzie', dl_anon: 'număr ascuns', e_dl: 'Livrări', map_shop: 'KEBAB',
+    u_bag_put: 'Pune {0} în geantă', u_bag_take: 'Ia geanta pentru {0}', u_bag_none: 'Geantă de livrare (nicio comandă)', u_bag_nomatch: 'Asta nu e în nicio comandă la domiciliu', u_bag_fill: 'Geantă de livrare · {0}',
+    u_bike_on: 'Urcă pe Vespino', u_bike_busy: 'Vespino e ocupată', u_bike_hands: 'Pe moped încape doar geanta de livrare', u_bike_off: 'Coboară de pe moped', u_bike_slow: 'Frânează ca să cobori',
+    u_ring: 'Sună la ușă', u_wrongdoor: 'Nu e aici. Merge la {0}', u_wait_door: 'Ai sunat deja. Așteaptă.', u_give_bag: '{0}: dă-i geanta',
+    ride_kb: '[W] accelerezi · [S] frânezi · [A/D] virezi · [E] cobori', ride_touch: 'joystick: accelerație și direcție · Apasă: cobori', ride_pad: 'stick: accelerație și direcție · (A) cobori',
+    pause_t: 'Pauză', pause_p: 'Tura e oprită. Nu se mișcă nimic.', resume: 'Continuă', tb_pause: 'Pauză',
     p2p_h: 'Joacă online cu un prieten', p2p_create: 'Creează o cameră', p2p_join: 'Intră', p2p_code: 'Cod', p2p_copy: 'Copiază linkul', p2p_copied: 'Link copiat',
     p2p_note: 'Unul creează camera și îi dă celuilalt codul din 4 cifre sau linkul. Nu e nevoie de conturi.', p2p_wait: 'Se conectează…',
     p2p_ready: 'Camera {0} e deschisă. Dă-i prietenului codul sau linkul acesta:', p2p_joined: 'Ești în camera {0}.',
@@ -133,34 +157,34 @@ const STR = {
   },
 };
 const JOB = {
-  es: ['El cliente llega al mostrador y pide. Su comanda aparece a la derecha.', 'Coge el pan o la caja. Corta carne del asador con el cuchillo: solo la dorada.', 'Echa la carne de la bandeja, la verdura y las salsas que ha pedido. Envuelve.', 'Patatas en la freidora, bebidas en la nevera. Entrégalo todo en mano.', 'Hay una nota del cocinero anterior junto a la freidora. Léela.'],
-  en: ['The customer walks up to the counter and orders. The ticket shows up on the right.', 'Grab the bread or the box. Carve meat off the spit with the knife: only the golden part.', 'Add the meat from the tray, then the vegetables and sauces they asked for. Wrap it.', 'Fries go in the fryer, drinks are in the fridge. Hand everything over yourself.', "There's a note from the last cook next to the fryer. Read it."],
-  ro: ['Clientul vine la tejghea și comandă. Bonul apare în dreapta.', 'Ia lipia, pita sau cutia. Taie carne de pe rotisor cu cuțitul: doar partea rumenită.', 'Pune carnea din tavă, apoi legumele și sosurile cerute. Împachetează.', 'Cartofii se fac în friteuză, băuturile sunt în frigider. Dă-i totul în mână.', 'Lângă friteuză e un bilet de la fostul bucătar. Citește-l.'],
+  es: ['El cliente llega al mostrador y pide. Su comanda aparece a la derecha.', 'Coge el pan o la caja. Corta carne del asador con el cuchillo: solo la dorada.', 'Echa la carne de la bandeja, la verdura y las salsas que ha pedido. Envuelve.', 'Patatas en la freidora, bebidas en la nevera. Entrégalo todo en mano.', 'Hay una nota del cocinero anterior junto a la freidora. Léela.', 'Descuelga el teléfono: es un pedido a domicilio. Mételo en la bolsa roja junto a la puerta, pon el cartel de CERRADO y baja en la Vespino por la Calle del Pozo. El portal bueno tiene la luz encendida.'],
+  en: ['The customer walks up to the counter and orders. The ticket shows up on the right.', 'Grab the bread or the box. Carve meat off the spit with the knife: only the golden part.', 'Add the meat from the tray, then the vegetables and sauces they asked for. Wrap it.', 'Fries go in the fryer, drinks are in the fridge. Hand everything over yourself.', "There's a note from the last cook next to the fryer. Read it.", "Answer the phone: it's a delivery. Pack it in the red bag by the door, turn the sign to CLOSED and take the Vespino down Calle del Pozo. The right doorway has its light on."],
+  ro: ['Clientul vine la tejghea și comandă. Bonul apare în dreapta.', 'Ia lipia, pita sau cutia. Taie carne de pe rotisor cu cuțitul: doar partea rumenită.', 'Pune carnea din tavă, apoi legumele și sosurile cerute. Împachetează.', 'Cartofii se fac în friteuză, băuturile sunt în frigider. Dă-i totul în mână.', 'Lângă friteuză e un bilet de la fostul bucătar. Citește-l.', 'Răspunde la telefon: e o comandă la domiciliu. Pune-o în geanta roșie de lângă ușă, întoarce plăcuța pe ÎNCHIS și ia Vespino pe Calle del Pozo. La ușa bună e lumina aprinsă.'],
 };
 const CTL = {
-  es: [['WASD + ratón', 'moverse y mirar'], ['E o clic', 'usar, coger, entregar'], ['Clic con escopeta', 'disparar · R recarga'], ['Mando', 'sticks · A usar · RT disparar/cortar · X recarga · B salir'], ['Táctil', 'izquierda mover · derecha mirar · toque para usar']],
-  en: [['WASD + mouse', 'move and look'], ['E or click', 'use, pick up, hand over'], ['Click with shotgun', 'fire · R reloads'], ['Gamepad', 'sticks · A use · RT fire/carve · X reload · B exit'], ['Touch', 'left side moves · right side looks · tap to use']],
-  ro: [['WASD + mouse', 'mers și privit'], ['E sau clic', 'folosești, iei, predai'], ['Clic cu pușca', 'tragi · R reîncarcă'], ['Controller', 'stickuri · A folosește · RT trage/taie · X reîncarcă · B ieșire'], ['Tactil', 'stânga mers · dreapta privit · atingere ca să folosești']],
+  es: [['WASD + ratón', 'moverse y mirar'], ['E o clic', 'usar, coger, entregar'], ['Clic con escopeta', 'disparar · R recarga'], ['Mando', 'sticks · A usar · RT disparar/cortar · X recarga · B salir'], ['Táctil', 'izquierda mover · derecha mirar · toque para usar'], ['Vespino', 'E subir y bajar · W/S gas y freno · A/D girar · P pausa']],
+  en: [['WASD + mouse', 'move and look'], ['E or click', 'use, pick up, hand over'], ['Click with shotgun', 'fire · R reloads'], ['Gamepad', 'sticks · A use · RT fire/carve · X reload · B exit'], ['Touch', 'left side moves · right side looks · tap to use'], ['Vespino', 'E on/off · W/S throttle and brake · A/D steer · P pause']],
+  ro: [['WASD + mouse', 'mers și privit'], ['E sau clic', 'folosești, iei, predai'], ['Clic cu pușca', 'tragi · R reîncarcă'], ['Controller', 'stickuri · A folosește · RT trage/taie · X reîncarcă · B ieșire'], ['Tactil', 'stânga mers · dreapta privit · atingere ca să folosești'], ['Vespino', 'E urci/cobori · W/S accelerezi și frânezi · A/D virezi · P pauză']],
 };
 const RULESX = {
   es: RULES,
-  en: ["Real customers blink. If it doesn't blink and its eyes are black, it is not a customer.", "If it asks for the meat raw, don't give it. Shotgun.", 'Never shoot a real customer. Never.', 'Aiming is enough for a robber. Same for the one who leaves without paying.', "If the power goes out: the fuse box is in the storeroom. Don't stand still in the dark.", 'Back door: ALWAYS use the peephole before opening.', 'At 3:33 someone comes. Someone always comes.', 'What happens when nobody is watching stays in the kitchen. The table in the storeroom is good for more than vegetables.'],
-  ro: ['Clienții adevărați clipesc. Dacă nu clipește și are ochii negri, nu e client.', 'Dacă cere carnea crudă, nu i-o da. Pușca.', 'Nu trage niciodată într-un client adevărat. Niciodată.', 'Pe un hoț e de ajuns să-l ții în cătare. La fel și pe cel care pleacă fără să plătească.', 'Dacă se ia curentul: tabloul e în magazie. Nu sta pe loc pe întuneric.', 'Ușa din spate: uită-te ÎNTOTDEAUNA pe vizor înainte să deschizi.', 'La 3:33 vine cineva. Întotdeauna vine cineva.', 'Ce se întâmplă când nu se uită nimeni rămâne în bucătărie. Masa din magazie e bună și la altceva decât legume.'],
+  en: ["Real customers blink. If it doesn't blink and its eyes are black, it is not a customer.", "If it asks for the meat raw, don't give it. Shotgun.", 'Never shoot a real customer. Never.', 'Aiming is enough for a robber. Same for the one who leaves without paying.', "If the power goes out: the fuse box is in the storeroom. Don't stand still in the dark.", 'Back door: ALWAYS use the peephole before opening.', 'At 3:33 someone comes. Someone always comes.', 'If they call and you hear nothing, do not go. Number 13 on Calle del Pozo does not exist.', 'If you go out to deliver, turn the sign to CLOSED. Left open and empty, they come in.', "The dogs in the empty lot belong to nobody. Don't even get off the moped near them.", 'What happens when nobody is watching stays in the kitchen. The table in the storeroom is good for more than vegetables.'],
+  ro: ['Clienții adevărați clipesc. Dacă nu clipește și are ochii negri, nu e client.', 'Dacă cere carnea crudă, nu i-o da. Pușca.', 'Nu trage niciodată într-un client adevărat. Niciodată.', 'Pe un hoț e de ajuns să-l ții în cătare. La fel și pe cel care pleacă fără să plătească.', 'Dacă se ia curentul: tabloul e în magazie. Nu sta pe loc pe întuneric.', 'Ușa din spate: uită-te ÎNTOTDEAUNA pe vizor înainte să deschizi.', 'La 3:33 vine cineva. Întotdeauna vine cineva.', 'Dacă sună și nu se aude nimic, nu te duce. Numărul 13 de pe Calle del Pozo nu există.', 'Dacă ieși cu livrări, întoarce plăcuța pe ÎNCHIS. Dacă rămâne deschis și gol, intră ei.', 'Câinii de pe maidan nu sunt ai nimănui. Nici să nu cobori de pe moped lângă ei.', 'Ce se întâmplă când nu se uită nimeni rămâne în bucătărie. Masa din magazie e bună și la altceva decât legume.'],
 };
 const MSGX = {
   es: MSG,
-  en: { karma: 'Julián leaves fed. The neighbourhood hears about it. (+reputation)', sinpa: 'He left without paying.', robbed: 'They emptied the till.', robgone: 'The robber runs off.', deliv: 'Delivery received: vegetables and shells.', nodeliv: 'The delivery man got tired of knocking.', blackout: 'The power is out. The fuse box is in the storeroom.', power: 'The lights are back.', binfull: 'Vegetables chopped and in the tub.', gone: 'The thing at the door stops scratching.', lost: 'A customer left without dinner.', ko: 'You passed out. You wake up in the kitchen.', last: "It's six. Shutters down when the last one leaves.", killed: 'That was not a customer.', nowit: 'Nobody saw it. Yet.' },
-  ro: { karma: 'Julián pleacă sătul. Află tot cartierul. (+reputație)', sinpa: 'A plecat fără să plătească.', robbed: 'Ți-au golit casa de marcat.', robgone: 'Hoțul o ia la fugă.', deliv: 'Livrare primită: legume și cartușe.', nodeliv: 'Livratorul s-a săturat să bată la ușă.', blackout: 'S-a luat curentul. Tabloul e în magazie.', power: 'A revenit curentul.', binfull: 'Legume tăiate și puse în tavă.', gone: 'Ce era la ușă nu mai zgârie.', lost: 'Un client a plecat nemâncat.', ko: 'Ai leșinat. Te trezești în bucătărie.', last: 'E șase. Tragi oblonul când pleacă ultimul.', killed: 'Ăla nu era client.', nowit: 'Nu a văzut nimeni. Încă.' },
+  en: { karma: 'Julián leaves fed. The neighbourhood hears about it. (+reputation)', sinpa: 'He left without paying.', robbed: 'They emptied the till.', robgone: 'The robber runs off.', deliv: 'Delivery received: vegetables and shells.', nodeliv: 'The delivery man got tired of knocking.', blackout: 'The power is out. The fuse box is in the storeroom.', power: 'The lights are back.', binfull: 'Vegetables chopped and in the tub.', gone: 'The thing at the door stops scratching.', lost: 'A customer left without dinner.', ko: 'You passed out. You wake up in the kitchen.', last: "It's six. Shutters down when the last one leaves.", killed: 'That was not a customer.', nowit: 'Nobody saw it. Yet.', phone: 'The phone is ringing.', callmiss: 'Nobody picked up the phone.', spirits: 'The shop is full of spirits. You left the sign on OPEN.', dlcancel: 'A delivery order was cancelled.', bikehit: 'You got knocked off the moped.' },
+  ro: { karma: 'Julián pleacă sătul. Află tot cartierul. (+reputație)', sinpa: 'A plecat fără să plătească.', robbed: 'Ți-au golit casa de marcat.', robgone: 'Hoțul o ia la fugă.', deliv: 'Livrare primită: legume și cartușe.', nodeliv: 'Livratorul s-a săturat să bată la ușă.', blackout: 'S-a luat curentul. Tabloul e în magazie.', power: 'A revenit curentul.', binfull: 'Legume tăiate și puse în tavă.', gone: 'Ce era la ușă nu mai zgârie.', lost: 'Un client a plecat nemâncat.', ko: 'Ai leșinat. Te trezești în bucătărie.', last: 'E șase. Tragi oblonul când pleacă ultimul.', killed: 'Ăla nu era client.', nowit: 'Nu a văzut nimeni. Încă.', phone: 'Sună telefonul.', callmiss: 'N-a răspuns nimeni la telefon.', spirits: 'Localul e plin de spirite. Ai lăsat plăcuța pe DESCHIS.', dlcancel: 'S-a anulat o comandă la domiciliu.', bikehit: 'Te-au dat jos de pe moped.' },
 };
 const GENX = {
   es: GEN,
-  en: { w: ['Is it going to be long?', "Hey, I've been here a while."], ok: ['Thanks. Good night.'], bad: ["This isn't great...", "It's so-so, honestly."], x: ["Forget it. I'm going somewhere else."], no: ["That's not what I ordered."], raw: ['This is raw!', "Hey, the meat's not cooked."], burnt: ["It's charred."], unw: ['And you hand it to me like that, unwrapped?'], flee: ['Gunshots!!', 'Oh my God!', 'Run!'], dark: ['Did the lights go out?', "Hey, I can't see a thing."], nofr: ['Where are the fries in the box?'], hm: ["Tastes different today. It's really good.", 'New supplier? Best one yet.'], gun: ['...'], g: ['Good evening.'], pre: ['Give me'], post: [''] },
-  ro: { w: ['Mai durează mult?', 'Auzi, stau de ceva vreme.'], ok: ['Mersi. Noapte bună.'], bad: ['Nu-i cine știe ce...', 'E așa și așa, sincer.'], x: ['Las-o. Mă duc în altă parte.'], no: ['Nu asta am cerut.'], raw: ['E crud!', 'Auzi, carnea nu-i făcută.'], burnt: ['E carbonizat.'], unw: ['Și mi-l dai așa, neîmpachetat?'], flee: ['Împușcături!!', 'Vai de mine!', 'Fugi!'], dark: ['S-a luat curentul?', 'Hei, nu se vede nimic.'], nofr: ['Și cartofii din cutie?'], hm: ['Azi are alt gust. E foarte bun.', 'Ai schimbat furnizorul? Mai bun ca oricând.'], gun: ['...'], g: ['Bună seara.'], pre: ['Dă-mi'], post: [''] },
+  en: { w: ['Is it going to be long?', "Hey, I've been here a while."], ok: ['Thanks. Good night.'], bad: ["This isn't great...", "It's so-so, honestly."], x: ["Forget it. I'm going somewhere else."], no: ["That's not what I ordered."], raw: ['This is raw!', "Hey, the meat's not cooked."], burnt: ["It's charred."], unw: ['And you hand it to me like that, unwrapped?'], flee: ['Gunshots!!', 'Oh my God!', 'Run!'], dark: ['Did the lights go out?', "Hey, I can't see a thing."], nofr: ['Where are the fries in the box?'], late: ["It's cold, but fine."], hm: ["Tastes different today. It's really good.", 'New supplier? Best one yet.'], gun: ['...'], g: ['Good evening.'], pre: ['Give me'], post: [''] },
+  ro: { w: ['Mai durează mult?', 'Auzi, stau de ceva vreme.'], ok: ['Mersi. Noapte bună.'], bad: ['Nu-i cine știe ce...', 'E așa și așa, sincer.'], x: ['Las-o. Mă duc în altă parte.'], no: ['Nu asta am cerut.'], raw: ['E crud!', 'Auzi, carnea nu-i făcută.'], burnt: ['E carbonizat.'], unw: ['Și mi-l dai așa, neîmpachetat?'], flee: ['Împușcături!!', 'Vai de mine!', 'Fugi!'], dark: ['S-a luat curentul?', 'Hei, nu se vede nimic.'], nofr: ['Și cartofii din cutie?'], late: ['A venit rece, dar fie.'], hm: ['Azi are alt gust. E foarte bun.', 'Ai schimbat furnizorul? Mai bun ca oricând.'], gun: ['...'], g: ['Bună seara.'], pre: ['Dă-mi'], post: [''] },
 };
 const ANOMX = {
   es: ANOM,
-  en: { g: ['...', 'Good. Evening.'], o: ['Meat. Raw. No bread.', 'Give me the meat. Uncooked.', "I'm hungry. Raw."], w: ['You smell warm.', "Don't look at my eyes.", "You've been awake a long time.", "The last one didn't serve me either."], no: ['No. Raw.'], atk: ['HUNGRY.'] },
-  ro: { g: ['...', 'Bună. Seara.'], o: ['Carne. Crudă. Fără pâine.', 'Dă-mi carnea. Nefăcută.', 'Mi-e foame. Crudă.'], w: ['Miroși a cald.', 'Nu te uita în ochii mei.', 'Ești treaz de mult.', 'Nici cel dinainte nu m-a servit.'], no: ['Nu. Crudă.'], atk: ['FOAME.'] },
+  en: { pasa: ['Come in. Come inside.', 'Nobody has lived here for years.', 'Leave the bag. And come in.'], g: ['...', 'Good. Evening.'], o: ['Meat. Raw. No bread.', 'Give me the meat. Uncooked.', "I'm hungry. Raw."], w: ['You smell warm.', "Don't look at my eyes.", "You've been awake a long time.", "The last one didn't serve me either."], no: ['No. Raw.'], atk: ['HUNGRY.'] },
+  ro: { pasa: ['Intră. Intră înăuntru.', 'Aici nu mai locuiește nimeni de ani de zile.', 'Lasă geanta. Și intră.'], g: ['...', 'Bună. Seara.'], o: ['Carne. Crudă. Fără pâine.', 'Dă-mi carnea. Nefăcută.', 'Mi-e foame. Crudă.'], w: ['Miroși a cald.', 'Nu te uita în ochii mei.', 'Ești treaz de mult.', 'Nici cel dinainte nu m-a servit.'], no: ['Nu. Crudă.'], atk: ['FOAME.'] },
 };
 
 /* ---------- los 28 clientes, traducidos ---------- */
@@ -194,6 +218,13 @@ const XL = {
     oscar: { role: 'ambulance technician', g: ["Evening. I've got five minutes between calls."], pre: ['Give me'], post: ["And if the radio goes off, I'm running."], w: ["Come on, a call's about to come in."], ok: ['Perfect. Take care tonight.'], x: ['Call. I have to go.'] },
     fermin: { role: 'walks the dog at four', g: ["Evening. The dog's staying outside. He won't come in. That's never happened before."], pre: ['Give me'], post: ["He's been barking at your back door all night."], w: ["Come on, the dog's getting nervous."], ok: ["Thanks. Come on, Toby, let's get out of here."], x: ["The dog's pulling me away. I'm off."] },
     yolanda: { role: 'looking for her son', g: ["Have you seen a lad with his shirt open? He's my son."], pre: ["While I'm here, give me"], post: ['When I catch him, Benidorm is over for him.'], w: ["Hurry up, I'm still looking for him."], ok: ["Thanks. If you see him, tell him his mother's looking for him."], x: ["I can't wait. I'll keep looking."] },
+    rosario: { role: 'lives with six cats', g: ["Are you the kebab man? Don't come in, the cats will get out.", 'Oh, that was quick. The cats heard you from the corner.'], ok: ['Here, love. And a little tip.', 'God keep you on these streets.'], late: ["It's gone cold, love. I'll warm it up."], bad: ['Not even the cats would eat this.'] },
+    tomas: { role: "hasn't slept in days", g: ['Three nights without sleep. Three.', "Oh, it's you. I thought it was the one who calls and doesn't speak."], ok: ['Thanks. Close the gate properly on your way out.'], late: ["Doesn't matter. I'm not hungry anymore. I'm scared."], bad: ["This isn't what I ordered. I think. I don't know anymore."] },
+    quique: { role: 'poker night at home', g: ['Finally! Guys, the kebab!', "How much? We're losing at poker."], ok: ["Here, keep the change, I'm winning tonight."], late: ['Cold as my luck. Fine, hand it over.'], bad: ['What is this? Bah, when you are hungry anything goes.'] },
+    nadia: { role: 'works from home at night', g: ['Hi... sorry about the state of me, ten hours in front of the screen.'], ok: ["Thanks. You're the only person I've seen today."], late: ["Late, but fine. I'm still awake anyway."], bad: ["Hmm. OK. It's fine."] },
+    bruno: { role: 'guards the building site opposite', g: ["Evening. I guard the site across the road. Nobody's there... but you hear things."], ok: ['Thanks, kid. If you see a light on the site, stay away.'], late: ['Cold. Like the hut.'], bad: ['Site food. Fine.'] },
+    angela: { name: 'Ángela', role: 'never turns the light on', g: ["Don't turn on the landing light.", "...I thought you wouldn't come."], ok: ['Thank you. Now go. Quickly.'], late: ['You took your time. He always does too.'], bad: ["It doesn't matter. I don't eat much anymore."] },
+    pepe: { role: 'only opens the door a crack', g: ["The usual. I'm not opening any wider.", 'Pass it through here.'], ok: ['Good. The money, through the gap.'], late: ['Late. Noted.'], bad: ["No. The last one didn't do it like that."] },
   },
   ro: {
     dave: { role: 'petrecerea burlacilor', g: ['Amigo! Amigooo...', "Oi oi. Bună seara, șefu'."], pre: ['One... uno... ăă,', 'Mate, dă-mi'], post: ['Por favor. Cheers.', 'Și repede, că pic din picioare.'], w: ['Mate... mai durează mult?', 'Amigo, mor de foame, pe bune.'], ok: ['Legend! Ești o legendă.', 'Cheers, amigo. Cel mai bun kebab din Spania.'], bad: ["E... ciudat. Da' îl mănânc."], x: ['Bah. Mă duc la burgeri.'], no: ['Nu, nu, nu. Ăsta nu-i al meu, mate.'] },
@@ -224,6 +255,13 @@ const XL = {
     oscar: { role: 'paramedic pe ambulanță', g: ['Bună seara. Am cinci minute între apeluri.'], pre: ['Dă-mi'], post: ['Și dacă sună stația, am fugit.'], w: ['Hai, că vine un apel.'], ok: ['Perfect. Aveți grijă în noaptea asta.'], x: ['Apel. Trebuie să plec.'] },
     fermin: { role: 'plimbă câinele la patru dimineața', g: ['Bună seara. Câinele rămâne afară. Nu vrea să intre. Nu i s-a mai întâmplat.'], pre: ['Dă-mi'], post: ['Toată noaptea a lătrat la ușa voastră din spate.'], w: ['Hai, că se agită câinele.'], ok: ['Mersi. Hai, Toby, să plecăm de aici.'], x: ['Mă trage câinele. Am plecat.'] },
     yolanda: { role: 'își caută fiul', g: ['Ai văzut un băiat cu cămașa descheiată? E fiu-meu.'], pre: ['Dacă tot sunt aici, dă-mi'], post: ['Când pun mâna pe el, s-a terminat cu Benidormul.'], w: ['Grăbește-te, că încă îl caut.'], ok: ['Mersi. Dacă îl vezi, spune-i că îl caută maică-sa.'], x: ['Nu pot să aștept. Mai caut.'] },
+    rosario: { role: 'locuiește cu șase pisici', g: ['Tu ești cel cu kebabul? Nu intra, că fug pisicile.', 'Vai, ce repede. Pisicile te-au auzit de la colț.'], ok: ['Ține, maică. Și un mic bacșiș.', 'Să te păzească Dumnezeu pe străzile astea.'], late: ['S-a răcit, maică. Îl încălzesc eu.'], bad: ['Asta n-o mănâncă nici pisicile.'] },
+    tomas: { role: 'nu mai doarme de zile întregi', g: ['De trei nopți nu dorm. Trei.', 'A, tu ești. Credeam că e iar cel care sună și nu vorbește.'], ok: ['Mersi. Închide bine poarta când ieși.'], late: ['Nu mai contează. Nu mi-e foame. Mi-e frică.'], bad: ['Nu asta am comandat. Cred. Nu mai știu.'] },
+    quique: { role: 'partidă de poker acasă', g: ['În sfârșit! Băieți, a venit kebabul!', 'Cât face? Că pierdem la poker.'], ok: ['Ține și păstrează restul, că azi câștig.'], late: ['Rece ca norocul meu. Bine, dă-l încoace.'], bad: ['Ce-i asta? Bah, când ți-e foame merge orice.'] },
+    nadia: { role: 'lucrează de acasă noaptea', g: ['Bună... scuze cum arăt, stau de zece ore în fața ecranului.'], ok: ['Mersi. Ești singurul om pe care l-am văzut azi.'], late: ['Târziu, dar e bine. Oricum sunt trează.'], bad: ['Mmm. Bine. Nu-i nimic.'] },
+    bruno: { role: 'paznicul șantierului de vizavi', g: ['Bună seara. Păzesc șantierul de vizavi. Nu e nimeni acolo... dar se aud lucruri.'], ok: ['Mersi, puștiule. Dacă vezi lumină pe șantier, nu te apropia.'], late: ['Rece. Ca baraca.'], bad: ['Mâncare de șantier. Fie.'] },
+    angela: { role: 'nu aprinde niciodată lumina', g: ['Nu aprinde lumina de pe palier.', '...Credeam că n-o să vii.'], ok: ['Mulțumesc. Acum pleacă. Repede.'], late: ['Ai întârziat. Și el întârzie mereu.'], bad: ['Nu contează. Nu mai mănânc mult.'] },
+    pepe: { role: 'deschide ușa doar o crăpătură', g: ['Ca de obicei. Nu deschid mai mult.', 'Dă-mi-l pe aici.'], ok: ['Bine. Banii, prin crăpătură.'], late: ['Târziu. Notat.'], bad: ['Nu. Cel dinainte nu-l făcea așa.'] },
   },
 };
 
@@ -266,7 +304,7 @@ function orderPhrase(ord) {
 }
 function itemName(h) {
   const N = LX[LANG].nm; if (!h) return N.none;
-  if (h.k === 'body') return N.body; if (h.k === 'cone') return N.cone;
+  if (h.k === 'bag') return N.bag; if (h.k === 'body') return N.body; if (h.k === 'cone') return N.cone;
   if (h.k === 'gun') return N.gun; if (h.k === 'fr') return N.fr; if (h.k === 'dr') return N.dr[h.t]; if (h.k === 'vg') return N.vg[h.t]; if (h.k === 'kb') return N.kb[h.b];
   return '?';
 }
@@ -282,6 +320,7 @@ function handDesc(h) {
   if (h.k === 'dr') return X.drink[h.t].toUpperCase();
   if (h.k === 'vg') return X.veg[h.t].toUpperCase() + Hh.uncut;
   if (h.k === 'gun') return Hh.gun;
+  if (h.k === 'bag') { const o = W && W.dl ? W.dl.find(q => q.i === h.d) : null; return Hh.bag + (o ? ' · ' + addrOf(o.d) : ''); }
   if (h.k === 'body') return Hh.body; if (h.k === 'cone') return Hh.cone;
   return '';
 }

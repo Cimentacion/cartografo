@@ -25,6 +25,8 @@ Dentro de Claude, publicado como artefacto con la capacidad `room` (`dist/kebab-
 
 | | |
 |---|---|
+| Vespino | E subir y bajar · W/S gas y freno · A/D girar |
+| P o Esc | pausa (en solitario) |
 | WASD + ratón | moverse y mirar |
 | E o clic | usar, coger, entregar |
 | Clic con la escopeta | disparar (R recarga) |
@@ -38,7 +40,9 @@ Dentro de Claude, publicado como artefacto con la capacidad `room` (`dist/kebab-
 3. Verdura, salsas, papel de aluminio y a la mano del cliente. Patatas en la freidora, bebidas en la nevera.
 4. La verdura se acaba: se trae del almacén y se pica en la tabla.
 5. Junto a la freidora hay una nota del cocinero anterior con las reglas del turno de noche. Conviene leerla.
-6. Disparar a un cliente delante de testigos acaba la partida. Si no lo ha visto nadie, el cuerpo se puede arrastrar a la mesa del almacén, despiezarlo y montar la carne en un asador, antes de que entre el siguiente cliente y lo vea.
+6. **Reparto a domicilio.** Suena el teléfono: descuelga y toma nota (a veces no se oye nada, y ese pedido va al 13, que no existe). Mete el pedido en la bolsa roja junto a la puerta, pon el cartel de CERRADO en el escaparate y baja por la Calle del Pozo en la Vespino. El portal del pedido tiene la luz del rellano encendida. Bajo algunas farolas aparecen figuras que gritan, y en el solar hay perros.
+7. Si sales y dejas el local vacío con el cartel en ABIERTO, se llena de espíritus: espantan a los clientes y te atacan al volver.
+8. Disparar a un cliente delante de testigos acaba la partida. Si no lo ha visto nadie, el cuerpo se puede arrastrar a la mesa del almacén, despiezarlo y montar la carne en un asador, antes de que entre el siguiente cliente y lo vea.
 
 ## Estructura
 

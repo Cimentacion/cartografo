@@ -19,6 +19,10 @@ const AU = {
       this.L.fry = this.loopNoise('bandpass', 2600, 0.6, 0);
       // viento de la calle
       this.L.wind = this.loopNoise('lowpass', 260, 0.4, 0.03);
+      // motor de dos tiempos de la Vespino: diente de sierra + cuadrada desafinada, filtradas
+      const eg = c.createGain(), ef = c.createBiquadFilter(); ef.type = 'lowpass'; ef.frequency.value = 900; eg.gain.value = 0; ef.connect(eg); eg.connect(this.out);
+      this.engO = [['sawtooth', 48], ['square', 49.5]].map(([t, f]) => { const o = c.createOscillator(); o.type = t; o.frequency.value = f; o.connect(ef); o.start(); return o; });
+      this.L.eng = eg; this.engF = ef; this.dogT = 8;
     } catch (e) { this.ctx = null; }
   },
   loopOsc(type, f, vol, lp) {
@@ -85,13 +89,19 @@ const AU = {
       case 'grab': this.nz(0.05, 'lowpass', 900, 0.7, 0.14, 0); break;
       case 'die': this.tone(140, 0.5, 'sine', 0.5 * v, 0, 40, d); this.nz(0.3, 'lowpass', 400, 0.7, 0.5 * v, 0.1, 0, d); break;
       case 'door': this.nz(0.9, 'bandpass', 500, 6, 0.3 * v, 0, 220, d); break;
+      case 'ring': for (let i = 0; i < 2; i++) for (let k = 0; k < 10; k++) { this.tone(440, 0.05, 'square', 0.05 * v, i * 0.9 + k * 0.05, 0, d); this.tone(480, 0.05, 'square', 0.05 * v, i * 0.9 + k * 0.05 + 0.025, 0, d); } break;
+      case 'bell2': this.tone(784, 0.6, 'sine', 0.2 * Math.max(v, 0.5), 0, 0, d); this.tone(622, 0.9, 'sine', 0.2 * Math.max(v, 0.5), 0.45, 0, d); break;
+      case 'bark': for (let i = 0; i < 2; i++) { this.tone(380, 0.12, 'sawtooth', 0.22 * Math.max(v, 0.15), i * 0.22, 170, d); this.nz(0.12, 'bandpass', 900, 2, 0.25 * Math.max(v, 0.15), i * 0.22, 0, d); } break;
+      case 'crash': this.nz(0.5, 'lowpass', 1800, 0.5, 0.7 * Math.max(v, 0.4), 0, 120, d); this.tone(80, 0.3, 'sine', 0.6 * Math.max(v, 0.4), 0, 40, d); this.nz(0.6, 'highpass', 4000, 0.5, 0.2, 0.05, 0, d); break;
     }
   },
   frame(dt, env) {
     const c = this.ctx; if (!c) return;
     const t = c.currentTime, set = (g, v) => g.gain.setTargetAtTime(v, t, 0.08);
     set(this.L.hum, env.power ? 0.012 : 0); set(this.L.hum2, env.power ? 0.03 : 0.004);
-    set(this.L.siz, 0.05 * env.siz); set(this.L.fry, 0.09 * env.fry); set(this.L.wind, 0.02 + 0.03 * env.out);
+    set(this.L.siz, 0.05 * env.siz); set(this.L.eng, 0.045 * (env.eng || 0));
+    if (env.eng) { const f = 44 + (env.rpm || 0) * 120; this.engO[0].frequency.setTargetAtTime(f, t, 0.05); this.engO[1].frequency.setTargetAtTime(f * 1.03, t, 0.05); this.engF.frequency.setTargetAtTime(600 + (env.rpm || 0) * 1800, t, 0.05); }
+    if (env.out > 0.5) { this.dogT -= dt; if (this.dogT <= 0) { this.dogT = 9 + Math.random() * 20; this.play('bark', this.lis.x + (Math.random() - 0.5) * 60, this.lis.z + 30 + Math.random() * 20); } } set(this.L.fry, 0.09 * env.fry); set(this.L.wind, 0.02 + 0.03 * env.out);
     // bombo lejano de alguna discoteca
     this.kick -= dt;
     if (this.kick <= 0) { this.kick += 0.48; this.tone(62, 0.16, 'sine', 0.035 * (env.club || 0), 0, 38); }

@@ -149,6 +149,11 @@ function itemMesh(h) {
     for (let i = 0; i < 9; i++) { const f = add(new THREE.BoxGeometry(0.012, 0.09, 0.012), fm, Math.cos(i * 2.4) * 0.03, 0.11, Math.sin(i * 2.4) * 0.03); f.rotation.set(Math.sin(i) * 0.3, 0, Math.cos(i * 1.7) * 0.3); }
     return g;
   }
+  if (h.k === 'bag') {
+    add(new THREE.BoxGeometry(0.34, 0.3, 0.28), lam(null, 0xa0201a), 0, 0.15, 0); add(new THREE.BoxGeometry(0.35, 0.04, 0.29), lam(null, 0x6a1410), 0, 0.31, 0);
+    add(new THREE.BoxGeometry(0.2, 0.06, 0.02), lam(null, 0x1a1a1a), 0, 0.36, 0); add(new THREE.BoxGeometry(0.16, 0.06, 0.005), lam(null, 0xe8d8b0), 0, 0.17, -0.142);
+    return g;
+  }
   if (h.k === 'body') {
     const m = lam('bag', 0x8a8a92), rope = lam(null, 0xa89060);
     add(new THREE.BoxGeometry(0.62, 0.2, 0.26), m, 0, 0.1, 0); add(new THREE.SphereGeometry(0.11, 6, 5), m, -0.37, 0.11, 0);
@@ -214,14 +219,9 @@ function buildWorld() {
   const dr = box(1.15, 2.1, 0.05, lam(null, 0x30363a, { transparent: true, opacity: 0.55 }), -3.2 + 0.1, 1.05, 4.45, { ry: PI / 2 - 0.25 });
   D.frontDoor = dr;
   // exterior
-  plane(44, 3, M.pave, 0, -0.02, 6.5, -PI / 2, 0, 1.5);
-  plane(44, 7, M.asph, 0, -0.03, 11.5, -PI / 2, 0, 3);
-  plane(44, 9, M.brick, 0, 4.5, 15, 0, PI, 2.2);
-  for (let i = 0; i < 7; i++) plane(1.1, 1.4, bas(i === 4 ? 0x3a3214 : 0x07080a), -13 + i * 4.3, 4.4, 14.95, 0, PI);
-  D.figWin = plane(0.42, 0.9, bas(0x050505), -13 + 4 * 4.3, 4.2, 14.9, 0, PI);
   cyl(0.06, 0.08, 4.4, 6, M.dark, 1.6, 2.2, 8.4); box(0.9, 0.08, 0.14, M.dark, 1.2, 4.4, 8.4);
   D.lampHead = box(0.4, 0.06, 0.16, bas(0xffb45a), 0.9, 4.35, 8.4);
-  box(1.9, 1.25, 4.3, lam(null, 0x16181d), -7.5, 0.7, 10.2); box(1.7, 0.6, 2.3, lam(null, 0x0d0e12), -7.5, 1.55, 10.3);
+  box(1.9, 1.25, 4.3, lam(null, 0x16181d), -7.5, 0.7, 10.2, { col: true }); box(1.7, 0.6, 2.3, lam(null, 0x0d0e12), -7.5, 1.55, 10.3);
   // --- almacén: x[0.5,4] z[-7.5,-4.2] ---
   plane(3.5, 3.3, M.concf, 2.25, 0.001, -5.85, -PI / 2, 0, 1.5, true);
   plane(3.5, 3.3, lam('conc', 0x6f6d68), 2.25, 2.6, -5.85, PI / 2, 0, 2, true);
@@ -230,7 +230,7 @@ function buildWorld() {
   plane(0.2, 2.1, M.conc, 2.4, 1.05, -4.1, 0, PI / 2); plane(0.2, 2.1, M.conc, 3.5, 1.05, -4.1, 0, -PI / 2);
   plane(1.1, 0.2, M.concf, 2.95, 0.001, -4.1, -PI / 2, 0); plane(1.1, 0.2, M.conc, 2.95, 2.1, -4.1, PI / 2, 0);
   // colisiones de muros
-  colliders.push({ x0: -5, x1: -4, z0: -5, z1: 6 }, { x0: 4, x1: 5, z0: -8, z1: 6 }, { x0: -5, x1: 5, z0: 5, z1: 5.5 },
+  colliders.push({ x0: -5, x1: -4, z0: -5, z1: 5.5 }, { x0: 4, x1: 5, z0: -8, z1: 5.5 }, { x0: -5, x1: -3.2, z0: 5, z1: 5.5 }, { x0: -2.0, x1: 5, z0: 5, z1: 5.5 },
     { x0: -5, x1: 2.4, z0: -4.2, z1: -4 }, { x0: 3.5, x1: 5, z0: -4.2, z1: -4 }, { x0: 0.2, x1: 0.5, z0: -7.7, z1: -4.2 }, { x0: 0, x1: 5, z0: -7.9, z1: -7.5 }, { x0: -5, x1: 0.5, z0: -5, z1: -4.2 });
 
   // --- luces ---
@@ -350,4 +350,5 @@ function buildWorld() {
   decal('grime1', -3.99, 1.3, -1.6, 0, PI / 2, 2.0, 1.6, 0.6); decal('grime1', 0.2, 1.5, -3.99, 0, 0, 1.6, 1.4, 0.7); decal('st1', 3.99, 1.1, 3.4, 0, -PI / 2, 1.2, 1.2, 0.55);
   decal('drip1', 2.2, 1.9, -7.49, 0, 0, 2.6, 1.4, 0.8); decal('st2', 0.51, 1.0, -6.4, 0, PI / 2, 1.3, 1.3, 0.7); decal('drip3', 1.5, 2.0, -4.21, 0, PI, 1.6, 1.2, 0.7);
   decal('st3', 3.05, 1.0, -7.435, 0, 0, 0.9, 0.9, 0.7); decal('grime2', 1, 0.45, 4.99, 0, PI, 3.6, 0.9, 0.5);
+  buildTown();
 }
