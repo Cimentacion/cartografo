@@ -128,6 +128,12 @@ function makeChar(look, seed, an, key) {
   if (key) rayTargets.push(hm);
   scene.add(g); return ch;
 }
+// sombra sin piernas: el cuerpo acaba en un jirón negro
+function legless(ch) {
+  ch.lL.visible = false; ch.lR.visible = false;
+  const m = new THREE.MeshBasicMaterial({ color: 0x010101, transparent: true, opacity: 0.75, depthWrite: false });
+  const c = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.8, 7, 1, true), m); c.rotation.x = PI; c.position.y = 0.45; ch.body.add(c);
+}
 function killChar(ch) {
   const i = rayTargets.indexOf(ch.hit); if (i >= 0) rayTargets.splice(i, 1);
   scene.remove(ch.g); for (const m of ch.mats) m.dispose(); for (const t of ch.texs) t.dispose();

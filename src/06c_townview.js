@@ -6,8 +6,8 @@ function myDelivery() {
 }
 function syncTown(dt) {
   // niebla: fuera se ve un poco más lejos
-  const out = camera.position.z > 5.3;
-  scene.fog.near = lerp(scene.fog.near, out ? 6 : 4, Math.min(1, dt * 3)); scene.fog.far = lerp(scene.fog.far, out ? (ride.on ? 46 : 38) : 25, Math.min(1, dt * 3));
+  const out = !inShop(camera.position.x, camera.position.z);
+  scene.fog.near = lerp(scene.fog.near, out ? 6 : 4, Math.min(1, dt * 3)); scene.fog.far = lerp(scene.fog.far, out ? (camera.position.z > 14 ? 70 : ride.on ? 46 : 38) : 25, Math.min(1, dt * 3));
   // las cuatro farolas encendidas más cercanas dan luz de verdad
   const flick = L => L.md === 2 || (L.sc > 0 && Math.sin(TIME * 70 + L.ph) > 0) || (L.md === 1 && (Math.sin(TIME * 23 + L.ph) + Math.sin(TIME * 37 + L.ph * 2) + Math.sin(TIME * 3.1 + L.ph)) > 1.1);
   for (const L of TOWN.lamps) if (L.sc > 0) L.sc -= dt;
@@ -41,7 +41,10 @@ function syncTown(dt) {
   const dl = myDelivery();
   if (dl) { const d = TOWN.doors[dl.d], x = d.x + d.nx * 0.2, z = d.z + d.nz * 0.2, on = !dl.an || Math.sin(TIME * 9) + Math.sin(TIME * 21) > -0.6; D.porch.position.set(x, 2.55, z); D.porch.material.color.setHex(on ? (dl.an ? 0xff6050 : 0xffe0a0) : 0x1a1410); LG.porch.position.set(d.x + d.nx * 1.2, 2.4, d.z + d.nz * 1.2); LG.porch.color.setHex(dl.an ? 0xff5040 : 0xffc880); LG.porch.intensity = on ? 1.5 : 0; }
   else { LG.porch.intensity = 0; D.porch.position.y = -10; }
-  updFigures(dt);
+  updFigures(dt); updVermin(dt); syncFaces();
+  // el mar: se mueve, y se oyen las olas cerca de la playa
+  if (D.sea) { D.seaTex.offset.x = TIME * 0.004; D.seaTex.offset.y = TIME * 0.011; D.foam.material.opacity = 0.35 + 0.3 * Math.sin(TIME * 0.9); D.foam.position.z = SEA_Z + 0.6 + Math.sin(TIME * 0.9) * 0.6; D.glint.material.map.offset.y = (TIME * 0.05) % 1; D.glint.material.opacity = 0.4 + 0.15 * Math.sin(TIME * 1.7); }
+  waveT -= dt; if (waveT <= 0) { waveT = 4.5 + Math.random() * 3; const dz = SEA_Z - camera.position.z; if (dz < 70) AU.play('wave', camera.position.x, SEA_Z - 2); }
   // tráfico y vallas de obra
   for (const m of D.amber) m.visible = Math.sin(TIME * 5 + m.position.z) > -0.2;
   const tt = W.ph === 'play' || W.ph === 'end' ? W.t : TIME, cx = camera.position.x, cz = camera.position.z;
@@ -66,7 +69,7 @@ function syncTown(dt) {
   LG.head.intensity = ride.on ? 1.9 : 0;
   if (ride.on) { LG.head.position.set(camera.position.x, 1.0, camera.position.z); LG.head.target.position.set(me.x - Math.sin(me.yaw) * 12, 0, me.z - Math.cos(me.yaw) * 12); }
   // el de la parada del bus: mira hacia ti y, si te acercas, ya no está
-  if (!watch) { watch = makeChar(SHADOW_LOOK, 9, 2, null); watch.g.position.set(BUS_STOP.x + 0.5, 0, BUS_STOP.z + 0.35); watch.g.rotation.y = PI; }
+  if (!watch) { watch = makeChar(SHADOW_LOOK, 9, 2, null); legless(watch); watch.g.position.set(BUS_STOP.x + 0.5, 0.35, BUS_STOP.z + 0.35); watch.g.rotation.y = PI; }
   const wk = W.hs + ':' + W.n, wv = W.ph === 'play' && W.t > HOUR_LEN && W.t < HOUR_LEN * 5 && watchGone !== wk;
   watch.g.visible = wv;
   if (wv) {
@@ -83,25 +86,28 @@ function syncTown(dt) {
   }
 }
 /* figuras bajo las farolas: aparecen al acercarte, te miran y gritan. Cada uno ve las suyas. */
-const FIG = []; let carHitT = 0;
+const FIG = []; let carHitT = 0, figCd = 120 + Math.random() * 120;
 function updFigures(dt) {
-  if (!FIG.length) TOWN.lamps.forEach(L => { if (L.fig) FIG.push({ L, ch: null, st: 0, t: 0, cd: 6 + Math.random() * 20 }); });
-  const cx = camera.position.x, cz = camera.position.z, outside = cz > 16 && W.ph === 'play';
+  if (!FIG.length) TOWN.lamps.forEach(L => { if (L.fig) FIG.push({ L, ch: null, st: 0, t: 0, cd: 0 }); });
+  const cx = camera.position.x, cz = camera.position.z, outside = cz < -10 && W.ph === 'play';
+  figCd -= outside ? dt : 0;
   for (const f of FIG) {
     const L = f.L, fx = L.hx - L.ax * 0.3, fz = L.hz, d = Math.hypot(cx - fx, cz - fz);
     if (f.st === 0) {
       f.cd -= dt;
-      if (outside && f.cd <= 0 && d < 22 && d > 8 && Math.random() < dt * 0.9) {
-        f.st = 1; f.t = 0;
-        if (!f.ch) { const an = Math.random() < 0.5 ? 2 : 1, look = an === 2 ? SHADOW_LOOK : ARCH[RES_IDX[Math.random() * RES_IDX.length | 0]].look; f.ch = makeChar(look, (Math.random() * 999) | 0, an, null); }
-        f.ch.g.position.set(fx, 0, fz); f.ch.g.visible = true; L.sc = 0.4;
+      // muy de vez en cuando: una sombra sin piernas bajo una farola
+      if (outside && figCd <= 0 && d < 22 && d > 9 && Math.random() < dt * 0.3) {
+        f.st = 1; f.t = 0; figCd = 240 + Math.random() * 300;
+        if (!f.ch) { f.ch = makeChar(SHADOW_LOOK, (Math.random() * 999) | 0, 2, null); legless(f.ch); }
+        f.ch.g.position.set(fx, 0.35, fz); f.ch.g.visible = true; L.sc = 0.4;
       }
       continue;
     }
     f.t += dt; const ch = f.ch;
     ch.g.rotation.y = Math.atan2(cx - fx, cz - fz);
     if (f.st === 1) { animChar(ch, dt, 0, false, TIME); if (f.t > 0.6 && (d < 10 || f.t > 2.8)) { f.st = 2; f.t = 0; AU.play('scream', fx, fz); L.sc = 1.6; } }
-    else if (f.st === 2) { animChar(ch, dt, 1, false, TIME); if (f.t > 1.4) { f.st = 0; ch.g.visible = false; f.cd = 35 + Math.random() * 60; L.sc = 0.8; } }
+    else if (f.st === 2) { animChar(ch, dt, 1, false, TIME); if (f.t > 1.4) { f.st = 0; ch.g.visible = false; L.sc = 0.8; } }
+    if (f.st) ch.g.position.y = 0.35 + Math.sin(TIME * 2.2) * 0.07;
   }
 }
 function dlTicketHTML(o) {

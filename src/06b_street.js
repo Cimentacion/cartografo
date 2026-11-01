@@ -3,13 +3,17 @@ const S_DOOR = 12, S_BACK = 13, DL_FEE = 2.5;
 const BIKE_HOME = { x: -6.6, z: 7.7, y: -PI / 2 };
 const RES_IDX = ARCH.map((a, i) => a.sp === 'res' ? i : -1).filter(i => i >= 0);
 let SHOP_IN = true;
+// sitios de las paredes del local donde pueden salir caras (x, y, z, giro, inclinación)
+const FACE_SPOTS = [[-3.97, 2.2, -3.0, PI / 2], [-3.97, 2.0, -1.2, PI / 2], [-3.97, 2.35, 0.9, PI / 2], [-3.97, 1.9, 2.9, PI / 2], [-3.97, 2.3, 4.3, PI / 2],
+  [3.97, 2.25, -2.8, -PI / 2], [3.97, 2.45, -0.6, -PI / 2], [3.97, 2.35, 3.6, -PI / 2], [-3.2, 2.45, -3.97, 0], [-1.9, 2.6, -3.97, 0], [2.95, 2.5, -3.97, 0],
+  [2.2, 1.8, -7.47, 0], [3.97, 1.7, -6.0, -PI / 2], [0.2, 2.88, 1.2, 0, PI / 2]];
 
 function newStreet(w) {
   w.vs = { x: BIKE_HOME.x, z: BIKE_HOME.z, y: BIKE_HOME.y, r: 0, b: 0 };
   w.dl = []; w.nd = HOUR_LEN * 0.5; w.s.dl = 0; w.call = 0; w.cl = 0; w.ua = 0; w.sps = 0;
   w.dg = DOG_HOME.map(([x, z]) => ({ x, z, y: 0, st: 0, hp: 2, cd: 0, bk: 0 }));
 }
-function inShop(x, z) { return z < 5.3 && x > -4.2 && x < 4.2; }
+function inShop(x, z) { return z < 5.3 && z > -8 && x > -4.2 && x < 4.2; }
 function dlPat(o) { return (230 + 40 * Math.max(0, genOrder(o.a, o.s).length - 1)) * (W.n === 1 ? 1.15 : 1); }
 function newDelivery(an) {
   const busy = W.dl.map(o => o.d), free = [];
@@ -31,19 +35,20 @@ function phoneLogic(pid, R) {
 function signLogic(pid, R) { return R(T(W.cl ? 'u_sign_open' : 'u_sign_close'), true, () => { W.cl = W.cl ? 0 : 1; }); }
 // espíritus: entran si el local se queda vacío con el cartel en ABIERTO
 function spawnSpirit() {
-  if (!W.cu.some(c => c.an === 3)) panic();
-  W.rep = clamp(W.rep - 3, 0, 100);
+  W.rep = clamp(W.rep - 1, 0, 100);
   W.cu.push({ i: W.id++, a: RES_IDX[Math.random() * RES_IDX.length | 0], s: (Math.random() * 1e6) | 0, x: r2(-3 + Math.random() * 6), z: r2(-2.5 + Math.random() * 6.5), y: Math.random() * 6, st: S_STALK, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: 3, hp: 1, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1 });
 }
 function updSpirit(c, dt) {
   if (c.st === S_DIS) { if (c.t > 1.2) c.rm = 1; return; }
   let n = null; for (const pid in W.pl) { const p = PP[pid]; if (!p || W.pl[pid].ko > 0 || !inShop(p.x, p.z)) continue; const d = Math.hypot(p.x - c.x, p.z - c.z); if (!n || d < n.d) n = { pid, d, x: p.x, z: p.z }; }
-  if (!n) { if (Math.random() < dt * 0.4) c.y += (Math.random() - 0.5) * 3; c.x = clamp(c.x + Math.sin(c.y) * 0.3 * dt, -3.6, 3.6); c.z = clamp(c.z + Math.cos(c.y) * 0.3 * dt, -3.4, 4.6); return; }
-  if (c.st !== S_ATK) { c.st = S_ATK; c.t = 0; say(c, 'w'); ev('scream', c.x, c.z); if (!W.sps) { W.sps = 1; ev('msg', 0, 0, 'spirits'); } }
-  W.fk = Math.max(W.fk, 0.2);
-  moveTo(c, n.x, n.z, 1.8 + 0.1 * W.n, dt);
-  if (n.d < 0.75) { hurt(n.pid); ev('scream', c.x, c.z); c.st = S_DIS; c.t = 0; }
-  if (c.t > 35) { c.st = S_DIS; c.t = 0; }
+  if (c.t > 95) { c.st = S_DIS; c.t = 0; return; }
+  if (!n) return;
+  // no atacan: se quedan quietos mirándote, y en las paredes van saliendo caras que ya no se van
+  c.y = r2(Math.atan2(n.x - c.x, n.z - c.z));
+  if (!c.seen) { c.seen = 1; c.t = Math.min(c.t, 5); say(c, 'w'); ev('whisper', c.x, c.z); if (!W.sps) { W.sps = 1; ev('msg', 0, 0, 'spirits'); } }
+  W.fk = Math.max(W.fk, 0.12);
+  c.sc += dt;
+  if (c.sc > 8 && W.fm.length < FACE_SPOTS.length) { c.sc = 0; const free = FACE_SPOTS.map((_, i) => i).filter(i => W.fm.indexOf(i) < 0); W.fm.push(free[Math.random() * free.length | 0]); ev('whisper', c.x, c.z); }
 }
 // encaja un producto en un pedido; lo usan el mostrador y la bolsa de reparto
 function matchItem(ord, g, H, Ar) {
@@ -207,7 +212,11 @@ function simStreet(dt, np) {
     else W.nd = W.t + 12;
   }
   if (W.call) { const c = W.call; c.t += dt; const k = Math.floor(c.t / 2.4); if (k !== c.rk) { c.rk = k; ev('ring', 3.9, 1.75); } if (c.t > 20) { W.call = 0; if (c.k === 0) { W.rep = clamp(W.rep - 2, 0, 100); ev('msg', 0, 0, 'callmiss'); } } }
-  if (!SHOP_IN && !W.cl) { W.ua += dt; if (W.ua > 12 && W.cu.filter(c => c.an === 3).length < 5) { W.ua = 0; spawnSpirit(); } } else W.ua = 0;
+  // al salir con el cartel en ABIERTO: 1 de cada 20 veces, al volver hay espíritus
+  if (!SHOP_IN && !W.cl) {
+    if (!W.uo) { W.uo = 1; W.sr = Math.random() < 0.05 ? 1 : 0; }
+    W.ua += dt; if (W.sr && W.ua > 12 && W.cu.filter(c => c.an === 3).length < 4) { W.ua = 0; spawnSpirit(); }
+  } else { W.ua = 0; if (SHOP_IN) W.uo = 0; }
   for (const o of W.dl.slice()) {
     o.p -= dt / dlPat(o);
     if (o.p <= 0 && o.st === 0) { W.dl = W.dl.filter(q => q !== o); if (!o.an) { W.rep = clamp(W.rep - 5, 0, 100); W.s.ls++; ev('msg', 0, 0, 'dlcancel'); } }

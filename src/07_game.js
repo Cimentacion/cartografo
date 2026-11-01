@@ -578,7 +578,7 @@ function frame(now) {
   // sonido ambiente
   let danger = 0; if (W) for (const c of W.cu) if (c.an && c.st !== S_DIS) { const d = Math.hypot(c.x - me.x, c.z - me.z); danger = Math.max(danger, clamp(1 - d / 9, 0, 1) * (c.st === S_ATK ? 1 : 0.55)); }
   const ds = Math.hypot(me.x + 2.4, me.z + 3.6), df = Math.hypot(me.x + 0.5, me.z + 3.6), dd = Math.hypot(me.x + 2.6, me.z - 5);
-  const outside = me.z > 5.3 || ride.on;
+  const outside = !inShop(me.x, me.z) || ride.on;
   AU.frame(dt, { power: W ? W.pw : 1, siz: 1 / (1 + ds * ds / 7), fry: W && W.fry.s ? 1 / (1 + df * df / 6) : 0, out: outside ? 1 : 1 / (1 + dd * dd / 9), club: outside ? 0.25 : 0.5 + 0.5 / (1 + dd * dd / 9), danger, eng: ride.on && overlay !== 'pause' ? 1 : 0, rpm: Math.abs(ride.spd) / 11.5 + ride.thr * 0.12 });
   renderer.render(scene, camera);
 }
