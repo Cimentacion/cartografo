@@ -3397,7 +3397,7 @@ async function sugShare() {
 let sugBound = false;
 function bindSuggest() {
   if (sugBound || !$('sug-send')) return; sugBound = true;
-  if (window.KPAndroid && $('apk-dl')) $('apk-dl').hidden = true;   // dentro de la APK no hace falta
+  if ((window.KPAndroid || (window.claude && window.claude.use)) && $('apk-dl')) $('apk-dl').hidden = true;   // en la APK no hace falta y dentro de Claude no deja descargar
   document.querySelectorAll('.sug-open').forEach(b => b.addEventListener('click', sugOpen));
   $('sug-send').addEventListener('click', sugSend); $('sug-share').addEventListener('click', sugShare); $('sug-close').addEventListener('click', sugClose);
   $('upd-go').addEventListener('click', () => { try { KPAndroid.applyUpdate(); } catch (e) { location.reload(); } });
