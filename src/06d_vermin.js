@@ -62,27 +62,19 @@ function updVermin(dt) {
 /* caras en las paredes: manchas negras con ojos y boca. No se borran en toda la partida. */
 let FACE_TEX = null; const FACE_MESH = {};
 function faceTex(k) {
-  return ctex(128, 128, (g) => {
-    const rnd = mulberry32(91 + k * 13);
-    g.clearRect(0, 0, 128, 128);
-    const gr = g.createRadialGradient(64, 62, 8, 64, 62, 60); gr.addColorStop(0, 'rgba(210,198,176,0.9)'); gr.addColorStop(0.55, 'rgba(150,135,115,0.75)'); gr.addColorStop(0.85, 'rgba(40,26,18,0.6)'); gr.addColorStop(1, 'rgba(30,18,12,0)');
-    g.fillStyle = gr; g.beginPath(); g.ellipse(64, 62, 40 + rnd() * 8, 54, 0, 0, 7); g.fill();
-    g.fillStyle = 'rgba(0,0,0,0.95)';
-    const ey = 48 + rnd() * 6, sp = 15 + rnd() * 6, ew = 7 + rnd() * 5, eh = 11 + rnd() * 9;
-    for (const sx of [-1, 1]) { g.beginPath(); g.ellipse(64 + sx * sp, ey + sx * rnd() * 4, ew, eh, sx * 0.25, 0, 7); g.fill(); }
-    g.beginPath(); g.ellipse(64 + (rnd() - 0.5) * 6, 92, 9 + rnd() * 8, 15 + rnd() * 12, 0, 0, 7); g.fill();
-    g.strokeStyle = 'rgba(10,4,2,0.7)'; g.lineWidth = 2;
-    for (let i = 0; i < 6; i++) { const x = 34 + rnd() * 60, y = 70 + rnd() * 30; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (rnd() - 0.5) * 4, y + 12 + rnd() * 26); g.stroke(); }
-  });
+  const img = new Image(), t = new THREE.Texture(img);
+  t.minFilter = THREE.LinearFilter; t.magFilter = THREE.LinearFilter; t.generateMipmaps = false;
+  img.onload = () => { t.needsUpdate = true; }; img.src = FACE_IMG[k % FACE_IMG.length];
+  return t;
 }
 function syncFaces() {
   if (!W) return;
   const fm = W.fm || [];
   for (const i of fm) {
     if (FACE_MESH[i] || !FACE_SPOTS[i]) continue;
-    if (!FACE_TEX) FACE_TEX = [0, 1, 2, 3].map(faceTex);
+    if (!FACE_TEX) FACE_TEX = FACE_IMG.map((_, k) => faceTex(k));
     const [x, y, z, ry, rx] = FACE_SPOTS[i];
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.85, 1.0), new THREE.MeshLambertMaterial({ map: FACE_TEX[i % 4], emissive: 0x1a1612, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }));
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 1.03), new THREE.MeshLambertMaterial({ map: FACE_TEX[i % FACE_TEX.length], emissive: 0x0e0c0a, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }));
     m.position.set(x, y, z); m.rotation.set(rx || 0, ry, 0); if (rx) m.rotation.set(rx, 0, 0);
     // se nota que acaban de salir: crecen desde nada
     m.scale.setScalar(0.05); m.userData.born = TIME; scene.add(m); FACE_MESH[i] = m;
