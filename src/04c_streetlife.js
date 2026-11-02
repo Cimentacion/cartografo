@@ -7,7 +7,6 @@ const LIFE = layoutLife();
 function lampOff(L) { return L.md === 2 || (L.sc > 0 && Math.sin(TIME * 70 + L.ph) > 0) || (L.md === 1 && (Math.sin(TIME * 23 + L.ph) + Math.sin(TIME * 37 + L.ph * 2) + Math.sin(TIME * 3.1 + L.ph)) > 1.1); }
 
 /* un sitio pegado a la pared de una calle. side: +1 = lado de x/z mayores. Devuelve la pared y su normal hacia la calle. */
-function wallOff(si) { return si === 0 ? 6.5 : 5.5; }
 function lifeSpot(si, side, a, ry) {
   const s = STREETS[si], wc = s.c + side * wallOff(si);
   const nx = s.ax === 'z' ? -side : 0, nz = s.ax === 'z' ? 0 : -side;
@@ -15,14 +14,15 @@ function lifeSpot(si, side, a, ry) {
 }
 function layoutLife() {
   const used = [], r = mulberry32(8812);
-  const bldAt = (x, z) => TOWN.bld.some(b => x > b.x0 && x < b.x1 && z > b.z0 && z < b.z1);
+  const bldAt = (x, z) => TOWN.bld.some(b => x > b.x0 && x < b.x1 && z > b.z0 && z < b.z1) || TOWN.plots.some(P => x > P.x0 && x < P.x1 && z > P.z0 && z < P.z1);
   const free = (si, side, a, hw, curb) => {
     const s = STREETS[si], wc = s.c + side * wallOff(si), ins = wc + side * 0.3;
     if (!curb) for (const t of [-hw, -hw / 2, 0, hw / 2, hw]) { if (!(s.ax === 'z' ? bldAt(ins, a + t) : bldAt(a + t, ins))) return false; }
     if (s.ax === 'z' && (a > -10 || a < -169)) return false;
     if (s.ax === 'x' && STREETS.some(o => o.ax === 'z' && Math.abs(a - o.c) < 6 + hw)) return false;
+    if (s.ax === 'z' && Math.abs(a - STREETS[MED].c) < 7.5 + hw) return false;
     if (si === 0 && Math.abs(a) < 9 + hw) return false;   // delante del local, no
-    for (const d of TOWN.doors) { const da = s.ax === 'z' ? d.z : d.x, dw = s.ax === 'z' ? d.x : d.z; if (Math.abs(dw - wc) < 0.4 && Math.abs(da - a) < hw + 1.1) return false; }
+    for (const d of TOWN.sdoors.concat(TOWN.plots.map(P => P.gate))) { const da = s.ax === 'z' ? d.z : d.x, dw = s.ax === 'z' ? d.x : d.z; if (Math.abs(dw - wc) < 0.4 && Math.abs(da - a) < hw + 1.1) return false; }
     for (const L of TOWN.lamps) { const la = s.ax === 'z' ? L.z : L.x, lw = s.ax === 'z' ? L.x : L.z; if (Math.abs(lw - wc) < 2.2 && Math.abs(la - a) < hw + 0.8) return false; }
     for (const u of used) if (u.si === si && u.side === side && Math.abs(u.a - a) < u.hw + hw + 0.6) return false;
     return true;
@@ -33,16 +33,16 @@ function layoutLife() {
   };
   const L = { vend: [], shops: [], sleep: [], cont: [], lit: [] };
   // máquinas de bebidas: las mismas bebidas que vendes tú, al mismo precio
-  for (const [si, side, a] of [[1, 1, -34], [3, -1, -84], [3, 1, -140], [2, 1, -128], [0, -1, -72], [4, -1, 14]]) { const p = find(si, side, a, 0.6); if (p) L.vend.push(p); }
+  for (const [si, side, a] of [[1, 1, -30], [5, 1, -22], [5, -1, 30], [3, -1, -130], [0, -1, -72], [4, -1, 14], [2, 1, -150]]) { const p = find(si, side, a, 0.6); if (p) L.vend.push(p); }
   // locales cerrados y arruinados
-  for (const [si, side, a, k] of [[0, -1, -30, 0], [0, -1, 64, 3], [1, -1, -58, 4], [2, 1, -100, 1], [3, 1, -52, 3], [4, 1, -28, 2], [2, -1, -40, 5], [3, -1, -118, 0]]) { const p = find(si, side, a, 2.15); if (p) { p.k = k; L.shops.push(p); } }
-  // en el barrio iluminado (Calle Cuervo) hay tiendas abiertas toda la noche
-  [[1, -30, 0], [-1, -98, 1], [1, -158, 2]].forEach(([side, a, k]) => { const p = find(3, side, a, 2.15); if (p) { p.k = k; L.lit.push(p); } });
+  for (const [si, side, a, k] of [[0, -1, -30, 0], [0, -1, 64, 3], [5, 1, -36, 4], [5, -1, -6, 1], [4, 1, -28, 2], [4, -1, 22, 0], [5, 1, 34, 5], [4, 1, 30, 3]]) { const p = find(si, side, a, 2.15); if (p) { p.k = k; L.shops.push(p); } }
+  // en la Avenida del Mediterráneo, la iluminada, hay tiendas abiertas toda la noche
+  [[1, -8, 0], [-1, -30, 1], [-1, 36, 2]].forEach(([side, a, k]) => { const p = find(MED, side, a, 2.15); if (p) { p.k = k; L.lit.push(p); } });
   // vagabundos durmiendo boca abajo, con su carro y su perro
-  for (const [si, side, a] of [[2, 1, -66], [4, -1, -20]]) { const p = find(si, side, a, 2.6); if (p) L.sleep.push(p); }
+  for (const [si, side, a] of [[2, 1, -60], [4, -1, -20]]) { const p = find(si, side, a, 2.6); if (p) L.sleep.push(p); }
   // contenedores junto al bordillo, en grupos de 2 o 3
   const curbFree = (si, side, a, hw) => {
-    const s = STREETS[si], cw = s.c + side * 4.1;
+    const s = STREETS[si], cw = s.c + side * (s.w / 2 + 0.6);
     if (!free(si, side, a, hw, true)) return false;
     for (const L2 of TOWN.lamps) { const la = s.ax === 'z' ? L2.z : L2.x, lw = s.ax === 'z' ? L2.x : L2.z; if (Math.abs(lw - cw) < 1.2 && Math.abs(la - a) < hw + 0.7) return false; }
     for (const c of TOWN.cars) { const ca = s.ax === 'z' ? c.z : c.x, cl = s.ax === 'z' ? c.x : c.z; if (Math.abs(cl - cw) < 2.4 && Math.abs(ca - a) < hw + 2.6) return false; }
@@ -57,7 +57,7 @@ function layoutLife() {
       const n = r() < 0.5 ? 2 : 3, hw = n * 0.72, side = sides[r() * sides.length | 0];
       if (curbFree(si, side, a, hw)) {
         used.push({ si, side, a, hw });
-        const p = lifeSpot(si, side, a); p.n = n; p.cw = s.c + side * 4.08; p.cols = [0, 1, 2, 3].sort(() => r() - 0.5).slice(0, n); p.bags = r() * 4 | 0; p.lid = r() < 0.4 ? r() * 0.5 : 0; L.cont.push(p);
+        const p = lifeSpot(si, side, a); p.n = n; p.cw = s.c + side * (s.w / 2 + 0.58); p.cols = [0, 1, 2, 3].sort(() => r() - 0.5).slice(0, n); p.bags = r() * 4 | 0; p.lid = r() < 0.4 ? r() * 0.5 : 0; L.cont.push(p);
         a += step * (26 + r() * 22);
       } else a += step * 3;
     }
@@ -295,9 +295,10 @@ function buildStreetLife() {
   const scatter = (x0, x1, z0, z1, n, f) => { for (let i = 0; i < n; i++) f(x0 + r() * (x1 - x0), z0 + r() * (z1 - z0)); };
   const zones = [];
   STREETS.forEach((s, si) => {
-    if (s.ax === 'z') { const z0 = s.a0 + 2, z1 = 3; zones.push([s.c - 5.4, s.c - 3.6, z0, z1, 1], [s.c + 3.6, s.c + 5.4, z0, z1, 1], [s.c - 3.3, s.c + 3.3, z0, z1, 0.35]); }
+    const h = s.w / 2;
+    if (s.ax === 'z') { const z0 = s.a0 + 2, z1 = 3; zones.push([s.c - h - 1.9, s.c - h - 0.1, z0, z1, 1], [s.c + h + 0.1, s.c + h + 1.9, z0, z1, 1], [s.c - h + 0.2, s.c + h - 0.2, z0, z1, 0.35]); }
     else if (si === 0) zones.push([-115, 115, 5.2, 7.9, 1], [-115, 115, 15.1, 16.9, 0.8], [-115, 115, 8.2, 14.8, 0.2], [-110, 110, 17.2, 25.5, 0.25]);
-    else zones.push([s.a0, s.a1, s.c - 5.4, s.c - 3.6, 1], [s.a0, s.a1, s.c + 3.6, s.c + 5.4, 1], [s.a0, s.a1, s.c - 3.3, s.c + 3.3, 0.35]);
+    else zones.push([s.a0, s.a1, s.c - h - 1.9, s.c - h - 0.1, 1], [s.a0, s.a1, s.c + h + 0.1, s.c + h + 1.9, 1], [s.a0, s.a1, s.c - h + 0.2, s.c + h - 0.2, 0.35]);
   });
   for (const [x0, x1, z0, z1, dens] of zones) {
     const area = (x1 - x0) * (z1 - z0), lit = x0 > 40 && x1 < 56;   // en el barrio iluminado hay algo menos de mierda
@@ -351,7 +352,7 @@ function buildStreetLife() {
     return s;
   });
 
-  /* halos de luz de las farolas en el suelo (las de la Calle Cuervo, blancas) */
+  /* halos de luz de las farolas en el suelo (las de las avenidas iluminadas, blancas) */
   const warm = new THREE.MeshBasicMaterial({ map: glowTex(255, 170, 90), transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending });
   const white = new THREE.MeshBasicMaterial({ map: glowTex(255, 236, 205), transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending });
   // las que nunca fallan van todas juntas; las que parpadean o asustan, cada una por su lado

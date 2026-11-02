@@ -112,9 +112,9 @@ function deliver(c, pid) {
   c.g[m.idx] = 1; c.sc = r2(c.sc + m.score); if (H.hm) c.hm = 1; P.h = 0; ev('ok', c.x, c.z);
   if (c.g.every(v => v)) finishOrder(c, ord); else if (m.line) say(c, m.line);
 }
-function nearestPlayer(x, z) {
+function nearestPlayer(x, z, vw) {
   let best = null, bd = 1e9;
-  for (const pid in W.pl) { const p = PP[pid]; if (!p || W.pl[pid].ko > 0) continue; const d = Math.hypot(p.x - x, p.z - z); if (d < bd) { bd = d; best = pid; } }
+  for (const pid in W.pl) { const p = PP[pid]; if (!p || W.pl[pid].ko > 0) continue; if (vw !== undefined && (p.vw === undefined ? -1 : p.vw) !== vw) continue; const d = Math.hypot(p.x - x, p.z - z); if (d < bd) { bd = d; best = pid; } }
   return best ? { pid: best, d: bd, x: PP[best].x, z: PP[best].z } : null;
 }
 function gunAimAt(id) { for (const pid in W.pl) { const h = W.pl[pid].h; if (h && h.k === 'gun' && PP[pid] && PP[pid].aim === id) return true; } return false; }
@@ -267,6 +267,8 @@ function useLogic(pid, key, doIt) {
   const kind = key.slice(0, 2);
   if (kind === 'pt') return doorLogic(pid, n, R, H);
   if (kind === 'vm') return vendLogic(pid, n, R, H, P);
+  if (kind === 'gt') return gateLogic(pid, n, R, H, P);
+  if (kind === 'sd') { const d = TOWN.sdoors[n]; return R(d && d.st >= 0 ? STREETS[d.st].n + ' ' + d.num : '', false); }
   if (kind === 'sp' && H && H.k === 'cone') return R(T('u_cone_mount', X.meat[n]), true, () => { const S = SV[n]; S.lv.fill(7); S.dn.fill(0.12); S.pend.fill(0); S.dirty = true; W.sp[n].h = 1; encodeSpit(n); P.h = 0; });
   if (kind === 'sp') return H ? R(T('u_hands'), false) : R(T('u_carve', X.meat[n]), true, null, 'cut');
   if (kind === 'tr') {
@@ -452,7 +454,7 @@ function simulate(dt) {
 }
 
 /* ================= RED: cooperativo por presencia ================= */
-const NETV = 8;   // versión del protocolo: todos tienen que jugar con la misma
+const NETV = 9;   // versión del protocolo: todos tienen que jugar con la misma
 const NET = { room: null, myId: 'solo', isHost: true, joined: false, acts: [], seq: 0, lastSeq: {}, lastHost: null, hostGone: 0, sendT: 0, others: [], remote: null, count: 1, evInit: false, code: '', badVer: false, lostSaid: false };
 
 /* Fuera de Claude (GitHub) la sala va por PeerJS, de navegador a navegador y sin cuentas.
@@ -518,7 +520,7 @@ function adoptWorld() {
   ensurePlayer(NET.myId);
 }
 function netUpdate(dt, me) {
-  PP[NET.myId] = { x: me.x, z: me.z, yaw: me.yaw, pitch: me.pitch, aim: me.aim };
+  PP[NET.myId] = { x: me.x, z: me.z, yaw: me.yaw, pitch: me.pitch, aim: me.aim, vw: myVW() };
   const room = NET.room; if (!room) return;
   let peers; try { peers = room.peers(); } catch (e) { return; }
   const mine = peers.find(p => p.isMe && p.sameTab);
@@ -549,7 +551,7 @@ function netUpdate(dt, me) {
       }
     }
   }
-  for (const p of others) { const pr = p.presence.p; if (pr) PP[p.peer] = { x: pr[0], z: pr[1], yaw: pr[2], pitch: pr[3], aim: pr[4] }; else delete PP[p.peer]; }
+  for (const p of others) { const pr = p.presence.p; if (pr) PP[p.peer] = { x: pr[0], z: pr[1], yaw: pr[2], pitch: pr[3], aim: pr[4], vw: pr[5] === undefined ? -1 : pr[5] }; else delete PP[p.peer]; }
   if (NET.isHost && W) {
     const live = {}; live[NET.myId] = 1;
     for (const p of others) {
@@ -564,7 +566,7 @@ function netUpdate(dt, me) {
   NET.sendT -= dt;
   if (NET.sendT <= 0) {
     NET.sendT = NET.joined ? 0.1 : 1;
-    const pr = { p: NET.joined ? [r2(me.x), r2(me.z), r2(me.yaw), r2(me.pitch), me.aim | 0] : null, a: NET.isHost ? null : NET.acts, ah: W ? W.hs : 0, w: NET.isHost && W && NET.joined ? wireW() : null };
+    const pr = { p: NET.joined ? [r2(me.x), r2(me.z), r2(me.yaw), r2(me.pitch), me.aim | 0, myVW()] : null, a: NET.isHost ? null : NET.acts, ah: W ? W.hs : 0, w: NET.isHost && W && NET.joined ? wireW() : null };
     try { const q = room.presence(pr); if (q && q.catch) q.catch(() => { }); } catch (e) { }
   }
 }

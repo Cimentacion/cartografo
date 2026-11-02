@@ -1,27 +1,38 @@
-/* ================= EL BARRIO: Benidorm. El local da a la avenida; enfrente, el paseo marítimo, la playa y el mar.
-   Las calles del barrio salen por detrás (hacia el norte, z negativa) y forman un circuito.
-   Todo se genera con una semilla fija, así que todos los jugadores ven el mismo barrio.
-   x = este-oeste, z crece hacia el mar. El local está en x[-5,5], z[-8,5]. */
+/* ================= EL BARRIO: Levante, Benidorm. El local da a la Avenida de Alcoy (primera línea); enfrente, el Paseo de Levante,
+   la playa y el mar. Detrás, la segunda línea (Avenida del Mediterráneo) y la tercera (Calle Gerona); hacia la playa bajan
+   la Avenida de Bilbao, la del Periodista Emilio Romero y la de Europa, en ese orden de oeste a este.
+   Las torres de detrás no dan a la calle: hay un muro bajo con cancela y portero, se cruza el jardín (piscina, palmeras)
+   y se llega al portal. Todo se genera con una semilla fija, así que todos los jugadores ven el mismo barrio.
+   x = oeste-este, z crece hacia el mar. El local está en x[-5,5], z[-8,5]. */
 const STREETS = [
-  { n: 'Avenida del Mediterráneo', ax: 'x', c: 11.5, w: 7, a0: -135, a1: 135 },
-  { n: 'Calle del Pozo', ax: 'z', c: 20, w: 7, a0: -178.5, a1: 8 },
-  { n: 'Calle Ánimas', ax: 'z', c: -48, w: 7, a0: -178.5, a1: 8 },
-  { n: 'Calle Cuervo', ax: 'z', c: 48, w: 7, a0: -178.5, a1: 8 },
-  { n: 'Calle Ceniza', ax: 'x', c: -175, w: 7, a0: -51.5, a1: 51.5 },
+  { n: 'Avenida de Alcoy', ax: 'x', c: 11.5, w: 7, a0: -135, a1: 135 },
+  { n: 'Av. Periodista Emilio Romero', ax: 'z', c: 20, w: 7, a0: -178.5, a1: 8 },
+  { n: 'Avenida de Bilbao', ax: 'z', c: -48, w: 7, a0: -178.5, a1: 8 },
+  { n: 'Avenida de Europa', ax: 'z', c: 48, w: 7, a0: -178.5, a1: 8 },
+  { n: 'Calle Gerona', ax: 'x', c: -175, w: 7, a0: -51.5, a1: 51.5 },
+  { n: 'Avenida del Mediterráneo', ax: 'x', c: -88, w: 9, a0: -51.5, a1: 51.5 },
 ];
-const DL_STREET = 1, AV_END = 118, LIT_ST = 48;
+const DL_STREET = 1, AV_END = 118, LIT_ST = 48, MED = 5, EDGE = 74;
+// el decorado de dentro de las torres (portal, ascensor, rellano y escalera) está lejos del barrio, fuera de la niebla
+const MOD = { x: 600, z: -600 }, FLAT_LET = 'ABCD';
+const FLAT_LOC = [[6, 22.4, 0, -1], [8.6, 22.4, 0, -1], [11, 22.4, 0, -1], [12, 21.2, -1, 0]];
 const PASEO = { z0: 17, z1: 26 }, SAND_Z1 = 52, SEA_Z = 50;
-const SOLAR = { x0: 0, x1: 14.5, z0: -96, z1: -72 };
-const DOG_ZONE = { x0: 0.5, x1: 23, z0: -102, z1: -66 }, DOG_HOME = [[8, -80], [5, -90]];
-const BUS_STOP = { x: -28, z: 16.2 };
+const SOLAR = { x0: -2, x1: 14.5, z0: -155, z1: -133 };
+const DOG_ZONE = { x0: -1.5, x1: 23, z0: -161, z1: -127 }, DOG_HOME = [[8, -140], [5, -150]];
+const BUS_STOP = { x: -28, z: -82.9 };
 const CAR_COLS = [0x2a2f36, 0x5a1a16, 0x2c3a2c, 0x6a6a66, 0x1a2a4a, 0x8a7a5a];
+const TOWER_NAMES = ['TORRE CORAL', 'RESIDENCIAL MAR AZUL', 'EDIFICIO LEVANTE SOL', 'TORRE BAHÍA', 'EDIFICIO ATALAYA', 'RESIDENCIAL LAS PALMERAS', 'TORRE NEPTUNO', 'EDIFICIO MIRAMAR',
+  'RESIDENCIAL ALHAMBRA', 'TORRE MARINA', 'EDIFICIO DON JAIME', 'RESIDENCIAL COSTA BLANCA', 'TORRE IBERIA', 'EDIFICIO ACAPULCO', 'RESIDENCIAL MONTECARLO', 'TORRE GAVIOTA',
+  'EDIFICIO SIERRA HELADA', 'RESIDENCIAL EL PARAÍSO', 'TORRE LEVANTINA', 'EDIFICIO COPACABANA', 'RESIDENCIAL ISLA', 'TORRE PUIG CAMPANA', 'EDIFICIO ALTAMAR', 'RESIDENCIAL SOL Y MAR'];
+// distancia del eje de la calle a la pared o al muro de las parcelas
+function wallOff(si) { return si === 0 ? 6.5 : STREETS[si].w / 2 + 2; }
 const TOWN = layoutTown();
 /* tráfico: posiciones deterministas a partir del reloj de la noche, así todos los jugadores ven lo mismo */
 const TRAFFIC = [
   { st: 0, c: 3, li: 1, ax: 'x', l: 10.6, a0: 128, a1: -128, v: 10.5, ph: 0 },
   { st: 2, c: 5, li: 1, ax: 'x', l: 12.5, a0: -128, a1: 128, v: 9.5, ph: 9 },
-  { st: 1, c: 1, li: 1, ax: 'x', l: 10.6, a0: 128, a1: -128, v: 12, ph: 15 },
-  { st: 0, c: 0, li: 0, ax: 'z', l: 20.6, a0: -176, a1: 0, v: 2.6, ph: 30, gap: 150 },   // el coche negro sin luces de la calle del Pozo
+  { st: 1, c: 1, li: 1, ax: 'x', l: -89.8, a0: 50, a1: -50, v: 9, ph: 15 },
+  { st: 0, c: 0, li: 0, ax: 'z', l: 20.6, a0: -176, a1: 0, v: 2.6, ph: 30, gap: 150 },   // el coche negro sin luces que baja por Emilio Romero
 ];
 function trafficPos(t, time) {
   const len = Math.abs(t.a1 - t.a0), cyc = len / t.v + (t.gap || 6), u = ((time + t.ph) % cyc) / (len / t.v);
@@ -38,17 +49,17 @@ function streetAt(x, z) {
   return -1;
 }
 function layoutTown() {
-  const r = mulberry32(4471), T = { bld: [], doors: [], lamps: [], cols: [], cars: [], bins: [], c13: -1, blk: { solar: SOLAR } };
+  const r = mulberry32(4471), T = { bld: [], sdoors: [], doors: [], plots: [], lamps: [], cols: [], cars: [], bins: [], blk: { solar: SOLAR } };
   const addB = (x0, x1, z0, z1, side, tall) => {
-    const h = tall ? [18, 24, 30, 36, 45, 54][r() * 6 | 0] : [9, 9, 12, 12, 15, 18][r() * 6 | 0];
+    const h = tall ? [18, 24, 30, 36, 45, 54][r() * 6 | 0] : [9, 12, 12, 15, 18, 21][r() * 6 | 0];
     T.bld.push({ x0, x1, z0, z1, h, f: r() * 4 | 0 }); T.cols.push({ x0, x1, z0, z1 });
     if (!side) return;
     const t = 0.5 + (r() - 0.5) * 0.4; let x, z, nx = 0, nz = 0;
     if (side === 'N') { z = z0; nz = -1; x = lerp(x0, x1, t); } else if (side === 'S') { z = z1; nz = 1; x = lerp(x0, x1, t); }
     else if (side === 'W') { x = x0; nx = -1; z = lerp(z0, z1, t); } else { x = x1; nx = 1; z = lerp(z0, z1, t); }
-    T.doors.push({ x, z, nx, nz, b: T.bld.length - 1, lamp: r() < 0.3 });
+    T.sdoors.push({ x, z, nx, nz, b: T.bld.length - 1, lamp: r() < 0.3 });
   };
-  // una hilera de casas pegadas, con huecos donde haga falta
+  // una hilera de edificios pegados (bajos comerciales), con huecos donde haga falta
   const row = (ax, f0, f1, a0, a1, side, gaps, tall) => {
     let a = a0;
     while (a < a1 - 3) {
@@ -59,45 +70,100 @@ function layoutTown() {
       a = b;
     }
   };
+  /* residencial: muro bajo a la calle con cancela, jardín con piscina y la torre al fondo.
+     side = hacia dónde da la fachada de la parcela (E/W/N/S). */
+  const names = TOWER_NAMES.slice().sort(() => r() - 0.5);
+  const plot = (x0, x1, z0, z1, side) => {
+    const P = { x0, x1, z0, z1, side, k: T.plots.length, name: names[T.plots.length % names.length] };
+    const aZ = side === 'E' || side === 'W', sg = side === 'E' || side === 'S' ? 1 : -1;
+    const L0 = aZ ? z0 : x0, L1 = aZ ? z1 : x1, len = L1 - L0, D0 = aZ ? x0 : z0, D1 = aZ ? x1 : z1, depth = D1 - D0;
+    const front = sg > 0 ? D1 : D0, back = sg > 0 ? D0 : D1;
+    const pt = (a, d) => aZ ? [d, a] : [a, d];
+    P.pt = pt; P.aZ = aZ; P.sg = sg; P.front = front; P.L0 = L0; P.L1 = L1;
+    // la torre
+    const tw = Math.min(14, len - 9), td = Math.min(14, depth - 8.5), tb = back + sg * 2.5, tf = tb + sg * td;
+    const tc = (L0 + L1) / 2 + (r() - 0.5) * (len - tw - 5) * 0.6, h = [27, 33, 39, 45, 51, 60][r() * 6 | 0];
+    const [ax0, az0] = pt(tc - tw / 2, Math.min(tb, tf)), [ax1, az1] = pt(tc + tw / 2, Math.max(tb, tf));
+    T.bld.push({ x0: Math.min(ax0, ax1), x1: Math.max(ax0, ax1), z0: Math.min(az0, az1), z1: Math.max(az0, az1), h, f: r() * 4 | 0, tw: P.k });
+    T.cols.push({ x0: Math.min(ax0, ax1), x1: Math.max(ax0, ax1), z0: Math.min(az0, az1), z1: Math.max(az0, az1) });
+    P.h = h; P.fl = Math.floor(h / 3) - 1; P.tf = tf; P.tc = tc; P.tw = tw; P.td = td;
+    // portal en la fachada de la torre y cancela en el muro
+    const pa = tc + (r() - 0.5) * (tw - 5) * 0.6, ga = clamp(pa + (r() - 0.5) * 5, L0 + 2, L1 - 2);
+    const [px, pz] = pt(pa, tf), [gx, gz] = pt(ga, front), nx = aZ ? sg : 0, nz = aZ ? 0 : sg;
+    P.portal = { a: pa, x: px, z: pz, nx, nz }; P.gate = { a: ga, x: gx, z: gz, nx, nz };
+    // muros: el de la calle bajo (1 m, con barandilla); los de los lados y el fondo, más altos
+    P.walls = [];
+    const wall = (a0, a1, d, hgt, low) => { const [wx0, wz0] = pt(a0, d - 0.13), [wx1, wz1] = pt(a1, d + 0.13); const c = { x0: Math.min(wx0, wx1), x1: Math.max(wx0, wx1), z0: Math.min(wz0, wz1), z1: Math.max(wz0, wz1), h: hgt, low }; P.walls.push(c); T.cols.push(c); };
+    const fi = front - sg * 0.13;
+    wall(L0, ga - 0.8, fi, 1.0, 1); wall(ga + 0.8, L1, fi, 1.0, 1);
+    const sideWall = (a) => { const [sx0, sz0] = pt(a - 0.13, Math.min(front, back)), [sx1, sz1] = pt(a + 0.13, Math.max(front, back)); const c = { x0: Math.min(sx0, sx1), x1: Math.max(sx0, sx1), z0: Math.min(sz0, sz1), z1: Math.max(sz0, sz1), h: 1.8 }; P.walls.push(c); T.cols.push(c); };
+    sideWall(L0 + 0.15); sideWall(L1 - 0.15); wall(L0, L1, back + sg * 0.15, 1.8, 0);
+    // la cancela: cerrada salvo cuando te abren por el portero
+    const [cx0, cz0] = pt(ga - 0.8, fi - 0.1), [cx1, cz1] = pt(ga + 0.8, fi + 0.1);
+    P.gcol = { x0: Math.min(cx0, cx1), x1: Math.max(cx0, cx1), z0: Math.min(cz0, cz1), z1: Math.max(cz0, cz1) }; T.cols.push(P.gcol);
+    // piscina si cabe en el jardín, al otro lado del camino
+    const gd = Math.abs(front - tf);
+    if (gd >= 9) {
+      const pd = Math.min(5, gd - 4.5), pl = Math.min(9, len / 2 - 3.5), right = ga < (L0 + L1) / 2, pc = right ? L1 - 1.6 - pl / 2 : L0 + 1.6 + pl / 2;
+      const dc = (front + tf) / 2;
+      if (Math.abs(pc - ga) > pl / 2 + 1.6 && Math.abs(pc - pa) > pl / 2 + 1.6) {
+        const [qx0, qz0] = pt(pc - pl / 2, dc - pd / 2), [qx1, qz1] = pt(pc + pl / 2, dc + pd / 2);
+        P.pool = { x0: Math.min(qx0, qx1), x1: Math.max(qx0, qx1), z0: Math.min(qz0, qz1), z1: Math.max(qz0, qz1) }; T.cols.push(P.pool);
+      }
+    }
+    T.plots.push(P);
+  };
   // primera línea: torres de apartamentos mirando al mar (con hueco para el local y las calles)
   row('x', -10, 5, -120, 120, 'S', [[-53.5, -42.5], [-5.2, 5.2], [14.5, 25.5], [42.5, 53.5]], true);
-  // las manzanas de detrás
-  row('z', -66, -53.5, -194, -10, 'E'); row('z', 53.5, 66, -194, -10, 'W');
-  row('z', -42.5, -14, -169.5, -10, 'W'); row('z', -14, 14.5, -169.5, -10, 'E', [[-114, -108], [SOLAR.z0, SOLAR.z1]]);
-  addB(-14, SOLAR.x0, SOLAR.z0, SOLAR.z1, null);
-  row('z', 25.5, 34, -169.5, -10, 'W'); row('z', 34, 42.5, -169.5, -10, 'E');
+  // bajos comerciales en la Avenida del Mediterráneo y en Calle Gerona
+  row('x', -81.5, -68, -42.5, 14.5, 'N'); row('x', -81.5, -68, 25.5, 42.5, 'N');
+  row('x', -108, -94.5, -42.5, 14.5, 'S'); row('x', -108, -94.5, 25.5, 42.5, 'S');
+  row('x', -169.5, -156, -42.5, 14.5, 'N'); row('x', -169.5, -156, 25.5, 42.5, 'N');
   row('x', -194, -180.5, -53.5, 53.5, 'S');
-  // portales y numeración: impares a un lado, pares al otro (el 13 no está donde debería)
-  for (const d of T.doors) d.st = streetAt(d.x + d.nx * 3, d.z + d.nz * 3);
+  addB(-EDGE, -53.5, -194, -169.5, null); addB(53.5, EDGE, -194, -169.5, null); addB(-14, SOLAR.x0, -156, -132, null);
+  // los residenciales
+  for (const [z0, z1] of [[-68, -39], [-39, -10]]) { plot(-42.5, -14, z0, z1, 'W'); plot(-14, 14.5, z0, z1, 'E'); plot(25.5, 42.5, z0, z1, z0 < -50 ? 'W' : 'E'); }
+  plot(-42.5, -14, -156, -132, 'W'); plot(-42.5, -14, -132, -108, 'W'); plot(-14, 14.5, -132, -108, 'E');
+  plot(25.5, 42.5, -156, -132, 'W'); plot(25.5, 42.5, -132, -108, 'E');
+  for (let z = -10; z > -169;) { const z0 = Math.max(-169.5, z - 26.5); plot(-EDGE, -53.5, z0, z, 'E'); plot(53.5, EDGE, z0, z, 'W'); z = z0; }
+  // numeración: impares a un lado, pares al otro, contando portales y cancelas
+  const num = T.sdoors.concat(T.plots.map(P => P.gate));
+  for (const d of num) d.st = streetAt(d.x + d.nx * 3, d.z + d.nz * 3);
   STREETS.forEach((s, si) => {
-    const list = T.doors.filter(d => d.st === si).sort((a, b) => s.ax === 'x' ? a.x - b.x : b.z - a.z), cnt = [1, 2];
-    for (const d of list) { const side = (s.ax === 'x' ? d.z - s.c : d.x - s.c) > 0 ? 0 : 1; let n = cnt[side]; if (n === 13) n += 2; d.num = Math.min(79, n); cnt[side] = n + 2; }
+    const list = num.filter(d => d.st === si).sort((a, b) => s.ax === 'x' ? a.x - b.x : b.z - a.z), cnt = [1, 2];
+    for (const d of list) { const side = (s.ax === 'x' ? d.z - s.c : d.x - s.c) > 0 ? 0 : 1; const n = cnt[side]; d.num = Math.min(79, n); cnt[side] = n + 2; }
   });
-  let far = -1; T.doors.forEach((d, k) => { if (d.st === DL_STREET && d.nx > 0 && (far < 0 || d.z < T.doors[far].z)) far = k; });
-  if (far >= 0) { const d = T.doors[far]; d.num = 13; d.x13 = 1; d.lamp = false; T.c13 = far; }
+  for (const P of T.plots) { P.st = P.gate.st; P.num = P.gate.num; }
+  // pisos: cuatro puertas por rellano (A, B, C, D) en cada torre; el rellano de dentro es el mismo decorado para todas
+  T.plots.forEach((P, k) => FLAT_LOC.forEach(([x, z, nx, nz], j) => T.doors.push({ tw: k, let: j, st: P.st, num: P.num, x: MOD.x + x, z: MOD.z + z, nx, nz })));
   // farolas: en la avenida y el paseo todas van; en las calles de detrás, muchas no
   const lamp = (x, z, ax, az, md, fig, pr, lit) => { T.lamps.push({ x, z, ax, az, md, ph: r() * 10, fig: fig && md !== 2, pr, lit }); T.cols.push({ x0: x - 0.16, x1: x + 0.16, z0: z - 0.16, z1: z + 0.16 }); };
-  const nearV = (x, m) => STREETS.some(o => o.ax === 'z' && Math.abs(x - o.c) < m);
+  const nearV = (x, m) => STREETS.some(o => o.ax === 'z' && Math.abs(x - o.c) < m), medC = STREETS[MED].c;
   for (let x = -110; x <= 110; x += 16) if (!nearV(x, 7) && Math.abs(x) > 6) lamp(x, 7.6, 0, 1, r() < 0.15 ? 1 : 0, false);
-  for (let x = -108; x <= 108; x += 18) lamp(x, 21.5, 0, 0, r() < 0.1 ? 1 : 0, false, 1);     // paseo: farolas altas con guirnaldas
+  for (let x = -108; x <= 108; x += 18) lamp(x, 21.5, 0, 0, r() < 0.1 ? 1 : 0, false, 1);     // paseo: farolas de 12 m con guirnaldas
   const md = () => { const v = r(); return v < 0.25 ? 2 : v < 0.55 ? 1 : 0; };
-  for (const s of STREETS) {
-    // la Calle Cuervo es el barrio iluminado: farolas seguidas, todas funcionan y ahí no salen sombras
-    if (s.ax === 'z' && s.c === LIT_ST) { let sd = 1; for (let z = -20; z > -170; z -= 10.5) { lamp(s.c + sd * 4.2, z, -sd, 0, 0, false, 0, 1); sd = -sd; } }
-    else if (s.ax === 'z') { let sd = 1; for (let z = -24; z > -168; z -= 18 + r() * 5) { lamp(s.c + sd * 4.2, z, -sd, 0, z > -30 ? 0 : md(), true); sd = -sd; } }
-    else if (s.c < -100) { let sd = 1; for (let x = -40; x <= 40; x += 13) { if (nearV(x, 6)) continue; lamp(x, s.c + sd * 4.2, 0, -sd, md(), true); sd = -sd; } }
-  }
-  // coches aparcados (pegados al bordillo) y contenedores
+  STREETS.forEach((s, si) => {
+    const off = s.w / 2 + 0.7;
+    // la Avenida de Europa y la del Mediterráneo están iluminadas: farolas seguidas, todas funcionan y ahí no salen sombras
+    if (s.ax === 'z' && s.c === LIT_ST) { let sd = 1; for (let z = -20; z > -170; z -= 10.5) { if (Math.abs(z - medC) > 7) lamp(s.c + sd * off, z, -sd, 0, 0, false, 0, 1); sd = -sd; } }
+    else if (s.ax === 'z') { let sd = 1; for (let z = -24; z > -168; z -= 18 + r() * 5) { if (Math.abs(z - medC) > 8) lamp(s.c + sd * off, z, -sd, 0, z > -30 ? 0 : md(), true); sd = -sd; } }
+    else if (si === MED) { for (const sd of [-1, 1]) for (let x = -41 + (sd > 0 ? 5.5 : 0); x <= 42; x += 11) { if (!nearV(x, 6)) lamp(x, s.c + sd * off, 0, -sd, 0, false, 0, 1); } }
+    else if (s.c < -100) { let sd = 1; for (let x = -40; x <= 40; x += 13) { if (nearV(x, 6)) continue; lamp(x, s.c + sd * off, 0, -sd, md(), true); sd = -sd; } }
+  });
+  // coches aparcados (pegados al bordillo)
   const park = (x, z, ry) => { const st = r() * 3 | 0, w = 1.85, l = st === 1 ? 3.7 : 4.3; T.cars.push({ x, z, ry, st, c: r() * CAR_COLS.length | 0 }); const along = Math.abs(Math.sin(ry)) > 0.5; T.cols.push(along ? { x0: x - l / 2, x1: x + l / 2, z0: z - w / 2, z1: z + w / 2 } : { x0: x - w / 2, x1: x + w / 2, z0: z - l / 2, z1: z + l / 2 }); };
   for (const x of [-92, -64, -36, 32, 70, 98]) park(x, 14.3, -PI / 2);
   park(-13, 8.9, PI / 2); park(-62, 8.9, PI / 2); park(84, 8.9, PI / 2);
-  for (const s of STREETS) if (s.ax === 'z') for (let k = 0; k < 3; k++) { const z = -40 - k * 42 - r() * 20, sd = r() < 0.5 ? -1 : 1; park(s.c + sd * 2.45, z, sd > 0 ? PI : 0); }
-  park(-20, -172.6, PI / 2); park(30, -177.4, -PI / 2);
-  // límites: vallas de obra al final de la avenida, casas en lo demás y el mar delante
-  T.cols.push({ x0: -160, x1: -AV_END, z0: -12, z1: 100 }, { x0: AV_END, x1: 160, z0: -12, z1: 100 }, { x0: -160, x1: -66, z0: -210, z1: -10 }, { x0: 66, x1: 160, z0: -210, z1: -10 }, { x0: -160, x1: 160, z0: -210, z1: -194 }, { x0: -160, x1: 160, z0: SEA_Z + 4, z1: 120 });
+  for (const s of STREETS) if (s.ax === 'z') for (let k = 0; k < 3; k++) { let z = -40 - k * 42 - r() * 20; if (Math.abs(z - medC) < 10) z -= 16; const sd = r() < 0.5 ? -1 : 1; park(s.c + sd * 2.45, z, sd > 0 ? PI : 0); }
+  park(-20, -172.6, PI / 2); park(30, -177.4, -PI / 2); park(-30, medC + 3.4, PI / 2); park(8, medC - 3.4, -PI / 2);
+  // límites: maceteros y vallas al final de la avenida, edificios en lo demás y el mar delante
+  T.cols.push({ x0: -160, x1: -AV_END, z0: -12, z1: 100 }, { x0: AV_END, x1: 160, z0: -12, z1: 100 }, { x0: -160, x1: -EDGE, z0: -210, z1: -10 }, { x0: EDGE, x1: 160, z0: -210, z1: -10 }, { x0: -160, x1: 160, z0: -210, z1: -194 }, { x0: -160, x1: 160, z0: SEA_Z + 4, z1: 120 });
   return T;
 }
-function addrOf(k) { const d = TOWN.doors[k]; return d ? STREETS[d.st].n + ' ' + d.num : '?'; }
+// dirección de un piso (sin la planta) y de un pedido (con planta y letra)
+function addrOf(k) { const d = TOWN.doors[k]; if (!d) return '?'; const P = TOWN.plots[d.tw]; return STREETS[P.st].n + ' ' + P.num + ' · ' + plotName(P); }
+function plotName(P) { return P.name.charAt(0) + P.name.slice(1).toLowerCase().replace(/ (\S)/g, (m, c) => ' ' + c.toUpperCase()); }
+function dlAddr(o) { return o ? addrOf(o.d) + ' · ' + o.f + 'º' + FLAT_LET[o.d % 4] : '?'; }
 
 /* ---------- geometría ---------- */
 function mergeGeos(list) {
@@ -318,7 +384,7 @@ function buildSeafront() {
   addMerged(tw, lam('wood', 0xd0d0c8), true); TOWN.cols.push({ x0: 11, x1: 13, z0: 43, z1: 45 });
   plane(1.2, 0.35, new THREE.MeshLambertMaterial({ map: textPlate('SOCORRISTA', 128, 40, '#c8201a', '#ffffff'), side: THREE.DoubleSide }), 12, 3.1, 45.02, 0, 0);
   // letrero del paseo
-  plane(2.4, 0.5, new THREE.MeshLambertMaterial({ map: textPlate('PASEO MARÍTIMO · PLAYA DE LEVANTE', 512, 96, '#e8e4d8', '#1a3a6a', '#1a3a6a'), side: THREE.DoubleSide }), -10, 2.7, 17.4, 0, 0);
+  plane(2.4, 0.5, new THREE.MeshLambertMaterial({ map: textPlate('PASEO DE LEVANTE · PLAYA DE LEVANTE', 512, 96, '#e8e4d8', '#1a3a6a', '#1a3a6a'), side: THREE.DoubleSide }), -10, 2.7, 17.4, 0, 0);
   addMerged([cgeo(0.05, 0.05, 2.7, 5, -11.1, 1.35, 17.4), cgeo(0.05, 0.05, 2.7, 5, -8.9, 1.35, 17.4)], M.dark);
 }
 function buildTown() {
@@ -330,7 +396,7 @@ function buildTown() {
   for (const st of STREETS) {
     const h = st.w / 2;
     if (st.ax === 'z') { gplane(st.c - h - 2, st.c + h + 2, st.a0 - 2, 5, pave, 0, 1.8, 2.5); gplane(st.c - h, st.c + h, st.a0, 8, road, 0.004, 3.5, 2.5); for (let a = st.a0 + 9; a < -4; a += 6) paint.push(bgeo(0.14, 0.01, 2.6, st.c, 0.02, a, 0, 1)); }
-    else { if (st.c < -100) gplane(st.a0 - 2, st.a1 + 2, st.c - h - 2, st.c + h + 2, pave, 0.001, 1.8, 2.5); gplane(st.a0, st.a1, st.c - h, st.c + h, road, 0.005, 3.5, 2.5); for (let a = st.a0 + 3; a < st.a1 - 3; a += 6) if (!STREETS.some(o => o.ax === 'z' && Math.abs(a - o.c) < 5)) paint.push(bgeo(2.6, 0.01, 0.14, a, 0.022, st.c, 0, 1)); }
+    else { if (st.c < 0) gplane(st.a0 - 2, st.a1 + 2, st.c - h - 2, st.c + h + 2, pave, 0.001, 1.8, 2.5); gplane(st.a0, st.a1, st.c - h, st.c + h, road, 0.005, 3.5, 2.5); for (let a = st.a0 + 3; a < st.a1 - 3; a += 6) if (!STREETS.some(o => o.ax === 'z' && Math.abs(a - o.c) < 5)) paint.push(bgeo(2.6, 0.01, 0.14, a, 0.022, st.c, 0, 1)); }
   }
   for (const st of STREETS) if (st.ax === 'z') for (let k = 0; k < 6; k++) paint.push(bgeo(0.5, 0.01, 3.2, st.c - 2.6 + k * 1.05, 0.021, 6.2, 0, 1));   // pasos de cebra
   for (const x of [-30, 0, 30, 76]) for (let k = 0; k < 4; k++) paint.push(bgeo(0.5, 0.01, 2.6, x - 1.6 + k * 1.05, 0.021, 11.5, PI / 2, 1));   // cruces al paseo
@@ -369,8 +435,7 @@ function buildTown() {
   });
   const plateM = new THREE.MeshLambertMaterial({ map: atlas }), doorM = lam('wood', 0x5a4232), holeM = bas(0x020203), lampM = bas(0xffc678), boardM = lam('rust', 0x8a6a50);
   const frames = [], lamps = [];
-  D.doors = [];
-  TOWN.doors.forEach((d, k) => {
+  TOWN.sdoors.forEach((d, k) => {
     const ry = Math.atan2(d.nx, d.nz), grp = new THREE.Group(); grp.position.set(d.x + d.nx * 0.01, 0, d.z + d.nz * 0.01); grp.rotation.y = ry; scene.add(grp);
     const hole = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 2.2), holeM); hole.position.set(0, 1.1, 0.005); grp.add(hole);
     const piv = new THREE.Group(); piv.position.set(-0.56, 0, 0.06); grp.add(piv);
@@ -381,17 +446,15 @@ function buildTown() {
     const wv = new THREE.Vector3(); grp.updateMatrixWorld();
     for (const [x, y, w, h] of [[-0.62, 1.15, 0.1, 2.3], [0.62, 1.15, 0.1, 2.3], [0, 2.32, 1.34, 0.12]]) { wv.set(x, y, 0.06); grp.localToWorld(wv); frames.push(bgeo(w, h, 0.12, wv.x, wv.y, wv.z, ry, 1)); }
     if (d.lamp) { wv.set(0, 2.55, 0.12); grp.localToWorld(wv); lamps.push(bgeo(0.22, 0.12, 0.16, wv.x, wv.y, wv.z, ry, 1)); }
-    if (d.x13) { for (const [y, rz] of [[0.7, 0.35], [1.2, -0.3], [1.7, 0.25]]) { const b = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.16, 0.05), boardM); b.position.set(0, y, 0.13); b.rotation.z = rz; grp.add(b); } }
-    const hb = hit('pt' + k, d.x + d.nx * 0.5, 1.2, d.z + d.nz * 0.5, d.nx ? 0.9 : 1.4, 2.4, d.nz ? 0.9 : 1.4);
-    D.doors.push({ piv, open: 0, hb });
+    hit('sd' + k, d.x + d.nx * 0.5, 1.2, d.z + d.nz * 0.5, d.nx ? 0.9 : 1.4, 2.4, d.nz ? 0.9 : 1.4);
   });
   addMerged(frames, lam(null, 0x2a2622)); addMerged(lamps, lampM);
   // farolas
   const poles = []; D.lamps = [];
   for (const L of TOWN.lamps) {
     if (L.pr) {   // farola alta del paseo marítimo, con un globo arriba
-      poles.push(cgeo(0.07, 0.11, 7.0, 6, L.x, 3.5, L.z)); L.hx = L.x; L.hz = L.z; L.hy = 7.15;
-      const h = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), bas(0xfff0d0)); h.position.set(L.x, 7.15, L.z); scene.add(h); D.lamps.push({ L, h }); continue;
+      poles.push(cgeo(0.08, 0.13, 10.5, 6, L.x, 5.25, L.z)); L.hx = L.x; L.hz = L.z; L.hy = 10.65;
+      const h = new THREE.Mesh(new THREE.SphereGeometry(0.34, 10, 8), bas(0xfff0d0)); h.position.set(L.x, 10.65, L.z); scene.add(h); D.lamps.push({ L, h }); continue;
     }
     poles.push(cgeo(0.06, 0.09, 4.6, 6, L.x, 2.3, L.z));
     poles.push(bgeo(L.ax ? 1.1 : 0.08, 0.08, L.az ? 1.1 : 0.08, L.x + L.ax * 0.5, 4.55, L.z + L.az * 0.5, 0, 1));
@@ -403,7 +466,7 @@ function buildTown() {
   const bulbs = [], prl = TOWN.lamps.filter(L => L.pr).sort((a, b) => a.x - b.x);
   for (let i = 0; i + 1 < prl.length; i++) {
     const a = prl[i], b = prl[i + 1];
-    for (const dz of [-0.25, 0.25]) for (let t = 0.04; t < 1; t += 0.06) { const y = 6.6 - Math.sin(t * PI) * 1.1; const g = new THREE.SphereGeometry(0.07, 5, 4); g.translate(lerp(a.x, b.x, t), y, a.z + dz); bulbs.push(g); }
+    for (const dz of [-0.25, 0.25]) for (let t = 0.04; t < 1; t += 0.06) { const y = 9.9 - Math.sin(t * PI) * 1.6; const g = new THREE.SphereGeometry(0.07, 5, 4); g.translate(lerp(a.x, b.x, t), y, a.z + dz); bulbs.push(g); }
   }
   addMerged(bulbs, bas(0xffe8b0));
   LG.pool = [0, 1, 2, 3].map(() => { const l = new THREE.PointLight(0xffa850, 0, 17, 1.5); scene.add(l); return l; });
@@ -424,12 +487,11 @@ function buildTown() {
     const p = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.38), new THREE.MeshLambertMaterial({ map: t, side: THREE.DoubleSide })); p.position.set(x, 2.95, z); p.rotation.y = ry; scene.add(p);
   };
   streetSign(0, -4.6, 7.4, 0);
-  for (let si = 1; si < STREETS.length; si++) { const st = STREETS[si]; if (st.ax === 'z') { streetSign(si, st.c + 4.6, 4.0, 0); streetSign(si, st.c - 4.6, -168.2, 0); } else { streetSign(si, -45.4, st.c + 4.6, PI / 2); streetSign(si, 45.4, st.c + 4.6, PI / 2); } }
+  for (let si = 1; si < STREETS.length; si++) { const st = STREETS[si]; if (st.ax === 'z') { streetSign(si, st.c + 4.6, 4.0, 0); streetSign(si, st.c - 4.6, -168.2, 0); } else { streetSign(si, -45.4, st.c + st.w / 2 + 1.1, PI / 2); streetSign(si, 45.4, st.c + st.w / 2 + 1.1, PI / 2); } }
   addMerged(signPoles, M.dark);
   // ventana con figura (sale de madrugada)
   const fw = ctex(64, 64, (g) => { g.fillStyle = '#ffcf80'; g.fillRect(0, 0, 64, 64); g.fillStyle = '#060404'; g.beginPath(); g.arc(32, 22, 9, 0, 7); g.fill(); g.fillRect(20, 30, 24, 34); });
-  D.figWin = plane(1.1, 1.3, new THREE.MeshBasicMaterial({ map: fw }), 14.53, 7.5, -40, 0, PI / 2);
-  D.figWin.visible = false;
+  D.figWinTex = fw;
 
   /* parada de bus */
   const bs = BUS_STOP;
@@ -478,5 +540,6 @@ function buildTown() {
   D.bagSt = new THREE.Group(); D.bagSt.position.set(3.62, 1.03, 2.7); scene.add(D.bagSt); D.bagKey = '';
   hit('bag', 3.62, 1.2, 2.7, 0.7, 0.6, 0.6);
   for (const c of TOWN.cols) colliders.push(c);
+  buildPlots();
   buildStreetLife();
 }

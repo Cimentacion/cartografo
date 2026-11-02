@@ -206,6 +206,7 @@ function toast(t, cls) { if (!t) return; const el = document.createElement('div'
 /* ---------- jugador ---------- */
 function collide(p) {
   for (const c of colliders) {
+    if (c.off) continue;
     const nx = clamp(p.x, c.x0, c.x1), nz = clamp(p.z, c.z0, c.z1), dx = p.x - nx, dz = p.z - nz, d2 = dx * dx + dz * dz;
     if (d2 >= PR * PR) continue;
     if (d2 > 1e-8) { const d = Math.sqrt(d2); p.x = nx + dx / d * PR; p.z = nz + dz / d * PR; }
@@ -241,7 +242,7 @@ function updatePlayer(dt) {
   // cámara
   if (cut.on) cut.cam = Math.min(1, cut.cam + dt * 5); else cut.cam = Math.max(0, cut.cam - dt * 6);
   const ey = ko ? 0.35 : 1.62 + Math.sin(me.bob) * 0.025 * mv, k = cut.cam * cut.cam * (3 - 2 * cut.cam);
-  camera.position.set(lerp(me.x, SPX[cut.i], k), lerp(ey, 1.5, k), lerp(me.z, -2.42, k));
+  camera.position.set(lerp(me.x, SPX[cut.i], k), lerp(ey + stairY(me.x, me.z), 1.5, k), lerp(me.z, -2.42, k));
   camera.rotation.y = angLerp(me.yaw, 0, k); camera.rotation.x = lerp(me.pitch, -0.07, k); camera.rotation.z = ko ? 1.2 : 0;
   if (hurtFlash > 0) { camera.rotation.z += Math.sin(TIME * 60) * 0.03 * hurtFlash; }
   AU.lis.x = me.x; AU.lis.z = me.z; AU.lis.yaw = me.yaw;
@@ -366,7 +367,7 @@ function updateInteract(dt) {
   const hits = raycaster.intersectObjects(rayTargets, false);
   if (hits.length) {
     const h0 = hits[0], key = h0.object.userData.key;
-    if (key) { const isCu = key.slice(0, 2) === 'cu'; if (isCu && gun) me.aim = +key.slice(2); if (h0.distance < (isCu ? 3.1 : 2.6)) { targetKey = key; target = useLogic(NET.myId, key, false); } }
+    if (key) { const isCu = key.slice(0, 2) === 'cu'; if (isCu && gun) me.aim = +key.slice(2); if (h0.distance < (isCu ? 3.1 : 2.6)) { targetKey = key.slice(0, 2) === 'fd' && IV.k >= 0 ? 'pt' + (IV.k * 4 + +key.slice(2)) : key; const R = (t, ok, fn, loc) => ({ t, ok: !!ok, loc: loc || null }); target = localUse(targetKey, R, P.h) || useLogic(NET.myId, targetKey, false); } }
   }
   if (IN.reload) { IN.reload = false; if (gun && reloadT <= 0 && W.am < 2 && W.shl > 0) { reloadT = 1.2; AU.play('reload'); act('reload'); } }
   let use = IN.use; if (IN.fire) { if (gun) tryShoot(P); else use = true; }
@@ -377,6 +378,7 @@ function updateInteract(dt) {
     else if (target.loc === 'cut') enterCut(+targetKey.slice(2));
     else if (target.loc === 'peep') openPeep();
     else if (target.loc === 'rules') openRules();
+    else if (typeof target.loc === 'function') { target.loc(); useCd = 0.4; }
     else { act('use', targetKey); useSound(targetKey); vmKick = 1; useCd = NET.isHost ? 0.12 : 0.3; }
   }
 }
@@ -407,6 +409,7 @@ function syncChars(dt) {
     if (ch.bag) ch.bag.visible = (c.st === S_OUT && c.b === 1) || c.st === S_RUN;
     if (c.an === 2) ch.g.visible = !W.pw || c.st === S_DIS;
     if (c.o) ch.g.visible = !c.hid;
+    if (c.vw !== undefined && c.vw !== myVW()) ch.g.visible = false;
     if (c.an === 3) { ch.g.position.y = 0.18 + Math.sin(TIME * 2 + c.i) * 0.08; for (const m of ch.mats) m.opacity = 0.3 + 0.15 * Math.sin(TIME * 7 + c.i); }
     if (c.ln !== ch.ln) { ch.ln = c.ln; showSay(c, ch); }
     ch.cx = c;
@@ -435,6 +438,7 @@ function syncChars(dt) {
     if (W.vs && W.vs.r === p.peer) { ch.g.position.y = 0.32; ch.lL.rotation.x = ch.lR.rotation.x = -1.35; ch.aL.rotation.x = ch.aR.rotation.x = -1.1; ch.spd = 0; }
     if (hk !== ch.hk) { ch.hk = hk; if (ch.held) ch.aR.remove(ch.held); ch.held = null; if (hk) { ch.held = itemMesh(Q.h); ch.held.position.set(0, -0.66, 0.12); ch.held.rotation.x = Q.h.k === 'gun' ? PI / 2 : 1.2; ch.aR.add(ch.held); } }
     if (hk) ch.aR.rotation.x = -1.1; ch.head.rotation.x = -pr[3] * 0.6;
+    ch.g.visible = (pr[5] === undefined ? -1 : pr[5]) === myVW();
   }
   for (const [id, ch] of rchars) if (!live[id]) { killChar(ch); rchars.delete(id); }
 }
@@ -502,9 +506,17 @@ function updateHUD(dt) {
       else if (type === 'ring') AU.play('ring', x, z);
       else if (type === 'call') {
         const k = String(a)[0], o = W.dl.find(q => q.i === +String(a).slice(1)), sb = $('subs'); let who = T('call_who'), txt;
-        if (k === 'v' && o) { who = aName(o.a); txt = T('call_v', orderPhrase(genOrder(o.a, o.s)), addrOf(o.d)); toast(T('dl_new', addrOf(o.d)), 'good'); }
-        else { txt = T(k === 's' ? 'call_s' : 'call_b'); AU.play('whisper', x, z); if (o) toast(T('dl_new', addrOf(o.d)), 'bad'); }
+        if (k === 'v' && o) { who = aName(o.a); txt = T('call_v', orderPhrase(genOrder(o.a, o.s)), dlAddr(o)); toast(T('dl_new', dlAddr(o)), 'good'); }
+        else { txt = T(k === 's' ? 'call_s' : 'call_b'); AU.play('whisper', x, z); if (o) toast(T('dl_new', dlAddr(o)), 'bad'); }
         sb.innerHTML = ''; const b = document.createElement('b'); b.textContent = who + ': '; sb.appendChild(b); sb.appendChild(document.createTextNode(txt)); sb.classList.toggle('an', k !== 'v'); subT = 3 + txt.length * 0.05;
+      }
+      else if (type === 'icom') {
+        AU.play('buzz', x, z);
+        if (Math.hypot(me.x - x, me.z - z) < 14) {
+          const k = Math.floor(a / 10000), o = W.dl.find(q => q.i === a % 10000), sb = $('subs'), who = T('icom_who'), txt = T('icom' + k, o ? o.f + 'º' + FLAT_LET[o.d % 4] : '');
+          sb.innerHTML = ''; const b = document.createElement('b'); b.textContent = who + ': '; sb.appendChild(b); sb.appendChild(document.createTextNode(txt)); sb.classList.toggle('an', k === 3); subT = 3 + txt.length * 0.05;
+          if (k === 3) AU.play('whisper', x, z);
+        }
       }
       else if (type === 'shot') { if (a !== NET.myId) AU.play('shot', x, z); }
       else if (type === 'cut') { if (a !== NET.myId) AU.play('cut', x, z); }

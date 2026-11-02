@@ -17,6 +17,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-mono);font-size:1
   radial-gradient(ellipse at center,rgba(0,0,0,0) 48%,rgba(0,0,0,.62) 100%),
   repeating-linear-gradient(to bottom,rgba(0,0,0,.16) 0 1px,rgba(0,0,0,0) 1px 3px);mix-blend-mode:multiply}
 #hurt,#flash{position:absolute;inset:0;pointer-events:none;opacity:0}
+#fade{position:absolute;inset:0;pointer-events:none;opacity:0;background:#000}
 #hurt{background:radial-gradient(ellipse at center,rgba(179,22,28,.15) 20%,rgba(179,22,28,.95) 100%)}
 #flash{background:#ffe9b0}
 #flash.on{animation:fl .14s ease-out}
@@ -170,7 +171,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
   (function () { var ce = console.error; console.error = function () { try { var a = String(arguments[0]); if (a.indexOf('THREE.') >= 0) window.__kpSay(a.slice(0, 160)); } catch (x) { } return ce.apply(console, arguments); }; })();
   </script>
   <canvas id="gl" tabindex="0" aria-label="Kebab Poniente, juego en primera persona"></canvas>
-  <div id="fx"></div><div id="hurt"></div><div id="flash"></div><div id="bubs"></div>
+  <div id="fx"></div><div id="hurt"></div><div id="fade"></div><div id="flash"></div><div id="bubs"></div>
 
   <div id="hud" hidden>
     <div id="top">
@@ -225,7 +226,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
         <dl class="keys" id="ctl-list"></dl>
       </div>
     </div>
-    <p class="ver">Kebab Poniente · 2026-11-02 15:26 UTC</p>
+    <p class="ver">Kebab Poniente · 2026-11-02 16:18 UTC</p>
   </div></section>
 
   <section id="note" class="ov" hidden><div class="paper">
@@ -546,7 +547,7 @@ const RULES = [
   'Si se va la luz: el cuadro está en el almacén. No te quedes quieto a oscuras.',
   'Puerta de atrás: usa SIEMPRE la mirilla antes de abrir.',
   'A las 3:33 viene alguien. Siempre viene alguien.',
-  'Si llaman y no se oye nada, no vayas. El 13 de la Calle del Pozo no existe.',
+  'Si llaman y no se oye nada, no vayas. En estas torres no hay planta 13; si el ascensor no tiene el botón, no subas andando.',
   'Si sales a repartir, cartel de CERRADO. Si lo dejas abierto y vacío, entran ellos.',
   'Los perros del solar no son de nadie. Ni te bajes de la moto cerca.',
   'Lo que pase cuando no mira nadie, se queda en la cocina. La mesa del almacén sirve para algo más que verdura.',
@@ -648,7 +649,7 @@ const STR = {
     dl_new: 'Pedido a domicilio: {0}', dl_head: 'REPARTO', dl_road: 'en camino', dl_late: 'llega tarde', dl_anon: 'número oculto', e_dl: 'Repartos', map_shop: 'KEBAB',
     u_bag_take_dr: 'Coger la bolsa para {0} (falta la bebida: hay máquinas por la calle)', u_vm_buy: 'Comprar {0} en la máquina ({1})', u_vm_bag: 'Comprar {0} para la bolsa ({1})', u_vm_nobag: 'En la bolsa no falta {0}', u_vm_cash: 'No hay dinero en la caja ({0})', u_bag_put: 'Meter {0} en la bolsa', u_bag_take: 'Coger la bolsa para {0}', u_bag_none: 'Bolsa de reparto (no hay pedidos)', u_bag_nomatch: 'Eso no va en ningún pedido a domicilio', u_bag_fill: 'Bolsa de reparto · {0}',
     u_bike_on: 'Subir a la Vespino', u_bike_busy: 'La Vespino está ocupada', u_bike_hands: 'En la moto solo cabe la bolsa de reparto', u_bike_off: 'Bajar de la moto', u_bike_slow: 'Frena para bajar',
-    u_ring: 'Llamar al timbre', u_wrongdoor: 'No es aquí. Va a {0}', u_wait_door: 'Ya has llamado. Espera.', u_give_bag: 'Dar la bolsa a {0}',
+    u_gate_out: 'Abrir la cancela', u_gate_open: '{0} · la cancela está abierta', u_icom: 'Portero automático · {0}', u_icom_call: 'Llamar al {0} por el portero', u_portal_in: 'Entrar al portal ({0})', u_portal_shut: 'El portal está cerrado: llama por el portero de la cancela', u_portal_out: 'Salir al jardín', u_stairs: 'Ir por la escalera', u_to_lobby: 'Salir al portal', u_to_floor: 'Salir a la planta {0}', u_lift_call: 'Llamar al ascensor', u_lift_go: 'Pulsar el {0}', u_lift_no13: 'No hay botón del 13: pulsar el 12 y subir andando', u_lift_down: 'Pulsar el 0 (bajo)', u_lift_busy: 'El ascensor está en marcha', u_light: 'Encender la luz', u_flat: 'Puerta {0}', u_flat_down: 'No abre nadie: dijo que bajaba al portal', floor0: 'BAJO', floorN: 'PLANTA {0}', icom_who: 'Portero', icom0: 'No contesta nadie.', icom1: '¿Sí? Ah, el kebab. Sube, es el {0}.', icom2: '¡Ya bajo! Espérame en el portal.', icom3: '(solo se oye ruido... y la cancela se abre sola)', u_ring: 'Llamar al timbre', u_wrongdoor: 'No es aquí. Va a {0}', u_wait_door: 'Ya has llamado. Espera.', u_give_bag: 'Dar la bolsa a {0}',
     ride_kb: '[W] gas · [S] freno · [A/D] girar · [E] bajar', ride_touch: 'joystick: gas y dirección · Usar: bajar', ride_pad: 'stick: gas y dirección · (A) bajar',
     pause_t: 'Pausa', pause_p: 'El turno está parado. Nadie se mueve.', resume: 'Seguir', tb_pause: 'Pausa',
     sug_btn: 'Sugerencias', apk_dl: 'Descargar APK (Android)', sug_t: 'Sugerencias', sug_p: '¿Qué le falta al juego? ¿Qué falla? Escríbelo tal cual.', sug_send: 'Enviar', sug_close: 'Cerrar', sug_ok: 'Enviada. Le llega directamente a Claude.', sug_saved: 'Guardada en este móvil ({0} pendiente/s). Pulsa Compartir y elige la app de Claude para mandarlas.', sug_share: 'Compartir', sug_copied: 'Copiadas. Pégalas en el chat de Claude.', sug_empty: 'Escribe algo primero.', upd_ready: 'Hay una versión nueva del juego.', upd_now: 'Actualizar ahora',
@@ -690,7 +691,7 @@ const STR = {
     dl_new: 'Delivery order: {0}', dl_head: 'DELIVERY', dl_road: 'on the way', dl_late: 'running late', dl_anon: 'withheld number', e_dl: 'Deliveries', map_shop: 'KEBAB',
     u_bag_take_dr: 'Take the bag for {0} (drink missing: there are machines on the street)', u_vm_buy: 'Buy {0} from the machine ({1})', u_vm_bag: 'Buy {0} for the bag ({1})', u_vm_nobag: 'No {0} missing from the bag', u_vm_cash: 'Not enough cash in the till ({0})', u_bag_put: 'Put {0} in the bag', u_bag_take: 'Take the bag for {0}', u_bag_none: 'Delivery bag (no orders)', u_bag_nomatch: "That isn't part of any delivery order", u_bag_fill: 'Delivery bag · {0}',
     u_bike_on: 'Get on the Vespino', u_bike_busy: 'Someone is on the Vespino', u_bike_hands: 'Only the delivery bag fits on the moped', u_bike_off: 'Get off', u_bike_slow: 'Slow down to get off',
-    u_ring: 'Ring the bell', u_wrongdoor: 'Not here. It goes to {0}', u_wait_door: 'You already rang. Wait.', u_give_bag: 'Give the bag to {0}',
+    u_gate_out: 'Open the gate', u_gate_open: '{0} · the gate is open', u_icom: 'Intercom · {0}', u_icom_call: 'Buzz {0} on the intercom', u_portal_in: 'Go into the lobby ({0})', u_portal_shut: 'The lobby is locked: buzz the flat at the gate', u_portal_out: 'Go out to the garden', u_stairs: 'Take the stairs', u_to_lobby: 'Go out to the lobby', u_to_floor: 'Go out to floor {0}', u_lift_call: 'Call the lift', u_lift_go: 'Press {0}', u_lift_no13: 'There is no 13 button: press 12 and walk up', u_lift_down: 'Press 0 (ground)', u_lift_busy: 'The lift is moving', u_light: 'Turn the light on', u_flat: 'Door {0}', u_flat_down: 'Nobody answers: they said they were coming down', floor0: 'GROUND', floorN: 'FLOOR {0}', icom_who: 'Intercom', icom0: 'Nobody answers.', icom1: 'Yes? Oh, the kebab. Come up, it\'s {0}.', icom2: 'Coming down! Wait for me in the lobby.', icom3: '(only static... and the gate opens by itself)', u_ring: 'Ring the bell', u_wrongdoor: 'Not here. It goes to {0}', u_wait_door: 'You already rang. Wait.', u_give_bag: 'Give the bag to {0}',
     ride_kb: '[W] throttle · [S] brake · [A/D] steer · [E] get off', ride_touch: 'joystick: throttle and steering · Use: get off', ride_pad: 'stick: throttle and steering · (A) get off',
     pause_t: 'Paused', pause_p: 'The shift is on hold. Nothing moves.', resume: 'Resume', tb_pause: 'Pause',
     sug_btn: 'Suggestions', apk_dl: 'Download APK (Android)', sug_t: 'Suggestions', sug_p: 'What is the game missing? What is broken? Just write it.', sug_send: 'Send', sug_close: 'Close', sug_ok: 'Sent. It goes straight to Claude.', sug_saved: 'Saved on this phone ({0} pending). Tap Share and pick the Claude app to send them.', sug_share: 'Share', sug_copied: 'Copied. Paste them into the Claude chat.', sug_empty: 'Write something first.', upd_ready: 'A new version of the game is ready.', upd_now: 'Update now',
@@ -732,7 +733,7 @@ const STR = {
     dl_new: 'Comandă la domiciliu: {0}', dl_head: 'LIVRARE', dl_road: 'pe drum', dl_late: 'întârzie', dl_anon: 'număr ascuns', e_dl: 'Livrări', map_shop: 'KEBAB',
     u_bag_take_dr: 'Ia geanta pentru {0} (lipsește băutura: sunt automate pe stradă)', u_vm_buy: 'Cumpără {0} de la automat ({1})', u_vm_bag: 'Cumpără {0} pentru geantă ({1})', u_vm_nobag: 'În geantă nu lipsește {0}', u_vm_cash: 'Nu sunt destui bani în casă ({0})', u_bag_put: 'Pune {0} în geantă', u_bag_take: 'Ia geanta pentru {0}', u_bag_none: 'Geantă de livrare (nicio comandă)', u_bag_nomatch: 'Asta nu e în nicio comandă la domiciliu', u_bag_fill: 'Geantă de livrare · {0}',
     u_bike_on: 'Urcă pe Vespino', u_bike_busy: 'Vespino e ocupată', u_bike_hands: 'Pe moped încape doar geanta de livrare', u_bike_off: 'Coboară de pe moped', u_bike_slow: 'Frânează ca să cobori',
-    u_ring: 'Sună la ușă', u_wrongdoor: 'Nu e aici. Merge la {0}', u_wait_door: 'Ai sunat deja. Așteaptă.', u_give_bag: '{0}: dă-i geanta',
+    u_gate_out: 'Deschide poarta', u_gate_open: '{0} · poarta e deschisă', u_icom: 'Interfon · {0}', u_icom_call: 'Sună la {0} la interfon', u_portal_in: 'Intră în hol ({0})', u_portal_shut: 'Holul e închis: sună la interfonul de la poartă', u_portal_out: 'Ieși în grădină', u_stairs: 'Mergi pe scări', u_to_lobby: 'Ieși în hol', u_to_floor: 'Ieși la etajul {0}', u_lift_call: 'Cheamă liftul', u_lift_go: 'Apasă {0}', u_lift_no13: 'Nu există buton pentru 13: apasă 12 și urcă pe jos', u_lift_down: 'Apasă 0 (parter)', u_lift_busy: 'Liftul e în mișcare', u_light: 'Aprinde lumina', u_flat: 'Ușa {0}', u_flat_down: 'Nu deschide nimeni: a zis că coboară în hol', floor0: 'PARTER', floorN: 'ETAJUL {0}', icom_who: 'Interfon', icom0: 'Nu răspunde nimeni.', icom1: 'Da? A, kebabul. Urcă, e la {0}.', icom2: 'Cobor imediat! Așteaptă-mă în hol.', icom3: '(doar se aude zgomot... și poarta se deschide singură)', u_ring: 'Sună la ușă', u_wrongdoor: 'Nu e aici. Merge la {0}', u_wait_door: 'Ai sunat deja. Așteaptă.', u_give_bag: '{0}: dă-i geanta',
     ride_kb: '[W] accelerezi · [S] frânezi · [A/D] virezi · [E] cobori', ride_touch: 'joystick: accelerație și direcție · Apasă: cobori', ride_pad: 'stick: accelerație și direcție · (A) cobori',
     pause_t: 'Pauză', pause_p: 'Tura e oprită. Nu se mișcă nimic.', resume: 'Continuă', tb_pause: 'Pauză',
     sug_btn: 'Sugestii', apk_dl: 'Descarcă APK (Android)', sug_t: 'Sugestii', sug_p: 'Ce-i lipsește jocului? Ce nu merge? Scrie-o așa cum e.', sug_send: 'Trimite', sug_close: 'Închide', sug_ok: 'Trimisă. Ajunge direct la Claude.', sug_saved: 'Salvată pe telefon ({0} în așteptare). Apasă Distribuie și alege aplicația Claude ca să le trimiți.', sug_share: 'Distribuie', sug_copied: 'Copiate. Lipește-le în chatul cu Claude.', sug_empty: 'Scrie ceva mai întâi.', upd_ready: 'Există o versiune nouă a jocului.', upd_now: 'Actualizează acum',
@@ -745,9 +746,9 @@ const STR = {
   },
 };
 const JOB = {
-  es: ['El cliente llega al mostrador y pide. Su comanda aparece a la derecha.', 'Coge el pan o la caja. Corta carne del asador con el cuchillo: solo la dorada.', 'Echa la carne de la bandeja, la verdura y las salsas que ha pedido. Envuelve.', 'Patatas en la freidora, bebidas en la nevera. Entrégalo todo en mano.', 'Hay una nota del cocinero anterior junto a la freidora. Léela.', 'Descuelga el teléfono: es un pedido a domicilio. Mételo en la bolsa roja junto a la puerta, pon el cartel de CERRADO y baja en la Vespino por la Calle del Pozo. El portal bueno tiene la luz encendida.'],
-  en: ['The customer walks up to the counter and orders. The ticket shows up on the right.', 'Grab the bread or the box. Carve meat off the spit with the knife: only the golden part.', 'Add the meat from the tray, then the vegetables and sauces they asked for. Wrap it.', 'Fries go in the fryer, drinks are in the fridge. Hand everything over yourself.', "There's a note from the last cook next to the fryer. Read it.", "Answer the phone: it's a delivery. Pack it in the red bag by the door, turn the sign to CLOSED and take the Vespino down Calle del Pozo. The right doorway has its light on."],
-  ro: ['Clientul vine la tejghea și comandă. Bonul apare în dreapta.', 'Ia lipia, pita sau cutia. Taie carne de pe rotisor cu cuțitul: doar partea rumenită.', 'Pune carnea din tavă, apoi legumele și sosurile cerute. Împachetează.', 'Cartofii se fac în friteuză, băuturile sunt în frigider. Dă-i totul în mână.', 'Lângă friteuză e un bilet de la fostul bucătar. Citește-l.', 'Răspunde la telefon: e o comandă la domiciliu. Pune-o în geanta roșie de lângă ușă, întoarce plăcuța pe ÎNCHIS și ia Vespino pe Calle del Pozo. La ușa bună e lumina aprinsă.'],
+  es: ['El cliente llega al mostrador y pide. Su comanda aparece a la derecha.', 'Coge el pan o la caja. Corta carne del asador con el cuchillo: solo la dorada.', 'Echa la carne de la bandeja, la verdura y las salsas que ha pedido. Envuelve.', 'Patatas en la freidora, bebidas en la nevera. Entrégalo todo en mano.', 'Hay una nota del cocinero anterior junto a la freidora. Léela.', 'Descuelga el teléfono: es un pedido a domicilio. Mételo en la bolsa roja junto a la puerta, pon el cartel de CERRADO y ve en la Vespino. Llama por el portero de la cancela (tiene la luz encendida), cruza el jardín y sube al piso, o espera en el portal si te dice que baja.'],
+  en: ['The customer walks up to the counter and orders. The ticket shows up on the right.', 'Grab the bread or the box. Carve meat off the spit with the knife: only the golden part.', 'Add the meat from the tray, then the vegetables and sauces they asked for. Wrap it.', 'Fries go in the fryer, drinks are in the fridge. Hand everything over yourself.', "There's a note from the last cook next to the fryer. Read it.", "Answer the phone: it's a delivery. Pack it in the red bag by the door, turn the sign to CLOSED and take the Vespino. Buzz the flat at the gate (its light is on), cross the garden and go up to the flat, or wait in the lobby if they say they're coming down."],
+  ro: ['Clientul vine la tejghea și comandă. Bonul apare în dreapta.', 'Ia lipia, pita sau cutia. Taie carne de pe rotisor cu cuțitul: doar partea rumenită.', 'Pune carnea din tavă, apoi legumele și sosurile cerute. Împachetează.', 'Cartofii se fac în friteuză, băuturile sunt în frigider. Dă-i totul în mână.', 'Lângă friteuză e un bilet de la fostul bucătar. Citește-l.', 'Răspunde la telefon: e o comandă la domiciliu. Pune-o în geanta roșie de lângă ușă, întoarce plăcuța pe ÎNCHIS și ia Vespino. La ușa bună e lumina aprinsă.'],
 };
 const CTL = {
   es: [['WASD + ratón', 'moverse y mirar'], ['E o clic', 'usar, coger, entregar'], ['Clic con escopeta', 'disparar · R recarga'], ['Mando', 'sticks · A usar · RT disparar/cortar · X recarga · B salir'], ['Táctil', 'izquierda mover · derecha mirar · toque para usar'], ['Vespino', 'E subir y bajar · W/S gas y freno · A/D girar · P pausa']],
@@ -756,8 +757,8 @@ const CTL = {
 };
 const RULESX = {
   es: RULES,
-  en: ["Real customers blink. If it doesn't blink and its eyes are black, it is not a customer.", "If it asks for the meat raw, don't give it. Shotgun.", 'Never shoot a real customer. Never.', 'Aiming is enough for a robber. Same for the one who leaves without paying.', "If the power goes out: the fuse box is in the storeroom. Don't stand still in the dark.", 'Back door: ALWAYS use the peephole before opening.', 'At 3:33 someone comes. Someone always comes.', 'If they call and you hear nothing, do not go. Number 13 on Calle del Pozo does not exist.', 'If you go out to deliver, turn the sign to CLOSED. Left open and empty, they come in.', "The dogs in the empty lot belong to nobody. Don't even get off the moped near them.", 'What happens when nobody is watching stays in the kitchen. The table in the storeroom is good for more than vegetables.'],
-  ro: ['Clienții adevărați clipesc. Dacă nu clipește și are ochii negri, nu e client.', 'Dacă cere carnea crudă, nu i-o da. Pușca.', 'Nu trage niciodată într-un client adevărat. Niciodată.', 'Pe un hoț e de ajuns să-l ții în cătare. La fel și pe cel care pleacă fără să plătească.', 'Dacă se ia curentul: tabloul e în magazie. Nu sta pe loc pe întuneric.', 'Ușa din spate: uită-te ÎNTOTDEAUNA pe vizor înainte să deschizi.', 'La 3:33 vine cineva. Întotdeauna vine cineva.', 'Dacă sună și nu se aude nimic, nu te duce. Numărul 13 de pe Calle del Pozo nu există.', 'Dacă ieși cu livrări, întoarce plăcuța pe ÎNCHIS. Dacă rămâne deschis și gol, intră ei.', 'Câinii de pe maidan nu sunt ai nimănui. Nici să nu cobori de pe moped lângă ei.', 'Ce se întâmplă când nu se uită nimeni rămâne în bucătărie. Masa din magazie e bună și la altceva decât legume.'],
+  en: ["Real customers blink. If it doesn't blink and its eyes are black, it is not a customer.", "If it asks for the meat raw, don't give it. Shotgun.", 'Never shoot a real customer. Never.', 'Aiming is enough for a robber. Same for the one who leaves without paying.', "If the power goes out: the fuse box is in the storeroom. Don't stand still in the dark.", 'Back door: ALWAYS use the peephole before opening.', 'At 3:33 someone comes. Someone always comes.', 'If they call and you hear nothing, do not go. These towers have no 13th floor; if the lift has no button for it, do not walk up.', 'If you go out to deliver, turn the sign to CLOSED. Left open and empty, they come in.', "The dogs in the empty lot belong to nobody. Don't even get off the moped near them.", 'What happens when nobody is watching stays in the kitchen. The table in the storeroom is good for more than vegetables.'],
+  ro: ['Clienții adevărați clipesc. Dacă nu clipește și are ochii negri, nu e client.', 'Dacă cere carnea crudă, nu i-o da. Pușca.', 'Nu trage niciodată într-un client adevărat. Niciodată.', 'Pe un hoț e de ajuns să-l ții în cătare. La fel și pe cel care pleacă fără să plătească.', 'Dacă se ia curentul: tabloul e în magazie. Nu sta pe loc pe întuneric.', 'Ușa din spate: uită-te ÎNTOTDEAUNA pe vizor înainte să deschizi.', 'La 3:33 vine cineva. Întotdeauna vine cineva.', 'Dacă sună și nu se aude nimic, nu te duce. Blocurile astea n-au etajul 13; dacă liftul n-are buton pentru el, nu urca pe jos.', 'Dacă ieși cu livrări, întoarce plăcuța pe ÎNCHIS. Dacă rămâne deschis și gol, intră ei.', 'Câinii de pe maidan nu sunt ai nimănui. Nici să nu cobori de pe moped lângă ei.', 'Ce se întâmplă când nu se uită nimeni rămâne în bucătărie. Masa din magazie e bună și la altceva decât legume.'],
 };
 const MSGX = {
   es: MSG,
@@ -908,7 +909,7 @@ function handDesc(h) {
   if (h.k === 'dr') return X.drink[h.t].toUpperCase();
   if (h.k === 'vg') return X.veg[h.t].toUpperCase() + Hh.uncut;
   if (h.k === 'gun') return Hh.gun;
-  if (h.k === 'bag') { const o = W && W.dl ? W.dl.find(q => q.i === h.d) : null; return Hh.bag + (o ? ' · ' + addrOf(o.d) : ''); }
+  if (h.k === 'bag') { const o = W && W.dl ? W.dl.find(q => q.i === h.d) : null; return Hh.bag + (o ? ' · ' + dlAddr(o) : ''); }
   if (h.k === 'body') return Hh.body; if (h.k === 'cone') return Hh.cone;
   return '';
 }
@@ -1017,6 +1018,9 @@ const AU = {
       case 'bell2': this.tone(784, 0.6, 'sine', 0.2 * Math.max(v, 0.5), 0, 0, d); this.tone(622, 0.9, 'sine', 0.2 * Math.max(v, 0.5), 0.45, 0, d); break;
       case 'bark': for (let i = 0; i < 2; i++) { this.tone(380, 0.12, 'sawtooth', 0.22 * Math.max(v, 0.15), i * 0.22, 170, d); this.nz(0.12, 'bandpass', 900, 2, 0.25 * Math.max(v, 0.15), i * 0.22, 0, d); } break;
       case 'wave': this.nz(3.2, 'lowpass', 700, 0.6, 0.32 * Math.max(v, 0.08), 0, 300, d); this.nz(2.4, 'bandpass', 2400, 0.8, 0.06 * Math.max(v, 0.08), 0.5, 0, d); break;
+      case 'ding': this.tone(1046, 0.6, 'sine', 0.14 * Math.max(v, 0.4), 0, 0, d); this.tone(784, 0.9, 'sine', 0.12 * Math.max(v, 0.4), 0.18, 0, d); break;
+      case 'lift': this.tone(62, 1.2, 'sawtooth', 0.05 * Math.max(v, 0.5), 0, 64, d); this.nz(1.2, 'lowpass', 300, 0.7, 0.08 * Math.max(v, 0.5), 0, 0, d); break;
+      case 'buzz': this.tone(180, 0.45, 'square', 0.06 * Math.max(v, 0.3), 0, 0, d); this.tone(360, 0.45, 'square', 0.03 * Math.max(v, 0.3), 0, 0, d); break;
       case 'vend': this.tone(900, 0.05, 'triangle', 0.05 * v, 0, 0, d); this.nz(0.12, 'lowpass', 600, 0.7, 0.5 * v, 0.35, 0, d); this.tone(120, 0.2, 'sine', 0.4 * v, 0.35, 55, d); this.nz(0.1, 'bandpass', 2600, 3, 0.15 * v, 0.55, 0, d); break;
       case 'barkc': for (let i = 0; i < 3; i++) { this.tone(310, 0.14, 'sawtooth', 0.45 * Math.max(v, 0.3), i * 0.19, 140, d); this.nz(0.13, 'bandpass', 820, 1.5, 0.5 * Math.max(v, 0.3), i * 0.19, 0, d); } break;
       case 'growl': this.tone(82, 1.1, 'sawtooth', 0.2 * Math.max(v, 0.2), 0, 68, d); this.nz(1.1, 'bandpass', 320, 2, 0.25 * Math.max(v, 0.2), 0, 0, d); break;
@@ -1398,30 +1402,41 @@ function buildWorld() {
   buildTown();
 }
 
-/* ================= EL BARRIO: Benidorm. El local da a la avenida; enfrente, el paseo marítimo, la playa y el mar.
-   Las calles del barrio salen por detrás (hacia el norte, z negativa) y forman un circuito.
-   Todo se genera con una semilla fija, así que todos los jugadores ven el mismo barrio.
-   x = este-oeste, z crece hacia el mar. El local está en x[-5,5], z[-8,5]. */
+/* ================= EL BARRIO: Levante, Benidorm. El local da a la Avenida de Alcoy (primera línea); enfrente, el Paseo de Levante,
+   la playa y el mar. Detrás, la segunda línea (Avenida del Mediterráneo) y la tercera (Calle Gerona); hacia la playa bajan
+   la Avenida de Bilbao, la del Periodista Emilio Romero y la de Europa, en ese orden de oeste a este.
+   Las torres de detrás no dan a la calle: hay un muro bajo con cancela y portero, se cruza el jardín (piscina, palmeras)
+   y se llega al portal. Todo se genera con una semilla fija, así que todos los jugadores ven el mismo barrio.
+   x = oeste-este, z crece hacia el mar. El local está en x[-5,5], z[-8,5]. */
 const STREETS = [
-  { n: 'Avenida del Mediterráneo', ax: 'x', c: 11.5, w: 7, a0: -135, a1: 135 },
-  { n: 'Calle del Pozo', ax: 'z', c: 20, w: 7, a0: -178.5, a1: 8 },
-  { n: 'Calle Ánimas', ax: 'z', c: -48, w: 7, a0: -178.5, a1: 8 },
-  { n: 'Calle Cuervo', ax: 'z', c: 48, w: 7, a0: -178.5, a1: 8 },
-  { n: 'Calle Ceniza', ax: 'x', c: -175, w: 7, a0: -51.5, a1: 51.5 },
+  { n: 'Avenida de Alcoy', ax: 'x', c: 11.5, w: 7, a0: -135, a1: 135 },
+  { n: 'Av. Periodista Emilio Romero', ax: 'z', c: 20, w: 7, a0: -178.5, a1: 8 },
+  { n: 'Avenida de Bilbao', ax: 'z', c: -48, w: 7, a0: -178.5, a1: 8 },
+  { n: 'Avenida de Europa', ax: 'z', c: 48, w: 7, a0: -178.5, a1: 8 },
+  { n: 'Calle Gerona', ax: 'x', c: -175, w: 7, a0: -51.5, a1: 51.5 },
+  { n: 'Avenida del Mediterráneo', ax: 'x', c: -88, w: 9, a0: -51.5, a1: 51.5 },
 ];
-const DL_STREET = 1, AV_END = 118, LIT_ST = 48;
+const DL_STREET = 1, AV_END = 118, LIT_ST = 48, MED = 5, EDGE = 74;
+// el decorado de dentro de las torres (portal, ascensor, rellano y escalera) está lejos del barrio, fuera de la niebla
+const MOD = { x: 600, z: -600 }, FLAT_LET = 'ABCD';
+const FLAT_LOC = [[6, 22.4, 0, -1], [8.6, 22.4, 0, -1], [11, 22.4, 0, -1], [12, 21.2, -1, 0]];
 const PASEO = { z0: 17, z1: 26 }, SAND_Z1 = 52, SEA_Z = 50;
-const SOLAR = { x0: 0, x1: 14.5, z0: -96, z1: -72 };
-const DOG_ZONE = { x0: 0.5, x1: 23, z0: -102, z1: -66 }, DOG_HOME = [[8, -80], [5, -90]];
-const BUS_STOP = { x: -28, z: 16.2 };
+const SOLAR = { x0: -2, x1: 14.5, z0: -155, z1: -133 };
+const DOG_ZONE = { x0: -1.5, x1: 23, z0: -161, z1: -127 }, DOG_HOME = [[8, -140], [5, -150]];
+const BUS_STOP = { x: -28, z: -82.9 };
 const CAR_COLS = [0x2a2f36, 0x5a1a16, 0x2c3a2c, 0x6a6a66, 0x1a2a4a, 0x8a7a5a];
+const TOWER_NAMES = ['TORRE CORAL', 'RESIDENCIAL MAR AZUL', 'EDIFICIO LEVANTE SOL', 'TORRE BAHÍA', 'EDIFICIO ATALAYA', 'RESIDENCIAL LAS PALMERAS', 'TORRE NEPTUNO', 'EDIFICIO MIRAMAR',
+  'RESIDENCIAL ALHAMBRA', 'TORRE MARINA', 'EDIFICIO DON JAIME', 'RESIDENCIAL COSTA BLANCA', 'TORRE IBERIA', 'EDIFICIO ACAPULCO', 'RESIDENCIAL MONTECARLO', 'TORRE GAVIOTA',
+  'EDIFICIO SIERRA HELADA', 'RESIDENCIAL EL PARAÍSO', 'TORRE LEVANTINA', 'EDIFICIO COPACABANA', 'RESIDENCIAL ISLA', 'TORRE PUIG CAMPANA', 'EDIFICIO ALTAMAR', 'RESIDENCIAL SOL Y MAR'];
+// distancia del eje de la calle a la pared o al muro de las parcelas
+function wallOff(si) { return si === 0 ? 6.5 : STREETS[si].w / 2 + 2; }
 const TOWN = layoutTown();
 /* tráfico: posiciones deterministas a partir del reloj de la noche, así todos los jugadores ven lo mismo */
 const TRAFFIC = [
   { st: 0, c: 3, li: 1, ax: 'x', l: 10.6, a0: 128, a1: -128, v: 10.5, ph: 0 },
   { st: 2, c: 5, li: 1, ax: 'x', l: 12.5, a0: -128, a1: 128, v: 9.5, ph: 9 },
-  { st: 1, c: 1, li: 1, ax: 'x', l: 10.6, a0: 128, a1: -128, v: 12, ph: 15 },
-  { st: 0, c: 0, li: 0, ax: 'z', l: 20.6, a0: -176, a1: 0, v: 2.6, ph: 30, gap: 150 },   // el coche negro sin luces de la calle del Pozo
+  { st: 1, c: 1, li: 1, ax: 'x', l: -89.8, a0: 50, a1: -50, v: 9, ph: 15 },
+  { st: 0, c: 0, li: 0, ax: 'z', l: 20.6, a0: -176, a1: 0, v: 2.6, ph: 30, gap: 150 },   // el coche negro sin luces que baja por Emilio Romero
 ];
 function trafficPos(t, time) {
   const len = Math.abs(t.a1 - t.a0), cyc = len / t.v + (t.gap || 6), u = ((time + t.ph) % cyc) / (len / t.v);
@@ -1438,17 +1453,17 @@ function streetAt(x, z) {
   return -1;
 }
 function layoutTown() {
-  const r = mulberry32(4471), T = { bld: [], doors: [], lamps: [], cols: [], cars: [], bins: [], c13: -1, blk: { solar: SOLAR } };
+  const r = mulberry32(4471), T = { bld: [], sdoors: [], doors: [], plots: [], lamps: [], cols: [], cars: [], bins: [], blk: { solar: SOLAR } };
   const addB = (x0, x1, z0, z1, side, tall) => {
-    const h = tall ? [18, 24, 30, 36, 45, 54][r() * 6 | 0] : [9, 9, 12, 12, 15, 18][r() * 6 | 0];
+    const h = tall ? [18, 24, 30, 36, 45, 54][r() * 6 | 0] : [9, 12, 12, 15, 18, 21][r() * 6 | 0];
     T.bld.push({ x0, x1, z0, z1, h, f: r() * 4 | 0 }); T.cols.push({ x0, x1, z0, z1 });
     if (!side) return;
     const t = 0.5 + (r() - 0.5) * 0.4; let x, z, nx = 0, nz = 0;
     if (side === 'N') { z = z0; nz = -1; x = lerp(x0, x1, t); } else if (side === 'S') { z = z1; nz = 1; x = lerp(x0, x1, t); }
     else if (side === 'W') { x = x0; nx = -1; z = lerp(z0, z1, t); } else { x = x1; nx = 1; z = lerp(z0, z1, t); }
-    T.doors.push({ x, z, nx, nz, b: T.bld.length - 1, lamp: r() < 0.3 });
+    T.sdoors.push({ x, z, nx, nz, b: T.bld.length - 1, lamp: r() < 0.3 });
   };
-  // una hilera de casas pegadas, con huecos donde haga falta
+  // una hilera de edificios pegados (bajos comerciales), con huecos donde haga falta
   const row = (ax, f0, f1, a0, a1, side, gaps, tall) => {
     let a = a0;
     while (a < a1 - 3) {
@@ -1459,45 +1474,100 @@ function layoutTown() {
       a = b;
     }
   };
+  /* residencial: muro bajo a la calle con cancela, jardín con piscina y la torre al fondo.
+     side = hacia dónde da la fachada de la parcela (E/W/N/S). */
+  const names = TOWER_NAMES.slice().sort(() => r() - 0.5);
+  const plot = (x0, x1, z0, z1, side) => {
+    const P = { x0, x1, z0, z1, side, k: T.plots.length, name: names[T.plots.length % names.length] };
+    const aZ = side === 'E' || side === 'W', sg = side === 'E' || side === 'S' ? 1 : -1;
+    const L0 = aZ ? z0 : x0, L1 = aZ ? z1 : x1, len = L1 - L0, D0 = aZ ? x0 : z0, D1 = aZ ? x1 : z1, depth = D1 - D0;
+    const front = sg > 0 ? D1 : D0, back = sg > 0 ? D0 : D1;
+    const pt = (a, d) => aZ ? [d, a] : [a, d];
+    P.pt = pt; P.aZ = aZ; P.sg = sg; P.front = front; P.L0 = L0; P.L1 = L1;
+    // la torre
+    const tw = Math.min(14, len - 9), td = Math.min(14, depth - 8.5), tb = back + sg * 2.5, tf = tb + sg * td;
+    const tc = (L0 + L1) / 2 + (r() - 0.5) * (len - tw - 5) * 0.6, h = [27, 33, 39, 45, 51, 60][r() * 6 | 0];
+    const [ax0, az0] = pt(tc - tw / 2, Math.min(tb, tf)), [ax1, az1] = pt(tc + tw / 2, Math.max(tb, tf));
+    T.bld.push({ x0: Math.min(ax0, ax1), x1: Math.max(ax0, ax1), z0: Math.min(az0, az1), z1: Math.max(az0, az1), h, f: r() * 4 | 0, tw: P.k });
+    T.cols.push({ x0: Math.min(ax0, ax1), x1: Math.max(ax0, ax1), z0: Math.min(az0, az1), z1: Math.max(az0, az1) });
+    P.h = h; P.fl = Math.floor(h / 3) - 1; P.tf = tf; P.tc = tc; P.tw = tw; P.td = td;
+    // portal en la fachada de la torre y cancela en el muro
+    const pa = tc + (r() - 0.5) * (tw - 5) * 0.6, ga = clamp(pa + (r() - 0.5) * 5, L0 + 2, L1 - 2);
+    const [px, pz] = pt(pa, tf), [gx, gz] = pt(ga, front), nx = aZ ? sg : 0, nz = aZ ? 0 : sg;
+    P.portal = { a: pa, x: px, z: pz, nx, nz }; P.gate = { a: ga, x: gx, z: gz, nx, nz };
+    // muros: el de la calle bajo (1 m, con barandilla); los de los lados y el fondo, más altos
+    P.walls = [];
+    const wall = (a0, a1, d, hgt, low) => { const [wx0, wz0] = pt(a0, d - 0.13), [wx1, wz1] = pt(a1, d + 0.13); const c = { x0: Math.min(wx0, wx1), x1: Math.max(wx0, wx1), z0: Math.min(wz0, wz1), z1: Math.max(wz0, wz1), h: hgt, low }; P.walls.push(c); T.cols.push(c); };
+    const fi = front - sg * 0.13;
+    wall(L0, ga - 0.8, fi, 1.0, 1); wall(ga + 0.8, L1, fi, 1.0, 1);
+    const sideWall = (a) => { const [sx0, sz0] = pt(a - 0.13, Math.min(front, back)), [sx1, sz1] = pt(a + 0.13, Math.max(front, back)); const c = { x0: Math.min(sx0, sx1), x1: Math.max(sx0, sx1), z0: Math.min(sz0, sz1), z1: Math.max(sz0, sz1), h: 1.8 }; P.walls.push(c); T.cols.push(c); };
+    sideWall(L0 + 0.15); sideWall(L1 - 0.15); wall(L0, L1, back + sg * 0.15, 1.8, 0);
+    // la cancela: cerrada salvo cuando te abren por el portero
+    const [cx0, cz0] = pt(ga - 0.8, fi - 0.1), [cx1, cz1] = pt(ga + 0.8, fi + 0.1);
+    P.gcol = { x0: Math.min(cx0, cx1), x1: Math.max(cx0, cx1), z0: Math.min(cz0, cz1), z1: Math.max(cz0, cz1) }; T.cols.push(P.gcol);
+    // piscina si cabe en el jardín, al otro lado del camino
+    const gd = Math.abs(front - tf);
+    if (gd >= 9) {
+      const pd = Math.min(5, gd - 4.5), pl = Math.min(9, len / 2 - 3.5), right = ga < (L0 + L1) / 2, pc = right ? L1 - 1.6 - pl / 2 : L0 + 1.6 + pl / 2;
+      const dc = (front + tf) / 2;
+      if (Math.abs(pc - ga) > pl / 2 + 1.6 && Math.abs(pc - pa) > pl / 2 + 1.6) {
+        const [qx0, qz0] = pt(pc - pl / 2, dc - pd / 2), [qx1, qz1] = pt(pc + pl / 2, dc + pd / 2);
+        P.pool = { x0: Math.min(qx0, qx1), x1: Math.max(qx0, qx1), z0: Math.min(qz0, qz1), z1: Math.max(qz0, qz1) }; T.cols.push(P.pool);
+      }
+    }
+    T.plots.push(P);
+  };
   // primera línea: torres de apartamentos mirando al mar (con hueco para el local y las calles)
   row('x', -10, 5, -120, 120, 'S', [[-53.5, -42.5], [-5.2, 5.2], [14.5, 25.5], [42.5, 53.5]], true);
-  // las manzanas de detrás
-  row('z', -66, -53.5, -194, -10, 'E'); row('z', 53.5, 66, -194, -10, 'W');
-  row('z', -42.5, -14, -169.5, -10, 'W'); row('z', -14, 14.5, -169.5, -10, 'E', [[-114, -108], [SOLAR.z0, SOLAR.z1]]);
-  addB(-14, SOLAR.x0, SOLAR.z0, SOLAR.z1, null);
-  row('z', 25.5, 34, -169.5, -10, 'W'); row('z', 34, 42.5, -169.5, -10, 'E');
+  // bajos comerciales en la Avenida del Mediterráneo y en Calle Gerona
+  row('x', -81.5, -68, -42.5, 14.5, 'N'); row('x', -81.5, -68, 25.5, 42.5, 'N');
+  row('x', -108, -94.5, -42.5, 14.5, 'S'); row('x', -108, -94.5, 25.5, 42.5, 'S');
+  row('x', -169.5, -156, -42.5, 14.5, 'N'); row('x', -169.5, -156, 25.5, 42.5, 'N');
   row('x', -194, -180.5, -53.5, 53.5, 'S');
-  // portales y numeración: impares a un lado, pares al otro (el 13 no está donde debería)
-  for (const d of T.doors) d.st = streetAt(d.x + d.nx * 3, d.z + d.nz * 3);
+  addB(-EDGE, -53.5, -194, -169.5, null); addB(53.5, EDGE, -194, -169.5, null); addB(-14, SOLAR.x0, -156, -132, null);
+  // los residenciales
+  for (const [z0, z1] of [[-68, -39], [-39, -10]]) { plot(-42.5, -14, z0, z1, 'W'); plot(-14, 14.5, z0, z1, 'E'); plot(25.5, 42.5, z0, z1, z0 < -50 ? 'W' : 'E'); }
+  plot(-42.5, -14, -156, -132, 'W'); plot(-42.5, -14, -132, -108, 'W'); plot(-14, 14.5, -132, -108, 'E');
+  plot(25.5, 42.5, -156, -132, 'W'); plot(25.5, 42.5, -132, -108, 'E');
+  for (let z = -10; z > -169;) { const z0 = Math.max(-169.5, z - 26.5); plot(-EDGE, -53.5, z0, z, 'E'); plot(53.5, EDGE, z0, z, 'W'); z = z0; }
+  // numeración: impares a un lado, pares al otro, contando portales y cancelas
+  const num = T.sdoors.concat(T.plots.map(P => P.gate));
+  for (const d of num) d.st = streetAt(d.x + d.nx * 3, d.z + d.nz * 3);
   STREETS.forEach((s, si) => {
-    const list = T.doors.filter(d => d.st === si).sort((a, b) => s.ax === 'x' ? a.x - b.x : b.z - a.z), cnt = [1, 2];
-    for (const d of list) { const side = (s.ax === 'x' ? d.z - s.c : d.x - s.c) > 0 ? 0 : 1; let n = cnt[side]; if (n === 13) n += 2; d.num = Math.min(79, n); cnt[side] = n + 2; }
+    const list = num.filter(d => d.st === si).sort((a, b) => s.ax === 'x' ? a.x - b.x : b.z - a.z), cnt = [1, 2];
+    for (const d of list) { const side = (s.ax === 'x' ? d.z - s.c : d.x - s.c) > 0 ? 0 : 1; const n = cnt[side]; d.num = Math.min(79, n); cnt[side] = n + 2; }
   });
-  let far = -1; T.doors.forEach((d, k) => { if (d.st === DL_STREET && d.nx > 0 && (far < 0 || d.z < T.doors[far].z)) far = k; });
-  if (far >= 0) { const d = T.doors[far]; d.num = 13; d.x13 = 1; d.lamp = false; T.c13 = far; }
+  for (const P of T.plots) { P.st = P.gate.st; P.num = P.gate.num; }
+  // pisos: cuatro puertas por rellano (A, B, C, D) en cada torre; el rellano de dentro es el mismo decorado para todas
+  T.plots.forEach((P, k) => FLAT_LOC.forEach(([x, z, nx, nz], j) => T.doors.push({ tw: k, let: j, st: P.st, num: P.num, x: MOD.x + x, z: MOD.z + z, nx, nz })));
   // farolas: en la avenida y el paseo todas van; en las calles de detrás, muchas no
   const lamp = (x, z, ax, az, md, fig, pr, lit) => { T.lamps.push({ x, z, ax, az, md, ph: r() * 10, fig: fig && md !== 2, pr, lit }); T.cols.push({ x0: x - 0.16, x1: x + 0.16, z0: z - 0.16, z1: z + 0.16 }); };
-  const nearV = (x, m) => STREETS.some(o => o.ax === 'z' && Math.abs(x - o.c) < m);
+  const nearV = (x, m) => STREETS.some(o => o.ax === 'z' && Math.abs(x - o.c) < m), medC = STREETS[MED].c;
   for (let x = -110; x <= 110; x += 16) if (!nearV(x, 7) && Math.abs(x) > 6) lamp(x, 7.6, 0, 1, r() < 0.15 ? 1 : 0, false);
-  for (let x = -108; x <= 108; x += 18) lamp(x, 21.5, 0, 0, r() < 0.1 ? 1 : 0, false, 1);     // paseo: farolas altas con guirnaldas
+  for (let x = -108; x <= 108; x += 18) lamp(x, 21.5, 0, 0, r() < 0.1 ? 1 : 0, false, 1);     // paseo: farolas de 12 m con guirnaldas
   const md = () => { const v = r(); return v < 0.25 ? 2 : v < 0.55 ? 1 : 0; };
-  for (const s of STREETS) {
-    // la Calle Cuervo es el barrio iluminado: farolas seguidas, todas funcionan y ahí no salen sombras
-    if (s.ax === 'z' && s.c === LIT_ST) { let sd = 1; for (let z = -20; z > -170; z -= 10.5) { lamp(s.c + sd * 4.2, z, -sd, 0, 0, false, 0, 1); sd = -sd; } }
-    else if (s.ax === 'z') { let sd = 1; for (let z = -24; z > -168; z -= 18 + r() * 5) { lamp(s.c + sd * 4.2, z, -sd, 0, z > -30 ? 0 : md(), true); sd = -sd; } }
-    else if (s.c < -100) { let sd = 1; for (let x = -40; x <= 40; x += 13) { if (nearV(x, 6)) continue; lamp(x, s.c + sd * 4.2, 0, -sd, md(), true); sd = -sd; } }
-  }
-  // coches aparcados (pegados al bordillo) y contenedores
+  STREETS.forEach((s, si) => {
+    const off = s.w / 2 + 0.7;
+    // la Avenida de Europa y la del Mediterráneo están iluminadas: farolas seguidas, todas funcionan y ahí no salen sombras
+    if (s.ax === 'z' && s.c === LIT_ST) { let sd = 1; for (let z = -20; z > -170; z -= 10.5) { if (Math.abs(z - medC) > 7) lamp(s.c + sd * off, z, -sd, 0, 0, false, 0, 1); sd = -sd; } }
+    else if (s.ax === 'z') { let sd = 1; for (let z = -24; z > -168; z -= 18 + r() * 5) { if (Math.abs(z - medC) > 8) lamp(s.c + sd * off, z, -sd, 0, z > -30 ? 0 : md(), true); sd = -sd; } }
+    else if (si === MED) { for (const sd of [-1, 1]) for (let x = -41 + (sd > 0 ? 5.5 : 0); x <= 42; x += 11) { if (!nearV(x, 6)) lamp(x, s.c + sd * off, 0, -sd, 0, false, 0, 1); } }
+    else if (s.c < -100) { let sd = 1; for (let x = -40; x <= 40; x += 13) { if (nearV(x, 6)) continue; lamp(x, s.c + sd * off, 0, -sd, md(), true); sd = -sd; } }
+  });
+  // coches aparcados (pegados al bordillo)
   const park = (x, z, ry) => { const st = r() * 3 | 0, w = 1.85, l = st === 1 ? 3.7 : 4.3; T.cars.push({ x, z, ry, st, c: r() * CAR_COLS.length | 0 }); const along = Math.abs(Math.sin(ry)) > 0.5; T.cols.push(along ? { x0: x - l / 2, x1: x + l / 2, z0: z - w / 2, z1: z + w / 2 } : { x0: x - w / 2, x1: x + w / 2, z0: z - l / 2, z1: z + l / 2 }); };
   for (const x of [-92, -64, -36, 32, 70, 98]) park(x, 14.3, -PI / 2);
   park(-13, 8.9, PI / 2); park(-62, 8.9, PI / 2); park(84, 8.9, PI / 2);
-  for (const s of STREETS) if (s.ax === 'z') for (let k = 0; k < 3; k++) { const z = -40 - k * 42 - r() * 20, sd = r() < 0.5 ? -1 : 1; park(s.c + sd * 2.45, z, sd > 0 ? PI : 0); }
-  park(-20, -172.6, PI / 2); park(30, -177.4, -PI / 2);
-  // límites: vallas de obra al final de la avenida, casas en lo demás y el mar delante
-  T.cols.push({ x0: -160, x1: -AV_END, z0: -12, z1: 100 }, { x0: AV_END, x1: 160, z0: -12, z1: 100 }, { x0: -160, x1: -66, z0: -210, z1: -10 }, { x0: 66, x1: 160, z0: -210, z1: -10 }, { x0: -160, x1: 160, z0: -210, z1: -194 }, { x0: -160, x1: 160, z0: SEA_Z + 4, z1: 120 });
+  for (const s of STREETS) if (s.ax === 'z') for (let k = 0; k < 3; k++) { let z = -40 - k * 42 - r() * 20; if (Math.abs(z - medC) < 10) z -= 16; const sd = r() < 0.5 ? -1 : 1; park(s.c + sd * 2.45, z, sd > 0 ? PI : 0); }
+  park(-20, -172.6, PI / 2); park(30, -177.4, -PI / 2); park(-30, medC + 3.4, PI / 2); park(8, medC - 3.4, -PI / 2);
+  // límites: maceteros y vallas al final de la avenida, edificios en lo demás y el mar delante
+  T.cols.push({ x0: -160, x1: -AV_END, z0: -12, z1: 100 }, { x0: AV_END, x1: 160, z0: -12, z1: 100 }, { x0: -160, x1: -EDGE, z0: -210, z1: -10 }, { x0: EDGE, x1: 160, z0: -210, z1: -10 }, { x0: -160, x1: 160, z0: -210, z1: -194 }, { x0: -160, x1: 160, z0: SEA_Z + 4, z1: 120 });
   return T;
 }
-function addrOf(k) { const d = TOWN.doors[k]; return d ? STREETS[d.st].n + ' ' + d.num : '?'; }
+// dirección de un piso (sin la planta) y de un pedido (con planta y letra)
+function addrOf(k) { const d = TOWN.doors[k]; if (!d) return '?'; const P = TOWN.plots[d.tw]; return STREETS[P.st].n + ' ' + P.num + ' · ' + plotName(P); }
+function plotName(P) { return P.name.charAt(0) + P.name.slice(1).toLowerCase().replace(/ (\S)/g, (m, c) => ' ' + c.toUpperCase()); }
+function dlAddr(o) { return o ? addrOf(o.d) + ' · ' + o.f + 'º' + FLAT_LET[o.d % 4] : '?'; }
 
 /* ---------- geometría ---------- */
 function mergeGeos(list) {
@@ -1718,7 +1788,7 @@ function buildSeafront() {
   addMerged(tw, lam('wood', 0xd0d0c8), true); TOWN.cols.push({ x0: 11, x1: 13, z0: 43, z1: 45 });
   plane(1.2, 0.35, new THREE.MeshLambertMaterial({ map: textPlate('SOCORRISTA', 128, 40, '#c8201a', '#ffffff'), side: THREE.DoubleSide }), 12, 3.1, 45.02, 0, 0);
   // letrero del paseo
-  plane(2.4, 0.5, new THREE.MeshLambertMaterial({ map: textPlate('PASEO MARÍTIMO · PLAYA DE LEVANTE', 512, 96, '#e8e4d8', '#1a3a6a', '#1a3a6a'), side: THREE.DoubleSide }), -10, 2.7, 17.4, 0, 0);
+  plane(2.4, 0.5, new THREE.MeshLambertMaterial({ map: textPlate('PASEO DE LEVANTE · PLAYA DE LEVANTE', 512, 96, '#e8e4d8', '#1a3a6a', '#1a3a6a'), side: THREE.DoubleSide }), -10, 2.7, 17.4, 0, 0);
   addMerged([cgeo(0.05, 0.05, 2.7, 5, -11.1, 1.35, 17.4), cgeo(0.05, 0.05, 2.7, 5, -8.9, 1.35, 17.4)], M.dark);
 }
 function buildTown() {
@@ -1730,7 +1800,7 @@ function buildTown() {
   for (const st of STREETS) {
     const h = st.w / 2;
     if (st.ax === 'z') { gplane(st.c - h - 2, st.c + h + 2, st.a0 - 2, 5, pave, 0, 1.8, 2.5); gplane(st.c - h, st.c + h, st.a0, 8, road, 0.004, 3.5, 2.5); for (let a = st.a0 + 9; a < -4; a += 6) paint.push(bgeo(0.14, 0.01, 2.6, st.c, 0.02, a, 0, 1)); }
-    else { if (st.c < -100) gplane(st.a0 - 2, st.a1 + 2, st.c - h - 2, st.c + h + 2, pave, 0.001, 1.8, 2.5); gplane(st.a0, st.a1, st.c - h, st.c + h, road, 0.005, 3.5, 2.5); for (let a = st.a0 + 3; a < st.a1 - 3; a += 6) if (!STREETS.some(o => o.ax === 'z' && Math.abs(a - o.c) < 5)) paint.push(bgeo(2.6, 0.01, 0.14, a, 0.022, st.c, 0, 1)); }
+    else { if (st.c < 0) gplane(st.a0 - 2, st.a1 + 2, st.c - h - 2, st.c + h + 2, pave, 0.001, 1.8, 2.5); gplane(st.a0, st.a1, st.c - h, st.c + h, road, 0.005, 3.5, 2.5); for (let a = st.a0 + 3; a < st.a1 - 3; a += 6) if (!STREETS.some(o => o.ax === 'z' && Math.abs(a - o.c) < 5)) paint.push(bgeo(2.6, 0.01, 0.14, a, 0.022, st.c, 0, 1)); }
   }
   for (const st of STREETS) if (st.ax === 'z') for (let k = 0; k < 6; k++) paint.push(bgeo(0.5, 0.01, 3.2, st.c - 2.6 + k * 1.05, 0.021, 6.2, 0, 1));   // pasos de cebra
   for (const x of [-30, 0, 30, 76]) for (let k = 0; k < 4; k++) paint.push(bgeo(0.5, 0.01, 2.6, x - 1.6 + k * 1.05, 0.021, 11.5, PI / 2, 1));   // cruces al paseo
@@ -1769,8 +1839,7 @@ function buildTown() {
   });
   const plateM = new THREE.MeshLambertMaterial({ map: atlas }), doorM = lam('wood', 0x5a4232), holeM = bas(0x020203), lampM = bas(0xffc678), boardM = lam('rust', 0x8a6a50);
   const frames = [], lamps = [];
-  D.doors = [];
-  TOWN.doors.forEach((d, k) => {
+  TOWN.sdoors.forEach((d, k) => {
     const ry = Math.atan2(d.nx, d.nz), grp = new THREE.Group(); grp.position.set(d.x + d.nx * 0.01, 0, d.z + d.nz * 0.01); grp.rotation.y = ry; scene.add(grp);
     const hole = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 2.2), holeM); hole.position.set(0, 1.1, 0.005); grp.add(hole);
     const piv = new THREE.Group(); piv.position.set(-0.56, 0, 0.06); grp.add(piv);
@@ -1781,17 +1850,15 @@ function buildTown() {
     const wv = new THREE.Vector3(); grp.updateMatrixWorld();
     for (const [x, y, w, h] of [[-0.62, 1.15, 0.1, 2.3], [0.62, 1.15, 0.1, 2.3], [0, 2.32, 1.34, 0.12]]) { wv.set(x, y, 0.06); grp.localToWorld(wv); frames.push(bgeo(w, h, 0.12, wv.x, wv.y, wv.z, ry, 1)); }
     if (d.lamp) { wv.set(0, 2.55, 0.12); grp.localToWorld(wv); lamps.push(bgeo(0.22, 0.12, 0.16, wv.x, wv.y, wv.z, ry, 1)); }
-    if (d.x13) { for (const [y, rz] of [[0.7, 0.35], [1.2, -0.3], [1.7, 0.25]]) { const b = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.16, 0.05), boardM); b.position.set(0, y, 0.13); b.rotation.z = rz; grp.add(b); } }
-    const hb = hit('pt' + k, d.x + d.nx * 0.5, 1.2, d.z + d.nz * 0.5, d.nx ? 0.9 : 1.4, 2.4, d.nz ? 0.9 : 1.4);
-    D.doors.push({ piv, open: 0, hb });
+    hit('sd' + k, d.x + d.nx * 0.5, 1.2, d.z + d.nz * 0.5, d.nx ? 0.9 : 1.4, 2.4, d.nz ? 0.9 : 1.4);
   });
   addMerged(frames, lam(null, 0x2a2622)); addMerged(lamps, lampM);
   // farolas
   const poles = []; D.lamps = [];
   for (const L of TOWN.lamps) {
     if (L.pr) {   // farola alta del paseo marítimo, con un globo arriba
-      poles.push(cgeo(0.07, 0.11, 7.0, 6, L.x, 3.5, L.z)); L.hx = L.x; L.hz = L.z; L.hy = 7.15;
-      const h = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), bas(0xfff0d0)); h.position.set(L.x, 7.15, L.z); scene.add(h); D.lamps.push({ L, h }); continue;
+      poles.push(cgeo(0.08, 0.13, 10.5, 6, L.x, 5.25, L.z)); L.hx = L.x; L.hz = L.z; L.hy = 10.65;
+      const h = new THREE.Mesh(new THREE.SphereGeometry(0.34, 10, 8), bas(0xfff0d0)); h.position.set(L.x, 10.65, L.z); scene.add(h); D.lamps.push({ L, h }); continue;
     }
     poles.push(cgeo(0.06, 0.09, 4.6, 6, L.x, 2.3, L.z));
     poles.push(bgeo(L.ax ? 1.1 : 0.08, 0.08, L.az ? 1.1 : 0.08, L.x + L.ax * 0.5, 4.55, L.z + L.az * 0.5, 0, 1));
@@ -1803,7 +1870,7 @@ function buildTown() {
   const bulbs = [], prl = TOWN.lamps.filter(L => L.pr).sort((a, b) => a.x - b.x);
   for (let i = 0; i + 1 < prl.length; i++) {
     const a = prl[i], b = prl[i + 1];
-    for (const dz of [-0.25, 0.25]) for (let t = 0.04; t < 1; t += 0.06) { const y = 6.6 - Math.sin(t * PI) * 1.1; const g = new THREE.SphereGeometry(0.07, 5, 4); g.translate(lerp(a.x, b.x, t), y, a.z + dz); bulbs.push(g); }
+    for (const dz of [-0.25, 0.25]) for (let t = 0.04; t < 1; t += 0.06) { const y = 9.9 - Math.sin(t * PI) * 1.6; const g = new THREE.SphereGeometry(0.07, 5, 4); g.translate(lerp(a.x, b.x, t), y, a.z + dz); bulbs.push(g); }
   }
   addMerged(bulbs, bas(0xffe8b0));
   LG.pool = [0, 1, 2, 3].map(() => { const l = new THREE.PointLight(0xffa850, 0, 17, 1.5); scene.add(l); return l; });
@@ -1824,12 +1891,11 @@ function buildTown() {
     const p = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.38), new THREE.MeshLambertMaterial({ map: t, side: THREE.DoubleSide })); p.position.set(x, 2.95, z); p.rotation.y = ry; scene.add(p);
   };
   streetSign(0, -4.6, 7.4, 0);
-  for (let si = 1; si < STREETS.length; si++) { const st = STREETS[si]; if (st.ax === 'z') { streetSign(si, st.c + 4.6, 4.0, 0); streetSign(si, st.c - 4.6, -168.2, 0); } else { streetSign(si, -45.4, st.c + 4.6, PI / 2); streetSign(si, 45.4, st.c + 4.6, PI / 2); } }
+  for (let si = 1; si < STREETS.length; si++) { const st = STREETS[si]; if (st.ax === 'z') { streetSign(si, st.c + 4.6, 4.0, 0); streetSign(si, st.c - 4.6, -168.2, 0); } else { streetSign(si, -45.4, st.c + st.w / 2 + 1.1, PI / 2); streetSign(si, 45.4, st.c + st.w / 2 + 1.1, PI / 2); } }
   addMerged(signPoles, M.dark);
   // ventana con figura (sale de madrugada)
   const fw = ctex(64, 64, (g) => { g.fillStyle = '#ffcf80'; g.fillRect(0, 0, 64, 64); g.fillStyle = '#060404'; g.beginPath(); g.arc(32, 22, 9, 0, 7); g.fill(); g.fillRect(20, 30, 24, 34); });
-  D.figWin = plane(1.1, 1.3, new THREE.MeshBasicMaterial({ map: fw }), 14.53, 7.5, -40, 0, PI / 2);
-  D.figWin.visible = false;
+  D.figWinTex = fw;
 
   /* parada de bus */
   const bs = BUS_STOP;
@@ -1878,6 +1944,7 @@ function buildTown() {
   D.bagSt = new THREE.Group(); D.bagSt.position.set(3.62, 1.03, 2.7); scene.add(D.bagSt); D.bagKey = '';
   hit('bag', 3.62, 1.2, 2.7, 0.7, 0.6, 0.6);
   for (const c of TOWN.cols) colliders.push(c);
+  buildPlots();
   buildStreetLife();
 }
 
@@ -1890,7 +1957,6 @@ const LIFE = layoutLife();
 function lampOff(L) { return L.md === 2 || (L.sc > 0 && Math.sin(TIME * 70 + L.ph) > 0) || (L.md === 1 && (Math.sin(TIME * 23 + L.ph) + Math.sin(TIME * 37 + L.ph * 2) + Math.sin(TIME * 3.1 + L.ph)) > 1.1); }
 
 /* un sitio pegado a la pared de una calle. side: +1 = lado de x/z mayores. Devuelve la pared y su normal hacia la calle. */
-function wallOff(si) { return si === 0 ? 6.5 : 5.5; }
 function lifeSpot(si, side, a, ry) {
   const s = STREETS[si], wc = s.c + side * wallOff(si);
   const nx = s.ax === 'z' ? -side : 0, nz = s.ax === 'z' ? 0 : -side;
@@ -1898,14 +1964,15 @@ function lifeSpot(si, side, a, ry) {
 }
 function layoutLife() {
   const used = [], r = mulberry32(8812);
-  const bldAt = (x, z) => TOWN.bld.some(b => x > b.x0 && x < b.x1 && z > b.z0 && z < b.z1);
+  const bldAt = (x, z) => TOWN.bld.some(b => x > b.x0 && x < b.x1 && z > b.z0 && z < b.z1) || TOWN.plots.some(P => x > P.x0 && x < P.x1 && z > P.z0 && z < P.z1);
   const free = (si, side, a, hw, curb) => {
     const s = STREETS[si], wc = s.c + side * wallOff(si), ins = wc + side * 0.3;
     if (!curb) for (const t of [-hw, -hw / 2, 0, hw / 2, hw]) { if (!(s.ax === 'z' ? bldAt(ins, a + t) : bldAt(a + t, ins))) return false; }
     if (s.ax === 'z' && (a > -10 || a < -169)) return false;
     if (s.ax === 'x' && STREETS.some(o => o.ax === 'z' && Math.abs(a - o.c) < 6 + hw)) return false;
+    if (s.ax === 'z' && Math.abs(a - STREETS[MED].c) < 7.5 + hw) return false;
     if (si === 0 && Math.abs(a) < 9 + hw) return false;   // delante del local, no
-    for (const d of TOWN.doors) { const da = s.ax === 'z' ? d.z : d.x, dw = s.ax === 'z' ? d.x : d.z; if (Math.abs(dw - wc) < 0.4 && Math.abs(da - a) < hw + 1.1) return false; }
+    for (const d of TOWN.sdoors.concat(TOWN.plots.map(P => P.gate))) { const da = s.ax === 'z' ? d.z : d.x, dw = s.ax === 'z' ? d.x : d.z; if (Math.abs(dw - wc) < 0.4 && Math.abs(da - a) < hw + 1.1) return false; }
     for (const L of TOWN.lamps) { const la = s.ax === 'z' ? L.z : L.x, lw = s.ax === 'z' ? L.x : L.z; if (Math.abs(lw - wc) < 2.2 && Math.abs(la - a) < hw + 0.8) return false; }
     for (const u of used) if (u.si === si && u.side === side && Math.abs(u.a - a) < u.hw + hw + 0.6) return false;
     return true;
@@ -1916,16 +1983,16 @@ function layoutLife() {
   };
   const L = { vend: [], shops: [], sleep: [], cont: [], lit: [] };
   // máquinas de bebidas: las mismas bebidas que vendes tú, al mismo precio
-  for (const [si, side, a] of [[1, 1, -34], [3, -1, -84], [3, 1, -140], [2, 1, -128], [0, -1, -72], [4, -1, 14]]) { const p = find(si, side, a, 0.6); if (p) L.vend.push(p); }
+  for (const [si, side, a] of [[1, 1, -30], [5, 1, -22], [5, -1, 30], [3, -1, -130], [0, -1, -72], [4, -1, 14], [2, 1, -150]]) { const p = find(si, side, a, 0.6); if (p) L.vend.push(p); }
   // locales cerrados y arruinados
-  for (const [si, side, a, k] of [[0, -1, -30, 0], [0, -1, 64, 3], [1, -1, -58, 4], [2, 1, -100, 1], [3, 1, -52, 3], [4, 1, -28, 2], [2, -1, -40, 5], [3, -1, -118, 0]]) { const p = find(si, side, a, 2.15); if (p) { p.k = k; L.shops.push(p); } }
-  // en el barrio iluminado (Calle Cuervo) hay tiendas abiertas toda la noche
-  [[1, -30, 0], [-1, -98, 1], [1, -158, 2]].forEach(([side, a, k]) => { const p = find(3, side, a, 2.15); if (p) { p.k = k; L.lit.push(p); } });
+  for (const [si, side, a, k] of [[0, -1, -30, 0], [0, -1, 64, 3], [5, 1, -36, 4], [5, -1, -6, 1], [4, 1, -28, 2], [4, -1, 22, 0], [5, 1, 34, 5], [4, 1, 30, 3]]) { const p = find(si, side, a, 2.15); if (p) { p.k = k; L.shops.push(p); } }
+  // en la Avenida del Mediterráneo, la iluminada, hay tiendas abiertas toda la noche
+  [[1, -8, 0], [-1, -30, 1], [-1, 36, 2]].forEach(([side, a, k]) => { const p = find(MED, side, a, 2.15); if (p) { p.k = k; L.lit.push(p); } });
   // vagabundos durmiendo boca abajo, con su carro y su perro
-  for (const [si, side, a] of [[2, 1, -66], [4, -1, -20]]) { const p = find(si, side, a, 2.6); if (p) L.sleep.push(p); }
+  for (const [si, side, a] of [[2, 1, -60], [4, -1, -20]]) { const p = find(si, side, a, 2.6); if (p) L.sleep.push(p); }
   // contenedores junto al bordillo, en grupos de 2 o 3
   const curbFree = (si, side, a, hw) => {
-    const s = STREETS[si], cw = s.c + side * 4.1;
+    const s = STREETS[si], cw = s.c + side * (s.w / 2 + 0.6);
     if (!free(si, side, a, hw, true)) return false;
     for (const L2 of TOWN.lamps) { const la = s.ax === 'z' ? L2.z : L2.x, lw = s.ax === 'z' ? L2.x : L2.z; if (Math.abs(lw - cw) < 1.2 && Math.abs(la - a) < hw + 0.7) return false; }
     for (const c of TOWN.cars) { const ca = s.ax === 'z' ? c.z : c.x, cl = s.ax === 'z' ? c.x : c.z; if (Math.abs(cl - cw) < 2.4 && Math.abs(ca - a) < hw + 2.6) return false; }
@@ -1940,7 +2007,7 @@ function layoutLife() {
       const n = r() < 0.5 ? 2 : 3, hw = n * 0.72, side = sides[r() * sides.length | 0];
       if (curbFree(si, side, a, hw)) {
         used.push({ si, side, a, hw });
-        const p = lifeSpot(si, side, a); p.n = n; p.cw = s.c + side * 4.08; p.cols = [0, 1, 2, 3].sort(() => r() - 0.5).slice(0, n); p.bags = r() * 4 | 0; p.lid = r() < 0.4 ? r() * 0.5 : 0; L.cont.push(p);
+        const p = lifeSpot(si, side, a); p.n = n; p.cw = s.c + side * (s.w / 2 + 0.58); p.cols = [0, 1, 2, 3].sort(() => r() - 0.5).slice(0, n); p.bags = r() * 4 | 0; p.lid = r() < 0.4 ? r() * 0.5 : 0; L.cont.push(p);
         a += step * (26 + r() * 22);
       } else a += step * 3;
     }
@@ -2178,9 +2245,10 @@ function buildStreetLife() {
   const scatter = (x0, x1, z0, z1, n, f) => { for (let i = 0; i < n; i++) f(x0 + r() * (x1 - x0), z0 + r() * (z1 - z0)); };
   const zones = [];
   STREETS.forEach((s, si) => {
-    if (s.ax === 'z') { const z0 = s.a0 + 2, z1 = 3; zones.push([s.c - 5.4, s.c - 3.6, z0, z1, 1], [s.c + 3.6, s.c + 5.4, z0, z1, 1], [s.c - 3.3, s.c + 3.3, z0, z1, 0.35]); }
+    const h = s.w / 2;
+    if (s.ax === 'z') { const z0 = s.a0 + 2, z1 = 3; zones.push([s.c - h - 1.9, s.c - h - 0.1, z0, z1, 1], [s.c + h + 0.1, s.c + h + 1.9, z0, z1, 1], [s.c - h + 0.2, s.c + h - 0.2, z0, z1, 0.35]); }
     else if (si === 0) zones.push([-115, 115, 5.2, 7.9, 1], [-115, 115, 15.1, 16.9, 0.8], [-115, 115, 8.2, 14.8, 0.2], [-110, 110, 17.2, 25.5, 0.25]);
-    else zones.push([s.a0, s.a1, s.c - 5.4, s.c - 3.6, 1], [s.a0, s.a1, s.c + 3.6, s.c + 5.4, 1], [s.a0, s.a1, s.c - 3.3, s.c + 3.3, 0.35]);
+    else zones.push([s.a0, s.a1, s.c - h - 1.9, s.c - h - 0.1, 1], [s.a0, s.a1, s.c + h + 0.1, s.c + h + 1.9, 1], [s.a0, s.a1, s.c - h + 0.2, s.c + h - 0.2, 0.35]);
   });
   for (const [x0, x1, z0, z1, dens] of zones) {
     const area = (x1 - x0) * (z1 - z0), lit = x0 > 40 && x1 < 56;   // en el barrio iluminado hay algo menos de mierda
@@ -2234,7 +2302,7 @@ function buildStreetLife() {
     return s;
   });
 
-  /* halos de luz de las farolas en el suelo (las de la Calle Cuervo, blancas) */
+  /* halos de luz de las farolas en el suelo (las de las avenidas iluminadas, blancas) */
   const warm = new THREE.MeshBasicMaterial({ map: glowTex(255, 170, 90), transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending });
   const white = new THREE.MeshBasicMaterial({ map: glowTex(255, 236, 205), transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending });
   // las que nunca fallan van todas juntas; las que parpadean o asustan, cada una por su lado
@@ -2328,6 +2396,380 @@ function moteStep(M2, top) {
     p[k * 3] = b[0] + Math.sin(t) * 0.25; p[k * 3 + 1] = y; p[k * 3 + 2] = b[2] + Math.cos(t * 0.8) * 0.25;
   }
   a.needsUpdate = true;
+}
+
+/* ================= RESIDENCIALES: por fuera, muro bajo con barandilla, cancela con portero automático, jardín con piscina
+   y palmeras, y la torre con su portal. Por dentro (portal, ascensor, rellano y escalera) es un único decorado lejos del barrio
+   que vale para todas las torres: cada uno ve el nombre de su torre y su planta. La escalera es un bucle: cada dos tramos, una planta. */
+const IV = { k: -1, f: 0, FL: 0, tl: 0, px: 0, pz: 0, lastFL: -99, lastF: -99 };
+const EL = { at: 0, fl: 0, door: 0, want: 0, st: '', t: 0, T: 0, dest: 0, from: 0, ot: 0, disp: -1, hum: 0, cto: 0, cfl: 0 };
+const FLH = 2.8;
+function inMod(x, z) { return x > MOD.x - 15 && x < MOD.x + 20 && z > MOD.z - 10 && z < MOD.z + 30; }
+function modZone(x, z) {
+  if (!inMod(x, z)) return '';
+  const lx = x - MOD.x, lz = z - MOD.z;
+  if (lx < 0 && lz > 12) return 'stair';
+  if (lz > 15) return lz < 20 ? 'cab1' : 'corr';
+  return lz < 0 ? 'cab0' : 'lobby';
+}
+// código de dónde estoy: torre * 100 + planta; -1 en la calle
+function myVW() { const zn = modZone(me.x, me.z); if (!zn || IV.k < 0) return -1; return IV.k * 100 + (zn === 'stair' ? IV.FL : zn === 'lobby' || zn === 'cab0' ? 0 : IV.f); }
+function plotAt(x, z) { for (const P of TOWN.plots) if (x > P.x0 && x < P.x1 && z > P.z0 && z < P.z1) return P; return null; }
+function stairY(x, z) {
+  if (modZone(x, z) !== 'stair') return 0;
+  const lx = x - MOD.x, lz = z - MOD.z;
+  if (lz >= 20) return 0; if (lz <= 14.5) return FLH / 2;
+  return lx < -3 ? (20 - lz) / 5.5 * FLH / 2 : FLH / 2 + (lz - 14.5) / 5.5 * FLH / 2;
+}
+
+/* ---------- geometría auxiliar ---------- */
+function pgeo(x0, x1, z0, z1, y, tile, seg, down) {
+  const w = x1 - x0, d = z1 - z0, g = new THREE.PlaneGeometry(w, d, Math.max(1, Math.ceil(w / (seg || 2.5))), Math.max(1, Math.ceil(d / (seg || 2.5))));
+  const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * w / tile, uv.getY(i) * d / tile);
+  g.rotateX(down ? PI / 2 : -PI / 2); g.translate((x0 + x1) / 2, y, (z0 + z1) / 2); return g;
+}
+// pared vertical de (ax,az) a (bx,bz), mirando hacia (nx,nz)
+function vgeo(ax, az, bx, bz, y0, y1, nx, nz, tile) {
+  const len = Math.hypot(bx - ax, bz - az), h = y1 - y0, g = new THREE.PlaneGeometry(len, h, Math.max(1, Math.ceil(len / 1.2)), Math.max(1, Math.ceil(h / 1.2)));
+  const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * len / tile, uv.getY(i) * h / tile);
+  g.rotateY(Math.atan2(nx, nz)); g.translate((ax + bx) / 2, (y0 + y1) / 2, (az + bz) / 2); return g;
+}
+function uvRect(g, px, py, pw, ph, W, H) {
+  const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, (px + uv.getX(i) * pw) / W, 1 - (py + (1 - uv.getY(i)) * ph) / H); return g;
+}
+// placa vertical en (x,y,z) mirando hacia (nx,nz)
+function pplate(w, h, x, y, z, nx, nz) { const g = new THREE.PlaneGeometry(w, h); g.rotateY(Math.atan2(nx, nz)); g.translate(x, y, z); return g; }
+
+/* atlas con los nombres de las torres y sus números (placa azul de calle) */
+function nameAtlas() {
+  return ctex(1024, 2048, (g) => {
+    g.fillStyle = '#000'; g.fillRect(0, 0, 1024, 2048); g.textAlign = 'center'; g.textBaseline = 'middle';
+    TOWN.plots.forEach((P, k) => {
+      let x = ((2 * k) % 2) * 512, y = ((2 * k) / 2 | 0) * 64;
+      x = 0; y = k * 64;
+      g.fillStyle = '#1a1612'; g.fillRect(x, y, 512, 64); g.strokeStyle = '#8a6a30'; g.lineWidth = 3; g.strokeRect(x + 3, y + 3, 506, 58);
+      let fs = 34; g.font = 'bold ' + fs + 'px serif'; while (g.measureText(P.name).width > 480) { fs--; g.font = 'bold ' + fs + 'px serif'; }
+      g.fillStyle = '#e8c870'; g.fillText(P.name, x + 256, y + 34);
+      // número: placa azul esmaltada
+      const nx = 512, ny = k * 64; g.fillStyle = '#e8e4d8'; g.fillRect(nx, ny, 128, 64); g.fillStyle = '#1a3a8a'; g.fillRect(nx + 6, ny + 6, 116, 52);
+      g.fillStyle = '#ffffff'; g.font = 'bold 34px sans-serif'; g.fillText(String(P.num), nx + 64, ny + 34);
+    });
+  });
+}
+function lobbyGlassTex() {
+  return ctex(128, 160, (g) => {
+    g.fillStyle = '#e8dcc0'; g.fillRect(0, 0, 128, 160);
+    g.fillStyle = '#c8b898'; g.fillRect(0, 110, 128, 50); for (let x = 0; x < 128; x += 16) { g.fillStyle = (x / 16) % 2 ? '#b8a888' : '#d8c8a8'; g.fillRect(x, 110, 16, 50); }
+    g.fillStyle = '#9aa0a8'; g.fillRect(40, 40, 22, 70); g.fillRect(66, 40, 22, 70); g.fillStyle = '#5a6068'; g.fillRect(63, 40, 2, 70);
+    g.fillStyle = '#7a5a3a'; for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) g.fillRect(96 + j * 10, 50 + i * 12, 8, 10);
+    g.fillStyle = '#2a5a2a'; g.beginPath(); g.arc(18, 86, 12, 0, 7); g.fill(); g.fillStyle = '#6a4a2a'; g.fillRect(12, 96, 12, 14);
+    g.fillStyle = '#fff8e0'; g.fillRect(30, 4, 68, 6);
+    g.fillStyle = 'rgba(255,255,255,.18)'; g.beginPath(); g.moveTo(0, 0); g.lineTo(40, 0); g.lineTo(0, 60); g.fill();
+    g.fillStyle = '#3a3a3a'; g.fillRect(62, 0, 4, 160);
+  });
+}
+function barsTex() { return ctex(64, 64, (g) => { g.clearRect(0, 0, 64, 64); g.fillStyle = '#2a2c2e'; for (let x = 4; x < 64; x += 11) g.fillRect(x, 0, 3, 64); g.fillRect(0, 0, 64, 4); g.fillRect(0, 60, 64, 4); }); }
+function poolTex() {
+  return ctex(64, 64, (g) => {
+    const gr = g.createRadialGradient(32, 32, 4, 32, 32, 46); gr.addColorStop(0, '#7af0ff'); gr.addColorStop(1, '#0a6a8a'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+    g.strokeStyle = 'rgba(220,255,255,.35)'; g.lineWidth = 1; for (let i = 0; i < 10; i++) { g.beginPath(); const y = Math.random() * 64; g.moveTo(0, y); g.bezierCurveTo(20, y - 6, 40, y + 6, 64, y); g.stroke(); }
+  });
+}
+
+/* ---------- por fuera ---------- */
+function buildPlots() {
+  const r = mulberry32(777);
+  const gnd = [], grs = [], pth = [], wl = [], cp = [], hd = [], rails = [], pil = [], icom = [], leds = [], trunks = [], fronds = [], water = [], edge = [], bol = [], bolTop = [], glowW = [], glowC = [], canopy = [], frames = [], plates = [], signs = [], glass = [], benches = [];
+  D.gates = []; D.barsM = new THREE.MeshLambertMaterial({ map: barsTex(), transparent: true, alphaTest: 0.4, side: THREE.DoubleSide });
+  const inPool = (P, x, z, m) => P.pool && x > P.pool.x0 - m && x < P.pool.x1 + m && z > P.pool.z0 - m && z < P.pool.z1 + m;
+  for (const P of TOWN.plots) {
+    const pt = P.pt, sg = P.sg, aZ = P.aZ, n = [P.gate.nx, P.gate.nz], ga = P.gate.a, pa = P.portal.a;
+    // suelo del jardín, césped junto a los muros y el camino de la cancela al portal
+    gnd.push(pgeo(P.x0, P.x1, P.z0, P.z1, 0.002, 1.6, 2.5));
+    const strip = (a0, a1, d0, d1, list, y) => { const [x0, z0] = pt(a0, d0), [x1, z1] = pt(a1, d1); list.push(pgeo(Math.min(x0, x1), Math.max(x0, x1), Math.min(z0, z1), Math.max(z0, z1), y, 2, 2.5)); };
+    strip(P.L0 + 0.3, P.L0 + 1.9, P.front - sg * 0.3, P.tf, grs, 0.005); strip(P.L1 - 1.9, P.L1 - 0.3, P.front - sg * 0.3, P.tf, grs, 0.005);
+    strip(ga - 0.8, ga + 0.8, P.front - sg * 0.2, P.tf + sg * 0.9, pth, 0.008); strip(Math.min(ga, pa) - 0.8, Math.max(ga, pa) + 0.8, P.tf + sg * 0.1, P.tf + sg * 1.7, pth, 0.008);
+    // muros
+    for (const w of P.walls) {
+      const cx = (w.x0 + w.x1) / 2, cz = (w.z0 + w.z1) / 2, sx = w.x1 - w.x0, sz = w.z1 - w.z0;
+      wl.push(bgeo(sx, w.h, sz, cx, w.h / 2, cz, 0, 1.2));
+      cp.push(bgeo(sx + (sx < sz ? 0.08 : 0), 0.06, sz + (sz < sx ? 0.08 : 0), cx, w.h + 0.03, cz, 0, 1));
+      if (w.low) { const along = sx > sz, g = along ? vgeo(w.x0, cz, w.x1, cz, w.h + 0.06, w.h + 0.66, 0, 1, 0.6) : vgeo(cx, w.z0, cx, w.z1, w.h + 0.06, w.h + 0.66, 1, 0, 0.6); rails.push(g); }
+      else if (r() < 0.5) hd.push(bgeo(sx + 0.1, 0.55, sz + 0.1, cx, w.h + 0.3, cz, 0, 1));
+    }
+    // cancela con sus pilares, el portero automático y las placas
+    for (const da of [-0.95, 0.95]) { const [x, z] = pt(ga + da, P.front - sg * 0.13); pil.push(bgeo(0.36, 1.75, 0.36, x, 0.875, z, 0, 1)); }
+    const sa = aZ ? -sg : sg, hingeA = ga - sa * 0.8, [hx, hz] = pt(hingeA, P.front - sg * 0.13);
+    const piv = new THREE.Group(); piv.position.set(hx, 0, hz); const base = Math.atan2(n[0], n[1]); piv.rotation.y = base; scene.add(piv);
+    const gm = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.45), D.barsM); gm.position.set(0.8, 0.85, 0); piv.add(gm);
+    const gf = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.06, 0.05), M.dark); gf.position.set(0.8, 1.58, 0); piv.add(gf);
+    D.gates.push({ P, piv, base });
+    hit('gt' + P.k, P.gate.x + n[0] * 0.1, 0.9, P.gate.z + n[1] * 0.1, aZ ? 0.7 : 1.6, 1.8, aZ ? 1.6 : 0.7);
+    { const [x, z] = pt(ga + sa * 0.95 * -1, P.front - sg * 0.13 + sg * 0.19); icom.push(pplate(0.17, 0.3, x, 1.2, z, n[0], n[1])); leds.push(pplate(0.03, 0.03, x + n[0] * 0.005, 1.31, z + n[1] * 0.005, n[0], n[1])); }
+    { const [x, z] = pt(ga - sa * 0.95 * -1, P.front - sg * 0.13 + sg * 0.19); plates.push(uvRect(pplate(0.3, 0.15, x, 1.45, z, n[0], n[1]), 512, P.k * 64, 128, 64, 1024, 2048)); }
+    { const wa = ga + (ga > (P.L0 + P.L1) / 2 ? -3 : 3), [x, z] = pt(wa, P.front - sg * 0.13 + sg * 0.14); plates.push(uvRect(pplate(2.0, 0.25, x, 0.62, z, n[0], n[1]), 0, P.k * 64, 512, 64, 1024, 2048)); }
+    // piscina iluminada
+    if (P.pool) {
+      const q = P.pool; water.push(pgeo(q.x0 + 0.25, q.x1 - 0.25, q.z0 + 0.25, q.z1 - 0.25, 0.03, q.x1 - q.x0, 1));
+      edge.push(bgeo(q.x1 - q.x0, 0.12, 0.3, (q.x0 + q.x1) / 2, 0.06, q.z0 + 0.15, 0, 1), bgeo(q.x1 - q.x0, 0.12, 0.3, (q.x0 + q.x1) / 2, 0.06, q.z1 - 0.15, 0, 1), bgeo(0.3, 0.12, q.z1 - q.z0, q.x0 + 0.15, 0.06, (q.z0 + q.z1) / 2, 0, 1), bgeo(0.3, 0.12, q.z1 - q.z0, q.x1 - 0.15, 0.06, (q.z0 + q.z1) / 2, 0, 1));
+      glowC.push(pgeo(q.x0 - 1.5, q.x1 + 1.5, q.z0 - 1.5, q.z1 + 1.5, 0.035, 1e9, 1e9));
+      fixUV(glowC[glowC.length - 1]);
+      for (const dx of [0.3, 0.7]) { const g = new THREE.TorusGeometry(0.22, 0.02, 4, 8, PI); g.rotateY(aZ ? PI / 2 : 0); g.translate(lerp(q.x0, q.x1, dx), 0.3, q.z0 + 0.3); edge.push(g); }
+    }
+    // palmeras y farolillos del jardín
+    for (const a of [P.L0 + 2.6, P.L1 - 2.6]) {
+      if (Math.abs(a - ga) < 2.6) continue;
+      const [x, z] = pt(a, P.front - sg * 2.2); if (inPool(P, x, z, 1)) continue;
+      palmGeo(x, z, 5.5 + r() * 3, r, trunks, fronds); colliders.push({ x0: x - 0.25, x1: x + 0.25, z0: z - 0.25, z1: z + 0.25 });
+    }
+    for (const t of [0.3, 0.7]) {
+      const [x, z] = pt(ga + 1.25 * (ga > pa ? -1 : 1) * 0 + 1.2, lerp(P.front, P.tf, t)); if (inPool(P, x, z, 0.5)) continue;
+      bol.push(cgeo(0.07, 0.09, 0.7, 6, x, 0.35, z)); bolTop.push(cgeo(0.1, 0.1, 0.12, 6, x, 0.76, z)); glowW.push(pgeo(x - 1.8, x + 1.8, z - 1.8, z + 1.8, 0.033, 1e9, 1e9)); fixUV(glowW[glowW.length - 1]);
+    }
+    if (Math.abs(P.front - P.tf) > 7) { const ba = ga > (P.L0 + P.L1) / 2 ? P.L0 + 4 : P.L1 - 4, [x, z] = pt(ba, lerp(P.front, P.tf, 0.75)); if (!inPool(P, x, z, 1)) { benches.push(bgeo(aZ ? 0.5 : 1.6, 0.1, aZ ? 1.6 : 0.5, x, 0.45, z, 0, 1), bgeo(0.3, 0.42, 0.3, x, 0.21, z, 0, 1)); colliders.push({ x0: x - 0.6, x1: x + 0.6, z0: z - 0.6, z1: z + 0.6 }); } }
+    // portal de la torre: cristal con el vestíbulo iluminado, marquesina y el nombre
+    const [px, pz] = [P.portal.x, P.portal.z];
+    glass.push(pplate(2.2, 2.45, px + n[0] * 0.03, 1.25, pz + n[1] * 0.03, n[0], n[1]));
+    for (const da of [-1.15, 1.15]) { const [x, z] = pt(pa + da, P.tf + sg * 0.06); frames.push(bgeo(0.12, 2.6, 0.12, x, 1.3, z, 0, 1)); }
+    { const [x, z] = pt(pa, P.tf + sg * 0.75); canopy.push(bgeo(aZ ? 1.5 : 3.4, 0.16, aZ ? 3.4 : 1.5, x, 2.95, z, 0, 1)); }
+    signs.push(uvRect(pplate(3.0, 0.38, px + n[0] * 1.51, 2.95, pz + n[1] * 1.51, n[0], n[1]), 0, P.k * 64, 512, 64, 1024, 2048));
+    glowW.push(pgeo(px + n[0] * 2 - 2.4, px + n[0] * 2 + 2.4, pz + n[1] * 2 - 2.4, pz + n[1] * 2 + 2.4, 0.034, 1e9, 1e9)); fixUV(glowW[glowW.length - 1]);
+    hit('pp' + P.k, px + n[0] * 0.3, 1.2, pz + n[1] * 0.3, aZ ? 0.5 : 2.2, 2.4, aZ ? 2.2 : 0.5);
+  }
+  addMerged(gnd, lam('pave', 0xa89a84)); addMerged(grs, lam(null, 0x24381e)); addMerged(pth, lam('pave', 0xd4c8b0));
+  addMerged(wl, lam('conc', 0xd8d0c0), true); addMerged(cp, lam('conc', 0xf0ece0)); addMerged(hd, lam(null, 0x203a1a)); addMerged(rails, D.barsM);
+  addMerged(pil, lam('conc', 0xe0d8c8), true); addMerged(icom, lam('steel', 0x9a9ea2)); addMerged(leds, bas(0x50ff70));
+  addMerged(trunks, lam('wood', 0x6a5a48), true); addMerged(fronds, lam(null, 0x2a4424, { side: THREE.DoubleSide }));
+  addMerged(water, new THREE.MeshBasicMaterial({ map: poolTex(), color: 0xc8f0ff })); addMerged(edge, lam(null, 0xe8e8e0));
+  addMerged(bol, M.dark); addMerged(bolTop, bas(0xffe0a8)); addMerged(benches, lam('conc', 0x9a948a));
+  addMerged(canopy, lam(null, 0xe0dcd0), true); addMerged(frames, lam('steel', 0x6a6e72));
+  addMerged(glass, new THREE.MeshBasicMaterial({ map: lobbyGlassTex(), color: 0xd8d0c0 }));
+  const atlas = nameAtlas(); atlas.wrapS = atlas.wrapT = THREE.ClampToEdgeWrapping;
+  addMerged(plates, new THREE.MeshLambertMaterial({ map: atlas, emissive: 0x101010 })); addMerged(signs, new THREE.MeshBasicMaterial({ map: atlas, color: 0xbbbbbb }));
+  const ga = addMerged(glowC, new THREE.MeshBasicMaterial({ map: glowTex(60, 220, 255), transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending })); if (ga) ga.renderOrder = 3;
+  const gb = addMerged(glowW, new THREE.MeshBasicMaterial({ map: glowTex(255, 200, 130), transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending })); if (gb) gb.renderOrder = 3;
+  // la ventana con la figura de madrugada, en la primera torre que da a Emilio Romero
+  const fp = TOWN.plots.find(P => P.aZ && P.sg > 0 && P.x1 === 14.5) || TOWN.plots[0];
+  D.figWin = plane(1.1, 1.3, new THREE.MeshBasicMaterial({ map: D.figWinTex }), fp.tf + 0.03 * fp.sg, 7.5, fp.tc, 0, PI / 2 * fp.sg);
+  D.figWin.visible = false;
+  buildModule();
+}
+function fixUV(g) { const uv = g.attributes.uv, p = g.attributes.position; let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (let i = 0; i < p.count; i++) { x0 = Math.min(x0, p.getX(i)); x1 = Math.max(x1, p.getX(i)); z0 = Math.min(z0, p.getZ(i)); z1 = Math.max(z1, p.getZ(i)); } for (let i = 0; i < uv.count; i++) uv.setXY(i, (p.getX(i) - x0) / (x1 - x0), (p.getZ(i) - z0) / (z1 - z0)); }
+function palmGeo(x, z, h, r, trunks, fronds) {
+  const lx = (r() - 0.5) * 0.8, lz = (r() - 0.5) * 0.8;
+  for (let k = 0; k < 6; k++) { const y0 = k * h / 6, g = new THREE.CylinderGeometry(0.15 - k * 0.01, 0.2 - k * 0.01, h / 6 + 0.05, 7); g.translate(x + lx * (y0 + h / 12) / h, y0 + h / 12, z + lz * (y0 + h / 12) / h); trunks.push(g); }
+  const tx = x + lx, tz = z + lz;
+  for (let k = 0; k < 9; k++) { const g = new THREE.BoxGeometry(0.5, 0.03, 2.3); g.translate(0, 0, 1.1); g.rotateX(0.35 + r() * 0.5); g.rotateY(k * PI * 2 / 9 + r() * 0.3); g.translate(tx, h, tz); fronds.push(g); }
+}
+
+/* ---------- por dentro: portal, ascensor, rellano y escalera ---------- */
+function dynPlate(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; const t = new THREE.CanvasTexture(c); const set = (...a) => { draw(c.getContext('2d'), ...a); t.needsUpdate = true; }; return { t, set }; }
+function buildModule() {
+  const X = MOD.x, Z = MOD.z, L = (lx) => X + lx, Lz = (lz) => Z + lz;
+  const floorL = [], wallL = [], ceilL = [], floorC = [], wallC = [], floorS = [], wallS = [], steps = [], steel = [], wood = [], fix = [], dark = [], mats = [];
+  const col = (x0, z0, x1, z1) => { const c = { x0: X + Math.min(x0, x1), x1: X + Math.max(x0, x1), z0: Z + Math.min(z0, z1), z1: Z + Math.max(z0, z1) }; colliders.push(c); return c; };
+  // pared con huecos [a0,a1,y1] (y1 = altura del hueco)
+  const wallX = (list, z, x0, x1, nz, y1, holes, tile) => {   // pared a lo largo de x, en z
+    let a = x0; const hs = (holes || []).slice().sort((p, q) => p[0] - q[0]);
+    for (const [h0, h1, hy] of hs) { if (h0 > a) list.push(vgeo(L(a), Lz(z), L(h0), Lz(z), 0, y1, 0, nz, tile)); list.push(vgeo(L(h0), Lz(z), L(h1), Lz(z), hy, y1, 0, nz, tile)); a = h1; }
+    if (a < x1) list.push(vgeo(L(a), Lz(z), L(x1), Lz(z), 0, y1, 0, nz, tile));
+  };
+  const wallZ = (list, x, z0, z1, nx, y1, holes, tile, yb) => {
+    let a = z0; const hs = (holes || []).slice().sort((p, q) => p[0] - q[0]), y0 = yb || 0;
+    for (const [h0, h1, hy] of hs) { if (h0 > a) list.push(vgeo(L(x), Lz(a), L(x), Lz(h0), y0, y1, nx, 0, tile)); list.push(vgeo(L(x), Lz(h0), L(x), Lz(h1), hy, y1, nx, 0, tile)); a = h1; }
+    if (a < z1) list.push(vgeo(L(x), Lz(a), L(x), Lz(z1), y0, y1, nx, 0, tile));
+  };
+  /* portal (vestíbulo): x 0..8, z 0..6 */
+  floorL.push(pgeo(L(0), L(8), Lz(0), Lz(6), 0, 1.2, 1)); ceilL.push(pgeo(L(0), L(8), Lz(0), Lz(6), 2.8, 2, 1.5, true));
+  wallX(wallL, 0, 0, 8, 1, 2.8, [[2.4, 3.6, 2.2], [4.6, 5.8, 2.2]], 1.4); wallX(wallL, 6, 0, 8, -1, 2.8, [[3.0, 5.0, 2.5]], 1.4);
+  wallZ(wallL, 0, 0, 6, 1, 2.8, [[2.4, 3.4, 2.1]], 1.4); wallZ(wallL, 8, 0, 6, -1, 2.8, null, 1.4);
+  col(-0.2, -0.2, 0, 6.2); col(8, -0.2, 8.2, 6.2); col(0, 6, 8, 6.2); col(0, -0.2, 2.4, 0); col(3.6, -0.2, 8, 0);
+  // cristal del portal (por dentro se ve el jardín de noche) y la salida
+  const night = ctex(64, 64, (g) => { g.fillStyle = '#0a1018'; g.fillRect(0, 0, 64, 64); g.fillStyle = '#1a2a1a'; g.fillRect(0, 44, 64, 20); g.fillStyle = '#ffd890'; g.fillRect(10, 38, 2, 4); g.fillRect(50, 36, 2, 4); g.fillStyle = 'rgba(255,255,255,.12)'; g.fillRect(0, 0, 18, 64); g.fillStyle = '#333'; g.fillRect(31, 0, 2, 64); });
+  plane(2.0, 2.5, new THREE.MeshBasicMaterial({ map: night }), L(4), 1.25, Lz(5.98), 0, PI); hit('px', L(4), 1.2, Lz(5.8), 2.0, 2.4, 0.4);
+  // buzones, planta, espejo y el otro ascensor (averiado)
+  const mail = ctex(128, 64, (g) => { g.fillStyle = '#5a4630'; g.fillRect(0, 0, 128, 64); for (let i = 0; i < 4; i++) for (let j = 0; j < 8; j++) { g.fillStyle = '#7a6040'; g.fillRect(2 + j * 16, 2 + i * 16, 13, 13); g.fillStyle = '#d8c8a0'; g.fillRect(5 + j * 16, 5 + i * 16, 7, 2); g.fillStyle = '#222'; g.fillRect(10 + j * 16, 10 + i * 16, 2, 2); } });
+  plane(2.4, 1.2, new THREE.MeshLambertMaterial({ map: mail }), L(7.97), 1.4, Lz(3), 0, -PI / 2);
+  cyl(0.25, 0.2, 0.5, 8, lam(null, 0x7a4a2a), L(7.3), 0.25, Lz(5.3)); const pl = new THREE.Mesh(new THREE.SphereGeometry(0.45, 8, 6), lam(null, 0x2a4a22)); pl.position.set(L(7.3), 0.85, Lz(5.3)); scene.add(pl); col(6.9, 4.9, 7.7, 5.7);
+  for (const dx of [-0.31, 0.31]) box(0.6, 2.2, 0.04, lam('steel', 0x9a9ea4), L(5.2 + dx), 1.1, Lz(0.0));
+  plane(0.7, 0.3, new THREE.MeshLambertMaterial({ map: textPlate('AVERIADO', 128, 56, '#f0e8d0', '#b01a1a', '#b01a1a') }), L(5.2), 1.5, Lz(0.03), 0, 0);
+  D.lobbyName = dynPlate(512, 64, (g, t) => { g.fillStyle = '#1a1612'; g.fillRect(0, 0, 512, 64); g.fillStyle = '#e8c870'; g.textAlign = 'center'; g.textBaseline = 'middle'; let fs = 34; g.font = 'bold ' + fs + 'px serif'; while (g.measureText(t).width > 490) { fs--; g.font = 'bold ' + fs + 'px serif'; } g.fillText(t, 256, 34); });
+  plane(3.2, 0.36, new THREE.MeshBasicMaterial({ map: D.lobbyName.t, color: 0xcccccc }), L(4.1), 2.6, Lz(0.03), 0, 0);
+  // puerta de la escalera en el portal
+  box(1.0, 2.1, 0.06, lam('wood', 0x6a4a32), L(0.03), 1.05, Lz(2.9), { ry: PI / 2 }); plane(0.6, 0.18, new THREE.MeshLambertMaterial({ map: textPlate('ESCALERA', 128, 40, '#2a6a3a', '#ffffff') }), L(0.08), 2.3, Lz(2.9), 0, PI / 2);
+  col(-0.2, 2.4, 0.06, 3.4); hit('sx', L(0.15), 1.1, Lz(2.9), 0.3, 2.1, 1.0);
+  /* cabinas del ascensor: abajo (z -1.4..0) y arriba (z 18.6..20); son iguales, así no se nota el salto */
+  D.liftDisp = dynPlate(64, 32, (g, t) => { g.fillStyle = '#080808'; g.fillRect(0, 0, 64, 32); g.fillStyle = '#ff4a2a'; g.font = 'bold 24px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 32, 17); });
+  D.liftDisp.set('0');
+  EL.doors = [];
+  for (const [oz, k] of [[0, 0], [20, 1]]) {
+    floorL.push(pgeo(L(2.4), L(3.6), Lz(oz - 1.4), Lz(oz), 0.001, 0.6, 0.6));
+    for (const [x, nx] of [[2.4, 1], [3.6, -1]]) steel.push(vgeo(L(x), Lz(oz - 1.4), L(x), Lz(oz), 0, 2.3, nx, 0, 0.6));
+    steel.push(pgeo(L(2.4), L(3.6), Lz(oz - 1.4), Lz(oz), 2.3, 0.6, 0.6, true));
+    plane(1.1, 1.3, bas(0x8a9098), L(3), 1.35, Lz(oz - 1.38), 0, 0);   // espejo
+    fix.push(pgeo(L(2.7), L(3.3), Lz(oz - 1.0), Lz(oz - 0.4), 2.28, 1, 1, true));
+    col(2.2, oz - 1.6, 2.4, oz); col(3.6, oz - 1.6, 3.8, oz); col(2.2, oz - 1.6, 3.8, oz - 1.4);
+    plane(0.18, 0.5, lam('steel', 0x7a7e84), L(3.57), 1.2, Lz(oz - 0.5), 0, -PI / 2); plane(0.14, 0.07, new THREE.MeshBasicMaterial({ map: D.liftDisp.t }), L(3.565), 1.55, Lz(oz - 0.5), 0, -PI / 2);
+    hit('eb' + k, L(3.45), 1.2, Lz(oz - 0.5), 0.3, 0.6, 0.5);
+    const dm = lam('steel', 0xb8bcc2), pl0 = box(0.62, 2.2, 0.05, dm, L(2.7), 1.1, Lz(oz)), pr0 = box(0.62, 2.2, 0.05, dm, L(3.3), 1.1, Lz(oz));
+    const c = col(2.4, oz - 0.06, 3.6, oz + 0.06); EL.doors.push({ l: pl0, r: pr0, c });
+    // botón de llamada y display por fuera
+    plane(0.1, 0.16, lam('steel', 0x8a8e94, { emissive: 0x201008 }), L(3.95), 1.1, Lz(oz + 0.03), 0, 0); hit('ec' + k, L(3.95), 1.1, Lz(oz + 0.1), 0.3, 0.4, 0.2);
+    plane(0.14, 0.07, new THREE.MeshBasicMaterial({ map: D.liftDisp.t }), L(3), 2.35, Lz(oz + 0.03), 0, 0);
+  }
+  /* rellano de cada planta: x 0..12, z 20..22.4 */
+  floorC.push(pgeo(L(0), L(12), Lz(20), Lz(22.4), 0, 1, 1)); ceilL.push(pgeo(L(0), L(12), Lz(20), Lz(22.4), 2.6, 2, 1.2, true));
+  wallX(wallC, 20, 0, 12, 1, 2.6, [[2.4, 3.6, 2.2]], 1.4); wallX(wallC, 22.4, 0, 12, -1, 2.6, null, 1.4);
+  wallZ(wallC, 0, 20, 22.4, 1, 2.6, null, 1.4); wallZ(wallC, 12, 20, 22.4, -1, 2.6, null, 1.4);
+  col(0, 19.8, 2.4, 20); col(3.6, 19.8, 12, 20); col(0, 22.4, 12, 22.6); col(12, 20, 12.2, 22.4); col(-0.2, 20, 0, 22.4);
+  for (const x of [2, 6, 10]) fix.push(pgeo(L(x - 0.3), L(x + 0.3), Lz(20.9), Lz(21.5), 2.58, 1, 1, true));
+  // puertas de los pisos (A, B, C, D)
+  D.doors = [];
+  const letters = ctex(256, 64, (g) => { g.fillStyle = '#c8a860'; g.fillRect(0, 0, 256, 64); g.fillStyle = '#2a1a0a'; g.font = 'bold 44px serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; for (let i = 0; i < 4; i++) g.fillText('ABCD'[i], 32 + i * 64, 34); });
+  FLAT_LOC.forEach(([x, z, nx, nz], j) => {
+    const grp = new THREE.Group(); grp.position.set(L(x) + nx * 0.01, 0, Lz(z) + nz * 0.01); grp.rotation.y = Math.atan2(nx, nz); scene.add(grp);
+    const hole = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 2.1), bas(0x020203)); hole.position.set(0, 1.05, 0.005); grp.add(hole);
+    const piv = new THREE.Group(); piv.position.set(-0.49, 0, 0.05); grp.add(piv);
+    const door = new THREE.Mesh(new THREE.BoxGeometry(0.98, 2.08, 0.07), lam('wood', 0x5a3a26)); door.position.set(0.49, 1.04, 0); piv.add(door);
+    const knob = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 4), lam(null, 0xc8a050)); knob.position.set(0.85, 1.0, 0.05); piv.add(knob);
+    const pg = new THREE.PlaneGeometry(0.16, 0.16), uv = pg.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setX(i, (j + uv.getX(i)) / 4);
+    const plate = new THREE.Mesh(pg, new THREE.MeshLambertMaterial({ map: letters, emissive: 0x181008 })); plate.position.set(0, 2.25, 0.03); grp.add(plate);
+    const mat = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.5), lam(null, 0x5a3a2a)); mat.rotation.x = -PI / 2; mat.position.set(0, 0.012, 0.35); grp.add(mat);
+    hit('fd' + j, L(x) + nx * 0.4, 1.1, Lz(z) + nz * 0.4, nx ? 0.6 : 1.1, 2.2, nz ? 0.6 : 1.1);
+    D.doors.push({ piv });
+  });
+  D.floorPlate = dynPlate(256, 96, (g, t) => { g.fillStyle = '#e8e0c8'; g.fillRect(0, 0, 256, 96); g.strokeStyle = '#3a2a1a'; g.lineWidth = 5; g.strokeRect(4, 4, 248, 88); g.fillStyle = '#2a1a0a'; g.font = 'bold 40px serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 128, 50); });
+  plane(0.8, 0.3, new THREE.MeshLambertMaterial({ map: D.floorPlate.t, emissive: 0x141210 }), L(3), 1.7, Lz(22.37), 0, PI);
+  // interruptor de la luz (con su piloto naranja) y puerta de la escalera
+  D.ledM = bas(0xff8a20);
+  plane(0.08, 0.12, lam(null, 0xe8e4d8), L(1.6), 1.2, Lz(20.02), 0, 0); plane(0.02, 0.02, D.ledM, L(1.6), 1.23, Lz(20.03), 0, 0); hit('lz1', L(1.6), 1.2, Lz(20.1), 0.3, 0.3, 0.2);
+  box(1.0, 2.1, 0.06, lam('wood', 0x6a4a32), L(0.03), 1.05, Lz(21.2), { ry: PI / 2 }); plane(0.6, 0.18, new THREE.MeshLambertMaterial({ map: textPlate('ESCALERA', 128, 40, '#2a6a3a', '#ffffff') }), L(0.08), 2.3, Lz(21.2), 0, PI / 2);
+  hit('sw', L(0.2), 1.1, Lz(21.2), 0.3, 2.1, 1.0);
+  /* escalera: x -6..0, z 13..23, en bucle; se dibujan dos plantas por arriba y dos por abajo */
+  D.stairSigns = [];
+  for (let k = -2; k <= 2; k++) {
+    const y = k * FLH;
+    for (let i = 0; i < 10; i++) {
+      steps.push(bgeo(2.95, 0.3, 0.55, L(-4.525), y + (i + 1) * 0.14 - 0.15, Lz(20 - (i + 0.5) * 0.55), 0, 0.6));
+      steps.push(bgeo(2.95, 0.3, 0.55, L(-1.475), y + FLH / 2 + (i + 1) * 0.14 - 0.15, Lz(14.5 + (i + 0.5) * 0.55), 0, 0.6));
+    }
+    floorS.push(bgeo(6, 0.3, 1.5, L(-3), y + FLH / 2 - 0.15, Lz(13.75), 0, 1.2)); floorS.push(bgeo(6, 0.3, 3, L(-3), y - 0.15, Lz(21.5), 0, 1.2));
+    fix.push(pgeo(L(-3.4), L(-2.6), Lz(21.2), Lz(21.8), y + 2.6, 1, 1, true), pgeo(L(-3.4), L(-2.6), Lz(13.5), Lz(14.1), y + FLH / 2 + 2.6, 1, 1, true));
+    dark.push(vgeo(L(-0.02), Lz(20.7), L(-0.02), Lz(21.7), y, y + 2.1, -1, 0, 1));
+    const sgn = dynPlate(256, 96, (g, t) => { g.fillStyle = '#e8e0c8'; g.fillRect(0, 0, 256, 96); g.fillStyle = '#1a2a6a'; g.font = 'bold 54px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 128, 50); });
+    plane(0.6, 0.24, new THREE.MeshLambertMaterial({ map: sgn.t, emissive: 0x141210 }), L(-1.5), y + 1.75, Lz(22.97), 0, PI); D.stairSigns.push({ k, sgn });
+  }
+  wallZ(wallS, -6, 13, 23, 1, 3 * FLH, null, 1.4, -2 * FLH - 0.3); wallZ(wallS, 0, 13, 23, -1, 3 * FLH, null, 1.4, -2 * FLH - 0.3);
+  wallS.push(vgeo(L(-6), Lz(13), L(0), Lz(13), -2 * FLH - 0.3, 3 * FLH, 0, 1, 1.4), vgeo(L(-6), Lz(23), L(0), Lz(23), -2 * FLH - 0.3, 3 * FLH, 0, -1, 1.4));
+  steps.push(bgeo(0.1, 5 * FLH, 5.5, L(-3), 0.2, Lz(17.25), 0, 1.4));   // muro entre los dos tramos
+  col(-6.2, 13, -6, 23); col(0, 13, 0.2, 23); col(-6, 12.8, 0, 13); col(-6, 23, 0, 23.2); col(-3.05, 14.5, -2.95, 20);
+  plane(0.08, 0.12, lam(null, 0xe8e4d8), L(-0.03), 1.2, Lz(22.3), 0, -PI / 2); plane(0.02, 0.02, D.ledM, L(-0.04), 1.23, Lz(22.3), 0, -PI / 2); hit('lz2', L(-0.15), 1.2, Lz(22.3), 0.2, 0.3, 0.3);
+  hit('sw', L(-0.2), 1.1, Lz(21.2), 0.3, 2.1, 1.0);
+  // materiales: el suelo de mármol del portal, terrazo en los rellanos, cemento en la escalera
+  const marble = ctex(128, 128, (g) => { for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) { g.fillStyle = (i + j) % 2 ? '#c8b8a0' : '#e8dcc8'; g.fillRect(i * 64, j * 64, 64, 64); } g.strokeStyle = 'rgba(90,70,50,.25)'; for (let k = 0; k < 14; k++) { g.beginPath(); g.moveTo(Math.random() * 128, Math.random() * 128); g.bezierCurveTo(Math.random() * 128, Math.random() * 128, Math.random() * 128, Math.random() * 128, Math.random() * 128, Math.random() * 128); g.stroke(); } });
+  const terr = ctex(64, 64, (g) => { g.fillStyle = '#b8b0a0'; g.fillRect(0, 0, 64, 64); for (let i = 0; i < 300; i++) { g.fillStyle = ['#8a8070', '#d8d0c0', '#6a5a4a', '#a89a88'][i % 4]; g.fillRect(Math.random() * 64, Math.random() * 64, 2, 2); } });
+  addMerged(floorL, new THREE.MeshLambertMaterial({ map: marble })); addMerged(wallL, lam('wall', 0xe0d8c8)); addMerged(ceilL, lam(null, 0xd8d4cc));
+  addMerged(floorC, new THREE.MeshLambertMaterial({ map: terr })); addMerged(wallC, lam('wall', 0xd0c4a0));
+  addMerged(floorS, lam('conc', 0xa8a498)); addMerged(wallS, lam('wall', 0xc8c0a8)); addMerged(steps, lam('conc', 0xb0aca0));
+  addMerged(steel, lam('steel', 0xa8acb2)); D.fixM = bas(0xfff8e8); addMerged(fix, D.fixM); addMerged(dark, lam('wood', 0x6a4a32));
+  LG.int = new THREE.PointLight(0xfff0dc, 0, 13, 1.1); scene.add(LG.int);
+}
+
+/* ---------- moverse por dentro ---------- */
+function tpTo(x, z, yaw) {
+  me.x = x; me.z = z; me.yaw = yaw; me.pitch = 0; IV.px = x - MOD.x; IV.pz = z - MOD.z;
+  const f = $('fade'); if (f) { f.style.transition = 'none'; f.style.opacity = 1; void f.offsetWidth; f.style.transition = 'opacity .5s'; f.style.opacity = 0; }
+}
+function enterLobby(k) {
+  if (IV.k !== k) { EL.at = 0; EL.fl = 0; EL.door = 0; EL.want = 0; EL.st = ''; }
+  IV.k = k; IV.f = 0; IV.FL = 0; D.lobbyName.set(TOWN.plots[k].name); AU.play('door');
+  tpTo(MOD.x + 4, MOD.z + 5.1, 0);
+}
+function exitLobby() { const P = TOWN.plots[IV.k]; if (!P) { tpTo(1.6, -1.6, PI); return; } const n = P.portal; AU.play('door'); tpTo(n.x + n.nx * 1.4, n.z + n.nz * 1.4, Math.atan2(-n.nx, -n.nz)); }
+function liftDest() {
+  const P = TOWN.plots[IV.k], Pm = myP(), H = Pm && Pm.h;
+  let o = H && H.k === 'bag' ? W.dl.find(q => q.i === H.d && (q.d / 4 | 0) === IV.k) : null;
+  if (!o) o = W.dl.find(q => (q.d / 4 | 0) === IV.k && !q.dn);
+  return o ? o.f : P.fl;
+}
+function liftOpen() { EL.want = 1; EL.ot = 6; AU.play('ding', me.x, me.z); }
+function liftCall(w) {
+  if (EL.st) return;
+  const here = w ? IV.f : 0;
+  if ((w === 0 && EL.at === 0) || (w === 1 && EL.at === 1 && EL.fl === here)) { liftOpen(); return; }
+  EL.st = 'come'; EL.t = 2.2 + 0.3 * Math.abs(here - (EL.at ? EL.fl : 0)); EL.cto = w; EL.cfl = here; AU.play('lift', me.x, me.z);
+}
+function liftGo(dest) {
+  if (EL.st) return;
+  EL.from = EL.at ? EL.fl : 0; EL.dest = dest; EL.want = 0; EL.st = 'ride'; EL.T = EL.t = 2.2 + 0.32 * Math.abs(dest - EL.from); EL.hum = 0;
+}
+function setDisp(v) { if (EL.disp !== v) { EL.disp = v; D.liftDisp.set(String(v)); } }
+// acciones que solo hace cada jugador en su pantalla (no pasan por el anfitrión)
+function localUse(key, R, H) {
+  const kind = key.slice(0, 2), n = +key.slice(2), zn = modZone(me.x, me.z);
+  if (kind === 'pp') { const P = TOWN.plots[n]; if (W.gt && W.gt[n] > 0) return R(T('u_portal_in', plotName(P)), true, null, () => enterLobby(n)); return R(T('u_portal_shut'), false); }
+  if (key === 'px') return R(T('u_portal_out'), true, null, exitLobby);
+  if (key === 'sx') return R(T('u_stairs'), true, null, () => { IV.FL = 0; IV.tl = 25; AU.play('door'); tpTo(MOD.x - 0.7, MOD.z + 21.2, PI / 2); });
+  if (key === 'sw') {
+    if (zn === 'stair') {
+      if (IV.FL === 0) return R(T('u_to_lobby'), true, null, () => { AU.play('door'); tpTo(MOD.x + 0.7, MOD.z + 2.9, -PI / 2); });
+      return R(T('u_to_floor', IV.FL), true, null, () => { IV.f = IV.FL; AU.play('door'); tpTo(MOD.x + 0.7, MOD.z + 21.2, -PI / 2); });
+    }
+    return R(T('u_stairs'), true, null, () => { IV.FL = IV.f; IV.tl = Math.max(IV.tl, 15); AU.play('door'); tpTo(MOD.x - 0.7, MOD.z + 21.2, PI / 2); });
+  }
+  if (kind === 'ec') return EL.st === 'ride' ? R(T('u_lift_busy'), false) : R(T('u_lift_call'), true, null, () => { AU.play('click'); liftCall(n); });
+  if (kind === 'eb') {
+    if (EL.st) return R(T('u_lift_busy'), false);
+    if (n === 1) return R(T('u_lift_down'), true, null, () => { AU.play('click'); liftGo(0); });
+    const d = liftDest();
+    if (d === 13) return R(T('u_lift_no13'), true, null, () => { AU.play('click'); liftGo(12); });
+    return R(T('u_lift_go', d), true, null, () => { AU.play('click'); liftGo(d); });
+  }
+  if (kind === 'lz') return R(T('u_light'), true, null, () => { IV.tl = 30; AU.play('click'); });
+  return null;
+}
+function updInterior(dt) {
+  // cancelas: abiertas mientras dura el permiso del portero
+  for (const g of D.gates) { const op = W.gt && W.gt[g.P.k] > 0; g.piv.rotation.y = lerp(g.piv.rotation.y, g.base + (op ? 1.45 : 0), Math.min(1, dt * 3)); g.P.gcol.off = op; }
+  const zn = modZone(me.x, me.z);
+  if (!zn) { if (LG.int) LG.int.intensity = 0; IV.px = me.x - MOD.x; IV.pz = me.z - MOD.z; return; }
+  if (IV.k < 0) { tpTo(1.6, -1.6, PI); return; }
+  const lx = me.x - MOD.x, lz = me.z - MOD.z, P = TOWN.plots[IV.k];
+  // escalera: llevar la cuenta de la planta
+  if (zn === 'stair') {
+    const land = (b) => b >= 20, inB = (a, b) => b < 20 && a > -3;
+    if (land(IV.pz) && inB(lx, lz)) { if (IV.FL <= 0) me.z = MOD.z + 20.02; else IV.FL--; }
+    else if (inB(IV.px, IV.pz) && land(lz)) IV.FL++;
+    if (land(IV.pz) && lz < 20 && lx < -3 && IV.FL >= P.fl) me.z = MOD.z + 20.02;
+  }
+  IV.px = me.x - MOD.x; IV.pz = me.z - MOD.z;
+  if (IV.FL !== IV.lastFL) { IV.lastFL = IV.FL; for (const s of D.stairSigns) { const f = IV.FL + s.k; s.sgn.set(f < 0 ? '-' : f === 0 ? T('floor0') : f > P.fl ? '' : String(f)); } }
+  if (IV.f !== IV.lastF) { IV.lastF = IV.f; D.floorPlate.set(T('floorN', IV.f)); }
+  // ascensor
+  EL.door = clamp(EL.door + (EL.want ? dt : -dt) * 1.4, 0, 1);
+  if (EL.want && !EL.st) { EL.ot -= dt; if (EL.ot <= 0) { const dz = lz - (EL.at ? 20 : 0); if (Math.abs(dz) < 0.35 && lx > 2.3 && lx < 3.7) EL.ot = 1.5; else EL.want = 0; } }
+  if (EL.st === 'come') { EL.t -= dt; if (EL.t <= 0) { EL.st = ''; EL.at = EL.cto; EL.fl = EL.cfl; setDisp(EL.at ? EL.fl : 0); liftOpen(); } }
+  if (EL.st === 'ride') {
+    EL.t -= dt; const el = EL.T - EL.t;
+    if (el > 1) { const u = clamp((el - 1) / Math.max(0.1, EL.T - 1.2), 0, 1); setDisp(Math.round(lerp(EL.from, EL.dest, u))); EL.hum -= dt; if (EL.hum <= 0) { EL.hum = 1.1; AU.play('lift', me.x, me.z); } }
+    if (EL.t <= 0) {
+      const inCab = zn === (EL.at ? 'cab1' : 'cab0'), to = EL.dest > 0 ? 1 : 0;
+      if (inCab && to !== EL.at) { me.z += (to - EL.at) * 20; IV.pz = me.z - MOD.z; }
+      if (inCab) { IV.f = EL.dest; if (EL.dest > 0) IV.tl = 20; }
+      EL.at = to; EL.fl = EL.dest; EL.st = ''; setDisp(EL.dest); liftOpen();
+    }
+  }
+  EL.doors.forEach((d, k) => {
+    const a = (k === 0 ? EL.at === 0 : EL.at === 1 && EL.fl === IV.f) && !(EL.st === 'ride') ? EL.door : 0;
+    d.l.position.x = MOD.x + 2.7 - a * 0.58; d.r.position.x = MOD.x + 3.3 + a * 0.58; d.c.off = a > 0.85;
+  });
+  // luz: el portal siempre; rellanos y escalera con temporizador (30 s), la cabina con algún parpadeo
+  let I = 0;
+  if (zn === 'lobby') I = 1.5;
+  else if (zn === 'cab0' || zn === 'cab1') I = EL.st === 'ride' && Math.sin(TIME * 31) > 0.97 ? 0.15 : 1.3;
+  else { IV.tl -= dt; I = IV.tl > 0 ? (IV.tl < 2 && Math.sin(TIME * 40) > 0 ? 0.3 : 1.4) : 0.12; }
+  LG.int.intensity = I; LG.int.position.set(me.x, camera.position.y + 1.0, me.z);
+  D.fixM.color.setScalar(I > 0.5 ? 1 : 0.12); D.ledM.color.setHex(Math.sin(TIME * 3) > 0 ? 0xff8a20 : 0x7a3a08);
 }
 
 /* ================= PERSONAJES ================= */
@@ -2607,9 +3049,9 @@ function deliver(c, pid) {
   c.g[m.idx] = 1; c.sc = r2(c.sc + m.score); if (H.hm) c.hm = 1; P.h = 0; ev('ok', c.x, c.z);
   if (c.g.every(v => v)) finishOrder(c, ord); else if (m.line) say(c, m.line);
 }
-function nearestPlayer(x, z) {
+function nearestPlayer(x, z, vw) {
   let best = null, bd = 1e9;
-  for (const pid in W.pl) { const p = PP[pid]; if (!p || W.pl[pid].ko > 0) continue; const d = Math.hypot(p.x - x, p.z - z); if (d < bd) { bd = d; best = pid; } }
+  for (const pid in W.pl) { const p = PP[pid]; if (!p || W.pl[pid].ko > 0) continue; if (vw !== undefined && (p.vw === undefined ? -1 : p.vw) !== vw) continue; const d = Math.hypot(p.x - x, p.z - z); if (d < bd) { bd = d; best = pid; } }
   return best ? { pid: best, d: bd, x: PP[best].x, z: PP[best].z } : null;
 }
 function gunAimAt(id) { for (const pid in W.pl) { const h = W.pl[pid].h; if (h && h.k === 'gun' && PP[pid] && PP[pid].aim === id) return true; } return false; }
@@ -2762,6 +3204,8 @@ function useLogic(pid, key, doIt) {
   const kind = key.slice(0, 2);
   if (kind === 'pt') return doorLogic(pid, n, R, H);
   if (kind === 'vm') return vendLogic(pid, n, R, H, P);
+  if (kind === 'gt') return gateLogic(pid, n, R, H, P);
+  if (kind === 'sd') { const d = TOWN.sdoors[n]; return R(d && d.st >= 0 ? STREETS[d.st].n + ' ' + d.num : '', false); }
   if (kind === 'sp' && H && H.k === 'cone') return R(T('u_cone_mount', X.meat[n]), true, () => { const S = SV[n]; S.lv.fill(7); S.dn.fill(0.12); S.pend.fill(0); S.dirty = true; W.sp[n].h = 1; encodeSpit(n); P.h = 0; });
   if (kind === 'sp') return H ? R(T('u_hands'), false) : R(T('u_carve', X.meat[n]), true, null, 'cut');
   if (kind === 'tr') {
@@ -2947,7 +3391,7 @@ function simulate(dt) {
 }
 
 /* ================= RED: cooperativo por presencia ================= */
-const NETV = 8;   // versión del protocolo: todos tienen que jugar con la misma
+const NETV = 9;   // versión del protocolo: todos tienen que jugar con la misma
 const NET = { room: null, myId: 'solo', isHost: true, joined: false, acts: [], seq: 0, lastSeq: {}, lastHost: null, hostGone: 0, sendT: 0, others: [], remote: null, count: 1, evInit: false, code: '', badVer: false, lostSaid: false };
 
 /* Fuera de Claude (GitHub) la sala va por PeerJS, de navegador a navegador y sin cuentas.
@@ -3013,7 +3457,7 @@ function adoptWorld() {
   ensurePlayer(NET.myId);
 }
 function netUpdate(dt, me) {
-  PP[NET.myId] = { x: me.x, z: me.z, yaw: me.yaw, pitch: me.pitch, aim: me.aim };
+  PP[NET.myId] = { x: me.x, z: me.z, yaw: me.yaw, pitch: me.pitch, aim: me.aim, vw: myVW() };
   const room = NET.room; if (!room) return;
   let peers; try { peers = room.peers(); } catch (e) { return; }
   const mine = peers.find(p => p.isMe && p.sameTab);
@@ -3044,7 +3488,7 @@ function netUpdate(dt, me) {
       }
     }
   }
-  for (const p of others) { const pr = p.presence.p; if (pr) PP[p.peer] = { x: pr[0], z: pr[1], yaw: pr[2], pitch: pr[3], aim: pr[4] }; else delete PP[p.peer]; }
+  for (const p of others) { const pr = p.presence.p; if (pr) PP[p.peer] = { x: pr[0], z: pr[1], yaw: pr[2], pitch: pr[3], aim: pr[4], vw: pr[5] === undefined ? -1 : pr[5] }; else delete PP[p.peer]; }
   if (NET.isHost && W) {
     const live = {}; live[NET.myId] = 1;
     for (const p of others) {
@@ -3059,7 +3503,7 @@ function netUpdate(dt, me) {
   NET.sendT -= dt;
   if (NET.sendT <= 0) {
     NET.sendT = NET.joined ? 0.1 : 1;
-    const pr = { p: NET.joined ? [r2(me.x), r2(me.z), r2(me.yaw), r2(me.pitch), me.aim | 0] : null, a: NET.isHost ? null : NET.acts, ah: W ? W.hs : 0, w: NET.isHost && W && NET.joined ? wireW() : null };
+    const pr = { p: NET.joined ? [r2(me.x), r2(me.z), r2(me.yaw), r2(me.pitch), me.aim | 0, myVW()] : null, a: NET.isHost ? null : NET.acts, ah: W ? W.hs : 0, w: NET.isHost && W && NET.joined ? wireW() : null };
     try { const q = room.presence(pr); if (q && q.catch) q.catch(() => { }); } catch (e) { }
   }
 }
@@ -3077,16 +3521,36 @@ const FACE_SPOTS = [[-3.97, 2.2, -3.0, PI / 2], [-3.97, 2.0, -1.2, PI / 2], [-3.
 function newStreet(w) {
   w.vs = { x: BIKE_HOME.x, z: BIKE_HOME.z, y: BIKE_HOME.y, r: 0, b: 0 };
   w.dl = []; w.nd = HOUR_LEN * 0.5; w.s.dl = 0; w.call = 0; w.cl = 0; w.ua = 0; w.sps = 0;
+  w.gt = {};
   w.dg = DOG_HOME.map(([x, z]) => ({ x, z, y: 0, st: 0, hp: 2, cd: 0, bk: 0 }));
 }
 function inShop(x, z) { return z < 5.3 && z > -8 && x > -4.2 && x < 4.2; }
 function dlPat(o) { return (230 + 40 * Math.max(0, genOrder(o.a, o.s).length - 1)) * (W.n === 1 ? 1.15 : 1); }
+// un pedido va a un piso: torre, planta y letra. A veces el cliente baja al portal; el anónimo siempre es en un 13º
 function newDelivery(an) {
-  const busy = W.dl.map(o => o.d), free = [];
-  TOWN.doors.forEach((d, k) => { if (!d.x13 && busy.indexOf(k) < 0 && d.st >= 1) free.push(k); });
-  if (an && TOWN.c13 < 0) return;
-  const d = an ? TOWN.c13 : free[Math.random() * free.length | 0], a = RES_IDX[Math.random() * RES_IDX.length | 0], s = (Math.random() * 1e6) | 0;
-  const o = { i: W.id++, a, s, d, st: 0, g: genOrder(a, s).map(() => 0), sc: 0, p: 1, an: an ? 1 : 0, lt: 0 }; W.dl.push(o); return o;
+  const busy = W.dl.map(o => o.d / 4 | 0), towers = TOWN.plots.filter(P => busy.indexOf(P.k) < 0 && (!an || P.fl >= 14));
+  if (!towers.length) return;
+  const P = towers[Math.random() * towers.length | 0], d = P.k * 4 + (Math.random() * 4 | 0);
+  let f = 1 + (Math.random() * P.fl | 0); if (f === 13) f = 12; if (an) f = 13;
+  const a = RES_IDX[Math.random() * RES_IDX.length | 0], s = (Math.random() * 1e6) | 0;
+  const o = { i: W.id++, a, s, d, f, dn: !an && Math.random() < 0.4 ? 1 : 0, st: 0, g: genOrder(a, s).map(() => 0), sc: 0, p: 1, an: an ? 1 : 0, lt: 0 }; W.dl.push(o); return o;
+}
+// portero automático de la cancela
+function gateLogic(pid, k, R, H, P) {
+  const Pl = TOWN.plots[k]; if (!Pl) return R('', false);
+  const g = Pl.gate, p = PP[pid], nm = plotName(Pl);
+  if (p && plotAt(p.x, p.z) === Pl) return W.gt[k] > 0 ? R(nm, false) : R(T('u_gate_out'), true, () => { W.gt[k] = 8; ev('buzz', g.x, g.z); });
+  if (W.gt[k] > 0) return R(T('u_gate_open', nm), false);
+  const o = H && H.k === 'bag' ? W.dl.find(q => q.i === H.d) : null;
+  if (!o || (o.d / 4 | 0) !== k) return R(T('u_icom', STREETS[Pl.st].n + ' ' + Pl.num + ' · ' + nm), true, () => { ev('buzz', g.x, g.z); ev('icom', g.x, g.z, 0); });
+  return R(T('u_icom_call', o.f + 'º' + FLAT_LET[o.d % 4]), true, () => {
+    W.gt[k] = 90; ev('buzz', g.x, g.z); ev('icom', g.x, g.z, (o.an ? 3 : o.dn ? 2 : 1) * 10000 + o.i);
+    if (o.dn && !o.an && !W.cu.some(c => c.dl === o.i && c.st !== S_DEAD)) spawnLobby(o);
+  });
+}
+// el cliente que baja: sale del ascensor y espera en el portal
+function spawnLobby(o) {
+  W.cu.push({ i: W.id++, a: o.a, s: o.s, x: MOD.x + 4, z: MOD.z + 1.6, y: 0, st: S_DOOR, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: 0, hp: 2, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, o: 1, dl: o.i, hid: 1, lb: 1, vw: (o.d / 4 | 0) * 100 });
 }
 // el teléfono: hay que descolgar. k 0 pedido normal, 1 no se oye nada (y el pedido es al 13), 2 solo una respiración
 function startCall(k) { if (W.call) return false; W.call = { k, t: 0, rk: -1 }; ev('msg', 0, 0, 'phone'); return true; }
@@ -3145,9 +3609,9 @@ function bagLogic(pid, R, H, P) {
   // si solo falta la bebida, te la puedes llevar y comprarla por el camino en una máquina
   const nodr = !ready && open.find(o => o.g.some(v => v) && genOrder(o.a, o.s).every((it, i) => o.g[i] || it.k === 'dr'));
   if (!H) {
-    if (ready) return R(T('u_bag_take', addrOf(ready.d)), true, () => { ready.st = 1; P.h = { k: 'bag', d: ready.i }; });
-    if (nodr) return R(T('u_bag_take_dr', addrOf(nodr.d)), true, () => { nodr.st = 1; P.h = { k: 'bag', d: nodr.i }; });
-    return R(open.length ? T('u_bag_fill', addrOf(open[0].d)) : T('u_bag_none'), false);
+    if (ready) return R(T('u_bag_take', dlAddr(ready)), true, () => { ready.st = 1; P.h = { k: 'bag', d: ready.i }; });
+    if (nodr) return R(T('u_bag_take_dr', dlAddr(nodr)), true, () => { nodr.st = 1; P.h = { k: 'bag', d: nodr.i }; });
+    return R(open.length ? T('u_bag_fill', dlAddr(open[0])) : T('u_bag_none'), false);
   }
   if (H.k === 'kb' || H.k === 'dr' || H.k === 'fr') {
     for (const o of open) {
@@ -3180,16 +3644,17 @@ function bikeLogic(pid, R, H, P) {
   return R(T('u_bike_on'), true, () => { V.r = pid; V.mt = W.t; if (H) { V.b = H.d; P.h = 0; } });
 }
 function doorLogic(pid, n, R, H) {
-  const adr = addrOf(n);
+  const vw = PP[pid] ? PP[pid].vw : -1, fl = vw % 100, adr = T('u_flat', fl + 'º' + FLAT_LET[n % 4]);
   if (!H || H.k !== 'bag') return R(adr, false);
   const o = W.dl.find(q => q.i === H.d);
   if (!o) return R(adr, false);
-  if (o.d !== n) return R(T('u_wrongdoor', addrOf(o.d)), false);
+  if (o.d !== n || o.f !== fl || (vw / 100 | 0) !== (n / 4 | 0)) return R(T('u_wrongdoor', o.f + 'º' + FLAT_LET[o.d % 4]), false);
+  if (o.dn) return R(T('u_flat_down'), false);
   const at = W.cu.find(c => c.dl === o.i && c.st !== S_DEAD);
   if (at) return at.st === S_DOOR && !at.hid ? residentLogic(at, pid, R, H, W.pl[pid]) : R(T('u_wait_door'), false);
   return R(T('u_ring'), true, () => {
     const D = TOWN.doors[n];
-    W.cu.push({ i: W.id++, a: o.a, s: o.s, x: r2(D.x + D.nx * 0.3), z: r2(D.z + D.nz * 0.3), y: r2(Math.atan2(D.nx, D.nz)), st: S_DOOR, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: o.an, hp: o.an ? 6 : 2, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, o: 1, dl: o.i, dk: n, hid: 1 });
+    W.cu.push({ i: W.id++, a: o.a, s: o.s, x: r2(D.x + D.nx * 0.3), z: r2(D.z + D.nz * 0.3), y: r2(Math.atan2(D.nx, D.nz)), st: S_DOOR, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: o.an, hp: o.an ? 6 : 2, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, o: 1, dl: o.i, dk: n, hid: 1, vw: (n / 4 | 0) * 100 + o.f });
     ev('bell2', D.x, D.z);
   });
 }
@@ -3227,9 +3692,9 @@ function knockOff(pid, x, z) {
 function updOutdoor(c, dt) {
   switch (c.st) {
     case S_DOOR:
-      if (c.hid && c.t > 2.2) { c.hid = 0; ev('door', c.x, c.z); say(c, c.an ? 'pasa' : 'g'); }
+      if (c.hid && c.t > (c.lb ? 5 : 2.2)) { c.hid = 0; ev(c.lb ? 'ding' : 'door', c.x, c.z); say(c, c.an ? 'pasa' : 'g'); }
       if (c.an && c.t > 7.5) {
-        const n = nearestPlayer(c.x, c.z);
+        const n = nearestPlayer(c.x, c.z, c.vw);
         if (n && n.d < 13) { c.st = S_ATK; c.t = 0; c.sc = 0.4; say(c, 'atk'); ev('scream', c.x, c.z); W.dl = W.dl.filter(q => q.i !== c.dl); }
         else { c.st = S_BACK; c.t = 0; }
       }
@@ -3237,7 +3702,7 @@ function updOutdoor(c, dt) {
       break;
     case S_BACK: if (c.t > (c.an ? 0.5 : 2.6)) c.rm = 1; break;
     case S_ATK: {
-      const n = nearestPlayer(c.x, c.z); W.fk = Math.max(W.fk, 0.15);
+      const n = nearestPlayer(c.x, c.z, c.vw); W.fk = Math.max(W.fk, 0.15);
       if (!n || c.t > 45 || inShop(n.x, n.z) || n.d > 45) { c.st = S_DIS; c.t = 0; ev('scream', c.x, c.z); break; }
       c.sc -= dt;
       if (c.sc <= 0) moveTo(c, n.x, n.z, 4.6 + 0.15 * W.n, dt); else c.y = Math.atan2(n.x - c.x, n.z - c.z);
@@ -3313,6 +3778,7 @@ function simStreet(dt, np) {
     for (const s of W.sh) if (s && s.k === 'bag' && s.d === o.i) held = true;
     if (!held) { o.st = 0; o.g = o.g.map(() => 0); o.sc = 0; }
   }
+  for (const k in W.gt) { W.gt[k] -= dt; if (W.gt[k] <= 0) delete W.gt[k]; }
   updDogs(dt);
 }
 
@@ -3324,7 +3790,7 @@ function myDelivery() {
 }
 function syncTown(dt) {
   // niebla: fuera se ve un poco más lejos
-  const out = !inShop(camera.position.x, camera.position.z);
+  const out = !inShop(camera.position.x, camera.position.z) && !inMod(camera.position.x, camera.position.z);
   scene.fog.near = lerp(scene.fog.near, out ? 6 : 4, Math.min(1, dt * 3)); scene.fog.far = lerp(scene.fog.far, out ? (camera.position.z > 14 ? 70 : ride.on ? 54 : Math.abs(camera.position.x - LIT_ST) < 7 ? 46 : 38) : 25, Math.min(1, dt * 3));
   // las cuatro farolas encendidas más cercanas dan luz de verdad
   const flick = lampOff;
@@ -3334,7 +3800,7 @@ function syncTown(dt) {
   LG.pool.forEach((l, i) => { const L = D.near && D.near[i]; if (!L) { l.intensity = 0; return; } l.position.set(L.hx, (L.hy || 4.48) - 0.3, L.hz); l.color.setHex(L.lit ? 0xffe6c0 : 0xffa850); l.intensity = flick(L) ? 0.08 : L.lit ? 2.4 : 2.1; });
   for (const o of D.lamps) o.h.material.color.setHex(flick(o.L) ? 0x1c1a16 : o.L.lit ? 0xfff0d8 : 0xffb45a);
   // portales abiertos
-  const open = {}; for (const c of W.cu) if (c.o && c.dk !== undefined && ((c.st === S_DOOR && !c.hid) || (c.st === S_BACK && c.t < 1.6) || (c.st === S_ATK && c.t < 1))) open[c.dk] = 1;
+  const open = {}, vw = myVW(); for (const c of W.cu) if (c.o && c.dk !== undefined && c.vw === vw && ((c.st === S_DOOR && !c.hid) || (c.st === S_BACK && c.t < 1.6) || (c.st === S_ATK && c.t < 1))) open[c.dk % 4] = 1;
   D.doors.forEach((d, k) => { const t = open[k] ? 1 : 0; d.piv.rotation.y = lerp(d.piv.rotation.y, t * 1.3, Math.min(1, dt * 4)); });
   // la Vespino
   const V = W.vs; D.bike.visible = !ride.on;
@@ -3357,7 +3823,7 @@ function syncTown(dt) {
   });
   // el portal de mi pedido tiene la luz del rellano encendida
   const dl = myDelivery();
-  if (dl) { const d = TOWN.doors[dl.d], x = d.x + d.nx * 0.2, z = d.z + d.nz * 0.2, on = !dl.an || Math.sin(TIME * 9) + Math.sin(TIME * 21) > -0.6; D.porch.position.set(x, 2.55, z); D.porch.material.color.setHex(on ? (dl.an ? 0xff6050 : 0xffe0a0) : 0x1a1410); LG.porch.position.set(d.x + d.nx * 1.2, 2.4, d.z + d.nz * 1.2); LG.porch.color.setHex(dl.an ? 0xff5040 : 0xffc880); LG.porch.intensity = on ? 1.5 : 0; }
+  if (dl && !inMod(me.x, me.z)) { const d = TOWN.plots[dl.d / 4 | 0].gate, x = d.x + d.nx * 0.15, z = d.z + d.nz * 0.15, on = !dl.an || Math.sin(TIME * 9) + Math.sin(TIME * 21) > -0.6; D.porch.position.set(x, 1.95, z); D.porch.material.color.setHex(on ? (dl.an ? 0xff6050 : 0xffe0a0) : 0x1a1410); LG.porch.position.set(d.x + d.nx * 1.2, 2.2, d.z + d.nz * 1.2); LG.porch.color.setHex(dl.an ? 0xff5040 : 0xffc880); LG.porch.intensity = on ? 1.5 : 0; }
   else { LG.porch.intensity = 0; D.porch.position.y = -10; }
   updFigures(dt); updVermin(dt); syncFaces();
   // el mar: se mueve, y se oyen las olas cerca de la playa
@@ -3386,7 +3852,7 @@ function syncTown(dt) {
   // faro de la moto
   LG.head.intensity = ride.on ? 3.6 : 0;
   if (ride.on) { LG.head.position.set(camera.position.x, 1.1, camera.position.z); LG.head.target.position.set(me.x - Math.sin(me.yaw) * 14, 0, me.z - Math.cos(me.yaw) * 14); }
-  updStreetLife(dt);
+  updStreetLife(dt); updInterior(dt);
   // el de la parada del bus: mira hacia ti y, si te acercas, ya no está
   if (!watch) { watch = makeChar(SHADOW_LOOK, 9, 2, null); legless(watch); watch.g.position.set(BUS_STOP.x + 0.5, 0.35, BUS_STOP.z + 0.35); watch.g.rotation.y = PI; }
   const wk = W.hs + ':' + W.n, wv = W.ph === 'play' && W.t > HOUR_LEN && W.t < HOUR_LEN * 5 && watchGone !== wk;
@@ -3431,7 +3897,7 @@ function updFigures(dt) {
 }
 function dlTicketHTML(o) {
   const ord = genOrder(o.a, o.s), X = LX[LANG], nm = o.an ? '???' : aName(o.a);
-  let h = '<div class="tk dl' + (o.p < 0.25 ? ' hot' : '') + '"><div class="tk-h"><b>' + T('dl_head') + '</b><i>' + addrOf(o.d) + '</i></div><div class="tk-n">' + nm + (o.an ? ' · ' + T('dl_anon') : '') + '</div>';
+  let h = '<div class="tk dl' + (o.p < 0.25 ? ' hot' : '') + '"><div class="tk-h"><b>' + T('dl_head') + '</b><i>' + dlAddr(o) + '</i></div><div class="tk-n">' + nm + (o.an ? ' · ' + T('dl_anon') : '') + '</div>';
   ord.forEach((it, i) => {
     const t = it.k === 'kb' ? '<u>' + kbShort(it) + '</u><br>' + vegPhrase(it.v) + ' · ' + saucePhrase(it.s) + (it.b === 2 ? ' · ' + X.wfries : '') : '<u>' + (it.k === 'fr' ? X.fries : X.drink[it.t]) + '</u>';
     h += '<div class="tk-i' + (o.g[i] ? ' done' : '') + '">' + t + '</div>';
@@ -3736,6 +4202,7 @@ function toast(t, cls) { if (!t) return; const el = document.createElement('div'
 /* ---------- jugador ---------- */
 function collide(p) {
   for (const c of colliders) {
+    if (c.off) continue;
     const nx = clamp(p.x, c.x0, c.x1), nz = clamp(p.z, c.z0, c.z1), dx = p.x - nx, dz = p.z - nz, d2 = dx * dx + dz * dz;
     if (d2 >= PR * PR) continue;
     if (d2 > 1e-8) { const d = Math.sqrt(d2); p.x = nx + dx / d * PR; p.z = nz + dz / d * PR; }
@@ -3771,7 +4238,7 @@ function updatePlayer(dt) {
   // cámara
   if (cut.on) cut.cam = Math.min(1, cut.cam + dt * 5); else cut.cam = Math.max(0, cut.cam - dt * 6);
   const ey = ko ? 0.35 : 1.62 + Math.sin(me.bob) * 0.025 * mv, k = cut.cam * cut.cam * (3 - 2 * cut.cam);
-  camera.position.set(lerp(me.x, SPX[cut.i], k), lerp(ey, 1.5, k), lerp(me.z, -2.42, k));
+  camera.position.set(lerp(me.x, SPX[cut.i], k), lerp(ey + stairY(me.x, me.z), 1.5, k), lerp(me.z, -2.42, k));
   camera.rotation.y = angLerp(me.yaw, 0, k); camera.rotation.x = lerp(me.pitch, -0.07, k); camera.rotation.z = ko ? 1.2 : 0;
   if (hurtFlash > 0) { camera.rotation.z += Math.sin(TIME * 60) * 0.03 * hurtFlash; }
   AU.lis.x = me.x; AU.lis.z = me.z; AU.lis.yaw = me.yaw;
@@ -3896,7 +4363,7 @@ function updateInteract(dt) {
   const hits = raycaster.intersectObjects(rayTargets, false);
   if (hits.length) {
     const h0 = hits[0], key = h0.object.userData.key;
-    if (key) { const isCu = key.slice(0, 2) === 'cu'; if (isCu && gun) me.aim = +key.slice(2); if (h0.distance < (isCu ? 3.1 : 2.6)) { targetKey = key; target = useLogic(NET.myId, key, false); } }
+    if (key) { const isCu = key.slice(0, 2) === 'cu'; if (isCu && gun) me.aim = +key.slice(2); if (h0.distance < (isCu ? 3.1 : 2.6)) { targetKey = key.slice(0, 2) === 'fd' && IV.k >= 0 ? 'pt' + (IV.k * 4 + +key.slice(2)) : key; const R = (t, ok, fn, loc) => ({ t, ok: !!ok, loc: loc || null }); target = localUse(targetKey, R, P.h) || useLogic(NET.myId, targetKey, false); } }
   }
   if (IN.reload) { IN.reload = false; if (gun && reloadT <= 0 && W.am < 2 && W.shl > 0) { reloadT = 1.2; AU.play('reload'); act('reload'); } }
   let use = IN.use; if (IN.fire) { if (gun) tryShoot(P); else use = true; }
@@ -3907,6 +4374,7 @@ function updateInteract(dt) {
     else if (target.loc === 'cut') enterCut(+targetKey.slice(2));
     else if (target.loc === 'peep') openPeep();
     else if (target.loc === 'rules') openRules();
+    else if (typeof target.loc === 'function') { target.loc(); useCd = 0.4; }
     else { act('use', targetKey); useSound(targetKey); vmKick = 1; useCd = NET.isHost ? 0.12 : 0.3; }
   }
 }
@@ -3937,6 +4405,7 @@ function syncChars(dt) {
     if (ch.bag) ch.bag.visible = (c.st === S_OUT && c.b === 1) || c.st === S_RUN;
     if (c.an === 2) ch.g.visible = !W.pw || c.st === S_DIS;
     if (c.o) ch.g.visible = !c.hid;
+    if (c.vw !== undefined && c.vw !== myVW()) ch.g.visible = false;
     if (c.an === 3) { ch.g.position.y = 0.18 + Math.sin(TIME * 2 + c.i) * 0.08; for (const m of ch.mats) m.opacity = 0.3 + 0.15 * Math.sin(TIME * 7 + c.i); }
     if (c.ln !== ch.ln) { ch.ln = c.ln; showSay(c, ch); }
     ch.cx = c;
@@ -3965,6 +4434,7 @@ function syncChars(dt) {
     if (W.vs && W.vs.r === p.peer) { ch.g.position.y = 0.32; ch.lL.rotation.x = ch.lR.rotation.x = -1.35; ch.aL.rotation.x = ch.aR.rotation.x = -1.1; ch.spd = 0; }
     if (hk !== ch.hk) { ch.hk = hk; if (ch.held) ch.aR.remove(ch.held); ch.held = null; if (hk) { ch.held = itemMesh(Q.h); ch.held.position.set(0, -0.66, 0.12); ch.held.rotation.x = Q.h.k === 'gun' ? PI / 2 : 1.2; ch.aR.add(ch.held); } }
     if (hk) ch.aR.rotation.x = -1.1; ch.head.rotation.x = -pr[3] * 0.6;
+    ch.g.visible = (pr[5] === undefined ? -1 : pr[5]) === myVW();
   }
   for (const [id, ch] of rchars) if (!live[id]) { killChar(ch); rchars.delete(id); }
 }
@@ -4032,9 +4502,17 @@ function updateHUD(dt) {
       else if (type === 'ring') AU.play('ring', x, z);
       else if (type === 'call') {
         const k = String(a)[0], o = W.dl.find(q => q.i === +String(a).slice(1)), sb = $('subs'); let who = T('call_who'), txt;
-        if (k === 'v' && o) { who = aName(o.a); txt = T('call_v', orderPhrase(genOrder(o.a, o.s)), addrOf(o.d)); toast(T('dl_new', addrOf(o.d)), 'good'); }
-        else { txt = T(k === 's' ? 'call_s' : 'call_b'); AU.play('whisper', x, z); if (o) toast(T('dl_new', addrOf(o.d)), 'bad'); }
+        if (k === 'v' && o) { who = aName(o.a); txt = T('call_v', orderPhrase(genOrder(o.a, o.s)), dlAddr(o)); toast(T('dl_new', dlAddr(o)), 'good'); }
+        else { txt = T(k === 's' ? 'call_s' : 'call_b'); AU.play('whisper', x, z); if (o) toast(T('dl_new', dlAddr(o)), 'bad'); }
         sb.innerHTML = ''; const b = document.createElement('b'); b.textContent = who + ': '; sb.appendChild(b); sb.appendChild(document.createTextNode(txt)); sb.classList.toggle('an', k !== 'v'); subT = 3 + txt.length * 0.05;
+      }
+      else if (type === 'icom') {
+        AU.play('buzz', x, z);
+        if (Math.hypot(me.x - x, me.z - z) < 14) {
+          const k = Math.floor(a / 10000), o = W.dl.find(q => q.i === a % 10000), sb = $('subs'), who = T('icom_who'), txt = T('icom' + k, o ? o.f + 'º' + FLAT_LET[o.d % 4] : '');
+          sb.innerHTML = ''; const b = document.createElement('b'); b.textContent = who + ': '; sb.appendChild(b); sb.appendChild(document.createTextNode(txt)); sb.classList.toggle('an', k === 3); subT = 3 + txt.length * 0.05;
+          if (k === 3) AU.play('whisper', x, z);
+        }
       }
       else if (type === 'shot') { if (a !== NET.myId) AU.play('shot', x, z); }
       else if (type === 'cut') { if (a !== NET.myId) AU.play('cut', x, z); }

@@ -93,6 +93,9 @@ const AU = {
       case 'bell2': this.tone(784, 0.6, 'sine', 0.2 * Math.max(v, 0.5), 0, 0, d); this.tone(622, 0.9, 'sine', 0.2 * Math.max(v, 0.5), 0.45, 0, d); break;
       case 'bark': for (let i = 0; i < 2; i++) { this.tone(380, 0.12, 'sawtooth', 0.22 * Math.max(v, 0.15), i * 0.22, 170, d); this.nz(0.12, 'bandpass', 900, 2, 0.25 * Math.max(v, 0.15), i * 0.22, 0, d); } break;
       case 'wave': this.nz(3.2, 'lowpass', 700, 0.6, 0.32 * Math.max(v, 0.08), 0, 300, d); this.nz(2.4, 'bandpass', 2400, 0.8, 0.06 * Math.max(v, 0.08), 0.5, 0, d); break;
+      case 'ding': this.tone(1046, 0.6, 'sine', 0.14 * Math.max(v, 0.4), 0, 0, d); this.tone(784, 0.9, 'sine', 0.12 * Math.max(v, 0.4), 0.18, 0, d); break;
+      case 'lift': this.tone(62, 1.2, 'sawtooth', 0.05 * Math.max(v, 0.5), 0, 64, d); this.nz(1.2, 'lowpass', 300, 0.7, 0.08 * Math.max(v, 0.5), 0, 0, d); break;
+      case 'buzz': this.tone(180, 0.45, 'square', 0.06 * Math.max(v, 0.3), 0, 0, d); this.tone(360, 0.45, 'square', 0.03 * Math.max(v, 0.3), 0, 0, d); break;
       case 'vend': this.tone(900, 0.05, 'triangle', 0.05 * v, 0, 0, d); this.nz(0.12, 'lowpass', 600, 0.7, 0.5 * v, 0.35, 0, d); this.tone(120, 0.2, 'sine', 0.4 * v, 0.35, 55, d); this.nz(0.1, 'bandpass', 2600, 3, 0.15 * v, 0.55, 0, d); break;
       case 'barkc': for (let i = 0; i < 3; i++) { this.tone(310, 0.14, 'sawtooth', 0.45 * Math.max(v, 0.3), i * 0.19, 140, d); this.nz(0.13, 'bandpass', 820, 1.5, 0.5 * Math.max(v, 0.3), i * 0.19, 0, d); } break;
       case 'growl': this.tone(82, 1.1, 'sawtooth', 0.2 * Math.max(v, 0.2), 0, 68, d); this.nz(1.1, 'bandpass', 320, 2, 0.25 * Math.max(v, 0.2), 0, 0, d); break;

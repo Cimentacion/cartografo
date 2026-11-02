@@ -11,16 +11,36 @@ const FACE_SPOTS = [[-3.97, 2.2, -3.0, PI / 2], [-3.97, 2.0, -1.2, PI / 2], [-3.
 function newStreet(w) {
   w.vs = { x: BIKE_HOME.x, z: BIKE_HOME.z, y: BIKE_HOME.y, r: 0, b: 0 };
   w.dl = []; w.nd = HOUR_LEN * 0.5; w.s.dl = 0; w.call = 0; w.cl = 0; w.ua = 0; w.sps = 0;
+  w.gt = {};
   w.dg = DOG_HOME.map(([x, z]) => ({ x, z, y: 0, st: 0, hp: 2, cd: 0, bk: 0 }));
 }
 function inShop(x, z) { return z < 5.3 && z > -8 && x > -4.2 && x < 4.2; }
 function dlPat(o) { return (230 + 40 * Math.max(0, genOrder(o.a, o.s).length - 1)) * (W.n === 1 ? 1.15 : 1); }
+// un pedido va a un piso: torre, planta y letra. A veces el cliente baja al portal; el anónimo siempre es en un 13º
 function newDelivery(an) {
-  const busy = W.dl.map(o => o.d), free = [];
-  TOWN.doors.forEach((d, k) => { if (!d.x13 && busy.indexOf(k) < 0 && d.st >= 1) free.push(k); });
-  if (an && TOWN.c13 < 0) return;
-  const d = an ? TOWN.c13 : free[Math.random() * free.length | 0], a = RES_IDX[Math.random() * RES_IDX.length | 0], s = (Math.random() * 1e6) | 0;
-  const o = { i: W.id++, a, s, d, st: 0, g: genOrder(a, s).map(() => 0), sc: 0, p: 1, an: an ? 1 : 0, lt: 0 }; W.dl.push(o); return o;
+  const busy = W.dl.map(o => o.d / 4 | 0), towers = TOWN.plots.filter(P => busy.indexOf(P.k) < 0 && (!an || P.fl >= 14));
+  if (!towers.length) return;
+  const P = towers[Math.random() * towers.length | 0], d = P.k * 4 + (Math.random() * 4 | 0);
+  let f = 1 + (Math.random() * P.fl | 0); if (f === 13) f = 12; if (an) f = 13;
+  const a = RES_IDX[Math.random() * RES_IDX.length | 0], s = (Math.random() * 1e6) | 0;
+  const o = { i: W.id++, a, s, d, f, dn: !an && Math.random() < 0.4 ? 1 : 0, st: 0, g: genOrder(a, s).map(() => 0), sc: 0, p: 1, an: an ? 1 : 0, lt: 0 }; W.dl.push(o); return o;
+}
+// portero automático de la cancela
+function gateLogic(pid, k, R, H, P) {
+  const Pl = TOWN.plots[k]; if (!Pl) return R('', false);
+  const g = Pl.gate, p = PP[pid], nm = plotName(Pl);
+  if (p && plotAt(p.x, p.z) === Pl) return W.gt[k] > 0 ? R(nm, false) : R(T('u_gate_out'), true, () => { W.gt[k] = 8; ev('buzz', g.x, g.z); });
+  if (W.gt[k] > 0) return R(T('u_gate_open', nm), false);
+  const o = H && H.k === 'bag' ? W.dl.find(q => q.i === H.d) : null;
+  if (!o || (o.d / 4 | 0) !== k) return R(T('u_icom', STREETS[Pl.st].n + ' ' + Pl.num + ' · ' + nm), true, () => { ev('buzz', g.x, g.z); ev('icom', g.x, g.z, 0); });
+  return R(T('u_icom_call', o.f + 'º' + FLAT_LET[o.d % 4]), true, () => {
+    W.gt[k] = 90; ev('buzz', g.x, g.z); ev('icom', g.x, g.z, (o.an ? 3 : o.dn ? 2 : 1) * 10000 + o.i);
+    if (o.dn && !o.an && !W.cu.some(c => c.dl === o.i && c.st !== S_DEAD)) spawnLobby(o);
+  });
+}
+// el cliente que baja: sale del ascensor y espera en el portal
+function spawnLobby(o) {
+  W.cu.push({ i: W.id++, a: o.a, s: o.s, x: MOD.x + 4, z: MOD.z + 1.6, y: 0, st: S_DOOR, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: 0, hp: 2, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, o: 1, dl: o.i, hid: 1, lb: 1, vw: (o.d / 4 | 0) * 100 });
 }
 // el teléfono: hay que descolgar. k 0 pedido normal, 1 no se oye nada (y el pedido es al 13), 2 solo una respiración
 function startCall(k) { if (W.call) return false; W.call = { k, t: 0, rk: -1 }; ev('msg', 0, 0, 'phone'); return true; }
@@ -79,9 +99,9 @@ function bagLogic(pid, R, H, P) {
   // si solo falta la bebida, te la puedes llevar y comprarla por el camino en una máquina
   const nodr = !ready && open.find(o => o.g.some(v => v) && genOrder(o.a, o.s).every((it, i) => o.g[i] || it.k === 'dr'));
   if (!H) {
-    if (ready) return R(T('u_bag_take', addrOf(ready.d)), true, () => { ready.st = 1; P.h = { k: 'bag', d: ready.i }; });
-    if (nodr) return R(T('u_bag_take_dr', addrOf(nodr.d)), true, () => { nodr.st = 1; P.h = { k: 'bag', d: nodr.i }; });
-    return R(open.length ? T('u_bag_fill', addrOf(open[0].d)) : T('u_bag_none'), false);
+    if (ready) return R(T('u_bag_take', dlAddr(ready)), true, () => { ready.st = 1; P.h = { k: 'bag', d: ready.i }; });
+    if (nodr) return R(T('u_bag_take_dr', dlAddr(nodr)), true, () => { nodr.st = 1; P.h = { k: 'bag', d: nodr.i }; });
+    return R(open.length ? T('u_bag_fill', dlAddr(open[0])) : T('u_bag_none'), false);
   }
   if (H.k === 'kb' || H.k === 'dr' || H.k === 'fr') {
     for (const o of open) {
@@ -114,16 +134,17 @@ function bikeLogic(pid, R, H, P) {
   return R(T('u_bike_on'), true, () => { V.r = pid; V.mt = W.t; if (H) { V.b = H.d; P.h = 0; } });
 }
 function doorLogic(pid, n, R, H) {
-  const adr = addrOf(n);
+  const vw = PP[pid] ? PP[pid].vw : -1, fl = vw % 100, adr = T('u_flat', fl + 'º' + FLAT_LET[n % 4]);
   if (!H || H.k !== 'bag') return R(adr, false);
   const o = W.dl.find(q => q.i === H.d);
   if (!o) return R(adr, false);
-  if (o.d !== n) return R(T('u_wrongdoor', addrOf(o.d)), false);
+  if (o.d !== n || o.f !== fl || (vw / 100 | 0) !== (n / 4 | 0)) return R(T('u_wrongdoor', o.f + 'º' + FLAT_LET[o.d % 4]), false);
+  if (o.dn) return R(T('u_flat_down'), false);
   const at = W.cu.find(c => c.dl === o.i && c.st !== S_DEAD);
   if (at) return at.st === S_DOOR && !at.hid ? residentLogic(at, pid, R, H, W.pl[pid]) : R(T('u_wait_door'), false);
   return R(T('u_ring'), true, () => {
     const D = TOWN.doors[n];
-    W.cu.push({ i: W.id++, a: o.a, s: o.s, x: r2(D.x + D.nx * 0.3), z: r2(D.z + D.nz * 0.3), y: r2(Math.atan2(D.nx, D.nz)), st: S_DOOR, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: o.an, hp: o.an ? 6 : 2, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, o: 1, dl: o.i, dk: n, hid: 1 });
+    W.cu.push({ i: W.id++, a: o.a, s: o.s, x: r2(D.x + D.nx * 0.3), z: r2(D.z + D.nz * 0.3), y: r2(Math.atan2(D.nx, D.nz)), st: S_DOOR, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: o.an, hp: o.an ? 6 : 2, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, o: 1, dl: o.i, dk: n, hid: 1, vw: (n / 4 | 0) * 100 + o.f });
     ev('bell2', D.x, D.z);
   });
 }
@@ -161,9 +182,9 @@ function knockOff(pid, x, z) {
 function updOutdoor(c, dt) {
   switch (c.st) {
     case S_DOOR:
-      if (c.hid && c.t > 2.2) { c.hid = 0; ev('door', c.x, c.z); say(c, c.an ? 'pasa' : 'g'); }
+      if (c.hid && c.t > (c.lb ? 5 : 2.2)) { c.hid = 0; ev(c.lb ? 'ding' : 'door', c.x, c.z); say(c, c.an ? 'pasa' : 'g'); }
       if (c.an && c.t > 7.5) {
-        const n = nearestPlayer(c.x, c.z);
+        const n = nearestPlayer(c.x, c.z, c.vw);
         if (n && n.d < 13) { c.st = S_ATK; c.t = 0; c.sc = 0.4; say(c, 'atk'); ev('scream', c.x, c.z); W.dl = W.dl.filter(q => q.i !== c.dl); }
         else { c.st = S_BACK; c.t = 0; }
       }
@@ -171,7 +192,7 @@ function updOutdoor(c, dt) {
       break;
     case S_BACK: if (c.t > (c.an ? 0.5 : 2.6)) c.rm = 1; break;
     case S_ATK: {
-      const n = nearestPlayer(c.x, c.z); W.fk = Math.max(W.fk, 0.15);
+      const n = nearestPlayer(c.x, c.z, c.vw); W.fk = Math.max(W.fk, 0.15);
       if (!n || c.t > 45 || inShop(n.x, n.z) || n.d > 45) { c.st = S_DIS; c.t = 0; ev('scream', c.x, c.z); break; }
       c.sc -= dt;
       if (c.sc <= 0) moveTo(c, n.x, n.z, 4.6 + 0.15 * W.n, dt); else c.y = Math.atan2(n.x - c.x, n.z - c.z);
@@ -247,5 +268,6 @@ function simStreet(dt, np) {
     for (const s of W.sh) if (s && s.k === 'bag' && s.d === o.i) held = true;
     if (!held) { o.st = 0; o.g = o.g.map(() => 0); o.sc = 0; }
   }
+  for (const k in W.gt) { W.gt[k] -= dt; if (W.gt[k] <= 0) delete W.gt[k]; }
   updDogs(dt);
 }

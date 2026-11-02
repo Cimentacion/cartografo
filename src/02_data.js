@@ -271,7 +271,7 @@ const RULES = [
   'Si se va la luz: el cuadro está en el almacén. No te quedes quieto a oscuras.',
   'Puerta de atrás: usa SIEMPRE la mirilla antes de abrir.',
   'A las 3:33 viene alguien. Siempre viene alguien.',
-  'Si llaman y no se oye nada, no vayas. El 13 de la Calle del Pozo no existe.',
+  'Si llaman y no se oye nada, no vayas. En estas torres no hay planta 13; si el ascensor no tiene el botón, no subas andando.',
   'Si sales a repartir, cartel de CERRADO. Si lo dejas abierto y vacío, entran ellos.',
   'Los perros del solar no son de nadie. Ni te bajes de la moto cerca.',
   'Lo que pase cuando no mira nadie, se queda en la cocina. La mesa del almacén sirve para algo más que verdura.',
