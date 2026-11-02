@@ -23,6 +23,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-mono);font-size:1
   radial-gradient(ellipse at center,rgba(0,0,0,0) 48%,rgba(0,0,0,.62) 100%),
   repeating-linear-gradient(to bottom,rgba(0,0,0,.16) 0 1px,rgba(0,0,0,0) 1px 3px);mix-blend-mode:multiply}
 #hurt,#flash{position:absolute;inset:0;pointer-events:none;opacity:0}
+#fade{position:absolute;inset:0;pointer-events:none;opacity:0;background:#000}
 #hurt{background:radial-gradient(ellipse at center,rgba(179,22,28,.15) 20%,rgba(179,22,28,.95) 100%)}
 #flash{background:#ffe9b0}
 #flash.on{animation:fl .14s ease-out}
@@ -178,7 +179,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
   (function () { var ce = console.error; console.error = function () { try { var a = String(arguments[0]); if (a.indexOf('THREE.') >= 0) window.__kpSay(a.slice(0, 160)); } catch (x) { } return ce.apply(console, arguments); }; })();
   </script>
   <canvas id="gl" tabindex="0" aria-label="Kebab Poniente, juego en primera persona"></canvas>
-  <div id="fx"></div><div id="hurt"></div><div id="flash"></div><div id="bubs"></div>
+  <div id="fx"></div><div id="hurt"></div><div id="fade"></div><div id="flash"></div><div id="bubs"></div>
 
   <div id="hud" hidden>
     <div id="top">
@@ -233,7 +234,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
         <dl class="keys" id="ctl-list"></dl>
       </div>
     </div>
-    <p class="ver">Kebab Poniente · 2026-11-02 15:26 UTC</p>
+    <p class="ver">Kebab Poniente · 2026-11-02 16:18 UTC</p>
   </div></section>
 
   <section id="note" class="ov" hidden><div class="paper">
