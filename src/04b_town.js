@@ -51,8 +51,8 @@ function streetAt(x, z) {
 function layoutTown() {
   const r = mulberry32(4471), T = { bld: [], sdoors: [], doors: [], plots: [], lamps: [], cols: [], cars: [], bins: [], blk: { solar: SOLAR } };
   const addB = (x0, x1, z0, z1, side, tall) => {
-    const h = tall ? [18, 24, 30, 36, 45, 54][r() * 6 | 0] : [9, 12, 12, 15, 18, 21][r() * 6 | 0];
-    T.bld.push({ x0, x1, z0, z1, h, f: r() * 4 | 0 }); T.cols.push({ x0, x1, z0, z1 });
+    const h = tall ? [30, 39, 48, 57, 66, 75][r() * 6 | 0] : [9, 12, 12, 15, 18, 21][r() * 6 | 0];
+    T.bld.push({ x0, x1, z0, z1, h, f: r() * 4 | 0, av: tall ? 1 : 0 }); T.cols.push({ x0, x1, z0, z1 });
     if (!side) return;
     const t = 0.5 + (r() - 0.5) * 0.4; let x, z, nx = 0, nz = 0;
     if (side === 'N') { z = z0; nz = -1; x = lerp(x0, x1, t); } else if (side === 'S') { z = z1; nz = 1; x = lerp(x0, x1, t); }
@@ -82,7 +82,7 @@ function layoutTown() {
     P.pt = pt; P.aZ = aZ; P.sg = sg; P.front = front; P.L0 = L0; P.L1 = L1;
     // la torre
     const tw = Math.min(14, len - 9), td = Math.min(14, depth - 8.5), tb = back + sg * 2.5, tf = tb + sg * td;
-    const tc = (L0 + L1) / 2 + (r() - 0.5) * (len - tw - 5) * 0.6, h = [27, 33, 39, 45, 51, 60][r() * 6 | 0];
+    const tc = (L0 + L1) / 2 + (r() - 0.5) * (len - tw - 5) * 0.6, h = [33, 42, 51, 60, 69, 78][r() * 6 | 0];
     const [ax0, az0] = pt(tc - tw / 2, Math.min(tb, tf)), [ax1, az1] = pt(tc + tw / 2, Math.max(tb, tf));
     T.bld.push({ x0: Math.min(ax0, ax1), x1: Math.max(ax0, ax1), z0: Math.min(az0, az1), z1: Math.max(az0, az1), h, f: r() * 4 | 0, tw: P.k });
     T.cols.push({ x0: Math.min(ax0, ax1), x1: Math.max(ax0, ax1), z0: Math.min(az0, az1), z1: Math.max(az0, az1) });
@@ -416,7 +416,8 @@ function buildTown() {
   addMerged(bar, lam(null, 0x9a2a1a)); addMerged(barW, lam(null, 0xd8d8d0));
   // edificios
   const byF = [[], [], [], []];
-  for (const b of TOWN.bld) { const w = b.x1 - b.x0, d = b.z1 - b.z0; byF[b.f].push(bgeo(w, b.h, d, (b.x0 + b.x1) / 2, b.h / 2, (b.z0 + b.z1) / 2, 0, 6)); }
+  for (const b of TOWN.bld) { if (b.av || b.tw !== undefined) continue; const w = b.x1 - b.x0, d = b.z1 - b.z0; byF[b.f].push(bgeo(w, b.h, d, (b.x0 + b.x1) / 2, b.h / 2, (b.z0 + b.z1) / 2, 0, 6)); }
+  buildTowers();
   // la parte de arriba del propio local (no hay plantas encima por dentro, pero desde la calle sí)
   byF[1].push(bgeo(10, 6, 13.2, 0, 2.95 + 3, -1.6, 0, 6));
   F.forEach((m, i) => addMerged(byF[i], m, true));

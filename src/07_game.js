@@ -19,7 +19,7 @@ async function boot() {
     renderer = new THREE.WebGLRenderer({ canvas: $('gl'), antialias: false, powerPreference: 'high-performance' });
   } catch (e) { $('menu-msg').textContent = T('nowebgl'); noGL = true; $('btn-start').disabled = true; if (window.__kpSay) window.__kpSay(String(e && e.message || e)); return; }
   renderer.setPixelRatio(1);
-  camera = new THREE.PerspectiveCamera(66, 16 / 9, 0.05, 60); camera.rotation.order = 'YXZ';
+  camera = new THREE.PerspectiveCamera(66, 16 / 9, 0.05, 180); camera.rotation.order = 'YXZ';
   buildWorld(); scene.add(camera); raycaster = new THREE.Raycaster();
   vm = new THREE.Group(); camera.add(vm); vmItem = new THREE.Group(); vm.add(vmItem);
   D.handle = makeHandle(); camera.add(D.handle);
