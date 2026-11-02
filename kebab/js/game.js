@@ -1179,8 +1179,8 @@ function streetAt(x, z) {
 function layoutTown() {
   const r = mulberry32(4471), T = { bld: [], sdoors: [], doors: [], plots: [], lamps: [], cols: [], cars: [], bins: [], blk: { solar: SOLAR } };
   const addB = (x0, x1, z0, z1, side, tall) => {
-    const h = tall ? [18, 24, 30, 36, 45, 54][r() * 6 | 0] : [9, 12, 12, 15, 18, 21][r() * 6 | 0];
-    T.bld.push({ x0, x1, z0, z1, h, f: r() * 4 | 0 }); T.cols.push({ x0, x1, z0, z1 });
+    const h = tall ? [30, 39, 48, 57, 66, 75][r() * 6 | 0] : [9, 12, 12, 15, 18, 21][r() * 6 | 0];
+    T.bld.push({ x0, x1, z0, z1, h, f: r() * 4 | 0, av: tall ? 1 : 0 }); T.cols.push({ x0, x1, z0, z1 });
     if (!side) return;
     const t = 0.5 + (r() - 0.5) * 0.4; let x, z, nx = 0, nz = 0;
     if (side === 'N') { z = z0; nz = -1; x = lerp(x0, x1, t); } else if (side === 'S') { z = z1; nz = 1; x = lerp(x0, x1, t); }
@@ -1210,7 +1210,7 @@ function layoutTown() {
     P.pt = pt; P.aZ = aZ; P.sg = sg; P.front = front; P.L0 = L0; P.L1 = L1;
     // la torre
     const tw = Math.min(14, len - 9), td = Math.min(14, depth - 8.5), tb = back + sg * 2.5, tf = tb + sg * td;
-    const tc = (L0 + L1) / 2 + (r() - 0.5) * (len - tw - 5) * 0.6, h = [27, 33, 39, 45, 51, 60][r() * 6 | 0];
+    const tc = (L0 + L1) / 2 + (r() - 0.5) * (len - tw - 5) * 0.6, h = [33, 42, 51, 60, 69, 78][r() * 6 | 0];
     const [ax0, az0] = pt(tc - tw / 2, Math.min(tb, tf)), [ax1, az1] = pt(tc + tw / 2, Math.max(tb, tf));
     T.bld.push({ x0: Math.min(ax0, ax1), x1: Math.max(ax0, ax1), z0: Math.min(az0, az1), z1: Math.max(az0, az1), h, f: r() * 4 | 0, tw: P.k });
     T.cols.push({ x0: Math.min(ax0, ax1), x1: Math.max(ax0, ax1), z0: Math.min(az0, az1), z1: Math.max(az0, az1) });
@@ -1544,7 +1544,8 @@ function buildTown() {
   addMerged(bar, lam(null, 0x9a2a1a)); addMerged(barW, lam(null, 0xd8d8d0));
   // edificios
   const byF = [[], [], [], []];
-  for (const b of TOWN.bld) { const w = b.x1 - b.x0, d = b.z1 - b.z0; byF[b.f].push(bgeo(w, b.h, d, (b.x0 + b.x1) / 2, b.h / 2, (b.z0 + b.z1) / 2, 0, 6)); }
+  for (const b of TOWN.bld) { if (b.av || b.tw !== undefined) continue; const w = b.x1 - b.x0, d = b.z1 - b.z0; byF[b.f].push(bgeo(w, b.h, d, (b.x0 + b.x1) / 2, b.h / 2, (b.z0 + b.z1) / 2, 0, 6)); }
+  buildTowers();
   // la parte de arriba del propio local (no hay plantas encima por dentro, pero desde la calle sí)
   byF[1].push(bgeo(10, 6, 13.2, 0, 2.95 + 3, -1.6, 0, 6));
   F.forEach((m, i) => addMerged(byF[i], m, true));
@@ -2494,6 +2495,103 @@ function updInterior(dt) {
   else { IV.tl -= dt; I = IV.tl > 0 ? (IV.tl < 2 && Math.sin(TIME * 40) > 0 ? 0.3 : 1.4) : 0.12; }
   LG.int.intensity = I; LG.int.position.set(me.x, camera.position.y + 1.0, me.z);
   D.fixM.color.setScalar(I > 0.5 ? 1 : 0.12); D.ledM.color.setHex(Math.sin(TIME * 3) > 0 ? 0xff8a20 : 0x7a3a08);
+}
+
+/* ---------- las torres de Benidorm: hormigón blanco, terrazas corridas en cada planta, toldos de colores,
+   persianas, porches con pilares abajo y el nombre en la azotea ---------- */
+const HOTEL_NAMES = ['HOTEL LEVANTE', 'APARTAMENTOS MARISCAL', 'HOTEL CIMBEL', 'TORRE LAS PALMAS', 'HOTEL SOL Y PLAYA', 'APARTAMENTOS CORAL', 'HOTEL BRISAMAR', 'TORRE ALTAVISTA',
+  'APARTAMENTOS JARDÍN', 'HOTEL ROYAL BEACH', 'TORRE MARINO', 'HOTEL AVENIDA PLAYA', 'APARTAMENTOS ÁGUILA', 'TORRE CASTELLANA', 'HOTEL PALM BEACH', 'APARTAMENTOS SAVOY', 'HOTEL MEDITERRÁNEO SOL', 'TORRE LEVANTE MAR', 'HOTEL CAPRI', 'APARTAMENTOS BOLONIA'];
+function towerFacade(k) {
+  const tint = ['#f2eee6', '#ece4d4', '#f0e2d6', '#e8e6e0'][k], r = mulberry32(5100 + k * 31);
+  const cv = document.createElement('canvas'), ce = document.createElement('canvas'); cv.width = cv.height = ce.width = ce.height = 256;
+  const g = cv.getContext('2d'), e = ce.getContext('2d');
+  g.fillStyle = tint; g.fillRect(0, 0, 256, 256); e.fillStyle = '#000'; e.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 900; i++) { g.fillStyle = `rgba(${90 + r() * 40 | 0},${85 + r() * 30 | 0},70,${0.04 + r() * 0.06})`; g.fillRect(r() * 256, r() * 256, 1 + r() * 4, 1 + r() * 4); }
+  // dos plantas de 3 m (128 px) por dos huecos de 3 m: puerta de terraza corredera + ventana
+  for (let fy = 0; fy < 2; fy++) for (let bx = 0; bx < 2; bx++) {
+    const x = bx * 128 + 10, y = fy * 128 + 14, w = 108, h = 104, lit = r() < 0.13, tv = lit && r() < 0.35, blind = r();
+    g.fillStyle = '#5a5a58'; g.fillRect(x - 3, y - 3, w + 6, h + 6);
+    g.fillStyle = lit ? (tv ? '#86a0ff' : '#ffc878') : '#10161e'; g.fillRect(x, y, w, h);
+    if (lit) { e.fillStyle = tv ? '#4a5ea0' : '#b88648'; e.fillRect(x, y, w, h); g.fillStyle = 'rgba(120,60,30,.4)'; g.fillRect(x, y, 22, h); g.fillRect(x + w - 22, y, 22, h); e.fillStyle = '#2a1608'; e.fillRect(x, y, 22, h); e.fillRect(x + w - 22, y, 22, h); }
+    else { g.fillStyle = 'rgba(150,170,190,.12)'; g.fillRect(x + 6, y + 4, 14, h - 8); }
+    // persiana enrollable de lamas (bajada del todo, a medias o subida)
+    const bh = blind < 0.35 ? h : blind < 0.6 ? h * (0.3 + r() * 0.4) : 0;
+    if (bh) { g.fillStyle = ['#d8cfb8', '#c8bca0', '#e2dccc'][r() * 3 | 0]; g.fillRect(x, y, w, bh); g.fillStyle = 'rgba(0,0,0,.18)'; for (let s = 2; s < bh; s += 5) g.fillRect(x, y + s, w, 1); e.fillStyle = '#000'; e.fillRect(x, y, w, bh); }
+    g.fillStyle = '#8a8a86'; g.fillRect(x + w / 2 - 1, y + bh, 2, h - bh);
+    g.fillStyle = '#c8c4bc'; g.fillRect(x - 3, y - 10, w + 6, 6);   // caja de la persiana
+  }
+  const map = new THREE.CanvasTexture(cv), emi = new THREE.CanvasTexture(ce);
+  for (const t of [map, emi]) t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return new THREE.MeshLambertMaterial({ map, emissive: 0xffffff, emissiveMap: emi });
+}
+function awningTex(c1, c2) { return ctex(64, 64, (g) => { for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? c2 : c1; g.fillRect(i * 8, 0, 8, 64); } g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(0, 54, 64, 10); g.fillStyle = 'rgba(0,0,0,.12)'; for (let i = 0; i < 20; i++) g.fillRect(Math.random() * 64, Math.random() * 54, 6, 3); }); }
+function buildTowers() {
+  const r = mulberry32(9090), FM = [0, 1, 2, 3].map(towerFacade), body = [[], [], [], []], bands = [], fins = [], pillars = [], gnd = [], roof = [], signs = [], posts = [];
+  const AW = [['#2a7a3a', '#e8e4d0'], ['#d86a1a', '#f0e6d0'], ['#1a4a9a', '#e8e8e0'], ['#a82020', '#f0e8d8'], ['#2a8a8a', '#2a8a8a']], aw = AW.map(() => []);
+  const names = [];
+  TOWN.bld.forEach((b, bi) => {
+    if (!b.av && b.tw === undefined) return;
+    const P = b.tw !== undefined ? TOWN.plots[b.tw] : null, w = b.x1 - b.x0, d = b.z1 - b.z0, cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2;
+    const fx = P ? P.aZ : false;   // ¿las terrazas miran a ±x? (si no, a ±z)
+    const g0 = 3;   // planta baja aparte
+    // planta baja: en los residenciales, porche con pilares (metida hacia dentro salvo por la fachada del portal)
+    if (P) {
+      const ins = 0.9, f = P.sg;
+      let x0 = b.x0 + ins, x1 = b.x1 - ins, z0 = b.z0 + ins, z1 = b.z1 - ins;
+      if (fx) { if (f > 0) x1 = b.x1; else x0 = b.x0; } else { if (f > 0) z1 = b.z1; else z0 = b.z0; }
+      gnd.push(bgeo(x1 - x0, g0, z1 - z0, (x0 + x1) / 2, g0 / 2, (z0 + z1) / 2, 0, 3));
+      const along = fx ? d : w, n = Math.max(2, Math.round(along / 4.5));
+      for (let i = 0; i <= n; i++) for (const s of [-1, 1]) {
+        const a = -along / 2 + along * i / n;
+        const [px, pz] = fx ? [cx + s * (w / 2 - 0.25), cz + a] : [cx + a, cz + s * (d / 2 - 0.25)];
+        pillars.push(bgeo(0.45, g0, 0.45, px, g0 / 2, pz, 0, 1));
+      }
+    } else gnd.push(bgeo(w, g0, d, cx, g0 / 2, cz, 0, 3));
+    // el cuerpo de la torre
+    body[b.f].push(bgeo(w, b.h - g0, d, cx, g0 + (b.h - g0) / 2, cz, 0, 6));
+    // terrazas corridas: una banda blanca por planta en las dos fachadas largas
+    const nF = Math.floor((b.h - g0) / 3), along = fx ? d : w, across = fx ? w : d, nb = Math.max(2, Math.round(along / 4.5));
+    for (let f = 0; f < nF; f++) {
+      const y = g0 + f * 3;
+      for (const s of [-1, 1]) {
+        const off = across / 2 + 0.6;
+        if (fx) bands.push(bgeo(1.3, 1.15, along + 0.3, cx + s * off, y + 0.5, cz, 0, 1.5)); else bands.push(bgeo(along + 0.3, 1.15, 1.3, cx, y + 0.5, cz + s * off, 0, 1.5));
+        // toldos: bajados, colgando del borde de la terraza de arriba
+        if (f < nF - 1) for (let i = 0; i < nb; i++) {
+          if (r() > 0.22) continue;
+          const a = -along / 2 + along * (i + 0.5) / nb, len = along / nb - 0.4, col = r() * AW.length | 0, drop = 0.7 + r() * 1.1, o2 = across / 2 + 1.22;
+          if (fx) aw[col].push(bgeo(0.04, drop, len, cx + s * o2, y + 3 - drop / 2 - 0.05, cz + a, 0, 1)); else aw[col].push(bgeo(len, drop, 0.04, cx + a, y + 3 - drop / 2 - 0.05, cz + s * o2, 0, 1));
+        }
+      }
+    }
+    // separaciones verticales entre terrazas, de arriba abajo
+    for (let i = 0; i <= nb; i++) for (const s of [-1, 1]) {
+      const a = -along / 2 + along * i / nb, o = across / 2 + 0.62, hh = b.h - g0;
+      if (fx) fins.push(bgeo(1.25, hh, 0.16, cx + s * o, g0 + hh / 2, cz + a, 0, 1.5)); else fins.push(bgeo(0.16, hh, 1.25, cx + a, g0 + hh / 2, cz + s * o, 0, 1.5));
+    }
+    // azotea: caseta de los ascensores y el nombre en letras grandes
+    roof.push(bgeo(Math.min(5, w * 0.4), 3, Math.min(4, d * 0.4), cx, b.h + 1.5, cz, 0, 2));
+    const nm = P ? P.name : HOTEL_NAMES[names.length % HOTEL_NAMES.length], ni = names.length; names.push(nm);
+    const sw = Math.min(along * 0.9, 12), sy = b.h + 2.3, so = across / 2 - 0.5;
+    for (const s of [-1, 1]) {
+      const g = new THREE.PlaneGeometry(sw, sw / 8); uvRect(g, (ni % 2) * 512, (ni / 2 | 0) * 64, 512, 64, 1024, 2048);
+      if (fx) { g.rotateY(s > 0 ? PI / 2 : -PI / 2); g.translate(cx + s * so, sy, cz); } else { g.rotateY(s > 0 ? 0 : PI); g.translate(cx, sy, cz + s * so); }
+      signs.push(g);
+      for (const t of [-0.4, 0.4]) { const [px, pz] = fx ? [cx + s * (so - 0.1), cz + t * sw] : [cx + t * sw, cz + s * (so - 0.1)]; posts.push(cgeo(0.05, 0.05, 1.6, 4, px, b.h + 0.8, pz)); }
+    }
+  });
+  FM.forEach((m, i) => addMerged(body[i], m, true));
+  addMerged(gnd, lam('tilegrey', 0x9a968c), true); addMerged(pillars, lam('conc', 0xe8e4dc));
+  addMerged(bands, lam('conc', 0xf4f0e8, { emissive: 0x16161a })); addMerged(fins, lam('conc', 0xe4e0d8, { emissive: 0x101012 }));
+  AW.forEach(([c1, c2], i) => addMerged(aw[i], new THREE.MeshLambertMaterial({ map: awningTex(c1, c2), emissive: 0x0c0a08 })));
+  addMerged(roof, lam('conc', 0xd8d4cc)); addMerged(posts, M.dark);
+  // atlas de nombres de azotea: letras rojas encendidas
+  const at = ctex(1024, 2048, (g) => {
+    g.clearRect(0, 0, 1024, 2048); g.textAlign = 'center'; g.textBaseline = 'middle';
+    names.forEach((t, i) => { const x = (i % 2) * 512, y = (i / 2 | 0) * 64; let fs = 46; g.font = 'bold ' + fs + 'px sans-serif'; while (g.measureText(t).width > 500) { fs--; g.font = 'bold ' + fs + 'px sans-serif'; } g.fillStyle = i % 3 === 2 ? '#7ad8ff' : '#ff3a2a'; g.fillText(t, x + 256, y + 34); });
+  });
+  at.wrapS = at.wrapT = THREE.ClampToEdgeWrapping;
+  addMerged(signs, new THREE.MeshBasicMaterial({ map: at, transparent: true, alphaTest: 0.3, fog: false, side: THREE.DoubleSide }));
 }
 
 /* ================= PERSONAJES ================= */
@@ -3739,7 +3837,7 @@ async function boot() {
     renderer = new THREE.WebGLRenderer({ canvas: $('gl'), antialias: false, powerPreference: 'high-performance' });
   } catch (e) { $('menu-msg').textContent = T('nowebgl'); noGL = true; $('btn-start').disabled = true; if (window.__kpSay) window.__kpSay(String(e && e.message || e)); return; }
   renderer.setPixelRatio(1);
-  camera = new THREE.PerspectiveCamera(66, 16 / 9, 0.05, 60); camera.rotation.order = 'YXZ';
+  camera = new THREE.PerspectiveCamera(66, 16 / 9, 0.05, 180); camera.rotation.order = 'YXZ';
   buildWorld(); scene.add(camera); raycaster = new THREE.Raycaster();
   vm = new THREE.Group(); camera.add(vm); vmItem = new THREE.Group(); vm.add(vmItem);
   D.handle = makeHandle(); camera.add(D.handle);
