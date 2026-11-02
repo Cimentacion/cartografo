@@ -76,8 +76,11 @@ function matchItem(ord, g, H, Ar) {
 }
 function bagLogic(pid, R, H, P) {
   const ready = W.dl.find(o => o.st === 0 && o.g.every(v => v)), open = W.dl.filter(o => o.st === 0 && !o.g.every(v => v));
+  // si solo falta la bebida, te la puedes llevar y comprarla por el camino en una máquina
+  const nodr = !ready && open.find(o => o.g.some(v => v) && genOrder(o.a, o.s).every((it, i) => o.g[i] || it.k === 'dr'));
   if (!H) {
     if (ready) return R(T('u_bag_take', addrOf(ready.d)), true, () => { ready.st = 1; P.h = { k: 'bag', d: ready.i }; });
+    if (nodr) return R(T('u_bag_take_dr', addrOf(nodr.d)), true, () => { nodr.st = 1; P.h = { k: 'bag', d: nodr.i }; });
     return R(open.length ? T('u_bag_fill', addrOf(open[0].d)) : T('u_bag_none'), false);
   }
   if (H.k === 'kb' || H.k === 'dr' || H.k === 'fr') {
@@ -88,6 +91,21 @@ function bagLogic(pid, R, H, P) {
     return R(open.length ? T('u_bag_nomatch') : T('u_bag_none'), false);
   }
   return R(T('u_bag_none'), false);
+}
+// máquina de bebidas de la calle: n = máquina * 3 + bebida. Se paga de la caja, al mismo precio que en el local.
+function vendLogic(pid, n, R, H, P) {
+  const t = n % 3, V = LIFE.vend[n / 3 | 0], X = LX[LANG], pr = DRINKS[t].price;
+  if (!V) return R('', false);
+  const pay = (fn) => () => { W.cash = r2(W.cash - pr); fn(); ev('vend', V.x + V.nx, V.z + V.nz); };
+  if (W.cash < pr) return R(T('u_vm_cash', eur(pr)), false);
+  if (!H) return R(T('u_vm_buy', X.drPh[t], eur(pr)), true, pay(() => { P.h = { k: 'dr', t }; }));
+  if (H.k === 'bag') {
+    const o = W.dl.find(q => q.i === H.d); if (!o) return R(T('u_vm_nobag', X.drink[t]), false);
+    const idx = genOrder(o.a, o.s).findIndex((it, i) => !o.g[i] && it.k === 'dr' && it.t === t);
+    if (idx < 0) return R(T('u_vm_nobag', X.drink[t]), false);
+    return R(T('u_vm_bag', X.drPh[t], eur(pr)), true, pay(() => { o.g[idx] = 1; o.sc = r2(o.sc + 1); }));
+  }
+  return R(T('u_busy', X.drink[t]), false);
 }
 function bikeLogic(pid, R, H, P) {
   const V = W.vs;

@@ -44,6 +44,8 @@ Dentro de Claude, publicado como artefacto con la capacidad `room` (`dist/kebab-
 7. Si sales y dejas el local vacío con el cartel en ABIERTO, a veces (1 de cada 20) al volver hay espíritus. No atacan: se quedan mirándote y en las paredes van saliendo caras que ya no se borran en toda la partida.
 8. El local está en Benidorm, en la avenida frente al paseo marítimo, la playa y el mar. Las calles del reparto salen por detrás.
 9. Hay ratas y cucarachas por el suelo del local. No hacen nada y no se pueden matar.
+10. Si a un pedido a domicilio solo le falta la bebida, puedes llevarte la bolsa y comprarla en una de las máquinas de la calle (luz azul). Se paga de la caja, al mismo precio.
+11. La Calle Cuervo es el barrio iluminado: farolas que funcionan y tiendas abiertas. En las demás calles hay locales cerrados, contenedores, basura y algún vagabundo durmiendo con su perro, que te ladra si pasas cerca.
 8. Disparar a un cliente delante de testigos acaba la partida. Si no lo ha visto nadie, el cuerpo se puede arrastrar a la mesa del almacén, despiezarlo y montar la carne en un asador, antes de que entre el siguiente cliente y lo vea.
 
 ## Estructura

@@ -7,14 +7,14 @@ function myDelivery() {
 function syncTown(dt) {
   // niebla: fuera se ve un poco más lejos
   const out = !inShop(camera.position.x, camera.position.z);
-  scene.fog.near = lerp(scene.fog.near, out ? 6 : 4, Math.min(1, dt * 3)); scene.fog.far = lerp(scene.fog.far, out ? (camera.position.z > 14 ? 70 : ride.on ? 46 : 38) : 25, Math.min(1, dt * 3));
+  scene.fog.near = lerp(scene.fog.near, out ? 6 : 4, Math.min(1, dt * 3)); scene.fog.far = lerp(scene.fog.far, out ? (camera.position.z > 14 ? 70 : ride.on ? 54 : Math.abs(camera.position.x - LIT_ST) < 7 ? 46 : 38) : 25, Math.min(1, dt * 3));
   // las cuatro farolas encendidas más cercanas dan luz de verdad
-  const flick = L => L.md === 2 || (L.sc > 0 && Math.sin(TIME * 70 + L.ph) > 0) || (L.md === 1 && (Math.sin(TIME * 23 + L.ph) + Math.sin(TIME * 37 + L.ph * 2) + Math.sin(TIME * 3.1 + L.ph)) > 1.1);
+  const flick = lampOff;
   for (const L of TOWN.lamps) if (L.sc > 0) L.sc -= dt;
   lampT -= dt;
   if (lampT <= 0) { lampT = 0.25; const cx = camera.position.x, cz = camera.position.z; D.near = TOWN.lamps.filter(L => L.md !== 2).map(L => [L, (L.hx - cx) ** 2 + (L.hz - cz) ** 2]).sort((a, b) => a[1] - b[1]).slice(0, 4).map(a => a[0]); }
-  LG.pool.forEach((l, i) => { const L = D.near && D.near[i]; if (!L) { l.intensity = 0; return; } l.position.set(L.hx, (L.hy || 4.48) - 0.3, L.hz); l.color.setHex(L.nopole ? 0xc8e8ff : 0xffa850); l.intensity = flick(L) ? 0.08 : 1.6; });
-  for (const o of D.lamps) o.h.material.color.setHex(flick(o.L) ? 0x1c1a16 : o.L.nopole ? 0xd8f0ff : 0xffb45a);
+  LG.pool.forEach((l, i) => { const L = D.near && D.near[i]; if (!L) { l.intensity = 0; return; } l.position.set(L.hx, (L.hy || 4.48) - 0.3, L.hz); l.color.setHex(L.lit ? 0xffe6c0 : 0xffa850); l.intensity = flick(L) ? 0.08 : L.lit ? 2.4 : 2.1; });
+  for (const o of D.lamps) o.h.material.color.setHex(flick(o.L) ? 0x1c1a16 : o.L.lit ? 0xfff0d8 : 0xffb45a);
   // portales abiertos
   const open = {}; for (const c of W.cu) if (c.o && c.dk !== undefined && ((c.st === S_DOOR && !c.hid) || (c.st === S_BACK && c.t < 1.6) || (c.st === S_ATK && c.t < 1))) open[c.dk] = 1;
   D.doors.forEach((d, k) => { const t = open[k] ? 1 : 0; d.piv.rotation.y = lerp(d.piv.rotation.y, t * 1.3, Math.min(1, dt * 4)); });
@@ -66,8 +66,9 @@ function syncTown(dt) {
     if (d < 18 && !t.pass) { t.pass = 1; AU.play('carby', q.x, q.z); } else if (d > 26) t.pass = 0;
   });
   // faro de la moto
-  LG.head.intensity = ride.on ? 1.9 : 0;
-  if (ride.on) { LG.head.position.set(camera.position.x, 1.0, camera.position.z); LG.head.target.position.set(me.x - Math.sin(me.yaw) * 12, 0, me.z - Math.cos(me.yaw) * 12); }
+  LG.head.intensity = ride.on ? 3.6 : 0;
+  if (ride.on) { LG.head.position.set(camera.position.x, 1.1, camera.position.z); LG.head.target.position.set(me.x - Math.sin(me.yaw) * 14, 0, me.z - Math.cos(me.yaw) * 14); }
+  updStreetLife(dt);
   // el de la parada del bus: mira hacia ti y, si te acercas, ya no está
   if (!watch) { watch = makeChar(SHADOW_LOOK, 9, 2, null); legless(watch); watch.g.position.set(BUS_STOP.x + 0.5, 0.35, BUS_STOP.z + 0.35); watch.g.rotation.y = PI; }
   const wk = W.hs + ':' + W.n, wv = W.ph === 'play' && W.t > HOUR_LEN && W.t < HOUR_LEN * 5 && watchGone !== wk;

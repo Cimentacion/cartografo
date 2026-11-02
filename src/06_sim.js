@@ -266,6 +266,7 @@ function useLogic(pid, key, doIt) {
   }
   const kind = key.slice(0, 2);
   if (kind === 'pt') return doorLogic(pid, n, R, H);
+  if (kind === 'vm') return vendLogic(pid, n, R, H, P);
   if (kind === 'sp' && H && H.k === 'cone') return R(T('u_cone_mount', X.meat[n]), true, () => { const S = SV[n]; S.lv.fill(7); S.dn.fill(0.12); S.pend.fill(0); S.dirty = true; W.sp[n].h = 1; encodeSpit(n); P.h = 0; });
   if (kind === 'sp') return H ? R(T('u_hands'), false) : R(T('u_carve', X.meat[n]), true, null, 'cut');
   if (kind === 'tr') {

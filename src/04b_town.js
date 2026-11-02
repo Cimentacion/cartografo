@@ -9,7 +9,7 @@ const STREETS = [
   { n: 'Calle Cuervo', ax: 'z', c: 48, w: 7, a0: -178.5, a1: 8 },
   { n: 'Calle Ceniza', ax: 'x', c: -175, w: 7, a0: -51.5, a1: 51.5 },
 ];
-const DL_STREET = 1, AV_END = 118;
+const DL_STREET = 1, AV_END = 118, LIT_ST = 48;
 const PASEO = { z0: 17, z1: 26 }, SAND_Z1 = 52, SEA_Z = 50;
 const SOLAR = { x0: 0, x1: 14.5, z0: -96, z1: -72 };
 const DOG_ZONE = { x0: 0.5, x1: 23, z0: -102, z1: -66 }, DOG_HOME = [[8, -80], [5, -90]];
@@ -76,13 +76,15 @@ function layoutTown() {
   let far = -1; T.doors.forEach((d, k) => { if (d.st === DL_STREET && d.nx > 0 && (far < 0 || d.z < T.doors[far].z)) far = k; });
   if (far >= 0) { const d = T.doors[far]; d.num = 13; d.x13 = 1; d.lamp = false; T.c13 = far; }
   // farolas: en la avenida y el paseo todas van; en las calles de detrás, muchas no
-  const lamp = (x, z, ax, az, md, fig, pr) => { T.lamps.push({ x, z, ax, az, md, ph: r() * 10, fig: fig && md !== 2, pr }); T.cols.push({ x0: x - 0.16, x1: x + 0.16, z0: z - 0.16, z1: z + 0.16 }); };
+  const lamp = (x, z, ax, az, md, fig, pr, lit) => { T.lamps.push({ x, z, ax, az, md, ph: r() * 10, fig: fig && md !== 2, pr, lit }); T.cols.push({ x0: x - 0.16, x1: x + 0.16, z0: z - 0.16, z1: z + 0.16 }); };
   const nearV = (x, m) => STREETS.some(o => o.ax === 'z' && Math.abs(x - o.c) < m);
   for (let x = -110; x <= 110; x += 16) if (!nearV(x, 7) && Math.abs(x) > 6) lamp(x, 7.6, 0, 1, r() < 0.15 ? 1 : 0, false);
   for (let x = -108; x <= 108; x += 18) lamp(x, 21.5, 0, 0, r() < 0.1 ? 1 : 0, false, 1);     // paseo: farolas altas con guirnaldas
   const md = () => { const v = r(); return v < 0.25 ? 2 : v < 0.55 ? 1 : 0; };
   for (const s of STREETS) {
-    if (s.ax === 'z') { let sd = 1; for (let z = -24; z > -168; z -= 18 + r() * 5) { lamp(s.c + sd * 4.2, z, -sd, 0, z > -30 ? 0 : md(), true); sd = -sd; } }
+    // la Calle Cuervo es el barrio iluminado: farolas seguidas, todas funcionan y ahí no salen sombras
+    if (s.ax === 'z' && s.c === LIT_ST) { let sd = 1; for (let z = -20; z > -170; z -= 10.5) { lamp(s.c + sd * 4.2, z, -sd, 0, 0, false, 0, 1); sd = -sd; } }
+    else if (s.ax === 'z') { let sd = 1; for (let z = -24; z > -168; z -= 18 + r() * 5) { lamp(s.c + sd * 4.2, z, -sd, 0, z > -30 ? 0 : md(), true); sd = -sd; } }
     else if (s.c < -100) { let sd = 1; for (let x = -40; x <= 40; x += 13) { if (nearV(x, 6)) continue; lamp(x, s.c + sd * 4.2, 0, -sd, md(), true); sd = -sd; } }
   }
   // coches aparcados (pegados al bordillo) y contenedores
@@ -91,7 +93,6 @@ function layoutTown() {
   park(-13, 8.9, PI / 2); park(-62, 8.9, PI / 2); park(84, 8.9, PI / 2);
   for (const s of STREETS) if (s.ax === 'z') for (let k = 0; k < 3; k++) { const z = -40 - k * 42 - r() * 20, sd = r() < 0.5 ? -1 : 1; park(s.c + sd * 2.45, z, sd > 0 ? PI : 0); }
   park(-20, -172.6, PI / 2); park(30, -177.4, -PI / 2);
-  for (const [x, z] of [[-9, 16], [10, 6.4], [15.4, -60], [24.6, -100], [15.4, -132], [-43.4, -90], [52.6, -120], [-30, -169.2]]) { T.bins.push({ x, z }); T.cols.push({ x0: x - 0.6, x1: x + 0.6, z0: z - 0.5, z1: z + 0.5 }); }
   // límites: vallas de obra al final de la avenida, casas en lo demás y el mar delante
   T.cols.push({ x0: -160, x1: -AV_END, z0: -12, z1: 100 }, { x0: AV_END, x1: 160, z0: -12, z1: 100 }, { x0: -160, x1: -66, z0: -210, z1: -10 }, { x0: 66, x1: 160, z0: -210, z1: -10 }, { x0: -160, x1: 160, z0: -210, z1: -194 }, { x0: -160, x1: 160, z0: SEA_Z + 4, z1: 120 });
   return T;
@@ -405,7 +406,7 @@ function buildTown() {
     for (const dz of [-0.25, 0.25]) for (let t = 0.04; t < 1; t += 0.06) { const y = 6.6 - Math.sin(t * PI) * 1.1; const g = new THREE.SphereGeometry(0.07, 5, 4); g.translate(lerp(a.x, b.x, t), y, a.z + dz); bulbs.push(g); }
   }
   addMerged(bulbs, bas(0xffe8b0));
-  LG.pool = [0, 1, 2, 3].map(() => { const l = new THREE.PointLight(0xffa850, 0, 13, 1.6); scene.add(l); return l; });
+  LG.pool = [0, 1, 2, 3].map(() => { const l = new THREE.PointLight(0xffa850, 0, 17, 1.5); scene.add(l); return l; });
   // coches aparcados: modelos de verdad fusionados por color y pieza
   D.beamTex = ctex(64, 128, (g) => { const gr = g.createLinearGradient(0, 128, 0, 0); gr.addColorStop(0, 'rgba(255,240,200,0.9)'); gr.addColorStop(1, 'rgba(255,240,200,0)'); g.fillStyle = gr; g.beginPath(); g.moveTo(26, 128); g.lineTo(38, 128); g.lineTo(64, 0); g.lineTo(0, 0); g.fill(); });
   const cg = {}, tmp = new THREE.Object3D();
@@ -415,7 +416,6 @@ function buildTown() {
   }
   const pm = carMats(0, false);
   for (const key in cg) addMerged(cg[key], key[0] === 'b' ? lam(null, CAR_COLS[+key.slice(1)], { emissive: 0x0a0a0a }) : pm[key], true);
-  addMerged(TOWN.bins.map(b => bgeo(1.2, 1.25, 0.9, b.x, 0.62, b.z, 0, 1)), lam('rust', 0x3a5a3a), true);
   // rótulos de calle
   const signPoles = [];
   const streetSign = (si, x, z, ry) => {
@@ -464,7 +464,7 @@ function buildTown() {
   D.beacon.visible = false; scene.add(D.beacon);
   D.traffic = TRAFFIC.map(t => makeCar(t.st, t.c, t.li));
   LG.porch = new THREE.PointLight(0xffc880, 0, 8, 1.4); scene.add(LG.porch); D.porch = box(0.24, 0.14, 0.18, bas(0xffe0a0), 0, -10, 0);
-  LG.head = new THREE.SpotLight(0xfff0d0, 0, 26, 0.55, 0.55, 1.2); scene.add(LG.head); scene.add(LG.head.target);
+  LG.head = new THREE.SpotLight(0xfff0d0, 0, 46, 0.64, 0.45, 1.0); scene.add(LG.head); scene.add(LG.head.target);
   // teléfono de pedidos y bolsa térmica
   box(0.08, 0.3, 0.2, lam(null, 0xd8d4c4), 3.95, 1.55, 1.75); box(0.1, 0.22, 0.06, lam(null, 0xb8b4a4), 3.89, 1.58, 1.75);
   D.phoneLed = box(0.02, 0.03, 0.03, bas(0x300404), 3.9, 1.7, 1.66); hit('phone', 3.85, 1.55, 1.75, 0.4, 0.5, 0.5);
@@ -478,4 +478,5 @@ function buildTown() {
   D.bagSt = new THREE.Group(); D.bagSt.position.set(3.62, 1.03, 2.7); scene.add(D.bagSt); D.bagKey = '';
   hit('bag', 3.62, 1.2, 2.7, 0.7, 0.6, 0.6);
   for (const c of TOWN.cols) colliders.push(c);
+  buildStreetLife();
 }

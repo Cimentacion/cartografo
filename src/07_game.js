@@ -353,6 +353,7 @@ function useSound(key) {
   if (key === 'butcher') { AU.play(W && W.bt ? 'chop' : 'grab'); return; }
   if (key === 'chop') { if (W && W.chop.t < 0) AU.play('grab'); return; }
   const k = key.slice(0, 2);
+  if (k === 'vm') return;
   AU.play(key === 'foil' ? 'foil' : k === 'sa' ? 'squirt' : key === 'chop' ? 'chop' : key === 'fz' ? 'fryin' : k === 'dr' ? 'pop' : key === 'gun' ? 'reload' : key === 'bdoor' ? 'door' : 'grab');
 }
 function updateInteract(dt) {
