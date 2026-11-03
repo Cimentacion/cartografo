@@ -138,6 +138,7 @@ function itemMesh(h) {
   const g = new THREE.Group(); if (!h) return g;
   const add = (geo, m, x, y, z) => { const me = new THREE.Mesh(geo, m); me.position.set(x, y, z); g.add(me); return me; };
   if (h.k === 'gun') return gunMesh();
+  if (h.k === 'sb') { add(new THREE.CylinderGeometry(0.045, 0.05, 0.2, 8), lam(null, h.t ? 0xc0281e : 0xf2f0e6), 0, 0.1, 0); add(new THREE.CylinderGeometry(0.008, 0.02, 0.06, 6), lam(null, h.t ? 0x7a1a14 : 0xb8b6a8), 0, 0.23, 0); g.rotation.x = -0.5; return g; }
   if (h.k === 'dr') {
     if (h.t === 1) { add(new THREE.CylinderGeometry(0.03, 0.032, 0.17, 7), lam(null, DRC[1], { transparent: true, opacity: 0.75 }), 0, 0.085, 0); add(new THREE.CylinderGeometry(0.014, 0.014, 0.03, 6), lam(null, 0x2a5fb0), 0, 0.185, 0); }
     else { add(new THREE.CylinderGeometry(0.033, 0.033, 0.12, 8), lam(null, DRC[h.t]), 0, 0.06, 0); add(new THREE.CylinderGeometry(0.03, 0.033, 0.008, 8), lam(null, 0xc8ccd0), 0, 0.124, 0); }

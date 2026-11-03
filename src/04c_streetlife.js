@@ -392,7 +392,7 @@ function dogLie(dog, k) {
 function updStreetLife(dt) {
   if (!D.glows) return;
   const cx = camera.position.x, cz = camera.position.z;
-  for (const o of D.glows) { const L = o.L, d2 = (L.hx - cx) ** 2 + (L.hz - cz) ** 2; o.m.visible = d2 < 3600 && !lampOff(L); }
+  for (const o of D.glows) { const L = o.L, d2 = (L.hx - cx) ** 2 + (L.hz - cz) ** 2; o.m.visible = d2 < 12000 && !lampOff(L); }
   // motas bajo las farolas más cercanas (y una nube azul en la máquina más cercana)
   LG.pool.forEach((l, i) => {
     const M2 = D.motes[i], L = D.near && D.near[i]; if (!M2) return;

@@ -40,6 +40,7 @@ function lineOf(c) {
   if (!c.l) return '';
   const sp = c.l.split(':'), key = sp[0], idx = +sp[1] || 0;
   if (c.an === 1 || c.an === 3) { const A2 = ANOMX[LANG], arr = A2[key] || A2.w; return arr[idx % arr.length]; }
+  if (key === 'sx' || key === 'dw') { const arr = FUNX[LANG][key]; return arr[idx % arr.length]; }
   if (!ARCH[c.a]) return '';
   if (key === 'o') { const pre = aLines(c.a, 'pre'), post = aLines(c.a, 'post'); return (pre[idx % pre.length] + ' ' + orderPhrase(genOrder(c.a, c.s)) + '. ' + post[(idx >> 1) % post.length]).trim(); }
   const arr = aLines(c.a, key); return arr[idx % arr.length];
@@ -285,6 +286,8 @@ function useLogic(pid, key, doIt) {
     return R(T('u_add', X.veg[n]), true, () => { H.v |= 1 << n; W.bin[n]--; });
   }
   if (kind === 'sa') {
+    if (!H) return R(T('u_bottle_take', X.sauce[n]), true, () => { P.h = { k: 'sb', t: n }; });
+    if (H.k === 'sb') return H.t === n ? R(T('u_bottle_back'), true, () => { P.h = 0; }) : R(X.sauce[n], false);
     if (!openKb) return R(X.sauce[n], false);
     if (H.s >> n & 1) return R(T('u_has', X.sauce[n]), false);
     return R(T('u_pour', X.sauce[n]), true, () => { H.s |= 1 << n; });
@@ -368,6 +371,12 @@ function applyAction(pid, a) {
   else if (k === 'dropbody') { const P = W.pl[pid], p = PP[pid]; if (P && P.h && P.h.k === 'body' && p) { W.cu.push({ i: W.id++, a: P.h.a, s: P.h.s, x: r2(p.x), z: r2(p.z), y: 0, st: S_DEAD, p: 0, g: [], l: '', ln: 0, sl: -1, qi: -1, an: 0, hp: 0, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, cr: P.h.cr | 0 }); P.h = 0; } }
   else if (k === 'offbike') { const V = W.vs; if (V.r === pid) { V.r = 0; V.x = r2(+a[2] || V.x); V.z = r2(+a[3] || V.z); V.y = r2(+a[4] || 0); const P = W.pl[pid]; if (V.b && P && !P.h) { P.h = { k: 'bag', d: V.b }; V.b = 0; } } }
   else if (k === 'carhit') carHit(pid);
+  else if (k === 'splash') { const c = W.cu.find(q => q.i === a[2]); if (c && c.st !== S_DEAD && c.st !== S_DIS) { say(c, 'sx'); if (!c.o && !c.an) c.p = Math.max(0.05, c.p - 0.1); } }
+  else if (k === 'splashp') { if (W.pl[a[2]]) ev('splp', 0, 0, a[2] + '|' + (Math.random() * 8 | 0)); }
+  else if (k === 'draw') {
+    let best = null, bd = 14; for (const c of W.cu) { if (c.an || c.hid || c.st === S_DEAD || c.st === S_DIS) continue; const d = Math.hypot(c.x - a[2], c.z - a[3]); if (d < bd) { bd = d; best = c; } }
+    if (best) say(best, 'dw'); else if (Object.keys(W.pl).length > 1) ev('drawc', a[2], a[3], pid + '|' + (Math.random() * 8 | 0));
+  }
   else if (k === 'reload') { const P = W.pl[pid]; if (P && P.h && P.h.k === 'gun' && W.am < 2 && W.shl > 0) { const n = Math.min(2 - W.am, W.shl); W.am += n; W.shl -= n; } }
 }
 
@@ -566,7 +575,7 @@ function netUpdate(dt, me) {
   NET.sendT -= dt;
   if (NET.sendT <= 0) {
     NET.sendT = NET.joined ? 0.1 : 1;
-    const pr = { p: NET.joined ? [r2(me.x), r2(me.z), r2(me.yaw), r2(me.pitch), me.aim | 0, myVW()] : null, a: NET.isHost ? null : NET.acts, ah: W ? W.hs : 0, w: NET.isHost && W && NET.joined ? wireW() : null };
+    const pr = { p: NET.joined ? [r2(me.x), r2(me.z), r2(me.yaw), r2(me.pitch), me.aim | 0, myVW(), sauceNet()] : null, a: NET.isHost ? null : NET.acts, ah: W ? W.hs : 0, w: NET.isHost && W && NET.joined ? wireW() : null };
     try { const q = room.presence(pr); if (q && q.catch) q.catch(() => { }); } catch (e) { }
   }
 }

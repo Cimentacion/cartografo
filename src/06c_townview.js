@@ -69,6 +69,7 @@ function syncTown(dt) {
   LG.head.intensity = ride.on ? 3.6 : 0;
   if (ride.on) { LG.head.position.set(camera.position.x, 1.1, camera.position.z); LG.head.target.position.set(me.x - Math.sin(me.yaw) * 14, 0, me.z - Math.cos(me.yaw) * 14); }
   updStreetLife(dt); updInterior(dt);
+  updExtras(dt);
   // el de la parada del bus: mira hacia ti y, si te acercas, ya no está
   if (!watch) { watch = makeChar(SHADOW_LOOK, 9, 2, null); legless(watch); watch.g.position.set(BUS_STOP.x + 0.5, 0.35, BUS_STOP.z + 0.35); watch.g.rotation.y = PI; }
   const wk = W.hs + ':' + W.n, wv = W.ph === 'play' && W.t > HOUR_LEN && W.t < HOUR_LEN * 5 && watchGone !== wk;

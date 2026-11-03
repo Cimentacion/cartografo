@@ -46,6 +46,8 @@ Dentro de Claude, publicado como artefacto con la capacidad `room` (`dist/kebab-
 9. Hay ratas y cucarachas por el suelo del local. No hacen nada y no se pueden matar.
 10. Si a un pedido a domicilio solo le falta la bebida, puedes llevarte la bolsa y comprarla en una de las máquinas de la calle (luz azul). Se paga de la caja, al mismo precio.
 11. La Avenida del Mediterráneo y la de Europa están iluminadas: farolas que funcionan y, en el Mediterráneo, tiendas abiertas. En las demás calles hay locales cerrados, contenedores, basura y algún vagabundo durmiendo con su perro, que te ladra si pasas cerca.
+12. Los botes de salsa del mostrador se pueden coger: mantén Fuego para echar un chorro. Mancha el suelo, las paredes (se puede dibujar) y a quien pilles, y los clientes y compañeros lo comentan.
+13. Fuera hay una flecha verde arriba que apunta a donde tienes que ir: la cancela del pedido, el portal o, sin pedido, el local.
 8. Disparar a un cliente delante de testigos acaba la partida. Si no lo ha visto nadie, el cuerpo se puede arrastrar a la mesa del almacén, despiezarlo y montar la carne en un asador, antes de que entre el siguiente cliente y lo vea.
 
 ## Estructura

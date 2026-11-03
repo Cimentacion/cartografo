@@ -16,10 +16,10 @@ async function boot() {
   for (const el of document.querySelectorAll('[data-t]')) el.textContent = T(el.dataset.t);
   try {
     await loadTextures();
-    renderer = new THREE.WebGLRenderer({ canvas: $('gl'), antialias: false, powerPreference: 'high-performance' });
+    renderer = new THREE.WebGLRenderer({ canvas: $('gl'), antialias: false, powerPreference: 'high-performance', logarithmicDepthBuffer: true });
   } catch (e) { $('menu-msg').textContent = T('nowebgl'); noGL = true; $('btn-start').disabled = true; if (window.__kpSay) window.__kpSay(String(e && e.message || e)); return; }
   renderer.setPixelRatio(1);
-  camera = new THREE.PerspectiveCamera(66, 16 / 9, 0.05, 180); camera.rotation.order = 'YXZ';
+  camera = new THREE.PerspectiveCamera(66, 16 / 9, 0.08, 200); camera.rotation.order = 'YXZ';
   buildWorld(); scene.add(camera); raycaster = new THREE.Raycaster();
   vm = new THREE.Group(); camera.add(vm); vmItem = new THREE.Group(); vm.add(vmItem);
   D.handle = makeHandle(); camera.add(D.handle);
@@ -92,7 +92,7 @@ function bindInput() {
   };
   st.addEventListener('touchend', tend); st.addEventListener('touchcancel', tend);
   const tb = (id, fn) => { const b = $(id); const h = e => { e.preventDefault(); e.stopPropagation(); IN.dev = 'touch'; AU.init(); fn(); }; b.addEventListener('touchstart', h, { passive: false }); b.addEventListener('mousedown', h); };
-  tb('tb-use', () => { IN.use = true; }); tb('tb-pause', () => setPause(true)); tb('tb-fire', () => { IN.fire = true; }); tb('tb-rel', () => { IN.reload = true; }); tb('tb-back', () => { IN.back = true; });
+  tb('tb-use', () => { IN.use = true; }); tb('tb-pause', () => setPause(true)); tb('tb-fire', () => { IN.fire = true; IN.held = true; }); $('tb-fire').addEventListener('touchend', () => { IN.held = false; }); $('tb-fire').addEventListener('touchcancel', () => { IN.held = false; }); tb('tb-rel', () => { IN.reload = true; }); tb('tb-back', () => { IN.back = true; });
   // botones de las pantallas
   $('btn-start').addEventListener('click', startGame);
   $('btn-resume').addEventListener('click', () => { setPause(false); if (IN.dev === 'kb' && !IN.noLock) { try { const p = $('gl').requestPointerLock(); if (p && p.catch) p.catch(() => { }); } catch (e) { } } });
@@ -330,6 +330,7 @@ function updateViewmodel(dt) {
       else if (h.k === 'kb') { it.scale.setScalar(1.25); it.rotation.x = 0.85; it.rotation.y = h.w && h.b === 0 ? 0.5 : 0; vmItem.position.set(0.04, -0.2, -0.44); arm.position.set(0.12, -0.1, 0.22); arm.rotation.y = 0.3; }
       else if (h.k === 'bag') { it.scale.setScalar(0.85); it.rotation.y = 0.5; vmItem.position.set(0.3, -0.46, -0.6); arm.position.set(0.02, 0.1, 0.22); }
       else if (h.k === 'body') { it.scale.setScalar(1.15); it.rotation.y = 0.35; vmItem.position.set(0.06, -0.4, -0.52); arm.position.set(0.22, 0.02, 0.2); }
+      else if (h.k === 'sb') { it.scale.setScalar(0.62); vmItem.position.set(0.26, -0.3, -0.52); arm.position.set(0.02, -0.06, 0.24); }
       else { it.scale.setScalar(1.3); vmItem.position.set(0.2, -0.3, -0.45); arm.position.set(0.02, -0.06, 0.24); }
       vmItem.add(arm); vmKick = 1;
     }
@@ -370,7 +371,7 @@ function updateInteract(dt) {
     if (key) { const isCu = key.slice(0, 2) === 'cu'; if (isCu && gun) me.aim = +key.slice(2); if (h0.distance < (isCu ? 3.1 : 2.6)) { targetKey = key.slice(0, 2) === 'fd' && IV.k >= 0 ? 'pt' + (IV.k * 4 + +key.slice(2)) : key; const R = (t, ok, fn, loc) => ({ t, ok: !!ok, loc: loc || null }); target = localUse(targetKey, R, P.h) || useLogic(NET.myId, targetKey, false); } }
   }
   if (IN.reload) { IN.reload = false; if (gun && reloadT <= 0 && W.am < 2 && W.shl > 0) { reloadT = 1.2; AU.play('reload'); act('reload'); } }
-  let use = IN.use; if (IN.fire) { if (gun) tryShoot(P); else use = true; }
+  let use = IN.use; if (IN.fire) { if (gun) tryShoot(P); else if (!(P.h && P.h.k === 'sb')) use = true; }
   IN.use = IN.fire = false;
   if (use && !target && useCd <= 0 && P.h && P.h.k === 'body') { act('dropbody'); AU.play('die'); useCd = 0.5; }
   if (use && target && useCd <= 0) {
@@ -438,6 +439,7 @@ function syncChars(dt) {
     if (W.vs && W.vs.r === p.peer) { ch.g.position.y = 0.32; ch.lL.rotation.x = ch.lR.rotation.x = -1.35; ch.aL.rotation.x = ch.aR.rotation.x = -1.1; ch.spd = 0; }
     if (hk !== ch.hk) { ch.hk = hk; if (ch.held) ch.aR.remove(ch.held); ch.held = null; if (hk) { ch.held = itemMesh(Q.h); ch.held.position.set(0, -0.66, 0.12); ch.held.rotation.x = Q.h.k === 'gun' ? PI / 2 : 1.2; ch.aR.add(ch.held); } }
     if (hk) ch.aR.rotation.x = -1.1; ch.head.rotation.x = -pr[3] * 0.6;
+    sauceRecv(p.peer, pr, ch);
     ch.g.visible = (pr[5] === undefined ? -1 : pr[5]) === myVW();
   }
   for (const [id, ch] of rchars) if (!live[id]) { killChar(ch); rchars.delete(id); }
@@ -518,6 +520,11 @@ function updateHUD(dt) {
           if (k === 3) AU.play('whisper', x, z);
         }
       }
+      else if (type === 'splp' || type === 'drawc') {
+        const [who, k] = String(a).split('|'), sb = $('subs');
+        if (type === 'splp' && who === NET.myId) { toast(T('splashed'), 'bad'); hurtFlash = Math.max(hurtFlash, 0.3); AU.play('squirt'); }
+        else if (who !== NET.myId) { const arr = FUNX[LANG][type === 'splp' ? 'pl' : 'dw2']; const txt = arr[+k % arr.length]; sb.innerHTML = ''; const b = document.createElement('b'); b.textContent = T('coworker') + ': '; sb.appendChild(b); sb.appendChild(document.createTextNode(txt)); sb.classList.remove('an'); subT = 3 + txt.length * 0.05; }
+      }
       else if (type === 'shot') { if (a !== NET.myId) AU.play('shot', x, z); }
       else if (type === 'cut') { if (a !== NET.myId) AU.play('cut', x, z); }
       else if (type === 'hurt') { if (a === NET.myId) { hurtFlash = 1; AU.play('hurt'); } }
@@ -559,7 +566,7 @@ function updateHUD(dt) {
   let th = ''; for (const c of W.cu) if (!c.an && !c.o && c.st === S_WAIT) th += ticketHTML(c); for (const o of W.dl || []) th += dlTicketHTML(o); $('tickets').innerHTML = th;
   const h = P ? P.h : 0; let hd = handDesc(h); if (h && h.k === 'gun') hd += '  ' + '●'.repeat(W.am) + '○'.repeat(2 - W.am) + '  +' + W.shl;
   $('hand').textContent = hd; $('hp').textContent = P ? '♥'.repeat(P.hp) + '♡'.repeat(Math.max(0, 3 - P.hp)) : '';
-  $('tb-fire').hidden = !(h && h.k === 'gun'); $('tb-rel').hidden = !(h && h.k === 'gun'); $('tb-back').hidden = !cut.on; $('tb-pause').hidden = !soloNow();
+  $('tb-fire').hidden = !(h && (h.k === 'gun' || h.k === 'sb')); $('tb-rel').hidden = !(h && h.k === 'gun'); $('tb-back').hidden = !cut.on; $('tb-pause').hidden = !soloNow();
   $('clock').classList.toggle('witch', Math.abs(W.t - HOUR_LEN * 4.55) < 6);
 }
 function updateMenu() {
