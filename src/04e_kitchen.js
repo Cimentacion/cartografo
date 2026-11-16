@@ -265,24 +265,7 @@ function aoMats() {
 function aoQuad(P, U, I, a0, a1, b0, b1) { const k = P.length / 3; P.push(...a0, ...a1, ...b1, ...b0); U.push(0, 1, 1, 1, 1, 0, 0, 0); I.push(k, k + 1, k + 2, k, k + 2, k + 3, k, k + 2, k + 1, k, k + 3, k + 2); }
 function buildAO() {
   const M2 = aoMats(), GP = [], GU = [], GI = [];
-  const portalEdge = {}; for (const C of TOWN.del) portalEdge[C.b.i + ':' + C.edge] = 1; if (TOWN.mart) portalEdge[TOWN.mart.b.i + ':' + TOWN.mart.i] = 1;
-  for (const b of TOWN.bld) {
-    if (b.t === 'roof' || Math.hypot(b.cx, b.cz) > 330) continue;
-    const P = b.P;
-    for (let i = 0; i < P.length; i++) {
-      const a = P[i], c = P[(i + 1) % P.length], [nx, nz, L] = outN(P, i); if (L < 0.5) continue;
-      // suelo: 1,1 m de sombra que sale de la pared
-      aoQuad(GP, GU, GI, [a[0] + nx * 0.02, 0.052, a[1] + nz * 0.02], [c[0] + nx * 0.02, 0.052, c[1] + nz * 0.02], [a[0] + nx * 1.1, 0.052, a[1] + nz * 1.1], [c[0] + nx * 1.1, 0.052, c[1] + nz * 1.1]);
-      // pared: la parte de abajo más oscura (menos en los huecos de portales, súper y el local)
-      if (b.host || portalEdge[b.i + ':' + i]) continue;
-      aoQuad(GP, GU, GI, [a[0] + nx * 0.03, 0, a[1] + nz * 0.03], [c[0] + nx * 0.03, 0, c[1] + nz * 0.03], [a[0] + nx * 0.03, 0.9, a[1] + nz * 0.03], [c[0] + nx * 0.03, 0.9, c[1] + nz * 0.03]);
-    }
-  }
-  // dentro del local: rincones del suelo, debajo del mostrador y de la plancha
-  const shop = [[[-3.98, -3.98], [3.98, -3.98]], [[3.98, -3.98], [3.98, 4.98]], [[3.98, 4.98], [-3.98, 4.98]], [[-3.98, 4.98], [-3.98, -3.98]], [[-4, 0.6], [2.6, 0.6]], [[2.6, 1.3], [-4, 1.3]], [[-3.9, -3.3], [0.3, -3.3]]];
-  for (const [[ax, az], [bx, bz]] of shop) { const L = Math.hypot(bx - ax, bz - az), nx = -(bz - az) / L, nz = (bx - ax) / L; aoQuad(GP, GU, GI, [ax, 0.022, az], [bx, 0.022, bz], [ax + nx * 0.7, 0.022, az + nz * 0.7], [bx + nx * 0.7, 0.022, bz + nz * 0.7]); }
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(GP, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(GU, 2)); g.setIndex(GI);
-  const m = new THREE.Mesh(g, M2.strip); m.frustumCulled = false; m.renderOrder = 1; scene.add(m);
+  // (las tiras de degradado al pie de las fachadas se quitaron: se veían como manchas sueltas)
   // manchas de sombra bajo coches aparcados, contenedores, bancos y mesas
   const BL = [], put = (x, z, w, d, ry) => { const q = new THREE.PlaneGeometry(w, d); q.rotateX(-PI / 2); q.rotateY(ry || 0); q.translate(x, 0.055, z); BL.push(q); };
   for (const c of TOWN.cars) put(c.x, c.z, 2.4, 5.0, c.ry);

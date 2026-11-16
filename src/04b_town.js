@@ -409,11 +409,52 @@ function buildSea() {
 // la orilla más cercana a un punto (para el sonido de las olas)
 function seaDist(x, z) { let bd = 1e9, q = null; const c = TOWN.coast || []; for (let i = 0; i + 1 < c.length; i++) { const [d, qx, qz] = segDist(x, z, c[i][0], c[i][1], c[i + 1][0], c[i + 1][1]); if (d < bd) { bd = d; q = [qx, qz]; } } return [bd, q]; }
 function palmGeo(x, z, h, r, trunks, fronds) {
-  // tronco de dos tramos sin tapas y hojas planas: pocas caras, que hay cientos de palmeras
-  const lx = (r() - 0.5) * 0.8, lz = (r() - 0.5) * 0.8;
-  for (let k = 0; k < 2; k++) { const y0 = k * h / 2, g = new THREE.CylinderGeometry(0.15 - k * 0.03, 0.21 - k * 0.03, h / 2 + 0.05, 5, 1, true); g.translate(x + lx * (y0 + h / 4) / h, y0 + h / 4, z + lz * (y0 + h / 4) / h); trunks.push(g); }
-  const tx = x + lx, tz = z + lz;
-  for (let k = 0; k < 7; k++) { const g = new THREE.PlaneGeometry(0.6, 2.6); g.rotateX(-PI / 2); g.translate(0, 0, 1.25); g.rotateX(0.35 + r() * 0.5); g.rotateY(k * PI * 2 / 7 + r() * 0.3); g.translate(tx, h, tz); fronds.push(g); }
+  // tronco inclinado en tres tramos y una copa de hojas largas que cuelgan; las hojas llevan textura con foliolos y se mueven con el viento (ver palmMat)
+  const lx = (r() - 0.5) * 0.9, lz = (r() - 0.5) * 0.9;
+  for (let k = 0; k < 3; k++) { const y0 = k * h / 3, t = (y0 + h / 6) / h, g = new THREE.CylinderGeometry(0.16 - k * 0.025, 0.22 - k * 0.025, h / 3 + 0.06, 6, 1, true); const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 2, uv.getY(i) * h / 3 / 1.2); g.translate(x + lx * t * t, y0 + h / 6, z + lz * t * t); trunks.push(g); }
+  const tx = x + lx, tz = z + lz, n = 9 + (r() * 3 | 0);
+  for (let k = 0; k < n; k++) {
+    const yaw = k * PI * 2 / n + r() * 0.35, L = 2.6 + r() * 0.9, lift = 0.25 + r() * 0.45, droop = 0.55 + r() * 0.35, S = 5;
+    const pos = [], uv = [], idx = [], ca = Math.cos(yaw), sa = Math.sin(yaw);
+    for (let i = 0; i <= S; i++) {
+      const t = i / S, d = t * L, yy = d * lift - d * d * droop * 0.32, w = 0.55 * Math.sin(Math.min(1, t * 1.3 + 0.12) * PI * 0.9) + 0.05;
+      for (const sd of [-1, 1]) { const ox = d * ca + sd * w * -sa, oz = d * sa + sd * w * ca; pos.push(tx + ox, h + yy - Math.abs(sd) * w * 0.12, tz + oz); uv.push(sd < 0 ? 0 : 1, t); }
+      if (i < S) { const q = i * 2; idx.push(q, q + 2, q + 1, q + 1, q + 2, q + 3); }
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
+    fronds.push(g);
+  }
+  // cogollo y dátiles
+  const c = new THREE.SphereGeometry(0.26, 6, 4); c.translate(tx, h - 0.05, tz); trunks.push(c);
+}
+function frondTex() {
+  const t = ctex(128, 256, (g) => {
+    g.clearRect(0, 0, 128, 256);
+    for (let y = 6; y < 252; y += 5) {
+      const k = y / 256, len = 60 * Math.sin(Math.min(1, k * 1.15 + 0.08) * PI * 0.92);
+      for (const sd of [-1, 1]) {
+        const gr = g.createLinearGradient(64, y, 64 + sd * len, y - 14); gr.addColorStop(0, '#3e5a24'); gr.addColorStop(0.6, '#5a7a30'); gr.addColorStop(1, '#7a8a3a');
+        g.strokeStyle = gr; g.lineWidth = 3.2 - k * 1.2; g.beginPath(); g.moveTo(64, y); g.quadraticCurveTo(64 + sd * len * 0.5, y - 4, 64 + sd * len, y - 12 - Math.random() * 6); g.stroke();
+      }
+    }
+    g.strokeStyle = '#8a7a40'; g.lineWidth = 3; g.beginPath(); g.moveTo(64, 0); g.lineTo(64, 256); g.stroke();
+    g.globalCompositeOperation = 'destination-out'; for (let i = 0; i < 40; i++) { g.fillStyle = 'rgba(0,0,0,1)'; g.fillRect(Math.random() * 128, Math.random() * 256, 2 + Math.random() * 6, 2); }
+  });
+  t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; return t;
+}
+function palmMat() {
+  D.windU = D.windU || { value: 0 };
+  const m = new THREE.MeshLambertMaterial({ map: frondTex(), transparent: false, alphaTest: 0.45, side: THREE.DoubleSide, color: 0xc8d8b0 });
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uWind = D.windU;
+    sh.vertexShader = 'uniform float uWind;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+      { float tip = uv.y * uv.y; float ph = position.x * 0.21 + position.z * 0.17;
+        float gust = 0.6 + 0.4 * sin(uWind * 0.37 + ph * 0.3);
+        transformed.x += sin(uWind * 1.7 + ph) * 0.16 * tip * gust;
+        transformed.z += cos(uWind * 1.3 + ph * 1.3) * 0.12 * tip * gust;
+        transformed.y += sin(uWind * 2.3 + ph * 2.0) * 0.1 * tip; }`);
+  };
+  return m;
 }
 /* bordillos, aceras y líneas de borde: para que se vea dónde acaba la calzada y dónde empieza la acera */
 function buildCurbs() {
@@ -521,7 +562,7 @@ function buildTown() {
     else { TR.push(new THREE.CylinderGeometry(0.16, 0.22, 3.4, 5, 1, true).translate(x, 1.7, z)); const c = new THREE.IcosahedronGeometry(2.2 + r(), 0); c.scale(1, 0.75, 1); c.translate(x, 4.6, z); CAN.push(c); }
     colliders.push({ x0: x - 0.25, x1: x + 0.25, z0: z - 0.25, z1: z + 0.25 });
   }
-  addMerged(TR, lam('bark', 0x8a7a68)); addMerged(FR, lam(null, 0x2a4424, { side: THREE.DoubleSide })); addMerged(CAN, lam('grass', 0x3a5a2a));
+  addMerged(TR, lam('bark', 0x8a7a68)); addMerged(FR, palmMat()); addMerged(CAN, lam('grass', 0x3a5a2a));
   // farolas: altas con globo en la primera línea; de brazo en las demás
   const poles = []; D.lamps = [];
   for (const L of TOWN.lamps) {
@@ -560,6 +601,14 @@ function buildTown() {
   const shopF = lam('tilegrey', 0x6a6a64), fr = [];
   for (const [x0, x1, y0, y1] of [[-5, -3.2, 0, 2.95], [-2.0, -1.2, 0, 2.95], [3.2, 5, 0, 2.95], [-3.2, -2.0, 2.15, 2.95], [-1.2, 3.2, 0, 0.9], [-1.2, 3.2, 2.3, 2.95]]) fr.push(bgeo(x1 - x0, y1 - y0, 0.06, (x0 + x1) / 2, (y0 + y1) / 2, 5.08, 0, 1));
   addMerged(fr, shopF);
+  // caja exterior del local: tapa los huecos entre el local y el edificio que lo rodea (antes se veía el interior por las esquinas)
+  const R = SHOP_RECT, ob = [], ow = lam('plas', 0xb8b2a6);
+  ob.push(bgeo(0.22, 3.5, R.z1 - R.z0, R.x0 + 0.11, 1.75, (R.z0 + R.z1) / 2, 0, 1.2), bgeo(0.22, 3.5, R.z1 - R.z0, R.x1 - 0.11, 1.75, (R.z0 + R.z1) / 2, 0, 1.2));
+  ob.push(bgeo(R.x1 - R.x0, 3.5, 0.22, 0, 1.75, R.z0 + 0.11, 0, 1.2));
+  ob.push(bgeo(0.42, 3.5, 0.24, R.x0 + 0.21, 1.75, 5.08, 0, 1.2), bgeo(0.42, 3.5, 0.24, R.x1 - 0.21, 1.75, 5.08, 0, 1.2));
+  ob.push(bgeo(R.x1 - R.x0, 0.2, R.z1 - R.z0, 0, 3.5, (R.z0 + R.z1) / 2, 0, 2));
+  addMerged(ob, ow);
+  addSeg(R.x0, R.z0, R.x0, R.z1, 0, 9); addSeg(R.x1, R.z0, R.x1, R.z1, 0, 9); addSeg(R.x0, R.z0, R.x1, R.z0, 0, 9);
   const sign = textPlate('KEBAB PONIENTE · 24H', 512, 72, '#140c08', '#ffb23a', '#5a1a10');
   box(7.2, 0.8, 0.25, M.dark, 0, 3.45, 5.25); plane(7.0, 0.7, bas(0xffffff, { map: sign }), 0, 3.45, 5.38, 0, 0); box(7.4, 0.06, 0.4, M.dark, 0, 3.02, 5.3);
   box(1.3, 0.35, 0.05, lam('corr', 0x8a8a84), -2.6, 2.0, 5.12);
