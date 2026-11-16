@@ -280,7 +280,7 @@ function buildAO() {
   }
   // dentro del local: rincones del suelo, debajo del mostrador y de la plancha
   const shop = [[[-3.98, -3.98], [3.98, -3.98]], [[3.98, -3.98], [3.98, 4.98]], [[3.98, 4.98], [-3.98, 4.98]], [[-3.98, 4.98], [-3.98, -3.98]], [[-4, 0.6], [2.6, 0.6]], [[2.6, 1.3], [-4, 1.3]], [[-3.9, -3.3], [0.3, -3.3]]];
-  for (const [[ax, az], [bx, bz]] of shop) { const L = Math.hypot(bx - ax, bz - az), nx = -(bz - az) / L, nz = (bx - ax) / L; aoQuad(GP, GU, GI, [ax, 0.006, az], [bx, 0.006, bz], [ax + nx * 0.7, 0.006, az + nz * 0.7], [bx + nx * 0.7, 0.006, bz + nz * 0.7]); }
+  for (const [[ax, az], [bx, bz]] of shop) { const L = Math.hypot(bx - ax, bz - az), nx = -(bz - az) / L, nz = (bx - ax) / L; aoQuad(GP, GU, GI, [ax, 0.022, az], [bx, 0.022, bz], [ax + nx * 0.7, 0.022, az + nz * 0.7], [bx + nx * 0.7, 0.022, bz + nz * 0.7]); }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(GP, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(GU, 2)); g.setIndex(GI);
   const m = new THREE.Mesh(g, M2.strip); m.frustumCulled = false; m.renderOrder = 1; scene.add(m);
   // manchas de sombra bajo coches aparcados, contenedores, bancos y mesas

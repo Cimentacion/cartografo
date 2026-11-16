@@ -42,22 +42,22 @@ Todas vienen del pack **SBS - Horror Texture Pack 256x256** de Screaming Brain S
 
 ## Calle de Benidorm (ambientCG, CC0 1.0)
 
-Las texturas de la calle y de los portales vienen de [ambientCG](https://ambientcg.com) (CC0 1.0, dominio público). Las baja el workflow `fetch-benidorm.yml` (rama `kebab-data`, carpeta `data/tex/`): se usa solo el mapa de color, reducido a 128 px.
+Las texturas de la calle y de los portales vienen de [ambientCG](https://ambientcg.com) (CC0 1.0, dominio público). Las baja el workflow `fetch-benidorm.yml` (rama `kebab-data`, carpeta `data/tex/`): se usa solo el mapa de color, a 256 px.
 
 | Archivo | Uso |
 |---|---|
-| `asph.png` | asfalto de las calzadas |
-| `acera.png` | aceras y paseo |
-| `pavs.png` | adoquines de calles peatonales y caminos |
-| `tbeig.png` | baldosa beige de la Avenida de Madrid |
-| `grass.png` | jardines y copas de árbol |
-| `sand.png` | playa |
-| `gravel.png` | solares |
-| `bark.png` | troncos de palmera y árbol |
-| `plas.png`, `plas2.png` | enlucido de tapias y fachadas, paredes de los portales |
-| `marb.png` | mármol del suelo de los portales |
-| `terr.png` | terrazo de rellanos y escalera |
-| `conc2.png` | hormigón |
-| `roof.png` | azoteas |
-| `metal.png` | chapa y ascensor |
-| `wood2.png` | puertas de los pisos y bancos |
+| `asph.png` (Asphalt033) | asfalto de las calzadas |
+| `acera.png` (Tiles040) | aceras y paseo |
+| `pavs.png` (PavingStones150) | adoquines de calles peatonales y caminos |
+| `tbeig.png` (Tiles143) | baldosa beige de la Avenida de Madrid |
+| `grass.png` (Grass004) | jardines y copas de árbol |
+| `sand.png` (Ground080) | playa |
+| `gravel.png` (Ground108) | solares |
+| `bark.png` (Bark014) | troncos de palmera y árbol |
+| `plas.png` (Plaster001), `plas2.png` (PaintedPlaster015) | enlucido de tapias y fachadas, paredes de los portales |
+| `marb.png` (Marble012) | mármol del suelo de los portales |
+| `terr.png` (Terrazzo013) | terrazo de rellanos y escalera |
+| `conc2.png` (Concrete034) | hormigón |
+| `roof.png` (RoofingTiles012A) | azoteas |
+| `metal.png` (Metal063) | chapa y ascensor |
+| `wood2.png` (WoodFloor064) | puertas de los pisos y bancos |

@@ -212,7 +212,7 @@ function buildWorld() {
   D.spit = []; D.bins = []; D.shelf = []; D.flies = [];
 
   // --- local principal: x[-4,4] z[-4,5] ---
-  plane(8, 9, M.floor, 0, 0, 0.5, -PI / 2, 0, 1.6, true);
+  plane(8, 9, M.floor, 0, 0.015, 0.5, -PI / 2, 0, 1.6, true);
   plane(8, 9, M.ceil, 0, 2.9, 0.5, PI / 2, 0, 2.6, true);
   wseg('z', -4, -4, 5, 0, 2.9, PI / 2, 'shop'); wseg('z', 4, -4, 5, 0, 2.9, -PI / 2, 'shop');
   wseg('x', -4, -4, 2.4, 0, 2.9, 0, 'shop'); wseg('x', -4, 3.5, 4, 0, 2.9, 0, 'shop'); wseg('x', -4, 2.4, 3.5, 2.1, 2.9, 0, 'shop');
@@ -228,12 +228,12 @@ function buildWorld() {
   D.lampHead = box(0.4, 0.06, 0.16, bas(0xffb45a), 0.9, 4.35, 8.4);
   
   // --- almacén: x[0.5,4] z[-7.5,-4.2] ---
-  plane(3.5, 3.3, M.concf, 2.25, 0.001, -5.85, -PI / 2, 0, 1.5, true);
+  plane(3.5, 3.3, M.concf, 2.25, 0.016, -5.85, -PI / 2, 0, 1.5, true);
   plane(3.5, 3.3, lam('conc', 0x6f6d68), 2.25, 2.6, -5.85, PI / 2, 0, 2, true);
   wseg('z', 0.5, -7.5, -4.2, 0, 2.6, PI / 2, 'conc'); wseg('z', 4, -7.5, -4.2, 0, 2.6, -PI / 2, 'conc'); wseg('x', -7.5, 0.5, 4, 0, 2.6, 0, 'conc');
   wseg('x', -4.2, 0.5, 2.4, 0, 2.6, PI, 'conc'); wseg('x', -4.2, 3.5, 4, 0, 2.6, PI, 'conc'); wseg('x', -4.2, 2.4, 3.5, 2.1, 2.6, PI, 'conc');
   plane(0.2, 2.1, M.conc, 2.4, 1.05, -4.1, 0, PI / 2); plane(0.2, 2.1, M.conc, 3.5, 1.05, -4.1, 0, -PI / 2);
-  plane(1.1, 0.2, M.concf, 2.95, 0.001, -4.1, -PI / 2, 0); plane(1.1, 0.2, M.conc, 2.95, 2.1, -4.1, PI / 2, 0);
+  plane(1.1, 0.2, M.concf, 2.95, 0.016, -4.1, -PI / 2, 0); plane(1.1, 0.2, M.conc, 2.95, 2.1, -4.1, PI / 2, 0);
   // colisiones de muros
   colliders.push({ x0: -5, x1: -4, z0: -5, z1: 5.5 }, { x0: 4, x1: 5, z0: -8, z1: 5.5 }, { x0: -5, x1: -3.2, z0: 5, z1: 5.5 }, { x0: -2.0, x1: 5, z0: 5, z1: 5.5 },
     { x0: -5, x1: 2.4, z0: -4.2, z1: -4 }, { x0: 3.5, x1: 5, z0: -4.2, z1: -4 }, { x0: 0.2, x1: 0.5, z0: -7.7, z1: -4.2 }, { x0: 0, x1: 5, z0: -7.9, z1: -7.5 }, { x0: -5, x1: 0.5, z0: -5, z1: -4.2 });
@@ -345,8 +345,8 @@ function buildWorld() {
   const neon = ctex(256, 64, (g) => { g.clearRect(0, 0, 256, 64); g.translate(256, 0); g.scale(-1, 1); g.font = 'bold 50px Impact, sans-serif'; g.shadowColor = '#ff2a1a'; g.shadowBlur = 10; g.fillStyle = '#ff5a48'; g.fillText('KEBAB', 6, 50); g.shadowColor = '#3aff6a'; g.fillStyle = '#7dffa0'; g.font = 'bold 30px Impact, sans-serif'; g.fillText('24H', 190, 44); });
   D.neon = plane(2.2, 0.55, new THREE.MeshBasicMaterial({ map: neon, transparent: true, depthWrite: false }), 1, 2.02, 4.9, 0, PI);
   // --- mugre ---
-  decal('st1', 0.9, 0.012, -3.0, -PI / 2, 0, 1.3, 1.3, 0.8); decal('st4', -1.0, 0.012, 2.9, -PI / 2, 0, 1.8, 1.8, 0.7); decal('st5', 2.6, 0.012, -1.2, -PI / 2, 0, 1.6, 1.6, 0.6);
-  decal('st2', 3.0, 0.014, -6.6, -PI / 2, 0, 1.7, 1.7, 0.9); decal('st3', 1.6, 0.014, -5.2, -PI / 2, 0, 1.4, 1.4, 0.7); decal('grime2', -2.2, 0.012, -2.2, -PI / 2, 0, 2.6, 2.6, 0.5);
+  decal('st1', 0.9, 0.027, -3.0, -PI / 2, 0, 1.3, 1.3, 0.8); decal('st4', -1.0, 0.027, 2.9, -PI / 2, 0, 1.8, 1.8, 0.7); decal('st5', 2.6, 0.027, -1.2, -PI / 2, 0, 1.6, 1.6, 0.6);
+  decal('st2', 3.0, 0.029, -6.6, -PI / 2, 0, 1.7, 1.7, 0.9); decal('st3', 1.6, 0.029, -5.2, -PI / 2, 0, 1.4, 1.4, 0.7); decal('grime2', -2.2, 0.027, -2.2, -PI / 2, 0, 2.6, 2.6, 0.5);
   decal('drip1', -3.99, 2.2, 2.6, 0, PI / 2, 2.4, 1.4, 0.8); decal('drip2', 3.99, 2.2, 1.5, 0, -PI / 2, 2.4, 1.4, 0.8); decal('drip3', -0.6, 2.2, -3.99, 0, 0, 2.2, 1.4, 0.7);
   decal('grime1', -3.99, 1.3, -1.6, 0, PI / 2, 2.0, 1.6, 0.6); decal('grime1', 0.2, 1.5, -3.99, 0, 0, 1.6, 1.4, 0.7); decal('st1', 3.99, 1.1, 3.4, 0, -PI / 2, 1.2, 1.2, 0.55);
   decal('drip1', 2.2, 1.9, -7.49, 0, 0, 2.6, 1.4, 0.8); decal('st2', 0.51, 1.0, -6.4, 0, PI / 2, 1.3, 1.3, 0.7); decal('drip3', 1.5, 2.0, -4.21, 0, PI, 1.6, 1.2, 0.7);

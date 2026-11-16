@@ -17,14 +17,14 @@ function skyTex() {
     g.fillStyle = gr; g.fillRect(0, 0, 16, 256);
   });
 }
-const FOG_IN = new THREE.Color(0x05060a), FOG_OUT = new THREE.Color(0x07163a), AMB_OUT = new THREE.Color(0x5a6a9a);
+const FOG_IN = new THREE.Color(0x05060a), FOG_OUT = new THREE.Color(0x0b1222), AMB_OUT = new THREE.Color(0x6a6a74);
 function updSky(dt) {
   if (!SKY) { SKY = skyTex(); SKY.wrapS = SKY.wrapT = THREE.ClampToEdgeWrapping; }
   const out = !inShop(camera.position.x, camera.position.z) && !inBld(camera.position.x, camera.position.z);
   scene.background = out ? SKY : FOG_IN;
   scene.fog.color.lerp(out ? FOG_OUT : FOG_IN, Math.min(1, dt * 4));
-  if (!LG.hemi) { LG.hemi = new THREE.HemisphereLight(0x4a5c9a, 0x4a3a2a, 0); scene.add(LG.hemi); }
-  if (out) { LG.amb.intensity = 0.7; LG.amb.color.copy(AMB_OUT); LG.hemi.intensity = 0.55; } else { LG.amb.color.setHex(0x2a2e36); LG.hemi.intensity = 0.12; }
+  if (!LG.hemi) { LG.hemi = new THREE.HemisphereLight(0x3a4a78, 0x6a5440, 0); scene.add(LG.hemi); }
+  if (out) { LG.amb.intensity = 0.62; LG.amb.color.copy(AMB_OUT); LG.hemi.intensity = 0.45; } else { LG.amb.color.setHex(0x2a2e36); LG.hemi.intensity = 0.12; }
 }
 
 /* --- flecha verde encima de la pantalla que apunta a donde tienes que ir --- */
@@ -101,7 +101,7 @@ function sauceArc(ox, oy, oz, yaw, pitch, out) {
     // gente (clientes y compañeros)
     for (const [id, ch] of chars) { if (!ch.g.visible) continue; const gx = ch.g.position.x, gz = ch.g.position.z; if ((x - gx) ** 2 + (z - gz) ** 2 < 0.1 && y > 0.1 && y < 1.75) return { n, x, y, z, nx: -vx, ny: 0, nz: -vz, cu: id }; }
     for (const [id, ch] of rchars) { if (!ch.g.visible) continue; const gx = ch.g.position.x, gz = ch.g.position.z; if ((x - gx) ** 2 + (z - gz) ** 2 < 0.1 && y > 0.1 && y < 1.75) return { n, x, y, z, nx: -vx, ny: 0, nz: -vz, pl: id }; }
-    const fl = floorY(x, z); if (y <= fl + 0.005) return { n, x, y: fl + (inShop(x, z) || inBld(x, z) ? 0.005 : 0.05), z, nx: 0, ny: 1, nz: 0 };
+    const fl = floorY(x, z); if (y <= fl + 0.005) return { n, x, y: fl + (inShop(x, z) ? 0.025 : inBld(x, z) ? 0.035 : 0.05), z, nx: 0, ny: 1, nz: 0 };
     if (y > 3.3) continue;
     for (const c of colliders) {
       if (c.off || x < c.x0 || x > c.x1 || z < c.z0 || z > c.z1 || y > (c.h || 3.2)) continue;
