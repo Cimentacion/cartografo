@@ -79,6 +79,15 @@ TOWN.del = (() => {
   return out;
 })();
 LIFE = layoutLife();
+// la puerta de cada comercio y máquina tiene que dar a la calle: si una tapia de comunidad la tapa, se le abre una cancela
+for (const p of LIFE.shops.concat(LIFE.vend)) {
+  const px = p.x + p.nx * 0.5, pz = p.z + p.nz * 0.5, nr = nearestRoad(px, pz, false); if (!nr) continue;
+  for (const [ex, ez] of [[nr.qx, nr.qz], [p.x + p.nx * 6, p.z + p.nz * 6]]) for (const br of TOWN.br) for (let i = 0; i + 1 < br.pts.length; i++) {
+    const a = br.pts[i], q = br.pts[i + 1], d = (ex - px) * (q[1] - a[1]) - (ez - pz) * (q[0] - a[0]); if (Math.abs(d) < 1e-9) continue;
+    const t = ((a[0] - px) * (q[1] - a[1]) - (a[1] - pz) * (q[0] - a[0])) / d, w = ((a[0] - px) * (ez - pz) - (a[1] - pz) * (ex - px)) / d;
+    if (t >= 0 && t <= 1 && w >= 0 && w <= 1) { const gx = a[0] + w * (q[0] - a[0]), gz = a[1] + w * (q[1] - a[1]); if (!MAP.gate.some(g => Math.hypot(g[0] - gx, g[1] - gz) < 1.5)) MAP.gate.push([gx, gz, Math.min(2.2, p.w / 2 + 0.3)]); }
+  }
+}
 // puertas de los pisos: A y B al fondo del rellano, C y D en la pared izquierda
 const FLAT_UV = [[-2.0, 6.2, 0, -1], [0.6, 6.2, 0, -1], [-4.6, 1.4, 1, 0], [-4.6, 3.4, 1, 0]];
 function flatPos(k, f) { const C = TOWN.del[k / 4 | 0], [u, v, nu, nv] = FLAT_UV[k % 4], [x, z] = cw(C, u + nu * 0.05, v + nv * 0.05); return { x, z, y: f * FLH, nx: C.ux * nu + C.vx * nv, nz: C.uz * nu + C.vz * nv }; }
@@ -193,10 +202,10 @@ function buildBuildings() {
       let tri = null; try { tri = THREE.ShapeUtils.triangulateShape(ring[0], ring[1]); } catch (e) { tri = null; }
       const allp = O.concat(S);
       for (let f = 1; f < b.l; f++) {
-        const y = f * FLH;
+        const y = f * FLH + 0.45;   // por encima de los bajos: no se come los rótulos de las tiendas
         let uu = 0; for (let i = 0; i < sn; i++) { const a = O[i], c = O[(i + 1) % sn]; vquad(a[0], a[1], c[0], c[1], y, y + 1.1, uu, 1.5, bands); uu += Math.hypot(c[0] - a[0], c[1] - a[1]);
           if (f < b.l - 1 && r() < 0.16) { const L = Math.hypot(c[0] - a[0], c[1] - a[1]); if (L > 3) { const t0 = 0.2 + r() * 0.4, t1 = Math.min(0.95, t0 + 2.5 / L + r() * 0.2), drop = 0.7 + r(); const x0 = lerp(a[0], c[0], t0), z0 = lerp(a[1], c[1], t0), x1 = lerp(a[0], c[0], t1), z1 = lerp(a[1], c[1], t1); vquad(x0, z0, x1, z1, y + 3 - drop, y + 2.95, 0, 1, aw[r() * AW.length | 0]); } } }
-        if (tri) { const pos = new Float32Array(allp.length * 3), nor = new Float32Array(allp.length * 3), uv = new Float32Array(allp.length * 2); allp.forEach((p, i) => { pos[i * 3] = p[0]; pos[i * 3 + 1] = y + 1.1; pos[i * 3 + 2] = p[1]; nor[i * 3 + 1] = 1; uv[i * 2] = p[0] / 2; uv[i * 2 + 1] = p[1] / 2; }); const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex([].concat(...tri)); caps.push(g); }
+        if (tri) { const pos = new Float32Array(allp.length * 3), nor = new Float32Array(allp.length * 3), uv = new Float32Array(allp.length * 2); allp.forEach((p, i) => { pos[i * 3] = p[0]; pos[i * 3 + 1] = y + 1.1; pos[i * 3 + 2] = p[1]; nor[i * 3 + 1] = 1; uv[i * 2] = p[0] / 2; uv[i * 2 + 1] = p[1] / 2; }); const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex([].concat(...tri)); caps.push(g); const g2 = g.clone(); const p2 = g2.attributes.position; for (let i = 0; i < p2.count; i++) p2.setY(i, y); const n2 = g2.attributes.normal; for (let i = 0; i < n2.count; i++) n2.setY(i, -1); g2.setIndex([].concat(...tri.map(t => [t[0], t[2], t[1]]))); caps.push(g2); }
       }
     }
     // azotea: caseta del ascensor y el nombre en letras grandes

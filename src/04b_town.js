@@ -458,14 +458,14 @@ function palmMat() {
 }
 /* bordillos, aceras y líneas de borde: para que se vea dónde acaba la calzada y dónde empieza la acera */
 function buildCurbs() {
-  const C = 12, grid = new Map(), roads = TOWN.rd.filter(r => DRIVE[r.t]);
+  const C = 12, grid = new Map(), roads = TOWN.rd.filter(r => DRIVE[r.t] && r.t !== 'service');
   roads.forEach(r => { for (let i = 0; i + 1 < r.pts.length; i++) { const a = r.pts[i], b = r.pts[i + 1]; const x0 = Math.floor((Math.min(a[0], b[0]) - r.w) / C), x1 = Math.floor((Math.max(a[0], b[0]) + r.w) / C), z0 = Math.floor((Math.min(a[1], b[1]) - r.w) / C), z1 = Math.floor((Math.max(a[1], b[1]) + r.w) / C); for (let x = x0; x <= x1; x++) for (let z = z0; z <= z1; z++) { const k = x * 10000 + z; let l = grid.get(k); if (!l) grid.set(k, l = []); l.push([r, i]); } } });
   const covered = (x, z, rd, si) => { const l = grid.get(Math.floor(x / C) * 10000 + Math.floor(z / C)); if (!l) return false; for (const [r, i] of l) { if (r === rd && Math.abs(i - si) <= 1) continue; const a = r.pts[i], b = r.pts[i + 1]; if (segDist(x, z, a[0], a[1], b[0], b[1])[0] < r.w / 2 + 0.12) return true; } return false; };
   const cp = [], cn = [], cu = [], ci = [], lp = [], ln = [], li = [];
   const quad = (P, N, I, U, pts, nx, ny, nz, uvs) => { const b = P.length / 3; for (const p of pts) { P.push(p[0], p[1], p[2]); N.push(nx, ny, nz); } if (U) U.push(...uvs); I.push(b, b + 1, b + 2, b, b + 2, b + 3); };
   const SW = [];
   for (const r of roads) {
-    if (r.t === 'living_street' || r.w < 4.5) continue;
+    if (r.t === 'living_street' || r.t === 'service' || r.w < 4.5) continue;
     for (let i = 0; i + 1 < r.pts.length; i++) {
       const a = r.pts[i], b = r.pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < 0.3) continue;
       const ux = (b[0] - a[0]) / L, uz = (b[1] - a[1]) / L, n = Math.max(1, Math.ceil(L / 2.5));
@@ -512,7 +512,9 @@ function buildTown() {
   // calles: calzada de asfalto, la Avenida de Madrid con baldosa, aceras y caminos
   const RD = { asph: [], madrid: [], foot: [] }, paint = [];
   for (const rd of TOWN.rd) {
-    const k = DRIVE[rd.t] ? (rd.t === 'living_street' ? 'madrid' : 'asph') : 'foot';
+    // los accesos de servicio (garajes, patios) van del mismo adoquín que la acera; los caminos que caen dentro de una plaza no se pintan encima
+    const k = DRIVE[rd.t] && rd.t !== 'service' ? (rd.t === 'living_street' ? 'madrid' : 'asph') : 'foot';
+    if (k === 'foot') { const m = rd.pts[rd.pts.length >> 1]; if (TOWN.ar.some(a => (a.k === 'ped' || a.k === 'parking') && pip(m[0], m[1], a.P))) continue; }
     ribbonGeos(rd.pts, rd.w, k === 'asph' ? 0.04 : k === 'madrid' ? 0.036 : 0.03, k === 'asph' ? 3.5 : 2.4, RD[k]);
     if (k === 'asph' && rd.w >= 6.5) for (let i = 0; i + 1 < rd.pts.length; i++) { const a = rd.pts[i], b = rd.pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]); for (let s = 2; s < L - 2; s += 6) { const t = s / L; paint.push(wallSegGeo(lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[0], b[0], (s + 2.6) / L), lerp(a[1], b[1], (s + 2.6) / L), 0.005, 0.14, 1).translate(0, 0.045, 0)); } }
   }
@@ -535,9 +537,9 @@ function buildTown() {
       // la terraza del bar que había en el local no se pone: tapaba la puerta
       if (Math.max(Math.abs(ax), Math.abs(bx)) < 13 && az > 4 && az < 8.5 && bz > 4 && bz < 8.5) continue;
       // trozos sin cancela
-      const cuts = gates.map(g => { const [d, , , t] = segDist(g[0], g[1], ax, az, bx, bz); return d < 0.6 ? t * L : null; }).filter(v => v !== null).sort((u, v) => u - v);
+      const cuts = gates.map(g => { const [d, , , t] = segDist(g[0], g[1], ax, az, bx, bz); return d < 0.6 ? [t * L, g[2] || 0.75, !!g[2]] : null; }).filter(v => v !== null).sort((u, v) => u[0] - v[0]);
       let s0 = 0; const parts = [];
-      for (const c of cuts) { if (c - 0.75 > s0) parts.push([s0, c - 0.75]); s0 = c + 0.75; GATE.push([ax + (bx - ax) * c / L, az + (bz - az) * c / L, (bx - ax) / L, (bz - az) / L, b.h]); }
+      for (const [c, hw, open] of cuts) { if (c - hw > s0) parts.push([s0, c - hw]); s0 = Math.max(s0, c + hw); if (!open) GATE.push([ax + (bx - ax) * c / L, az + (bz - az) * c / L, (bx - ax) / L, (bz - az) / L, b.h]); }
       if (s0 < L) parts.push([s0, L]);
       for (const [s, e] of parts) {
         const x0 = ax + (bx - ax) * s / L, z0 = az + (bz - az) * s / L, x1 = ax + (bx - ax) * e / L, z1 = az + (bz - az) * e / L;
@@ -610,7 +612,7 @@ function buildTown() {
   addMerged(ob, ow);
   addSeg(R.x0, R.z0, R.x0, R.z1, 0, 9); addSeg(R.x1, R.z0, R.x1, R.z1, 0, 9); addSeg(R.x0, R.z0, R.x1, R.z0, 0, 9);
   const sign = textPlate('KEBAB PONIENTE · 24H', 512, 72, '#140c08', '#ffb23a', '#5a1a10');
-  box(7.2, 0.8, 0.25, M.dark, 0, 3.45, 5.25); plane(7.0, 0.7, bas(0xffffff, { map: sign }), 0, 3.45, 5.38, 0, 0); box(7.4, 0.06, 0.4, M.dark, 0, 3.02, 5.3);
+  box(7.2, 0.62, 0.22, M.dark, 0, 3.02, 5.22); plane(7.0, 0.54, bas(0xffffff, { map: sign }), 0, 3.02, 5.34, 0, 0); box(7.4, 0.05, 0.36, M.dark, 0, 2.69, 5.26);
   box(1.3, 0.35, 0.05, lam('corr', 0x8a8a84), -2.6, 2.0, 5.12);
   // parada de bus (la del que te mira): ver buildFurniture
   // solar con perros: grava y valla de malla
