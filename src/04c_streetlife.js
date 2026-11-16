@@ -1,71 +1,69 @@
-/* ================= VIDA DE LA CALLE: máquinas de bebidas, locales cerrados, contenedores, basura,
-   vagabundos con perro, halos de las farolas y motas de polvo, y el faro de la moto.
-   Todo sale de una semilla fija: todos los jugadores ven lo mismo (salvo el perro, que le ladra a cada uno). */
-const LIFE = layoutLife();
-
-// ¿una farola está apagada ahora mismo? (rota, parpadeando o asustando)
-function lampOff(L) { return L.md === 2 || (L.sc > 0 && Math.sin(TIME * 70 + L.ph) > 0) || (L.md === 1 && (Math.sin(TIME * 23 + L.ph) + Math.sin(TIME * 37 + L.ph * 2) + Math.sin(TIME * 3.1 + L.ph)) > 1.1); }
-
-/* un sitio pegado a la pared de una calle. side: +1 = lado de x/z mayores. Devuelve la pared y su normal hacia la calle. */
-function lifeSpot(si, side, a, ry) {
-  const s = STREETS[si], wc = s.c + side * wallOff(si);
-  const nx = s.ax === 'z' ? -side : 0, nz = s.ax === 'z' ? 0 : -side;
-  return { si, side, a, x: s.ax === 'z' ? wc : a, z: s.ax === 'z' ? a : wc, nx, nz, ry: Math.atan2(nx, nz) };
-}
-function layoutLife() {
-  const used = [], r = mulberry32(8812);
-  const bldAt = (x, z) => TOWN.bld.some(b => x > b.x0 && x < b.x1 && z > b.z0 && z < b.z1) || TOWN.plots.some(P => x > P.x0 && x < P.x1 && z > P.z0 && z < P.z1);
-  const free = (si, side, a, hw, curb) => {
-    const s = STREETS[si], wc = s.c + side * wallOff(si), ins = wc + side * 0.3;
-    if (!curb) for (const t of [-hw, -hw / 2, 0, hw / 2, hw]) { if (!(s.ax === 'z' ? bldAt(ins, a + t) : bldAt(a + t, ins))) return false; }
-    if (s.ax === 'z' && (a > -10 || a < -169)) return false;
-    if (s.ax === 'x' && STREETS.some(o => o.ax === 'z' && Math.abs(a - o.c) < 6 + hw)) return false;
-    if (s.ax === 'z' && Math.abs(a - STREETS[MED].c) < 7.5 + hw) return false;
-    if (si === 0 && Math.abs(a) < 9 + hw) return false;   // delante del local, no
-    for (const d of TOWN.sdoors.concat(TOWN.plots.map(P => P.gate))) { const da = s.ax === 'z' ? d.z : d.x, dw = s.ax === 'z' ? d.x : d.z; if (Math.abs(dw - wc) < 0.4 && Math.abs(da - a) < hw + 1.1) return false; }
-    for (const L of TOWN.lamps) { const la = s.ax === 'z' ? L.z : L.x, lw = s.ax === 'z' ? L.x : L.z; if (Math.abs(lw - wc) < 2.2 && Math.abs(la - a) < hw + 0.8) return false; }
-    for (const u of used) if (u.si === si && u.side === side && Math.abs(u.a - a) < u.hw + hw + 0.6) return false;
-    return true;
-  };
-  const find = (si, side, a0, hw, curb) => {
-    for (let k = 0; k < 80; k++) { const a = a0 + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 0.5; if (free(si, side, a, hw, curb)) { used.push({ si, side, a, hw }); return lifeSpot(si, side, a); } }
-    return null;
-  };
-  const L = { vend: [], shops: [], sleep: [], cont: [], lit: [] };
-  // máquinas de bebidas: las mismas bebidas que vendes tú, al mismo precio
-  for (const [si, side, a] of [[1, 1, -30], [5, 1, -22], [5, -1, 30], [3, -1, -130], [0, -1, -72], [4, -1, 14], [2, 1, -150]]) { const p = find(si, side, a, 0.6); if (p) L.vend.push(p); }
-  // locales cerrados y arruinados
-  for (const [si, side, a, k] of [[0, -1, -30, 0], [0, -1, 64, 3], [5, 1, -36, 4], [5, -1, -6, 1], [4, 1, -28, 2], [4, -1, 22, 0], [5, 1, 34, 5], [4, 1, 30, 3]]) { const p = find(si, side, a, 2.15); if (p) { p.k = k; L.shops.push(p); } }
-  // en la Avenida del Mediterráneo, la iluminada, hay tiendas abiertas toda la noche
-  [[1, -8, 0], [-1, -30, 1], [-1, 36, 2]].forEach(([side, a, k]) => { const p = find(MED, side, a, 2.15); if (p) { p.k = k; L.lit.push(p); } });
-  // vagabundos durmiendo boca abajo, con su carro y su perro
-  for (const [si, side, a] of [[2, 1, -60], [4, -1, -20]]) { const p = find(si, side, a, 2.6); if (p) L.sleep.push(p); }
-  // contenedores junto al bordillo, en grupos de 2 o 3
-  const curbFree = (si, side, a, hw) => {
-    const s = STREETS[si], cw = s.c + side * (s.w / 2 + 0.6);
-    if (!free(si, side, a, hw, true)) return false;
-    for (const L2 of TOWN.lamps) { const la = s.ax === 'z' ? L2.z : L2.x, lw = s.ax === 'z' ? L2.x : L2.z; if (Math.abs(lw - cw) < 1.2 && Math.abs(la - a) < hw + 0.7) return false; }
-    for (const c of TOWN.cars) { const ca = s.ax === 'z' ? c.z : c.x, cl = s.ax === 'z' ? c.x : c.z; if (Math.abs(cl - cw) < 2.4 && Math.abs(ca - a) < hw + 2.6) return false; }
-    if (si === 0 && side > 0) return false;
-    return true;
-  };
-  STREETS.forEach((s, si) => {
-    const sides = si === 0 ? [-1] : [-1, 1];
-    const a0 = s.ax === 'z' ? -16 : s.a0 + 8, a1 = s.ax === 'z' ? -166 : s.a1 - 8, step = s.ax === 'z' ? -1 : 1;
-    let a = a0 + step * r() * 10;
-    while (step < 0 ? a > a1 : a < a1) {
-      const n = r() < 0.5 ? 2 : 3, hw = n * 0.72, side = sides[r() * sides.length | 0];
-      if (curbFree(si, side, a, hw)) {
-        used.push({ si, side, a, hw });
-        const p = lifeSpot(si, side, a); p.n = n; p.cw = s.c + side * (s.w / 2 + 0.58); p.cols = [0, 1, 2, 3].sort(() => r() - 0.5).slice(0, n); p.bags = r() * 4 | 0; p.lid = r() < 0.4 ? r() * 0.5 : 0; L.cont.push(p);
-        a += step * (26 + r() * 22);
-      } else a += step * 3;
+/* ================= VIDA DE LA CALLE (del mapa real): los negocios con su nombre y su rótulo, bancos, papeleras,
+   contenedores, paradas de bus, máquinas de bebidas, basura por el suelo, vagabundos con perro,
+   halos de las farolas, motas de polvo y el faro de la moto. */
+// el punto de fachada más cercano a (x,z): para colgar rótulos, máquinas o vagabundos
+const _facRoad = new Map();
+function nearestFacade(x, z, maxD, minL) {
+  let best = null, bd = maxD || 12;
+  for (const b of TOWN.bld) {
+    if (b.t === 'roof' || x < b.x0 - bd || x > b.x1 + bd || z < b.z0 - bd || z > b.z1 + bd) continue;
+    for (let i = 0; i < b.P.length; i++) {
+      const a = b.P[i], c = b.P[(i + 1) % b.P.length], [d, qx, qz, t] = segDist(x, z, a[0], a[1], c[0], c[1]), [nx, nz, L] = outN(b.P, i);
+      if (L < (minL || 3)) continue;
+      // mejor una fachada que dé a la calle
+      const ck = b.i + ':' + i; let rd = _facRoad.get(ck); if (rd === undefined) { const nr = nearestRoad((a[0] + c[0]) / 2 + nx * 4, (a[1] + c[1]) / 2 + nz * 4, false); rd = nr ? Math.min(nr.d, 20) : 20; _facRoad.set(ck, rd); }
+      const cost = d + rd * 0.25;
+      if (cost < bd) { bd = cost; best = { b, i, qx, qz, nx, nz, L, s: t * L, x: qx, z: qz, ry: Math.atan2(nx, nz) }; }
     }
-  });
+  }
+  return best;
+}
+function facadeFree(p, w, used) {
+  if (Math.abs(p.x) < 7 && p.z > 2 && p.z < 8) return false;                  // la fachada del propio local
+  for (const C of TOWN.del) if (C.b === p.b && C.edge === p.i && Math.abs(p.s - C.s0 + 0.7) < 2.4 + w / 2) return false;   // portal de una torre
+  for (const u of used) if (u.b === p.b && u.i === p.i && Math.abs(u.s - p.s) < (u.w + w) / 2 + 0.3) return false;
+  return true;
+}
+const POI_STYLE = {   // [color de fondo, color de letra, ¿abierto de madrugada?, texto si no tiene nombre]
+  bar: ['#3a1a0a', '#ffcf6a', 1, 'BAR'], pub: ['#0e2a12', '#f0d070', 1, 'PUB'], restaurant: ['#4a1210', '#ffe0b0', 0, 'RESTAURANTE'], fast_food: ['#b81a10', '#ffe040', 1, 'FAST FOOD'], cafe: ['#3a2410', '#f0e0c0', 0, 'CAFETERÍA'],
+  convenience: ['#0a4a2a', '#ffffff', 1, 'SUPERMERCADO 24H'], supermarket: ['#d82a1a', '#ffffff', 0, 'SUPERMERCADO'], massage: ['#5a0a4a', '#ff9ae0', 1, 'MASAJES'], tattoo: ['#0a0a0a', '#e02020', 1, 'TATTOO'],
+  stripclub: ['#2a0020', '#ff3ab0', 1, 'CLUB'], nightclub: ['#100030', '#40e0ff', 1, 'DISCO'], pharmacy: ['#0a7a3a', '#ffffff', 0, 'FARMACIA'], hairdresser: ['#e8e0d8', '#3a2a2a', 0, 'PELUQUERÍA'],
+  clothes: ['#1a1a2a', '#ffffff', 0, 'MODA'], vacant: ['#3a3630', '#8a8478', 0, ''], atm: ['#0a3a7a', '#ffffff', 1, 'CAJERO'], bank: ['#0a3a7a', '#ffffff', 0, 'BANCO'], estate_agent: ['#1a3a6a', '#ffffff', 0, 'INMOBILIARIA'],
+  hotel: ['#0a1a3a', '#e8c870', 1, 'HOTEL'], ice_cream: ['#ff9ac8', '#3a0a2a', 0, 'HELADERÍA'], bakery: ['#c8a060', '#3a1a0a', 0, 'PANADERÍA'], gift: ['#e8c020', '#1a1a1a', 0, 'SOUVENIRS'], variety_store: ['#e8c020', '#1a1a1a', 0, 'BAZAR'],
+  _: ['#2a2a30', '#e8e8e0', 0, ''],
+};
+function poiStyle(kind) { const t = kind.split(':')[1]; return POI_STYLE[t] || POI_STYLE[{ 'e-cigarette': 'tattoo', alternative: 'massage', beauty: 'massage', bookmaker: 'nightclub', adult_gaming_centre: 'nightclub', biergarten: 'bar', accessories: 'gift', mobile_phone: 'variety_store', alcohol: 'convenience', kiosk: 'convenience', newsagent: 'convenience', tobacco: 'convenience', jewelry: 'clothes', shoes: 'clothes' }[t]] || POI_STYLE._; }
+function layoutLife() {
+  const used = [], r = mulberry32(8812), L = { shops: [], vend: [], sleep: [] };
+  // los negocios del mapa, en la fachada más cercana
+  for (const [x, z, kind, name] of MAP.poi) {
+    if (Math.hypot(x, z) > 240) continue;
+    const p = nearestFacade(x, z, 14, 3.2); if (!p) continue;
+    const w = Math.min(4.2, p.L - 0.4);
+    // si el sitio está ocupado, a un lado o al otro
+    let ok = false; for (const ds of [0, 4.4, -4.4, 8.8, -8.8]) { const s = p.s + ds; if (s < w / 2 || s > p.L - w / 2) continue; const q = Object.assign({}, p, { s }), a = p.b.P[p.i], c = p.b.P[(p.i + 1) % p.b.P.length]; q.x = q.qx = a[0] + (c[0] - a[0]) * s / p.L; q.z = q.qz = a[1] + (c[1] - a[1]) * s / p.L; if (facadeFree(q, w, used)) { Object.assign(p, q); ok = true; break; } }
+    if (!ok) continue;
+    p.w = w; p.kind = kind; p.name = name; used.push(p); L.shops.push(p);
+  }
+  // máquinas de bebidas: junto a bares y tiendas de 24 horas, cerca del local
+  const nearBars = L.shops.filter(s => /bar|pub|convenience/.test(s.kind)).sort((a, b) => Math.hypot(a.x, a.z) - Math.hypot(b.x, b.z));
+  for (const s of nearBars) {
+    if (L.vend.length >= 5) break; if (L.vend.some(v => Math.hypot(v.x - s.x, v.z - s.z) < 40)) continue;
+    const a = s.b.P[s.i], c = s.b.P[(s.i + 1) % s.b.P.length];
+    for (const ds of [s.w / 2 + 0.9, -(s.w / 2 + 0.9)]) { const q = Object.assign({}, s, { s: s.s + ds }); if (q.s < 0.7 || q.s > s.L - 0.7) continue; q.x = a[0] + (c[0] - a[0]) * q.s / s.L; q.z = a[1] + (c[1] - a[1]) * q.s / s.L; if (facadeFree(q, 1.2, used)) { q.w = 1.2; used.push(q); L.vend.push(q); break; } }
+  }
+  // vagabundos: delante de locales vacíos o tiendas cerradas, lejos del kebab
+  for (const s of L.shops.filter(s => /vacant|clothes|estate|bank/.test(s.kind)).sort((a, b) => Math.hypot(a.x, a.z) - Math.hypot(b.x, b.z))) {
+    if (L.sleep.length >= 2) break; if (Math.hypot(s.x, s.z) < 45 || L.sleep.some(o => Math.hypot(o.x - s.x, o.z - s.z) < 60)) continue;
+    L.sleep.push(s);
+  }
   return L;
 }
 
-/* ---------- texturas ---------- */
+function lampOff(L) { return L.md === 2 || (L.sc > 0 && Math.sin(TIME * 70 + L.ph) > 0) || (L.md === 1 && (Math.sin(TIME * 23 + L.ph) + Math.sin(TIME * 37 + L.ph * 2) + Math.sin(TIME * 3.1 + L.ph)) > 1.1); }
+
+/* un sitio pegado a la pared de una calle. side: +1 = lado de x/z mayores. Devuelve la pared y su normal hacia la calle. */
+
 function vendTex() {
   return ctex(256, 512, (g) => {
     g.fillStyle = '#0d1a33'; g.fillRect(0, 0, 256, 512);
@@ -97,6 +95,7 @@ function vendTex() {
     g.fillStyle = 'rgba(0,0,0,.35)'; for (let i = 0; i < 30; i++) g.fillRect(Math.random() * 256, 82 + Math.random() * 400, 2 + Math.random() * 10, 1 + Math.random() * 3);
   });
 }
+
 function glowTex(r, gC, b) {
   return ctex(128, 128, (g) => {
     const gr = g.createRadialGradient(64, 64, 2, 64, 64, 63);
@@ -104,27 +103,9 @@ function glowTex(r, gC, b) {
     g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
   });
 }
+
 function dotTex() { return ctex(32, 32, (g) => { const gr = g.createRadialGradient(16, 16, 0, 16, 16, 15); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.4, 'rgba(255,255,255,.5)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 32, 32); }); }
-const SHOP_SIGNS = [['KEBAB ISTANBUL', '#3a120c', '#d8a040', [2, 9]], ['DÖNER ANKARA', '#1a2a12', '#d8c8a0', [4]], ['KEBAB EL SULTÁN', '#2a0a0a', '#e05030', [0, 11]], ['SUPERMARKET 24H', '#0e2a4a', '#f0f0e0', [5, 12]], ['SUPERMERCADO SOL', '#5a3a0a', '#f8e0a0', [3]], ['ALIMENTACIÓN · FRUTAS', '#1a3a1a', '#f0e8c8', [6, 14]]];
-function shopSignTex(k, r) {
-  const [t, bg, fg, miss] = SHOP_SIGNS[k];
-  return ctex(512, 80, (g) => {
-    g.fillStyle = bg; g.fillRect(0, 0, 512, 80);
-    g.textAlign = 'left'; g.textBaseline = 'middle'; let fs = 46; g.font = 'bold ' + fs + 'px sans-serif'; while (g.measureText(t).width > 470) { fs--; g.font = 'bold ' + fs + 'px sans-serif'; }
-    let x = (512 - g.measureText(t).width) / 2;
-    for (let i = 0; i < t.length; i++) {
-      const ch = t[i], w = g.measureText(ch).width;
-      if (miss.indexOf(i) >= 0) { g.fillStyle = 'rgba(0,0,0,.35)'; g.fillText(ch, x, 41); for (const dy of [-12, 12]) { g.fillStyle = '#6a6a60'; g.fillRect(x + w / 2 - 2, 40 + dy, 4, 4); } }   // letra caída: solo queda la marca y los tornillos
-      else { g.save(); g.translate(x + w / 2, 41); g.rotate((r() - 0.5) * 0.12); g.fillStyle = fg; g.globalAlpha = 0.55 + r() * 0.35; g.fillText(ch, -w / 2, 0); g.restore(); }
-      x += w;
-    }
-    // mugre, óxido chorreando y grietas
-    for (let i = 0; i < 40; i++) { g.fillStyle = `rgba(${40 + r() * 40 | 0},${25 + r() * 20 | 0},10,${0.2 + r() * 0.3})`; g.fillRect(r() * 512, r() * 80, 4 + r() * 30, 2 + r() * 8); }
-    for (let i = 0; i < 6; i++) { const x0 = r() * 512; const gr = g.createLinearGradient(0, 0, 0, 80); gr.addColorStop(0, 'rgba(90,50,20,.6)'); gr.addColorStop(1, 'rgba(90,50,20,0)'); g.fillStyle = gr; g.fillRect(x0, 0, 3 + r() * 5, 80); }
-    g.strokeStyle = 'rgba(0,0,0,.6)'; g.lineWidth = 1.5; g.beginPath(); let cx = r() * 512, cy = 0; g.moveTo(cx, cy); while (cy < 80) { cx += (r() - 0.5) * 30; cy += 6 + r() * 10; g.lineTo(cx, cy); } g.stroke();
-    g.strokeStyle = '#111'; g.lineWidth = 6; g.strokeRect(3, 3, 506, 74);
-  });
-}
+
 function graffiti(g, r, x0, y0, w, h) {
   const cols = ['#e03a8a', '#3ad0e0', '#f0f0f0', '#e0d020', '#30c040', '#101010', '#ff6020'];
   for (let k = 0; k < 3; k++) {
@@ -135,6 +116,7 @@ function graffiti(g, r, x0, y0, w, h) {
   }
   g.globalAlpha = 1;
 }
+
 function shopFrontTex(k, r, glass) {
   return ctex(256, 192, (g) => {
     if (glass) {   // escaparate roto, tapado con papeles, oscuro por dentro
@@ -156,6 +138,7 @@ function shopFrontTex(k, r, glass) {
   });
 }
 // atlas de basura del suelo: 4x4 casillas de 128px
+
 function litterAtlas() {
   return ctex(512, 512, (g) => {
     g.clearRect(0, 0, 512, 512); const r = mulberry32(55);
@@ -184,21 +167,113 @@ function litterAtlas() {
     }
   });
 }
+
 function cellPlane(i, w, h, x, y, z, ry) {
   const g = new THREE.PlaneGeometry(w, h), uv = g.attributes.uv, cx = (i % 4) / 4, cy = 1 - ((i / 4 | 0) + 1) / 4;
   for (let k = 0; k < uv.count; k++) uv.setXY(k, cx + uv.getX(k) * 0.25, cy + uv.getY(k) * 0.25);
   g.rotateX(-PI / 2); g.rotateY(ry); g.translate(x, y, z); return g;
 }
+
 function wireTex() { return ctex(64, 64, (g) => { g.clearRect(0, 0, 64, 64); g.strokeStyle = '#b8bcc0'; g.lineWidth = 3; for (let i = 0; i <= 64; i += 16) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, 64); g.stroke(); g.beginPath(); g.moveTo(0, i); g.lineTo(64, i); g.stroke(); } }); }
+
 function plaidTex(c1, c2) { return ctex(64, 64, (g) => { g.fillStyle = c1; g.fillRect(0, 0, 64, 64); g.fillStyle = c2; g.globalAlpha = 0.6; for (let i = 0; i < 64; i += 16) { g.fillRect(i, 0, 6, 64); g.fillRect(0, i, 64, 6); } g.globalAlpha = 0.25; g.fillStyle = '#000'; for (let i = 0; i < 40; i++) g.fillRect(Math.random() * 64, Math.random() * 64, 3 + Math.random() * 8, 2 + Math.random() * 5); }); }
 
-/* ---------- construcción ---------- */
-// punto en coordenadas de un sitio de pared: lx a lo largo, lz hacia la calle
+
 function sp2w(p, lx, lz) { const tx = Math.cos(p.ry), tz = -Math.sin(p.ry); return [p.x + tx * lx + p.nx * lz, p.z + tz * lx + p.nz * lz]; }
+
 function aabb(p, lx0, lx1, lz0, lz1) { const a = sp2w(p, lx0, lz0), b = sp2w(p, lx1, lz1); return { x0: Math.min(a[0], b[0]), x1: Math.max(a[0], b[0]), z0: Math.min(a[1], b[1]), z1: Math.max(a[1], b[1]) }; }
 
+
+function dogLie(dog, k) {
+  dog.position.y = -0.36 * k;
+  dog.legs.forEach((l, i) => { l.rotation.x = k * (i < 2 ? 1.45 : -1.45); });
+  dog.head.rotation.x = k * 0.35;
+}
+
+
+function moteStep(M2, top) {
+  const a = M2.pts.geometry.attributes.position, p = M2.pos;
+  for (let k = 0; k < M2.base.length; k++) {
+    const b = M2.base[k], t = TIME * b[4] + b[3];
+    let y = b[1] + Math.sin(t * 0.7) * 0.35; if (y > top) y = top - (y - top); if (y < 0.15) y = 0.15 + (0.15 - y);
+    p[k * 3] = b[0] + Math.sin(t) * 0.25; p[k * 3 + 1] = y; p[k * 3 + 2] = b[2] + Math.cos(t * 0.8) * 0.25;
+  }
+  a.needsUpdate = true;
+}
+
+
+const LIFE = layoutLife();
+
+/* ---------- mobiliario urbano del mapa ---------- */
+function buildFurniture(r) {
+  const wood = [], iron = [], cY = [], cB = [], cG = [], cGr = [], lids = [], bas2 = [], glass = [], roofs = [];
+  // bancos: de cara al mar en la primera línea, de cara a la calle en lo demás
+  for (const [x, z, dir] of MAP.bench) {
+    let ry;
+    if (dir >= 0) ry = -dir * PI / 180 + PI; else if (z > 2) ry = 0; else { const nr = nearestRoad(x, z, false); ry = nr && nr.d > 0.2 ? Math.atan2(nr.qx - x, nr.qz - z) : 0; }
+    const s = Math.sin(ry), c = Math.cos(ry), P = (lx, lz) => [x + lx * c + lz * s, z - lx * s + lz * c];
+    for (const [lz, y, h] of [[0.05, 0.45, 0.06], [-0.12, 0.45, 0.06], [-0.28, 0.75, 0.32]]) { const [px, pz] = P(0, lz); wood.push(bgeo(1.7, h, 0.14, px, y, pz, ry, 1)); }
+    for (const lx of [-0.75, 0.75]) { const [px, pz] = P(lx, -0.1); iron.push(bgeo(0.06, 0.45, 0.45, px, 0.22, pz, ry, 1)); }
+    colliders.push({ x0: x - 0.7, x1: x + 0.7, z0: z - 0.7, z1: z + 0.7 });
+  }
+  // papeleras y contenedores (amarillo envases, azul papel, iglú verde de vidrio, verde y gris de basura)
+  for (const [x, z, k] of MAP.bin) {
+    if (k === 0) { iron.push(cgeo(0.04, 0.04, 1.0, 4, x, 0.5, z)); const g = new THREE.CylinderGeometry(0.22, 0.2, 0.55, 8, 1, true); g.translate(x, 0.8, z); cGr.push(g); continue; }
+    const nr = nearestRoad(x, z, true), ry = nr && nr.d > 0.1 ? Math.atan2(nr.qx - x, nr.qz - z) + PI / 2 : 0, s = Math.sin(ry), c = Math.cos(ry);
+    const set = k === 1 ? [cY, cB, 'igloo'] : [cG, cGr];
+    set.forEach((lst, j) => {
+      const lx = (j - (set.length - 1) / 2) * 1.5, px = x + lx * c, pz = z - lx * s;
+      if (lst === 'igloo') { const g = new THREE.SphereGeometry(0.85, 10, 6, 0, PI * 2, 0, PI / 2); g.scale(1, 1.6, 1); g.translate(px, 0, pz); cG.push(g); }
+      else { lst.push(bgeo(1.34, 1.05, 0.98, px, 0.62, pz, ry, 1)); lids.push(bgeo(1.4, 0.07, 1.04, px, 1.18, pz, ry, 1)); }
+    });
+    colliders.push({ x0: x - 2.2, x1: x + 2.2, z0: z - 0.7, z1: z + 0.7 });
+  }
+  // paradas de bus con marquesina
+  for (const [x, z, name, sh] of MAP.bus) {
+    const nr = nearestRoad(x, z, true), ry = nr && nr.d > 0.1 ? Math.atan2(nr.qx - x, nr.qz - z) : 0, s = Math.sin(ry), c = Math.cos(ry), P = (lx, lz) => [x + lx * c + lz * s, z - lx * s + lz * c];
+    if (sh) {
+      { const [px, pz] = P(0, -0.9); glass.push(bgeo(3.2, 2.1, 0.04, px, 1.25, pz, ry, 1)); }
+      { const [px, pz] = P(0, -0.4); roofs.push(bgeo(3.4, 0.08, 1.4, px, 2.4, pz, ry, 1)); }
+      { const [px, pz] = P(0, -0.6); wood.push(bgeo(2.4, 0.08, 0.4, px, 0.48, pz, ry, 1)); }
+      for (const lx of [-1.6, 1.6]) { const [px, pz] = P(lx, -0.9); iron.push(cgeo(0.04, 0.04, 2.4, 4, px, 1.2, pz)); }
+      const [px, pz] = P(0, -0.9); colliders.push({ x0: px - 1.6, x1: px + 1.6, z0: pz - 0.3, z1: pz + 0.3 });
+    }
+    const [qx, qz] = P(2.0, -0.2); iron.push(cgeo(0.04, 0.04, 2.9, 4, qx, 1.45, qz));
+    plane(0.6, 0.6, new THREE.MeshLambertMaterial({ map: textPlate(name ? name.slice(0, 18).toUpperCase() : 'BUS', 128, 128, '#1a3a6a', '#ffffff'), side: THREE.DoubleSide }), qx, 2.6, qz, 0, ry);
+  }
+  addMerged(wood, lam('wood2', 0x8a6a4a)); addMerged(iron, M.dark);
+  addMerged(cY, lam('rust', 0xb08a18, { emissive: 0x060606 })); addMerged(cB, lam('rust', 0x1f4a8a, { emissive: 0x060606 })); addMerged(cG, lam('rust', 0x2f5a34, { emissive: 0x060606 })); addMerged(cGr, lam('rust', 0x5a5a56, { emissive: 0x060606 }));
+  addMerged(lids, lam(null, 0x2a3a2a)); addMerged(glass, lam(null, 0x9ab0b8, { transparent: true, opacity: 0.25, depthWrite: false })); addMerged(roofs, M.dark);
+}
+
+/* ---------- rótulos de los negocios: un atlas con todos los nombres ---------- */
+function shopWinTex(kind) {
+  return ctex(128, 96, (g) => {
+    const st = poiStyle(kind), open = st[2];
+    if (/vacant/.test(kind)) return;
+    if (open) {
+      const warm = /bar|pub|restaurant|cafe|biergarten/.test(kind), pink = /massage|strip|beauty|alternative/.test(kind);
+      g.fillStyle = pink ? '#ff60c0' : warm ? '#ffb050' : '#e8f0ff'; g.fillRect(0, 0, 128, 96);
+      g.fillStyle = 'rgba(0,0,0,.35)'; for (let i = 0; i < 4; i++) g.fillRect(8 + i * 30, 10, 18, 50);
+      if (warm) { g.fillStyle = '#1a0a04'; for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(24 + i * 38, 54, 9, 0, 7); g.fill(); g.fillRect(16 + i * 38, 62, 16, 34); } }
+      if (pink) { g.strokeStyle = '#ffffff'; g.lineWidth = 3; g.font = 'bold 18px sans-serif'; g.textAlign = 'center'; g.strokeText(/strip/.test(kind) ? 'SHOW' : 'OPEN', 64, 50); }
+      g.fillStyle = '#2a2a2a'; g.fillRect(62, 0, 4, 96);
+    }
+  });
+}
+function signAtlas(list) {
+  return ctex(2048, 2048, (g) => {
+    g.fillStyle = '#000'; g.fillRect(0, 0, 2048, 2048); g.textAlign = 'center'; g.textBaseline = 'middle';
+    list.forEach((s, i) => {
+      const x = (i % 8) * 256, y = (i / 8 | 0) * 32, st = poiStyle(s.kind), t = (s.name || st[3] || '').toUpperCase();
+      g.fillStyle = st[0]; g.fillRect(x, y, 256, 32); g.strokeStyle = 'rgba(0,0,0,.6)'; g.lineWidth = 2; g.strokeRect(x + 1, y + 1, 254, 30);
+      let fs = 22; g.font = 'bold ' + fs + 'px sans-serif'; while (g.measureText(t).width > 240 && fs > 9) { fs--; g.font = 'bold ' + fs + 'px sans-serif'; }
+      g.fillStyle = st[1]; g.fillText(t, x + 128, y + 17);
+    });
+  });
+}
 function buildStreetLife() {
-  const r = mulberry32(2024), add = (m) => { scene.add(m); return m; };
+  const r = mulberry32(2024), add = (m) => { scene.add(m); return m; }; D.litGlow = [];
   /* máquinas de bebidas */
   const vTex = vendTex(), vBody = [], vFront = [], vGlow = [], vTrim = [];
   D.vendGlowTex = glowTex(90, 160, 255);
@@ -207,7 +282,7 @@ function buildStreetLife() {
     vBody.push(bgeo(1.0, 1.95, 0.8, bx, 0.975, bz, p.ry, 1));
     vTrim.push(bgeo(1.04, 0.1, 0.84, bx, 1.98, bz, p.ry, 1), bgeo(1.04, 0.12, 0.84, bx, 0.06, bz, p.ry, 1));
     const fp = new THREE.PlaneGeometry(0.88, 1.76); fp.rotateY(p.ry); fp.translate(fx, 1.0, fz); vFront.push(fp);
-    const [gx, gz] = sp2w(p, 0, 1.7), gp = new THREE.PlaneGeometry(3.8, 3.4); gp.rotateX(-PI / 2); gp.rotateY(p.ry); gp.translate(gx, 0.028, gz); vGlow.push(gp);
+    const [gx, gz] = sp2w(p, 0, 1.7), gp = new THREE.PlaneGeometry(3.8, 3.4); gp.rotateX(-PI / 2); gp.rotateY(p.ry); gp.translate(gx, 0.07, gz); vGlow.push(gp);
     const [wx, wz] = sp2w(p, 0, 0.03), wp = new THREE.PlaneGeometry(3.0, 3.0); wp.rotateY(p.ry); wp.translate(wx, 1.2, wz); vGlow.push(wp);
     colliders.push(aabb(p, -0.55, 0.55, -0.1, 0.88));
     for (let t = 0; t < 3; t++) { const [hx, hz] = sp2w(p, (t - 1) * 0.29, 0.86); const al = Math.abs(p.nx) > 0.5; hit('vm' + (m * 3 + t), hx, 1.15, hz, al ? 0.2 : 0.28, 1.3, al ? 0.28 : 0.2); }
@@ -217,106 +292,26 @@ function buildStreetLife() {
   if (vGlow.length) { const gm = addMerged(vGlow, new THREE.MeshBasicMaterial({ map: D.vendGlowTex, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide })); gm.renderOrder = 3; }
   LG.vend = new THREE.PointLight(0x5a9aff, 0, 8, 1.4); scene.add(LG.vend);
 
-  /* locales cerrados y arruinados */
-  const frame = [], dark = [], wood = [], bags = [], boxes = [];
+  /* los negocios: rótulo con su nombre y escaparate (encendido si abre de madrugada, persiana si no) */
+  const at = signAtlas(LIFE.shops), sOn = [], sOff = [], boxes = [], winM = {}, wins = {};
   D.lifeFlick = [];
   LIFE.shops.forEach((p, i) => {
-    const glass = p.k >= 3 && i % 2 === 0, tilt = r() < 0.4 ? (r() - 0.5) * 0.22 : 0;
-    for (const lx of [-1.9, 1.9]) { const [x, z] = sp2w(p, lx, 0.07); frame.push(bgeo(0.3, 3.0, 0.14, x, 1.5, z, p.ry, 1)); }
-    { const [x, z] = sp2w(p, 0, 0.07); frame.push(bgeo(4.1, 0.28, 0.14, x, 2.78, z, p.ry, 1)); frame.push(bgeo(4.1, 0.25, 0.3, x, 0.12, z, p.ry, 1)); }
-    // persiana o escaparate
-    const [sx, sz] = sp2w(p, 0, 0.04), front = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 2.4), new THREE.MeshLambertMaterial({ map: shopFrontTex(p.k, r, glass), emissive: 0x0a0a0a }));
-    front.position.set(sx, 1.42, sz); front.rotation.y = p.ry; add(front);
-    if (glass) for (const [y, rz] of [[0.9, 0.18], [1.5, -0.12], [2.1, 0.06]]) { const [x, z] = sp2w(p, (r() - 0.5) * 0.6, 0.1); wood.push(bgeo(3.4, 0.18, 0.05, x, y, z, p.ry, 1, 0, rz)); }
-    // el rótulo, apagado y sucio; a veces medio descolgado
-    const [kx, kz] = sp2w(p, tilt ? 0.15 : 0, 0.13); dark.push(bgeo(4.1, 0.78, 0.22, kx, 3.32 - Math.abs(tilt) * 1.2, kz, p.ry, 1, 0, tilt));
-    const [lx2, lz2] = sp2w(p, tilt ? 0.15 : 0, 0.245), sg = new THREE.Mesh(new THREE.PlaneGeometry(3.95, 0.64), new THREE.MeshLambertMaterial({ map: shopSignTex(p.k, r), emissive: 0x141414 }));
-    sg.position.set(lx2, 3.32 - Math.abs(tilt) * 1.2, lz2); sg.rotation.set(0, p.ry, tilt); add(sg);
-    // un «24H» o «ABIERTO» de neón que todavía da tirones
-    if (p.k === 3 || p.k === 0) {
-      const t = ctex(128, 64, (g) => { g.fillStyle = '#000'; g.fillRect(0, 0, 128, 64); g.strokeStyle = p.k === 3 ? '#ff3030' : '#30ff80'; g.lineWidth = 4; g.font = 'bold 34px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.strokeText(p.k === 3 ? '24H' : 'OPEN', 64, 33); });
-      const [nx, nz] = sp2w(p, 1.2, 0.08), ne = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.31), new THREE.MeshBasicMaterial({ map: t, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
-      ne.position.set(nx, 2.25, nz); ne.rotation.y = p.ry; add(ne); D.lifeFlick.push({ m: ne, ph: r() * 9 });
+    const st = poiStyle(p.kind), open = st[2], vac = /vacant/.test(p.kind), ux = -p.nz, uz = p.nx;
+    const g = new THREE.PlaneGeometry(p.w - 0.2, 0.42); uvRect(g, (i % 8) * 256, (i / 8 | 0) * 32, 256, 32, 2048, 2048); g.rotateY(p.ry); g.translate(p.x + p.nx * 0.2, 2.95, p.z + p.nz * 0.2);
+    (open ? sOn : sOff).push(g); boxes.push(bgeo(p.w, 0.55, 0.16, p.x + p.nx * 0.1, 2.95, p.z + p.nz * 0.1, p.ry, 1));
+    const wk = vac ? 'vacant' : open ? (/bar|pub|restaurant|cafe|biergarten/.test(p.kind) ? 'bar' : /massage|strip|beauty|alternative/.test(p.kind) ? 'pink' : 'shop') : 'shut' + (i % 3);
+    if (!winM[wk]) winM[wk] = wk === 'vacant' ? new THREE.MeshLambertMaterial({ map: shopFrontTex(0, mulberry32(7), false), emissive: 0x0a0a0a }) : wk.startsWith('shut') ? new THREE.MeshLambertMaterial({ map: shopFrontTex(0, mulberry32(30 + i % 3), false), emissive: 0x0a0a0a }) : new THREE.MeshBasicMaterial({ map: shopWinTex(p.kind), color: 0xcccccc });
+    const wg = new THREE.PlaneGeometry(p.w - 0.4, 2.3); wg.rotateY(p.ry); wg.translate(p.x + p.nx * 0.04, 1.2, p.z + p.nz * 0.04); (wins[wk] = wins[wk] || []).push(wg);
+    // la luz del escaparate en la acera
+    if (open) { const gp = new THREE.PlaneGeometry(p.w + 1, 3.2); gp.rotateX(-PI / 2); gp.rotateY(p.ry); gp.translate(p.x + p.nx * 1.6, 0.07, p.z + p.nz * 1.6); D.litGlow.push(gp); }
+    if (open && /bar|pub|strip|massage|nightclub/.test(p.kind) && r() < 0.5) {   // neón que da tirones
+      const t = ctex(128, 64, (g2) => { g2.fillStyle = '#000'; g2.fillRect(0, 0, 128, 64); g2.strokeStyle = st[1]; g2.lineWidth = 4; g2.font = 'bold 30px sans-serif'; g2.textAlign = 'center'; g2.textBaseline = 'middle'; g2.strokeText(/massage/.test(p.kind) ? 'SPA' : 'OPEN', 64, 33); });
+      const ne = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.31), new THREE.MeshBasicMaterial({ map: t, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+      ne.position.set(p.x + p.nx * 0.06 + ux * (p.w / 2 - 0.6), 2.2, p.z + p.nz * 0.06 + uz * (p.w / 2 - 0.6)); ne.rotation.y = p.ry; add(ne); D.lifeFlick.push({ m: ne, ph: r() * 9 });
     }
-    // basura amontonada en la puerta
-    const nb = 1 + (r() * 4 | 0);
-    for (let k = 0; k < nb; k++) { const [x, z] = sp2w(p, (r() - 0.5) * 3, 0.4 + r() * 0.5), s = 0.22 + r() * 0.12, g = new THREE.SphereGeometry(s, 7, 5); g.scale(1, 0.85, 1); g.translate(x, s * 0.8, z); bags.push(g); }
-    if (r() < 0.7) { const [x, z] = sp2w(p, (r() - 0.5) * 2.6, 0.45); boxes.push(bgeo(0.5, 0.36, 0.4, x, 0.18, z, p.ry + r(), 1)); }
-    if (r() < 0.5) { const [x, z] = sp2w(p, (r() - 0.5) * 2.6, 0.5); boxes.push(bgeo(0.8, 0.04, 0.55, x, 0.02, z, p.ry + r(), 1)); }   // cartón aplastado
   });
-  /* tiendas abiertas del barrio iluminado: escaparate con luz blanca y rótulo encendido */
-  const LIT_SIGNS = [['BAZAR 24H', '#c01818', '#ffffff'], ['LOCUTORIO · ENVÍOS', '#0a3a8a', '#ffe040'], ['FARMACIA', '#0a7a3a', '#ffffff']];
-  D.litGlow = [];
-  LIFE.lit.forEach((p, i) => {
-    for (const lx of [-1.9, 1.9]) { const [x, z] = sp2w(p, lx, 0.07); frame.push(bgeo(0.3, 3.0, 0.14, x, 1.5, z, p.ry, 1)); }
-    { const [x, z] = sp2w(p, 0, 0.07); frame.push(bgeo(4.1, 0.28, 0.14, x, 2.78, z, p.ry, 1)); frame.push(bgeo(4.1, 0.25, 0.3, x, 0.12, z, p.ry, 1)); }
-    const ft = ctex(256, 192, (g) => {
-      g.fillStyle = '#f4f0e0'; g.fillRect(0, 0, 256, 192);
-      for (let y = 20; y < 180; y += 34) { g.fillStyle = '#9a9488'; g.fillRect(0, y + 26, 256, 4); for (let x = 4; x < 252; x += 9 + r() * 8) { g.fillStyle = `hsl(${r() * 360 | 0},${50 + r() * 40 | 0}%,${35 + r() * 30 | 0}%)`; const h = 10 + r() * 16; g.fillRect(x, y + 26 - h, 6 + r() * 5, h); } }
-      if (i === 2) { g.fillStyle = '#0a9a4a'; g.fillRect(100, 30, 56, 18); g.fillRect(119, 11, 18, 56); }
-      // detrás del mostrador hay alguien quieto, mirando a la calle
-      if (i === 1) { g.fillStyle = 'rgba(10,8,8,.92)'; g.beginPath(); g.arc(170, 70, 13, 0, 7); g.fill(); g.fillRect(152, 82, 36, 80); }
-      g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(0, 0, 256, 192); g.strokeStyle = '#2a2a2a'; g.lineWidth = 6; g.strokeRect(0, 0, 256, 192); g.fillRect(126, 0, 4, 192);
-    });
-    const [sx, sz] = sp2w(p, 0, 0.04), fr2 = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 2.4), new THREE.MeshBasicMaterial({ map: ft, color: 0xd8d8d0 }));
-    fr2.position.set(sx, 1.42, sz); fr2.rotation.y = p.ry; add(fr2);
-    const [kx, kz] = sp2w(p, 0, 0.13); dark.push(bgeo(4.1, 0.78, 0.22, kx, 3.32, kz, p.ry, 1));
-    const [t, bg, fg] = LIT_SIGNS[p.k], [lx2, lz2] = sp2w(p, 0, 0.245);
-    const sg = new THREE.Mesh(new THREE.PlaneGeometry(3.95, 0.64), new THREE.MeshBasicMaterial({ map: textPlate(t, 512, 80, bg, fg, fg) }));
-    sg.position.set(lx2, 3.32, lz2); sg.rotation.y = p.ry; add(sg);
-    const [gx, gz] = sp2w(p, 0, 1.8), gp = new THREE.PlaneGeometry(5, 4); gp.rotateX(-PI / 2); gp.rotateY(p.ry); gp.translate(gx, 0.031, gz); D.litGlow.push(gp);
-  });
-  addMerged(frame, lam('tilegrey', 0x4a4844)); addMerged(dark, lam('rust', 0x2a2420)); addMerged(wood, lam('wood', 0x7a6048));
-  const bagM = lam(null, 0x101012, { emissive: 0x050506 }), boxM = lam(null, 0x8a7050);
-
-  /* contenedores: verde (resto), amarillo (envases), azul (papel), gris (orgánico) */
-  const CC = [0x2f5a34, 0xb08a18, 0x1f4a8a, 0x5a5a56], cByC = [[], [], [], []], wheels = [], lids = [[], [], [], []];
-  for (const p of LIFE.cont) {
-    const s = STREETS[p.si], along = s.ax === 'z', len = p.n * 1.44;
-    for (let k = 0; k < p.n; k++) {
-      const a = p.a - len / 2 + 0.72 + k * 1.44, x = along ? p.cw : a, z = along ? a : p.cw, ry = along ? PI / 2 : 0, c = p.cols[k];
-      cByC[c].push(bgeo(1.34, 1.05, 0.98, x, 0.66, z, ry, 1));
-      const open = k === 0 && p.lid ? p.lid : 0;
-      const lg = new THREE.BoxGeometry(1.4, 0.07, 1.04); uvBox(lg, 1.4, 0.07, 1.04, 1); lg.translate(0, 0, -0.52); lg.rotateX(-open); lg.translate(0, 0, 0.52); lg.rotateY(ry + (along ? (p.cw > s.c ? PI : 0) : (p.cw > s.c ? 0 : PI))); lg.translate(x, 1.22, z); lids[c].push(lg);
-      for (const [dx, dz] of [[-0.55, -0.38], [0.55, -0.38], [-0.55, 0.38], [0.55, 0.38]]) { const g = new THREE.CylinderGeometry(0.07, 0.07, 0.05, 8); g.rotateX(PI / 2); if (along) g.rotateY(PI / 2); g.translate(x + (along ? dz : dx), 0.07, z + (along ? dx : dz)); wheels.push(g); }
-      if (open) { const g = new THREE.SphereGeometry(0.3, 7, 5); g.translate(x, 1.25, z); bags.push(g); }
-    }
-    colliders.push(along ? { x0: p.cw - 0.52, x1: p.cw + 0.52, z0: p.a - len / 2, z1: p.a + len / 2 } : { x0: p.a - len / 2, x1: p.a + len / 2, z0: p.cw - 0.52, z1: p.cw + 0.52 });
-    for (let k = 0; k < p.bags; k++) {   // bolsas tiradas al lado, porque estaba lleno
-      const off = (len / 2 + 0.35 + r() * 0.6) * (r() < 0.5 ? -1 : 1), q = (r() - 0.5) * 0.6, x = along ? p.cw + q : p.a + off, z = along ? p.a + off : p.cw + q, s = 0.2 + r() * 0.12, g = new THREE.SphereGeometry(s, 7, 5);
-      g.scale(1, 0.8, 1.1); g.translate(x, s * 0.75, z); bags.push(g);
-    }
-  }
-  cByC.forEach((l, c) => addMerged(l.concat(lids[c]), lam('rust', CC[c], { emissive: 0x060606 }), true)); addMerged(bags, bagM); addMerged(boxes, boxM);
-
-  /* basura del suelo: folletos de striptease, vapers vacíos, latas, colillas y manchas */
-  const atlas = litterAtlas(), litM = new THREE.MeshLambertMaterial({ map: atlas, emissive: 0x1a1816, emissiveMap: atlas, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-  const small = [], stains = [], vapes = [[], [], [], []], vtips = [], cans = [[], [], []];
-  const scatter = (x0, x1, z0, z1, n, f) => { for (let i = 0; i < n; i++) f(x0 + r() * (x1 - x0), z0 + r() * (z1 - z0)); };
-  const zones = [];
-  STREETS.forEach((s, si) => {
-    const h = s.w / 2;
-    if (s.ax === 'z') { const z0 = s.a0 + 2, z1 = 3; zones.push([s.c - h - 1.9, s.c - h - 0.1, z0, z1, 1], [s.c + h + 0.1, s.c + h + 1.9, z0, z1, 1], [s.c - h + 0.2, s.c + h - 0.2, z0, z1, 0.35]); }
-    else if (si === 0) zones.push([-115, 115, 5.2, 7.9, 1], [-115, 115, 15.1, 16.9, 0.8], [-115, 115, 8.2, 14.8, 0.2], [-110, 110, 17.2, 25.5, 0.25]);
-    else zones.push([s.a0, s.a1, s.c - h - 1.9, s.c - h - 0.1, 1], [s.a0, s.a1, s.c + h + 0.1, s.c + h + 1.9, 1], [s.a0, s.a1, s.c - h + 0.2, s.c + h - 0.2, 0.35]);
-  });
-  for (const [x0, x1, z0, z1, dens] of zones) {
-    const area = (x1 - x0) * (z1 - z0), lit = x0 > 40 && x1 < 56;   // en el barrio iluminado hay algo menos de mierda
-    const k = dens * (lit ? 0.5 : 1);
-    scatter(x0, x1, z0, z1, area * 0.3 * k | 0, (x, z) => { if (inShop(x, z)) return; const i = r() < 0.75 ? r() * 6 | 0 : 6 + (r() * 6 | 0); const sz = i < 6 ? [0.21, 0.29] : i === 8 ? [0.12, 0.3] : [0.3, 0.3]; small.push(cellPlane(i, sz[0], sz[1], x, 0.014, z, r() * 6.28)); });
-    scatter(x0, x1, z0, z1, area * 0.07 * k | 0, (x, z) => { if (inShop(x, z)) return; const s = 1.2 + r() * 2.2; stains.push(cellPlane(12 + (r() * 4 | 0), s, s, x, 0.009, z, r() * 6.28)); });
-    scatter(x0, x1, z0, z1, area * 0.04 * k | 0, (x, z) => {   // vaper desechable tirado
-      const ry = r() * 6.28, c = r() * 4 | 0, b = bgeo(0.024, 0.014, 0.1, x, 0.008, z, ry, 1); vapes[c].push(b);
-      vtips.push(bgeo(0.016, 0.01, 0.022, x - Math.sin(ry) * 0.06, 0.007, z - Math.cos(ry) * 0.06, ry, 1));
-    });
-    scatter(x0, x1, z0, z1, area * 0.012 * k | 0, (x, z) => { const g = new THREE.CylinderGeometry(0.033, 0.033, 0.12, 8); g.rotateZ(PI / 2); g.rotateY(r() * 6.28); g.translate(x, 0.033, z); cans[r() * 3 | 0].push(g); });
-  }
-  const sm = addMerged(stains, litM); if (sm) sm.renderOrder = 1;
-  const lm = addMerged(small, litM.clone()); if (lm) lm.renderOrder = 2;
-  addMerged(vapes[0].concat(vapes[2]), lam(null, 0xff3ab0, { emissive: 0x1a0612 })); addMerged(vapes[1].concat(vapes[3]), lam(null, 0x30d0ff, { emissive: 0x06141a }));
-  addMerged(vtips.concat(wheels), M.dark);
-  addMerged(cans[0].concat(cans[2]), lam(null, 0xb81414, { emissive: 0x0a0a0a })); addMerged(cans[1], lam(null, 0xb8bcc0, { emissive: 0x0a0a0a }));
-
+  addMerged(sOn, new THREE.MeshBasicMaterial({ map: at, color: 0xdddddd })); addMerged(sOff, new THREE.MeshLambertMaterial({ map: at, emissive: 0x141414 })); addMerged(boxes, lam(null, 0x2a2622));
+  for (const k in wins) addMerged(wins[k], winM[k]);
   /* vagabundos durmiendo boca abajo, con el carro lleno de basura y un perro */
   const wire = new THREE.MeshLambertMaterial({ map: wireTex(), transparent: true, alphaTest: 0.4, side: THREE.DoubleSide });
   D.sleepers = LIFE.sleep.map((p, i) => {
@@ -352,6 +347,31 @@ function buildStreetLife() {
     return s;
   });
 
+  /* basura del suelo a lo largo de las aceras: folletos de striptease, vapers, latas, colillas y manchas */
+  const atlas = litterAtlas(), litM = new THREE.MeshLambertMaterial({ map: atlas, emissive: 0x1a1816, emissiveMap: atlas, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  const small = [], stains = [], vapes = [[], []], cans = [[], []];
+  for (const rd of TOWN.rd) {
+    if (!DRIVE[rd.t] && rd.t !== 'pedestrian' && rd.t !== 'footway') continue;
+    const p = rd.pts, k = rd.t === 'footway' ? 0.4 : 1;
+    for (let i = 0; i + 1 < p.length; i++) {
+      const ax = p[i][0], az = p[i][1], bx = p[i + 1][0], bz = p[i + 1][1], L = Math.hypot(bx - ax, bz - az); if (L < 1) continue;
+      const ux = (bx - ax) / L, uz = (bz - az) / L, mid = Math.hypot((ax + bx) / 2, (az + bz) / 2); if (mid > 200) continue;
+      const n = L * 0.35 * k | 0;
+      for (let j = 0; j < n; j++) {
+        const s = r() * L, sd = (r() < 0.5 ? -1 : 1) * (rd.w / 2 + 0.2 + r() * 1.8), x = ax + ux * s - uz * sd, z = az + uz * s + ux * sd;
+        if (inShop(x, z)) continue;
+        const q = r();
+        if (q < 0.55) { const ii = r() < 0.75 ? r() * 6 | 0 : 6 + (r() * 6 | 0), sz = ii < 6 ? [0.21, 0.29] : ii === 8 ? [0.12, 0.3] : [0.3, 0.3]; small.push(cellPlane(ii, sz[0], sz[1], x, 0.05, z, r() * 6.28)); }
+        else if (q < 0.8) { const ss = 1.2 + r() * 2.2; stains.push(cellPlane(12 + (r() * 4 | 0), ss, ss, x, 0.045, z, r() * 6.28)); }
+        else if (q < 0.92) { const ry = r() * 6.28; vapes[r() * 2 | 0].push(bgeo(0.024, 0.014, 0.1, x, 0.06, z, ry, 1)); }
+        else { const g = new THREE.CylinderGeometry(0.033, 0.033, 0.12, 8); g.rotateZ(PI / 2); g.rotateY(r() * 6.28); g.translate(x, 0.08, z); cans[r() * 2 | 0].push(g); }
+      }
+    }
+  }
+  const sm = addMerged(stains, litM); if (sm) sm.renderOrder = 1;
+  const lm = addMerged(small, litM.clone()); if (lm) lm.renderOrder = 2;
+  addMerged(vapes[0], lam(null, 0xff3ab0, { emissive: 0x1a0612 })); addMerged(vapes[1], lam(null, 0x30d0ff, { emissive: 0x06141a }));
+  addMerged(cans[0], lam(null, 0xb81414, { emissive: 0x0a0a0a })); addMerged(cans[1], lam(null, 0xb8bcc0, { emissive: 0x0a0a0a }));
   /* halos de luz de las farolas en el suelo (las de las avenidas iluminadas, blancas) */
   const warm = new THREE.MeshBasicMaterial({ map: glowTex(255, 170, 90), transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending });
   const white = new THREE.MeshBasicMaterial({ map: glowTex(255, 236, 205), transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending });
@@ -360,9 +380,9 @@ function buildStreetLife() {
   for (const L of TOWN.lamps) {
     if (L.md === 2) continue;
     const s = L.pr ? 12 : L.lit ? 13 : 9;
-    if (L.md === 0 && !L.fig) { const g = new THREE.PlaneGeometry(s, s); g.rotateX(-PI / 2); g.translate(L.hx, 0.03, L.hz); (L.lit ? steadyW : steadyY).push(g); continue; }
+    if (L.md === 0 && !L.fig) { const g = new THREE.PlaneGeometry(s, s); g.rotateX(-PI / 2); g.translate(L.hx, 0.07, L.hz); (L.lit ? steadyW : steadyY).push(g); continue; }
     const m = new THREE.Mesh(new THREE.PlaneGeometry(s, s), L.lit ? white : warm);
-    m.rotation.x = -PI / 2; m.position.set(L.hx, 0.03, L.hz); m.renderOrder = 3; scene.add(m); D.glows.push({ L, m });
+    m.rotation.x = -PI / 2; m.position.set(L.hx, 0.07, L.hz); m.renderOrder = 3; scene.add(m); D.glows.push({ L, m });
   }
   for (const [l, m] of [[steadyW.concat(D.litGlow), white], [steadyY, warm]]) { const me = addMerged(l, m); if (me) me.renderOrder = 3; }
   /* motas de polvo flotando bajo las farolas que dan luz de verdad */
@@ -382,13 +402,7 @@ function buildStreetLife() {
   D.beam.renderOrder = 4; D.beam.visible = false; scene.add(D.beam);
 }
 // patas del perro: tumbado (1) o de pie (0)
-function dogLie(dog, k) {
-  dog.position.y = -0.36 * k;
-  dog.legs.forEach((l, i) => { l.rotation.x = k * (i < 2 ? 1.45 : -1.45); });
-  dog.head.rotation.x = k * 0.35;
-}
 
-/* ---------- cada fotograma ---------- */
 function updStreetLife(dt) {
   if (!D.glows) return;
   const cx = camera.position.x, cz = camera.position.z;
@@ -437,13 +451,4 @@ function updStreetLife(dt) {
     if (s.st === 2) { s.t += dt; if (s.t > 2.5) { s.st = 0; dogLie(dog, 1); dog.position.set(s.hx, -0.36, s.hz); s.x = s.hx; s.z = s.hz; dog.rotation.y = s.ry; } }
   }
 }
-function SHOP_IN_VIEW() { return inShop(camera.position.x, camera.position.z); }
-function moteStep(M2, top) {
-  const a = M2.pts.geometry.attributes.position, p = M2.pos;
-  for (let k = 0; k < M2.base.length; k++) {
-    const b = M2.base[k], t = TIME * b[4] + b[3];
-    let y = b[1] + Math.sin(t * 0.7) * 0.35; if (y > top) y = top - (y - top); if (y < 0.15) y = 0.15 + (0.15 - y);
-    p[k * 3] = b[0] + Math.sin(t) * 0.25; p[k * 3 + 1] = y; p[k * 3 + 2] = b[2] + Math.cos(t * 0.8) * 0.25;
-  }
-  a.needsUpdate = true;
-}
+function SHOP_IN_VIEW() { return inShop(camera.position.x, camera.position.z) || inBld(camera.position.x, camera.position.z); }

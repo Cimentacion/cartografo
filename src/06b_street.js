@@ -18,29 +18,30 @@ function inShop(x, z) { return z < 5.3 && z > -8 && x > -4.2 && x < 4.2; }
 function dlPat(o) { return (230 + 40 * Math.max(0, genOrder(o.a, o.s).length - 1)) * (W.n === 1 ? 1.15 : 1); }
 // un pedido va a un piso: torre, planta y letra. A veces el cliente baja al portal; el anónimo siempre es en un 13º
 function newDelivery(an) {
-  const busy = W.dl.map(o => o.d / 4 | 0), towers = TOWN.plots.filter(P => busy.indexOf(P.k) < 0 && (!an || P.fl >= 14));
+  const busy = W.dl.map(o => o.d / 4 | 0), towers = TOWN.del.filter(C => busy.indexOf(C.k) < 0 && C.L >= 3 && (!an || C.L >= 15));
   if (!towers.length) return;
-  const P = towers[Math.random() * towers.length | 0], d = P.k * 4 + (Math.random() * 4 | 0);
-  let f = 1 + (Math.random() * P.fl | 0); if (f === 13) f = 12; if (an) f = 13;
+  const C = towers[Math.random() * towers.length | 0], d = C.k * 4 + (Math.random() * 4 | 0);
+  let f = 1 + (Math.random() * (C.L - 1) | 0); if (f === 13) f = 12; if (an) f = 13;
   const a = RES_IDX[Math.random() * RES_IDX.length | 0], s = (Math.random() * 1e6) | 0;
   const o = { i: W.id++, a, s, d, f, dn: !an && Math.random() < 0.4 ? 1 : 0, st: 0, g: genOrder(a, s).map(() => 0), sc: 0, p: 1, an: an ? 1 : 0, lt: 0 }; W.dl.push(o); return o;
 }
-// portero automático de la cancela
-function gateLogic(pid, k, R, H, P) {
-  const Pl = TOWN.plots[k]; if (!Pl) return R('', false);
-  const g = Pl.gate, p = PP[pid], nm = plotName(Pl);
-  if (p && plotAt(p.x, p.z) === Pl) return W.gt[k] > 0 ? R(nm, false) : R(T('u_gate_out'), true, () => { W.gt[k] = 8; ev('buzz', g.x, g.z); });
+// portero automático del portal (desde la calle) y botón de abrir (desde dentro)
+function gateLogic(pid, k, R, H, P, inner) {
+  const C = TOWN.del[k]; if (!C) return R('', false);
+  const [gx, gz] = cw(C, 0.75, -0.3), nm = C.name;
+  if (inner) return W.gt[k] > 0 ? R(nm, false) : R(T('u_gate_out'), true, () => { W.gt[k] = 8; ev('buzz', gx, gz); });
   if (W.gt[k] > 0) return R(T('u_gate_open', nm), false);
   const o = H && H.k === 'bag' ? W.dl.find(q => q.i === H.d) : null;
-  if (!o || (o.d / 4 | 0) !== k) return R(T('u_icom', STREETS[Pl.st].n + ' ' + Pl.num + ' · ' + nm), true, () => { ev('buzz', g.x, g.z); ev('icom', g.x, g.z, 0); });
+  if (!o || (o.d / 4 | 0) !== k) return R(T('u_icom', C.street + ' ' + C.num + ' · ' + nm), true, () => { ev('buzz', gx, gz); ev('icom', gx, gz, 0); });
   return R(T('u_icom_call', o.f + 'º' + FLAT_LET[o.d % 4]), true, () => {
-    W.gt[k] = 90; ev('buzz', g.x, g.z); ev('icom', g.x, g.z, (o.an ? 3 : o.dn ? 2 : 1) * 10000 + o.i);
+    W.gt[k] = 90; ev('buzz', gx, gz); ev('icom', gx, gz, (o.an ? 3 : o.dn ? 2 : 1) * 10000 + o.i);
     if (o.dn && !o.an && !W.cu.some(c => c.dl === o.i && c.st !== S_DEAD)) spawnLobby(o);
   });
 }
 // el cliente que baja: sale del ascensor y espera en el portal
 function spawnLobby(o) {
-  W.cu.push({ i: W.id++, a: o.a, s: o.s, x: MOD.x + 4, z: MOD.z + 1.6, y: 0, st: S_DOOR, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: 0, hp: 2, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, o: 1, dl: o.i, hid: 1, lb: 1, vw: (o.d / 4 | 0) * 100 });
+  const C = TOWN.del[o.d / 4 | 0], [x, z] = cw(C, -1.2, 3.2);
+  W.cu.push({ i: W.id++, a: o.a, s: o.s, x: r2(x), z: r2(z), y: r2(Math.atan2(-C.vx, -C.vz)), fy: 0, st: S_DOOR, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: 0, hp: 2, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, o: 1, dl: o.i, hid: 1, lb: 1 });
 }
 // el teléfono: hay que descolgar. k 0 pedido normal, 1 no se oye nada (y el pedido es al 13), 2 solo una respiración
 function startCall(k) { if (W.call) return false; W.call = { k, t: 0, rk: -1 }; ev('msg', 0, 0, 'phone'); return true; }
@@ -134,17 +135,17 @@ function bikeLogic(pid, R, H, P) {
   return R(T('u_bike_on'), true, () => { V.r = pid; V.mt = W.t; if (H) { V.b = H.d; P.h = 0; } });
 }
 function doorLogic(pid, n, R, H) {
-  const vw = PP[pid] ? PP[pid].vw : -1, fl = vw % 100, adr = T('u_flat', fl + 'º' + FLAT_LET[n % 4]);
+  const pp = PP[pid], fl = pp ? Math.round((pp.y || 0) / FLH) : 0, kk = pp ? coreAt(pp.x, pp.z, 0.6) : -1, adr = T('u_flat', fl + 'º' + FLAT_LET[n % 4]);
   if (!H || H.k !== 'bag') return R(adr, false);
   const o = W.dl.find(q => q.i === H.d);
   if (!o) return R(adr, false);
-  if (o.d !== n || o.f !== fl || (vw / 100 | 0) !== (n / 4 | 0)) return R(T('u_wrongdoor', o.f + 'º' + FLAT_LET[o.d % 4]), false);
+  if (o.d !== n || o.f !== fl || kk !== (n / 4 | 0)) return R(T('u_wrongdoor', o.f + 'º' + FLAT_LET[o.d % 4]), false);
   if (o.dn) return R(T('u_flat_down'), false);
   const at = W.cu.find(c => c.dl === o.i && c.st !== S_DEAD);
   if (at) return at.st === S_DOOR && !at.hid ? residentLogic(at, pid, R, H, W.pl[pid]) : R(T('u_wait_door'), false);
   return R(T('u_ring'), true, () => {
-    const D = TOWN.doors[n];
-    W.cu.push({ i: W.id++, a: o.a, s: o.s, x: r2(D.x + D.nx * 0.3), z: r2(D.z + D.nz * 0.3), y: r2(Math.atan2(D.nx, D.nz)), st: S_DOOR, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: o.an, hp: o.an ? 6 : 2, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, o: 1, dl: o.i, dk: n, hid: 1, vw: (n / 4 | 0) * 100 + o.f });
+    const D = flatPos(n, o.f);
+    W.cu.push({ i: W.id++, a: o.a, s: o.s, x: r2(D.x + D.nx * 0.3), z: r2(D.z + D.nz * 0.3), y: r2(Math.atan2(D.nx, D.nz)), fy: D.y, st: S_DOOR, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: o.an, hp: o.an ? 6 : 2, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, o: 1, dl: o.i, dk: n, hid: 1 });
     ev('bell2', D.x, D.z);
   });
 }
@@ -184,7 +185,7 @@ function updOutdoor(c, dt) {
     case S_DOOR:
       if (c.hid && c.t > (c.lb ? 5 : 2.2)) { c.hid = 0; ev(c.lb ? 'ding' : 'door', c.x, c.z); say(c, c.an ? 'pasa' : 'g'); }
       if (c.an && c.t > 7.5) {
-        const n = nearestPlayer(c.x, c.z, c.vw);
+        const n = nearestPlayer(c.x, c.z, c.fy);
         if (n && n.d < 13) { c.st = S_ATK; c.t = 0; c.sc = 0.4; say(c, 'atk'); ev('scream', c.x, c.z); W.dl = W.dl.filter(q => q.i !== c.dl); }
         else { c.st = S_BACK; c.t = 0; }
       }
@@ -192,7 +193,7 @@ function updOutdoor(c, dt) {
       break;
     case S_BACK: if (c.t > (c.an ? 0.5 : 2.6)) c.rm = 1; break;
     case S_ATK: {
-      const n = nearestPlayer(c.x, c.z, c.vw); W.fk = Math.max(W.fk, 0.15);
+      const n = nearestPlayer(c.x, c.z, c.fy); W.fk = Math.max(W.fk, 0.15);
       if (!n || c.t > 45 || inShop(n.x, n.z) || n.d > 45) { c.st = S_DIS; c.t = 0; ev('scream', c.x, c.z); break; }
       c.sc -= dt;
       if (c.sc <= 0) moveTo(c, n.x, n.z, 4.6 + 0.15 * W.n, dt); else c.y = Math.atan2(n.x - c.x, n.z - c.z);

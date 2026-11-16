@@ -20,7 +20,7 @@ function skyTex() {
 const FOG_IN = new THREE.Color(0x05060a), FOG_OUT = new THREE.Color(0x0c2558), AMB_OUT = new THREE.Color(0x5a6a9a);
 function updSky(dt) {
   if (!SKY) { SKY = skyTex(); SKY.wrapS = SKY.wrapT = THREE.ClampToEdgeWrapping; }
-  const out = !inShop(camera.position.x, camera.position.z) && !inMod(camera.position.x, camera.position.z);
+  const out = !inShop(camera.position.x, camera.position.z) && !inBld(camera.position.x, camera.position.z);
   scene.background = out ? SKY : FOG_IN;
   scene.fog.color.lerp(out ? FOG_OUT : FOG_IN, Math.min(1, dt * 4));
   if (out) { LG.amb.intensity = 1.0; LG.amb.color.copy(AMB_OUT); } else LG.amb.color.setHex(0x2a2e36);
@@ -31,12 +31,10 @@ let ARROW = null;
 function arrowTarget() {
   if (!W || W.ph !== 'play') return null;
   const x = me.x, z = me.z;
-  if (inMod(x, z)) return null;
+  if (inBld(x, z)) return null;
   const dl = myDelivery();
   if (dl) {
-    const P = TOWN.plots[dl.d / 4 | 0]; if (!P) return null;
-    if (plotAt(x, z) === P) return { x: P.portal.x + P.portal.nx * 0.8, z: P.portal.z + P.portal.nz * 0.8 };
-    return { x: P.gate.x + P.gate.nx * 1.2, z: P.gate.z + P.gate.nz * 1.2 };
+    const C = TOWN.del[dl.d / 4 | 0]; if (!C) return null; const [px, pz] = cw(C, -0.7, -1.5); return { x: px, z: pz };
   }
   // sin pedido encima: de vuelta al local
   if (!inShop(x, z)) return { x: -0.6, z: 6.2 };
@@ -95,7 +93,7 @@ function addStain(x, y, z, nx, ny, nz, t, s) {
 function sauceArc(ox, oy, oz, yaw, pitch, out) {
   const fx = -Math.sin(yaw) * Math.cos(pitch), fy = Math.sin(pitch), fz = -Math.cos(yaw) * Math.cos(pitch);
   let x = ox, y = oy, z = oz, vx = fx * 6.2, vy = fy * 6.2 + 1.1, vz = fz * 6.2, n = 0;
-  const floorY = (px, pz) => stairY(px, pz);
+  const floorY = (px, pz) => groundY(px, pz, oy - 1.4);
   for (let s = 0; s < 48; s++) {
     const dt = 0.025, px = x, py = y, pz = z; vy -= 9.8 * dt; x += vx * dt; y += vy * dt; z += vz * dt;
     if (out) { out[n * 3] = x; out[n * 3 + 1] = y; out[n * 3 + 2] = z; n++; }

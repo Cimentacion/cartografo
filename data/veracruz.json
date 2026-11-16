@@ -1,0 +1,50 @@
+{
+ "version": 0.6,
+ "generator": "Overpass API 0.7.62.11 87bfad18",
+ "osm3s": {
+  "timestamp_osm_base": "2026-11-16T12:53:50Z",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+ },
+ "elements": [
+  {
+   "type": "node",
+   "id": 3710213170,
+   "lat": 38.5347026,
+   "lon": -0.1108731,
+   "tags": {
+    "addr:city": "Benidorm",
+    "addr:housenumber": "23",
+    "addr:postcode": "03503",
+    "addr:street": "Avenida de Madrid",
+    "name": "Veracruz",
+    "old_name": "Yog2go",
+    "shop": "ice_cream"
+   }
+  },
+  {
+   "type": "node",
+   "id": 3710213222,
+   "lat": 38.5347376,
+   "lon": -0.1106502,
+   "tags": {
+    "addr:city": "Benidorm",
+    "name": "Veracruz",
+    "shop": "supermarket"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1431180631,
+   "center": {
+    "lat": 38.5349212,
+    "lon": -0.1107419
+   },
+   "tags": {
+    "building": "residential",
+    "building:levels": "23",
+    "building:levels:underground": "1",
+    "name": "Edif. Veracruz"
+   }
+  }
+ ]
+}

@@ -373,7 +373,7 @@ const STR = {
     dl_new: 'Pedido a domicilio: {0}', dl_head: 'REPARTO', dl_road: 'en camino', dl_late: 'llega tarde', dl_anon: 'número oculto', e_dl: 'Repartos', map_shop: 'KEBAB',
     u_bag_take_dr: 'Coger la bolsa para {0} (falta la bebida: hay máquinas por la calle)', u_vm_buy: 'Comprar {0} en la máquina ({1})', u_vm_bag: 'Comprar {0} para la bolsa ({1})', u_vm_nobag: 'En la bolsa no falta {0}', u_vm_cash: 'No hay dinero en la caja ({0})', u_bag_put: 'Meter {0} en la bolsa', u_bag_take: 'Coger la bolsa para {0}', u_bag_none: 'Bolsa de reparto (no hay pedidos)', u_bag_nomatch: 'Eso no va en ningún pedido a domicilio', u_bag_fill: 'Bolsa de reparto · {0}',
     u_bike_on: 'Subir a la Vespino', u_bike_busy: 'La Vespino está ocupada', u_bike_hands: 'En la moto solo cabe la bolsa de reparto', u_bike_off: 'Bajar de la moto', u_bike_slow: 'Frena para bajar',
-    u_gate_out: 'Abrir la cancela', u_gate_open: '{0} · la cancela está abierta', u_icom: 'Portero automático · {0}', u_icom_call: 'Llamar al {0} por el portero', u_portal_in: 'Entrar al portal ({0})', u_portal_shut: 'El portal está cerrado: llama por el portero de la cancela', u_portal_out: 'Salir al jardín', u_stairs: 'Ir por la escalera', u_to_lobby: 'Salir al portal', u_to_floor: 'Salir a la planta {0}', u_lift_call: 'Llamar al ascensor', u_lift_go: 'Pulsar el {0}', u_lift_no13: 'No hay botón del 13: pulsar el 12 y subir andando', u_lift_down: 'Pulsar el 0 (bajo)', u_lift_busy: 'El ascensor está en marcha', u_light: 'Encender la luz', u_flat: 'Puerta {0}', u_flat_down: 'No abre nadie: dijo que bajaba al portal', floor0: 'BAJO', floorN: 'PLANTA {0}', icom_who: 'Portero', icom0: 'No contesta nadie.', icom1: '¿Sí? Ah, el kebab. Sube, es el {0}.', icom2: '¡Ya bajo! Espérame en el portal.', icom3: '(solo se oye ruido... y la cancela se abre sola)', u_bottle_take: 'Coger el bote de {0} (mantén Fuego para echar)', u_bottle_back: 'Dejar el bote', splashed: '¡Te han puesto perdido de salsa!', coworker: 'Compañero', u_ring: 'Llamar al timbre', u_wrongdoor: 'No es aquí. Va a {0}', u_wait_door: 'Ya has llamado. Espera.', u_give_bag: 'Dar la bolsa a {0}',
+    u_gate_out: 'Abrir el portal', u_gate_open: '{0} · el portal está abierto', u_icom: 'Portero automático · {0}', u_icom_call: 'Llamar al {0} por el portero', u_portal_in: 'Entrar al portal ({0})', u_portal_shut: 'El portal está cerrado: llama por el portero de la cancela', u_portal_out: 'Salir al jardín', u_stairs: 'Ir por la escalera', u_to_lobby: 'Salir al portal', u_to_floor: 'Salir a la planta {0}', u_lift_call: 'Llamar al ascensor', u_lift_go: 'Pulsar el {0}', u_lift_no13: 'No hay botón del 13: pulsar el 12 y subir andando', u_lift_down: 'Pulsar el 0 (bajo)', u_lift_busy: 'El ascensor está en marcha', u_light: 'Encender la luz', u_flat: 'Puerta {0}', u_flat_down: 'No abre nadie: dijo que bajaba al portal', floor0: 'BAJO', floorN: 'PLANTA {0}', icom_who: 'Portero', icom0: 'No contesta nadie.', icom1: '¿Sí? Ah, el kebab. Sube, es el {0}.', icom2: '¡Ya bajo! Espérame en el portal.', icom3: '(solo se oye ruido... y la cancela se abre sola)', u_bottle_take: 'Coger el bote de {0} (mantén Fuego para echar)', u_bottle_back: 'Dejar el bote', splashed: '¡Te han puesto perdido de salsa!', coworker: 'Compañero', u_ring: 'Llamar al timbre', u_wrongdoor: 'No es aquí. Va a {0}', u_wait_door: 'Ya has llamado. Espera.', u_give_bag: 'Dar la bolsa a {0}',
     ride_kb: '[W] gas · [S] freno · [A/D] girar · [E] bajar', ride_touch: 'joystick: gas y dirección · Usar: bajar', ride_pad: 'stick: gas y dirección · (A) bajar',
     pause_t: 'Pausa', pause_p: 'El turno está parado. Nadie se mueve.', resume: 'Seguir', tb_pause: 'Pausa',
     sug_btn: 'Sugerencias', apk_dl: 'Descargar APK (Android)', sug_t: 'Sugerencias', sug_p: '¿Qué le falta al juego? ¿Qué falla? Escríbelo tal cual.', sug_send: 'Enviar', sug_close: 'Cerrar', sug_ok: 'Enviada. Le llega directamente a Claude.', sug_saved: 'Guardada en este móvil ({0} pendiente/s). Pulsa Compartir y elige la app de Claude para mandarlas.', sug_share: 'Compartir', sug_copied: 'Copiadas. Pégalas en el chat de Claude.', sug_empty: 'Escribe algo primero.', upd_ready: 'Hay una versión nueva del juego.', upd_now: 'Actualizar ahora',
@@ -415,7 +415,7 @@ const STR = {
     dl_new: 'Delivery order: {0}', dl_head: 'DELIVERY', dl_road: 'on the way', dl_late: 'running late', dl_anon: 'withheld number', e_dl: 'Deliveries', map_shop: 'KEBAB',
     u_bag_take_dr: 'Take the bag for {0} (drink missing: there are machines on the street)', u_vm_buy: 'Buy {0} from the machine ({1})', u_vm_bag: 'Buy {0} for the bag ({1})', u_vm_nobag: 'No {0} missing from the bag', u_vm_cash: 'Not enough cash in the till ({0})', u_bag_put: 'Put {0} in the bag', u_bag_take: 'Take the bag for {0}', u_bag_none: 'Delivery bag (no orders)', u_bag_nomatch: "That isn't part of any delivery order", u_bag_fill: 'Delivery bag · {0}',
     u_bike_on: 'Get on the Vespino', u_bike_busy: 'Someone is on the Vespino', u_bike_hands: 'Only the delivery bag fits on the moped', u_bike_off: 'Get off', u_bike_slow: 'Slow down to get off',
-    u_gate_out: 'Open the gate', u_gate_open: '{0} · the gate is open', u_icom: 'Intercom · {0}', u_icom_call: 'Buzz {0} on the intercom', u_portal_in: 'Go into the lobby ({0})', u_portal_shut: 'The lobby is locked: buzz the flat at the gate', u_portal_out: 'Go out to the garden', u_stairs: 'Take the stairs', u_to_lobby: 'Go out to the lobby', u_to_floor: 'Go out to floor {0}', u_lift_call: 'Call the lift', u_lift_go: 'Press {0}', u_lift_no13: 'There is no 13 button: press 12 and walk up', u_lift_down: 'Press 0 (ground)', u_lift_busy: 'The lift is moving', u_light: 'Turn the light on', u_flat: 'Door {0}', u_flat_down: 'Nobody answers: they said they were coming down', floor0: 'GROUND', floorN: 'FLOOR {0}', icom_who: 'Intercom', icom0: 'Nobody answers.', icom1: 'Yes? Oh, the kebab. Come up, it\'s {0}.', icom2: 'Coming down! Wait for me in the lobby.', icom3: '(only static... and the gate opens by itself)', u_bottle_take: 'Take the {0} bottle (hold Fire to squirt)', u_bottle_back: 'Put the bottle back', splashed: 'You just got covered in sauce!', coworker: 'Coworker', u_ring: 'Ring the bell', u_wrongdoor: 'Not here. It goes to {0}', u_wait_door: 'You already rang. Wait.', u_give_bag: 'Give the bag to {0}',
+    u_gate_out: 'Open the door', u_gate_open: '{0} · the door is open', u_icom: 'Intercom · {0}', u_icom_call: 'Buzz {0} on the intercom', u_portal_in: 'Go into the lobby ({0})', u_portal_shut: 'The lobby is locked: buzz the flat at the gate', u_portal_out: 'Go out to the garden', u_stairs: 'Take the stairs', u_to_lobby: 'Go out to the lobby', u_to_floor: 'Go out to floor {0}', u_lift_call: 'Call the lift', u_lift_go: 'Press {0}', u_lift_no13: 'There is no 13 button: press 12 and walk up', u_lift_down: 'Press 0 (ground)', u_lift_busy: 'The lift is moving', u_light: 'Turn the light on', u_flat: 'Door {0}', u_flat_down: 'Nobody answers: they said they were coming down', floor0: 'GROUND', floorN: 'FLOOR {0}', icom_who: 'Intercom', icom0: 'Nobody answers.', icom1: 'Yes? Oh, the kebab. Come up, it\'s {0}.', icom2: 'Coming down! Wait for me in the lobby.', icom3: '(only static... and the gate opens by itself)', u_bottle_take: 'Take the {0} bottle (hold Fire to squirt)', u_bottle_back: 'Put the bottle back', splashed: 'You just got covered in sauce!', coworker: 'Coworker', u_ring: 'Ring the bell', u_wrongdoor: 'Not here. It goes to {0}', u_wait_door: 'You already rang. Wait.', u_give_bag: 'Give the bag to {0}',
     ride_kb: '[W] throttle · [S] brake · [A/D] steer · [E] get off', ride_touch: 'joystick: throttle and steering · Use: get off', ride_pad: 'stick: throttle and steering · (A) get off',
     pause_t: 'Paused', pause_p: 'The shift is on hold. Nothing moves.', resume: 'Resume', tb_pause: 'Pause',
     sug_btn: 'Suggestions', apk_dl: 'Download APK (Android)', sug_t: 'Suggestions', sug_p: 'What is the game missing? What is broken? Just write it.', sug_send: 'Send', sug_close: 'Close', sug_ok: 'Sent. It goes straight to Claude.', sug_saved: 'Saved on this phone ({0} pending). Tap Share and pick the Claude app to send them.', sug_share: 'Share', sug_copied: 'Copied. Paste them into the Claude chat.', sug_empty: 'Write something first.', upd_ready: 'A new version of the game is ready.', upd_now: 'Update now',
@@ -457,7 +457,7 @@ const STR = {
     dl_new: 'Comandă la domiciliu: {0}', dl_head: 'LIVRARE', dl_road: 'pe drum', dl_late: 'întârzie', dl_anon: 'număr ascuns', e_dl: 'Livrări', map_shop: 'KEBAB',
     u_bag_take_dr: 'Ia geanta pentru {0} (lipsește băutura: sunt automate pe stradă)', u_vm_buy: 'Cumpără {0} de la automat ({1})', u_vm_bag: 'Cumpără {0} pentru geantă ({1})', u_vm_nobag: 'În geantă nu lipsește {0}', u_vm_cash: 'Nu sunt destui bani în casă ({0})', u_bag_put: 'Pune {0} în geantă', u_bag_take: 'Ia geanta pentru {0}', u_bag_none: 'Geantă de livrare (nicio comandă)', u_bag_nomatch: 'Asta nu e în nicio comandă la domiciliu', u_bag_fill: 'Geantă de livrare · {0}',
     u_bike_on: 'Urcă pe Vespino', u_bike_busy: 'Vespino e ocupată', u_bike_hands: 'Pe moped încape doar geanta de livrare', u_bike_off: 'Coboară de pe moped', u_bike_slow: 'Frânează ca să cobori',
-    u_gate_out: 'Deschide poarta', u_gate_open: '{0} · poarta e deschisă', u_icom: 'Interfon · {0}', u_icom_call: 'Sună la {0} la interfon', u_portal_in: 'Intră în hol ({0})', u_portal_shut: 'Holul e închis: sună la interfonul de la poartă', u_portal_out: 'Ieși în grădină', u_stairs: 'Mergi pe scări', u_to_lobby: 'Ieși în hol', u_to_floor: 'Ieși la etajul {0}', u_lift_call: 'Cheamă liftul', u_lift_go: 'Apasă {0}', u_lift_no13: 'Nu există buton pentru 13: apasă 12 și urcă pe jos', u_lift_down: 'Apasă 0 (parter)', u_lift_busy: 'Liftul e în mișcare', u_light: 'Aprinde lumina', u_flat: 'Ușa {0}', u_flat_down: 'Nu deschide nimeni: a zis că coboară în hol', floor0: 'PARTER', floorN: 'ETAJUL {0}', icom_who: 'Interfon', icom0: 'Nu răspunde nimeni.', icom1: 'Da? A, kebabul. Urcă, e la {0}.', icom2: 'Cobor imediat! Așteaptă-mă în hol.', icom3: '(doar se aude zgomot... și poarta se deschide singură)', u_bottle_take: 'Ia sticla de {0} (ține apăsat Foc ca să stropești)', u_bottle_back: 'Lasă sticla', splashed: 'Te-au umplut de sos!', coworker: 'Coleg', u_ring: 'Sună la ușă', u_wrongdoor: 'Nu e aici. Merge la {0}', u_wait_door: 'Ai sunat deja. Așteaptă.', u_give_bag: '{0}: dă-i geanta',
+    u_gate_out: 'Deschide ușa', u_gate_open: '{0} · ușa e deschisă', u_icom: 'Interfon · {0}', u_icom_call: 'Sună la {0} la interfon', u_portal_in: 'Intră în hol ({0})', u_portal_shut: 'Holul e închis: sună la interfonul de la poartă', u_portal_out: 'Ieși în grădină', u_stairs: 'Mergi pe scări', u_to_lobby: 'Ieși în hol', u_to_floor: 'Ieși la etajul {0}', u_lift_call: 'Cheamă liftul', u_lift_go: 'Apasă {0}', u_lift_no13: 'Nu există buton pentru 13: apasă 12 și urcă pe jos', u_lift_down: 'Apasă 0 (parter)', u_lift_busy: 'Liftul e în mișcare', u_light: 'Aprinde lumina', u_flat: 'Ușa {0}', u_flat_down: 'Nu deschide nimeni: a zis că coboară în hol', floor0: 'PARTER', floorN: 'ETAJUL {0}', icom_who: 'Interfon', icom0: 'Nu răspunde nimeni.', icom1: 'Da? A, kebabul. Urcă, e la {0}.', icom2: 'Cobor imediat! Așteaptă-mă în hol.', icom3: '(doar se aude zgomot... și poarta se deschide singură)', u_bottle_take: 'Ia sticla de {0} (ține apăsat Foc ca să stropești)', u_bottle_back: 'Lasă sticla', splashed: 'Te-au umplut de sos!', coworker: 'Coleg', u_ring: 'Sună la ușă', u_wrongdoor: 'Nu e aici. Merge la {0}', u_wait_door: 'Ai sunat deja. Așteaptă.', u_give_bag: '{0}: dă-i geanta',
     ride_kb: '[W] accelerezi · [S] frânezi · [A/D] virezi · [E] cobori', ride_touch: 'joystick: accelerație și direcție · Apasă: cobori', ride_pad: 'stick: accelerație și direcție · (A) cobori',
     pause_t: 'Pauză', pause_p: 'Tura e oprită. Nu se mișcă nimic.', resume: 'Continuă', tb_pause: 'Pauză',
     sug_btn: 'Sugestii', apk_dl: 'Descarcă APK (Android)', sug_t: 'Sugestii', sug_p: 'Ce-i lipsește jocului? Ce nu merge? Scrie-o așa cum e.', sug_send: 'Trimite', sug_close: 'Închide', sug_ok: 'Trimisă. Ajunge direct la Claude.', sug_saved: 'Salvată pe telefon ({0} în așteptare). Apasă Distribuie și alege aplicația Claude ca să le trimiți.', sug_share: 'Distribuie', sug_copied: 'Copiate. Lipește-le în chatul cu Claude.', sug_empty: 'Scrie ceva mai întâi.', upd_ready: 'Există o versiune nouă a jocului.', upd_now: 'Actualizează acum',
@@ -470,7 +470,7 @@ const STR = {
   },
 };
 const JOB = {
-  es: ['El cliente llega al mostrador y pide. Su comanda aparece a la derecha.', 'Coge el pan o la caja. Corta carne del asador con el cuchillo: solo la dorada.', 'Echa la carne de la bandeja, la verdura y las salsas que ha pedido. Envuelve.', 'Patatas en la freidora, bebidas en la nevera. Entrégalo todo en mano.', 'Hay una nota del cocinero anterior junto a la freidora. Léela.', 'Descuelga el teléfono: es un pedido a domicilio. Mételo en la bolsa roja junto a la puerta, pon el cartel de CERRADO y ve en la Vespino. Llama por el portero de la cancela (tiene la luz encendida), cruza el jardín y sube al piso, o espera en el portal si te dice que baja.'],
+  es: ['El cliente llega al mostrador y pide. Su comanda aparece a la derecha.', 'Coge el pan o la caja. Corta carne del asador con el cuchillo: solo la dorada.', 'Echa la carne de la bandeja, la verdura y las salsas que ha pedido. Envuelve.', 'Patatas en la freidora, bebidas en la nevera. Entrégalo todo en mano.', 'Hay una nota del cocinero anterior junto a la freidora. Léela.', 'Descuelga el teléfono: es un pedido a domicilio. Mételo en la bolsa roja junto a la puerta, pon el cartel de CERRADO y ve en la Vespino. Llama por el portero automático del portal (tiene la luz encendida y la flecha verde te lleva), entra y sube al piso en ascensor o por la escalera, o espera en el portal si te dice que baja.'],
   en: ['The customer walks up to the counter and orders. The ticket shows up on the right.', 'Grab the bread or the box. Carve meat off the spit with the knife: only the golden part.', 'Add the meat from the tray, then the vegetables and sauces they asked for. Wrap it.', 'Fries go in the fryer, drinks are in the fridge. Hand everything over yourself.', "There's a note from the last cook next to the fryer. Read it.", "Answer the phone: it's a delivery. Pack it in the red bag by the door, turn the sign to CLOSED and take the Vespino. Buzz the flat at the gate (its light is on), cross the garden and go up to the flat, or wait in the lobby if they say they're coming down."],
   ro: ['Clientul vine la tejghea și comandă. Bonul apare în dreapta.', 'Ia lipia, pita sau cutia. Taie carne de pe rotisor cu cuțitul: doar partea rumenită.', 'Pune carnea din tavă, apoi legumele și sosurile cerute. Împachetează.', 'Cartofii se fac în friteuză, băuturile sunt în frigider. Dă-i totul în mână.', 'Lângă friteuză e un bilet de la fostul bucătar. Citește-l.', 'Răspunde la telefon: e o comandă la domiciliu. Pune-o în geanta roșie de lângă ușă, întoarce plăcuța pe ÎNCHIS și ia Vespino. La ușa bună e lumina aprinsă.'],
 };
@@ -667,6 +667,10 @@ const FUNX = {
 
 /* caras de las paredes: fotos recortadas, en muy baja resolución y difuminadas */
 const FACE_IMG = ["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAkCAYAAACaJFpUAAAJl0lEQVR42m2X2a4kR26GfzK2XGo5dbbultyyPDOAPMC8o9/DT+EnsuEZjaXTZ62qXCOCpC/qdI9kmDeZQALB/Ll8ZNB//Pu/QVVRqkBUwUQgItQqmOYFx/Pk3k7ndDpPKdfqATgmIiICE2mMobRNqn2bct+1JaUgwXs0TUSKAUwEVUOpFaoKj9+aGUoVLGvG0+vJPb+e4jBOm3FaNvOaNyKSzODNzJkBRBBmys65JQY/tk0a99t+uL7alZvDTg77DULw70cbAMDXKt/8VVG8Hs/45ctLeH499aWUgxr2orrzjnsYGlGJqnCAwQwigixSlpzrOIzL6fV4fnt4fD3eXu+HH76/L3c3VxelzBeHpVYYAH139l9/+zU8Pr/t1lxumPkmBn9FRLsQwsY5bUrlyCz+/a8rEWUzW8xsULV+zaUdpzW9nQc+nofTH/75u/L50z22fQtmgjcziCiO5xH//fODe3h82cxLvsul3KnaTYrhELzfs+MNE3UiEkXUEQFMLDBkVZtEdFDVroqkXKpfs9GyZl3WfGJi+fHzR7RNhGdmjNOCn399cg+Pr32pcuuY71IMdznXW1G9ZtUrItpmrV0pkkqt3jEjBF+ZaQUwicq5FGmqSIAZE4BhXOR0ngSgsWuTfLg9wIsoHl+O+PmXx3Ae533bxBsf3E0u9a6Q3JVSb0T00HfNnol7Io0EeFFFACoT57Wu4zyvxzWXBMB77wiALmsuwzivZn/Pt9d76dsGfl5WfHl+c8fTuM2lXgN2yKXenIfpbhjn+yWX2+Dd9WG/3XZt0xMhEAAiAgCM01wenl7H8zi3IhKJ2LVNRAi+quoqqvPbaZj/+veH8sP39+Jfjmc8vxzDtCzbdS1XTy/r4TRMN/OyXtcqt6p2z47347Q0u00X9rsN2iai1oplWfF2Gt3Ty9GtpURT80SEeVlriiGnGGYCplLl/HoczsM4i387Dm6Y5n5e8v7tNOzP5+mw5nIQ1RvAbgG6MrN2ttUxE1KKAAy5VIzTgtN5xJJzUFUGQDCoVSuqulaREYbBYKdhmo9vx6H4Zc2sap2Ibqdp2a657ERlD+BARHsiagnkmBkhBJRSMYwTqihEBFW+9jE5IrRm2MOwiOpouZ68d1tm2i5L7p5fTyc/zUsU0c7MegBbEHZMvCOiPTvumch579CmiK6JmOYV53ECAKQYEEKAGfAOEAdGD8MehJNztEvRbwHqS63dw/Nr9C/HoRHVvkmx2/Rtz0ybUmXLRJsQvAvevx/sUUUwLStKETjHYGak9++lVFQRiKgDbENE2+D9JobQi2pXqvQvb+fGn4ephVna9m0To2+XJXfzsvYGpCYG8t5B9cKw8zAhl/qNi2aAc4wmeLi+xZoL1lzIzJJj7kPwHRG107w0UiUN49x6VUvOUXLOpU3wKcXQOMdpzYXUDPOSL8AsFeO8QFXBzPDOgZngnAMM0K9wviinJsXkHDc516RqCYREQPTMxETkq9SQlxpLqXFecpqXFSICEH2bIkQE7xy8d4jhEsoYPHKpWOeMUgrMAO8diCgRURSRCCAE7/311dZ8qTWoqL/wr/hlzb5WcaLKRIQYHIjokq8YoKoIIVzU8SWPMEPOBSICu0Cdzcw5Zm9mHoCPwePD3bV4VdNhWijnwrlWVlEHIiYiisGjSfGizDt0bYKK/m6cVREwM5gJopdoqCrVCoaHU1UWEY59a/e3h+rbJuaHxxfNpUJEoWaIwX+bX0SEFAM2fYtN12KcZxAIzjHOw4RlFZR6KSRVherlSURQVYgqCCR9m/Ld9T77q92mBO9FRNXMdJmzSBVtmmhtihSDR9816JoEg6EUARGg5rCsGTkXqCrMDGaGWgWqakSkaiaqqikG2W379bDfZP/x7nr98vS2vp2GuuZS52WtuVTx3ikzOecYqobzOAMApnlBFQUz4TzOl6ioXsJ7cQaDKQBR0QpCbVJc72+uhk3fZv50fz3f3ezHJsXZMWcmzma2llrf8aUQFay5AABiDAAMpVTkUt8XsPd0qAEEMDOccysR5eDdvN/2x08fbk4phuKvdpty2G+HX7+8LN67NQS/5FJXVTORC1FKqZiXfFFXBfOyQt9z5p0D0aVoiAgwgJmNgJUdzZu+O/74Tx+/fLg9nJ1z5lMM5fawG7quOS1rHlMM07Sso4iu07y4UiqVKsilfKOLmb7PQ/q67r0XnIJAZmorMY1Niq//8vnjX//y049/u77ajd479SDSw9X2dH9z9ThOy3feuwHAuYoM53FORORNDWp22VmZwES4FLFB5L06zQAYiEgIdPbs3/a7zS//+sfP//n9p7vnvmuqY4ZnItttuuXzp7vH1+P5aZqXW+94XwqOItoA2ABwACBmIAOUCKQXdar2ja0ABMDomI/B+9frq+3/fLi7fmybtDjH7/3sHYiTXR92p23fvTRpOKYYjznXvoo0787ar04vIb2o+T8mAGbHfIzBvzYpPt1dXz1c7fqzd2ymBoPBB+/AQtI2ae3a9BqCe+m7Zp9zScgIosqAmRkaAAH/vxUiWhzzMUb/1DTxsWvTl4/3149d2yzOOf06qP07TuCdy5u+e00xPG/7dldrjTEHX0Ww5lKlylbNejP7nVMiKt650Tk6O3YvKYWnFMPzpm8fbg/7lxB8/cdNwuBLlcuLd+jbNMUQ3to2PRvg3yki85LzvKzzmksvotFgHgCYuHrvct81IwHHXOqrGZ7N7HG/3Tz0XRpgZl/bBwD8hQyAdyy7bT/3XfO85typKNcqBqC2bVqd4zEE35VSk71HxjHXGPzqHE/zks+51Dfv3Ytzza93N/vHJqXFDAoAzHSJJBGBABAzurapu033OoxzU6tQ2yTNOZe11EXNBjPrQBRN1V1ArVJqzWaXVR/AkeCedpvul+8+3Ly0TRTn+Fv/AgYfggcMqCJIMcj11XZ8fj09iijMUImwMvMUvNvkGJpSapzm1a8iULUqohnAwkyDd+606dun7z7e/np3czU0KUrwlzIp9ZJKfyHGpcSdY1ztNrLp23Op1URdIaKlb5uRiPppXpplzdE55+xsKLUKEWcAi3Nu7Nrm9PHu+vkPnz++bfuuXLD321YC/G8HaooBh/0Wn+5vynLJSYmRpzalAUBXRZpSJcbguW0iOJMCyCGEJQY/3h52xz//6Yfxh+/v57aJ/wAD8Pv7IREheA8QsOlbfP/xBtO81HFe5mleViaamblX1SSq0cw4pQhmViLKIfhlv+mGn/74efrpTz/o9dXOnHPfluSvuxAR8L8NLo1NWauHEQAAAABJRU5ErkJggg==", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAkCAYAAACaJFpUAAAJaElEQVR42mVXyY4cSXJ9Zr7EmkutbLAxah0GmIv+T7+hn9Bn6KazAF00EDTSTM+Q3Swys7Jyic3dzUyHrCKbmAAiTh7+/Nkze+ZG//ov/4zfPkTXj6oh54xpXtxlmN1lnMLL8RLHeYnzkpyqEoGkqkJedW262fTpZrsqfdtICB5MBHvb1AwGwMzgiQAiAhEBAFQVKWWcLqP7sj+6z7tDtz+c+vMw9cM4NUvKVRFx19UQ51yKwS+rvj398HB7/t37x+Hxbit9V4v3/rovEcgMRgTPzF/ZqSqGccavX57Dn//6qf3labc5nYebaU7rItLnInXOJaqZIwAGCBMSEc+75+PwtDscP3z6sv/px3en3//0fnq42+a6iiAi2CuofwMTUVzGCT9/eAr//X9/W/36tL8/D9NdzmUrqmsR7UW1VtFoMP8aqQIgEWFORJcll26clvbleNkdT8P+n/7wj6ffvX8sdRW/6uWJCKqKeUn42y9f3B//9Nf+l6f9wzBOjzmXuyJ6I6obVe1VtTVDBOBexREzS2YYzXBRtVZVq1KKV1Vmx9o01fmHh1uJwV81BICUCz7vDvynv3xsv+xf7lLKj2b2YMC9qN6KyFZVV2bWqqEC4GH2xnAhwkhEZ8BqEQkA+DLO+PDL53J/s07bVT9WMYCI4OVVtw+fdmF/OG1TLvcA7pxzDyL6QMAdDDdmtlFDB7MIwJsBBiswJDMMIDuaUUVEnsmoFNFhnNPHT7vxH358TF3XlOAdvBTB8Ty4/eG0KqXcOqYbdXwHwoNz/MjM9yC5BbCCWWeGAAAGw2veZwADDI0BETCnZlCzkkWWl9Mw7p5Pw7v72yF4J37JBYfj2c9LWrPjbYzxhijf5SK36vSeuTwS0QZADfwdGEBwAByB4ltOMFEhIMFsKqVcDsfz85LS0NQRfpxmd76MbSmydswb8nQD2I0BdyJyz0RbImqI2IEUMAOBAPrOL8IVh4iZ1GAZwMLMgwHncZr7ZclRzSY/TQuP09IbbK1mKwBrItoQ0Q2ADYDmmpX2zYm+s6U3onDM1BDRhplnZh5i8CfHvF5S3iwpB1NbeJoXn3JpCNQx8UpE1qq6BrABUQfAmRlUDaYGszcsAgFgApgIzAxmds65zjFvnOO1c25tZqtSpJ9TqlWVfBEJItKYWUuEDkAPYAWgNzMnqhBRmNlVO+Aa0leC1wN8E5QAZ9d/V2bWA+gAtKVIfCt8D6AyWA2gUUOrap2qVipKqvabDb96Mb558Dcv9s7BAIJZ9QbknGuc49bMKpg5H4In59ibocq5VCnnuhSpiggtKUP1lZ19Y/bGiYnBjuGdQwwexIScC1SViKgys9p7rqoYKoACAPJVDAaApnnxx/MQ5znFXEpVRCEiV+0M34WQCPCOEWNAXQVUVUQVPIooJlqQi4CJKmaOVQwxhBDMzKsZvKpxSsXtDyf3crr4nItXNWdmbLDvWDnv4Pgavqau0HfNte+ZIeViaoZ5SbQsmZnJMZMXWfmUcrwMY5tyiX6cFj9Mc5iX5JeUuRRxABhfK82+6sQEOMeIIWDdt2BmzEuCmcE59waMXAqZgYnZnYeJVY3apuJSCvl5WXhJmUQUpvb33f+1BIL36LsW3jt459C1NaY5IReBqsKJkr32VBCBYFBV5FxQosA5p94586+CS/BOiUgBCBEUIHstNcRwBduu+69J5JyD9w5MQJZvpXM9nDMAGryXKgbdrju5265SVcXit+t+3qy6MQSf2HFh02J2BSUi55hRVxGbVYcYPOYlQeRqcX3bQFXB44wlZYgYvHNgJg0hyHbdlR8eb8u7+5t0d7OZY/Di7243w7uH2+f/+fPHC4BkhgTYooqOCHCO4L2Hc4w3E3COQUTo2hp1FTG0M4ZxRi4FZobgPZq6WjarNt2s+2m77k+bdXf2zonv27q8f7x92a678+75OIrILGILAGMiBOdQxQAzwzDOEFVsV93Xm10MHs61aOqIaVowLwnee+u7enGOZwBj21RfurY5OcfKwXvdbvr54f5mX9fxQqARwHDt5GR1HdE2NVQN07xARFFVEY4ZKWfkUuCYsV33WF0z16Z5WcZxHsxwCcGfurZ+Dt59JWGrvpt+/9P7p/vbzc57dwRwBnABQfjVvlIuWJaMlDJEBClnTHMCAFRVQNfU6NsG3juZ5uXy/HI+i+g5Bn9sqursmIWIwAYgeGcPd9vTu/ubfVPHo2M+ATgy0eC9ExFFKQUGg5lhmhOmOYGZ0DYVurYBAAzTLJdhGpaUj2p2qqpwquvqEKMfiK815sdpwZIyzpfRVHVwzp1AOBJRx8y1d86ZWWNmzjkHIkLKBXUV0NYVnHMAoKKacymzmb1UMRxWXXNsm/pQx/DsvZ8JEADw//lf/4vTeeCfPz5VHz/tbEn57JgPjlHFGEIInplZmbnxjoOoYUkZMXiomcKgzvFYx/AphjB2bZNutqv9qmsPMHs5HC/j+TKYf3Uo/2///h9IOeswzjnlPJjhAKLGMcU6Bt+1tTFzJsKKiDpVdc45rasoMfilbarT7Wb1l66t/2jAetW3PYATgP3L8Xx52r3IOC/804+P7u5mI/5pd4CZiaqd1fQAQ8PMFTn2AFCKpM26Hrum3qhpy8Tw3s3bdbffrPv97Xb1uWvqg6rlrqm8quZ5SYfLMO2P5+EwTsswjFP6+cMn2W5W8EUEpgYiygCOalYRLATvua6iLSnn3fMp910zbddd7NumxBhOXVt/aap4MbX8chq6nHM1zUmXlJ+nOe12h9N+GOd9KXIsReTldMHn3Qv8mwc6ZgEwEGGnqq4UARGp9y6fzsOyP5z6X4Ovm6biKgbtmrpd9W28u1lbW1dGRPM0L5d5SYfj+bIfp/mLqO7UbFARybmgFIFrqvCb5mpKREIgUTNzjjWGUMyQ5yWlYZzmaV6WZckLYLmuY9qsuqmu4yWXchimZf9yvOx3h9NuWdJORM+5SEk5X80dv5mezN5ey8w4q6lexjkT81wFP9QxdDnnWkQjEVxTV+jbRmIMiZlnERmGcTrvD8fjME4HAEMpklPOKKKv8ydfAen7Sy1ULTFDcynlfBnHFP2FiFqAasCiGZiZoGY6zUtS1fl8mcbd8/F8uoxDymUCUFQVRRSlyKvn8nUC/nYt+g60MGEUkXmcZALQiWgFQpyXxMfTgLqKCkNipuVp9zJ82R/HJaXXnno1dxFFEcHbGP7/betoFMWbFSMAAAAASUVORK5CYII=", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAkCAYAAACaJFpUAAAJwUlEQVR42n2X15IeyXGFT5pq8/dvx4DgYncDNEsyFNKVHlDvoafQ2+hCEoOUVlgMgJn5XZtymboYAFw5ZkRfVn+RmSeqzqF/+sd/wM/L3OHmKLUipYw5JjmdR318PrWPz+f+Oi1dKVUc7sxc2qBpuxmW28M2roc+r1d9HVYduraBqkCY/9v/9ecgq4aUM+Yl4TrOcrxcw3Wc15dxHqY5bmqpPYBWhMQMXkqpMaZ0uozLu4dPY1C9rvr2cn97SL98dVMPuw2GVQdVARP9BWhmSLngeL7i6XjB8XwNMeV1rbYnor0wb4a+HYioA9DUavL5XM2lpHlJS0x5vFyny9Ppcnz38HT884/vx29/eZ++f/MKt4cdVl0LEYZWM8xzxPuPT/jxp4+YlhSCyrYJetd0zY0w7wFs3X0Nos7MGzP7MplSzVLXpWWclqsID9Mcu2WJzfuPT58+Pp3O//n+U/7hV9/i19+/xm6zhsaY8O7DI/7tT+8QU9Zh1a1XfXffNnoP0K27H4hoJ0xrIlrVF6AAADNVACmoTm5+dfcVHC3cdUmZ5iXaH//9p8vxPJZcCv7wm++gT8cL/vzjA67jLJt1P6z69q7vmvsm6L077kqtN2a+B7Bh5hUzWjNSdwcLFwLFWm1qmnDJpXSl1BBKYHNHzqUuS7KHj0/Xf/4XrX3XQj88HnE8XxGChr5rd20TbpugtyJyx0QHFb6pZvfmvmeiwdzV3YMD5I5ChNQEHdsmnEopbYxZmYmIyJgpA4iplPju4bGG8Efou4dHpFRk1XebJuhBmA9EfAP3O3Pfs/BATHt33MG9Jwcbe8MEYmInQmSWtm1Cn1JuVEVUBMJczDxWs7mWOl/GOf/rn95V/fDpCMADEW2IaM/CB3e/LeY3zLxW4pWTr81scEdLhMJM7O4MwJiZiagNQfumCdq2DapZKbUmALO7T+Z+gfvlcp2qXsZJgso657yrZrtSbE9KB3PfhSAKoHf3vhRTdxeHS62GUiqIwCrSiojCnZiJVdgIyLVaNLORiK5MdC61XlLOWWPKYmareYmbGPOGmXeA74hoZ+bqXpucS1dqVQAgIrj75w8oMGZhYmaYeR9T3k1LXMZpHku1c1DZxJQ3udTezEVzLp27D9OchiWmDYBtrbZTlTt3bJnA5t4REZs5iNwBgoiQMBkxVSamXDLFlGWcluE6zrslprMwbbkJG5rjYGYDEfUaVBp376vVVS5lEOG1u2/MdF2rdQCEmSioOADU6uTuEGEHxM2cYlx4nBa6jhNyLpJLXQPYiMja3AcRXjHzyt07DSEEM2uDagegr+arXFJzGec2lyJwUN+33netMxGZO+jzaEWYY8p0uU54Pl0xLxHmTqWUVlUHACsG+r5tuhhTC1Cjh92ax2lpVKQ9X6d2XmJ7HZdumhdeYiIA2KxXdLPbUNc1UBG8dGoEAuYl4un5jON5REwJRAxVoa4JbQjavQg3tH3XtgBEb/YbmDmP0xzef3xujudrm3IeajU2cwDA8+mCp+cz7m52OOw2UBVM84LTZcRlnDGOM5aYYWb4IixmalWl2QyrZr8dQvOyE9bTeWwBb3Kper5Oep1mNTNxB78cBjw7YsogIqyHDiKCaY4YpwXjtGCJGaVWAC/KBcCokGqmTcjKzKqqYZqXVi/j3K2HTlZ9R10beJpFCsAAiIkhwui7Bjf7Le5udt53naWcuVolc4eZgZgg+PzQvgDJ4awi0jaBmybAzMjcg94etiUEdSb4vNxZUMWSMpjgQRXD0Ne7w5b2u40FFZ2XiJ8+PPnT8UKlVDAz2kBQlZf9En0dbdc22G/XYCYmIqy61vS3b99cjudrrLX6m9e3db9d11yKAbCgapt1n4a+a5iZT5crPjwe5Xi6YpoX1Fqh8tJZ37UYVj36rgETuYhYE7SKiC0xWd+39dXdYebX94exa5sx5ZJyrm5mxd2rmWNeos5L7KpZmOaFPjwecblOICYwEdwBZkYTAogI0/yy01LNmKmKSCFCEaa8GVbjH37z3UmHVbe0jR6v47zElOO8xGTmsQk6MDMxMwPwUivPS/IlZrg7qhnMDEwKEf5qU9wdISiqWVxiSu6eqllc9d18s98uGlStCWFaYpqfjud0Oo9LCBpv9lvfbwcMfYe+axGC2v3t3syMci78ctsItU2AMCOX8hU6TYvPc4yl1kWYo6rE7XoVQ5CqxOTMXIgoApiXlKfLOI+qEm8PG+nahpgZDZN98+qmHrbrMs4Lf/j03M1LAvPLaKd5wRITUsqeUo6l1pFA02rVzY3pQoSsol9eAFgTdO7aZhxW3fV4ulyWJV3d0RCT5lJQS+UQVNZDX0TYS6m+xERmhpwLcikIqsi51JTLtVa7hKBXAkZ3n4LqIsJQJkJQTV3bjOuhv5Rq51rqWYRPgAer1rEwUi6h1Apm5lyqNk3wnIsRwaqxBFV6EQqPyDi5+xnwc6n1EoKOIegszFWZua76Nm7Wq3Op9QzgbGYnd1+96AXrz+65BVCZKInwum1CyLkw4NnMu7YJoqozUToR4RmEE0Bnd7+oyHXVd4uqQFUF++06vnl996HWuoVj03dpiCm3pVStZsJmnapUVZmC6sK5hMWSNkHpxVRFvOwMZ3d8MscjEz8HleeubY73t/unb17dzF3bVGUi9F1bX9/fXGLK70q1dcqlb4I2RKQpFwZQhVlyLiildikXTSm7maVSK3Ip8/kyXuaYnkqtnwA8qcpj17XPb17fPfz93/3w/Pa716VrmxerL8IYVl36xd3h+TrO7+He51IVcDBzFZGowh0KVqVWyTmnlEtyt1qKlZzLnHI55Zyf3f0xqHxsm/B4d9g+/M3v3n787ds383Y9uAj/JcwEFd9tVtMv7g4PZtbFlKWaeVAtXdtEFe6t8U3OpSWiQBRRqxURi0Q0MdFFRI4APTVBP+1364ff/frbn354++ay3QxVPl+BX4FEhLZp6qu7/YkI/3E8jzWmlJhoYearqnS12tZVumAq12khczdmTiHI1LbNFURHYfq02wwf3n73+t3f/v5XT7eHbQ4q/zuufRntZuhTUPm02wzL8Tyexml+k3K5A7BmprNCyIMrAW0p1YNK6rt2vt1vTsT0eNhu3n/7zf3j99+8Ot8etrEJ+n/nwy/FzOi6toYQrn3fLefLeD2er6dcyt7NewjAzM3NftPkUuHuadV31/Dq9unusH24u92fd5shdm1TRfhrLvx/gQDALw63ClMNKo9d20zTvAy5lJaICADtt+tQamEzzyI8bdfDdbNezV0TjIX9f4L+KvDn3YZAdbtejcOqm91dfp6Y8dkME1MNqiZ/BfSl/gs7m18lNOrkhwAAAABJRU5ErkJggg=="];
+
+/* Mapa real de OpenStreetMap (© colaboradores de OpenStreetMap, ODbL): barrio del Supermercado Veracruz, Levante, Benidorm.
+   Generado por tools/osm2town.py. En metros; el Kebab Poniente está en el origen y el mar hacia +z. */
+const MAP = {"bld":[{"p":[213.0,-370.6,218.4,-369.7,218.0,-367.5,224.2,-366.4,226.9,-365.9,229.6,-365.5,229.8,-366.9,232.3,-366.5,238.9,-365.3,236.7,-352.7,226.1,-354.5,221.0,-355.4,204.2,-358.3,205.5,-365.6,206.6,-371.7],"h":69.6,"l":23,"t":"res","n":"Edif. Acuarium II","a":"Avenida de Juan Fuster Zaragoza","id":1430339624,"host":0,"mn":0},{"p":[284.9,-346.8,285.9,-352.0,286.2,-353.5,294.4,-352.0,329.5,-345.3,324.9,-321.1,293.4,-327.0,295.3,-336.7,283.4,-338.8,277.8,-339.8,255.5,-343.8,257.8,-356.7,264.4,-355.6,263.5,-350.6,278.5,-347.9,281.8,-347.3],"h":69.6,"l":23,"t":"res","n":"Edif. Acuarium III","a":"Avenida de Juan Fuster Zaragoza","id":1430339625,"host":0,"mn":0},{"p":[277.2,-351.1,279.0,-361.0,280.9,-360.6,279.1,-350.8],"h":3.6,"l":1,"t":"res","n":"","a":"","id":1430339631,"host":0,"mn":0},{"p":[323.0,-313.0,323.6,-316.5,328.6,-315.5,334.1,-344.5,344.9,-342.5,350.3,-341.5,360.9,-339.5,366.4,-333.3,363.5,-319.8,362.3,-314.0,361.2,-309.3,359.8,-303.5,356.5,-288.9,330.9,-294.3,304.7,-299.8,289.0,-303.0,291.9,-318.3,322.8,-312.4],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430339638,"host":0,"mn":0},{"p":[-74.7,-351.6,-73.0,-353.5,-68.4,-349.6,-70.0,-347.6],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430344964,"host":0,"mn":0},{"p":[-76.8,-352.8,-74.2,-355.7,-73.6,-355.2,-76.2,-352.3],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430344965,"host":0,"mn":0},{"p":[-78.1,-354.0,-75.5,-356.9,-74.6,-356.1,-77.2,-353.2],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430344966,"host":0,"mn":0},{"p":[-79.5,-355.3,-76.9,-358.2,-76.0,-357.4,-78.6,-354.5],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430344967,"host":0,"mn":0},{"p":[-42.6,-334.0,-48.9,-324.9,-50.6,-326.4,-51.7,-327.3,-47.3,-333.3,-45.5,-335.9,-44.8,-335.5,-43.9,-334.9,-43.1,-334.3],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1430350153,"host":0,"mn":0},{"p":[-52.5,-359.7,-51.3,-358.9,-48.6,-354.5,-44.9,-352.1,-39.8,-351.9,-39.0,-351.4,-40.8,-348.6,-41.1,-347.9,-41.7,-347.0,-42.0,-346.5,-42.8,-345.2,-43.0,-344.7,-44.9,-341.7,-57.6,-349.9],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430352763,"host":0,"mn":0},{"p":[28.7,-296.8,25.5,-298.8,22.5,-300.7,26.4,-306.3,32.3,-302.6],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430512279,"host":0,"mn":0},{"p":[161.1,-236.5,160.8,-233.9,159.8,-234.1,160.0,-236.8],"h":3.6,"l":1,"t":"res","n":"","a":"","id":1430512505,"host":0,"mn":0},{"p":[85.7,-282.7,88.6,-281.3,97.5,-276.9,101.9,-285.9,109.5,-282.1,109.9,-282.9,112.1,-287.4,117.8,-284.6,126.8,-280.2,122.0,-270.4,117.7,-261.9,114.5,-255.3,114.3,-255.0,92.0,-265.9,93.5,-268.6,81.6,-274.5,72.0,-279.2,76.1,-287.5],"h":36.6,"l":12,"t":"hot","n":"Flash Hotel","a":"","id":1430512507,"host":0,"mn":0},{"p":[127.3,-249.4,136.0,-269.1,136.9,-269.4,157.5,-263.6,155.5,-242.4,154.8,-241.8,154.2,-241.9,149.6,-243.2,145.3,-244.4,138.7,-246.2,134.2,-247.5,129.3,-248.9],"h":51.6,"l":17,"t":"res","n":"Edif. Waldorf","a":"","id":1430512515,"host":0,"mn":0},{"p":[127.3,-249.4,121.9,-251.3,122.1,-251.9,130.4,-270.8,136.0,-269.1],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1430518135,"host":0,"mn":0},{"p":[133.7,-245.8,128.7,-247.2,129.3,-248.9,134.2,-247.5],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430518140,"host":0,"mn":0},{"p":[138.7,-246.2,137.0,-240.6,132.4,-241.9,133.7,-245.8,134.2,-247.5],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430518141,"host":0,"mn":0},{"p":[145.3,-244.4,149.6,-243.2,148.7,-239.7,148.1,-237.5,143.7,-238.7],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430518142,"host":0,"mn":0},{"p":[149.6,-243.2,154.2,-241.9,153.3,-238.4,148.7,-239.7],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430518143,"host":0,"mn":0},{"p":[114.3,-255.0,111.1,-248.2,60.3,-261.9,61.5,-264.1,70.0,-278.3,70.9,-279.8,72.0,-279.2,81.6,-274.5,93.5,-268.6,92.0,-265.9],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430518154,"host":0,"mn":0},{"p":[207.2,-337.5,212.5,-334.2,210.6,-329.6,205.5,-330.7],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430520437,"host":0,"mn":0},{"p":[274.3,-207.0,278.2,-220.6,325.3,-207.3,322.1,-211.5,320.2,-214.1,279.6,-225.5,281.6,-232.5,294.7,-277.9,307.3,-274.5,308.5,-278.8,320.9,-280.0,328.6,-278.6,334.6,-277.6,330.5,-258.8,327.6,-240.9,326.8,-233.2,326.0,-218.0,324.7,-217.1,326.6,-214.5,330.3,-209.7,331.8,-235.3,333.1,-245.4,334.4,-252.8,339.5,-276.7,353.9,-274.2,348.9,-250.9,348.0,-244.6,347.4,-241.0,346.6,-235.5,345.2,-218.1,343.6,-198.6,341.0,-197.0,337.7,-194.8,334.5,-192.8,331.9,-191.1,325.1,-193.0,315.3,-195.7,306.4,-198.2,294.9,-201.3,286.2,-203.7],"h":3.6,"l":1,"t":"com","n":"Shopping Center Mercaloix","a":"","id":1430520438,"host":0,"mn":0},{"p":[289.9,-286.9,293.7,-285.8,290.9,-276.0,287.1,-277.1,289.2,-284.3],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1430520439,"host":0,"mn":0},{"p":[199.5,-326.8,204.0,-325.5,217.0,-321.6,212.3,-304.6,212.7,-304.1,212.7,-303.7,212.5,-302.7,214.0,-302.3,213.6,-300.8,213.1,-300.2,212.4,-300.0,211.7,-300.2,211.5,-299.3,213.0,-299.0,212.5,-297.3,212.1,-296.7,211.4,-296.5,210.7,-296.6,210.5,-295.8,212.0,-295.5,211.6,-293.8,210.6,-293.2,209.8,-293.3,209.5,-292.4,211.1,-292.1,210.6,-290.3,209.6,-289.7,208.8,-289.8,208.6,-289.1,210.1,-288.7,209.7,-287.1,209.2,-286.5,208.5,-286.3,207.8,-286.4,207.6,-285.6,209.2,-285.3,208.7,-283.6,207.7,-283.0,206.9,-283.0,206.7,-282.3,208.2,-281.9,207.7,-280.2,206.7,-279.6,205.9,-279.6,205.7,-278.9,207.2,-278.5,206.8,-277.0,206.3,-276.4,205.7,-276.2,205.0,-276.2,204.7,-275.5,206.3,-275.2,205.8,-273.6,204.8,-273.0,204.0,-273.1,203.7,-272.0,205.3,-271.7,204.8,-270.1,204.4,-269.6,203.7,-269.4,203.1,-269.5,202.8,-268.7,204.3,-268.3,203.9,-266.7,202.9,-265.9,202.1,-266.0,201.8,-265.2,203.4,-264.9,202.9,-263.3,202.5,-262.8,201.8,-262.5,201.1,-262.7,200.9,-261.8,202.4,-261.4,202.0,-259.9,201.0,-259.2,200.2,-259.3,199.9,-258.4,201.4,-258.0,201.0,-256.6,200.0,-256.0,199.2,-256.1,198.2,-256.3,197.3,-253.0,198.3,-252.7,197.8,-251.0,199.4,-250.7,198.9,-249.1,198.1,-248.4,197.4,-248.4,196.0,-248.8,193.7,-240.5,194.7,-240.3,194.3,-238.8,192.9,-238.2,190.6,-238.8,190.9,-239.8,189.8,-240.1,189.5,-239.1,185.8,-240.2,182.3,-241.1,182.5,-242.1,181.3,-242.4,181.0,-241.5,178.7,-242.1,178.0,-243.3,178.4,-244.9,169.0,-247.7,173.5,-264.2,176.8,-263.2,177.8,-266.7,181.4,-265.7,183.1,-271.8,178.8,-273.3,182.4,-285.5,183.4,-288.8,186.9,-301.3,194.7,-328.3],"h":45.6,"l":15,"t":"hot","n":"Hotel Sol Pelícanos Ocas","a":"","id":1430520443,"host":0,"mn":0},{"p":[156.9,-322.2,154.1,-324.4,138.6,-336.2,143.0,-341.9,156.3,-331.7,153.8,-328.5,158.8,-324.7],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430520449,"host":0,"mn":0},{"p":[287.9,-288.1,289.9,-286.9,289.2,-284.3,287.9,-284.8,287.2,-286.6],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1430520450,"host":0,"mn":0},{"p":[217.5,-322.5,210.4,-325.1,212.1,-329.7,219.2,-327.1],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1430520451,"host":0,"mn":0},{"p":[253.0,-221.0,251.9,-221.3,253.1,-225.4,251.9,-225.8,252.4,-227.5,249.8,-228.3,253.7,-242.0,255.0,-241.7,256.0,-245.1,254.7,-245.5,263.2,-275.0,264.4,-279.3,268.1,-278.3,268.5,-279.8,270.8,-279.1,271.5,-281.5,274.8,-280.5,274.1,-278.2,276.3,-277.6,275.8,-276.1,279.8,-274.9,270.1,-241.1,266.7,-242.1,265.7,-238.6,269.1,-237.7,268.9,-236.8,266.1,-227.6,265.0,-223.9,262.3,-224.7,261.8,-223.0,260.5,-223.3,259.3,-219.3,263.2,-218.2,261.7,-213.0,258.2,-213.9,254.6,-215.0,251.5,-215.9],"h":30.6,"l":10,"t":"hot","n":"","a":"","id":1430520453,"host":0,"mn":0},{"p":[330.9,-294.3,356.5,-288.9,362.1,-287.8,361.1,-283.7,346.4,-286.6,330.0,-289.7],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430530752,"host":0,"mn":0},{"p":[328.6,-278.6,329.5,-282.5,340.0,-280.5,359.5,-276.9,358.7,-273.3,353.9,-274.2,339.5,-276.7,334.6,-277.6],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430530756,"host":0,"mn":0},{"p":[334.5,-192.8,332.7,-185.7,323.8,-188.2,325.1,-193.0,331.9,-191.1],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430530761,"host":0,"mn":0},{"p":[325.1,-193.0,323.8,-188.2,314.0,-190.9,315.3,-195.7],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430530762,"host":0,"mn":0},{"p":[315.3,-195.7,314.0,-190.9,305.1,-193.4,306.4,-198.2],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430530763,"host":0,"mn":0},{"p":[306.4,-198.2,305.1,-193.4,293.5,-196.6,294.9,-201.3],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430530764,"host":0,"mn":0},{"p":[284.8,-199.1,286.2,-203.7,294.9,-201.3,293.5,-196.6],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430530765,"host":0,"mn":0},{"p":[274.3,-207.0,286.2,-203.7,284.8,-199.1,273.0,-202.4],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430530766,"host":0,"mn":0},{"p":[275.0,-221.4,278.3,-233.3,281.6,-232.5,279.6,-225.5,278.2,-220.6],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430530769,"host":0,"mn":0},{"p":[257.9,-206.7,258.2,-207.9,259.4,-207.5,259.1,-206.4],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430530783,"host":0,"mn":0},{"p":[161.1,-233.8,161.6,-235.2,162.8,-234.8,162.4,-233.4],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430530790,"host":0,"mn":0},{"p":[221.0,-355.4,226.1,-354.5,225.7,-352.3,220.6,-353.2],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430531389,"host":0,"mn":0},{"p":[-9.0,-345.5,-25.5,-356.9,-19.4,-365.0,-17.2,-363.5,-14.9,-366.8,0.3,-357.0,7.4,-352.6,3.6,-346.5,-3.1,-351.2],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430582348,"host":0,"mn":0},{"p":[44.6,-372.1,52.2,-367.3,33.3,-339.8,38.1,-336.5,24.9,-317.6,22.2,-319.4,17.8,-311.4,12.2,-318.2,1.8,-321.9,10.2,-328.9,-13.0,-341.6,-9.0,-345.5,-3.1,-351.2,3.6,-346.5,6.1,-344.7,5.8,-344.2,5.3,-344.5,4.6,-344.6,2.6,-343.2,3.4,-342.1,4.1,-341.7,3.7,-341.1,3.0,-341.5,2.4,-341.6,0.5,-340.1,1.3,-339.0,1.9,-338.5,1.5,-338.0,14.1,-329.3,14.5,-329.9,15.2,-329.6,16.6,-329.1,17.2,-331.4,16.9,-331.9,16.2,-332.4,16.7,-333.1,17.5,-332.5,18.7,-332.1,19.3,-334.5,19.0,-335.1,18.4,-335.5,18.8,-336.2,19.6,-335.6,20.8,-335.2,21.4,-337.5,21.1,-338.2,20.5,-338.6,20.9,-339.2,21.6,-338.7,23.0,-338.4,23.6,-340.5,23.4,-341.2,22.6,-341.7,27.3,-348.5,27.9,-348.0,29.3,-347.6,29.9,-349.7,29.6,-350.5,29.0,-350.9,29.4,-351.5,30.1,-351.0,31.5,-350.6,32.0,-352.9,31.7,-353.6,31.1,-354.0,31.6,-354.6,32.1,-354.1,33.6,-353.7,34.1,-356.0,33.9,-356.6,33.2,-357.0,33.7,-357.7,34.4,-357.1,35.7,-356.7,36.3,-359.0,36.0,-359.7,35.4,-360.1,35.8,-360.7,36.4,-360.3,37.8,-359.9,38.4,-362.0,38.1,-362.8,37.5,-363.2,37.9,-363.8,38.6,-363.3,39.9,-362.9,40.6,-365.1,40.3,-365.8,39.6,-366.3,40.1,-366.9,40.9,-366.4,42.0,-366.0,42.6,-368.2,42.2,-369.0,41.7,-369.3,42.2,-370.0,42.8,-369.5,44.2,-369.2,44.9,-371.3],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430582357,"host":0,"mn":0},{"p":[1.9,-338.5,1.3,-339.0,0.5,-340.1,2.4,-341.6,3.0,-341.5,3.7,-341.1,4.1,-341.7,3.4,-342.1,2.6,-343.2,4.6,-344.6,5.3,-344.5,5.8,-344.2,6.1,-344.7,6.4,-345.2,5.8,-345.7,5.0,-346.8,7.0,-348.2,7.5,-348.2,8.2,-347.8,8.7,-348.3,8.0,-348.7,7.2,-349.9,9.2,-351.3,9.9,-351.2,10.4,-350.8,10.7,-351.3,10.1,-351.8,9.3,-352.9,11.2,-354.4,11.8,-354.3,12.5,-353.9,12.8,-354.3,12.1,-354.7,11.3,-355.9,13.3,-357.3,14.0,-357.2,14.5,-356.8,14.8,-357.2,14.1,-357.7,13.3,-358.8,15.3,-360.3,15.9,-360.2,16.5,-359.8,16.9,-360.3,16.2,-360.7,15.4,-361.8,17.4,-363.2,18.1,-363.1,18.6,-362.8,18.9,-363.3,18.3,-363.8,17.5,-364.9,19.5,-366.3,20.0,-366.3,20.7,-365.9,21.1,-366.3,20.4,-366.7,19.6,-367.8,21.6,-369.3,22.3,-369.2,22.8,-368.8,23.1,-369.4,22.5,-369.9,21.7,-371.0,23.7,-372.5,24.2,-372.4,24.9,-372.0,25.3,-372.6,24.7,-373.0,23.9,-374.1,25.8,-375.5,26.5,-375.4,27.0,-375.1,27.4,-375.6,26.8,-376.1,26.0,-377.3,28.0,-378.7,28.5,-378.6,29.2,-378.2,29.6,-378.8,29.0,-379.2,28.2,-380.3,30.1,-381.8,30.8,-381.7,31.3,-381.2,44.0,-372.6,44.6,-372.1,44.9,-371.3,44.2,-369.2,42.8,-369.5,42.2,-370.0,41.7,-369.3,42.2,-369.0,42.5,-368.9,42.6,-368.2,42.0,-366.0,40.9,-366.4,40.1,-366.9,39.6,-366.3,40.3,-365.8,40.6,-365.1,39.9,-362.9,38.6,-363.3,37.9,-363.8,37.5,-363.2,38.1,-362.8,38.4,-362.0,37.8,-359.9,36.4,-360.3,35.8,-360.7,35.4,-360.1,36.0,-359.7,36.3,-359.0,35.7,-356.7,34.4,-357.1,33.7,-357.7,33.2,-357.0,33.9,-356.6,34.1,-356.0,33.6,-353.7,32.1,-354.1,31.6,-354.6,31.1,-354.0,31.7,-353.6,32.0,-352.9,31.5,-350.6,30.1,-351.0,29.4,-351.5,29.0,-350.9,29.6,-350.5,29.9,-349.7,29.3,-347.6,27.9,-348.0,27.3,-348.5,22.6,-341.7,23.4,-341.2,23.6,-340.5,23.0,-338.4,21.6,-338.7,20.9,-339.2,20.5,-338.6,21.1,-338.2,21.4,-337.5,20.8,-335.2,19.6,-335.6,18.8,-336.2,18.4,-335.5,19.0,-335.1,19.3,-334.5,18.7,-332.1,17.5,-332.5,16.7,-333.1,16.2,-332.4,16.9,-331.9,17.2,-331.4,16.6,-329.1,15.2,-329.6,14.5,-329.9,14.1,-329.3,1.5,-338.0],"h":45.6,"l":15,"t":"hot","n":"Hotel Rosamar","a":"","id":1430582358,"host":0,"mn":0},{"p":[-33.9,-342.8,-30.3,-347.9,-27.2,-345.7,-30.8,-340.6],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430585531,"host":0,"mn":0},{"p":[111.4,-342.5,114.3,-347.1,117.3,-345.3,114.5,-340.6],"h":12.6,"l":4,"t":"res","n":"","a":"","id":1430588854,"host":0,"mn":0},{"p":[74.7,-303.2,59.1,-276.5,54.4,-279.3,69.9,-306.0],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430588857,"host":0,"mn":0},{"p":[43.8,-274.1,43.3,-276.4,54.4,-279.3,55.1,-276.7,53.7,-276.4,46.1,-274.6],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430588858,"host":0,"mn":0},{"p":[53.7,-276.4,55.1,-276.7,56.0,-277.0,57.2,-272.0,54.9,-271.4],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430588864,"host":0,"mn":0},{"p":[47.3,-269.6,45.0,-269.1,44.7,-270.5,44.4,-271.7,44.0,-273.4,43.8,-274.1,46.1,-274.6],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430588865,"host":0,"mn":0},{"p":[46.1,-274.6,53.7,-276.4,54.9,-271.4,47.3,-269.6],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430588866,"host":0,"mn":0},{"p":[23.0,-287.7,42.8,-276.3,37.7,-267.2,19.0,-272.1,15.8,-273.9,17.6,-276.9,22.4,-286.6],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430588867,"host":0,"mn":0},{"p":[126.8,-280.2,117.8,-284.6,121.6,-291.9,124.3,-290.6,123.7,-289.4,129.9,-286.3],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430589938,"host":0,"mn":0},{"p":[107.3,-289.8,109.5,-293.9,111.4,-295.5,113.2,-296.1,121.6,-291.9,117.8,-284.6,112.1,-287.4],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430589939,"host":0,"mn":0},{"p":[88.6,-281.3,97.8,-287.9,102.7,-290.5,105.1,-290.5,107.3,-289.8,112.1,-287.4,109.9,-282.9,109.5,-282.1,101.9,-285.9,97.5,-276.9],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430589940,"host":0,"mn":0},{"p":[123.7,-289.4,124.3,-290.6,125.0,-292.0,134.8,-287.0,133.5,-284.5,129.9,-286.3],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430589941,"host":0,"mn":0},{"p":[128.4,-292.2,130.6,-296.6,135.9,-293.9,133.6,-289.5],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430589942,"host":0,"mn":0},{"p":[222.5,-298.2,227.3,-314.9,281.6,-281.2,279.8,-274.9,275.8,-276.1,276.3,-277.6,274.1,-278.2,274.8,-280.5,271.5,-281.5,270.8,-279.1,268.5,-279.8,268.1,-278.3,264.4,-279.3,263.2,-275.0,256.5,-276.9,248.3,-247.6,254.7,-245.5,256.0,-245.1,255.0,-241.7,253.7,-242.0,249.8,-228.3,252.4,-227.5,251.9,-225.8,253.1,-225.4,251.9,-221.3,253.0,-221.0,251.5,-215.9,250.6,-212.7,249.6,-209.1,248.6,-209.4,232.9,-213.8,241.6,-244.9,223.9,-250.0,234.9,-287.1,232.4,-287.9,233.2,-290.6,229.2,-291.5,230.6,-295.9],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430604048,"host":0,"mn":0},{"p":[224.9,-289.1,232.3,-287.2,228.9,-275.0,224.1,-276.3,224.5,-277.8,222.0,-278.5],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430604049,"host":0,"mn":0},{"p":[213.2,-285.2,215.8,-294.4,220.6,-293.1,217.9,-283.8],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430604050,"host":0,"mn":0},{"p":[213.0,-296.2,215.6,-304.5,220.4,-302.8,218.5,-296.8,216.8,-297.3,216.1,-295.3],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430604051,"host":0,"mn":0},{"p":[210.1,-286.1,213.0,-296.2,216.1,-295.3,215.8,-294.4,213.2,-285.2],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430604052,"host":0,"mn":0},{"p":[224.2,-221.9,221.2,-220.4,220.1,-223.1,222.1,-223.9,223.3,-229.1,224.8,-230.6,226.3,-230.9,227.8,-230.6,229.4,-229.7,230.3,-228.1,227.8,-219.2,225.4,-219.7],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430604055,"host":0,"mn":0},{"p":[211.5,-224.6,204.1,-226.7,204.5,-231.9,206.6,-235.2,213.0,-228.9],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430604056,"host":0,"mn":0},{"p":[131.9,-344.9,133.7,-346.8,138.1,-342.4,136.2,-340.5],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430604059,"host":0,"mn":0},{"p":[143.0,-341.9,150.4,-351.4,163.7,-341.3,156.3,-331.7],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430604060,"host":0,"mn":0},{"p":[177.3,-351.7,178.5,-353.5,184.2,-349.9,183.1,-348.1],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430604061,"host":0,"mn":0},{"p":[189.3,-328.8,189.7,-331.1,195.5,-331.1,194.7,-328.3,192.1,-328.5],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430604063,"host":0,"mn":0},{"p":[205.5,-330.7,201.0,-331.7,203.4,-339.9,207.2,-337.5],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430604064,"host":0,"mn":0},{"p":[173.5,-264.2,172.0,-264.7,173.1,-268.2,174.8,-267.6],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430604072,"host":0,"mn":0},{"p":[276.5,-305.2,271.7,-309.0,277.8,-339.8,283.4,-338.8,295.3,-336.7,293.4,-327.0,291.9,-318.3,289.0,-303.0],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430609168,"host":0,"mn":0},{"p":[183.4,-288.8,180.5,-289.6,184.0,-302.1,186.9,-301.3],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430622335,"host":0,"mn":0},{"p":[178.8,-273.3,176.0,-274.1,179.7,-286.3,182.4,-285.5],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430622336,"host":0,"mn":0},{"p":[207.9,-272.2,209.9,-279.0,213.5,-278.0,211.4,-271.3,209.1,-271.9],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430622337,"host":0,"mn":0},{"p":[303.8,-294.8,288.1,-297.8,289.0,-303.0,304.7,-299.8],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430622344,"host":0,"mn":0},{"p":[142.2,-239.2,142.7,-240.6,143.9,-240.3,143.5,-238.9],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430635625,"host":0,"mn":0},{"p":[251.6,-136.7,252.6,-140.4,254.8,-148.1,270.9,-143.5,278.8,-141.3,271.5,-115.4,268.2,-103.9,262.1,-105.6,260.9,-101.4,254.9,-103.1,237.9,-107.8,238.0,-112.4,238.4,-119.6,239.4,-127.0,241.2,-135.3,242.3,-139.3],"h":12.6,"l":4,"t":"res","n":"Casino Mediterráneo","a":"","id":1430647192,"host":0,"mn":0},{"p":[305.3,-132.0,306.1,-134.9,310.6,-133.6,311.3,-136.1,325.8,-132.0,325.2,-129.6,329.8,-128.3,329.0,-125.4,336.0,-123.5,334.8,-119.2,334.5,-118.0,334.0,-116.3,333.4,-114.1,295.6,-124.5,298.3,-133.9],"h":57.6,"l":19,"t":"res","n":"Edif. Albatros","a":"","id":1430647194,"host":0,"mn":0},{"p":[281.6,-101.6,290.7,-99.1,299.5,-96.6,334.2,-86.9,332.4,-99.6,333.8,-99.8,340.6,-100.7,341.2,-95.9,341.8,-91.8,342.4,-87.5,343.7,-78.0,341.5,-76.1,332.5,-78.7,279.4,-94.0],"h":3.6,"l":1,"t":"res","n":"","a":"","id":1430647197,"host":0,"mn":0},{"p":[228.8,-121.7,231.7,-120.9,229.3,-112.3,226.4,-113.1],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1430647198,"host":0,"mn":0},{"p":[288.6,-164.3,286.9,-164.5,287.1,-165.7,287.5,-169.4,295.2,-168.4,295.0,-165.4,303.0,-164.3,310.7,-163.3,317.3,-162.4,315.7,-151.4,308.9,-152.3,287.5,-155.1],"h":54.6,"l":18,"t":"res","n":"Edif. Playmon Virginia","a":"","id":1430647209,"host":0,"mn":0},{"p":[154.1,-182.0,154.5,-188.9,159.6,-188.6,159.2,-181.7],"h":3.6,"l":1,"t":"res","n":"","a":"","id":1430647213,"host":0,"mn":0},{"p":[170.4,-165.7,169.9,-162.5,159.0,-164.3,159.2,-167.5],"h":3.6,"l":1,"t":"res","n":"","a":"","id":1430647217,"host":0,"mn":0},{"p":[295.2,-168.4,287.5,-169.4,287.9,-172.2,295.5,-171.0],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1430655546,"host":0,"mn":0},{"p":[296.2,-175.7,300.0,-174.6,299.5,-171.3,295.6,-171.9],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430655547,"host":0,"mn":0},{"p":[303.0,-164.3,304.5,-173.4,311.8,-171.3,310.7,-163.3],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430655548,"host":0,"mn":0},{"p":[317.3,-162.4,310.7,-163.3,311.8,-171.3,315.2,-170.4,318.3,-169.5],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430655549,"host":0,"mn":0},{"p":[116.6,-149.1,121.6,-148.2,122.0,-146.8,116.7,-145.7],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430672825,"host":0,"mn":0},{"p":[119.6,-173.6,122.1,-173.1,124.2,-172.8,121.5,-151.8,121.6,-148.2,116.6,-149.1],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430672826,"host":0,"mn":0},{"p":[122.1,-173.1,119.6,-173.6,118.5,-173.8,120.0,-184.8,123.6,-184.1],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430672827,"host":0,"mn":0},{"p":[124.3,-141.6,119.6,-138.9,116.7,-145.7,122.0,-146.8,122.6,-144.8],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430672828,"host":0,"mn":0},{"p":[133.9,-135.3,134.5,-137.0,137.0,-139.4,138.2,-139.9,138.8,-139.8,138.6,-139.2,137.9,-134.7],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430672829,"host":0,"mn":0},{"p":[148.4,-124.3,148.8,-125.6,150.1,-125.2,149.7,-124.0],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430672832,"host":0,"mn":0},{"p":[164.1,-140.9,166.9,-150.9,172.0,-149.4,172.4,-150.8,187.7,-146.4,189.9,-153.9,193.2,-153.0,191.8,-148.1,191.1,-145.4,190.4,-145.6,188.3,-138.2,187.2,-134.4],"h":33.6,"l":11,"t":"res","n":"","a":"","id":1430672839,"host":0,"mn":0},{"p":[188.3,-138.2,190.4,-145.6,191.1,-145.4,191.8,-148.1,201.8,-145.3,202.2,-146.5,206.0,-145.4,208.2,-152.9,211.6,-151.9,210.6,-148.4,209.5,-144.6,208.9,-144.7,206.7,-137.1,205.6,-133.3],"h":33.6,"l":11,"t":"res","n":"","a":"","id":1430672840,"host":0,"mn":0},{"p":[206.7,-137.1,208.9,-144.7,209.5,-144.6,210.6,-148.4,222.1,-145.1,221.8,-143.9,226.9,-142.4,224.0,-132.3],"h":33.6,"l":11,"t":"res","n":"","a":"","id":1430672841,"host":0,"mn":0},{"p":[226.6,-109.2,228.6,-108.8,229.2,-111.1,231.7,-110.6,231.1,-108.1,229.0,-104.8,225.0,-105.8,226.0,-109.4],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430672842,"host":0,"mn":0},{"p":[227.2,-111.5,229.2,-111.1,228.6,-108.8,226.6,-109.2],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430672844,"host":0,"mn":0},{"p":[271.5,-115.4,278.8,-141.3,279.4,-143.4,279.9,-145.2,286.2,-143.7,277.8,-113.4,274.9,-114.2],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430672847,"host":0,"mn":0},{"p":[271.7,-91.5,273.4,-91.1,273.0,-89.6,271.3,-90.1],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430672850,"host":0,"mn":0},{"p":[279.4,-94.0,332.5,-78.7,331.0,-73.0,277.6,-88.3],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430672851,"host":0,"mn":0},{"p":[344.2,-133.5,331.5,-134.8,326.8,-137.3,292.1,-141.7,283.2,-109.4,280.6,-110.0,275.9,-93.8,272.6,-94.6,277.8,-113.4,286.2,-143.7,287.4,-148.0,308.1,-145.2,329.0,-142.4,332.7,-140.0,333.7,-139.9,342.5,-139.1,344.1,-139.0],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430672862,"host":0,"mn":0},{"p":[281.7,-176.9,281.2,-171.8,194.9,-192.3,164.5,-199.3,160.9,-200.1,157.7,-200.8,158.2,-206.5,158.3,-207.2],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430672864,"host":0,"mn":0},{"p":[216.0,-111.3,218.7,-110.6,217.6,-106.4,215.0,-107.1],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430680766,"host":0,"mn":0},{"p":[154.2,-190.0,153.2,-180.7,149.3,-181.1,150.3,-190.4],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430680782,"host":0,"mn":0},{"p":[155.0,-180.9,159.3,-180.5,158.4,-170.8,154.2,-171.2],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430680783,"host":0,"mn":0},{"p":[136.4,-202.9,145.0,-201.8,143.1,-187.0,134.5,-188.0],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430680784,"host":0,"mn":0},{"p":[157.2,-201.0,157.7,-200.8,160.9,-200.1,160.4,-194.0,156.5,-194.4],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430680785,"host":0,"mn":0},{"p":[120.6,-194.4,123.9,-218.5,128.5,-218.6,136.7,-215.3,158.2,-206.5,157.7,-200.8,157.2,-201.0,127.9,-213.5,125.2,-193.9],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1430680786,"host":0,"mn":0},{"p":[290.7,-99.1,291.8,-102.2,300.3,-99.7,299.5,-96.6],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430683384,"host":0,"mn":0},{"p":[281.9,-160.5,280.3,-160.7,280.6,-166.7,282.3,-166.4,282.2,-165.0],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430683556,"host":0,"mn":0},{"p":[308.9,-152.3,315.7,-151.4,315.2,-146.8,308.2,-147.7,308.7,-150.8],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1430683559,"host":0,"mn":0},{"p":[301.8,57.1,305.4,58.1,309.6,59.3,308.3,64.1,303.1,62.5,302.4,65.0,300.0,64.4],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431007055,"host":0,"mn":0},{"p":[279.7,71.8,283.1,59.8,278.2,58.5,280.2,51.0,282.7,51.8,285.2,52.4,284.3,55.5,288.1,56.6,286.9,60.8,290.4,61.8,294.8,63.0,300.0,64.4,302.4,65.0,299.1,77.0,298.1,80.7,295.9,88.7,283.7,85.3,279.8,84.3,276.6,83.4],"h":24.6,"l":8,"t":"hot","n":"Hotel Brisa","a":"","id":1431007057,"host":0,"mn":0},{"p":[351.7,93.4,337.1,116.9,335.3,118.1,333.0,117.9,303.0,104.6,308.5,87.8,315.7,85.4,318.5,87.0,310.9,99.4,336.3,107.5,343.5,95.9,346.9,90.4],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431007058,"host":0,"mn":0},{"p":[321.5,82.0,316.5,78.8,310.7,75.2,311.6,73.5,312.6,74.1,320.2,62.2,321.0,60.9,325.6,63.8,324.3,65.8,330.0,69.4,331.8,66.8,334.1,63.3,344.5,69.6,341.5,47.2,342.3,43.0,342.8,40.6,353.7,40.1,354.7,42.4,357.3,65.0,357.2,68.4,356.5,74.1,355.8,76.1,352.9,80.7,346.9,90.4,343.5,95.9,336.3,107.5,310.9,99.4,318.5,87.0],"h":60.6,"l":20,"t":"res","n":"Edif. Principado Loix","a":"","id":1431007063,"host":0,"mn":0},{"p":[345.2,-2.1,327.2,0.4,325.7,-0.2,324.9,-1.7,323.2,-33.8,323.3,-34.5,325.8,-36.8,327.1,-36.8,342.0,-32.7,342.7,-32.3,343.5,-31.7,344.0,-30.9,344.5,-29.8,347.4,-5.7],"h":6.6,"l":2,"t":"com","n":"","a":"","id":1431007071,"host":0,"mn":0},{"p":[349.4,6.5,351.7,23.7,351.5,24.3,351.3,24.7,351.0,25.1,350.5,25.5,350.0,25.7,343.7,26.6,322.7,23.8,324.0,10.3,325.9,8.0,346.7,4.9],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431007072,"host":0,"mn":0},{"p":[305.0,-42.6,313.2,-39.8,314.5,-39.0,315.3,-38.0,315.8,-37.1,316.2,-35.5,318.0,-2.5,314.7,-0.1,305.4,-1.9,305.5,-7.1,303.5,-9.3,303.6,-15.3,302.5,-17.1,304.3,-42.2],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431007073,"host":0,"mn":0},{"p":[241.3,31.9,242.7,20.4,247.5,21.0,247.0,28.3,247.8,28.4,247.8,29.1,247.3,32.8],"h":3.6,"l":1,"t":"res","n":"","a":"","id":1431007074,"host":0,"mn":0},{"p":[298.0,13.9,298.7,9.3,301.5,8.3,304.3,5.9,316.3,8.1,317.4,10.0,316.2,19.6,314.6,22.5,297.1,19.9],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431007076,"host":0,"mn":0},{"p":[296.4,-32.2,295.1,-30.6,292.6,-30.8,292.7,-27.6,291.8,-26.5,275.1,-31.1,265.0,-47.2,264.7,-48.4,264.8,-49.6,265.3,-50.8,266.3,-52.0,267.1,-52.5,267.7,-52.7,268.9,-53.0,293.5,-45.5,293.0,-43.6,296.9,-42.4],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431007083,"host":0,"mn":0},{"p":[221.3,-49.2,222.7,-63.3,223.0,-65.9,234.1,-63.0,246.7,-59.5,244.4,-43.0,243.1,-42.8],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431007086,"host":0,"mn":0},{"p":[215.9,13.4,216.0,12.4,220.6,12.9,226.6,13.6,227.1,10.1,231.0,10.5,231.1,9.9,234.4,10.4,234.4,10.9,235.7,11.0,235.6,11.6,238.5,11.9,237.9,16.9,233.0,16.2,231.9,24.8,221.6,23.8,222.0,20.9,219.6,20.6,215.2,20.1,212.6,19.8,213.4,13.2],"h":6.6,"l":2,"t":"res","n":"","a":"","id":1431007089,"host":0,"mn":0},{"p":[176.1,-44.5,173.0,-43.2,157.8,-49.8,155.7,-53.3,158.8,-81.6,159.9,-82.4,161.0,-83.1,169.0,-80.8,177.3,-78.5,179.5,-74.5],"h":6.6,"l":2,"t":"com","n":"","a":"","id":1431007093,"host":0,"mn":0},{"p":[185.5,-41.2,189.0,-75.4,199.4,-72.5,207.1,-70.3,209.6,-67.3,206.1,-30.8,203.3,-29.2,188.0,-36.2],"h":6.6,"l":2,"t":"com","n":"","a":"","id":1431007100,"host":0,"mn":0},{"p":[143.3,-78.8,141.8,-68.0,141.4,-67.5,140.7,-67.4,115.2,-70.9,112.8,-71.2,111.5,-72.2,111.1,-73.5,114.0,-93.2,114.7,-94.3,115.9,-95.0,116.9,-95.0,141.5,-88.3,143.4,-86.8,144.1,-85.0],"h":39.6,"l":13,"t":"res","n":"Edif. Coblanca VII","a":"","id":1431007109,"host":0,"mn":0},{"p":[140.5,-58.1,139.6,-50.0,139.2,-49.3,138.4,-48.6,137.3,-48.3,131.5,-48.8,131.0,-49.6,132.5,-59.6,132.9,-60.2,133.6,-60.5,139.4,-59.7,140.1,-59.2],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431007116,"host":0,"mn":0},{"p":[109.7,-62.7,110.1,-63.2,110.5,-63.3,123.0,-61.8,123.7,-61.5,124.3,-60.1,123.3,-50.0,122.7,-49.1,121.6,-48.4,108.5,-48.4,107.9,-48.8,107.7,-49.5],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431007124,"host":0,"mn":0},{"p":[128.3,7.7,128.7,4.9,130.4,5.2,131.3,-2.2,131.5,-3.7,137.1,-3.0,136.9,-1.4,135.9,6.0,138.6,6.4,138.3,9.0,135.6,8.7,134.1,19.9,133.9,21.4,132.4,21.2,126.6,20.5,127.2,16.2,121.7,15.5,122.8,7.0],"h":45.6,"l":15,"t":"res","n":"Edif. Tanit","a":"","id":1431007125,"host":0,"mn":0},{"p":[144.0,-10.0,138.4,-10.6,141.2,-39.1,142.4,-39.1,146.8,-38.9],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431011025,"host":0,"mn":0},{"p":[124.4,-5.9,124.7,-8.3,128.1,-35.7,128.7,-39.7,134.8,-39.4,130.1,-5.3],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431011026,"host":0,"mn":0},{"p":[124.7,-8.3,119.3,-9.0,123.4,-40.0,128.7,-39.7,128.1,-35.7],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431011027,"host":0,"mn":0},{"p":[141.2,-39.1,141.5,-42.3,142.7,-42.2,142.4,-39.1],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431011030,"host":0,"mn":0},{"p":[130.8,-46.5,139.2,-46.6,138.8,-43.2,130.4,-43.6],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431011032,"host":0,"mn":0},{"p":[108.5,-65.9,106.2,-48.9,106.5,-47.8,107.2,-47.1,107.9,-46.7,100.6,-47.3,103.2,-66.7],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431011033,"host":0,"mn":0},{"p":[109.3,-71.9,103.9,-72.5,105.9,-87.0,111.2,-86.2],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431011034,"host":0,"mn":0},{"p":[111.2,-86.2,105.9,-87.0,107.7,-101.0,112.0,-103.8,147.0,-94.2,145.5,-88.4,144.3,-89.2,117.6,-96.7,116.3,-96.9,114.4,-96.4,112.9,-95.3,112.2,-93.4],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431011035,"host":0,"mn":0},{"p":[304.3,-44.3,304.6,-48.0,305.3,-48.8,306.3,-49.1,307.2,-49.2,316.1,-46.6,316.7,-39.7,314.4,-41.4],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431140327,"host":0,"mn":0},{"p":[300.0,-45.5,278.6,-51.7,280.3,-56.7,300.6,-51.0],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431140328,"host":0,"mn":0},{"p":[267.3,-53.6,269.4,-59.8,280.3,-56.7,278.6,-51.7,271.4,-53.8,269.4,-54.1],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431140329,"host":0,"mn":0},{"p":[251.4,7.2,251.5,5.8,252.0,5.2,252.7,5.0,253.1,5.1,253.5,5.5,253.7,6.2,255.6,6.4,255.6,5.9,256.1,6.0,257.9,6.2,258.1,4.6,261.4,5.1,261.3,5.4,264.1,5.8,264.1,6.0,266.8,6.4,266.6,8.1,271.0,8.7,271.2,7.0,274.6,7.5,274.5,8.0,278.1,8.5,277.9,10.2,279.0,10.4,279.2,9.4,281.3,9.7,281.2,10.5,283.8,10.9,284.2,8.6,286.5,8.9,286.6,8.5,287.4,8.6,289.2,8.9,289.3,8.5,292.1,8.9,291.8,11.1,292.5,11.2,292.5,10.8,294.3,11.1,294.6,10.6,295.2,10.4,295.7,10.5,296.1,10.8,296.3,11.3,296.1,13.6,297.0,13.7,298.0,13.9,297.1,19.9,296.7,22.2,296.5,22.5,295.7,22.8,282.7,21.1,254.2,17.2,249.2,16.5,248.7,16.3,248.4,15.6,249.2,8.0,249.4,7.5,249.8,7.2,250.3,7.1],"h":69.6,"l":23,"t":"res","n":"Coblanca VIII","a":"","id":1431140342,"host":0,"mn":0},{"p":[276.6,83.4,271.8,82.2,278.2,58.5,283.1,59.8,279.7,71.8],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431140368,"host":0,"mn":0},{"p":[305.4,58.1,305.9,56.2,309.0,56.6,310.4,56.8,309.6,59.3],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431140370,"host":0,"mn":0},{"p":[283.4,47.6,309.9,51.6,309.0,56.6,305.9,56.2,289.0,53.5,285.2,52.4,282.7,51.8],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431140371,"host":0,"mn":0},{"p":[289.8,35.3,314.6,38.8,313.1,47.6,312.8,48.5,288.2,45.1],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431140372,"host":0,"mn":0},{"p":[315.2,35.1,284.6,31.0,285.3,25.7,316.1,30.0],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431140373,"host":0,"mn":0},{"p":[307.9,65.5,301.8,87.5,298.6,86.5,304.6,64.7],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431140376,"host":0,"mn":0},{"p":[292.3,100.6,295.9,88.7,301.1,90.0,297.4,102.9],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431140378,"host":0,"mn":0},{"p":[279.8,84.3,283.7,85.3,278.3,94.3,276.2,93.4,274.8,92.7],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431140380,"host":0,"mn":0},{"p":[259.3,55.5,256.3,50.2,258.9,49.0,260.0,50.5,266.4,48.4,266.9,50.3,261.1,58.1],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431140381,"host":0,"mn":0},{"p":[260.0,50.5,258.9,49.0,253.8,41.7,257.9,37.7,267.0,39.4,266.4,48.4],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431140382,"host":0,"mn":0},{"p":[260.2,59.3,261.1,58.1,266.9,50.3,268.2,48.7,270.5,49.3,270.5,55.9,265.2,67.6],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431140383,"host":0,"mn":0},{"p":[250.4,62.1,250.8,52.1,256.3,50.2,259.3,55.5,252.9,63.0],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431140384,"host":0,"mn":0},{"p":[246.7,-59.5,247.7,-65.9,251.5,-64.9,248.4,-42.3,244.4,-43.0],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431140401,"host":0,"mn":0},{"p":[223.0,-65.9,224.9,-72.3,235.9,-69.3,234.1,-63.0],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431140402,"host":0,"mn":0},{"p":[159.9,-82.4,160.7,-90.4,171.3,-87.4,169.0,-80.8,161.0,-83.1],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431140407,"host":0,"mn":0},{"p":[199.4,-72.5,201.2,-79.0,212.4,-75.9,209.6,-67.3,207.1,-70.3],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431140408,"host":0,"mn":0},{"p":[205.9,-18.8,209.4,-18.5,208.3,-6.3,204.8,-6.6],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431140409,"host":0,"mn":0},{"p":[201.3,-6.3,203.0,-5.6,202.5,-2.1,193.8,-2.9,194.4,-9.4],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431140410,"host":0,"mn":0},{"p":[182.8,42.2,193.1,46.8,189.5,54.6,179.0,49.8],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431140413,"host":0,"mn":0},{"p":[148.8,11.4,147.2,26.3,164.5,34.1,160.7,41.6,143.2,33.8,145.1,11.0],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431140414,"host":0,"mn":0},{"p":[126.6,20.5,132.4,21.2,132.1,24.0,126.3,23.3],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431140416,"host":0,"mn":0},{"p":[104.6,-24.5,101.4,0.0,101.2,1.8,98.2,1.4,97.2,8.7,117.1,11.2,115.7,21.3,94.6,10.7,94.0,9.9,93.6,8.9,93.5,7.5,97.8,-25.4],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431140426,"host":0,"mn":0},{"p":[215.2,20.1,219.6,20.6,222.0,20.9,221.6,23.8,220.6,30.1,214.0,29.1],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431179544,"host":0,"mn":0},{"p":[9.9,-74.4,10.6,-79.5,14.9,-79.0,14.3,-73.7],"h":3.6,"l":1,"t":"res","n":"","a":"","id":1431180629,"host":0,"mn":0},{"p":[40.2,-3.2,40.3,-12.8,40.4,-14.8,56.3,-14.8,60.9,-14.8,61.6,-20.1,66.1,-53.9,66.3,-55.5,82.5,-53.2,77.3,-14.7,73.4,-14.7,73.4,-12.5,73.3,-7.5,73.3,-2.8,74.7,-2.8,74.6,1.5,57.1,1.3,53.3,1.3,39.0,1.1,39.0,-0.6,39.0,-3.2],"h":69.6,"l":23,"t":"res","n":"Edif. Veracruz","a":"","id":1431180631,"host":0,"mn":0},{"p":[22.9,-90.9,-8.1,-94.4,-8.0,-93.6,-13.3,-94.2,-16.3,-97.1,-16.4,-104.5,28.7,-105.2,29.0,-91.0],"h":3.6,"l":1,"t":"res","n":"","a":"","id":1431180633,"host":0,"mn":0},{"p":[-35.3,-10.0,-35.1,-14.1,-32.1,-13.9,-31.6,-24.3,-34.7,-24.4,-34.6,-28.0,-35.4,-28.1,-35.1,-36.2,-33.0,-36.2,-32.9,-37.0,-27.1,-36.7,-27.1,-36.2,-23.8,-36.1,-24.3,-23.8,-23.3,-23.8,-23.7,-13.6,-24.8,-13.7,-25.3,-1.6,-36.4,-1.9,-36.1,-10.0],"h":21.6,"l":7,"t":"res","n":"","a":"","id":1431180640,"host":0,"mn":0},{"p":[32.8,-105.3,33.0,-90.3,29.0,-90.2,29.0,-91.0,28.7,-105.2],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431180641,"host":0,"mn":0},{"p":[65.0,-80.7,65.0,-80.3,65.1,-69.2,37.0,-68.8,36.9,-81.4,41.5,-81.5,56.6,-81.7,58.3,-81.7,58.3,-82.3,62.9,-82.4,63.5,-82.2,64.0,-81.9,64.5,-81.5],"h":42.6,"l":14,"t":"res","n":"Edif. Coblanca 6","a":"","id":1431180642,"host":0,"mn":0},{"p":[-32.5,-91.2,-25.9,-90.0,-27.3,-88.0,-32.4,-87.5],"h":3.6,"l":1,"t":"res","n":"","a":"","id":1431180643,"host":0,"mn":0},{"p":[62.7,-98.5,63.3,-97.9,63.8,-96.4,64.0,-88.8,63.5,-87.5,62.9,-86.9,61.6,-86.3,38.4,-85.8,36.7,-86.5,36.1,-87.3,35.8,-88.5,35.7,-96.2,36.2,-97.4,38.0,-98.5,61.4,-99.0],"h":3.6,"l":1,"t":"res","n":"","a":"","id":1431180644,"host":0,"mn":0},{"p":[-61.9,-73.3,-57.9,-73.2,-58.0,-70.1,-47.8,-69.6,-47.7,-72.8,-43.8,-72.6,-43.9,-73.2,-35.5,-72.8,-35.6,-70.8,-34.7,-70.8,-35.0,-65.1,-35.7,-65.1,-35.8,-62.4,-47.9,-62.9,-48.0,-61.6,-58.6,-62.0,-58.5,-63.3,-70.9,-63.8,-70.7,-66.5,-71.4,-66.6,-71.1,-72.3,-70.2,-72.3,-70.1,-74.3,-61.9,-73.9],"h":21.6,"l":7,"t":"res","n":"","a":"","id":1431180645,"host":0,"mn":0},{"p":[85.3,-99.1,86.2,-98.0,86.4,-96.9,82.5,-67.2,81.8,-65.8,80.6,-65.1,79.5,-64.9,73.1,-65.7,71.8,-66.7,71.5,-67.7,71.1,-96.5,71.4,-97.7,72.2,-98.7,73.5,-99.3,74.5,-99.4,84.2,-99.6],"h":3.6,"l":1,"t":"res","n":"","a":"","id":1431180651,"host":0,"mn":0},{"p":[-13.6,-55.2,-13.5,-58.8,-15.2,-58.8,-14.8,-66.2,-13.2,-66.2,-13.0,-71.4,-20.4,-71.7,-20.4,-73.9,-20.2,-80.4,3.1,-79.7,2.9,-76.6,1.2,-76.6,0.9,-68.4,-0.4,-68.4,-0.8,-60.4,-2.3,-60.5,-2.5,-54.3,-4.1,-54.3,-4.6,-43.5,-6.0,-43.5,-6.1,-40.4,-9.0,-40.5,-8.9,-41.6,-17.8,-42.0,-17.8,-40.9,-20.6,-41.0,-20.5,-44.2,-21.7,-44.2,-21.3,-55.5],"h":21.6,"l":7,"t":"res","n":"","a":"","id":1431180653,"host":0,"mn":0},{"p":[-11.9,5.0,-10.6,-14.6,-4.0,-14.5,-4.2,-21.7,12.5,-21.9,14.6,-21.9,28.6,-22.0,28.8,-14.8,33.0,-14.8,32.3,-0.8,30.2,-0.8,28.2,-0.7,28.2,5.0,23.8,5.0,21.4,5.0,12.6,5.0,11.0,5.0,9.4,5.0,-9.4,5.0],"h":42.6,"l":14,"t":"res","n":"Edif. Carolina","a":"","id":1431180656,"host":1,"mn":0},{"p":[-132.1,-17.2,-131.9,-13.5,-135.2,-13.3,-135.4,-17.0],"h":3.6,"l":1,"t":"res","n":"","a":"","id":1431180671,"host":0,"mn":0},{"p":[-72.3,-8.9,-72.2,-12.1,-48.0,-11.4,-48.2,-8.2,-48.3,-4.2,-50.1,-4.3,-50.3,-0.5,-60.6,-0.8,-70.8,-1.1,-70.7,-4.9,-72.4,-5.0],"h":57.6,"l":19,"t":"res","n":"Edif. El Cachirulo","a":"","id":1431180680,"host":0,"mn":0},{"p":[-125.5,-13.0,-125.7,-17.7,-126.4,-44.7,-126.7,-56.3,-126.8,-61.1,-127.3,-78.0,-127.8,-94.9,-127.1,-95.4,-117.4,-95.5,-116.9,-95.1,-116.4,-90.0,-115.4,-79.3,-115.7,-78.8,-117.6,-78.7,-118.1,-78.5,-118.5,-77.6,-118.1,-64.2,-117.8,-53.5,-117.6,-46.7,-117.6,-46.0,-118.2,-45.3,-120.3,-45.3,-121.4,-44.5,-121.6,-43.8,-121.2,-30.4,-120.5,-29.8,-118.5,-29.9,-117.7,-28.9,-117.4,-19.2,-116.0,-19.2,-116.0,-15.8,-116.0,-14.4,-112.4,-14.5,-112.0,-13.5,-109.8,-13.6,-109.3,-1.9,-109.4,-1.7,-109.7,-1.2,-110.4,-0.8,-123.8,-0.3,-124.9,-0.9,-125.3,-2.0],"h":102.6,"l":34,"t":"res","n":"Torre Levante","a":"","id":1431180684,"host":0,"mn":0},{"p":[-151.9,-14.8,-152.0,-17.9,-152.6,-36.0,-153.2,-55.2,-153.3,-59.3,-141.7,-59.6,-140.2,-15.8,-142.9,-15.7,-142.8,-13.2,-141.6,-13.2,-138.2,-13.4,-137.7,-2.4,-152.8,-2.1,-153.1,-14.8],"h":21.6,"l":7,"t":"res","n":"Edif. La Goleta","a":"","id":1431180685,"host":0,"mn":0},{"p":[-95.5,-17.4,-95.6,-22.5,-84.5,-22.6,-84.5,-15.5,-84.5,-1.1,-91.4,-1.0,-95.5,-1.0],"h":63.6,"l":21,"t":"res","n":"Edif. Torre Italia","a":"","id":1431180687,"host":0,"mn":0},{"p":[-60.6,-0.8,-60.6,6.5,-77.7,6.5,-77.7,-5.0,-72.4,-5.0,-70.7,-4.9,-70.8,-1.1],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431201022,"host":0,"mn":0},{"p":[-91.4,-1.0,-84.5,-1.1,-84.5,-15.5,-84.5,-22.6,-80.0,-22.7,-77.6,-22.6,-77.6,-21.0,-77.6,-16.2,-77.7,-5.0,-77.7,6.5,-91.5,6.5,-91.4,-0.0],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431201031,"host":0,"mn":0},{"p":[-143.1,-94.9,-143.2,-101.7,-134.7,-101.8,-134.4,-94.1,-139.3,-94.6],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431201046,"host":0,"mn":0},{"p":[-154.6,-95.9,-154.6,-101.4,-143.2,-101.7,-143.1,-94.9,-143.7,-94.9,-152.4,-95.7],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431201047,"host":0,"mn":0},{"p":[34.2,-105.3,35.9,-105.3,35.9,-103.6,34.1,-103.6],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431509704,"host":0,"mn":0},{"p":[64.7,-100.8,37.5,-100.2,36.1,-100.0,35.9,-103.6,35.9,-105.3,64.6,-105.9],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431509705,"host":0,"mn":0},{"p":[69.0,-100.9,68.9,-106.0,90.4,-106.5,94.0,-101.9,88.5,-61.8,87.0,-62.1,80.6,-63.0,82.7,-63.5,83.8,-65.2,88.3,-97.2,87.9,-99.0,86.7,-100.8,84.9,-101.3],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431509709,"host":0,"mn":0},{"p":[77.3,-14.7,82.5,-53.2,66.3,-55.5,66.9,-59.9,78.2,-58.4,86.5,-57.3,87.9,-57.1,82.0,-14.1],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431509713,"host":0,"mn":0},{"p":[73.3,-7.5,73.4,-12.5,73.4,-14.7,77.3,-14.7,82.0,-14.1,81.0,-6.8],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431509714,"host":0,"mn":0},{"p":[33.9,6.4,34.2,-0.7,39.0,-0.6,39.0,1.1,53.3,1.3,53.2,6.4],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431509716,"host":0,"mn":0},{"p":[-14.6,6.4,-14.6,5.6,-14.6,5.2,-13.4,5.2,-13.1,5.2,-13.1,6.4],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431509723,"host":0,"mn":0},{"p":[-110.3,-28.3,-110.2,-23.1,-110.1,-20.9,-112.7,-20.7,-112.8,-28.2],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431511541,"host":0,"mn":0},{"p":[-126.8,-61.1,-130.6,-60.9,-131.1,-77.9,-127.3,-78.0],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431511543,"host":0,"mn":0},{"p":[-126.4,-44.7,-130.3,-44.4,-130.6,-56.1,-126.7,-56.3],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431511544,"host":0,"mn":0},{"p":[-125.7,-17.7,-125.5,-13.0,-125.3,-2.0,-124.9,-0.9,-123.8,-0.3,-110.4,-0.8,-109.7,-1.2,-109.4,-1.7,-109.1,6.5,-127.6,6.5,-128.3,-17.6],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431511545,"host":0,"mn":0},{"p":[-161.1,-74.3,-142.9,-74.5,-142.8,-70.7,-160.9,-70.5],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431511560,"host":0,"mn":0},{"p":[-135.4,-17.0,-137.0,-16.9,-139.3,-94.6,-134.4,-94.1,-132.1,-17.2],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431511563,"host":0,"mn":0},{"p":[-152.4,-95.7,-143.7,-94.9,-143.1,-79.7,-152.1,-79.6],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431511564,"host":0,"mn":0},{"p":[-161.3,-80.3,-161.8,-96.5,-157.4,-96.1,-156.6,-80.4],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431511565,"host":0,"mn":0},{"p":[-79.9,-25.5,-82.7,-25.5,-82.6,-27.7,-80.0,-27.6],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431512750,"host":0,"mn":0},{"p":[-80.0,-22.7,-79.9,-25.5,-80.0,-27.6,-77.5,-27.6,-77.6,-22.6],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431512751,"host":0,"mn":0},{"p":[-106.8,-71.5,-107.6,-78.4,-98.8,-79.5,-98.4,-76.4,-104.2,-75.6,-103.8,-71.9],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431512754,"host":0,"mn":0},{"p":[-104.9,-55.7,-105.3,-59.1,-99.2,-51.9,-102.1,-51.9],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431512758,"host":0,"mn":0},{"p":[-89.1,-46.2,-84.6,-46.1,-84.5,-39.8,-84.4,-24.0,-89.1,-24.1],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431512760,"host":0,"mn":0},{"p":[-104.3,-47.5,-104.6,-51.9,-102.1,-51.9,-99.2,-51.9,-90.5,-51.8,-89.2,-51.8,-89.1,-47.4],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431512761,"host":0,"mn":0},{"p":[-27.3,-88.0,-25.9,-90.0,-22.8,-89.7,-23.9,-87.3],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431514914,"host":0,"mn":0},{"p":[-42.3,-51.7,-45.4,-51.7,-45.4,-52.9,-44.0,-53.2,-42.3,-53.2],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431514917,"host":0,"mn":0},{"p":[5.1,-86.9,11.4,-86.3,10.9,-82.2,4.7,-82.9],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431514927,"host":0,"mn":0},{"p":[40.4,-14.8,40.5,-20.3,56.5,-20.1,56.3,-14.8],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431516006,"host":0,"mn":0},{"p":[61.0,-54.5,66.1,-53.9,61.6,-20.1,56.7,-20.9],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431516009,"host":0,"mn":0},{"p":[29.6,-64.7,32.3,-64.4,61.9,-60.5,61.0,-54.5,29.1,-58.5],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431516010,"host":0,"mn":0},{"p":[11.3,-49.2,11.9,-54.2,34.8,-52.3,34.7,-51.6,34.6,-49.0,34.5,-47.5],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431516012,"host":0,"mn":0},{"p":[7.4,-54.7,9.9,-74.4,14.3,-73.7,11.9,-54.2],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431516013,"host":0,"mn":0},{"p":[14.9,-79.0,10.6,-79.5,10.9,-82.2,11.4,-86.3,15.8,-85.8],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431516014,"host":0,"mn":0},{"p":[22.9,-90.9,29.0,-91.0,29.0,-90.2,29.2,-84.2,29.3,-80.2,29.6,-68.0,29.6,-64.7,23.5,-64.8],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431516015,"host":0,"mn":0},{"p":[34.7,-51.6,37.4,-51.6,37.3,-48.9,34.6,-49.0],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431516017,"host":0,"mn":0},{"p":[-65.6,-138.2,-65.6,-138.5,-71.7,-138.4,-71.7,-139.1,-75.8,-139.0,-75.8,-140.2,-75.8,-140.5,-77.6,-140.5,-77.7,-145.3,-77.1,-145.3,-77.2,-150.7,-73.4,-150.8,-73.4,-151.6,-71.1,-151.7,-71.0,-149.7,-69.0,-149.8,-65.4,-149.9,-65.4,-151.7,-61.6,-153.4,-58.3,-153.5,-54.3,-152.0,-54.3,-150.2,-50.5,-150.2,-48.6,-150.3,-48.7,-152.2,-46.6,-152.2,-46.6,-151.4,-42.5,-151.5,-42.3,-146.1,-41.9,-146.2,-41.8,-141.4,-43.8,-141.3,-43.7,-140.9,-43.7,-139.8,-47.6,-139.7,-47.6,-139.0,-53.7,-138.8,-53.7,-138.5,-59.7,-138.4],"h":57.6,"l":19,"t":"res","n":"Edif. Paraiso II","a":"","id":1431517665,"host":0,"mn":0},{"p":[61.9,-195.2,61.6,-208.1,61.6,-209.1,81.0,-209.4,81.0,-211.1,87.9,-211.2,87.9,-209.6,97.9,-209.8,98.2,-195.4,96.8,-195.3,85.9,-195.1,81.3,-195.0,81.4,-193.0,74.1,-192.9,74.1,-188.1,61.9,-187.9,61.8,-192.7,60.4,-192.6,60.3,-195.2],"h":21.6,"l":7,"t":"hot","n":"Hotel Magic Villa Benidorm","a":"","id":1431517666,"host":0,"mn":0},{"p":[64.5,-149.9,95.6,-163.5,94.9,-158.3,92.8,-143.6,90.6,-142.7,86.6,-142.6,84.9,-142.6,65.5,-142.3],"h":6.6,"l":2,"t":"com","n":"","a":"","id":1431517672,"host":0,"mn":0},{"p":[15.9,-149.3,22.7,-149.4,24.9,-149.5,24.9,-150.8,34.9,-151.1,34.9,-152.1,41.5,-152.3,41.5,-151.2,51.5,-151.4,51.5,-151.3,54.3,-151.3,54.8,-135.7,47.0,-135.5,46.9,-138.0,46.9,-140.3,42.2,-140.2,42.3,-137.9,42.3,-135.4,15.7,-134.9,15.4,-149.3],"h":51.6,"l":17,"t":"res","n":"Edif. Viña del Mar","a":"","id":1431517674,"host":0,"mn":0},{"p":[55.5,-178.6,33.8,-176.5,33.0,-185.3,37.8,-185.7,34.9,-216.8,47.1,-217.0,49.9,-186.9,54.7,-187.3,55.3,-181.1],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431517682,"host":0,"mn":0},{"p":[-151.2,-138.6,-151.5,-151.7,-146.7,-151.8,-146.7,-150.4,-143.3,-150.4,-134.8,-150.6,-134.8,-152.0,-118.1,-152.3,-118.1,-150.9,-111.9,-151.0,-106.2,-151.1,-106.2,-152.5,-101.4,-152.6,-101.1,-139.5],"h":42.6,"l":14,"t":"res","n":"Edif. El Ducado","a":"","id":1431517693,"host":0,"mn":0},{"p":[9.4,-210.5,25.1,-212.1,26.4,-198.9,28.6,-176.3,27.2,-176.1,13.7,-174.8,13.0,-174.7],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431517696,"host":0,"mn":0},{"p":[13.7,-174.8,27.2,-176.1,28.6,-164.1,28.7,-162.7,27.8,-161.3,25.7,-162.0,25.0,-161.0,22.2,-161.6,21.5,-160.6,19.0,-161.3,18.1,-160.2,15.3,-160.9,15.1,-162.6,14.2,-170.3],"h":39.6,"l":13,"t":"res","n":"","a":"","id":1431517703,"host":0,"mn":0},{"p":[-111.9,-151.0,-112.1,-158.9,-112.8,-193.8,-118.2,-193.7,-118.6,-207.3,-99.5,-207.7,-98.3,-139.5,-101.1,-139.5,-101.4,-152.6,-106.2,-152.5,-106.2,-151.1],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431517705,"host":0,"mn":0},{"p":[-121.4,-194.0,-144.7,-193.5,-144.2,-178.1,-143.5,-157.7,-143.3,-152.0,-143.3,-150.4,-146.7,-150.4,-146.7,-151.8,-151.5,-151.7,-151.2,-138.6,-156.2,-138.6,-158.5,-206.7,-121.8,-207.3],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431517710,"host":0,"mn":0},{"p":[53.0,-209.3,57.8,-209.6,57.9,-208.0,61.6,-208.1,61.9,-195.2,60.3,-195.2,60.4,-192.6,61.8,-192.7,61.9,-187.9,59.5,-187.9,59.5,-191.2,56.6,-191.1,56.9,-187.4,54.7,-187.3],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431538582,"host":0,"mn":0},{"p":[52.5,-215.3,56.2,-215.6,56.6,-210.4,52.9,-210.1],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431538583,"host":0,"mn":0},{"p":[59.7,-151.5,60.4,-161.5,65.6,-161.2,64.9,-151.1],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431538588,"host":0,"mn":0},{"p":[68.8,-159.6,72.3,-160.6,73.5,-156.8,69.9,-155.8],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431538589,"host":0,"mn":0},{"p":[79.3,-159.4,79.6,-159.5,79.9,-159.6,80.3,-158.8,79.7,-158.6,79.5,-159.0],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431538592,"host":0,"mn":0},{"p":[96.8,-195.3,96.9,-190.9,88.0,-190.5,88.0,-191.5,85.9,-191.5,86.0,-193.3,85.9,-195.1],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431538594,"host":0,"mn":0},{"p":[101.1,-223.8,100.7,-229.1,105.9,-229.5,106.0,-226.9,106.2,-224.3,104.4,-224.2],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431538612,"host":0,"mn":0},{"p":[77.3,-227.4,86.0,-228.1,88.2,-228.2,100.0,-229.0,100.7,-229.1,101.1,-223.8,77.7,-222.2],"h":3.6,"l":1,"t":"low","n":"Policia Nacional","a":"","id":1431538613,"host":0,"mn":0},{"p":[57.4,-223.8,59.2,-229.1,62.3,-228.1,60.4,-222.8,59.6,-223.1],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431538616,"host":0,"mn":0},{"p":[58.9,-135.8,58.0,-147.1,64.5,-149.9,65.5,-142.3,84.9,-142.6,85.0,-136.3],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431538618,"host":0,"mn":0},{"p":[98.6,-144.5,99.8,-144.3,99.7,-142.8,98.4,-142.9],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431538619,"host":0,"mn":0},{"p":[94.9,-158.3,95.6,-163.5,100.1,-165.3,99.1,-158.1],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431538620,"host":0,"mn":0},{"p":[103.4,-172.2,97.0,-173.2,99.1,-187.8,105.4,-187.1],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431538623,"host":0,"mn":0},{"p":[101.3,-165.8,102.6,-165.7,102.4,-164.1,101.1,-164.3],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431538624,"host":0,"mn":0},{"p":[68.8,-217.3,70.4,-217.0,70.5,-216.0,68.7,-215.9],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431538627,"host":0,"mn":0},{"p":[81.0,-211.1,80.8,-217.2,84.0,-217.2,87.7,-217.3,87.9,-211.2],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431538628,"host":0,"mn":0},{"p":[47.1,-217.0,52.4,-217.1,52.5,-215.3,52.9,-210.1,53.0,-209.3,54.7,-187.3,49.9,-186.9],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431538630,"host":0,"mn":0},{"p":[33.0,-185.3,31.6,-199.5,31.0,-206.7,30.0,-216.7,34.9,-216.8,37.8,-185.7],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1431538631,"host":0,"mn":0},{"p":[42.3,-135.4,42.3,-137.9,42.2,-140.2,46.9,-140.3,46.9,-138.0,47.0,-135.5,44.5,-135.5],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431538640,"host":0,"mn":0},{"p":[11.2,-155.1,16.1,-155.4,22.4,-155.8,22.7,-149.4,15.9,-149.3,15.4,-149.3,15.7,-134.9,12.6,-134.8],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431538642,"host":0,"mn":0},{"p":[9.9,-169.9,14.2,-170.3,15.1,-162.6,15.3,-160.9,16.1,-155.4,11.2,-155.1,9.6,-155.1,8.3,-169.7],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431538643,"host":0,"mn":0},{"p":[9.4,-174.4,13.0,-174.7,13.7,-174.8,14.2,-170.3,9.9,-169.9,9.6,-172.1],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431538644,"host":0,"mn":0},{"p":[13.0,-174.7,9.4,-174.4,8.0,-174.3,4.2,-216.3,26.5,-216.7,27.4,-206.3,29.0,-206.4,31.0,-206.7,31.6,-199.5,26.4,-198.9,25.1,-212.1,9.4,-210.5],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431538645,"host":0,"mn":0},{"p":[-12.2,-159.4,1.1,-160.3,1.4,-156.6,-12.0,-155.6],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431538653,"host":0,"mn":0},{"p":[-12.7,-166.4,-14.9,-166.2,-23.8,-165.4,-24.5,-172.4,-15.4,-173.2,-13.3,-173.4,-14.6,-172.2,-13.0,-170.0,-14.3,-168.8],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431538655,"host":0,"mn":0},{"p":[-26.7,-172.2,-31.0,-171.8,-32.1,-181.8,-28.9,-182.0,-27.3,-179.7,-27.2,-177.8],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431538656,"host":0,"mn":0},{"p":[-25.5,-215.8,-23.8,-215.9,-23.7,-214.2,-25.3,-214.1],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431538668,"host":0,"mn":0},{"p":[-34.5,-139.2,-40.2,-190.4,-33.1,-191.3,-32.1,-181.8,-31.0,-171.8,-27.6,-139.3],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431538675,"host":0,"mn":0},{"p":[-84.2,-138.0,-91.1,-137.9,-91.2,-145.4,-91.3,-152.3,-91.4,-156.6,-91.7,-175.0,-91.9,-182.8,-92.0,-186.7,-92.1,-192.3,-90.4,-192.3,-88.5,-192.3,-89.1,-214.8,-42.9,-215.6,-42.2,-208.3,-85.3,-207.4],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431538679,"host":0,"mn":0},{"p":[-165.1,-198.2,-165.4,-206.6,-165.6,-213.1,-159.3,-213.4,-159.0,-208.6,-160.8,-206.6,-160.6,-198.4],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431538687,"host":0,"mn":0},{"p":[-163.2,-138.4,-165.1,-198.2,-160.6,-198.4,-158.5,-138.6],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431538690,"host":0,"mn":0},{"p":[-129.0,-137.1,-129.0,-131.8,-146.8,-131.4,-146.8,-136.7],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431538691,"host":0,"mn":0},{"p":[-96.5,-145.4,-91.2,-145.4,-91.1,-137.9,-91.0,-134.6,-92.7,-132.6,-126.2,-131.9,-126.2,-137.1,-98.2,-137.7,-96.4,-139.6],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431538692,"host":0,"mn":0},{"p":[-96.8,-156.4,-91.4,-156.6,-91.3,-152.3,-96.7,-152.3],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431538693,"host":0,"mn":0},{"p":[-97.3,-182.6,-91.9,-182.8,-91.7,-175.0,-97.2,-175.0],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431538694,"host":0,"mn":0},{"p":[-118.7,-209.3,-118.7,-214.3,-92.5,-214.7,-92.1,-192.3,-92.0,-186.7,-97.4,-186.6,-97.8,-207.6,-99.4,-209.4],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431538695,"host":0,"mn":0},{"p":[-121.8,-209.2,-159.0,-208.6,-159.3,-213.4,-158.7,-213.6,-121.8,-214.2],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1431538696,"host":0,"mn":0},{"p":[-121.8,-207.3,-158.5,-206.7,-156.2,-138.6,-151.2,-138.6,-101.1,-139.5,-98.3,-139.5,-99.5,-207.7,-118.6,-207.3,-118.7,-209.3,-99.4,-209.4,-97.8,-207.6,-97.4,-186.6,-97.3,-182.6,-97.2,-175.0,-96.8,-156.4,-96.7,-152.3,-96.5,-145.4,-96.4,-139.6,-98.2,-137.7,-126.2,-137.1,-127.5,-137.1,-129.0,-137.1,-146.8,-136.7,-158.3,-136.4,-158.5,-138.6,-160.6,-198.4,-160.8,-206.6,-159.0,-208.6,-121.8,-209.2],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1431538697,"host":0,"mn":0},{"p":[-147.1,-330.8,-143.5,-330.3,-143.0,-329.7,-143.0,-329.3,-142.2,-329.3,-141.0,-329.4,-141.4,-331.5,-141.3,-332.1,-140.9,-332.6,-140.3,-333.0,-139.6,-333.0,-139.0,-332.7,-138.5,-332.1,-138.4,-331.8,-138.1,-332.3,-137.4,-332.7,-136.7,-332.6,-136.2,-332.3,-135.9,-333.0,-135.3,-333.4,-134.5,-333.4,-133.8,-333.0,-133.6,-333.4,-133.3,-333.7,-132.9,-333.8,-132.5,-333.7,-131.7,-334.1,-132.0,-334.7,-132.0,-335.0,-131.9,-335.3,-131.2,-335.6,-130.8,-335.6,-130.6,-335.4,-130.3,-334.9,-129.6,-335.3,-128.8,-334.2,-125.5,-336.5,-127.8,-338.2,-124.6,-342.1,-122.6,-340.4,-121.4,-342.4,-122.4,-343.0,-122.7,-343.8,-121.3,-346.3,-117.1,-344.2,-116.9,-343.7,-116.4,-343.5,-115.8,-343.6,-112.4,-342.0,-112.1,-341.3,-112.5,-340.6,-112.2,-340.0,-112.9,-338.7,-113.5,-338.7,-113.8,-338.2,-112.9,-337.7,-112.8,-337.3,-114.2,-335.1,-114.5,-335.1,-115.3,-335.6,-115.6,-335.2,-115.4,-334.7,-116.4,-333.4,-117.0,-333.4,-117.3,-332.9,-116.9,-332.6,-116.6,-332.3,-116.5,-331.9,-118.3,-330.0,-118.6,-330.0,-119.1,-330.5,-119.7,-330.1,-119.6,-329.7,-120.8,-328.6,-121.4,-328.8,-121.8,-328.4,-121.2,-327.6,-121.2,-327.2,-122.4,-326.4,-123.3,-325.7,-123.7,-325.8,-124.2,-326.5,-124.6,-326.3,-124.6,-325.7,-126.0,-324.8,-126.6,-325.1,-127.1,-324.8,-126.6,-323.9,-126.8,-323.5,-129.1,-322.4,-129.4,-322.6,-129.8,-323.4,-130.3,-323.2,-130.4,-322.6,-131.9,-322.1,-132.4,-322.4,-133.0,-322.2,-132.7,-321.3,-132.9,-321.0,-135.4,-320.3,-135.7,-320.5,-135.9,-321.4,-136.4,-321.3,-136.6,-320.8,-138.2,-320.5,-138.6,-321.0,-139.3,-320.9,-139.1,-319.9,-139.4,-319.6,-142.0,-319.4,-142.2,-319.7,-142.2,-320.6,-142.8,-320.6,-143.2,-320.1,-144.7,-320.1,-145.0,-320.6,-145.6,-320.6,-145.6,-319.8,-145.9,-319.5,-149.0,-319.8,-149.2,-320.1,-148.9,-322.1,-148.8,-322.0,-148.6,-323.0,-148.2,-326.2,-148.0,-326.4,-147.8,-327.9,-148.0,-328.2,-147.7,-330.3],"h":60.6,"l":20,"t":"res","n":"Edif. Torremar","a":"","id":1432069242,"host":0,"mn":0},{"p":[-118.3,-246.0,-115.2,-247.2,-115.8,-248.9,-112.5,-250.1,-113.2,-251.8,-110.1,-253.0,-110.8,-254.9,-107.8,-256.0,-108.4,-257.8,-105.3,-258.9,-106.3,-261.6,-102.0,-263.2,-102.5,-264.6,-99.5,-265.8,-100.2,-267.6,-97.2,-268.7,-97.9,-270.4,-94.7,-271.6,-95.3,-273.3,-92.3,-274.4,-92.9,-276.1,-90.7,-277.0,-91.6,-279.3,-87.4,-281.1,-85.5,-276.1,-82.5,-277.3,-83.7,-280.6,-81.5,-282.2,-82.7,-283.9,-74.6,-291.1,-72.2,-288.2,-70.7,-289.0,-68.6,-298.0,-65.4,-297.3,-64.7,-300.1,-61.2,-299.3,-61.6,-297.6,-58.4,-296.7,-58.8,-294.9,-55.5,-294.1,-56.0,-292.3,-52.7,-291.6,-53.2,-289.8,-50.1,-289.1,-50.5,-287.2,-47.2,-286.4,-47.6,-284.7,-44.4,-283.9,-44.8,-282.2,-41.4,-281.3,-41.9,-279.6,-38.6,-278.7,-39.0,-277.0,-35.9,-276.2,-36.3,-274.5,-33.2,-273.7,-33.6,-272.1,-25.8,-270.4,-26.9,-265.7,-23.7,-265.0,-24.1,-263.3,-21.0,-262.6,-21.4,-260.8,-18.1,-260.0,-18.5,-258.2,-15.3,-257.4,-15.7,-255.6,-12.6,-254.8,-12.9,-253.1,-9.7,-252.3,-10.1,-250.6,-6.5,-249.7,-3.4,-249.0,-6.0,-237.9,-9.1,-238.6,-10.3,-233.4,-13.8,-234.2,-13.4,-236.2,-16.7,-237.0,-16.3,-238.7,-19.5,-239.3,-19.1,-241.2,-22.1,-242.0,-23.4,-236.9,-26.5,-237.7,-29.8,-238.4,-28.4,-244.7,-27.9,-247.0,-27.5,-248.9,-30.6,-249.6,-30.3,-251.2,-29.7,-253.8,-34.3,-254.8,-37.4,-255.5,-37.0,-257.4,-40.1,-258.0,-39.7,-259.9,-42.8,-260.5,-42.4,-262.5,-45.6,-263.2,-45.3,-265.0,-48.6,-265.8,-48.2,-267.6,-51.3,-268.3,-51.0,-270.3,-54.2,-270.9,-53.9,-272.8,-56.9,-273.4,-56.5,-275.4,-59.7,-276.0,-60.4,-273.2,-64.8,-273.8,-68.1,-273.3,-71.3,-272.4,-74.3,-270.9,-77.1,-268.9,-79.0,-268.2,-82.1,-267.0,-81.4,-265.2,-84.8,-263.9,-84.1,-262.2,-87.2,-261.0,-86.6,-259.3,-89.6,-258.1,-89.0,-256.3,-92.1,-255.1,-91.5,-253.5,-94.4,-252.3,-93.8,-250.6,-96.8,-249.4,-96.2,-247.8,-100.4,-246.2,-99.5,-243.7,-102.7,-242.5,-102.0,-240.8,-105.0,-239.6,-104.4,-238.0,-107.5,-236.8,-106.8,-235.0,-110.1,-233.7,-111.2,-236.7,-114.4,-235.5],"h":33.6,"l":11,"t":"hot","n":"","a":"","id":1432069243,"host":0,"mn":0},{"p":[-95.8,-282.2,-96.0,-282.0,-101.6,-281.3,-107.5,-288.0,-103.9,-291.3],"h":3.6,"l":1,"t":"res","n":"","a":"","id":1432069248,"host":0,"mn":0},{"p":[-77.7,-305.7,-76.4,-298.1,-80.9,-294.8,-82.6,-304.4],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1432069250,"host":0,"mn":0},{"p":[-116.9,-332.6,-117.3,-332.9,-117.0,-333.4,-116.4,-333.4,-115.4,-334.7,-115.6,-335.2,-115.3,-335.6,-114.5,-335.1,-114.2,-335.1,-112.8,-337.3,-112.9,-337.7,-113.8,-338.2,-113.5,-338.7,-112.9,-338.7,-112.2,-340.0,-112.5,-340.6,-112.1,-341.3,-112.4,-342.0,-111.4,-341.5,-109.0,-344.0,-86.4,-323.3,-94.4,-314.7,-95.4,-313.6,-116.5,-332.9],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1432069255,"host":0,"mn":0},{"p":[-129.6,-335.3,-131.1,-337.6,-125.4,-343.1,-121.3,-347.2,-119.3,-345.7,-115.4,-349.8,-113.5,-348.2,-110.5,-345.4,-109.0,-344.0,-111.4,-341.5,-112.4,-342.0,-115.8,-343.6,-116.4,-343.5,-116.9,-343.7,-117.1,-344.2,-121.3,-346.3,-122.7,-343.8,-122.4,-343.0,-121.4,-342.4,-122.6,-340.4,-124.6,-342.1,-127.8,-338.2,-125.5,-336.5,-128.8,-334.2],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1432069260,"host":0,"mn":0},{"p":[-108.4,-257.8,-110.4,-263.6,-100.2,-267.6,-99.5,-265.8,-102.5,-264.6,-102.0,-263.2,-106.3,-261.6,-105.3,-258.9],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1432079111,"host":0,"mn":0},{"p":[-93.8,-250.6,-92.2,-245.9,-99.2,-243.0,-98.8,-241.7,-96.1,-234.2,-99.3,-233.1,-102.4,-232.1,-124.4,-231.4,-124.6,-232.4,-128.4,-251.0,-108.4,-257.8,-107.8,-256.0,-110.8,-254.9,-110.1,-253.0,-113.2,-251.8,-112.5,-250.1,-115.8,-248.9,-115.2,-247.2,-118.3,-246.0,-114.4,-235.5,-111.2,-236.7,-110.1,-233.7,-106.8,-235.0,-107.5,-236.8,-104.4,-238.0,-105.0,-239.6,-102.0,-240.8,-102.7,-242.5,-99.5,-243.7,-100.4,-246.2,-96.2,-247.8,-96.8,-249.4],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1432079117,"host":0,"mn":0},{"p":[-124.4,-231.4,-102.4,-232.1,-100.6,-226.6,-123.5,-226.2],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1432079118,"host":0,"mn":0},{"p":[-76.7,-323.7,-75.5,-322.6,-76.7,-321.4,-77.8,-322.5],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1432079124,"host":0,"mn":0},{"p":[-161.8,-264.9,-161.5,-257.4,-167.2,-255.8,-168.8,-304.2,-169.8,-312.0,-172.1,-320.0,-175.3,-325.9,-179.9,-332.1,-185.8,-339.0,-186.7,-340.6,-186.6,-342.7,-185.7,-344.4,-148.7,-386.7,-144.5,-387.0,-115.6,-360.1,-119.7,-355.5,-147.0,-380.7,-181.0,-341.8,-173.2,-333.4,-168.9,-326.6,-165.0,-317.1,-163.4,-309.3,-163.0,-298.0],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1432079130,"host":0,"mn":0},{"p":[-128.7,-226.1,-128.7,-227.3,-127.6,-227.4,-127.6,-226.2],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1432079141,"host":0,"mn":0},{"p":[-131.7,-232.1,-131.6,-226.1,-152.0,-225.7,-152.1,-231.8,-139.8,-232.0],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1432079144,"host":0,"mn":0},{"p":[-152.1,-231.8,-152.0,-225.7,-166.2,-225.5,-166.9,-244.4,-165.3,-244.4,-160.1,-244.5,-159.7,-231.7],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1432079150,"host":0,"mn":0},{"p":[-181.0,-341.8,-147.0,-380.7,-119.7,-355.5,-124.3,-350.0,-127.9,-345.6,-128.4,-346.0,-133.2,-350.6,-146.1,-363.0,-146.9,-362.1,-164.5,-342.2,-159.7,-334.8,-153.9,-322.4,-151.9,-316.5,-150.1,-303.7,-148.9,-262.7,-148.9,-261.2,-161.5,-257.4,-161.8,-264.9,-163.0,-298.0,-163.4,-309.3,-165.0,-317.1,-168.9,-326.6,-173.2,-333.4],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1432079154,"host":0,"mn":0},{"p":[-87.0,-311.1,-75.2,-322.3,-73.5,-320.8,-67.1,-314.9,-75.3,-307.1,-79.1,-311.1,-83.2,-307.2],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1432079160,"host":0,"mn":0},{"p":[-95.4,-313.6,-101.5,-306.9,-122.4,-326.4,-121.2,-327.2,-121.2,-327.6,-121.8,-328.4,-121.4,-328.8,-120.8,-328.6,-119.6,-329.7,-119.7,-330.1,-119.1,-330.5,-118.6,-330.0,-118.3,-330.0,-116.5,-331.9,-116.6,-332.3,-116.9,-332.6,-116.5,-332.9],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1432079161,"host":0,"mn":0},{"p":[-21.0,-262.6,-24.1,-263.3,-23.7,-265.0,-26.9,-265.7,-25.8,-270.4,-23.3,-274.6,-18.4,-270.1,-19.3,-268.6,-17.7,-267.2],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1432082667,"host":0,"mn":0},{"p":[-28.4,-244.7,-31.7,-245.6,-30.6,-249.6,-27.5,-248.9,-27.9,-247.0],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1432082672,"host":0,"mn":0},{"p":[-77.1,-227.1,-77.1,-228.4,-69.9,-228.3,-69.8,-227.2],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1432082674,"host":0,"mn":0},{"p":[-65.3,-227.9,-65.6,-235.0,-59.1,-235.2,-58.9,-229.4,-58.8,-228.2],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1432082676,"host":0,"mn":0},{"p":[-49.8,-233.1,-49.8,-238.6,-41.6,-238.6,-41.6,-233.2],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1432082677,"host":0,"mn":0},{"p":[-49.8,-227.6,-49.8,-229.6,-49.8,-233.1,-41.6,-233.2,-41.6,-227.6],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1432082678,"host":0,"mn":0},{"p":[-137.3,-347.3,-141.0,-350.8,-138.9,-352.9,-135.3,-349.4],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1432082680,"host":0,"mn":0},{"p":[-133.2,-350.6,-128.4,-346.0,-132.0,-342.5,-136.4,-347.4],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1432082681,"host":0,"mn":0},{"p":[-134.4,-266.1,-129.8,-259.7,-136.4,-257.8,-142.9,-255.9,-145.2,-261.9,-138.9,-264.1],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1432082697,"host":0,"mn":0},{"p":[-77.6,-16.2,-77.6,-21.0,-62.9,-20.7,-51.9,-26.8,-49.4,-22.5,-61.4,-16.1],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1432085889,"host":0,"mn":0},{"p":[-74.2,-40.7,-47.7,-40.9,-47.7,-30.6,-74.2,-30.5],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1432085890,"host":0,"mn":0},{"p":[-77.4,-46.0,-77.4,-51.5,-47.0,-51.7,-45.4,-51.7,-42.3,-51.7,-42.4,-46.3],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1432085891,"host":0,"mn":0},{"p":[-270.6,-369.4,-266.1,-373.6,-265.2,-374.4,-262.7,-376.1,-258.9,-377.5,-255.9,-377.7,-252.9,-377.2,-251.0,-376.6,-248.3,-375.0,-246.2,-372.9,-244.5,-370.4,-243.7,-368.5,-244.4,-368.3,-244.5,-367.5,-243.8,-365.4,-244.5,-365.2,-244.5,-364.3,-233.0,-364.6,-210.8,-365.1,-186.0,-393.7,-181.8,-390.0,-177.5,-386.2,-185.4,-377.0,-200.9,-359.1,-205.5,-353.7,-212.8,-353.6,-216.8,-353.5,-252.4,-352.9,-252.3,-345.9,-265.4,-345.6,-275.2,-345.4,-276.2,-346.3,-279.2,-349.2,-279.5,-362.1,-279.7,-369.1,-274.6,-373.7,-273.4,-372.4],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1433074008,"host":0,"mn":0},{"p":[-216.8,-353.5,-216.7,-346.1,-252.3,-345.5,-252.3,-345.9,-252.4,-352.9],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1433081543,"host":0,"mn":0},{"p":[-212.8,-353.6,-205.5,-353.7,-200.9,-359.1,-195.5,-354.1,-202.2,-346.4,-212.6,-346.2],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1433081544,"host":0,"mn":0},{"p":[-200.9,-359.1,-185.4,-377.0,-179.9,-372.0,-195.5,-354.1],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1433081545,"host":0,"mn":0},{"p":[-203.7,-264.7,-203.7,-263.6,-203.6,-262.8,-203.5,-261.1,-202.2,-261.1,-202.3,-262.9,-193.7,-263.4,-193.6,-261.6,-192.4,-261.6,-192.5,-263.4,-192.5,-264.2,-192.6,-265.3,-187.1,-265.6,-187.0,-263.7,-186.9,-260.4,-185.7,-260.4,-185.7,-260.0,-185.4,-255.9,-186.6,-255.9,-186.4,-250.8,-207.3,-249.7,-208.4,-249.6,-208.7,-254.8,-209.7,-254.7,-209.9,-259.3,-208.9,-259.4,-209.2,-264.4,-208.4,-264.5],"h":39.6,"l":13,"t":"res","n":"Edif. New Playma","a":"","id":1433089226,"host":0,"mn":0},{"p":[-203.7,-264.7,-208.4,-264.5,-208.8,-269.6,-199.7,-272.5,-186.6,-276.7,-185.2,-277.1,-185.0,-274.5,-181.4,-274.7,-181.1,-264.0,-187.0,-263.7,-187.1,-265.6,-192.6,-265.3],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1433089230,"host":0,"mn":0},{"p":[-186.4,-250.8,-186.2,-243.6,-185.9,-232.3,-210.2,-231.5,-210.5,-243.2,-207.1,-243.3,-207.3,-249.7],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1433089234,"host":0,"mn":0},{"p":[-185.7,-260.0,-185.7,-260.4,-186.9,-260.4,-187.0,-263.7,-181.1,-264.0,-181.0,-260.1],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1433089236,"host":0,"mn":0},{"p":[-256.0,-326.6,-236.9,-327.0,-232.7,-327.0,-217.0,-327.3,-216.9,-318.4,-216.7,-312.1,-216.7,-310.7,-255.7,-310.0,-258.0,-307.9,-257.5,-280.6,-261.5,-280.5,-266.9,-280.3,-272.3,-280.2,-273.7,-280.2,-274.4,-314.9,-274.4,-318.0,-274.6,-326.1,-271.8,-326.2,-270.4,-326.2],"h":21.6,"l":7,"t":"hot","n":"Hotel Presidente","a":"","id":1433089240,"host":0,"mn":0},{"p":[-237.7,-258.0,-237.9,-263.0,-225.2,-263.5,-225.2,-261.9,-225.0,-258.5],"h":3.6,"l":1,"t":"res","n":"","a":"","id":1433089242,"host":0,"mn":0},{"p":[-267.6,-251.3,-267.6,-251.7,-260.8,-251.8,-260.7,-248.7,-254.3,-248.8,-254.3,-251.9,-247.6,-252.0,-247.6,-251.6,-243.8,-251.6,-243.8,-247.4,-244.7,-247.3,-244.6,-240.6,-250.8,-240.5,-250.8,-239.2,-264.0,-239.0,-264.0,-240.4,-270.1,-240.3,-270.2,-247.6,-271.2,-247.5,-271.2,-250.2,-270.3,-250.2,-270.3,-251.2],"h":39.6,"l":13,"t":"res","n":"Edif. Filipinas","a":"","id":1433089245,"host":0,"mn":0},{"p":[-276.9,-255.7,-255.5,-272.4,-234.8,-288.5,-231.5,-284.6,-269.8,-254.9,-274.8,-253.4],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1433099597,"host":0,"mn":0},{"p":[-250.4,-261.4,-229.0,-277.7,-225.9,-273.7,-247.3,-257.4],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1433099598,"host":0,"mn":0},{"p":[-271.0,-265.6,-270.7,-262.4,-278.3,-262.0,-278.6,-278.6,-278.6,-280.2,-275.0,-280.2,-273.7,-280.2,-272.3,-280.2,-272.1,-272.4,-271.1,-272.4],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1433099601,"host":0,"mn":0},{"p":[-266.7,-272.6,-266.7,-271.0,-266.6,-265.7,-271.0,-265.6,-271.1,-272.4],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1433099602,"host":0,"mn":0},{"p":[-272.3,-280.2,-266.9,-280.3,-266.7,-272.6,-271.1,-272.4,-272.1,-272.4],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1433099603,"host":0,"mn":0},{"p":[-270.2,-247.6,-270.1,-240.3,-278.0,-240.1,-278.1,-250.0,-271.2,-250.2,-271.2,-247.5],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1433099626,"host":0,"mn":0},{"p":[-274.6,-223.2,-274.7,-224.7,-271.1,-224.8,-271.0,-223.3],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1433099632,"host":0,"mn":0},{"p":[-210.0,-224.5,-210.2,-231.5,-185.9,-232.3,-186.2,-243.6,-186.4,-250.8,-186.6,-255.9,-185.4,-255.9,-185.7,-260.0,-181.0,-260.1,-180.9,-257.7,-180.5,-243.7,-179.9,-225.0],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1433099634,"host":0,"mn":0},{"p":[-210.5,-243.2,-210.2,-231.5,-210.0,-224.5,-236.8,-223.9,-237.4,-240.0,-217.2,-241.1,-215.5,-242.6,-215.4,-243.0],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1433099635,"host":0,"mn":0},{"p":[-212.1,-328.7,-212.2,-330.8,-212.3,-332.5,-210.3,-332.5,-208.0,-332.6,-207.7,-328.8],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1433099649,"host":0,"mn":0},{"p":[-245.7,-198.3,-270.3,-191.2,-270.6,-204.6,-240.0,-205.1,-240.1,-198.3],"h":3.6,"l":1,"t":"low","n":"The Red Lion","a":"","id":1444836139,"host":0,"mn":0},{"p":[-237.9,-166.6,-241.4,-165.8,-243.6,-176.8,-246.2,-190.2,-241.4,-191.1,-236.6,-166.9],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1444840563,"host":0,"mn":0},{"p":[-261.5,-135.5,-240.8,-135.8,-240.5,-129.9,-261.4,-129.5],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1444840569,"host":0,"mn":0},{"p":[-270.1,-177.1,-270.0,-170.1,-269.7,-147.5,-269.7,-145.8,-276.5,-145.8,-277.1,-176.7,-275.2,-176.8],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1444840571,"host":0,"mn":0},{"p":[-246.2,-190.2,-276.4,-182.5,-277.2,-182.3,-277.7,-208.8,-275.5,-211.3,-240.1,-211.9,-240.0,-207.0,-240.0,-205.1,-270.6,-204.6,-270.3,-191.2,-245.7,-198.3,-240.1,-198.3,-239.4,-192.2],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1444840572,"host":0,"mn":0},{"p":[-183.7,-188.0,-184.4,-208.0,-197.8,-207.8,-197.8,-211.6,-182.9,-211.9,-180.9,-209.9,-180.2,-188.1],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1444840573,"host":0,"mn":0},{"p":[-224.6,-207.3,-224.6,-212.2,-213.0,-212.4,-212.9,-207.5],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1444840583,"host":0,"mn":0},{"p":[-240.0,-207.0,-240.1,-211.9,-224.6,-212.2,-224.6,-207.3],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1444840584,"host":0,"mn":0},{"p":[-206.7,-52.5,-202.6,-52.5,-202.6,-48.3,-206.6,-48.2],"h":3.6,"l":1,"t":"res","n":"","a":"","id":1444967714,"host":0,"mn":0},{"p":[-198.6,0.9,-199.1,-17.5,-199.5,-30.4,-199.2,-33.8,-198.7,-36.1,-198.6,-36.8,-196.3,-43.8,-195.3,-46.2,-193.8,-48.8,-192.5,-50.7,-191.3,-52.1,-186.3,-48.0,-185.4,-49.3,-180.1,-45.0,-181.1,-43.6,-182.6,-41.7,-183.8,-39.6,-184.8,-37.4,-185.6,-35.1,-186.1,-33.2,-186.3,-31.3,-186.0,-17.9,-185.6,0.8,-185.4,6.6,-199.2,6.6,-199.3,0.9],"h":42.6,"l":14,"t":"res","n":"Edif. Copacabana","a":"","id":1444967719,"host":0,"mn":0},{"p":[-263.7,-12.3,-263.7,-13.2,-264.8,-13.6,-264.4,-17.1,-268.4,-18.7,-268.5,-29.5,-264.9,-29.6,-264.4,-29.6,-264.5,-30.5,-252.8,-30.7,-252.7,-29.7,-252.0,-29.7,-248.6,-29.8,-248.5,-15.4,-248.3,-4.1,-245.3,-4.1,-245.2,3.1,-270.6,3.2,-270.8,-12.2],"h":54.6,"l":18,"t":"res","n":"Edif. Torre Yago","a":"","id":1444967723,"host":0,"mn":0},{"p":[-240.2,-24.0,-240.3,-30.1,-231.0,-30.4,-230.8,-24.3],"h":3.6,"l":1,"t":"res","n":"","a":"","id":1444967733,"host":0,"mn":0},{"p":[-274.8,-52.7,-275.4,-93.6,-269.9,-93.7,-269.3,-52.9],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1444974497,"host":0,"mn":0},{"p":[-264.5,-93.2,-254.6,-93.4,-254.0,-57.3,-263.9,-57.1],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1444974498,"host":0,"mn":0},{"p":[-242.9,-51.3,-249.0,-51.3,-249.7,-99.9,-243.7,-100.1,-243.6,-94.5],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1444974499,"host":0,"mn":0},{"p":[-176.1,-57.2,-174.3,-57.2,-174.2,-56.2,-174.2,-55.3,-176.0,-55.3],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1444974509,"host":0,"mn":0},{"p":[-190.8,-57.3,-179.6,-56.9,-179.6,-57.3,-176.1,-57.2,-176.0,-55.3,-174.2,-55.3,-174.1,-52.2,-175.8,-52.2,-175.8,-51.8,-179.3,-51.8,-179.3,-52.4,-187.0,-52.4,-190.7,-55.0],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1444974513,"host":0,"mn":0},{"p":[-202.0,-57.3,-202.0,-57.6,-192.5,-57.4,-192.5,-55.4,-202.0,-55.5],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1444974514,"host":0,"mn":0},{"p":[-206.8,-57.3,-207.1,-85.8,-204.7,-85.8,-202.2,-85.9,-202.0,-57.6,-202.0,-57.3],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1444974515,"host":0,"mn":0},{"p":[-195.7,-86.1,-198.0,-86.0,-198.2,-90.6,-184.5,-91.1,-184.3,-86.2,-186.7,-86.2,-186.0,-67.1,-185.0,-67.2,-184.9,-62.5,-196.2,-62.1,-196.4,-66.8,-195.1,-66.8],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1444974516,"host":0,"mn":0},{"p":[-174.4,-61.6,-179.7,-61.3,-180.7,-96.1,-202.4,-95.6,-202.6,-100.9,-181.0,-101.3,-175.7,-96.6],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1444974517,"host":0,"mn":0},{"p":[-304.6,-362.9,-304.5,-359.4,-313.1,-359.1,-313.2,-362.7],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1447490459,"host":0,"mn":0},{"p":[-316.1,-351.1,-424.1,-348.9,-427.0,-352.3,-420.2,-356.2,-415.5,-360.6,-400.5,-360.9,-331.0,-362.4,-326.4,-362.5,-325.4,-362.5],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1447490468,"host":0,"mn":0},{"p":[-311.5,-344.3,-425.9,-341.7,-432.1,-348.9,-427.0,-352.3,-424.1,-348.9,-316.1,-351.1,-311.4,-345.9],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1447512013,"host":0,"mn":0},{"p":[-318.6,-289.5,-315.9,-291.6,-309.8,-296.1,-309.5,-270.7,-317.1,-264.7,-318.1,-263.9,-318.6,-287.6],"h":3.6,"l":1,"t":"res","n":"","a":"","id":1448235944,"host":0,"mn":0},{"p":[-318.2,-246.2,-308.7,-253.6,-302.0,-253.6,-301.7,-222.7,-339.8,-222.0,-339.9,-227.0,-339.9,-229.8,-324.9,-241.6,-324.6,-241.2,-323.0,-239.2,-325.6,-237.1,-323.8,-234.9,-325.1,-233.9,-322.9,-231.1,-321.7,-232.0,-319.4,-229.2,-308.0,-238.1,-310.3,-241.1,-308.9,-242.2,-311.1,-244.9,-312.4,-243.8,-314.2,-246.1,-316.6,-244.2],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1448235961,"host":0,"mn":0},{"p":[-351.6,-325.4,-340.8,-313.1,-338.3,-315.4,-332.2,-308.5,-332.4,-306.1,-331.9,-304.0,-330.3,-302.4,-328.0,-301.4,-325.0,-302.1,-323.4,-304.1,-323.3,-305.7,-315.8,-310.9,-312.8,-311.4,-311.6,-312.3,-310.8,-304.7,-320.5,-297.6,-329.2,-291.4,-353.3,-320.5,-357.0,-325.1,-353.5,-325.3],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1448249579,"host":0,"mn":0},{"p":[-302.0,-255.1,-303.2,-255.1,-303.2,-256.2,-302.0,-256.2],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1448249610,"host":0,"mn":0},{"p":[-324.6,-241.2,-318.2,-246.2,-316.6,-244.2,-314.2,-246.1,-312.4,-243.8,-311.1,-244.9,-308.9,-242.2,-310.3,-241.1,-308.0,-238.1,-319.4,-229.2,-321.7,-232.0,-322.9,-231.1,-325.1,-233.9,-323.8,-234.9,-325.6,-237.1,-323.0,-239.2],"h":48.6,"l":16,"t":"res","n":"Edif. Trinisol","a":"","id":1448249614,"host":0,"mn":0},{"p":[-309.8,-296.1,-302.5,-298.8,-302.2,-271.5,-309.5,-270.7],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1448249618,"host":0,"mn":0},{"p":[-321.9,-325.1,-323.5,-325.1,-323.7,-330.2,-322.0,-330.2],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1448249621,"host":0,"mn":0},{"p":[-332.2,-308.5,-338.3,-315.4,-340.1,-316.1,-341.6,-317.8,-342.3,-320.6,-342.5,-322.0,-341.7,-324.2,-339.7,-326.4,-337.4,-327.4,-335.4,-327.4,-332.5,-326.2,-331.5,-325.1,-323.5,-325.1,-321.9,-325.1,-321.3,-325.1,-318.9,-326.4,-315.4,-326.5,-312.1,-326.0,-310.0,-324.3,-308.4,-321.1,-307.9,-317.0,-309.5,-313.9,-311.6,-312.3,-312.8,-311.4,-315.8,-310.9,-323.3,-305.7,-323.4,-304.1,-325.0,-302.1,-328.0,-301.4,-330.3,-302.4,-331.9,-304.0,-332.4,-306.1],"h":48.6,"l":16,"t":"hot","n":"Hotel Gold Arcos","a":"","id":1448249629,"host":0,"mn":0},{"p":[-320.1,-145.4,-308.9,-145.6,-308.9,-145.1,-307.0,-145.2,-307.0,-142.9,-306.9,-139.9,-306.5,-139.8,-306.3,-139.3,-306.2,-134.8,-322.5,-134.4,-322.7,-138.8,-322.4,-139.3,-321.9,-139.4,-322.0,-144.9,-320.1,-144.9],"h":27.6,"l":9,"t":"res","n":"Edif. Montreal","a":"","id":1448550431,"host":0,"mn":0},{"p":[-326.3,-203.2,-326.3,-204.5,-320.7,-204.5,-320.7,-205.3,-318.1,-205.3,-318.1,-203.4,-317.1,-203.4,-316.2,-203.4,-316.3,-205.4,-313.7,-205.4,-313.7,-204.6,-308.1,-204.7,-308.1,-203.5,-308.1,-202.2,-307.2,-202.2,-307.1,-199.1,-308.0,-199.1,-308.8,-199.1,-308.7,-193.7,-308.9,-193.0,-309.3,-192.8,-309.6,-192.7,-313.9,-192.6,-313.8,-191.5,-320.1,-191.4,-320.1,-192.5,-322.5,-192.5,-325.4,-197.7,-326.1,-198.9,-327.1,-198.9,-327.2,-200.9,-328.5,-203.2],"h":27.6,"l":9,"t":"res","n":"Apartamentos Carlos V","a":"","id":1448550443,"host":0,"mn":0},{"p":[-322.5,-192.5,-320.1,-192.5,-320.1,-191.4,-313.8,-191.5,-313.9,-192.6,-309.6,-192.7,-309.3,-192.8,-308.9,-193.0,-308.7,-193.7,-308.8,-199.1,-308.0,-199.1,-307.6,-167.6,-308.6,-167.5,-310.6,-171.1,-317.8,-184.0],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1448550444,"host":0,"mn":0},{"p":[-329.6,-144.3,-322.1,-146.6,-321.8,-145.8,-329.5,-143.5],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1448550452,"host":0,"mn":0},{"p":[-321.8,-145.8,-314.8,-147.9,-308.9,-149.6,-306.4,-150.4,-306.3,-142.9,-307.0,-142.9,-307.0,-145.2,-308.9,-145.1,-308.9,-145.6,-320.1,-145.4,-320.1,-144.9,-322.0,-144.9,-321.9,-139.4,-322.4,-139.3,-322.7,-138.8,-322.5,-134.4,-328.2,-134.1,-329.5,-143.5],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1448550463,"host":0,"mn":0},{"p":[-314.8,-147.9,-315.7,-151.1,-309.7,-152.8,-308.9,-149.6],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1448553200,"host":0,"mn":0},{"p":[-328.2,-134.1,-322.5,-134.4,-306.2,-134.8,-306.3,-139.3,-306.5,-139.8,-306.9,-139.9,-307.0,-142.9,-306.3,-142.9,-306.4,-150.4,-308.9,-149.6,-309.7,-152.8,-300.3,-155.5,-300.1,-143.3,-301.4,-143.2,-301.3,-135.0,-305.7,-129.7,-305.9,-128.3,-327.3,-127.9],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1448553241,"host":0,"mn":0},{"p":[-302.1,-158.8,-302.1,-162.6,-300.4,-162.5,-300.3,-158.9],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1448553244,"host":0,"mn":0},{"p":[-316.3,-205.4,-316.3,-210.7,-301.0,-211.0,-300.4,-167.3,-307.6,-167.6,-308.0,-199.1,-307.1,-199.1,-307.2,-202.2,-308.1,-202.2,-308.1,-203.5,-308.1,-204.7,-313.7,-204.6,-313.7,-205.4],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1448553251,"host":0,"mn":0},{"p":[-328.5,-203.2,-333.0,-210.4,-318.3,-210.7,-318.1,-205.3,-320.7,-205.3,-320.7,-204.5,-326.3,-204.5,-326.3,-203.2],"h":3.6,"l":1,"t":"com","n":"","a":"","id":1448553252,"host":0,"mn":0},{"p":[-339.7,-47.0,-331.5,-47.2,-329.2,-49.3,-328.3,-49.4,-325.9,-47.2,-317.7,-47.4,-317.7,-44.7,-309.8,-44.8,-309.5,-29.0,-337.3,-28.6,-347.3,-28.5,-347.3,-30.1,-347.5,-44.3,-339.6,-44.4],"h":75.6,"l":25,"t":"res","n":"Edif. Santa Margarita","a":"","id":1449725592,"host":0,"mn":0},{"p":[-309.8,-44.8,-306.5,-44.9,-306.5,-42.2,-306.2,-29.1,-305.5,-1.1,-321.0,-0.9,-321.3,-9.7,-341.8,-9.3,-341.9,-24.8,-337.3,-24.9,-337.3,-28.6,-309.5,-29.0],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1449855952,"host":0,"mn":0},{"p":[-353.7,-90.1,-339.4,-90.3,-330.6,-90.5,-322.9,-90.6,-315.4,-90.8,-307.5,-90.9,-307.5,-90.3,-307.2,-74.5,-315.0,-74.5,-315.1,-82.4,-353.6,-81.6],"h":6.6,"l":2,"t":"com","n":"","a":"","id":1449855967,"host":0,"mn":0},{"p":[-322.9,-90.6,-330.6,-90.5,-330.7,-98.3,-323.1,-98.4],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1449855972,"host":0,"mn":0},{"p":[-307.5,-90.9,-315.4,-90.8,-315.5,-98.6,-307.8,-98.7],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1449855973,"host":0,"mn":0},{"p":[-301.0,-94.4,-300.1,-93.6,-301.0,-92.6,-301.8,-93.3],"h":3.6,"l":1,"t":"low","n":"","a":"","id":1449855974,"host":0,"mn":0},{"p":[-307.2,-73.9,-307.2,-74.5,-307.5,-90.3,-300.0,-90.5,-299.7,-74.0],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1449855975,"host":0,"mn":0},{"p":[-306.7,-51.3,-307.0,-67.4,-299.6,-67.5,-299.2,-51.3],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1449855977,"host":0,"mn":0},{"p":[-306.2,-29.1,-306.5,-42.2,-299.0,-42.5,-298.8,-29.3],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1449855979,"host":0,"mn":0},{"p":[-305.5,-1.1,-306.2,-29.1,-298.8,-29.3,-298.2,-1.2],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1449855980,"host":0,"mn":0},{"p":[-341.7,-8.4,-322.3,-8.9,-321.9,6.7,-341.4,6.8],"h":3.0,"l":1,"t":"roof","n":"","a":"","id":1449855988,"host":0,"mn":0}],"rd":[{"p":[351.1,-168.5,345.0,-169.4,316.3,-177.2,279.6,-187.2,263.8,-191.5,260.9,-192.1,256.8,-193.4,193.2,-211.6,167.9,-218.6,163.2,-219.7,156.5,-221.5,150.1,-223.6,118.9,-232.5,117.5,-233.0,110.5,-234.7,89.8,-240.7,86.0,-241.8,72.5,-244.9,66.4,-245.3],"w":7,"t":"residential","n":"Calle Gerona","o":0},{"p":[55.5,-237.1,50.8,-231.5,44.4,-226.2,39.9,-223.6,33.5,-222.4,28.0,-222.5,1.4,-221.7,-7.6,-221.5,-16.7,-221.0,-31.2,-220.6,-32.5,-220.5,-38.9,-220.3,-42.2,-220.3,-87.5,-219.9,-91.2,-219.8,-94.7,-219.7,-120.5,-219.5,-130.0,-219.3,-163.9,-218.8,-172.5,-218.9,-180.1,-218.5,-279.2,-216.9,-288.3,-216.8,-299.2,-216.8,-317.4,-216.4,-336.0,-216.0,-343.5,-215.9,-344.5,-215.9,-366.1,-215.4,-368.3,-215.4,-370.7,-215.4,-371.7,-215.3,-374.5,-215.3,-385.0,-215.1,-387.3,-215.0,-390.3,-215.0,-431.6,-214.2,-437.9,-214.1,-443.5,-214.0,-468.2,-213.5,-473.7,-213.4,-479.0,-213.2,-490.6,-213.0,-501.3,-212.8,-519.2,-212.4,-520.2,-212.4,-522.4,-212.3,-537.3,-212.0,-554.9,-211.6,-565.3,-211.6,-574.4,-211.4,-619.7,-210.5,-659.3,-209.7,-660.5,-209.7,-662.7,-209.6,-663.9,-209.6,-666.8,-209.6,-669.6,-209.5,-679.8,-209.3,-688.8,-209.1,-697.3,-209.0,-711.1,-208.7,-737.6,-208.3,-792.4,-207.4,-795.1,-207.4,-810.5,-207.0],"w":7,"t":"residential","n":"Calle Gerona","o":1},{"p":[-296.2,11.5,-297.2,-44.0,-297.3,-47.3,-297.9,-71.1,-298.9,-108.7],"w":5,"t":"pedestrian","n":"Avenida de Filipinas","o":0},{"p":[-164.5,12.3,-165.4,-17.6,-166.0,-35.4,-166.5,-55.0,-166.7,-59.8,-167.3,-77.3,-168.0,-98.3,-168.3,-105.9,-168.5,-111.4],"w":7,"t":"residential","n":"Avenida de Almería","o":1},{"p":[102.6,-107.7,97.0,-69.7,95.5,-58.9,93.4,-44.4,92.5,-38.1,85.1,13.6],"w":7,"t":"residential","n":"Avenida de Castellón","o":1},{"p":[-286.7,-108.9,-286.8,-112.4,-286.9,-115.0,-287.0,-118.9],"w":9,"t":"tertiary","n":"Avenida de Filipinas","o":1},{"p":[-198.6,-339.5,-190.8,-333.8,-188.0,-330.6,-183.4,-325.2,-179.7,-318.7,-177.1,-313.3,-175.4,-306.9,-174.8,-297.8,-173.9,-258.1,-173.5,-252.6,-173.5,-249.7,-173.1,-245.1,-172.6,-225.2,-172.5,-218.9,-172.7,-210.4,-171.6,-177.3,-171.2,-165.9,-170.6,-150.1,-170.4,-135.6,-170.2,-127.4,-169.9,-120.9,-168.7,-117.4,-168.6,-114.5,-168.5,-111.4],"w":7,"t":"residential","n":"Avenida de Almería","o":1},{"p":[260.9,-192.1,285.0,-281.8,283.1,-286.2,227.5,-319.0],"w":4.5,"t":"service","n":"","o":0},{"p":[-4.5,-268.1,4.0,-280.5,39.4,-332.1],"w":4.5,"t":"service","n":"","o":0},{"p":[-254.8,-513.6,-250.1,-507.8,-246.9,-504.2,-195.7,-446.6,-193.8,-444.5,-191.0,-441.6,-188.1,-438.6,-167.2,-417.5,-159.5,-410.3,-147.0,-398.6,-134.3,-386.5,-129.0,-381.2,-108.5,-362.1,-103.8,-357.6,-83.6,-338.3,-79.7,-335.4,-75.7,-331.8,-73.2,-329.5,-59.5,-316.3,-54.7,-311.8,-17.2,-278.1,-13.9,-274.9,-4.5,-268.1,3.1,-264.6,11.6,-262.2,40.4,-254.3,47.1,-252.6,49.7,-251.7,51.9,-251.0,53.8,-250.4],"w":7,"t":"residential","n":"Carrer del Derramador","o":0},{"p":[-150.3,-343.2,-144.2,-335.1,-134.8,-337.1,-122.6,-348.5,-113.2,-357.7,-108.5,-362.1],"w":4.5,"t":"service","n":"","o":0},{"p":[-235.0,-119.7,-237.0,-130.0,-247.5,-181.8,-248.5,-186.9,-276.0,-180.6,-287.3,-178.2],"w":4.5,"t":"service","n":"","o":0},{"p":[-1501.9,221.9,-1500.4,225.1,-1493.9,222.1,-1403.9,180.7,-1319.1,141.4,-1276.4,122.9,-1225.3,99.2,-1190.0,87.0,-1176.0,82.8,-1158.0,79.0,-1135.5,75.0,-1109.1,71.1,-932.7,48.9,-740.1,24.1,-698.4,18.8,-607.3,18.5,-539.5,18.7,-300.6,18.5,-164.1,18.5,-16.8,17.8,72.1,18.3,85.0,20.7,150.8,50.3,326.7,128.5,345.6,139.2,358.5,149.9,364.7,156.7,375.1,156.8],"w":2.2,"t":"footway","n":"","o":0},{"p":[297.1,-5.1,298.1,-5.1,299.1,-5.1,300.5,-4.7,302.2,-3.6,303.3,-2.1,304.0,-0.2,303.8,2.0,303.0,3.9,301.2,5.6,299.3,6.4,297.8,6.4,297.3,6.5,295.0,5.7,293.5,4.3,292.5,2.5,292.3,1.3,292.4,-0.7,293.0,-2.2,293.2,-2.6,294.7,-4.1,297.1,-5.1],"w":2.2,"t":"footway","n":"","o":0},{"p":[298.1,-5.1,298.2,-6.6,299.1,-19.5,303.6,-60.4],"w":2.2,"t":"footway","n":"","o":0},{"p":[297.8,6.4,297.0,13.7],"w":2.2,"t":"footway","n":"","o":0},{"p":[299.1,-19.5,273.8,-25.9],"w":2.2,"t":"footway","n":"","o":0},{"p":[321.6,4.8,351.8,1.4,352.3,4.6,372.2,1.9],"w":2.2,"t":"footway","n":"","o":0},{"p":[293.0,-2.2,285.5,-11.8,273.8,-25.9,262.4,-46.4,262.2,-49.7,266.8,-70.5],"w":2.2,"t":"footway","n":"","o":0},{"p":[321.6,4.8,303.8,2.0],"w":2.2,"t":"footway","n":"","o":0},{"p":[217.4,-84.5,214.2,-71.6,210.5,-20.2,209.1,-3.2,205.6,4.0,202.4,34.7,191.7,60.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[97.0,-69.7,123.5,-65.7,129.3,-64.8,144.1,-63.0,144.7,-67.5,152.4,-66.8],"w":2.2,"t":"footway","n":"","o":0},{"p":[150.7,-45.6,179.2,-33.6,210.5,-20.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[126.9,-43.3,129.3,-64.8],"w":2.2,"t":"footway","n":"","o":0},{"p":[188.1,-92.4,183.8,-77.3,179.2,-33.6],"w":2.2,"t":"footway","n":"","o":0},{"p":[140.8,38.0,145.6,-15.8,148.8,-19.1,150.5,-44.2,150.7,-45.6,152.4,-66.8,153.1,-76.3,155.8,-78.2,158.0,-100.7],"w":2.2,"t":"footway","n":"","o":0},{"p":[93.4,-44.4,126.9,-43.3,139.8,-42.5,141.9,-44.9,150.5,-44.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[299.3,24.8,319.9,27.9,344.5,31.4,359.9,29.8,360.8,34.3],"w":2.2,"t":"footway","n":"","o":0},{"p":[193.2,-211.6,196.7,-222.3,195.5,-229.8,192.1,-232.6,184.1,-234.8,175.9,-237.1,170.1,-236.6,167.2,-233.9,163.2,-219.7],"w":4.5,"t":"service","n":"","o":1},{"p":[98.8,-124.0,82.7,-125.2,56.9,-124.9,44.8,-124.8,8.6,-124.3,-30.7,-123.5,-59.3,-122.9,-87.4,-122.3,-94.3,-122.2,-127.2,-121.5,-152.2,-121.2,-169.9,-120.9,-184.8,-120.5,-195.7,-120.4,-235.0,-119.7,-267.6,-119.2,-287.0,-118.9,-308.7,-118.2,-342.0,-117.1,-374.1,-116.2,-378.5,-116.1,-392.6,-115.7,-420.7,-114.8,-433.6,-114.7,-444.1,-114.5,-449.9,-114.4,-477.1,-114.0,-514.4,-113.4,-519.1,-113.4,-540.3,-113.1,-556.2,-112.9,-570.9,-112.7,-587.1,-112.5,-590.4,-112.4,-626.7,-111.9,-655.9,-111.5,-666.1,-111.4,-681.3,-111.0,-694.2,-110.9,-762.8,-110.0,-768.9,-109.9,-787.1,-109.7],"w":9,"t":"tertiary","n":"Avenida del Mediterráneo","o":1},{"p":[104.3,-125.1,106.0,-137.6,113.2,-192.0,117.3,-220.8,117.9,-224.8,118.9,-232.5],"w":7,"t":"residential","n":"Avinguda de Castelló","o":1},{"p":[111.5,-113.5,118.8,-112.4,150.4,-103.1,154.2,-102.0,158.0,-100.7,188.1,-92.4,217.4,-84.5,220.7,-83.6,224.3,-82.6,257.9,-73.1,266.8,-70.5,303.6,-60.4,321.0,-54.9],"w":9,"t":"tertiary","n":"Avenida del Mediterráneo","o":1},{"p":[-433.5,-106.4,-420.1,-106.5,-378.2,-107.2,-376.6,-107.3,-364.3,-107.5,-308.4,-108.5,-298.9,-108.7,-286.7,-108.9,-276.9,-108.9,-266.6,-109.1,-252.3,-109.4,-212.2,-110.3,-205.0,-110.5,-184.8,-111.0,-168.5,-111.4,-152.0,-111.5,-133.6,-111.4,-115.2,-111.9,-25.3,-113.6,-19.2,-113.9,66.4,-115.3,83.2,-116.0,95.3,-112.5],"w":9,"t":"tertiary","n":"Avenida del Mediterráneo","o":1},{"p":[94.5,-115.0,95.3,-112.5],"w":9,"t":"tertiary","n":"","o":0},{"p":[239.6,-87.5,234.5,-88.9,229.9,-90.1,217.8,-93.5,187.8,-101.9,157.8,-110.2,151.4,-112.0,142.7,-114.5,121.1,-120.5,117.6,-121.5,109.3,-122.7],"w":9,"t":"tertiary","n":"Avenida del Mediterráneo","o":1},{"p":[321.0,-54.9,324.5,-53.5,346.5,-46.3],"w":9,"t":"tertiary","n":"Avenida del Mediterráneo","o":1},{"p":[240.7,14.8,239.7,21.3,236.1,28.0,230.5,39.4,220.0,68.2,218.4,72.0],"w":2.2,"t":"footway","n":"","o":0},{"p":[85.1,13.6,118.0,28.0,133.7,34.9,136.6,36.2,140.8,38.0,165.4,48.4,191.7,60.2,198.6,63.1,218.4,72.0,254.4,87.7,274.2,96.4,297.1,106.4,299.4,107.5,300.3,107.8,341.4,126.0,346.1,128.0],"w":6,"t":"living_street","n":"Avenida de Madrid","o":1},{"p":[85.1,13.6,56.9,13.4,29.9,13.3,11.1,13.2,-38.0,12.9,-41.0,12.9,-45.5,12.9,-49.3,12.8,-93.5,12.6,-100.0,12.6,-105.3,12.5,-107.9,12.5,-129.5,12.3,-135.0,12.4,-138.5,12.4,-155.9,12.3,-164.5,12.3],"w":6,"t":"living_street","n":"Avenida de Madrid","o":1},{"p":[-430.5,12.8,-407.6,12.6,-396.6,12.5,-377.5,12.3,-369.5,12.2,-366.7,12.2,-343.9,11.9,-341.6,11.9,-296.2,11.5,-275.6,11.6,-240.6,11.8,-207.5,11.9,-202.7,12.0,-164.5,12.3],"w":6,"t":"living_street","n":"Avenida de Madrid","o":1},{"p":[336.0,-60.8,329.6,-62.1,325.8,-62.9,323.2,-63.5],"w":9,"t":"tertiary","n":"Avenida del Mediterráneo","o":1},{"p":[8.6,-124.3,5.0,-171.6,3.4,-192.8,2.2,-210.4,1.4,-221.7],"w":2.2,"t":"footway","n":"","o":0},{"p":[265.2,-80.2,274.9,-114.2],"w":4.5,"t":"service","n":"","o":1},{"p":[-785.0,-101.4,-777.2,-103.6,-769.8,-103.5,-763.5,-103.5,-693.9,-104.8,-680.6,-105.0,-666.0,-105.4,-571.1,-107.1,-555.7,-107.4,-540.4,-107.7,-449.8,-109.4,-433.6,-109.7,-420.4,-109.9,-308.5,-112.0,-286.8,-112.4,-184.5,-114.2,-168.6,-114.5,-152.0,-114.8,88.9,-119.3,94.5,-117.5],"w":2.2,"t":"cycleway","n":"","o":1},{"p":[96.5,-122.1,86.7,-121.8,-152.1,-117.7,-168.7,-117.4,-184.7,-117.0,-286.9,-115.0,-308.6,-114.6,-420.5,-112.5,-433.6,-112.3,-449.9,-112.0,-540.3,-110.3,-555.9,-110.0,-571.0,-109.7,-648.9,-108.2,-666.1,-107.9,-680.9,-107.8,-694.0,-107.5,-720.7,-106.8,-763.2,-106.3,-777.8,-106.2,-785.6,-107.2],"w":2.2,"t":"cycleway","n":"","o":1},{"p":[112.1,-116.8,119.5,-114.8,140.3,-109.5,172.3,-100.5,198.9,-93.2,228.5,-84.9,249.8,-78.9,281.6,-70.0,302.0,-64.2,321.7,-58.2,324.5,-53.5],"w":2.2,"t":"cycleway","n":"","o":1},{"p":[325.8,-62.9,322.5,-61.1,278.7,-73.6,247.3,-82.1,211.6,-92.1,162.7,-105.7,119.9,-117.4,116.7,-118.3,111.4,-119.6],"w":2.2,"t":"cycleway","n":"","o":1},{"p":[61.0,-251.8,58.5,-252.1,56.0,-251.6,53.8,-250.4,52.0,-248.4,51.0,-245.9,50.9,-243.3,51.7,-240.7,53.3,-238.6,55.5,-237.1,58.1,-236.5,60.8,-236.8,63.1,-237.8,64.9,-239.6,66.1,-241.8,66.5,-244.2,66.4,-245.3,66.2,-246.7,65.0,-248.9,63.2,-250.7,61.0,-251.8],"w":7,"t":"residential","n":"","o":0},{"p":[-83.6,-338.3,-86.1,-350.2,-89.0,-354.6,-104.0,-368.4],"w":4.5,"t":"service","n":"","o":1},{"p":[-43.1,-334.3,-37.9,-341.7,-42.8,-345.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[-44.8,-335.5,-43.8,-336.9],"w":2.2,"t":"steps","n":"","o":0},{"p":[-51.3,-319.3,-67.0,-333.8,-69.9,-335.2,-72.4,-335.9,-74.1,-336.3,-79.7,-335.4],"w":4.5,"t":"service","n":"","o":1},{"p":[-54.7,-311.8,-46.7,-320.7,-51.7,-325.1,-50.6,-326.4],"w":2.2,"t":"footway","n":"","o":0},{"p":[-75.7,-331.8,-72.4,-335.9,-68.0,-342.4,-65.2,-347.7,-65.0,-348.0,-63.5,-352.3,-59.5,-360.2,-53.7,-370.9],"w":2.2,"t":"footway","n":"","o":0},{"p":[47.1,-252.6,50.4,-264.7,51.4,-268.7],"w":2.2,"t":"footway","n":"","o":0},{"p":[51.0,-270.5,51.4,-268.7],"w":2.2,"t":"steps","n":"","o":0},{"p":[11.6,-262.2,13.4,-268.2,15.2,-267.9],"w":2.2,"t":"footway","n":"","o":0},{"p":[19.9,-266.8,15.2,-267.9],"w":2.2,"t":"steps","n":"","o":0},{"p":[3.1,-264.6,13.1,-279.8,25.5,-298.8],"w":4.5,"t":"service","n":"","o":0},{"p":[-13.9,-274.9,-5.6,-286.6,9.4,-306.7],"w":4.5,"t":"service","n":"","o":0},{"p":[-17.2,-278.1,-8.3,-288.4,-7.2,-289.6,-13.5,-294.4,1.9,-315.5],"w":2.2,"t":"footway","n":"","o":0},{"p":[-37.9,-341.7,-36.0,-344.6,-41.1,-347.9],"w":2.2,"t":"footway","n":"","o":0},{"p":[156.5,-221.5,159.7,-241.5,162.0,-262.1,161.9,-272.4,159.5,-274.7,142.9,-278.1],"w":4.5,"t":"service","n":"","o":0},{"p":[151.0,-230.6,132.3,-235.5,127.7,-235.7,125.0,-235.4,117.5,-233.0],"w":4.5,"t":"service","n":"","o":1},{"p":[117.5,-233.0,117.0,-235.9,115.7,-238.5,112.9,-240.7,89.9,-246.8],"w":4.5,"t":"service","n":"","o":1},{"p":[110.5,-234.7,112.9,-240.7,118.4,-253.6,124.8,-268.0],"w":4.5,"t":"service","n":"","o":0},{"p":[49.7,-251.7,65.1,-277.5],"w":4.5,"t":"service","n":"","o":0},{"p":[51.9,-251.0,60.1,-264.6,61.5,-264.1],"w":2.2,"t":"footway","n":"","o":0},{"p":[367.0,-280.5,346.0,-284.5,287.3,-295.4,275.8,-302.1],"w":4.5,"t":"service","n":"","o":0},{"p":[322.1,-211.5,326.6,-214.5],"w":4.5,"t":"service","n":"","o":0},{"p":[273.8,-224.5,321.1,-210.8,322.1,-211.5],"w":4.5,"t":"service","n":"","o":0},{"p":[326.6,-214.5,328.3,-215.7,329.8,-240.1,333.9,-262.9,338.5,-282.2],"w":4.5,"t":"service","n":"","o":0},{"p":[263.8,-191.5,273.8,-224.5,288.8,-272.5,292.4,-274.9,294.4,-281.7,303.3,-280.0,307.2,-282.5,321.8,-284.7,338.5,-282.2,340.3,-281.9,366.3,-277.2],"w":4.5,"t":"service","n":"","o":0},{"p":[252.9,-379.4,246.9,-347.8,245.8,-342.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[296.9,-365.7,295.4,-357.8],"w":2.2,"t":"footway","n":"","o":0},{"p":[332.4,-346.0,294.6,-353.4],"w":2.2,"t":"footway","n":"","o":0},{"p":[295.4,-357.8,294.6,-353.4],"w":2.2,"t":"steps","n":"","o":0},{"p":[285.3,-368.8,281.8,-347.3],"w":4.5,"t":"service","n":"","o":0},{"p":[333.2,-350.5,333.1,-349.5,332.4,-346.0,326.9,-317.9,298.5,-322.8],"w":2.2,"t":"footway","n":"","o":0},{"p":[260.9,-192.1,259.1,-197.1,258.2,-198.0,256.3,-199.9,253.2,-201.5,233.2,-207.4],"w":4.5,"t":"service","n":"","o":1},{"p":[184.1,-234.8,185.8,-240.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[256.8,-193.4,258.2,-198.0,260.9,-206.9,262.5,-206.5,270.7,-236.3,268.9,-236.8],"w":2.2,"t":"footway","n":"","o":0},{"p":[-40.9,-341.5,-43.8,-336.9],"w":2.2,"t":"footway","n":"","o":0},{"p":[-65.0,-348.0,-61.8,-350.1,-59.2,-355.0,-56.7,-359.1,-55.8,-359.6],"w":2.2,"t":"footway","n":"","o":0},{"p":[50.4,-264.7,43.5,-266.3,42.9,-267.9,44.7,-270.5],"w":2.2,"t":"footway","n":"","o":0},{"p":[141.6,-293.1,139.2,-287.2,142.9,-278.1],"w":2.2,"t":"footway","n":"","o":0},{"p":[316.3,-177.2,315.2,-170.4],"w":2.2,"t":"footway","n":"","o":0},{"p":[167.9,-218.6,166.4,-212.0,166.0,-209.6,168.1,-207.5,264.2,-182.5,276.2,-179.4,277.7,-180.9,279.6,-187.2],"w":4.5,"t":"service","n":"","o":0},{"p":[142.7,-114.5,139.0,-129.0,139.2,-134.3,140.0,-139.6],"w":2.2,"t":"footway","n":"","o":0},{"p":[149.3,-176.6,147.2,-180.3,146.6,-183.7,148.0,-194.1,149.0,-202.1,132.9,-207.4,131.1,-191.1,127.6,-190.4,120.2,-191.2,113.2,-192.0],"w":4.5,"t":"service","n":"","o":0},{"p":[187.8,-101.9,190.7,-112.6,195.8,-133.4],"w":2.2,"t":"footway","n":"","o":0},{"p":[217.8,-93.5,220.6,-104.3,226.5,-129.7,230.4,-147.4,227.2,-149.5,187.6,-158.1,183.6,-156.6,168.1,-157.5,163.9,-155.0,161.7,-138.1,159.7,-121.2,157.8,-110.2],"w":4.5,"t":"service","n":"","o":1},{"p":[279.4,-143.4,255.1,-150.0,250.0,-150.6,243.0,-146.7,237.7,-134.9,233.5,-114.6,229.9,-90.1],"w":4.5,"t":"service","n":"","o":1},{"p":[272.2,-78.2,275.3,-89.0,280.1,-103.3,285.7,-111.8,287.9,-116.4,290.0,-124.2,293.5,-137.4,298.4,-139.2,324.1,-135.0,333.3,-132.1,344.2,-130.3,349.7,-130.4],"w":4.5,"t":"service","n":"","o":0},{"p":[148.0,-194.1,163.1,-191.2,189.7,-185.2],"w":4.5,"t":"service","n":"","o":0},{"p":[249.3,-84.8,254.9,-103.1],"w":2.2,"t":"footway","n":"","o":0},{"p":[290.0,-124.2,314.0,-117.5],"w":2.2,"t":"footway","n":"","o":0},{"p":[305.9,-112.8,306.7,-116.0,308.0,-115.7],"w":2.2,"t":"footway","n":"","o":0},{"p":[318.1,-109.9,318.9,-112.9,317.5,-113.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[313.3,-114.2,314.6,-114.0],"w":2.2,"t":"footway","n":"","o":0},{"p":[314.0,-117.5,313.3,-114.2,311.8,-114.6],"w":2.2,"t":"footway","n":"","o":0},{"p":[314.6,-114.0,317.5,-113.2],"w":2.2,"t":"steps","n":"","o":0},{"p":[308.0,-115.7,311.8,-114.6],"w":2.2,"t":"steps","n":"","o":0},{"p":[251.4,-29.5,253.5,-24.0,250.2,1.8],"w":4.5,"t":"service","n":"","o":0},{"p":[257.9,-73.1,255.3,-56.8,252.8,-41.0,251.4,-29.5,245.7,16.4,249.2,19.8,251.1,26.0,278.7,30.0],"w":4.5,"t":"service","n":"","o":0},{"p":[307.3,82.2,316.5,78.8],"w":2.2,"t":"footway","n":"","o":0},{"p":[311.6,68.2,308.5,67.0,311.0,58.4,314.5,58.7],"w":2.2,"t":"footway","n":"","o":0},{"p":[321.0,-54.9,319.8,-40.5,321.6,4.8,319.9,27.9,318.5,37.5],"w":2.2,"t":"footway","n":"","o":0},{"p":[316.0,50.9,314.5,58.7,314.2,60.6],"w":2.2,"t":"footway","n":"","o":0},{"p":[313.1,64.1,314.2,60.6],"w":2.2,"t":"steps","n":"","o":0},{"p":[376.1,32.4,368.0,33.4,360.8,34.3,359.7,34.4,348.5,35.7,341.4,36.5,328.1,34.3],"w":4.5,"t":"service","n":"","o":0},{"p":[303.0,96.1,307.3,82.2,311.6,68.2,313.1,64.1],"w":2.2,"t":"footway","n":"","o":0},{"p":[299.4,107.5,300.4,104.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[300.4,104.2,301.1,102.2],"w":2.2,"t":"steps","n":"","o":0},{"p":[297.1,106.4,300.2,95.2,303.0,96.1,301.1,102.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[348.5,35.7,340.6,40.4,318.5,37.5,314.9,36.9,289.9,33.5,286.8,34.6,285.2,44.7,287.8,47.0,312.3,50.2,316.0,50.9,318.5,37.5],"w":4.5,"t":"service","n":"","o":0},{"p":[274.2,96.4,276.2,93.4],"w":2.2,"t":"footway","n":"","o":0},{"p":[254.4,87.7,255.6,84.1,257.4,79.0,257.2,60.5,259.2,57.7],"w":2.2,"t":"footway","n":"","o":0},{"p":[168.5,42.1,171.1,37.0],"w":2.2,"t":"footway","n":"","o":0},{"p":[167.3,44.6,168.5,42.1],"w":2.2,"t":"steps","n":"","o":0},{"p":[165.4,48.4,167.3,44.6],"w":2.2,"t":"footway","n":"","o":0},{"p":[220.7,-83.6,219.0,-66.4,214.4,-23.0],"w":4.5,"t":"service","n":"","o":0},{"p":[224.3,-82.6,222.0,-63.4,220.1,-44.1,222.4,-42.1],"w":2.2,"t":"footway","n":"","o":0},{"p":[198.6,63.1,202.1,45.8],"w":4.5,"t":"service","n":"","o":0},{"p":[136.6,36.2,137.3,31.2,141.1,-6.0,133.5,-7.2,137.0,-36.0],"w":4.5,"t":"service","n":"","o":0},{"p":[133.7,34.9,134.3,29.8,136.6,10.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[144.7,-67.5,147.4,-88.5,146.6,-90.7,150.4,-103.1],"w":2.2,"t":"footway","n":"","o":0},{"p":[123.5,-65.7,124.0,-67.7],"w":2.2,"t":"footway","n":"","o":0},{"p":[118.0,28.0,118.6,22.8,122.1,-7.2,116.0,-8.0,116.4,-10.3],"w":2.2,"t":"footway","n":"","o":0},{"p":[92.5,-38.1,113.7,-37.2,121.1,-36.4,119.4,-26.6,117.9,-23.0,116.4,-10.3],"w":4.5,"t":"service","n":"","o":0},{"p":[154.2,-102.0,152.5,-80.5],"w":4.5,"t":"service","n":"","o":0},{"p":[-38.0,12.9,-37.9,6.5,-37.9,5.0,-37.8,1.9,-36.8,-32.3,-35.8,-37.9],"w":2.2,"t":"footway","n":"","o":0},{"p":[-41.0,12.9,-41.0,0.1,-40.9,-10.8,-41.5,-16.8,-40.9,-37.7,-39.6,-53.2,-41.7,-57.2,-73.5,-58.0,-76.2,-61.2,-77.6,-73.2,-74.3,-76.2,-46.1,-79.4,-28.2,-82.0,-24.3,-82.6,-4.2,-81.3],"w":4.5,"t":"service","n":"","o":0},{"p":[-45.5,12.9,-45.5,2.1,-45.5,-5.0,-45.1,-28.0,-44.9,-41.6,-46.5,-43.6,-73.9,-43.5],"w":4.5,"t":"service","n":"","o":0},{"p":[-49.3,12.8,-49.4,2.1,-49.3,-3.4],"w":2.2,"t":"footway","n":"","o":0},{"p":[-93.5,12.6,-93.6,6.4,-93.6,-0.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[-100.0,12.6,-100.5,2.8,-101.3,-29.6,-101.4,-41.9,-99.8,-44.4,-93.7,-44.1,-92.1,-41.8,-92.1,-25.2],"w":4.5,"t":"service","n":"","o":0},{"p":[-129.5,12.3,-133.6,-111.4],"w":2.2,"t":"footway","n":"","o":0},{"p":[-166.0,-35.4,-159.7,-35.8,-154.2,-36.0,-152.6,-36.0],"w":2.2,"t":"footway","n":"","o":0},{"p":[-107.9,12.5,-108.5,-1.7,-108.9,-11.3],"w":2.2,"t":"footway","n":"","o":0},{"p":[-105.3,12.5,-105.8,-1.8,-106.2,-10.8,-107.6,-45.9,-112.1,-49.6,-115.7,-53.8,-116.0,-64.3],"w":4.5,"t":"service","n":"","o":0},{"p":[-115.2,-111.9,-113.6,-95.2,-108.9,-54.8,-107.6,-45.9],"w":4.5,"t":"service","n":"","o":0},{"p":[-167.3,-77.3,-161.2,-77.1,-154.7,-76.9,-141.0,-76.7,-141.4,-93.0],"w":4.5,"t":"service","n":"","o":0},{"p":[-135.0,12.4,-134.9,6.5,-135.5,-9.8],"w":4.5,"t":"service","n":"","o":0},{"p":[-19.2,-113.9,-18.9,-104.4,-18.8,-98.9],"w":2.2,"t":"footway","n":"","o":0},{"p":[-25.3,-113.6,-24.9,-104.3,-24.9,-97.8,-17.8,-92.2,16.1,-88.6,19.5,-86.0,17.2,-62.8,19.1,-57.3,53.5,-53.2,57.0,-49.7,55.9,-26.6,53.1,-23.5,41.1,-23.4],"w":4.5,"t":"service","n":"","o":0},{"p":[56.6,-81.7,56.7,-83.1,67.2,-83.6,66.4,-115.3],"w":2.2,"t":"footway","n":"","o":0},{"p":[95.5,-58.9,86.8,-60.1,78.8,-61.6,34.4,-67.5,32.7,-71.1,32.3,-82.5],"w":4.5,"t":"service","n":"","o":0},{"p":[57.1,1.3,56.9,13.4],"w":2.2,"t":"footway","n":"","o":0},{"p":[30.2,-0.8,29.9,13.3],"w":4.5,"t":"service","n":"","o":0},{"p":[11.1,13.2,11.0,5.0],"w":2.2,"t":"footway","n":"","o":0},{"p":[-153.3,-0.3,-140.6,-0.4,-138.6,6.5,-138.5,12.4],"w":2.2,"t":"footway","n":"","o":0},{"p":[-153.8,-17.7,-159.1,-17.7,-165.4,-17.6],"w":2.2,"t":"footway","n":"","o":0},{"p":[-155.9,12.3,-155.4,6.6,-153.3,0.7,-153.3,-0.3,-153.8,-17.7,-154.2,-36.0,-154.8,-55.5,-160.4,-55.3,-166.5,-55.0],"w":2.2,"t":"footway","n":"","o":0},{"p":[-141.0,-76.7,-138.8,-19.0],"w":4.5,"t":"service","n":"","o":0},{"p":[-154.7,-76.9,-155.2,-93.6],"w":4.5,"t":"service","n":"","o":0},{"p":[-25.2,-56.2,-16.2,-55.7],"w":2.2,"t":"footway","n":"","o":0},{"p":[-25.3,-56.2,-28.2,-68.7,-28.6,-74.3,-28.2,-82.0],"w":2.2,"t":"footway","n":"","o":0},{"p":[-31.5,-38.2,-27.3,-47.6,-25.2,-56.2,-25.3,-56.2,-37.9,-56.7,-41.7,-57.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[-11.9,-36.1,-21.4,-38.5,-31.5,-38.2,-32.9,-38.2,-35.8,-37.9,-40.9,-37.7],"w":2.2,"t":"footway","n":"","o":0},{"p":[7.5,-70.8,8.6,-80.7,-4.2,-81.3],"w":2.2,"t":"footway","n":"","o":0},{"p":[6.6,-62.8,7.5,-70.8,1.8,-71.4],"w":2.2,"t":"footway","n":"","o":0},{"p":[5.3,-53.5,6.6,-62.8,-0.1,-63.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[-12.4,-26.1,-11.9,-36.1,3.0,-35.9,5.3,-53.5,-1.8,-54.6],"w":2.2,"t":"footway","n":"","o":0},{"p":[-13.5,-9.5,-12.4,-26.1,-23.2,-26.6],"w":2.2,"t":"footway","n":"","o":0},{"p":[-37.9,5.0,-15.6,5.1,-14.4,3.6,-13.5,-9.5,-24.1,-10.0],"w":2.2,"t":"footway","n":"","o":0},{"p":[84.0,-217.2,84.1,-218.4,109.2,-218.4,109.4,-219.8,110.5,-226.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[106.0,-226.9,110.5,-226.2,112.4,-225.8,117.9,-224.8],"w":2.2,"t":"footway","n":"","o":0},{"p":[86.0,-228.1,89.8,-240.7],"w":2.2,"t":"footway","n":"","o":0},{"p":[28.0,-222.5,28.2,-216.7,29.0,-206.4],"w":4.5,"t":"service","n":"","o":0},{"p":[9.6,-172.1,5.0,-171.6],"w":2.2,"t":"footway","n":"","o":0},{"p":[56.9,-124.9,56.7,-135.7,56.1,-151.8,54.0,-172.4],"w":4.5,"t":"service","n":"","o":0},{"p":[44.8,-124.8,44.5,-135.5],"w":2.2,"t":"footway","n":"","o":0},{"p":[2.2,-210.4,-1.5,-210.1],"w":2.2,"t":"footway","n":"","o":0},{"p":[-1.5,-210.1,-6.4,-209.8],"w":2.2,"t":"steps","n":"","o":0},{"p":[3.4,-192.8,-1.0,-192.6],"w":2.2,"t":"footway","n":"","o":0},{"p":[-6.6,-212.1,-6.4,-209.8,-6.3,-208.9],"w":2.2,"t":"footway","n":"","o":0},{"p":[-7.0,-216.1,-6.6,-212.1],"w":2.2,"t":"steps","n":"","o":0},{"p":[-7.6,-221.5,-7.0,-216.1],"w":2.2,"t":"footway","n":"","o":0},{"p":[-16.7,-221.0,-16.1,-211.9,-21.8,-211.6,-21.5,-208.8,-13.4,-209.3,-6.4,-209.8],"w":2.2,"t":"footway","n":"","o":0},{"p":[-32.5,-220.5,-31.7,-213.2,-29.1,-187.1,-27.8,-186.1,-25.4,-186.3],"w":4.5,"t":"service","n":"","o":0},{"p":[-59.3,-122.9,-59.7,-138.4],"w":2.2,"t":"footway","n":"","o":0},{"p":[-30.7,-123.5,-42.2,-220.3],"w":2.2,"t":"footway","n":"","o":0},{"p":[-35.3,-192.3,-38.9,-220.3],"w":4.5,"t":"service","n":"","o":1},{"p":[-91.2,-219.8,-90.4,-192.3],"w":4.5,"t":"service","n":"","o":1},{"p":[-87.4,-122.3,-89.6,-188.1,-86.8,-192.0,-87.5,-219.9],"w":2.2,"t":"footway","n":"","o":0},{"p":[-127.2,-121.5,-127.5,-137.1],"w":2.2,"t":"footway","n":"","o":0},{"p":[-120.5,-219.5,-119.5,-162.6,-120.6,-159.6,-134.4,-159.2,-136.6,-160.8,-136.9,-175.7],"w":4.5,"t":"service","n":"","o":0},{"p":[-73.0,-269.1,-75.7,-267.6,-73.9,-263.0,-75.9,-262.2,-77.7,-267.4],"w":2.2,"t":"footway","n":"","o":0},{"p":[-75.1,-297.1,-78.3,-291.0,-88.2,-282.1],"w":4.5,"t":"service","n":"","o":0},{"p":[-99.3,-233.1,-94.7,-219.7],"w":2.2,"t":"footway","n":"","o":0},{"p":[-31.2,-220.6,-26.5,-237.7],"w":2.2,"t":"footway","n":"","o":0},{"p":[-59.5,-316.3,-64.1,-312.2,-67.0,-309.0,-71.0,-303.5,-75.1,-297.1,-100.0,-275.6,-113.1,-270.1,-119.7,-264.2],"w":4.5,"t":"service","n":"","o":0},{"p":[-103.8,-357.6,-108.3,-353.2,-113.5,-348.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[-148.9,-259.9,-149.2,-260.6,-149.6,-260.4],"w":2.2,"t":"footway","n":"","o":0},{"p":[-149.6,-260.4,-151.4,-259.8],"w":2.2,"t":"steps","n":"","o":0},{"p":[-160.3,-256.2,-160.5,-257.1,-151.4,-259.8],"w":2.2,"t":"footway","n":"","o":0},{"p":[-173.5,-252.6,-167.2,-254.0,-160.3,-256.2,-160.1,-255.5,-148.7,-259.1,-148.9,-259.9,-148.4,-260.0,-146.6,-260.6],"w":2.2,"t":"footway","n":"","o":0},{"p":[-130.0,-219.3,-130.2,-232.2,-130.9,-249.0,-133.8,-253.6,-141.3,-252.4],"w":4.5,"t":"service","n":"","o":0},{"p":[-173.1,-245.1,-165.3,-246.6,-155.9,-248.5,-153.4,-246.4],"w":2.2,"t":"footway","n":"","o":0},{"p":[-150.2,-255.8,-167.1,-250.9,-173.5,-249.7],"w":4.5,"t":"service","n":"","o":0},{"p":[-91.7,-312.0,-73.2,-329.5],"w":4.5,"t":"service","n":"","o":0},{"p":[-45.1,-28.0,-74.4,-27.7],"w":4.5,"t":"service","n":"","o":0},{"p":[109.3,-122.7,107.0,-124.3,104.3,-125.1],"w":9,"t":"tertiary","n":"","o":0},{"p":[104.3,-125.1,101.4,-125.0,98.8,-124.0],"w":9,"t":"tertiary","n":"","o":0},{"p":[95.3,-112.5,97.1,-110.1,99.6,-108.4,102.6,-107.7],"w":9,"t":"tertiary","n":"","o":0},{"p":[102.6,-107.7,105.6,-108.0,108.3,-109.2,110.4,-111.3,111.5,-113.5],"w":9,"t":"tertiary","n":"","o":0},{"p":[111.5,-113.5,112.0,-115.8,112.1,-116.8,111.9,-118.2,111.4,-119.6,111.1,-120.5,109.3,-122.7],"w":9,"t":"tertiary","n":"","o":0},{"p":[98.8,-124.0,96.5,-122.1,95.2,-120.0,94.5,-117.5,94.5,-115.0],"w":9,"t":"tertiary","n":"","o":0},{"p":[323.2,-63.5,272.2,-78.2,265.2,-80.2,260.7,-81.5,249.3,-84.8],"w":9,"t":"tertiary","n":"Avenida del Mediterráneo","o":1},{"p":[249.3,-84.8,245.6,-85.8,239.6,-87.5],"w":9,"t":"tertiary","n":"Avenida del Mediterráneo","o":1},{"p":[-290.1,-338.0,-290.2,-345.5,-290.7,-424.3,-290.7,-432.6,-290.8,-436.7,-291.6,-440.1,-292.5,-444.2,-294.0,-450.2,-296.7,-457.7],"w":7,"t":"residential","n":"Avenida de Filipinas","o":1},{"p":[-287.0,-118.9,-287.1,-131.1,-287.2,-157.7,-287.3,-178.2,-288.0,-207.1,-288.3,-216.8],"w":7,"t":"residential","n":"Avenida de Filipinas","o":1},{"p":[-288.3,-216.8,-288.2,-223.5,-288.2,-230.3,-288.6,-251.0,-288.7,-257.6,-288.9,-269.6,-289.3,-290.3,-289.5,-303.5,-289.7,-314.2,-289.8,-318.4,-289.9,-326.5,-290.1,-338.0],"w":7,"t":"residential","n":"Avenida de Filipinas","o":1},{"p":[-575.3,-331.5,-564.4,-331.4,-547.1,-331.9,-541.3,-331.9,-507.9,-332.6,-488.7,-333.0,-485.6,-333.0,-447.8,-333.9,-440.9,-334.0,-435.7,-334.1,-365.9,-335.7,-364.6,-335.7,-357.9,-335.8,-307.2,-337.0,-304.6,-337.1,-300.5,-337.1,-290.1,-338.0],"w":7,"t":"residential","n":"Calle Lepanto","o":1},{"p":[-290.1,-338.0,-282.0,-338.5,-210.5,-339.2,-198.6,-339.5],"w":7,"t":"residential","n":"Calle Lepanto","o":1},{"p":[-198.6,-339.5,-194.1,-344.8,-153.6,-391.3,-147.0,-398.6],"w":7,"t":"residential","n":"Calle Lepanto","o":1},{"p":[-173.9,-258.1,-180.9,-257.7],"w":2.2,"t":"footway","n":"","o":0},{"p":[-274.4,-290.8,-274.3,-282.6],"w":2.2,"t":"footway","n":"","o":0},{"p":[-276.9,-290.7,-277.2,-306.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[-275.0,-314.8,-274.5,-294.3,-274.4,-290.8,-275.0,-290.8],"w":2.2,"t":"footway","n":"","o":0},{"p":[-276.2,-290.7,-276.9,-290.7,-277.4,-290.7],"w":2.2,"t":"footway","n":"","o":0},{"p":[-289.3,-290.3,-278.8,-290.6],"w":2.2,"t":"footway","n":"","o":0},{"p":[-276.2,-290.7,-275.0,-290.8],"w":2.2,"t":"steps","n":"","o":0},{"p":[-278.8,-290.6,-277.4,-290.7],"w":2.2,"t":"steps","n":"","o":0},{"p":[-289.8,-318.4,-275.6,-318.9,-275.6,-327.0,-271.9,-327.1,-271.8,-326.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[-274.4,-314.9,-275.0,-314.8,-276.5,-314.7],"w":2.2,"t":"footway","n":"","o":0},{"p":[-289.7,-314.2,-279.2,-314.6],"w":2.2,"t":"footway","n":"","o":0},{"p":[-279.2,-314.6,-276.5,-314.7],"w":2.2,"t":"steps","n":"","o":0},{"p":[-288.2,-230.3,-277.8,-230.7,-266.3,-238.5,-266.2,-239.6],"w":2.2,"t":"footway","n":"","o":0},{"p":[-288.6,-251.0,-278.2,-251.4,-274.5,-251.6,-268.8,-253.2,-233.0,-279.9],"w":4.5,"t":"service","n":"","o":0},{"p":[-187.4,-296.8,-174.8,-297.8],"w":2.2,"t":"footway","n":"","o":0},{"p":[-210.5,-339.2,-210.3,-332.5],"w":4.5,"t":"service","n":"","o":0},{"p":[-170.2,-127.4,-179.1,-132.8],"w":2.2,"t":"footway","n":"","o":0},{"p":[-195.7,-120.4,-195.5,-130.8],"w":2.2,"t":"footway","n":"","o":0},{"p":[-195.5,-130.8,-195.5,-133.4],"w":2.2,"t":"steps","n":"","o":0},{"p":[-182.0,-135.4,-195.6,-135.1,-195.5,-133.4],"w":2.2,"t":"footway","n":"","o":0},{"p":[-181.2,-149.9,-179.2,-150.0],"w":2.2,"t":"footway","n":"","o":0},{"p":[-180.8,-134.3,-182.0,-135.4,-180.8,-136.8,-181.2,-149.9,-181.6,-165.7,-179.8,-165.8],"w":2.2,"t":"footway","n":"","o":0},{"p":[-179.1,-132.8,-180.8,-134.3],"w":2.2,"t":"steps","n":"","o":0},{"p":[-170.6,-150.1,-177.6,-150.1],"w":2.2,"t":"footway","n":"","o":0},{"p":[-171.2,-165.9,-178.1,-165.8],"w":2.2,"t":"footway","n":"","o":0},{"p":[-179.2,-150.0,-177.6,-150.1],"w":2.2,"t":"steps","n":"","o":0},{"p":[-179.8,-165.8,-178.1,-165.8],"w":2.2,"t":"steps","n":"","o":0},{"p":[-171.6,-177.3,-178.4,-177.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[-178.4,-177.2,-182.8,-177.0,-182.9,-185.0,-183.6,-185.0],"w":2.2,"t":"steps","n":"","o":0},{"p":[-211.4,-90.6,-226.7,-90.2],"w":4.5,"t":"service","n":"","o":0},{"p":[-202.7,12.0,-202.8,6.6,-203.2,-28.1],"w":2.2,"t":"footway","n":"","o":0},{"p":[-207.5,11.9,-207.5,6.6,-207.6,-16.1],"w":2.2,"t":"footway","n":"","o":0},{"p":[-240.6,11.8,-240.6,6.7,-240.9,-16.3],"w":2.2,"t":"footway","n":"","o":0},{"p":[-252.3,-109.4,-252.0,-99.9,-252.0,-96.7,-251.6,-57.4,-252.8,-54.6,-264.6,-54.4,-267.0,-56.4,-267.4,-94.2,-265.5,-96.5,-252.0,-96.7],"w":4.5,"t":"service","n":"","o":0},{"p":[-212.2,-110.3,-211.8,-100.7,-211.4,-90.6,-211.2,-80.7],"w":4.5,"t":"service","n":"","o":0},{"p":[-205.0,-110.5,-204.7,-85.8],"w":4.5,"t":"service","n":"","o":0},{"p":[-181.9,-59.2,-182.7,-92.9,-184.4,-93.8,-199.0,-93.4,-200.4,-91.7,-199.7,-61.2,-197.6,-59.7,-181.9,-59.2,-179.6,-59.2,-166.7,-59.8],"w":4.5,"t":"service","n":"","o":0},{"p":[-280.0,-44.1,-276.2,-44.2],"w":2.2,"t":"footway","n":"","o":0},{"p":[-291.5,-44.0,-281.3,-44.1],"w":2.2,"t":"footway","n":"","o":0},{"p":[-297.2,-44.0,-292.9,-44.0],"w":2.2,"t":"footway","n":"","o":0},{"p":[-281.3,-44.1,-280.0,-44.1],"w":2.2,"t":"steps","n":"","o":0},{"p":[-292.9,-44.0,-291.5,-44.0],"w":2.2,"t":"steps","n":"","o":0},{"p":[-307.2,-337.0,-307.2,-342.9,-309.3,-345.1,-322.7,-361.1],"w":2.2,"t":"footway","n":"","o":0},{"p":[-304.6,-337.1,-304.9,-344.4,-307.0,-346.8,-323.9,-366.8,-326.6,-366.7,-397.8,-366.0],"w":4.5,"t":"service","n":"","o":0},{"p":[-343.5,-215.9,-344.1,-221.9,-344.8,-229.5,-307.5,-259.0],"w":4.5,"t":"service","n":"","o":0},{"p":[-307.0,-255.0,-304.0,-257.1,-302.0,-257.2,-288.7,-257.6],"w":2.2,"t":"footway","n":"","o":0},{"p":[-327.7,-256.1,-324.9,-256.5,-320.1,-257.9,-314.3,-261.4,-304.9,-268.9,-288.9,-269.6],"w":2.2,"t":"footway","n":"","o":0},{"p":[-328.1,-269.2,-325.8,-287.9,-317.4,-293.5,-298.2,-305.8,-289.5,-303.5],"w":4.5,"t":"service","n":"","o":0},{"p":[-287.2,-157.7,-300.3,-157.0,-310.5,-154.1],"w":2.2,"t":"footway","n":"","o":0},{"p":[-317.4,-216.4,-317.2,-210.7,-317.1,-203.4],"w":2.2,"t":"footway","n":"","o":0},{"p":[-321.2,-185.4,-335.7,-210.3,-336.0,-216.0],"w":4.5,"t":"service","n":"","o":0},{"p":[-307.1,-70.9,-297.9,-71.1],"w":2.2,"t":"footway","n":"","o":0},{"p":[-306.6,-47.0,-297.3,-47.3],"w":2.2,"t":"footway","n":"","o":0}],"ar":[{"p":[-1600.7,315.0,-1588.7,289.0,-1586.1,284.3,-1584.9,281.3,-1583.3,277.8,-1580.4,273.0,-1577.1,268.6,-1574.3,265.7,-1572.0,264.0,-1516.4,231.6,-1515.2,233.9,-1513.3,232.8,-1497.0,225.5,-1477.6,216.9,-1318.4,142.8,-1317.2,145.5,-1221.1,100.7,-1199.7,92.7,-1177.9,85.5,-1130.5,76.7,-933.1,52.2,-698.5,27.5,71.1,23.0,339.7,138.5,373.2,168.0,369.8,203.3,278.3,150.7,209.8,130.0,157.5,109.9,78.5,92.0,-58.9,87.2,-91.1,85.2,-205.5,90.0,-313.6,92.2,-465.7,89.9,-607.1,94.8,-635.3,98.8,-750.0,103.8,-877.2,112.4,-892.5,113.5,-978.7,128.4,-1034.9,132.1,-1088.0,141.1,-1147.0,144.5,-1227.9,165.6,-1276.7,178.3,-1313.7,188.4,-1399.2,225.8,-1454.1,252.2,-1605.8,352.6],"k":"beach"},{"p":[242.8,-338.2,262.4,-325.8,258.8,-318.8,254.0,-317.7,237.0,-328.3],"k":"pool"},{"p":[-2.3,-285.5,10.5,-304.0,15.3,-304.1,2.4,-285.0],"k":"parking"},{"p":[133.1,-305.8,126.4,-309.2,135.2,-326.3,141.9,-322.9],"k":"pool"},{"p":[126.7,-298.0,116.5,-303.0,118.0,-305.9,128.2,-300.8],"k":"pool"},{"p":[165.2,73.5,174.9,79.5,171.3,85.6,161.4,79.4],"k":"pitch"},{"p":[37.3,-170.3,43.5,-170.9,43.8,-167.3,48.9,-167.8,49.6,-160.3,38.3,-159.2],"k":"pool"},{"p":[221.9,-343.6,215.7,-334.1,195.7,-347.0,201.9,-356.5],"k":"pitch"},{"p":[-11.4,-310.0,-33.8,-325.5,-26.8,-335.6,-4.4,-320.1],"k":"pool"},{"p":[61.6,-342.4,66.6,-350.2,80.6,-341.4,78.1,-337.4,80.4,-335.9,77.9,-332.1],"k":"pool"},{"p":[82.9,-339.9,80.7,-336.5,78.9,-337.6,81.1,-341.1],"k":"pool"},{"p":[152.9,-303.3,152.5,-302.6,151.8,-302.1,150.5,-302.3,149.8,-303.3,150.0,-304.6,148.8,-305.2,154.2,-317.2,159.6,-314.8,154.2,-302.7],"k":"pool"},{"p":[208.0,-242.6,210.1,-250.0,213.1,-249.1,212.7,-247.8,214.4,-247.8,216.6,-247.1,218.4,-245.7,219.0,-244.7,219.7,-241.3,219.0,-239.1,216.6,-236.7,214.3,-236.1,212.0,-236.3,210.0,-237.4,208.6,-239.3],"k":"pool"},{"p":[114.6,-370.0,112.7,-371.6,111.2,-373.6,110.4,-376.8,110.5,-379.8,111.6,-383.7,113.6,-386.3,116.5,-388.4,115.9,-389.6,114.7,-389.9,114.0,-390.6,114.2,-391.6,114.8,-392.1,116.7,-392.8,118.5,-392.6,119.0,-391.9,118.3,-389.6,118.7,-388.8,121.5,-388.7,124.7,-387.5,131.4,-381.3,134.4,-379.5,136.0,-379.5,137.4,-380.1,138.5,-381.2,139.3,-383.1,140.9,-385.2,142.2,-386.3,143.2,-386.1,143.8,-385.4,143.6,-384.3,140.6,-381.5,140.9,-380.1,142.1,-379.8,144.3,-380.7,146.2,-382.3,147.6,-384.3,148.5,-386.8,149.0,-389.9,149.0,-393.1,148.5,-395.4,147.0,-398.2,146.7,-400.4,147.3,-401.2,148.3,-400.8,149.0,-398.7,149.8,-397.8,150.8,-398.0,151.5,-398.8,151.5,-400.0,149.1,-406.6,149.0,-409.6,150.1,-413.4,151.2,-415.1,153.1,-416.6,156.1,-417.5,158.4,-417.3,161.3,-416.0,163.3,-413.8,164.2,-410.8,164.1,-408.4,163.4,-406.4,161.5,-404.2,160.5,-402.5,158.3,-402.6,156.3,-402.0,154.4,-400.8,153.0,-399.2,152.2,-397.2,151.9,-395.1,152.4,-393.0,153.5,-391.1,155.0,-389.7,157.0,-388.8,159.2,-388.5,161.4,-388.9,162.3,-387.9,163.1,-385.8,163.4,-384.3,163.2,-382.6,161.9,-379.2,160.8,-377.8,159.4,-376.6,158.8,-375.5,159.3,-374.8,162.5,-374.3,163.0,-373.6,162.9,-372.6,161.6,-370.9,159.9,-370.1,158.9,-370.3,157.7,-372.3,156.5,-373.3,155.5,-373.3,154.7,-372.8,154.4,-371.2,155.2,-369.1,160.0,-364.4,162.0,-359.9,163.0,-358.3,164.8,-356.5,164.9,-354.8,164.3,-353.7,163.3,-353.1,161.7,-352.9,159.6,-354.0,158.0,-355.7,157.0,-358.1,155.8,-359.6,152.8,-362.1,149.3,-364.0,145.3,-365.0,136.6,-364.7,132.3,-364.9,128.1,-365.6,122.2,-367.1],"k":"pool"},{"p":[180.7,-336.3,181.6,-334.3,182.0,-332.3,181.9,-330.2,181.3,-328.1,180.2,-326.3,178.7,-324.8,176.9,-323.7,174.9,-323.1,172.8,-322.9,170.7,-323.3,168.8,-324.1,167.1,-325.4,165.8,-327.0,164.9,-329.0,164.5,-331.0,164.6,-333.1,165.2,-335.2,166.3,-337.0,167.8,-338.5,169.5,-339.6,171.6,-340.2,173.7,-340.4,175.8,-340.0,177.7,-339.2,179.4,-337.9],"k":"pool"},{"p":[196.2,-339.8,197.0,-338.2,196.8,-337.0,196.1,-336.0,194.4,-335.5,192.7,-336.1,192.0,-337.8,192.4,-339.5,194.0,-340.5,195.2,-340.4],"k":"pool"},{"p":[217.1,-264.5,218.3,-263.9,219.1,-262.7,219.1,-260.7,217.8,-259.1,215.8,-258.8,214.5,-259.5,213.7,-260.6,213.7,-262.6,215.0,-264.2],"k":"pool"},{"p":[169.9,-231.4,169.4,-231.8,170.2,-232.7,171.8,-233.1,191.3,-227.6,192.2,-226.7,192.4,-225.4,192.0,-225.2],"k":"garden"},{"p":[-0.8,-361.9,0.2,-361.8,0.7,-361.0,0.4,-360.0,-0.6,-359.7,-1.4,-360.2,-1.5,-361.2],"k":"pool"},{"p":[-65.0,-345.4,-63.1,-347.9,-61.2,-348.8,-65.9,-340.5,-67.0,-341.5],"k":"garden"},{"p":[1.5,-358.8,10.5,-371.3,-8.0,-385.5,-6.4,-387.3,17.9,-369.6,8.2,-354.5],"k":"garden"},{"p":[-9.2,-294.9,-10.3,-295.5,3.8,-315.8,5.1,-315.3],"k":"garden"},{"p":[-4.9,-292.9,-5.8,-298.2,5.1,-313.2,6.2,-307.6],"k":"parking"},{"p":[103.9,-346.1,100.0,-348.5,101.3,-350.7,98.6,-352.3,101.1,-356.3,112.2,-349.6,109.6,-345.3,105.1,-348.0],"k":"playground"},{"p":[44.6,-268.4,46.6,-267.6,46.0,-266.4,44.0,-267.2],"k":"garden"},{"p":[44.0,-273.4,44.4,-271.7,42.2,-267.9,41.1,-268.4],"k":"garden"},{"p":[141.3,-286.8,148.2,-304.3,149.2,-304.0,149.3,-302.8,150.0,-301.7,151.1,-301.3,152.4,-301.5,153.3,-302.3,154.6,-301.7,160.7,-315.4,151.9,-319.3,153.8,-323.5,164.6,-315.1,161.5,-282.6],"k":"garden"},{"p":[140.0,-270.8,141.1,-274.4,158.5,-269.6,158.8,-265.2,149.2,-268.0],"k":"parking"},{"p":[132.6,-271.3,130.8,-271.7,137.8,-287.5,139.2,-287.2,140.3,-287.0,141.3,-286.8,161.5,-282.6,164.6,-281.9,164.3,-277.8,140.6,-282.5,136.1,-272.4],"k":"parking"},{"p":[197.9,-248.0,203.3,-246.6,201.9,-241.3,202.0,-240.0,205.9,-236.9,202.3,-232.7,201.0,-234.6,199.3,-236.2,196.8,-238.1,195.4,-238.8],"k":"garden"},{"p":[210.8,-220.8,218.9,-218.5,218.6,-217.5,210.4,-219.9],"k":"garden"},{"p":[195.5,-331.1,189.7,-331.1,190.0,-332.1,198.2,-333.3,199.2,-334.5,199.9,-337.1,199.9,-340.0,199.1,-342.6,203.4,-339.9,201.0,-331.7],"k":"garden"},{"p":[191.7,-327.5,187.3,-312.5,184.1,-313.4,185.4,-317.8,187.6,-317.1,190.6,-327.8],"k":"garden"},{"p":[179.6,-308.4,175.6,-277.2,174.4,-276.8,173.1,-268.2,171.8,-268.6,171.4,-267.2,163.6,-269.3,164.3,-277.8,164.6,-281.9,167.1,-313.4],"k":"garden"},{"p":[169.0,-247.7,166.3,-248.4,166.9,-251.7,162.3,-253.0,163.6,-269.3,171.4,-267.2,171.8,-268.6,173.1,-268.2,172.0,-264.7,173.5,-264.2],"k":"garden"},{"p":[188.8,-236.7,193.8,-235.5,195.8,-234.9,197.4,-233.8,199.1,-231.8,199.7,-230.5,200.0,-229.5,199.0,-229.4,198.5,-230.7,197.4,-232.6,195.8,-233.9,193.2,-234.8,188.6,-235.9],"k":"garden"},{"p":[183.9,-237.9,183.6,-236.8,169.1,-240.8,169.4,-241.9],"k":"garden"},{"p":[173.4,-361.9,178.5,-361.4,178.1,-357.8,196.4,-355.9,191.1,-347.7,173.5,-358.8],"k":"garden"},{"p":[254.3,-317.0,258.7,-318.0,259.8,-313.1,255.4,-312.2],"k":"pool"},{"p":[271.7,-297.5,273.7,-300.7,291.3,-290.8,303.3,-288.3,302.5,-284.1,293.7,-285.8,289.9,-286.9,287.9,-288.1],"k":"parking"},{"p":[288.1,-191.0,336.9,-177.7,336.2,-175.1,287.4,-188.4],"k":"parking"},{"p":[200.6,-215.9,222.8,-209.8,222.1,-207.2,199.8,-213.3],"k":"parking"},{"p":[168.1,-224.9,190.3,-218.8,189.6,-216.1,167.4,-222.3],"k":"parking"},{"p":[-46.3,-312.4,-20.7,-289.1,-22.6,-287.1,-48.2,-310.5],"k":"parking"},{"p":[179.9,-313.2,179.6,-308.4,167.1,-313.4,167.1,-314.4,156.9,-322.2,158.8,-324.7,178.7,-315.6],"k":"garden"},{"p":[319.9,-101.8,315.4,-103.0,317.2,-108.7,320.4,-107.7,320.5,-107.5,320.2,-102.0],"k":"pool"},{"p":[310.5,-104.0,297.9,-103.4,294.7,-103.9,293.6,-104.9,293.2,-106.4,293.4,-107.5,295.0,-113.3,295.9,-113.7,314.5,-108.4,313.0,-103.8],"k":"pool"},{"p":[130.2,-162.3,130.7,-161.7,131.3,-161.0,131.9,-160.5,133.2,-159.7,134.1,-159.2,134.6,-157.9,132.9,-146.7,129.0,-145.1,128.5,-144.8,126.9,-148.1,126.8,-152.8,128.2,-160.3,128.5,-161.0,129.2,-161.8],"k":"pool"},{"p":[218.5,-112.2,215.6,-113.0,217.8,-120.7,220.7,-119.9],"k":"pool"},{"p":[214.4,-113.4,197.8,-118.1,199.9,-125.8,216.6,-121.0],"k":"pool"},{"p":[334.9,-151.2,335.6,-150.7,334.8,-145.3,334.4,-144.9,321.8,-146.7,321.5,-147.1,322.3,-152.7,322.7,-153.0],"k":"pool"},{"p":[117.4,-170.5,117.9,-174.0,118.1,-173.8,118.3,-173.5,117.9,-170.8],"k":"garden"},{"p":[116.1,-160.2,116.7,-165.3,117.1,-165.2,117.3,-164.7,116.8,-160.9,116.6,-160.3],"k":"garden"},{"p":[113.3,-139.2,114.6,-149.3,114.8,-149.4,115.2,-149.5,115.8,-149.3,116.2,-148.6,116.3,-147.2,116.1,-144.9,115.6,-142.6,114.8,-140.3],"k":"garden"},{"p":[169.9,-162.5,170.4,-165.7,190.3,-162.7,237.9,-155.5,228.6,-122.6,226.4,-123.1,233.7,-152.5,177.2,-161.4,169.7,-159.4],"k":"parking"},{"p":[156.9,-129.7,159.0,-164.3,169.9,-162.5,169.7,-159.4,162.0,-157.3,159.2,-129.8],"k":"parking"},{"p":[223.0,-122.8,209.1,-127.0,207.7,-129.1,207.0,-131.0,208.1,-134.4,224.9,-129.6],"k":"garden"},{"p":[195.0,-117.3,214.6,-112.0,213.2,-106.4,193.6,-111.8],"k":"garden"},{"p":[186.9,-131.4,187.8,-132.1,188.7,-135.6,194.4,-134.3,189.0,-113.1,181.3,-115.2,184.7,-129.3],"k":"garden"},{"p":[170.1,-131.0,179.8,-128.4,178.0,-120.6,168.3,-122.9],"k":"playground"},{"p":[128.2,-130.0,128.5,-131.0,132.8,-129.7,132.6,-128.8],"k":"garden"},{"p":[160.7,-187.0,193.2,-181.5,192.6,-177.3,160.3,-181.9],"k":"parking"},{"p":[164.5,-199.3,194.9,-192.3,194.1,-187.0,163.2,-194.2],"k":"parking"},{"p":[165.0,-179.4,188.6,-176.0,186.9,-164.8,163.3,-168.2],"k":"pitch"},{"p":[300.3,-99.7,314.1,-101.7,321.5,-99.4,322.9,-108.0,319.0,-109.3,320.2,-113.5,332.8,-109.9,333.8,-99.8,332.4,-99.6,334.2,-86.9,299.5,-96.6],"k":"garden"},{"p":[282.2,-102.6,293.3,-120.9,305.2,-117.8,304.3,-114.5,303.1,-113.4,293.3,-116.0,290.0,-104.2],"k":"garden"},{"p":[286.9,-164.5,285.9,-153.8,308.7,-150.8,308.2,-147.7,308.1,-145.2,287.4,-148.0,279.6,-149.0,280.3,-160.7,281.9,-160.5,282.2,-165.0],"k":"garden"},{"p":[343.8,-149.8,340.5,-150.0,340.5,-153.9,339.6,-157.5,337.6,-158.6,323.0,-160.9,323.7,-165.7,327.1,-164.9,327.5,-166.9,332.5,-165.5,332.1,-163.9,333.5,-163.5,333.9,-165.1,340.9,-163.1,343.7,-159.4],"k":"garden"},{"p":[155.6,-115.2,118.1,-125.8,118.9,-128.4,156.4,-117.8],"k":"parking"},{"p":[216.1,-98.8,161.1,-114.1,161.8,-116.7,216.9,-101.3],"k":"parking"},{"p":[117.9,-188.8,111.0,-139.0,108.3,-139.4,115.2,-189.2],"k":"parking"},{"p":[121.9,-216.2,118.5,-193.5,115.8,-193.9,119.2,-216.6],"k":"parking"},{"p":[102.3,-119.3,104.4,-119.2,105.9,-117.7,106.1,-115.6,104.9,-113.8,102.8,-113.3,100.9,-114.2,100.0,-116.1,100.6,-118.1],"k":"garden"},{"p":[282.7,94.5,282.0,93.3,281.9,92.4,282.1,91.5,282.8,90.7,283.4,90.3,284.3,90.1,291.6,92.3,290.0,97.8],"k":"pool"},{"p":[329.7,41.8,338.5,42.9,336.5,59.6,327.8,58.6],"k":"pool"},{"p":[256.1,6.0,255.6,5.9,255.6,6.4,253.7,6.2,253.5,5.5,253.1,5.1,252.7,5.0,252.7,4.7,252.8,2.9,252.9,1.8,253.0,0.3,253.4,-1.8,253.7,-2.8,254.0,-4.2,254.8,-5.2,255.8,-6.0,257.0,-6.3,258.2,-6.2,259.4,-5.8,260.3,-4.9,261.0,-3.9,261.5,-2.7,261.5,-1.8,261.2,-1.0,260.7,-0.3,260.1,0.3,259.2,0.7,258.2,1.6,257.8,2.0,256.7,3.7,256.3,4.6],"k":"pool"},{"p":[221.8,-5.6,223.0,-4.3,225.3,-2.8,225.7,-0.2,225.7,0.8,225.4,1.1,223.9,2.0,222.7,3.2,222.2,3.2,219.6,2.7,219.3,1.3,218.7,0.2,217.9,-0.7,216.8,-1.4,216.7,-1.5,217.1,-3.7,217.0,-5.7,218.2,-8.3,218.5,-9.1,220.5,-9.5,221.2,-8.4,221.4,-7.4,221.4,-6.2],"k":"pool"},{"p":[171.4,1.9,173.3,-18.0,182.8,-13.7,181.1,6.3],"k":"pool"},{"p":[143.3,-49.8,145.6,-48.9,146.8,-48.0,147.6,-47.0,147.4,-45.4,144.4,-45.7,144.3,-47.4,143.6,-48.5,143.2,-48.9],"k":"garden"},{"p":[144.7,-43.9,145.6,-43.6,145.7,-42.6,144.9,-42.0,144.0,-42.3,143.9,-43.3],"k":"garden"},{"p":[247.1,33.8,247.3,32.8,247.8,29.1,284.1,34.4,283.4,39.0,252.6,34.6],"k":"parking"},{"p":[254.2,17.2,282.7,21.1,282.2,26.6,253.4,22.6],"k":"parking"},{"p":[246.7,-20.7,248.0,-21.6,246.5,-10.1,245.4,-10.3],"k":"garden"},{"p":[231.0,-11.9,241.7,-10.7,239.3,9.7,229.0,8.3,230.9,-10.7],"k":"garden"},{"p":[89.6,5.7,94.8,-34.7,97.5,-34.4,92.3,6.1],"k":"parking"},{"p":[95.7,-42.5,103.7,-101.9,106.4,-101.5,98.4,-42.1],"k":"parking"},{"p":[293.2,-6.5,281.0,-20.8,281.3,-21.6,297.5,-17.4,297.3,-8.0],"k":"garden"},{"p":[271.6,39.8,272.8,38.3,276.3,36.9,279.9,40.0,283.6,44.6,282.1,48.7,279.6,50.2,276.8,54.0,274.3,53.6,273.4,46.3],"k":"scrub"},{"p":[244.8,77.5,243.0,75.0,242.2,69.8,241.3,64.3,244.4,58.2,244.5,52.8,243.9,45.5,249.7,38.0,254.3,38.6,254.9,45.8,254.2,47.5,251.5,50.3,248.9,56.8,248.6,61.8,248.6,64.8,250.1,69.1,250.9,72.5,248.6,76.0],"k":"scrub"},{"p":[252.9,82.9,241.0,77.6,249.9,44.6,252.6,34.6,283.4,39.0,280.2,51.0,278.2,58.5,271.8,82.2,269.5,90.4,257.9,85.1,259.1,81.2,260.4,76.7,262.7,75.6,266.4,68.2,271.7,56.4,270.9,45.0,267.8,44.4,267.8,38.5,257.8,36.9,252.8,41.2,249.9,51.5,250.0,63.3,253.3,64.4,253.8,68.1,252.3,72.2,254.7,76.2],"k":"garden"},{"p":[214.0,-12.6,214.1,-13.9,231.0,-11.9,230.9,-10.7],"k":"garden"},{"p":[212.4,13.1,208.9,12.7,209.3,8.2,212.8,8.6],"k":"garden"},{"p":[202.9,51.5,204.1,46.2,206.2,36.3,209.9,36.9,204.6,48.8,205.5,49.0,204.1,52.0],"k":"garden"},{"p":[202.0,56.0,202.8,52.2,205.0,53.0,203.4,56.6],"k":"garden"},{"p":[241.1,33.0,247.1,33.8,252.6,34.6,249.9,44.6,240.5,41.3,241.1,33.2],"k":"garden"},{"p":[237.6,76.1,241.1,66.8,237.8,65.6,238.4,64.5,236.8,63.9,237.8,61.8,243.3,63.7,238.7,76.6],"k":"garden"},{"p":[229.6,72.5,231.6,67.9,233.3,68.7,234.1,66.9,238.2,68.7,235.6,75.2],"k":"garden"},{"p":[223.3,63.8,230.9,44.3,232.7,45.0,231.7,47.5,237.1,49.5,236.6,50.7,232.8,49.2,232.3,50.6,234.0,51.3,232.9,54.1,231.0,53.4,230.6,54.5,228.2,53.6,227.3,56.0,228.4,56.4,227.5,58.9,228.7,59.3,228.0,61.0,231.1,62.2,230.6,63.6,227.9,62.6,226.9,65.1],"k":"garden"},{"p":[206.6,60.2,207.1,59.0,208.7,59.6,209.1,58.6,211.2,59.4,211.8,57.9,218.3,60.5,219.9,56.5,218.8,56.1,219.8,53.6,221.3,54.2,222.3,51.9,223.7,52.5,218.6,65.0],"k":"garden"},{"p":[225.9,45.0,224.1,49.3,215.3,45.6,216.2,43.4,215.1,42.9,216.0,40.9],"k":"garden"},{"p":[320.6,58.2,316.8,55.7,320.3,42.0,323.6,45.3],"k":"parking"},{"p":[49.7,-47.9,49.8,-38.3,46.5,-38.3,46.6,-37.7,50.5,-37.7,50.6,-30.3,47.7,-30.3,47.7,-34.9,46.3,-34.9,46.4,-32.0,40.1,-31.9,40.1,-37.6,44.0,-37.6,44.0,-39.2,37.9,-39.0,37.8,-47.8],"k":"pool"},{"p":[25.3,-35.7,14.0,-35.7,13.7,-35.9,13.7,-42.4,14.0,-42.6,25.3,-42.7,25.7,-42.4,25.7,-36.3],"k":"pool"},{"p":[-54.8,-92.6,-58.0,-92.2,-58.5,-95.7,-54.9,-95.8],"k":"pool"},{"p":[-58.9,-95.7,-58.4,-92.2,-69.4,-90.8,-69.5,-95.5],"k":"pool"},{"p":[-118.2,-31.3,-118.5,-43.3,-112.5,-43.5,-112.2,-31.5],"k":"pool"},{"p":[-101.6,-70.7,-100.1,-71.0,-99.5,-72.0,-99.7,-72.9,-98.5,-73.8,-95.5,-75.3,-93.5,-75.6,-91.0,-75.3,-89.1,-74.3,-87.5,-72.4,-87.1,-70.7,-87.4,-69.1,-88.2,-67.9,-89.7,-66.9,-91.0,-66.7,-96.6,-67.5,-99.5,-67.3,-101.3,-67.7,-103.1,-69.4,-103.2,-70.4,-102.9,-70.9],"k":"pool"},{"p":[-115.4,-79.3,-116.4,-90.0,-114.6,-90.1,-113.6,-79.5],"k":"parking"},{"p":[-118.5,-77.6,-114.2,-77.9,-113.5,-64.4,-113.8,-64.4,-116.0,-64.3,-118.1,-64.2],"k":"parking"},{"p":[-113.4,-54.6,-113.8,-64.4,-113.5,-64.4,-111.6,-64.5,-111.0,-54.8],"k":"parking"},{"p":[-116.6,-51.0,-114.6,-48.9,-111.4,-46.9,-117.6,-46.7,-117.8,-53.5],"k":"garden"},{"p":[-102.7,-16.2,-105.1,-16.1,-106.8,-52.9,-109.5,-78.2,-107.6,-78.4,-106.8,-71.5,-106.7,-70.4,-105.3,-59.1,-104.9,-55.7,-104.6,-53.3,-104.6,-51.9,-104.3,-47.5],"k":"parking"},{"p":[-110.2,-23.1,-110.3,-28.3,-111.2,-42.2,-108.6,-42.5,-107.9,-23.2],"k":"parking"},{"p":[-153.6,6.6,-152.1,1.1,-141.2,1.0,-139.5,6.5],"k":"garden"},{"p":[-160.4,-56.4,-160.5,-59.1,-160.6,-60.2,-156.1,-60.3,-156.0,-56.4],"k":"garden"},{"p":[-159.8,-37.0,-160.4,-54.0,-155.8,-54.2,-155.3,-37.2],"k":"garden"},{"p":[-159.2,-18.8,-159.7,-34.2,-155.2,-34.4,-154.6,-18.9],"k":"garden"},{"p":[-156.3,6.6,-158.3,6.6,-159.1,-16.3,-154.5,-16.5,-154.1,0.9],"k":"garden"},{"p":[-160.1,-67.4,-160.3,-69.0,-159.1,-69.9,-156.2,-69.8,-152.5,-69.9,-148.7,-71.6,-143.7,-72.0,-141.4,-69.6,-141.3,-66.1,-141.5,-63.4,-143.8,-62.5,-145.3,-64.1,-145.9,-66.9,-149.1,-68.0,-152.6,-66.9,-156.1,-65.4,-158.5,-66.1],"k":"scrub"},{"p":[-142.8,-70.7,-142.4,-60.7,-156.1,-60.3,-160.6,-60.2,-160.9,-68.0,-160.9,-70.5],"k":"garden"},{"p":[-92.2,-0.0,-91.4,-0.0,-91.5,6.5,-92.3,6.5],"k":"garden"},{"p":[-95.2,6.0,-94.1,6.0,-94.1,6.5,-95.6,6.5,-95.6,2.7,-95.2,2.7],"k":"garden"},{"p":[-86.2,-51.8,-85.7,-57.3,-85.4,-61.6,-85.5,-64.1,-85.4,-69.1,-85.5,-72.7,-87.9,-75.5,-90.4,-76.1,-93.7,-76.6,-95.8,-77.1,-96.6,-78.0,-96.8,-79.7,-83.0,-81.4,-82.2,-76.9,-78.4,-53.8,-77.4,-51.5,-77.4,-46.0,-77.4,-39.9,-79.3,-39.8,-84.0,-39.8,-84.5,-39.8,-84.6,-46.1,-84.9,-51.7],"k":"garden"},{"p":[-90.5,-51.8,-99.2,-51.9,-105.3,-59.1,-106.7,-70.4,-106.1,-70.4,-105.6,-69.8,-104.1,-67.0,-102.5,-66.0,-100.8,-65.4,-99.0,-65.0,-96.4,-65.6,-92.5,-65.0,-87.2,-63.5,-88.3,-54.5,-90.4,-54.5],"k":"garden"},{"p":[-30.3,-74.4,-49.4,-75.1,-49.1,-77.4,-30.2,-76.5],"k":"parking"},{"p":[-21.8,-89.6,5.1,-86.9,2.2,-83.2,-24.7,-85.8],"k":"parking"},{"p":[-82.2,-76.9,-79.7,-81.8,-32.4,-87.5,-34.5,-83.4],"k":"parking"},{"p":[-75.5,-55.4,-45.4,-55.3,-47.0,-51.7,-77.4,-51.5],"k":"parking"},{"p":[-36.6,-39.1,-38.7,-39.2,-37.1,-55.6,-35.0,-55.4],"k":"parking"},{"p":[-39.9,-16.8,-39.5,-32.4,-38.7,-36.7,-37.2,-36.6,-37.9,-32.4,-38.3,-16.7],"k":"parking"},{"p":[-34.5,-59.8,-34.1,-71.6,-30.4,-70.9,-26.7,-57.0,-31.8,-57.5,-31.6,-59.7],"k":"garden"},{"p":[-36.4,-38.6,-36.7,-38.6,-36.6,-39.1,-35.0,-55.4,-35.0,-55.9,-26.1,-55.6,-28.7,-47.6,-32.2,-39.7,-33.6,-38.9],"k":"garden"},{"p":[3.3,-72.0,3.8,-79.6,7.6,-79.3,6.7,-71.5],"k":"garden"},{"p":[5.4,-63.5,1.4,-63.8,1.9,-70.5,6.2,-70.0],"k":"garden"},{"p":[0.2,-62.4,5.2,-62.2,4.2,-54.6,-0.5,-55.2],"k":"garden"},{"p":[-24.3,-56.5,-24.4,-58.3,-26.8,-68.9,-25.6,-72.5,-25.5,-74.2,-22.8,-74.0,-23.1,-70.1,-15.5,-69.6,-16.2,-56.1],"k":"garden"},{"p":[-17.9,-39.7,-18.0,-38.3,-21.5,-39.6,-29.7,-39.5,-26.1,-47.4,-24.6,-55.4,-24.5,-55.9,-22.1,-55.7,-22.6,-43.7,-21.3,-43.6,-21.4,-40.4,-17.8,-40.3],"k":"garden"},{"p":[-9.4,-38.7,-9.5,-36.7,-13.4,-37.1,-16.3,-38.1,-16.2,-39.5],"k":"garden"},{"p":[-8.0,-38.6,-3.8,-38.5,-2.3,-53.6,4.1,-52.7,2.0,-36.8,-8.1,-36.7],"k":"garden"},{"p":[-21.9,-27.3,-21.8,-37.4,-13.7,-34.7,-13.8,-26.8],"k":"garden"},{"p":[-22.6,-10.5,-21.9,-25.7,-13.9,-25.4,-14.8,-10.1],"k":"garden"},{"p":[-13.4,5.2,-10.3,-35.3,4.4,-35.3,4.3,-34.6,4.2,-34.2,-9.4,-34.4,-9.7,-29.1,-10.6,-14.6,-11.9,5.0,-12.0,6.4,-13.1,6.4,-13.1,5.2],"k":"garden"},{"p":[-36.9,6.5,-36.9,5.9,-14.6,5.6,-14.6,6.4],"k":"garden"},{"p":[-34.5,3.9,-36.8,3.9,-36.7,0.9,-23.4,1.3,-22.9,-9.3,-14.8,-9.0,-15.8,3.7,-16.3,4.3,-34.0,4.5],"k":"garden"},{"p":[4.3,-34.6,4.4,-35.3,6.7,-49.6,11.3,-49.2,34.5,-47.5,33.8,-33.3,28.0,-33.5,28.0,-44.6,11.8,-44.6,11.9,-37.4,9.5,-37.5,9.2,-34.5],"k":"garden"},{"p":[14.6,-28.2,14.6,-32.5,33.8,-32.2,33.6,-28.1],"k":"parking"},{"p":[12.6,-28.7,-9.7,-29.1,-9.4,-34.4,4.2,-34.2,4.2,-33.4,12.6,-32.5],"k":"parking"},{"p":[32.3,-64.4,32.7,-66.4,78.5,-60.3,78.2,-58.4,66.9,-59.9,61.9,-60.5],"k":"parking"},{"p":[29.3,-80.2,31.2,-80.2,31.5,-68.0,29.6,-68.0],"k":"parking"},{"p":[33.0,-90.3,33.9,-90.3,33.9,-84.3,29.2,-84.2,29.0,-90.2],"k":"parking"},{"p":[23.5,-64.8,29.6,-64.7,29.1,-58.5],"k":"garden"},{"p":[61.0,-54.5,61.9,-60.5,66.9,-59.9,66.3,-55.5,66.1,-53.9],"k":"garden"},{"p":[11.9,-54.2,11.3,-49.2,6.7,-49.6,7.4,-54.7],"k":"garden"},{"p":[82.0,4.4,90.5,-56.4,93.2,-56.0,84.7,4.7],"k":"parking"},{"p":[91.4,-62.2,96.8,-102.4,99.5,-102.1,94.1,-61.9],"k":"parking"},{"p":[73.2,-176.8,74.6,-180.1,78.4,-179.9,79.2,-177.8,79.4,-177.8,79.4,-176.8],"k":"pool"},{"p":[62.9,-178.3,70.0,-178.2,70.8,-176.3,79.5,-176.3,79.8,-170.3,63.8,-170.3,63.1,-170.9],"k":"pool"},{"p":[-70.7,-182.2,-70.8,-189.5,-54.4,-189.8,-54.3,-182.5],"k":"pool"},{"p":[-0.8,-141.2,-20.6,-139.9,-21.1,-147.5,-1.3,-148.8],"k":"pool"},{"p":[-141.5,-183.5,-141.7,-190.8,-127.1,-191.1,-126.9,-183.7],"k":"pool"},{"p":[84.4,-173.2,85.7,-174.2,90.9,-170.9,100.7,-169.8,100.2,-166.2,87.9,-160.9,84.3,-165.6],"k":"garden"},{"p":[57.6,-181.1,58.4,-169.5,56.2,-169.5,55.9,-172.5,55.5,-178.6,55.3,-181.1],"k":"garden"},{"p":[59.9,-175.1,59.6,-181.5,74.6,-181.4,74.6,-184.4,81.9,-184.6,82.2,-167.4,72.1,-167.5,72.3,-165.2,70.4,-166.1,65.6,-162.0,56.8,-162.4,56.2,-169.5,58.4,-169.5,80.6,-169.2,80.4,-176.7,78.8,-180.4,74.2,-180.4,72.8,-176.9,71.4,-177.0,70.5,-178.7,62.3,-178.8,62.3,-174.9],"k":"garden"},{"p":[104.7,-219.7,104.4,-224.2,106.2,-224.3,106.0,-226.9,105.9,-229.5,100.7,-229.1,100.0,-229.0,101.4,-232.0,109.3,-229.8,110.9,-228.6,112.2,-227.0,112.4,-225.8,112.9,-223.7,112.3,-219.9,109.4,-219.8],"k":"ped"},{"p":[77.7,-222.2,101.1,-223.8,104.4,-224.2,104.7,-219.7,81.4,-219.7,77.0,-220.8,76.9,-222.1],"k":"garden"},{"p":[89.1,-234.8,90.0,-234.5,89.7,-233.7,88.8,-234.0],"k":"garden"},{"p":[85.1,-236.0,86.0,-235.8,85.7,-235.0,84.8,-235.2],"k":"garden"},{"p":[79.6,-237.4,80.5,-237.2,80.3,-236.4,79.4,-236.6],"k":"garden"},{"p":[74.3,-236.6,74.9,-237.4,75.6,-236.8,75.0,-236.1],"k":"garden"},{"p":[73.2,-235.4,73.8,-236.1,74.5,-235.6,73.9,-234.9],"k":"garden"},{"p":[88.2,-228.2,93.7,-234.0,101.4,-232.0,100.0,-229.0],"k":"garden"},{"p":[64.0,-226.1,66.3,-227.7,66.3,-230.3,74.0,-230.5,74.3,-226.9,72.5,-226.7,72.8,-221.1,65.8,-220.9,64.4,-221.6],"k":"playground"},{"p":[97.0,-173.2,93.9,-173.6,89.4,-177.7,91.4,-186.7,99.1,-187.8],"k":"pool"},{"p":[-17.2,-214.0,-17.1,-213.1,-22.9,-212.8,-24.6,-212.6,-24.7,-213.6],"k":"garden"},{"p":[-26.5,-212.4,-26.0,-207.4,-27.1,-207.4,-27.5,-212.3],"k":"garden"},{"p":[-8.8,-210.8,-15.0,-210.5,-15.4,-216.0,-9.3,-216.1],"k":"garden"},{"p":[-138.6,-157.9,-143.5,-157.7,-144.2,-178.1,-139.3,-178.2],"k":"parking"},{"p":[-138.6,-157.9,-119.0,-158.4,-118.9,-153.9,-138.6,-153.4],"k":"parking"},{"p":[-118.2,-193.7,-112.8,-193.8,-112.1,-158.9,-117.2,-158.8],"k":"parking"},{"p":[-134.7,-178.3,-124.8,-178.5,-124.1,-161.7,-134.2,-161.3],"k":"parking"},{"p":[112.5,-217.4,114.3,-217.2,103.8,-140.9,101.9,-141.2],"k":"parking"},{"p":[58.3,-245.9,59.8,-245.8,60.7,-244.6,60.3,-243.2,59.0,-242.6,57.6,-243.3,57.4,-244.7],"k":"garden"},{"p":[-27.6,-217.0,-27.6,-218.9,25.6,-220.4,25.7,-218.5],"k":"parking"},{"p":[-88.8,-216.3,-88.8,-218.2,-40.4,-218.8,-40.4,-217.0],"k":"parking"},{"p":[-118.2,-215.7,-118.2,-217.5,-93.2,-217.9,-93.2,-216.1],"k":"parking"},{"p":[-158.1,-215.1,-158.1,-217.0,-122.5,-217.5,-122.5,-215.7],"k":"parking"},{"p":[-138.8,-244.0,-134.7,-244.0,-134.7,-241.5,-133.5,-240.5,-133.5,-237.8,-132.8,-237.1,-132.7,-232.9,-138.7,-232.8],"k":"pool"},{"p":[-86.2,-241.6,-79.7,-246.2,-78.3,-241.7,-78.4,-237.8,-78.7,-236.9,-79.8,-235.3,-81.2,-234.5,-82.7,-234.2,-84.6,-234.6,-86.1,-235.7,-86.8,-236.7,-87.2,-238.2,-87.1,-239.5],"k":"pool"},{"p":[-45.9,-251.3,-53.2,-243.9,-56.4,-247.1,-54.9,-248.9,-62.6,-256.5,-57.0,-262.2],"k":"pool"},{"p":[-119.4,-303.2,-113.9,-297.5,-127.0,-284.9,-132.5,-290.6],"k":"pool"},{"p":[-77.8,-242.4,-79.0,-246.6,-77.1,-247.5,-76.0,-243.6,-77.0,-243.3,-77.7,-242.6],"k":"pool"},{"p":[-110.4,-263.6,-112.0,-268.0,-99.0,-273.1,-97.9,-270.4,-97.2,-268.7,-100.2,-267.6],"k":"parking"},{"p":[-127.8,-272.7,-121.7,-266.2,-126.0,-261.9,-132.0,-268.5],"k":"parking"},{"p":[-117.4,-282.8,-111.2,-275.9,-118.7,-268.6,-125.1,-275.4],"k":"parking"},{"p":[-101.6,-281.3,-105.4,-277.4,-113.7,-286.6,-109.8,-290.7,-107.5,-288.0],"k":"parking"},{"p":[-110.4,-263.6,-108.4,-257.8,-128.4,-251.0,-129.4,-257.3],"k":"parking"},{"p":[-127.6,-227.4,-128.7,-227.3,-129.1,-232.2,-124.6,-232.4,-124.4,-231.4,-123.5,-226.2,-127.6,-226.2],"k":"garden"},{"p":[-68.6,-265.0,-66.4,-266.1,-64.1,-265.4,-63.0,-263.3,-63.8,-261.0,-65.9,-259.9,-68.2,-260.6,-69.3,-262.7],"k":"garden"},{"p":[-37.4,-255.5,-37.8,-254.2,-43.3,-259.2,-42.8,-260.5,-39.7,-259.9,-40.1,-258.0,-37.0,-257.4],"k":"garden"},{"p":[-31.7,-245.6,-28.4,-244.7,-29.8,-238.4,-32.3,-227.9,-41.6,-227.6,-41.6,-233.2],"k":"garden"},{"p":[-58.8,-227.4,-58.8,-228.2,-58.9,-229.4,-49.8,-229.6,-49.8,-227.6],"k":"garden"},{"p":[-91.3,-244.6,-87.4,-241.6,-88.1,-240.7,-88.3,-239.0,-88.0,-236.4,-86.4,-233.8,-83.2,-232.6,-80.0,-233.3,-77.8,-234.7,-76.4,-231.3,-77.2,-229.8,-77.1,-228.4,-77.1,-227.1,-93.6,-226.8,-96.1,-234.2,-98.8,-241.7],"k":"garden"},{"p":[-101.5,-306.9,-95.4,-313.6,-94.4,-314.7,-91.7,-312.0,-88.9,-309.2,-87.0,-311.1,-83.2,-307.2,-82.6,-304.4,-80.9,-294.8,-94.6,-283.1,-96.3,-285.6,-98.2,-287.7,-99.7,-290.9,-99.0,-294.3,-99.3,-297.7,-100.5,-300.2,-100.2,-302.8,-99.0,-303.9],"k":"playground"},{"p":[-108.2,-293.8,-111.5,-298.5,-110.5,-299.4,-103.9,-291.3,-107.5,-288.0,-109.8,-290.7,-113.7,-286.6,-117.4,-282.8,-125.1,-275.4,-127.8,-272.7,-132.0,-268.5,-134.4,-266.1,-135.3,-267.3],"k":"garden"},{"p":[-112.4,-310.8,-109.7,-305.6,-107.2,-301.9,-104.7,-299.0,-102.9,-295.9,-102.5,-293.3,-103.1,-291.8,-109.4,-300.8,-111.2,-305.0,-112.7,-307.4,-113.9,-308.9,-114.0,-310.1,-114.5,-310.8,-115.6,-311.2,-116.6,-310.6,-117.7,-311.1,-119.7,-311.3,-121.0,-311.2,-121.8,-312.9,-119.6,-313.5,-116.2,-312.9,-114.4,-312.5],"k":"garden"},{"p":[-140.7,-294.7,-140.9,-296.3,-139.7,-297.8,-136.9,-298.2,-134.1,-296.5,-134.0,-295.5,-136.5,-293.2,-139.3,-293.2,-140.1,-293.8],"k":"pool"},{"p":[-137.7,-277.4,-141.0,-282.5,-143.8,-288.0,-145.4,-293.6,-145.1,-299.2,-144.0,-302.9,-141.6,-304.6,-138.2,-304.6,-136.6,-304.9,-134.9,-306.3,-132.6,-307.6,-131.5,-305.6,-136.4,-302.7,-136.8,-303.2,-137.7,-303.6,-138.7,-303.4,-139.0,-302.2,-139.8,-302.1,-141.8,-301.4,-143.5,-298.3,-144.1,-293.5,-142.9,-288.5,-139.9,-283.0,-136.4,-278.0],"k":"garden"},{"p":[-139.1,-274.6,-141.2,-278.1,-143.9,-282.6,-145.4,-285.6,-144.5,-286.0,-142.9,-283.0,-140.1,-278.5,-137.6,-275.4,-136.8,-271.8,-138.1,-271.2],"k":"garden"},{"p":[-148.9,-262.7,-150.1,-303.7,-151.9,-316.5,-150.3,-317.0,-148.5,-304.0,-147.9,-262.8],"k":"garden"},{"p":[-160.2,-221.2,-160.3,-223.1,-133.5,-223.9,-133.4,-222.0],"k":"parking"},{"p":[-153.0,-385.3,-185.8,-347.6,-187.5,-349.3,-154.7,-386.9],"k":"parking"},{"p":[-169.3,-254.8,-171.2,-254.8,-172.0,-304.1,-173.3,-312.2,-175.4,-318.4,-178.8,-324.8,-183.8,-331.1,-182.5,-332.4,-177.1,-325.6,-173.8,-319.2,-171.4,-312.5,-170.1,-304.2],"k":"parking"},{"p":[-168.1,-230.7,-170.0,-230.6,-170.5,-248.6,-168.6,-248.6],"k":"parking"},{"p":[-127.3,-221.8,-127.3,-223.6,25.3,-226.7,25.4,-224.8],"k":"parking"},{"p":[-157.8,-390.0,-193.8,-348.9,-195.4,-350.6,-159.4,-391.8],"k":"parking"},{"p":[-201.9,-341.5,-279.9,-340.5,-280.0,-342.8,-201.9,-343.7],"k":"parking"},{"p":[-210.4,-251.6,-215.3,-251.4,-215.6,-261.2,-210.8,-261.4],"k":"pool"},{"p":[-218.6,-255.0,-224.4,-256.2,-224.5,-257.0,-224.8,-260.6,-224.3,-261.2,-221.5,-261.1,-220.0,-260.4,-218.8,-259.2,-218.3,-257.9,-217.9,-254.5,-218.5,-254.5],"k":"pool"},{"p":[-218.2,-253.4,-217.6,-243.6,-217.8,-243.5,-234.2,-242.5,-234.5,-242.7,-234.7,-243.1,-235.2,-252.2,-235.0,-252.5,-234.6,-252.7,-218.5,-253.6],"k":"pool"},{"p":[-286.0,-227.1,-286.2,-248.5,-284.0,-248.5,-283.8,-227.2],"k":"parking"},{"p":[-286.5,-254.2,-287.1,-311.0,-284.8,-311.0,-284.2,-254.2],"k":"parking"},{"p":[-213.8,-335.1,-279.9,-334.2,-279.9,-336.5,-213.8,-337.3],"k":"parking"},{"p":[-180.2,-304.8,-178.3,-304.9,-175.2,-226.9,-177.1,-226.9],"k":"parking"},{"p":[-275.8,-219.2,-275.9,-221.1,-183.9,-222.5,-183.9,-220.7],"k":"parking"},{"p":[-237.9,-263.0,-225.4,-272.7,-221.8,-265.4,-220.0,-261.1,-221.9,-261.7,-224.0,-262.0,-225.2,-261.9,-225.2,-263.5],"k":"garden"},{"p":[-202.3,-306.3,-201.5,-307.0,-200.7,-306.6,-200.5,-304.4,-201.1,-304.0,-202.2,-304.7],"k":"pool"},{"p":[-197.3,-298.5,-197.4,-299.6,-196.2,-299.7,-196.3,-300.7,-194.8,-300.8,-194.5,-297.5,-196.0,-297.3,-196.1,-298.6],"k":"garden"},{"p":[-277.9,-232.6,-278.0,-239.6,-269.1,-239.7,-269.1,-237.9,-276.9,-232.6],"k":"garden"},{"p":[-277.8,-229.0,-276.5,-229.2,-266.2,-236.8,-261.9,-237.0,-261.8,-234.7,-251.5,-234.8,-251.5,-237.4,-244.2,-237.4,-244.3,-223.8,-271.0,-223.3,-271.1,-224.8,-274.7,-224.7,-274.6,-223.2,-277.7,-223.1],"k":"garden"},{"p":[-275.3,-307.6,-276.6,-307.6,-277.8,-307.5,-279.0,-307.5,-279.1,-311.0,-275.4,-311.2],"k":"garden"},{"p":[-216.7,-312.1,-216.9,-318.4,-215.4,-318.5,-208.7,-319.0,-208.2,-319.1,-207.2,-314.0,-208.9,-312.3],"k":"playground"},{"p":[-214.3,-297.7,-212.6,-298.1,-211.2,-297.2,-210.8,-295.4,-211.8,-294.0,-213.5,-293.6,-215.0,-294.6,-215.3,-296.3],"k":"pool"},{"p":[-217.6,-271.8,-229.0,-293.1,-221.8,-296.9,-212.5,-279.5,-211.6,-279.5,-211.1,-279.3,-210.5,-278.5,-210.4,-277.8,-210.6,-277.1,-210.9,-276.6,-210.4,-275.6],"k":"pool"},{"p":[-255.5,-272.4,-256.0,-281.3,-242.5,-292.4,-232.8,-293.1,-233.9,-289.2,-234.8,-288.5],"k":"garden"},{"p":[-224.3,-158.9,-217.2,-159.1,-217.0,-152.5,-224.1,-152.3],"k":"garden"},{"p":[-199.7,-147.0,-199.8,-152.1,-188.0,-152.3,-188.0,-147.2],"k":"pool"},{"p":[-185.3,-159.5,-185.2,-152.8,-199.8,-152.5,-199.9,-159.3],"k":"pool"},{"p":[-254.4,-176.5,-251.3,-176.6,-249.2,-166.9,-254.3,-166.7],"k":"pool"},{"p":[-262.4,-124.5,-241.2,-124.9,-241.2,-122.6,-262.4,-122.2],"k":"parking"},{"p":[-285.3,-135.9,-285.9,-175.7,-283.7,-175.7,-283.1,-135.9],"k":"parking"},{"p":[-285.9,-182.2,-286.3,-205.7,-284.1,-205.8,-283.7,-182.2],"k":"parking"},{"p":[-276.4,-213.3,-276.4,-215.2,-184.5,-216.6,-184.4,-214.8],"k":"parking"},{"p":[-169.7,-206.6,-167.8,-206.7,-166.0,-138.4,-167.9,-138.3],"k":"parking"},{"p":[-177.1,-206.6,-175.2,-206.7,-173.4,-138.4,-175.3,-138.3],"k":"parking"},{"p":[-183.0,-133.4,-180.8,-131.0,-193.9,-130.8,-194.0,-133.1],"k":"garden"},{"p":[-209.7,-142.4,-207.9,-142.1,-205.3,-140.5,-202.3,-137.4,-196.7,-133.1,-196.7,-130.7,-199.3,-130.7,-199.8,-134.3,-202.2,-136.2,-205.4,-138.9,-209.6,-140.7],"k":"garden"},{"p":[-210.7,-134.7,-206.9,-135.1,-202.5,-132.2,-202.4,-130.6,-210.7,-130.5],"k":"garden"},{"p":[-220.8,-130.3,-217.5,-134.5,-213.8,-134.8,-213.7,-130.4],"k":"garden"},{"p":[-224.9,-143.3,-214.5,-143.5,-214.3,-141.0,-215.2,-140.2,-221.1,-139.5,-222.1,-140.2],"k":"garden"},{"p":[-226.9,-131.2,-226.8,-130.1,-234.4,-130.0,-241.4,-165.8,-237.9,-166.6,-233.3,-141.4,-229.8,-139.1],"k":"garden"},{"p":[-179.6,-163.5,-178.0,-163.5,-177.7,-153.1,-179.4,-153.1],"k":"garden"},{"p":[-179.2,-147.3,-177.5,-147.3,-177.1,-134.9,-177.9,-134.1,-178.8,-135.1],"k":"garden"},{"p":[-221.7,-41.8,-227.2,-41.7,-227.7,-56.1,-222.2,-56.3],"k":"pool"},{"p":[-216.5,-100.6,-216.1,-88.9,-207.1,-89.0,-207.1,-85.8,-206.8,-57.3,-206.7,-52.5,-206.6,-48.2,-206.3,-19.5,-221.9,-19.0,-222.1,-33.6,-219.7,-33.6,-218.6,-34.1,-218.4,-35.2,-219.5,-58.1,-220.0,-58.8,-220.8,-59.2,-229.9,-58.7,-230.5,-58.2,-230.6,-57.5,-230.0,-38.9,-242.8,-38.7,-243.6,-94.5,-243.7,-100.1,-241.6,-100.1],"k":"parking"},{"p":[-245.2,4.6,-245.1,6.7,-254.7,6.7,-254.7,4.6],"k":"garden"},{"p":[-262.0,6.7,-274.0,6.7,-274.3,-12.2,-271.8,-12.2,-271.6,4.5,-262.1,4.5],"k":"garden"},{"p":[-273.5,-29.6,-272.0,-29.6,-271.7,-19.7,-273.2,-19.7],"k":"garden"},{"p":[-294.5,4.0,-294.8,-41.2,-278.0,-41.4,-277.6,3.5,-277.6,6.9,-294.5,7.1],"k":"garden"},{"p":[-295.5,-94.5,-295.5,-98.6,-278.9,-98.8,-278.8,-94.7,-278.2,-47.5,-294.8,-47.2],"k":"garden"},{"p":[-160.6,-1.7,-162.6,-1.7,-165.2,-74.3,-163.2,-74.4],"k":"parking"},{"p":[-165.9,-94.3,-164.0,-94.3,-163.4,-80.8,-165.4,-80.7],"k":"parking"},{"p":[-171.9,-51.5,-168.4,-54.5,-167.1,-4.6,-170.0,-1.7],"k":"parking"},{"p":[-172.0,-61.6,-172.9,-92.0,-169.2,-94.7,-168.5,-64.7],"k":"parking"},{"p":[-303.6,-358.3,-303.5,-349.8,-305.1,-348.4,-313.2,-357.9],"k":"garden"},{"p":[-310.2,-341.6,-310.1,-339.4,-435.0,-337.3,-435.0,-339.4],"k":"parking"},{"p":[-292.9,-351.6,-296.3,-354.4,-298.2,-442.9,-293.6,-440.8],"k":"parking"},{"p":[-318.6,-287.6,-318.1,-263.9,-323.4,-263.8,-323.5,-287.7],"k":"parking"},{"p":[-336.4,-285.8,-332.5,-291.9,-354.8,-319.4,-353.3,-320.5,-329.2,-291.4,-328.6,-290.7,-328.7,-289.9,-333.5,-283.1,-334.1,-282.5],"k":"parking"},{"p":[-296.6,-310.7,-296.8,-326.7,-293.0,-322.5,-292.7,-307.4],"k":"parking"},{"p":[-291.0,-227.2,-294.4,-230.0,-296.4,-302.7,-292.3,-299.9],"k":"parking"},{"p":[-310.2,-334.6,-310.2,-332.5,-352.2,-331.3,-352.2,-333.5],"k":"parking"},{"p":[-339.6,-218.2,-339.6,-220.1,-302.0,-220.8,-302.0,-219.0],"k":"parking"},{"p":[-314.9,-169.8,-315.9,-169.9,-316.5,-170.5,-317.0,-170.3,-319.7,-175.1,-316.2,-177.1,-313.5,-172.2,-313.9,-172.0,-313.9,-170.5],"k":"pool"},{"p":[-326.9,-162.9,-328.1,-164.1,-328.4,-165.3,-328.3,-166.5,-327.2,-167.9,-327.6,-168.3,-328.6,-168.2,-329.3,-168.5,-329.7,-169.9,-328.8,-171.1,-328.1,-171.2,-327.1,-170.7,-326.5,-171.0,-326.5,-172.6,-325.8,-173.3,-324.7,-173.6,-323.4,-173.0,-322.3,-170.6,-321.9,-168.0,-322.2,-165.8,-323.0,-163.7,-323.8,-163.0,-325.0,-162.5],"k":"pool"},{"p":[-317.2,-169.1,-316.5,-169.5,-315.4,-168.9,-314.3,-168.9,-313.6,-169.2,-312.0,-170.0,-309.3,-165.4,-308.6,-165.7,-308.6,-162.6,-307.1,-162.6,-312.1,-159.9],"k":"garden"},{"p":[-320.7,-175.4,-323.7,-180.8,-322.0,-181.8,-318.6,-183.6,-315.4,-178.3],"k":"garden"},{"p":[-338.7,-207.6,-336.9,-208.7,-322.0,-181.8,-323.7,-180.8,-326.5,-185.8],"k":"parking"},{"p":[-328.0,-162.4,-326.5,-161.5,-324.5,-161.1,-322.4,-161.8,-320.9,-164.3,-320.5,-167.3,-320.8,-170.1,-322.0,-172.9,-323.2,-174.2,-325.3,-174.1,-326.9,-173.1,-327.3,-171.9,-327.9,-172.1,-329.3,-171.8,-330.3,-170.8,-330.4,-169.2,-329.9,-167.9,-328.8,-167.2,-329.2,-165.6,-329.1,-164.5,-333.2,-172.6,-330.5,-175.4,-329.4,-177.1,-331.0,-180.8,-326.5,-185.8,-323.7,-180.8,-320.7,-175.4,-317.2,-169.1,-312.1,-159.9,-309.9,-156.0,-322.8,-152.2],"k":"garden"},{"p":[-339.2,-171.8,-333.9,-171.6,-324.4,-153.4,-329.5,-153.2],"k":"parking"},{"p":[-289.3,-134.4,-292.7,-137.2,-294.2,-206.6,-290.1,-203.8],"k":"parking"},{"p":[-333.2,-212.1,-333.2,-214.0,-301.7,-214.5,-301.7,-212.6],"k":"parking"},{"p":[-320.1,-18.9,-335.8,-18.6,-336.1,-18.9,-336.2,-25.2,-335.9,-25.4,-320.2,-25.7,-319.9,-25.5,-319.8,-19.4],"k":"pool"},{"p":[-324.6,-43.2,-318.5,-43.4,-318.4,-39.6,-324.5,-39.4],"k":"pool"},{"p":[-361.7,-104.2,-312.7,-105.1,-312.6,-102.8,-361.7,-102.0],"k":"parking"}],"br":[{"p":[297.4,1.7,297.9,1.8,298.4,1.7,298.8,1.5,299.1,1.1,299.2,0.7,299.1,0.2,298.9,-0.2,298.5,-0.5,298.1,-0.6,297.6,-0.5,297.2,-0.3,296.9,0.1,296.8,0.5,296.8,1.0,297.1,1.4,297.4,1.7],"k":"wall","h":1.1},{"p":[295.1,3.6,296.6,4.5,298.3,4.7,299.9,4.2,301.2,3.1,302.0,1.6,302.1,-0.0,301.5,-1.6,300.3,-2.8,298.8,-3.4,297.1,-3.4,295.7,-2.8,294.7,-1.8,294.0,-0.5,293.9,1.0,294.3,2.4,295.1,3.6],"k":"wall","h":1.1},{"p":[-312.5,-113.4,-417.6,-111.4],"k":"hedge","h":1.3},{"p":[-149.2,-116.3,79.2,-120.7],"k":"hedge","h":1.3},{"p":[317.4,-61.2,260.3,-77.1],"k":"hedge","h":1.3},{"p":[-81.3,-354.7,-77.5,-359.1,-66.5,-349.4],"k":"wall","h":1.1},{"p":[-90.9,-352.9,-105.5,-366.9,-104.0,-368.4,-102.3,-370.2,-87.8,-356.7],"k":"wall","h":1.1},{"p":[-22.8,-568.0,-5.8,-554.6,10.3,-541.7,13.4,-539.3,16.4,-536.9,10.6,-529.3,2.3,-518.4,-7.9,-505.1,-33.0,-471.8,-19.2,-460.0,-18.5,-459.4,-13.9,-455.5,-24.0,-430.4,-41.6,-395.1,-46.6,-385.9,-54.0,-372.4,-66.5,-349.4,-69.6,-343.8,-73.1,-347.1,-75.0,-348.9,-80.7,-354.1,-81.3,-354.7,-117.3,-388.1,-119.6,-390.3,-125.7,-396.0,-128.5,-398.6],"k":"wall","h":1.1},{"p":[-68.5,-332.1,-52.8,-317.6,-51.3,-319.3,-49.5,-321.3,-65.4,-335.5],"k":"wall","h":1.1},{"p":[-62.7,-351.1,-58.8,-359.1,-58.1,-360.2,-56.9,-361.0,-55.7,-361.1,-54.3,-360.9],"k":"wall","h":1.1},{"p":[-51.7,-327.3,-53.2,-328.7,-53.7,-330.0,-52.2,-331.6,-50.6,-332.8,-49.5,-333.2,-48.4,-333.9,-44.7,-338.7],"k":"fence","h":1.5},{"p":[-69.6,-343.8,-68.0,-342.4,-67.0,-341.5,-65.9,-340.5,-61.2,-348.8,-54.3,-360.9],"k":"wall","h":1.1},{"p":[-48.9,-324.9,-12.4,-291.2,-8.3,-288.4,-5.6,-286.6,0.8,-282.3,4.0,-280.5,7.2,-278.7,9.6,-282.1,22.5,-300.7,26.4,-306.3,40.9,-327.2,44.7,-333.9,68.1,-374.3,75.3,-384.9],"k":"wall","h":1.1},{"p":[-42.6,-334.0,-34.9,-344.9,-18.2,-368.8,-14.9,-366.8,0.3,-357.0,1.5,-358.8,10.5,-371.3,-8.0,-385.5],"k":"wall","h":1.1},{"p":[17.6,-276.9,22.4,-286.6],"k":"wall","h":1.1},{"p":[59.4,-273.7,64.0,-281.7,75.1,-300.8,93.2,-287.4,110.5,-318.2,127.1,-345.1,125.7,-346.2,123.1,-350.0,97.1,-369.7],"k":"wall","h":1.1},{"p":[20.1,-267.6,20.4,-269.1,16.9,-269.9,16.5,-268.5],"k":"fence","h":1.5},{"p":[15.0,-267.2,19.8,-266.1,19.9,-266.8,20.1,-267.6,16.5,-268.5,15.4,-268.7],"k":"wall","h":1.1},{"p":[9.6,-282.1,13.1,-279.8,17.6,-276.9,15.8,-273.9,19.0,-272.1,37.7,-267.2,43.0,-265.8],"k":"wall","h":1.1},{"p":[121.9,-251.3,119.3,-245.6],"k":"wall","h":1.1},{"p":[158.3,-241.8,160.4,-262.0,160.2,-263.8,158.8,-265.2,149.2,-268.0],"k":"wall","h":1.1},{"p":[161.1,-236.5,161.4,-241.1,162.3,-253.0,163.6,-269.3,164.3,-277.8,164.6,-281.9,167.1,-313.4,167.1,-314.4,156.9,-322.2,154.1,-324.4],"k":"wall","h":1.1},{"p":[155.5,-242.4,156.7,-242.1,158.3,-241.8,159.7,-241.5,161.4,-241.1],"k":"fence","h":1.5},{"p":[131.8,-233.1,150.5,-228.2,151.0,-230.6,151.7,-233.4,132.8,-238.4],"k":"wall","h":1.1},{"p":[106.9,-240.0,89.3,-244.9,89.9,-246.8,90.7,-249.4,108.1,-244.8],"k":"wall","h":1.1},{"p":[114.5,-255.3,118.4,-253.6,122.1,-251.9,130.4,-270.8,130.8,-271.7,137.8,-287.5,151.9,-319.3,153.8,-323.5,154.1,-324.4,138.6,-336.2,127.1,-345.1],"k":"wall","h":1.1},{"p":[70.0,-278.3,64.0,-281.7],"k":"wall","h":1.1},{"p":[255.5,-343.8,246.9,-347.8,237.8,-352.5,236.7,-352.7],"k":"wall","h":1.1},{"p":[279.0,-361.0,266.6,-363.3,259.4,-365.7,257.8,-356.7],"k":"wall","h":1.1},{"p":[279.1,-350.8,278.5,-347.9],"k":"wall","h":1.1},{"p":[286.2,-353.5,287.4,-359.4,292.2,-358.4,291.3,-354.2],"k":"wall","h":1.1},{"p":[330.6,-351.0,298.7,-357.2,298.0,-353.3],"k":"fence","h":1.5},{"p":[361.1,-283.7,346.4,-286.6,330.0,-289.7,303.8,-294.8,288.1,-297.8,289.0,-303.0],"k":"wall","h":1.1},{"p":[360.2,-280.0,345.6,-282.4,340.4,-283.3,321.9,-286.3,318.5,-286.5,306.2,-285.7,302.5,-284.1,293.7,-285.8],"k":"wall","h":1.1},{"p":[278.2,-220.6,279.6,-225.5],"k":"fence","h":1.5},{"p":[275.0,-221.4,278.3,-233.3,281.6,-232.5],"k":"fence","h":1.5},{"p":[269.8,-203.3,275.0,-221.4],"k":"fence","h":1.5},{"p":[252.0,-199.4,232.6,-205.3,233.2,-207.4,233.9,-209.5,253.1,-203.7],"k":"wall","h":1.1},{"p":[203.4,-339.9,199.1,-342.6,191.1,-347.7,173.5,-358.8,173.4,-361.9,173.3,-365.2,174.4,-384.7,176.4,-400.0,177.7,-410.5,140.7,-441.2],"k":"wall","h":1.1},{"p":[287.9,-288.1,271.7,-297.5,249.1,-310.6,223.8,-326.9,219.1,-330.0,212.5,-334.2],"k":"wall","h":1.1},{"p":[266.2,-204.3,287.1,-277.1],"k":"wall","h":1.1},{"p":[257.3,-210.7,260.8,-209.8],"k":"wall","h":1.1},{"p":[263.2,-218.2,265.0,-223.9],"k":"fence","h":1.5},{"p":[261.7,-213.0,260.8,-209.8,260.5,-208.8,262.1,-208.4,267.4,-227.1,266.1,-227.6],"k":"wall","h":1.1},{"p":[261.5,-205.7,262.8,-205.3,271.5,-235.6],"k":"wall","h":1.1},{"p":[259.1,-206.4,259.7,-206.2,260.3,-208.1],"k":"wall","h":1.1},{"p":[250.6,-212.7,251.5,-212.4,257.3,-210.7,258.2,-213.9],"k":"wall","h":1.1},{"p":[225.9,-218.7,223.7,-217.9,223.1,-219.0,219.4,-217.3],"k":"fence","h":1.5},{"p":[225.4,-219.7,225.9,-218.7,227.2,-215.5,232.9,-213.8,248.6,-209.4,249.6,-209.1,250.6,-212.7,251.5,-215.9],"k":"wall","h":1.1},{"p":[210.4,-219.9,218.6,-217.5,219.4,-217.3],"k":"wall","h":1.1},{"p":[210.4,-219.9,201.8,-222.3,201.2,-223.1,201.2,-223.9,201.4,-224.8,201.9,-225.3,202.5,-225.5,205.6,-224.7,205.8,-225.7,211.8,-224.1,210.8,-220.8,210.4,-219.9],"k":"wall","h":1.1},{"p":[161.1,-233.8,160.8,-233.9],"k":"wall","h":1.1},{"p":[226.1,-354.5,225.7,-352.3,230.9,-351.5],"k":"wall","h":1.1},{"p":[223.8,-326.9,236.3,-343.3,237.5,-350.9,235.2,-351.4],"k":"wall","h":1.1},{"p":[-43.0,-344.7,-39.3,-342.0,-43.9,-334.9],"k":"wall","h":1.1},{"p":[-41.7,-347.0,-37.9,-344.4,-38.6,-343.4,-39.8,-344.2,-39.4,-344.7,-42.0,-346.5],"k":"wall","h":1.1},{"p":[-40.8,-348.6,-34.9,-344.9],"k":"wall","h":1.1},{"p":[-67.0,-341.5,-65.0,-345.4,-63.1,-347.9,-61.2,-348.8],"k":"wall","h":1.1},{"p":[15.2,-311.1,18.8,-308.6],"k":"wall","h":1.1},{"p":[17.8,-311.4,15.1,-313.3,13.0,-310.6,16.3,-308.4],"k":"wall","h":1.1},{"p":[13.3,-308.6,17.2,-306.2],"k":"wall","h":1.1},{"p":[0.8,-282.3,17.2,-306.2,18.8,-308.6,24.9,-317.6],"k":"wall","h":1.1},{"p":[-10.1,-293.6,-9.2,-294.9,5.1,-315.3],"k":"wall","h":1.1},{"p":[50.1,-330.7,44.7,-333.9],"k":"wall","h":1.1},{"p":[45.0,-269.1,44.6,-268.4,44.0,-267.2,46.0,-266.4],"k":"fence","h":1.5},{"p":[45.5,-265.1,43.0,-265.8,42.2,-267.9,44.4,-271.7],"k":"fence","h":1.5},{"p":[113.2,-296.1,103.7,-300.7,111.2,-313.9],"k":"fence","h":1.5},{"p":[164.6,-281.9,161.5,-282.6,141.3,-286.8,140.3,-287.0],"k":"hedge","h":1.3},{"p":[140.3,-287.0,139.2,-287.2,137.8,-287.5],"k":"fence","h":1.5},{"p":[194.7,-328.3,192.1,-328.5,191.7,-327.5,187.3,-312.5],"k":"wall","h":1.1},{"p":[163.6,-269.3,171.4,-267.2,171.8,-268.6,173.1,-268.2],"k":"wall","h":1.1},{"p":[174.8,-267.6,176.1,-271.6],"k":"wall","h":1.1},{"p":[173.1,-268.2,174.4,-276.8,175.6,-277.2,179.6,-308.4,167.1,-313.4],"k":"wall","h":1.1},{"p":[202.5,-225.5,202.7,-229.3,201.4,-233.1,198.9,-235.6,195.2,-237.8,194.2,-237.9,192.9,-238.2],"k":"wall","h":1.1},{"p":[191.1,-347.7,196.4,-355.9,199.1,-359.9,227.0,-342.3,219.1,-330.0],"k":"fence","h":1.5},{"p":[291.9,-318.3,293.4,-327.0],"k":"wall","h":1.1},{"p":[206.5,-270.0,201.2,-252.0,202.6,-251.6,202.0,-250.0,204.5,-249.3],"k":"fence","h":1.5},{"p":[204.8,-273.0,207.9,-272.2,209.1,-271.9,204.1,-254.3],"k":"fence","h":1.5},{"p":[179.6,-308.4,179.9,-313.2,178.7,-315.6,158.8,-324.7],"k":"wall","h":1.1},{"p":[295.5,-171.0,295.6,-171.9],"k":"wall","h":1.1},{"p":[158.9,-214.1,166.4,-212.0,277.7,-180.9,282.1,-179.6,281.9,-178.7,281.7,-176.9,281.2,-171.8],"k":"wall","h":1.1},{"p":[136.7,-215.3,128.5,-218.6,123.9,-218.5],"k":"wall","h":1.1},{"p":[136.7,-215.3,137.2,-218.8,141.7,-218.9,149.3,-216.8,158.9,-214.1,158.3,-207.2,158.2,-206.5,136.7,-215.3],"k":"wall","h":1.1},{"p":[123.9,-218.5,120.6,-194.4,120.2,-191.2,119.6,-187.0,126.1,-185.9,132.7,-184.3,138.0,-181.8,142.6,-178.5],"k":"wall","h":1.1},{"p":[148.4,-124.3,145.2,-125.2,142.7,-126.0,141.7,-126.7,141.0,-127.6,140.6,-128.5,140.3,-130.3,140.4,-132.7],"k":"wall","h":1.1},{"p":[135.5,-128.0,136.4,-128.5,137.1,-129.6,137.6,-131.4,137.8,-133.8,137.9,-134.7,138.6,-139.2,138.8,-139.8],"k":"wall","h":1.1},{"p":[163.3,-120.2,166.3,-137.1,186.9,-131.4,184.7,-129.3,181.3,-115.2],"k":"wall","h":1.1},{"p":[218.2,-105.0,223.0,-122.8,224.9,-129.6],"k":"wall","h":1.1},{"p":[159.0,-164.3,156.9,-129.7,156.4,-122.1,159.7,-121.2,162.5,-120.4,163.3,-120.2,181.3,-115.2,189.0,-113.1,190.7,-112.6,193.6,-111.8,213.2,-106.4,218.2,-105.0,220.6,-104.3,223.2,-103.6],"k":"wall","h":1.1},{"p":[190.3,-162.7,170.4,-165.7],"k":"wall","h":1.1},{"p":[223.2,-103.6,228.6,-122.6,237.9,-155.5,190.3,-162.7,192.6,-177.3,193.2,-181.5,194.1,-187.0,194.9,-192.3],"k":"wall","h":1.1},{"p":[268.2,-103.9,264.8,-91.9],"k":"fence","h":1.5},{"p":[287.4,-148.0,286.2,-143.7,277.8,-113.4,272.6,-94.6,271.7,-91.5],"k":"wall","h":1.1},{"p":[277.6,-88.3,275.3,-89.0,273.0,-89.6],"k":"fence","h":1.5},{"p":[344.3,-123.9,329.8,-128.3],"k":"wall","h":1.1},{"p":[342.5,-139.1,333.7,-139.9,332.7,-140.0,329.0,-142.4,308.1,-145.2,287.4,-148.0,279.6,-149.0,280.3,-160.7,280.6,-166.7,281.2,-171.8,194.9,-192.3,164.5,-199.3,160.9,-200.1,157.7,-200.8,158.2,-206.5],"k":"wall","h":1.1},{"p":[318.3,-169.5,327.5,-166.9,332.5,-165.5],"k":"wall","h":1.1},{"p":[198.7,-132.6,195.0,-117.3,193.6,-111.8],"k":"hedge","h":1.3},{"p":[189.0,-113.1,194.4,-134.3],"k":"hedge","h":1.3},{"p":[148.2,-131.3,148.8,-125.6],"k":"wall","h":1.1},{"p":[192.6,-177.3,160.3,-181.9],"k":"fence","h":1.5},{"p":[159.2,-167.5,160.3,-181.9,160.7,-187.0,160.8,-189.4],"k":"wall","h":1.1},{"p":[308.0,-114.7,317.7,-112.0],"k":"wall","h":1.1},{"p":[314.9,-115.0,320.2,-113.5,332.8,-109.9,333.8,-99.8],"k":"wall","h":1.1},{"p":[281.6,-101.6,282.2,-102.6,293.3,-120.9,305.2,-117.8,312.1,-115.9],"k":"wall","h":1.1},{"p":[287.1,-165.7,282.3,-166.4,280.6,-166.7],"k":"wall","h":1.1},{"p":[237.9,-155.5,274.3,-148.3,279.6,-149.0],"k":"wall","h":1.1},{"p":[173.7,-101.2,146.3,-108.8],"k":"hedge","h":1.3},{"p":[231.0,-85.3,203.0,-93.1],"k":"hedge","h":1.3},{"p":[149.3,-65.2,147.3,-65.5,145.3,-65.7],"k":"wall","h":1.1},{"p":[151.9,-92.9,151.7,-90.2,150.8,-80.7,152.5,-80.5,154.4,-80.3,155.4,-91.9],"k":"wall","h":1.1},{"p":[122.8,7.0,124.4,-5.9,124.7,-8.3,128.1,-35.7],"k":"wall","h":1.1},{"p":[128.1,-35.7,128.7,-39.7,134.8,-39.4,141.2,-39.1,142.4,-39.1,146.8,-38.9,144.0,-10.0,139.9,32.3],"k":"hedge","h":1.3},{"p":[99.9,-41.4,114.1,-40.6,123.4,-40.0,128.7,-39.7],"k":"fence","h":1.5},{"p":[147.4,-45.4,144.4,-45.7,144.3,-47.4,143.6,-48.5,143.2,-48.9,143.3,-49.8,145.3,-65.7],"k":"fence","h":1.5},{"p":[141.5,-42.3,143.0,-43.1,143.8,-44.2,147.3,-44.1,146.8,-38.9],"k":"fence","h":1.5},{"p":[296.4,0.6,296.7,-0.3,297.3,-0.8,298.2,-1.0,299.0,-0.6,299.5,0.2,299.5,1.1,299.0,1.8,298.2,2.1,297.3,2.0,296.6,1.4,296.4,0.6],"k":"wall","h":1.1},{"p":[252.0,2.0,250.2,1.8,248.2,1.5,251.5,-24.4],"k":"wall","h":1.1},{"p":[252.5,-57.2,255.3,-56.8,257.9,-56.4,256.0,-40.6],"k":"fence","h":1.5},{"p":[285.3,25.7,282.7,21.1],"k":"wall","h":1.1},{"p":[322.3,30.9,328.5,31.8,344.8,34.1,359.4,32.0],"k":"wall","h":1.1},{"p":[339.7,38.5,327.8,36.8,328.1,34.3,328.5,31.8],"k":"wall","h":1.1},{"p":[321.0,60.9,320.5,58.9,320.6,58.2,323.6,45.3,324.2,42.5,327.5,41.0,342.3,43.0],"k":"wall","h":1.1},{"p":[278.3,94.3,292.3,100.6],"k":"wall","h":1.1},{"p":[269.5,90.4,274.8,92.7],"k":"wall","h":1.1},{"p":[283.4,39.0,284.1,34.4,284.6,31.0,285.3,25.7,316.1,30.0],"k":"wall","h":1.1},{"p":[309.6,59.3,310.4,56.8,312.3,50.2,312.8,48.5,313.1,47.6,314.6,38.8,314.9,36.9,315.2,35.1,316.1,30.0],"k":"fence","h":1.5},{"p":[301.1,90.0,301.8,87.5,307.9,65.5,308.3,64.1],"k":"wall","h":1.1},{"p":[280.2,51.0,283.4,39.0,252.6,34.6,247.1,33.8,241.1,33.0,241.3,31.9],"k":"wall","h":1.1},{"p":[241.0,77.6,252.9,82.9,255.6,84.1,257.9,85.1,269.5,90.4,271.8,82.2,278.2,58.5],"k":"wall","h":1.1},{"p":[212.2,-23.2,209.3,8.2,208.9,12.7,207.5,28.1,206.3,35.8,206.2,36.3,204.1,46.2],"k":"wall","h":1.1},{"p":[213.4,13.2,212.4,13.1,208.9,12.7],"k":"fence","h":1.5},{"p":[238.5,11.9,243.7,12.5],"k":"fence","h":1.5},{"p":[252.6,34.6,249.9,44.6,241.0,77.6],"k":"fence","h":1.5},{"p":[246.5,-10.1,243.7,12.5,242.7,20.4],"k":"wall","h":1.1},{"p":[245.4,-10.3,246.7,-20.7,248.0,-21.6],"k":"wall","h":1.1},{"p":[241.7,-10.7,239.3,9.7],"k":"wall","h":1.1},{"p":[213.8,-10.6,214.0,-12.6,214.1,-13.9,231.0,-11.9,241.7,-10.7,245.4,-10.3,246.5,-10.1,248.0,-21.6,252.5,-57.2,253.3,-64.3],"k":"wall","h":1.1},{"p":[216.2,-66.9,212.2,-23.2,214.4,-23.0,216.4,-22.8,217.8,-38.7],"k":"wall","h":1.1},{"p":[216.2,-66.9,219.0,-66.4,221.0,-66.1,220.7,-63.7,222.0,-63.4,222.7,-63.3],"k":"wall","h":1.1},{"p":[197.2,58.0,200.3,45.5,202.1,45.8,204.1,46.2,202.9,51.5,202.8,52.2,202.0,56.0,201.2,59.8,202.4,60.3,220.0,68.2,229.6,72.5,235.6,75.2,236.8,75.7,237.6,76.1,238.7,76.6,241.0,77.6],"k":"wall","h":1.1},{"p":[120.7,23.7,126.2,26.2,126.8,25.2],"k":"wall","h":1.1},{"p":[133.9,21.4,133.0,29.2,128.3,27.1,128.7,26.1],"k":"wall","h":1.1},{"p":[121.7,15.5,120.7,23.7],"k":"wall","h":1.1},{"p":[149.3,-65.2,147.6,-47.0,147.4,-45.4],"k":"hedge","h":1.3},{"p":[115.7,21.3,118.6,22.8,120.7,23.7],"k":"fence","h":1.5},{"p":[113.4,-34.3,113.7,-37.2,114.1,-40.6],"k":"fence","h":1.5},{"p":[151.7,-90.2,149.6,-90.6,147.3,-91.0],"k":"fence","h":1.5},{"p":[214.0,-12.6,230.9,-10.7,231.0,-11.9],"k":"wall","h":1.1},{"p":[-38.8,0.2,-41.0,0.1,-43.2,0.0],"k":"fence","h":1.5},{"p":[-50.3,-0.5,-50.3,2.1,-50.3,6.5],"k":"fence","h":1.5},{"p":[-14.6,6.4,-36.9,6.5,-37.9,6.5,-39.0,6.5,-38.8,0.2,-38.4,-14.1],"k":"wall","h":1.1},{"p":[-54.2,6.5,-50.3,6.5],"k":"fence","h":1.5},{"p":[-60.6,6.5,-56.9,6.5],"k":"fence","h":1.5},{"p":[-43.3,6.5,-43.3,2.1,-43.2,0.0,-42.4,-46.3,-42.3,-51.7,-45.4,-51.7,-47.0,-51.7,-77.4,-51.5],"k":"wall","h":1.1},{"p":[-48.4,2.1,-45.5,2.1,-43.3,2.1],"k":"fence","h":1.5},{"p":[-48.3,-4.2,-48.4,2.1,-49.4,2.1,-50.3,2.1],"k":"fence","h":1.5},{"p":[-107.6,-78.4,-98.8,-79.5,-96.8,-79.7,-83.0,-81.4],"k":"wall","h":1.1},{"p":[-77.6,-22.6,-77.5,-27.6,-77.4,-39.9,-77.4,-46.0,-77.4,-51.5,-78.4,-53.8,-82.2,-76.9,-83.0,-81.4],"k":"hedge","h":1.3},{"p":[-77.7,6.5,-77.7,-5.0,-77.6,-16.2,-77.6,-21.0,-77.6,-22.6],"k":"wall","h":1.1},{"p":[-102.1,2.7,-100.5,2.8,-95.6,2.7,-95.6,6.5,-94.1,6.5,-93.6,6.4,-92.3,6.5,-91.5,6.5],"k":"wall","h":1.1},{"p":[-107.6,-1.7,-108.5,-1.7,-109.4,-1.7],"k":"fence","h":1.5},{"p":[-102.4,-1.9,-105.8,-1.8,-107.6,-1.7,-108.1,-13.7],"k":"fence","h":1.5},{"p":[-109.7,-95.4,-107.6,-78.4,-106.8,-71.5,-106.7,-70.4,-105.3,-59.1,-104.9,-55.7,-104.6,-53.3,-104.6,-51.9,-104.3,-47.5,-102.7,-16.2,-102.4,-1.9,-102.1,2.7,-101.9,6.4],"k":"wall","h":1.1},{"p":[-116.9,-95.1,-113.6,-95.2,-109.7,-95.4,-110.6,-102.3],"k":"wall","h":1.1},{"p":[-159.0,-100.0,-157.9,-101.4,-154.6,-101.4],"k":"fence","h":1.5},{"p":[-161.8,-96.5,-160.1,-98.6],"k":"fence","h":1.5},{"p":[-131.9,-13.5,-131.3,6.5],"k":"wall","h":1.1},{"p":[-131.3,6.5,-134.9,6.5,-138.6,6.5,-139.5,6.5,-153.6,6.6,-155.4,6.6,-156.3,6.6,-158.3,6.6,-159.1,-16.3,-159.1,-17.7,-159.2,-18.8,-159.7,-34.2,-159.7,-35.8,-159.8,-37.0,-160.4,-54.0,-160.4,-55.3,-160.4,-56.4,-160.5,-59.1,-160.6,-60.2,-160.9,-68.0,-160.9,-70.5,-161.1,-74.3,-161.2,-77.1,-161.3,-80.3,-161.8,-96.5,-157.4,-96.1,-154.6,-95.9,-152.4,-95.7,-143.7,-94.9,-143.1,-94.9,-139.3,-94.6,-134.4,-94.1,-132.1,-17.2],"k":"wall","h":1.1},{"p":[-33.1,-104.1,-37.9,-103.9,-82.1,-103.0,-110.6,-102.3],"k":"wall","h":1.1},{"p":[-16.4,-104.5,-18.9,-104.4,-24.9,-104.3,-33.1,-104.1,-32.5,-91.2],"k":"wall","h":1.1},{"p":[86.5,-57.3,86.8,-60.1,87.0,-62.1],"k":"fence","h":1.5},{"p":[66.9,-59.9,61.9,-60.5,32.3,-64.4,29.6,-64.7,29.6,-68.0,29.3,-80.2,29.2,-84.2,29.0,-90.2],"k":"wall","h":1.1},{"p":[21.4,5.0,21.4,6.4,12.6,6.4,12.6,5.0],"k":"wall","h":1.1},{"p":[28.2,5.0,28.2,6.4,23.9,6.4,23.8,5.0],"k":"wall","h":1.1},{"p":[-9.4,5.0,-9.5,6.4,9.5,6.4,9.4,5.0],"k":"wall","h":1.1},{"p":[-11.9,5.0,-12.0,6.4,-13.1,6.4],"k":"wall","h":1.1},{"p":[39.0,-0.6,34.2,-0.7,33.9,6.4,32.9,6.4,32.0,6.4,32.3,-0.8],"k":"wall","h":1.1},{"p":[33.0,-14.8,33.6,-28.1,33.8,-32.2],"k":"wall","h":1.1},{"p":[6.7,-49.6,11.3,-49.2,34.5,-47.5,33.8,-33.3,33.8,-32.2],"k":"hedge","h":1.3},{"p":[6.7,-49.6,7.4,-54.7,9.9,-74.4],"k":"wall","h":1.1},{"p":[-10.6,-14.6,-9.7,-29.1,-9.4,-34.4],"k":"wall","h":1.1},{"p":[-32.4,-87.5,-79.7,-81.8,-83.0,-81.4],"k":"wall","h":1.1},{"p":[10.6,-79.5,10.9,-82.2,11.4,-86.3,5.1,-86.9,-21.8,-89.6,-22.8,-89.7,-25.9,-90.0],"k":"wall","h":1.1},{"p":[-9.4,-34.4,4.2,-34.2,4.3,-34.6,4.4,-35.3,6.7,-49.6],"k":"hedge","h":1.3},{"p":[-116.0,-19.2,-116.0,-23.7],"k":"wall","h":1.1},{"p":[-111.4,-46.9,-114.6,-48.9,-116.6,-51.0,-117.8,-53.5],"k":"wall","h":1.1},{"p":[-118.1,-64.2,-116.0,-64.3,-113.8,-64.4,-113.4,-54.6,-111.9,-52.6],"k":"wall","h":1.1},{"p":[-116.2,-25.8,-116.2,-28.0,-115.7,-28.1,-112.8,-28.2,-110.3,-28.3,-111.2,-42.2,-111.4,-46.9,-117.6,-46.7],"k":"wall","h":1.1},{"p":[-159.8,-37.0,-155.3,-37.2,-155.8,-54.2,-160.4,-54.0],"k":"wall","h":1.1},{"p":[-159.2,-18.8,-154.6,-18.9,-155.2,-34.4,-159.7,-34.2],"k":"wall","h":1.1},{"p":[-156.3,6.6,-154.1,0.9,-154.5,-16.5,-159.1,-16.3],"k":"wall","h":1.1},{"p":[-153.6,6.6,-152.1,1.1,-141.2,1.0,-139.5,6.5],"k":"wall","h":1.1},{"p":[-92.3,6.5,-92.2,-0.0,-91.4,-0.0],"k":"wall","h":1.1},{"p":[-94.1,6.5,-94.1,6.0,-95.2,6.0,-95.2,2.7,-95.6,2.7],"k":"wall","h":1.1},{"p":[-84.0,-39.8,-83.9,-28.7,-79.1,-28.7,-79.3,-39.8,-84.0,-39.8],"k":"hedge","h":1.3},{"p":[-84.6,-46.1,-84.9,-51.7],"k":"wall","h":1.1},{"p":[-99.2,-51.9,-90.5,-51.8,-89.2,-51.8,-86.9,-51.8,-86.2,-51.8,-84.9,-51.7],"k":"hedge","h":1.3},{"p":[-99.3,-8.3,-99.4,-19.3,-99.6,-30.1,-99.7,-37.8,-98.5,-39.5,-96.9,-39.9,-95.4,-39.1,-94.8,-37.2,-95.1,-24.0,-96.4,-23.5,-97.0,-21.9,-97.0,-19.4,-99.4,-19.3],"k":"wall","h":1.1},{"p":[-38.3,-16.7,-37.9,-32.4,-37.2,-36.6,-37.1,-37.0],"k":"wall","h":1.1},{"p":[-29.7,-74.4,-30.3,-74.4,-49.4,-75.1],"k":"wall","h":1.1},{"p":[-20.4,-73.9,-22.8,-74.0,-25.5,-74.2,-27.7,-74.3],"k":"wall","h":1.1},{"p":[-36.7,-38.6,-36.6,-39.1,-35.0,-55.4,-35.0,-55.9],"k":"wall","h":1.1},{"p":[12.5,-21.9,12.6,-28.7,12.6,-32.5,4.2,-33.4,4.2,-34.2],"k":"wall","h":1.1},{"p":[14.6,-21.9,14.6,-28.2,14.6,-32.5,33.8,-32.2],"k":"wall","h":1.1},{"p":[33.6,-28.1,35.1,-28.1,36.7,-28.1,36.6,-26.6],"k":"fence","h":1.5},{"p":[34.5,-47.5,34.6,-49.0],"k":"wall","h":1.1},{"p":[36.6,-26.6,52.3,-26.8,54.1,-28.3,53.9,-49.9,52.4,-51.4,37.4,-51.6],"k":"hedge","h":1.3},{"p":[55.9,-172.5,55.5,-178.6],"k":"wall","h":1.1},{"p":[89.0,-234.9,88.7,-233.9,89.8,-233.6,90.1,-234.6,89.0,-234.9],"k":"wall","h":1.1},{"p":[85.0,-236.2,84.7,-235.2,85.8,-234.8,86.1,-235.9,85.0,-236.2],"k":"wall","h":1.1},{"p":[79.5,-237.6,79.2,-236.6,80.3,-236.2,80.6,-237.2,79.5,-237.6],"k":"wall","h":1.1},{"p":[74.2,-236.6,75.0,-236.0,75.7,-236.9,74.9,-237.5,74.2,-236.6],"k":"wall","h":1.1},{"p":[73.1,-235.4,73.9,-234.7,74.7,-235.6,73.8,-236.3,73.1,-235.4],"k":"wall","h":1.1},{"p":[64.4,-221.6,65.8,-220.9,72.8,-221.1,75.8,-221.3],"k":"fence","h":1.5},{"p":[62.3,-228.1,66.3,-231.3,69.3,-232.6,73.2,-232.7,74.9,-231.4,75.3,-226.6],"k":"fence","h":1.5},{"p":[64.5,-149.9,58.0,-147.1],"k":"wall","h":1.1},{"p":[95.6,-163.5,100.1,-165.3,101.3,-165.8],"k":"wall","h":1.1},{"p":[52.4,-217.1,68.8,-217.3],"k":"wall","h":1.1},{"p":[70.4,-217.0,80.8,-217.2,84.0,-217.2,87.7,-217.3,102.1,-217.5,105.4,-213.7,108.6,-210.2,105.4,-187.1,103.4,-172.2,103.1,-170.1,102.2,-170.3,102.0,-169.0,101.8,-167.7,102.7,-167.6,102.6,-165.7],"k":"wall","h":1.1},{"p":[30.0,-216.7,28.2,-216.7,26.5,-216.7],"k":"fence","h":1.5},{"p":[30.0,-216.7,31.0,-206.7,29.0,-206.4,27.4,-206.3,26.5,-216.7],"k":"wall","h":1.1},{"p":[22.4,-155.8,35.7,-156.5,33.8,-176.5],"k":"wall","h":1.1},{"p":[58.9,-135.8,58.0,-147.1,56.8,-162.4,56.2,-169.5,55.9,-172.5,54.0,-172.4,51.8,-172.3,53.7,-157.3,49.5,-157.0],"k":"wall","h":1.1},{"p":[54.8,-135.7,56.7,-135.7,58.9,-135.8],"k":"fence","h":1.5},{"p":[-2.2,-209.2,0.3,-209.4,1.2,-195.5,-1.2,-195.3],"k":"wall","h":1.1},{"p":[-14.9,-166.2,-14.3,-155.4,-12.0,-155.6,1.4,-156.6,1.1,-160.3],"k":"wall","h":1.1},{"p":[-24.5,-172.4,-26.7,-172.2,-31.0,-171.8],"k":"wall","h":1.1},{"p":[-15.0,-210.5,-8.8,-210.8,-9.3,-216.1,-15.4,-216.0],"k":"wall","h":1.1},{"p":[-15.4,-216.0,-15.0,-210.5,-20.8,-210.2],"k":"wall","h":1.1},{"p":[-23.8,-215.9,-17.3,-216.0,-17.2,-214.0,-17.1,-213.1,-22.9,-212.8,-22.4,-207.7],"k":"fence","h":1.5},{"p":[-27.1,-207.4,-27.5,-212.3,-27.6,-213.3,-27.8,-215.8,-25.5,-215.8],"k":"wall","h":1.1},{"p":[-35.4,-213.0,-31.7,-213.2,-27.6,-213.3],"k":"fence","h":1.5},{"p":[-33.2,-192.5,-33.1,-191.3,-32.1,-181.8,-31.0,-171.8,-27.6,-139.3,-27.0,-134.0,5.6,-134.7,4.2,-154.8,1.8,-187.7,0.5,-189.8,-0.9,-190.4],"k":"wall","h":1.1},{"p":[-144.2,-178.1,-139.3,-178.2,-134.7,-178.3,-124.8,-178.5,-121.1,-178.5,-121.4,-194.0],"k":"wall","h":1.1},{"p":[-40.1,-215.6,-37.0,-192.1,-35.3,-192.3,-33.2,-192.5,-35.4,-213.0,-35.7,-215.7],"k":"wall","h":1.1},{"p":[-89.1,-214.8,-88.5,-192.3,-90.4,-192.3,-92.1,-192.3,-92.5,-214.7],"k":"wall","h":1.1},{"p":[-77.7,-264.7,-76.5,-261.2,-73.5,-262.3,-73.0,-263.5,-73.5,-264.9,-74.2,-266.5],"k":"wall","h":1.1},{"p":[-77.1,-268.9,-75.1,-263.2],"k":"wall","h":1.1},{"p":[-89.0,-256.3,-85.9,-257.7,-86.6,-259.3],"k":"wall","h":1.1},{"p":[-84.1,-262.2,-77.7,-264.7,-79.0,-268.2],"k":"wall","h":1.1},{"p":[-129.8,-259.7,-134.4,-266.1,-132.0,-268.5,-127.8,-272.7,-125.1,-275.4,-117.4,-282.8,-113.7,-286.6,-109.8,-290.7,-107.5,-288.0],"k":"wall","h":1.1},{"p":[-80.1,-291.6,-89.5,-283.4,-88.2,-282.1,-87.4,-281.1,-78.0,-289.2],"k":"wall","h":1.1},{"p":[-102.4,-232.1,-100.6,-226.6],"k":"wall","h":1.1},{"p":[-29.8,-238.4,-32.3,-227.9,-41.6,-227.6,-49.8,-227.6,-58.8,-227.4,-69.8,-227.2,-77.1,-227.1,-93.6,-226.8,-96.1,-234.2],"k":"wall","h":1.1},{"p":[-25.8,-270.4,-23.3,-274.6,-18.4,-270.1,-12.7,-264.8,-7.4,-261.3,-4.6,-259.9,-1.0,-258.7,8.1,-255.7,37.9,-247.5,41.0,-245.5,42.8,-243.4,43.8,-240.8,44.0,-238.1,43.4,-235.3,42.1,-232.9,40.2,-231.0,37.7,-229.7,34.6,-229.1,-25.5,-228.0,-23.4,-236.9],"k":"wall","h":1.1},{"p":[-67.1,-314.9,-64.1,-312.2,-57.1,-305.7,-41.8,-291.6,-47.2,-286.4],"k":"wall","h":1.1},{"p":[-86.4,-323.3,-81.8,-328.4],"k":"wall","h":1.1},{"p":[-110.4,-355.1,-108.3,-353.2,-105.4,-350.5,-110.5,-345.4],"k":"fence","h":1.5},{"p":[-121.3,-347.2,-122.6,-348.5,-124.3,-350.0],"k":"fence","h":1.5},{"p":[-115.4,-349.8,-110.4,-355.1,-113.2,-357.7,-115.6,-360.1],"k":"fence","h":1.5},{"p":[-150.8,-257.8,-147.9,-258.7,-148.4,-260.0,-148.9,-261.2],"k":"fence","h":1.5},{"p":[-167.2,-255.8,-167.2,-254.0,-167.1,-252.9],"k":"fence","h":1.5},{"p":[-127.6,-226.2,-123.5,-226.2],"k":"wall","h":1.1},{"p":[-129.1,-232.2,-128.7,-227.3],"k":"wall","h":1.1},{"p":[-131.7,-232.1,-130.2,-232.2,-129.1,-232.2,-124.6,-232.4],"k":"wall","h":1.1},{"p":[-145.6,-255.1,-145.6,-251.1,-145.6,-248.1],"k":"fence","h":1.5},{"p":[-149.6,-253.9,-145.6,-255.1,-142.9,-255.9,-136.4,-257.8,-129.8,-259.7,-129.4,-257.3,-128.4,-251.0,-124.6,-232.4,-124.4,-231.4,-123.5,-226.2],"k":"wall","h":1.1},{"p":[-167.1,-252.9,-167.1,-250.9,-167.0,-248.8],"k":"fence","h":1.5},{"p":[-165.3,-244.4,-165.3,-246.6,-165.3,-249.3],"k":"fence","h":1.5},{"p":[-161.5,-257.4,-167.2,-255.8],"k":"wall","h":1.1},{"p":[-167.0,-248.8,-165.3,-249.3,-149.6,-253.9,-150.2,-255.8,-150.8,-257.8,-167.1,-252.9],"k":"wall","h":1.1},{"p":[-94.4,-314.7,-91.7,-312.0,-88.9,-309.2,-87.0,-311.1],"k":"wall","h":1.1},{"p":[-3.4,-249.0,-1.0,-258.7],"k":"wall","h":1.1},{"p":[-42.8,-260.5,-43.3,-259.2,-37.8,-254.2,-37.4,-255.5],"k":"wall","h":1.1},{"p":[-150.3,-317.0,-149.4,-322.0],"k":"wall","h":1.1},{"p":[-127.9,-345.6,-132.4,-341.0,-138.1,-346.7,-137.3,-347.3,-141.0,-350.8,-143.3,-353.0,-140.6,-356.0,-146.9,-362.1],"k":"wall","h":1.1},{"p":[-82.6,-304.4,-83.2,-307.2],"k":"wall","h":1.1},{"p":[-80.9,-294.8,-94.6,-283.1,-95.8,-282.2],"k":"wall","h":1.1},{"p":[-134.4,-266.1,-135.3,-267.3,-108.2,-293.8,-111.5,-298.5,-110.5,-299.4,-103.9,-291.3,-107.5,-288.0],"k":"wall","h":1.1},{"p":[-103.1,-291.8,-109.4,-300.8,-111.2,-305.0,-112.7,-307.4,-113.9,-308.9,-114.0,-310.1,-114.5,-310.8,-115.6,-311.2,-116.6,-310.6,-117.7,-311.1,-119.7,-311.3,-121.0,-311.2,-121.8,-312.9],"k":"wall","h":1.1},{"p":[-138.1,-271.2,-136.8,-271.8,-137.6,-275.4,-140.1,-278.5,-142.9,-283.0,-144.5,-286.0],"k":"wall","h":1.1},{"p":[-136.4,-278.0,-139.9,-283.0,-142.9,-288.5,-144.1,-293.5,-143.5,-298.3,-141.8,-301.4,-139.8,-302.1,-139.0,-302.2,-138.7,-303.4,-137.7,-303.6,-136.8,-303.2,-136.4,-302.7,-131.5,-305.6,-132.6,-307.6],"k":"wall","h":1.1},{"p":[-277.0,-346.5,-279.6,-349.0,-279.8,-360.9],"k":"wall","h":1.1},{"p":[-266.8,-345.2,-275.4,-345.0,-275.9,-345.5],"k":"wall","h":1.1},{"p":[-252.3,-345.5,-264.1,-345.3],"k":"wall","h":1.1},{"p":[-251.2,-260.9,-248.2,-257.0],"k":"hedge","h":1.3},{"p":[-242.8,-243.9,-243.4,-257.6],"k":"hedge","h":1.3},{"p":[-208.7,-319.0,-215.4,-318.5,-216.4,-319.3,-216.5,-325.7,-207.5,-326.1],"k":"hedge","h":1.3},{"p":[-230.9,-300.3,-222.5,-300.5],"k":"hedge","h":1.3},{"p":[-240.6,-300.0,-234.4,-300.2],"k":"hedge","h":1.3},{"p":[-247.7,-299.9,-242.0,-300.0],"k":"hedge","h":1.3},{"p":[-215.4,-243.0,-215.2,-243.8,-215.5,-250.2,-216.1,-254.3,-217.5,-255.4,-218.2,-259.5,-220.0,-261.1,-221.8,-265.4],"k":"wall","h":1.1},{"p":[-244.3,-223.8,-244.2,-237.4],"k":"hedge","h":1.3},{"p":[-266.7,-271.0,-261.5,-271.7,-261.5,-280.5],"k":"wall","h":1.1},{"p":[-278.3,-258.9,-278.3,-262.0,-278.6,-278.6,-278.6,-280.2,-278.7,-284.0],"k":"wall","h":1.1},{"p":[-278.7,-284.0,-277.9,-284.1,-277.9,-286.1,-278.0,-288.0],"k":"fence","h":1.5},{"p":[-278.6,-280.2,-275.0,-280.2],"k":"wall","h":1.1},{"p":[-276.6,-307.6,-276.2,-293.2,-275.1,-293.2],"k":"wall","h":1.1},{"p":[-274.4,-318.0,-279.2,-317.9],"k":"wall","h":1.1},{"p":[-278.1,-250.0,-278.2,-251.4,-278.2,-254.6],"k":"fence","h":1.5},{"p":[-271.2,-250.2,-278.1,-250.0],"k":"wall","h":1.1},{"p":[-270.1,-240.3,-278.0,-240.1],"k":"wall","h":1.1},{"p":[-278.0,-240.1,-278.0,-239.6,-277.9,-232.6],"k":"hedge","h":1.3},{"p":[-277.9,-232.6,-277.8,-230.7,-277.8,-229.0],"k":"fence","h":1.5},{"p":[-274.6,-223.2,-277.7,-223.1,-277.8,-229.0],"k":"hedge","h":1.3},{"p":[-236.8,-223.9,-244.3,-223.8,-271.0,-223.3],"k":"hedge","h":1.3},{"p":[-181.6,-278.3,-181.4,-274.7],"k":"wall","h":1.1},{"p":[-199.7,-272.5,-200.1,-279.5,-201.6,-283.4,-200.4,-297.6],"k":"hedge","h":1.3},{"p":[-202.3,-294.9,-201.9,-300.0,-205.0,-305.6,-206.1,-313.5,-206.5,-317.7],"k":"hedge","h":1.3},{"p":[-187.5,-300.1,-187.4,-296.8,-187.3,-293.7],"k":"wall","h":1.1},{"p":[-186.6,-276.7,-187.3,-293.7,-182.1,-294.0,-181.6,-278.3,-185.2,-277.1],"k":"wall","h":1.1},{"p":[-208.0,-332.6,-205.5,-332.4,-202.7,-331.7,-199.4,-330.3,-197.3,-328.9,-196.8,-325.9,-196.1,-325.6,-195.6,-325.3,-193.1,-325.8,-191.1,-324.0,-188.9,-321.3,-186.6,-317.6,-185.4,-314.9,-183.6,-309.8,-182.4,-305.5,-182.3,-300.5,-187.5,-300.1,-188.1,-306.9,-191.3,-316.3,-195.2,-321.2,-200.0,-325.6,-205.1,-327.6,-207.5,-327.9,-207.7,-328.8],"k":"wall","h":1.1},{"p":[-217.0,-327.3,-217.1,-330.6,-212.2,-330.8],"k":"wall","h":1.1},{"p":[-212.3,-332.5,-210.3,-332.5,-208.0,-332.6],"k":"fence","h":1.5},{"p":[-212.3,-332.5,-212.2,-330.8,-212.1,-328.7,-207.7,-328.8,-208.0,-332.6],"k":"wall","h":1.1},{"p":[-270.4,-326.2,-270.4,-328.0,-276.9,-327.8,-276.8,-319.8,-279.2,-319.8,-279.4,-327.2,-274.7,-331.0,-212.3,-332.5],"k":"wall","h":1.1},{"p":[-277.4,-293.2,-278.8,-293.1,-279.0,-307.5,-279.1,-311.0,-275.4,-311.2,-275.3,-307.6,-276.6,-307.6,-277.8,-307.5,-279.0,-307.5],"k":"wall","h":1.1},{"p":[-278.7,-288.0,-278.0,-288.0,-275.1,-288.1,-275.0,-280.2,-273.7,-280.2],"k":"wall","h":1.1},{"p":[-278.2,-254.6,-278.2,-256.9,-278.3,-258.9],"k":"fence","h":1.5},{"p":[-257.5,-280.6,-257.3,-273.4,-266.6,-265.7,-270.7,-262.4,-274.0,-259.8,-278.3,-258.9],"k":"wall","h":1.1},{"p":[-278.2,-254.6,-276.9,-255.7,-255.5,-272.4,-234.8,-288.5,-233.9,-289.2,-231.5,-284.6,-225.9,-273.7,-225.4,-272.7,-221.8,-265.4,-208.8,-269.6],"k":"wall","h":1.1},{"p":[-237.9,-166.6,-233.3,-141.4,-229.8,-139.1,-226.9,-131.2,-226.8,-130.1],"k":"hedge","h":1.3},{"p":[-194.0,-133.1,-193.9,-130.8,-180.8,-131.0,-183.0,-133.4],"k":"hedge","h":1.3},{"p":[-199.3,-130.7,-196.7,-130.7,-196.7,-133.1],"k":"hedge","h":1.3},{"p":[-210.7,-134.7,-210.7,-130.5,-202.4,-130.6,-202.5,-132.2],"k":"hedge","h":1.3},{"p":[-217.5,-134.5,-220.8,-130.3,-213.7,-130.4,-213.8,-134.8],"k":"hedge","h":1.3},{"p":[-226.8,-130.1,-234.4,-130.0],"k":"wall","h":1.1},{"p":[-246.2,-190.2,-243.6,-176.8],"k":"wall","h":1.1},{"p":[-243.6,-176.8,-241.4,-165.8,-234.4,-130.0],"k":"hedge","h":1.3},{"p":[-240.5,-129.9,-239.1,-129.9,-237.0,-130.0,-234.4,-130.0],"k":"fence","h":1.5},{"p":[-276.4,-182.5,-276.0,-180.6,-275.5,-178.1,-275.2,-176.8],"k":"wall","h":1.1},{"p":[-210.8,-207.5,-210.9,-212.5],"k":"wall","h":1.1},{"p":[-183.5,-167.7,-178.1,-167.9,-178.4,-177.2,-179.4,-211.0,-181.8,-213.0,-207.3,-212.6,-209.6,-212.5,-210.9,-212.5,-212.1,-212.5,-213.0,-212.4,-224.6,-212.2,-240.1,-211.9],"k":"wall","h":1.1},{"p":[-179.4,-153.1,-177.7,-153.1,-178.0,-163.5,-179.6,-163.5],"k":"hedge","h":1.3},{"p":[-178.8,-135.1,-177.9,-134.1,-177.1,-134.9,-177.5,-147.3,-179.2,-147.3],"k":"hedge","h":1.3},{"p":[-225.1,-33.6,-228.5,-33.6,-229.7,-34.0,-230.1,-35.5,-230.0,-38.9],"k":"fence","h":1.5},{"p":[-225.1,-33.6,-224.8,-19.0],"k":"fence","h":1.5},{"p":[-222.1,-33.6,-221.9,-19.0],"k":"fence","h":1.5},{"p":[-242.8,-38.7,-230.0,-38.9,-230.6,-57.5,-230.5,-58.2,-229.9,-58.7,-220.8,-59.2,-220.0,-58.8,-219.5,-58.1,-218.4,-35.2,-218.6,-34.1,-219.7,-33.6,-222.1,-33.6],"k":"fence","h":1.5},{"p":[-181.1,-43.6,-173.8,-43.8,-173.9,-46.9,-174.1,-52.2],"k":"wall","h":1.1},{"p":[-205.9,6.6,-202.8,6.6,-199.2,6.6],"k":"wall","h":1.1},{"p":[-208.9,6.6,-207.5,6.6,-205.9,6.6],"k":"fence","h":1.5},{"p":[-254.7,4.6,-254.7,6.7,-245.1,6.7,-245.2,4.6,-245.2,3.1],"k":"wall","h":1.1},{"p":[-270.8,-12.2,-271.8,-12.2,-274.3,-12.2],"k":"wall","h":1.1},{"p":[-274.5,-30.7,-268.6,-30.8,-268.6,-30.2,-268.5,-29.5],"k":"fence","h":1.5},{"p":[-243.7,-100.1,-249.7,-99.9,-252.0,-99.9,-269.5,-99.5,-275.4,-93.6,-274.8,-52.7,-274.5,-30.7,-274.3,-14.3,-274.3,-12.2,-274.0,6.7,-262.0,6.7,-262.1,4.5],"k":"wall","h":1.1},{"p":[-243.6,-94.5,-242.9,-51.3,-242.8,-38.7,-242.0,6.7,-240.6,6.7,-239.1,6.7],"k":"wall","h":1.1},{"p":[-207.1,-85.8,-206.8,-57.3],"k":"wall","h":1.1},{"p":[-179.7,-61.3,-174.4,-61.6,-175.7,-96.6,-181.0,-101.3,-202.6,-100.9,-202.4,-95.6,-202.2,-85.9,-204.7,-85.8,-207.1,-85.8],"k":"wall","h":1.1},{"p":[-179.6,-57.3,-179.6,-59.2,-179.7,-61.3],"k":"fence","h":1.5},{"p":[-207.1,-85.8,-207.1,-89.0,-207.3,-100.8,-209.3,-100.7,-211.8,-100.7,-216.5,-100.6,-241.6,-100.1,-243.7,-100.1,-243.6,-94.5],"k":"wall","h":1.1},{"p":[-206.6,-48.2,-206.3,-19.5,-205.9,6.6],"k":"wall","h":1.1},{"p":[-206.8,-57.3,-206.7,-52.5],"k":"wall","h":1.1},{"p":[-295.5,-94.5,-295.5,-98.6,-278.9,-98.8,-278.8,-94.7],"k":"fence","h":1.5},{"p":[-294.8,-47.2,-278.2,-47.5],"k":"fence","h":1.5},{"p":[-294.8,-41.2,-278.0,-41.4],"k":"fence","h":1.5},{"p":[-294.5,4.0,-294.5,7.1,-277.6,6.9,-277.6,3.5],"k":"fence","h":1.5},{"p":[-305.1,-348.4,-307.0,-346.8,-309.3,-345.1,-310.1,-344.4],"k":"fence","h":1.5},{"p":[-316.1,-351.1,-311.4,-345.9,-310.1,-344.4],"k":"wall","h":1.1},{"p":[-320.4,-366.4,-313.2,-357.9,-305.1,-348.4,-303.5,-349.8,-303.6,-358.3,-303.7,-362.9,-304.1,-378.9],"k":"wall","h":1.1},{"p":[-335.5,-253.0,-329.8,-245.7],"k":"wall","h":1.1},{"p":[-334.1,-282.5,-333.5,-283.1,-328.7,-289.9,-328.6,-290.7,-329.2,-291.4],"k":"wall","h":1.1},{"p":[-317.1,-264.7,-314.3,-261.4,-312.7,-259.4],"k":"wall","h":1.1},{"p":[-302.0,-253.6,-302.0,-255.1,-302.0,-256.2,-302.0,-257.2,-302.1,-267.8,-312.7,-259.4,-329.8,-245.7,-351.2,-228.7,-347.2,-221.8,-344.1,-221.9,-341.7,-221.9,-339.8,-222.0],"k":"wall","h":1.1},{"p":[-315.9,-291.6,-317.4,-293.5,-320.5,-297.6],"k":"fence","h":1.5},{"p":[-322.0,-330.2,-303.0,-330.6,-302.7,-310.5,-310.8,-304.7],"k":"fence","h":1.5},{"p":[-331.8,-330.0,-323.7,-330.2],"k":"fence","h":1.5},{"p":[-357.0,-325.1,-353.3,-320.5,-329.2,-291.4,-320.5,-297.6,-310.8,-304.7],"k":"wall","h":1.1},{"p":[-323.7,-180.8,-322.0,-181.8,-318.6,-183.6,-317.8,-184.0],"k":"wall","h":1.1},{"p":[-308.6,-165.7,-309.3,-165.4,-312.0,-170.0],"k":"wall","h":1.1},{"p":[-322.8,-152.2,-328.0,-162.4,-329.1,-164.5,-333.2,-172.6,-330.5,-175.4,-329.4,-177.1,-331.0,-180.8,-326.5,-185.8],"k":"hedge","h":1.3},{"p":[-330.5,-149.9,-322.8,-152.2,-309.9,-156.0],"k":"wall","h":1.1},{"p":[-328.2,-134.1,-327.3,-127.9],"k":"wall","h":1.1},{"p":[-336.0,-148.3,-330.5,-149.9,-329.6,-144.3],"k":"wall","h":1.1},{"p":[-300.3,-158.9,-300.3,-157.0,-300.3,-155.5,-309.7,-152.8,-308.9,-149.6],"k":"wall","h":1.1},{"p":[-300.4,-167.3,-300.4,-162.5],"k":"fence","h":1.5},{"p":[-308.6,-167.5,-308.6,-165.7,-308.6,-162.6,-307.1,-162.6,-302.1,-162.6,-300.4,-162.5],"k":"wall","h":1.1},{"p":[-318.3,-210.7,-317.2,-210.7,-316.3,-210.7],"k":"fence","h":1.5},{"p":[-300.3,-158.9,-309.9,-156.0,-312.1,-159.9,-317.2,-169.1,-320.7,-175.4,-323.7,-180.8,-326.5,-185.8,-338.7,-207.6,-340.1,-210.3],"k":"wall","h":1.1},{"p":[-320.9,6.6,-321.0,-0.9],"k":"wall","h":1.1}],"gate":[[190.7,-112.6],[-73.1,-347.1],[-75.0,-348.9],[-68.0,-342.4],[4.0,-280.5],[-5.6,-286.6],[13.1,-279.8],[-8.3,-288.4],[159.7,-241.5],[156.7,-242.1],[118.4,-253.6],[246.9,-347.8],[251.5,-212.4],[139.2,-287.2],[194.2,-237.9],[277.7,-180.9],[166.4,-212.0],[149.3,-216.8],[120.2,-191.2],[145.2,-125.2],[152.1,-123.3],[162.5,-120.4],[159.7,-121.2],[220.6,-104.3],[275.3,-89.0],[118.6,22.8],[147.3,-65.5],[255.3,-56.8],[314.9,36.9],[312.3,50.2],[255.6,84.1],[236.8,75.7],[220.0,68.2],[202.4,60.3],[219.0,-66.4],[222.0,-63.4],[137.3,31.2],[134.3,29.8],[113.7,-37.2],[149.6,-90.6],[-37.9,6.5],[-41.0,0.1],[-49.4,2.1],[-45.5,2.1],[-100.5,2.8],[-93.6,6.4],[-108.5,-1.7],[-105.8,-1.8],[-113.6,-95.2],[-161.2,-77.1],[-160.4,-55.3],[-159.7,-35.8],[-159.1,-17.7],[-155.4,6.6],[-138.6,6.5],[-134.9,6.5],[-37.9,-103.9],[-82.1,-103.0],[-18.9,-104.4],[-24.9,-104.3],[86.8,-60.1],[32.9,6.4],[-86.9,-51.8],[35.1,-28.1],[102.0,-169.0],[84.0,-217.2],[28.2,-216.7],[56.7,-135.7],[44.5,-135.5],[-31.7,-213.2],[-64.1,-312.2],[-122.6,-348.5],[-148.4,-260.0],[-167.2,-254.0],[-130.2,-232.2],[-145.6,-251.1],[-167.1,-250.9],[-165.3,-246.6],[-278.6,-278.6],[-277.9,-286.1],[-278.2,-251.4],[-277.8,-230.7],[-239.1,-129.9],[-237.0,-130.0],[-275.5,-178.1],[-276.0,-180.6],[-212.1,-212.5],[-209.6,-212.5],[-207.3,-212.6],[-178.4,-177.2],[-173.9,-46.9],[-202.8,6.6],[-207.5,6.6],[-240.6,6.7],[-274.3,-14.3],[-268.6,-30.2],[-252.0,-99.9],[-241.6,-100.1],[-211.8,-100.7],[-209.3,-100.7],[-179.6,-59.2],[-307.0,-346.8],[-309.3,-345.1],[-314.3,-261.4],[-302.0,-257.2],[-317.4,-293.5],[-300.3,-157.0],[-317.2,-210.7]],"poi":[[22.9,-214.0,"amenity:bar","Morgan's Tavern",""],[-206.4,-228.2,"amenity:bar","Jailrock Cabaret","Calle de Gerona"],[-172.5,-323.8,"amenity:bar","Town Cabaret",""],[-185.5,-229.1,"amenity:bar","insomnia","Calle de Gerona"],[-233.2,-227.5,"amenity:bar","Rockerfellas Cabaret","Calle de Gerona"],[-86.9,-328.6,"amenity:bar","Uncle Ped's",""],[-58.7,-212.1,"amenity:pub","Wild Duck","Calle de Gerona"],[-40.9,-165.8,"amenity:bar","Palladium",""],[-40.9,-193.6,"amenity:bar","Black Chicken",""],[-275.6,-272.0,"amenity:bar","Surprise Attack","Avinguda de Filipines"],[-303.9,-245.3,"amenity:bar","Loch Ness Fun Pub",""],[-274.9,-243.5,"amenity:bar","Outback Aussie Bar",""],[-40.6,-278.5,"amenity:bar","Bar The Explorers Club","Avinguda del Derramador"],[-4.5,29.7,"leisure:playground","",""],[312.6,-239.7,"shop:supermarket","Mercaloix",""],[161.8,-234.1,"amenity:atm","Euronet",""],[144.6,-135.7,"amenity:restaurant","Buffet Isidro","Avenida del Mediterráneo"],[191.5,-71.7,"amenity:bank","Banco Santander",""],[185.8,-23.7,"amenity:post_office","",""],[158.4,-62.4,"amenity:bicycle_rental","TAO",""],[-1.3,4.7,"amenity:bar","Stars","Avenida de Madrid 22"],[53.7,0.5,"shop:ice_cream","Veracruz","Avenida de Madrid 23"],[289.8,-87.7,"shop:convenience","Big Ben","Avenida del Mediterráneo"],[283.6,-90.0,"amenity:pharmacy","Albatros",""],[309.7,104.2,"amenity:bar","Bikini",""],[25.5,4.3,"amenity:restaurant","El Chiringuito Beach","Avenida de Madrid 22"],[108.1,6.8,"amenity:restaurant","Artigas III",""],[129.3,22.2,"amenity:bar","Sol Beach","Avenida de Madrid 25"],[189.7,44.4,"amenity:restaurant","Artigas II",""],[45.8,0.6,"amenity:restaurant","La Ballena Azul","Avenida de Madrid 23"],[72.2,-6.7,"shop:supermarket","Veracruz",""],[289.6,-199.6,"amenity:bar","Bar Picadilly",""],[300.5,-196.4,"amenity:fast_food","Mariano's",""],[280.1,-202.6,"amenity:bar","Bar Silver Dollar",""],[270.9,-347.7,"amenity:library","Biblioteca Pública Municipal Racó de l'Oix",""],[294.0,-346.9,"amenity:pharmacy","FARMACIA LDO. JOSE PASCUAL NAVARRO",""],[316.6,-344.4,"shop:vacant","",""],[-310.0,2.9,"amenity:bar","Kai Beach",""],[182.5,40.8,"shop:supermarket","Principado","Avenida de Madrid 26"],[-55.5,0.6,"amenity:restaurant","The Bulldog","Avenida de Madrid 20"],[-181.7,6.0,"amenity:cafe","Copacabana","Avenida de Madrid 16"],[-229.1,6.4,"amenity:restaurant","Las Damas","Avenida de Madrid 15"],[-258.4,2.3,"amenity:bar","The Jungle","Avenida de Madrid 14"],[176.3,38.4,"shop:accessories","Ale-Hop","Avenida de Madrid 26"],[166.2,34.3,"shop:tattoo","Hammer Of Thor","Avenida de Madrid 26"],[152.0,27.8,"amenity:bar","The Lazy Cow","Avenida de Madrid 26"],[17.4,4.3,"shop:newsagent","","Avenida de Madrid"],[-69.7,0.3,"amenity:restaurant","El Cachirul","Avenida de Madrid 20"],[-87.2,-0.1,"amenity:restaurant","Cafetería La Bahía","Avenida de Madrid 19"],[-117.9,0.4,"amenity:bar","King Coco","Avenida de Madrid 19"],[-141.4,-1.4,"shop:newsagent","Prensa La Goleta","Avenida de Madrid 17"],[-149.8,-0.8,"shop:tobacco","","Avenida de Madrid 17"],[242.0,-59.1,"amenity:restaurant","La Gran China","avenida del Mediterráneo - Avinguda del Mediterrani 64"],[90.4,-144.4,"shop:alcohol","Bodega El Barril","avenida del Mediterráneo - Avinguda del Mediterranio"],[22.3,-102.7,"amenity:pharmacy","","avenida del Mediterráneo - Avinguda del Mediterrani 56"],[-44.4,-141.1,"amenity:bar","The 4 Kings","Avenida del Mediterráneo 43"],[-122.1,-88.4,"amenity:bank","Caixabank","avenida del Mediterráneo - Avinguda del Mediterranio"],[-63.4,-140.2,"shop:vacant","","avenida del Mediterráneo - Avinguda del Mediterrani 43"],[-185.7,-139.1,"shop:clothes","","Avenida del Mediterráneo 39 (Bajos Hotel Don Pancho)"],[-304.6,-92.1,"amenity:restaurant","Molta Pasta","Avenida del Mediterráneo 44"],[68.7,0.8,"shop:estate_agent","Fincas Benidorm","Avenida de Madrid 23"],[-110.6,1.0,"amenity:atm","TargoBank",""],[-196.4,6.1,"shop:supermarket","London","Avenida de Madrid 15"],[162.5,32.5,"amenity:bar","Lil Bobs","Avenida de Madrid 26"],[158.6,30.5,"amenity:bar","Beach Terrace","Avenida de Madrid 26"],[-248.5,-18.5,"amenity:bar","Las Jarras","Avenida de Madrid 14"],[296.6,97.6,"shop:convenience","","Avinguda de Madrid - Avenida de Madrid"],[104.1,-14.4,"shop:massage","Sawasdeeka","Avinguda de Castelló Local 6"],[106.0,-29.6,"amenity:cafe","B-Town","Avinguda de Castelló"],[-131.4,-141.0,"shop:clothes","Tumi Beach Shop","avenida del Mediterráneo - Avinguda del Mediterrani 41"],[-267.0,-13.6,"shop:supermarket","Yago","Avinguda de Filipines  -  Avenida de Filipinas"],[-299.5,-21.7,"amenity:bar","Banana Beach","Avinguda de Filipines  -  Avenida de Filipinas"],[-299.6,-48.7,"amenity:restaurant","Rock n Ribs","Avinguda de Filipines  -  Avenida de Filipinas 1"],[-51.8,-212.1,"amenity:restaurant","John & Josephs","Calle de Gerona"],[123.4,-47.8,"amenity:pub","Celtic Corner",""],[103.4,-50.5,"amenity:bar","Gaby's","Avinguda de Castelló"],[106.4,-73.8,"amenity:bar","Tartan Bar","Avinguda de Castelló 4"],[-124.4,-34.5,"amenity:bar","De Leeuw",""],[226.8,23.6,"amenity:bar","Bar Oasis","Avenida de Madrid 30"],[198.3,28.8,"amenity:restaurant","Ben Gen","Avinguda de Madrid - Avenida de Madrid"],[280.9,-48.5,"shop:clothes","Original Kids","Avenida del Mediterráneo - Avinguda del Mediterranio"],[235.3,-60.8,"shop:estate_agent","Euroloix","avenida del Mediterráneo - Avinguda del Mediterrani 64"],[172.2,-79.9,"shop:accessories","Bags & Bags","avenida del Mediterráneo - Avinguda del Mediterrani 62"],[127.2,-140.3,"amenity:bar","Zest","avenida del Mediterráneo - Avinguda del Mediterrani 51"],[82.1,-72.5,"shop:gift","Bazar Kim","Avinguda de Castelló"],[73.2,-98.2,"shop:clothes","J. Olmos","avenida del Mediterráneo - Avinguda del Mediterranio"],[56.9,-98.0,"shop:tobacco","Eurotobaco","avenida del Mediterráneo - Avinguda del Mediterranio"],[14.0,-102.6,"shop:perfumery","Avenida","avenida del Mediterráneo - Avinguda del Mediterrani 56"],[-248.2,-132.3,"shop:shoes","Montiel","Avenida del Mediterráneo - Avinguda del Mediterranio"],[-267.1,-138.5,"shop:alcohol","The Wine Barrel","avenida del Mediterráneo - Avinguda del Mediterranio"],[-301.3,-34.7,"shop:vacant","","Avinguda de Filipines  -  Avenida de Filipinas"],[-81.2,-139.2,"shop:convenience","Carrefour Express","avenida del Mediterráneo - Avinguda del Mediterrani 43"],[306.4,-40.2,"amenity:cafe","Med 66",""],[269.7,-52.5,"shop:clothes","Original",""],[104.7,-20.9,"shop:clothes","Modas Italia","Avinguda de Castelló"],[-156.3,-169.1,"amenity:pharmacy","",""],[6.3,-130.2,"amenity:atm","Euronet",""],[104.1,-56.6,"shop:tattoo","Wanderlust","Avinguda de Castelló 4"],[153.9,13.3,"shop:vacant","",""],[160.2,-3.5,"office:estate_agent","Carmona Rent",""],[46.0,30.0,"amenity:doctors","Socorrismo",""],[19.3,-138.1,"amenity:cafe","The Brunch Box","Avenida del Mediterráneo 47"],[1.5,-103.6,"shop:clothes","Big Sizes","avenida del Mediterráneo - Avinguda del Mediterrani 56"],[82.6,-78.5,"shop:electronics","Sony","Avinguda de Castelló"],[105.4,-62.2,"shop:clothes","Italia",""],[76.5,4.5,"amenity:atm","Cash Zone",""],[122.4,-97.2,"shop:shoes","Marín",""],[-138.5,-141.2,"shop:bakery","levaduramadre","avenida del Mediterráneo - Avinguda del Mediterrani 41"],[77.5,-17.6,"shop:clothes","Maxi Díez","Avinguda de Castelló"],[144.0,-92.4,"shop:clothes","Newstyle",""],[-221.5,6.9,"shop:gift","Las Damas","Avenida de Madrid 15"],[273.9,86.8,"amenity:cafe","Brisa Beach",""],[290.7,-45.8,"shop:jewelry","Zafiro","Avenida del Mediterráneo 66"],[-154.9,-145.3,"shop:convenience","Kp",""],[-143.4,-141.1,"shop:convenience","","avenida del Mediterráneo - Avinguda del Mediterrani 41"],[313.8,-80.4,"shop:perfumery","Avenida","Avenida del Mediterráneo 57"],[-139.7,-99.4,"amenity:restaurant","La Ricotta",""],[120.2,-163.2,"amenity:restaurant","Buffalo Beel","Avinguda de Castelló 7"],[141.9,-71.2,"shop:hairdresser","Tracey's","Avenida del Mediterráneo 60"],[118.1,-147.6,"amenity:cafe","Vesta Caffè","Avenida del Mediterráneo 51"],[63.3,-89.0,"shop:travel_agency","Benidorm Best","Avenida del Mediterráneo 58"],[45.1,-97.6,"leisure:adult_gaming_centre","Sportium","Avenida del Mediterráneo"],[-56.6,-140.6,"shop:clothes","Pilar Prieto","Avenida del Mediterráneo 43"],[-216.3,6.6,"shop:clothes","Natura","Avenida de Madrid 15"],[11.4,-213.4,"amenity:pub","Last Stop","Calle Gerona 42"],[-158.9,-227.1,"amenity:pub","The Crown","Calle de Gerona"],[307.2,-166.1,"shop:convenience","Supermarket",""],[300.8,-163.7,"shop:tattoo","Inked","Calle Gerona 48"],[318.9,-192.0,"shop:tobacco","Tobacconist No10","Carrer Girona - Calle Gerona"],[258.3,-207.1,"amenity:atm","Euronet",""],[146.6,-241.9,"shop:supermarket","Supermercado La Orozca","Carrer Girona - Calle Gerona"],[142.1,-247.0,"shop:alcohol","Bodega El Barril"," 43"],[136.1,-245.3,"shop:supermarket","Supermarket Waldorf","Carrer Girona - Calle Gerona"],[125.8,-253.2,"shop:perfumery","Avenida","Calle Gerona 43"],[69.7,-216.5,"amenity:atm","",""],[-24.5,-215.0,"amenity:atm","Euronet",""],[-43.0,-211.9,"amenity:pub","Times Square","Calle de Gerona"],[-102.0,-206.4,"shop:variety_store","","Calle de Gerona"],[-116.6,-227.4,"amenity:atm","Euro",""],[-152.5,-203.8,"amenity:fast_food","Kebabish","Calle de Gerona"],[-272.1,-223.9,"amenity:atm","Xe",""],[-303.7,-198.0,"amenity:pub","Brit Station",""],[52.6,-138.8,"amenity:restaurant","Belle Burrito","Avenida del Mediterráneo 47"],[-100.2,-203.5,"amenity:bar","Why Not","Calle de Gerona"],[-153.2,-140.6,"shop:bakery","Granier","Avenida del Mediterráneo 41"],[197.3,16.3,"shop:hairdresser","Elite",""],[190.7,12.0,"amenity:place_of_worship","The English Church/ Skandinaviska Turistkyrkan/","Avenida de Madrid 26"],[203.2,-10.4,"amenity:bar","The 3 Amigos",""],[203.7,-32.0,"amenity:bar","Beachway",""],[206.1,-38.8,"shop:travel_agency","Benidorm Trips",""],[207.7,-53.3,"amenity:bar","Beach Box","Avenida de Madrid 26"],[159.5,-73.0,"shop:tattoo","Inked","Avenida del Mediterráneo 64"],[161.3,-25.4,"amenity:theatre","",""],[162.2,-6.5,"amenity:place_of_worship","Den Norske Turistkirke","Avenida de Madrid 26"],[84.2,-84.4,"shop:gift","Regalos Jesuan","Avinguda de Castelló"],[63.4,-80.4,"amenity:fast_food","Ray's Fish & Chips","Avenida del Mediterráneo 58"],[38.3,-97.6,"amenity:nightclub","","Avenida del Mediterráneo"],[-124.9,-57.3,"shop:tattoo","VIP Tattoo Benidorm","Avenida de Madrid 18"],[-152.1,-48.0,"shop:massage","Thai Massage Benidorm","Avenida de Almería 2"],[-175.1,-22.5,"amenity:atm","",""],[6.2,-213.0,"amenity:bar","Waikiki","Calle Gerona 42"],[-122.9,-226.9,"amenity:bar","Hotel California","Calle Gerona 38"],[-156.2,-201.1,"amenity:pub","The Black Bull","Calle de Gerona"],[-156.9,-181.0,"amenity:restaurant","Ducado","Avinguda de Almería"],[-156.2,-159.9,"shop:supermarket","","Avinguda de Almería"],[-274.8,-174.1,"amenity:pub","Gold Dollar Saloon","Avenida de Filipinas 6"],[-274.7,-161.2,"shop:supermarket","Florida","Avinguda de Filipines"],[-302.5,-148.6,"amenity:pub","Beer Garden","Avenida de Filipinas 3"],[-301.3,-161.2,"amenity:atm","Euronet",""],[-302.3,-178.1,"shop:tobacco","","Avinguda de Filipines"],[99.0,-143.6,"amenity:atm","Cash Zone",""],[299.3,-85.3,"shop:lottery","Loterías y Apuestas del Estado","Avenida del Mediterráneo"],[272.5,-90.5,"amenity:atm","Cash Zone",""],[69.0,-143.9,"shop:accessories","Holidays","avenida del Mediterráneo - Avinguda del Mediterranio"],[12.9,-164.2,"amenity:nightclub","Valentines",""],[11.3,-188.2,"amenity:bar","Talk of the Coast",""],[-69.9,-140.0,"amenity:car_rental","Europcar","avenida del Mediterráneo - Avinguda del Mediterrani 43"],[-275.5,-185.0,"shop:convenience","Revert","Avinguda de Filipines"],[-302.4,-135.3,"shop:shoes","Daniello Di Luca","Avenida del Mediterráneo - Avinguda del Mediterranio"],[-310.6,-135.0,"shop:lottery","Loterías y Apuestas del Estado","Avenida del Mediterráneo"],[-304.0,-281.8,"amenity:bar","The Meeting Point","Avinguda de Filipines"],[-276.6,-285.8,"amenity:bar","Philippines 10","Avinguda de Filipines"],[-250.0,-348.3,"amenity:fast_food","Hungry Point","Calle Lepanto 21"],[-224.3,-349.6,"amenity:restaurant","Nepali Tandoori House","Calle de Lepanto"],[-165.1,-288.8,"amenity:restaurant","Chicken-Kebab-Pizza","Avenida de Almería 8"],[-167.0,-313.1,"amenity:restaurant","El Pollo de Benidorm","Avinguda de Almería"],[212.1,-67.0,"amenity:atm","Euronet",""],[207.2,-68.3,"shop:variety_store","Rui Yue","Avenida del Mediterráneo"],[225.5,-63.7,"amenity:restaurant","Grill64","avenida del Mediterráneo - Avinguda del Mediterrani 64"],[314.0,21.2,"amenity:restaurant","Tapas Bat","Avenida del Mediterráneo 66"],[308.1,20.8,"amenity:bar","Cider Bar","Avenida del Mediterráneo 66"],[316.7,11.4,"shop:clothes","","Avenida del Mediterráneo 66"],[305.6,8.1,"shop:clothes","Bódalo's","Avenida del Mediterráneo 66"],[291.3,10.4,"shop:bag","Black Lemon","Avenida del Mediterráneo 66"],[317.3,-2.8,"shop:clothes","","Avenida del Mediterráneo 66"],[285.0,-2.0,"shop:hairdresser","Elimays Salon","Avenida del Mediterráneo 66"],[305.6,-9.1,"shop:clothes","Miranda & Tania","Avenida del Mediterráneo 66"],[313.6,-38.0,"shop:supermarket","London to Paris",""],[305.2,-27.1,"shop:hairdresser","Hair Design By Henk","Avenida del Mediterráneo 66"],[305.6,-34.4,"shop:massage","Mr Fish","Avenida del Mediterráneo 66"],[291.4,-28.1,"amenity:bar","La Plaza","Avenida del Mediterráneo 66"],[260.6,-61.6,"amenity:atm","",""],[274.9,-15.3,"shop:estate_agent","Milonas","Avenida del Mediterráneo 66"],[270.2,-21.5,"shop:beauty","Leonor","Avenida del Mediterráneo 66"],[266.6,-28.5,"shop:hairdresser","Marce e Isa","Avenida del Mediterráneo 66"],[262.7,-35.3,"shop:estate_agent","Benidorm Booking","Avenida del Mediterráneo 66"],[228.6,-62.8,"shop:hairdresser","Pamela","avenida del Mediterráneo - Avinguda del Mediterrani 64"],[208.2,-58.6,"shop:tattoo","Beyond Reality","Avenida del Mediterráneo 64"],[176.9,-67.4,"shop:clothes","","Avenida del Mediterráneo"],[188.8,-37.9,"shop:travel_agency","Free Time Benidorm","Avenida del Mediterráneo"],[174.0,-45.0,"amenity:bar","Scotch Corner",""],[188.4,-55.5,"shop:rental","Benidorm Mobility Rentals","Avenida del Mediterráneo"],[80.4,-65.8,"shop:clothes","Universal","Avinguda de Castelló"],[103.5,-8.4,"shop:tattoo","Tattoo & Co","Avinguda de Castelló"],[107.7,-82.0,"shop:convenience","Super Cheap Market","Avinguda de Castelló"],[-11.5,-102.4,"shop:clothes","Emare","avenida del Mediterráneo - Avinguda del Mediterrani 56"],[-151.6,-32.1,"shop:hairdresser","Islav","Avinguda de Almería"],[315.2,-25.1,"shop:clothes","","Avenida del Mediterráneo 66"],[319.5,64.5,"shop:accessories","Luna Nueva",""],[314.4,72.0,"shop:vacant","",""],[311.7,88.1,"shop:telecommunication","Excom",""],[305.2,-14.3,"shop:hairdresser","Ell@s","Avenida del Mediterráneo 66"],[295.1,11.6,"shop:vacant","","Avenida del Mediterráneo 66"],[287.8,5.0,"shop:vacant","","Avenida del Mediterráneo 66"],[276.3,-32.3,"shop:vacant","Butterfields","Avenida del Mediterráneo 66"],[258.9,-39.1,"shop:jewelry","Tony's Silver 925","Avenida del Mediterráneo 66"],[275.2,-51.1,"shop:rental","Butterfields","Avenida del Mediterráneo - Avinguda del Mediterranio"],[189.0,-65.0,"amenity:clinic","Excellent Medical",""],[192.5,-35.2,"shop:hairdresser","Beautiful You",""],[201.9,-15.7,"amenity:bar","Henrik's Pub",""],[176.6,-27.1,"shop:hairdresser","Natoli",""],[152.6,19.7,"office:estate_agent","Carmona Rent","Avenida de Madrid 26"],[102.0,2.8,"shop:accessories","","Avinguda de Castelló"],[129.0,-95.8,"shop:photo","Torcal","Avenida del Mediterráneo 60"],[112.3,-98.1,"shop:variety_store","Souvenirs Hua Sheng","Avenida del Mediterráneo 60"],[84.2,-96.4,"shop:clothes","","Avenida del Mediterráneo - Avinguda del Mediterranio"],[134.3,-95.8,"amenity:atm","Euronet",""],[71.5,0.8,"amenity:atm","Cash Zone",""],[-14.1,5.9,"amenity:atm","Euronet",""],[-123.9,-46.2,"shop:estate_agent","arca-rent","Avenida de Madrid 18"],[51.3,-97.9,"shop:variety_store","Maxi Supermarket","Avenida del Mediterráneo - Avinguda del Mediterranio"],[-150.8,-23.1,"shop:estate_agent","Thai Real Estate","Avenida de Almería 2"],[-183.6,-37.8,"shop:tattoo","VIP","Avenida de Almería 1"],[-187.3,-23.7,"shop:vacant","",""],[-150.2,-98.5,"amenity:atm","Cash Zone",""],[-305.9,-44.2,"amenity:atm","Euronet",""],[-300.8,-29.4,"amenity:bar","Sin City","Avinguda de Filipines  -  Avenida de Filipinas"],[319.3,-158.8,"shop:travel_agency","Excursiones Benidorm","Calle Gerona 48"],[311.2,-193.7,"shop:gift","Regalos Gift XL","Carrer Girona - Calle Gerona"],[131.3,-247.3,"shop:rental","Easyhire Outlet","Carrer Girona - Calle Gerona"],[151.4,-242.0,"shop:variety_store","J & B Gift Shop","Carrer Girona - Calle Gerona"],[121.4,-181.1,"shop:supermarket","","Avinguda de Castelló"],[120.9,-175.9,"shop:tattoo","Zeus","Avinguda de Castelló"],[143.1,-239.6,"amenity:atm","Cash Zone",""],[101.8,-165.0,"amenity:atm","Euronet",""],[93.3,-157.1,"shop:travel_agency","Sunsea Travel","Avinguda de Castelló"],[167.4,-141.6,"shop:vacant","",""],[184.3,-137.0,"shop:vacant","","Avenida del Mediterráneo"],[293.5,-86.7,"shop:accessories","Andonai","Avenida del Mediterráneo"],[302.8,-83.8,"amenity:restaurant","Istanbul","Avenida del Mediterráneo 57"],[306.1,-82.6,"shop:accessories","Karma","Avenida del Mediterráneo"],[85.0,-144.4,"shop:accessories","Futbol Shop","avenida del Mediterráneo - Avinguda del Mediterranio"],[77.9,-144.3,"shop:convenience","","avenida del Mediterráneo - Avinguda del Mediterranio"],[40.9,-138.8,"shop:mobile_phone","","avenida del Mediterráneo - Avinguda del Mediterranio"],[36.3,-138.3,"shop:accessories","Angels Gifts","avenida del Mediterráneo - Avinguda del Mediterranio"],[32.0,-138.0,"shop:convenience","Ga","avenida del Mediterráneo - Avinguda del Mediterranio"],[-50.6,-140.8,"shop:estate_agent","Engel & Volkers","Avenida del Mediterráneo 43"],[-71.3,-139.9,"shop:rental","Monkey Rent","avenida del Mediterráneo - Avinguda del Mediterrani 43"],[-72.4,-139.9,"amenity:atm","Euronet",""],[-78.8,-139.3,"amenity:atm","Euro",""],[-99.9,-180.6,"shop:gift","Benidorm Joke Shop","avenida del Mediterráneo - Avinguda del Mediterrani 41"],[-67.0,-211.8,"amenity:fast_food","","Calle de Gerona"],[-106.1,-206.1,"shop:variety_store","Regalos Antonio","Calle de Gerona"],[-110.0,-205.9,"shop:convenience","City Market Express","Calle de Gerona"],[-122.4,-204.8,"shop:travel_agency","Round Town Travel","Calle de Gerona"],[-128.5,-204.9,"shop:variety_store","Ducados","Calle de Gerona"],[-140.6,-204.6,"shop:variety_store","","Calle de Gerona"],[-155.5,-151.7,"shop:clothes","Benidorm Sports","Avinguda de Almería"],[-156.2,-164.4,"amenity:atm","Euronet",""],[-184.1,-149.1,"shop:hairdresser","Salón Europa","Avenida del Mediterráneo 39 (Bajos Hotel Don Pancho)"],[-147.3,-140.8,"shop:convenience","Aarya","Avenida del Mediterráneo 41"],[-121.2,-141.3,"shop:vacant","","Avenida del Mediterráneo - Avinguda del Mediterranio"],[-113.5,-141.6,"shop:clothes","Sport Version 2","Avenida del Mediterráneo - Avinguda del Mediterranio"],[-103.5,-142.0,"shop:clothes","","Avenida del Mediterráneo - Avinguda del Mediterranio"],[-216.3,-228.0,"amenity:stripclub","Top Show","Calle de Gerona"],[-224.8,-227.8,"amenity:fast_food","Mr Chips","Calle de Gerona"],[-302.9,-190.3,"shop:variety_store","Gift Shop","Avinguda de Filipines"],[-303.0,-185.6,"shop:variety_store","","Avinguda de Filipines"],[-274.2,-155.7,"amenity:fast_food","Me Doner","Avinguda de Filipines"],[-274.1,-148.8,"shop:clothes","Noemar","Avinguda de Filipines"],[-262.0,-130.0,"amenity:atm","Euronet",""],[-258.9,-131.4,"shop:massage","Chinese Massage","Avenida del Mediterráneo - Avinguda del Mediterranio"],[-306.5,-224.1,"shop:accessories","Regalos Alex y Erick","Calle de Gerona"],[-318.0,-134.6,"shop:variety_store","Romero","Avenida del Mediterráneo"],[198.8,-70.9,"amenity:bureau_de_change","Land Beach","Avenida del Mediterráneo"],[304.4,-20.4,"shop:e-cigarette","boovape","Avenida del Mediterráneo 66"],[279.8,-8.2,"shop:tattoo","Tattoo Central","Avenida del Mediterráneo 66"],[191.4,-21.4,"shop:vacant","",""],[196.4,-19.1,"amenity:restaurant","Le Grenier",""],[170.3,-29.9,"shop:vacant","",""],[186.7,-45.4,"shop:vacant","",""],[175.8,-55.4,"shop:vacant","",""],[177.0,-77.8,"shop:ticket","Benidorm Booking","avenida del Mediterráneo - Avinguda del Mediterrani 62"],[137.6,-57.8,"shop:vacant","",""],[110.9,-65.2,"shop:vacant","",""],[63.4,-70.9,"amenity:restaurant","Eden",""],[187.4,-81.8,"amenity:bicycle_rental","",""],[179.3,-75.9,"amenity:atm","Cash Zone",""],[53.8,-99.1,"amenity:atm","Euronet",""],[-298.3,-122.8,"shop:kiosk","Once",""],[104.4,-17.6,"shop:convenience","Mini Beach",""],[120.3,-144.1,"shop:hairdresser","Salón Don Omar",""],[290.9,-170.3,"amenity:restaurant","Kebabish","Calle Gerona 48"],[118.8,-152.1,"amenity:bureau_de_change","",""],[-71.5,-212.7,"shop:convenience","Ecomart",""],[-108.5,-226.3,"amenity:pub","Western Saloon",""],[-184.9,-266.5,"shop:convenience","Best Price","Avinguda de Almería"],[-163.5,-260.8,"amenity:cafe","Foodland",""],[-164.2,-265.7,"amenity:atm","Euronet",""],[-164.1,-272.7,"shop:convenience","Sunshine","Avinguda de Almería"],[-164.9,-278.4,"amenity:bar","Mateos","Avinguda de Almería"],[-164.4,-293.5,"amenity:bar","Barrels","Avinguda de Almería"],[-164.4,-296.9,"shop:vacant","","Avinguda de Almería"],[-165.0,-299.7,"amenity:restaurant","La Brasa","Avinguda de Almería"],[-76.7,-322.5,"amenity:atm","Euronet",""],[-279.6,-248.1,"amenity:atm","Euronet",""],[-243.1,-348.1,"amenity:car_rental","A. Alex",""],[-239.8,-348.0,"shop:rental","EasyHire",""],[-235.3,-345.9,"amenity:atm","Cash Zone",""],[-219.2,-349.5,"amenity:clinic","Dental & Medical Centre",""],[-210.6,-348.3,"shop:convenience","",""],[27.8,-275.4,"amenity:bar","Bar Terraza Calypso",""],[306.7,-345.1,"shop:optician","Óptica Audiología Aquavisión",""],[149.2,-124.8,"amenity:atm","Euronet",""],[34.7,-104.3,"amenity:atm","Cash Zone",""],[-128.2,-226.8,"amenity:atm","Euro Automatic Cash",""],[-273.8,-223.9,"amenity:atm","Xe",""],[-302.7,-255.7,"amenity:atm","Xe",""],[-301.2,-159.7,"amenity:atm","Euronet",""],[-301.0,-93.5,"amenity:atm","Euronet",""],[-303.2,-233.5,"shop:convenience","",""],[-303.8,-273.9,"tourism:apartment","MC One Apartments",""],[-303.5,-286.5,"shop:convenience","Trebol",""],[-303.7,-289.3,"office:property_management","Trébol Vacaciones",""],[-312.8,-307.9,"amenity:pub","The Royal Arrow",""],[-319.1,-346.5,"shop:toys","Toy Planet",""],[-314.7,-209.6,"amenity:atm","Euronet",""],[282.5,-5.7,"amenity:luggage_locker","LOCK & enjoy! - Consignas en Playa de Levante","Avenida del Mediterráneo 66"],[-187.2,-14.8,"amenity:restaurant","Stefano Pizzeria","Avenida de Madrid 16"]],"tree":[[251.1,92.6,1],[43.7,15.9,1],[43.2,9.9,1],[318.4,114.9,1],[307.7,110.0,1],[301.5,115.4,1],[294.9,103.7,1],[287.6,108.4,1],[283.8,98.6,1],[276.1,95.4,1],[271.8,101.6,1],[268.4,91.9,1],[261.8,97.1,1],[53.9,9.7,1],[251.0,84.4,1],[241.3,88.1,1],[241.3,79.8,1],[233.2,84.4,1],[231.9,75.2,1],[224.2,80.2,1],[218.5,69.5,1],[206.7,72.3,1],[203.7,62.6,1],[192.2,66.1,1],[176.6,58.7,1],[169.3,55.6,1],[170.2,48.1,1],[158.6,50.7,1],[159.9,43.7,1],[150.9,47.1,1],[148.8,38.8,1],[33.9,15.9,1],[134.0,39.7,1],[129.8,29.9,1],[123.7,35.5,1],[120.5,25.9,1],[112.3,30.4,1],[109.5,21.1,1],[99.1,16.2,1],[100.4,25.1,1],[89.4,20.1,1],[79.0,16.9,1],[63.0,9.6,1],[64.5,16.0,1],[57.5,16.0,1],[143.0,43.6,1],[-272.4,-3.7,1],[-272.4,-12.0,1],[-272.5,-24.1,1],[1.8,10.3,1],[22.8,10.1,1],[13.2,16.0,1],[6.6,16.0,1],[-156.7,16.1,1],[-2.0,16.1,1],[-10.0,10.1,1],[-16.3,16.0,1],[-24.8,10.5,1],[-29.5,15.9,1],[-40.4,16.1,1],[-52.8,10.4,1],[-51.4,16.0,1],[-65.1,10.5,1],[-72.2,10.5,1],[-73.4,16.3,1],[-168.1,16.1,1],[-93.0,16.3,1],[-104.7,9.8,1],[-106.2,16.0,1],[-111.3,15.9,1],[-112.9,10.0,1],[-122.5,9.7,1],[-123.3,16.2,1],[-129.9,10.0,1],[-140.9,16.5,1],[-143.1,9.6,1],[-156.1,9.7,1],[-95.0,9.8,1],[-277.2,16.1,1],[-272.0,9.5,1],[-257.8,16.4,1],[-241.4,16.2,1],[-235.2,10.2,1],[-229.3,16.0,1],[-222.9,10.0,1],[-221.2,16.2,1],[-215.6,10.0,1],[-205.9,16.3,1],[-194.0,9.9,1],[-188.9,16.1,1],[-184.4,10.0,1],[-167.9,10.3,1],[-179.1,16.4,1],[-164.3,16.1,1],[316.7,-51.2,1],[301.0,-55.5,1],[293.9,-56.5,1],[285.3,-58.5,1],[274.2,-61.2,1],[266.4,-62.9,1],[251.1,-67.9,1],[239.8,-71.3,1],[229.2,-73.7,1],[218.4,-76.3,1],[-299.9,16.0,1],[-304.0,9.8,1],[-312.7,16.1,1],[-57.9,-106.9,1],[211.7,-78.1,1],[204.7,-80.1,1],[195.7,-83.0,1],[167.0,-89.5,1],[160.0,-91.4,1],[151.4,-94.4,1],[140.4,-98.3,1],[131.4,-99.9,1],[122.4,-102.5,1],[87.9,-108.0,1],[79.9,-107.9,1],[69.2,-108.0,1],[59.5,-108.1,1],[50.9,-107.9,1],[42.2,-107.7,1],[36.1,-108.0,1],[18.6,-108.3,1],[11.2,-108.1,1],[-3.0,-107.7,1],[-13.4,-107.5,1],[-23.5,-107.4,1],[-37.7,-107.3,1],[-47.3,-106.8,1],[-68.0,-106.5,1],[-77.3,-106.6,1],[-86.8,-106.0,1],[-97.1,-105.4,1],[-111.8,-105.8,1],[-118.2,-105.5,1],[-128.4,-104.9,1],[-137.7,-104.8,1],[-145.1,-104.9,1],[-174.8,-103.7,1],[-190.2,-103.1,1],[-202.1,-102.6,1],[-218.5,-102.7,1],[-232.0,-102.5,1],[-243.3,-102.6,1],[-253.1,-102.2,1],[-263.2,-102.0,1],[-308.2,-102.3,1],[-315.8,-101.9,1],[319.2,-73.5,1],[305.8,-78.0,1],[261.8,-89.9,1],[251.1,-93.6,1],[239.5,-96.2,1],[222.3,-101.7,1],[208.0,-105.3,1],[194.6,-109.1,1],[184.8,-111.8,1],[171.6,-115.8,1],[163.8,-118.1,1],[155.7,-120.3,1],[146.9,-122.1,1],[137.6,-125.4,1],[131.2,-126.7,1],[116.9,-130.9,1],[-271.2,-123.8,1],[96.9,-127.4,1],[80.0,-126.2,1],[72.6,-126.1,1],[65.1,-125.8,1],[56.2,-126.0,1],[44.8,-125.4,1],[32.8,-125.6,1],[22.5,-126.1,1],[13.2,-126.0,1],[1.9,-125.6,1],[-17.5,-125.3,1],[-30.5,-125.6,1],[-41.4,-125.4,1],[-54.0,-124.4,1],[-102.4,-123.8,1],[-317.8,-121.2,1],[-306.2,-121.1,1],[-264.5,-124.3,1],[-248.1,-125.4,1],[-233.5,-125.3,1],[-225.1,-125.8,1],[-191.3,-126.5,1],[-182.1,-126.9,1],[-157.4,-127.7,1],[-111.4,-123.9,1],[-87.5,-124.0,1],[-78.2,-124.7,1],[-65.6,-123.9,1],[318.1,-173.6,1],[275.1,-183.9,1],[266.3,-186.7,1],[230.1,-195.8,1],[202.7,-202.6,1],[185.5,-207.8,1],[135.3,-222.1,1],[109.3,-227.6,1],[102.1,-221.6,1],[76.4,-222.5,1],[92.2,-230.3,1],[98.3,-230.5,1],[65.2,-220.6,1],[62.4,-222.0,1],[49.9,-222.3,1],[315.2,-184.3,1],[260.3,-202.6,1],[231.2,-210.4,1],[210.6,-214.0,1],[185.0,-221.3,1],[175.9,-223.8,1],[154.3,-224.2,1],[-198.5,-332.0,1],[-184.0,-331.6,1],[-176.1,-320.3,1],[-167.0,-229.8,1],[-177.5,-236.9,1],[-177.6,-245.4,1],[-177.5,-258.4,1],[-168.8,-257.8,1],[-187.2,-321.7,1],[-169.4,-269.2,1],[-178.1,-268.2,1],[-179.8,-288.2,1],[-180.0,-298.5,1],[-170.4,-300.8,1],[-180.3,-305.4,1],[-183.2,-310.8,1],[-34.4,-284.2,1],[-49.1,-298.7,1],[-89.8,-335.4,1],[-279.5,-230.5,1],[-280.0,-238.8,1],[-280.1,-243.8,1],[-279.8,-252.1,1],[-280.0,-262.2,1],[-281.8,-275.3,1],[-94.7,-340.8,1],[-281.7,-286.7,1],[-282.0,-293.3,1],[-281.9,-307.8,1],[-281.6,-317.3,1],[-274.7,-332.9,1],[-264.4,-333.2,1],[-257.4,-340.6,1],[-254.7,-333.4,1],[-245.5,-334.1,1],[-240.1,-340.9,1],[-235.8,-333.8,1],[-226.8,-341.3,1],[-218.2,-331.4,1],[-184.2,-347.2,1],[-277.0,-64.1,1],[-280.3,-200.1,1],[-280.7,-185.7,1],[-279.8,-171.2,1],[-279.6,-156.3,1],[-272.6,-27.0,1],[-272.7,-40.3,1],[-279.5,-146.8,1],[-277.2,-50.3,1],[-277.0,-57.7,1],[-277.1,-83.1,1],[-277.3,-71.9,1],[-277.2,-93.2,1],[-279.4,-137.9,1],[174.9,-231.4,1],[184.5,-228.7,1],[186.3,-227.9,1],[3.7,-314.9,1],[1.9,-311.9,1],[0.2,-309.4,1],[-2.2,-306.2,1],[-4.3,-303.1,1],[-6.3,-300.2,1],[-7.9,-297.6,1],[49.8,-332.9,1],[54.3,-349.0,1],[50.4,-341.4,1],[109.5,-348.8,1],[120.8,-350.0,1],[118.5,-325.8,1],[111.4,-324.9,1],[109.0,-320.5,1],[105.3,-314.3,1],[102.5,-309.5,1],[100.1,-304.6,1],[98.0,-300.1,1],[94.5,-294.6,1],[79.2,-302.4,1],[76.7,-294.5,1],[159.3,-290.0,1],[145.8,-292.8,1],[160.7,-305.0,1],[154.2,-291.5,1],[148.0,-321.0,1],[144.3,-314.0,1],[141.2,-306.6,1],[137.5,-300.0,1],[149.7,-325.5,1],[143.1,-331.0,1],[137.7,-335.0,1],[133.3,-338.5,1],[127.5,-342.9,1],[124.0,-336.3,1],[120.9,-330.8,1],[57.8,-275.1,1],[211.9,-281.6,1],[217.8,-278.4,1],[203.4,-236.2,1],[227.6,-237.8,1],[186.7,-346.4,1],[184.0,-344.5,1],[188.9,-341.9,1],[193.0,-344.4,1],[194.8,-332.0,1],[201.1,-336.3,1],[199.2,-332.7,1],[201.0,-339.2,1],[167.6,-275.3,1],[167.7,-279.2,1],[166.0,-277.2,1],[172.3,-294.3,1],[166.7,-291.7,1],[168.3,-310.7,1],[167.2,-303.1,1],[167.2,-297.0,1],[157.0,-321.5,1],[159.7,-322.5,1],[164.0,-320.1,1],[167.8,-317.5,1],[172.9,-314.6,1],[177.5,-313.0,1],[144.8,-43.0,1],[224.5,45.8,1],[-115.8,-48.1,1],[-155.5,1.2,1],[-157.5,1.0,1],[-156.1,3.4,1],[-151.4,3.9,1],[-149.3,3.9,1],[-145.9,4.0,1],[-143.1,3.7,1],[30.5,-44.9,1],[9.2,-45.8,1],[27.4,-62.3,1],[64.5,-57.4,1],[10.0,-52.0,1],[96.6,-167.3,1],[88.7,-166.7,1],[88.8,-164.1,1],[91.0,-165.3,1],[-11.5,-214.5,1],[-23.4,-210.0,1],[-12.7,-213.0,1],[-65.2,-264.0,1],[-67.8,-263.7,1],[-66.5,-261.7,1],[-51.0,-228.5,1],[-57.1,-228.6,1],[-66.6,-228.2,1],[-225.0,-334.0,1],[-231.9,-296.1,1],[-230.8,-301.9,1],[-234.6,-301.7,1],[-250.0,-301.6,1],[-253.4,-301.3,1],[-207.2,-326.9,1],[-205.5,-326.6,1],[-200.7,-324.6,1],[-195.8,-320.3,1],[-193.0,-316.8,1],[-190.9,-312.8,1],[-189.1,-307.0,1],[-188.4,-301.8,1],[-188.4,-296.0,1],[-188.0,-289.7,1],[-188.2,-282.9,1],[-187.6,-278.0,1],[-195.5,-299.0,1],[-208.2,-295.2,1],[-271.9,-231.9,1],[-246.4,-235.2,1],[-249.5,-230.8,1],[-250.5,-225.3,1],[-259.7,-232.7,1],[-258.8,-225.2,1],[-266.6,-225.1,1],[-242.9,-285.0,1],[-240.2,-287.9,1],[-236.0,-291.2,1],[-241.8,-290.1,1],[-244.5,-287.0,1],[-245.6,-282.7,1],[-248.5,-284.2,1],[-249.5,-279.2,1],[-253.2,-280.8,1],[-253.3,-277.7,1],[-207.9,-133.1,1],[-207.0,-132.4,1],[-230.7,-137.9,1],[-229.4,-132.3,1],[-231.9,-134.5,1],[-215.8,-141.6,1],[-219.0,-157.2,1],[-218.8,-154.4,1],[-221.8,-154.6,1],[-222.3,-157.2,1],[-178.9,-146.9,1],[-177.8,-141.9,1],[-266.2,-39.6,1],[-246.0,-34.6,1],[-245.9,-43.9,1],[-250.0,-35.3,1],[-254.4,-35.2,1],[-261.8,-35.5,1],[-272.0,-35.2,1],[-253.9,-50.9,1],[-261.0,-50.9,1],[-266.5,-50.6,1],[-272.5,-50.9,1],[-245.4,-25.3,1],[-240.1,-37.6,1],[-231.3,-37.2,1],[-227.3,-23.3,1],[-227.4,-29.0,1],[-281.2,-24.0,1],[-281.2,-7.0,1],[-281.4,3.9,1],[-291.9,3.6,1],[-292.3,-8.0,1],[-292.6,-30.5,1],[-281.9,-32.9,1],[-289.1,-53.4,1],[-283.2,-95.9,1],[-291.2,-95.0,1],[-291.8,-77.7,1],[-292.1,-69.1,1],[-282.2,-39.9,1],[-283.7,-49.2,1],[-290.3,-49.1,1],[-296.1,-50.5,1],[-296.6,-65.3,1],[-296.9,-96.3,1],[-297.0,-85.5,1],[-296.8,-75.3,1],[-295.8,-39.3,1],[-295.7,-31.6,1],[-295.9,-20.8,1],[-295.7,-10.6,1],[-316.5,-158.7,1],[-297.3,-134.7,1],[-296.7,-146.7,1],[-296.7,-154.8,1],[-297.2,-172.6,1],[-296.9,-183.8,1],[-297.1,-197.4,1],[-292.2,-228.2,1],[-291.8,-236.8,1],[-292.0,-246.9,1],[-293.6,-259.4,1],[-293.2,-275.0,1],[-293.1,-286.1,1],[-292.9,-290.6,1],[-293.1,-295.3,1],[-293.6,-309.4,1],[-293.1,-321.5,1],[-309.5,-341.5,1],[-317.1,-341.7,1]],"lamp":[[-169.5,-0.1],[-158.9,-11.0],[-169.6,-29.2],[-161.5,-56.8],[83.0,11.4],[87.9,12.2],[-272.4,3.4],[-272.2,-18.5],[277.5,-24.3],[291.9,-4.6],[299.9,-17.5],[295.6,117.8],[271.6,106.7],[250.1,97.5],[236.5,91.2],[215.1,81.5],[188.6,69.6],[173.5,63.0],[160.4,57.2],[137.4,47.1],[118.6,38.4],[95.8,28.4],[78.6,21.9],[53.5,20.5],[28.8,20.5],[3.7,20.6],[-16.8,20.8],[-35.8,28.9],[-47.2,36.0],[-80.0,21.0],[-98.3,20.7],[-109.7,20.9],[-135.7,20.7],[-163.5,21.0],[217.9,-72.6],[217.3,-60.1],[219.0,-40.9],[217.7,-26.5],[213.1,-9.1],[212.2,-0.3],[211.7,9.8],[210.0,21.5],[200.5,47.5],[-172.2,21.1],[-188.1,20.7],[-212.3,20.8],[-234.8,20.9],[-249.2,20.7],[-271.5,21.0],[-297.3,21.1],[97.4,-99.7],[112.3,-138.6],[102.9,-140.0],[-291.4,-132.2],[-283.3,-132.4],[214.9,-199.6],[94.5,-29.5],[97.9,-50.8],[101.7,-74.8],[104.2,-91.2],[112.7,-170.8],[306.4,-176.0],[119.6,-201.7],[281.1,-182.9],[263.3,-187.4],[233.0,-195.2],[195.1,-205.2],[172.0,-211.8],[161.9,-214.3],[90.8,-3.7],[138.9,-221.1],[121.8,-215.8],[103.0,-219.2],[84.4,-0.8],[89.3,-34.0],[92.8,-61.3],[95.6,-79.9],[106.9,-179.5],[111.6,-204.6],[114.6,-225.7],[91.4,-219.2],[77.6,-219.2],[76.6,-227.2],[68.4,-233.4],[82.0,-238.8],[98.8,-233.9],[62.5,-218.7],[42.9,-221.6],[12.1,-218.1],[-14.7,-217.6],[-52.5,-216.8],[-155.4,-215.5],[-125.8,-215.1],[-166.9,-151.7],[-78.7,-216.5],[-167.8,-178.9],[191.6,-219.1],[-167.4,-221.3],[-144.6,-221.1],[-107.2,-221.4],[-76.0,-221.5],[-42.4,-222.0],[279.5,-192.6],[6.5,-223.0],[38.2,-226.2],[317.7,-183.9],[297.1,-189.6],[45.4,-243.7],[254.7,-203.8],[231.3,-208.4],[215.6,-212.6],[89.7,-247.4],[166.7,-220.5],[150.6,-224.7],[143.4,-226.9],[119.8,-239.5],[61.0,-257.1],[69.8,-251.1],[-182.6,-329.3],[-177.5,-240.6],[-168.9,-261.2],[-178.4,-275.6],[-182.3,-308.8],[-170.2,-297.6],[22.7,-251.0],[-12.3,-263.1],[-29.0,-279.5],[-43.5,-293.9],[-54.1,-304.4],[-69.2,-319.7],[-187.2,-222.5],[-197.4,-213.4],[-229.1,-221.5],[-243.4,-212.9],[-279.2,-223.6],[-280.0,-241.4],[-279.7,-257.1],[-282.0,-280.8],[-281.7,-299.6],[-281.8,-323.8],[-271.1,-330.4],[-259.6,-340.7],[-243.4,-330.6],[-224.8,-341.3],[-208.8,-332.3],[-196.8,-346.5],[-100.7,-346.9],[-282.3,-187.8],[-273.0,-46.1],[-281.3,-148.5],[-272.3,-35.7],[-276.9,-54.3],[-276.3,-68.8],[-282.4,-204.3],[-275.9,-89.1],[-281.8,-161.5],[-281.9,-342.5],[-293.8,5.5],[-293.8,-17.3],[-294.1,-32.3],[-294.0,-40.3],[-294.4,-54.8],[-294.4,-66.3],[-294.7,-92.6],[-291.2,-146.4],[-291.2,-176.0],[-290.9,-189.1],[-291.4,-205.9],[-294.9,-345.7],[-292.2,-222.3],[-292.1,-241.3],[-293.1,-267.7],[-292.9,-280.8],[-292.9,-292.4],[-293.7,-307.1],[-293.1,-324.1],[-308.0,-220.7],[11.6,-269.4],[-8.4,-279.8],[-22.8,-291.6],[-35.7,-303.2],[-48.7,-318.1],[-70.7,-336.6],[35.1,-262.0]],"bench":[[-119.8,16.0,-1.0],[103.2,31.6,-1.0],[178.0,59.5,-1.0],[-83.1,16.1,-1.0],[-114.0,16.0,-1.0],[97.5,29.3,-1.0],[184.2,62.3,-1.0],[-75.5,16.4,-1.0],[-238.7,16.3,-1.0],[-266.7,20.9,-1.0],[-259.9,21.0,-1.0],[-289.3,21.2,-1.0],[-302.9,21.3,-1.0],[-310.2,21.4,-1.0],[-199.1,16.1,-1.0],[170.5,56.2,-1.0],[156.8,49.8,-1.0],[153.1,48.3,-1.0],[72.7,21.2,-1.0],[66.7,21.0,-1.0],[47.2,16.0,-1.0],[41.4,15.9,-1.0],[2.4,15.9,-1.0],[-19.8,20.7,-1.0],[-27.5,20.9,-1.0],[-37.2,20.6,-1.0],[-45.4,20.7,-1.0],[-165.9,20.9,-1.0],[-170.3,21.0,-1.0],[-175.2,16.2,-1.0],[-193.1,16.1,-1.0],[313.4,120.4,-1.0],[311.4,119.5,-1.0],[266.0,98.8,-1.0],[216.3,76.5,-1.0],[252.2,98.5,-1.0],[254.4,99.4,-1.0],[246.8,96.1,-1.0],[245.1,95.6,-1.0],[296.9,-56.4,-1.0],[281.6,-58.8,-1.0],[226.2,-74.3,-1.0],[136.9,-98.8,-1.0],[-311.9,-101.8,-1.0],[-135.4,-105.1,-1.0],[-196.3,-102.8,-1.0],[255.2,-86.8,-1.0],[243.5,-90.2,-1.0],[74.7,-126.1,-1.0],[38.9,-125.5,-1.0],[-21.4,-126.0,-1.0],[-36.5,-125.3,-1.0],[-314.6,-121.2,-1.0],[179.9,-209.0,-1.0],[126.2,-224.0,-1.0],[90.3,-231.5,-1.0],[75.4,-230.1,-1.0],[68.7,-235.7,-1.0],[-281.9,-277.4,-1.0],[-51.6,-301.7,-1.0],[-281.6,-313.6,-1.0],[64.0,-228.8,-1.0],[71.3,-232.1,-1.0],[-293.4,-261.5,-1.0],[-293.4,-326.6,-1.0],[-45.4,-314.6,-1.0]],"bin":[[221.1,-207.6,1,"container"],[-122.8,3.5,2,""],[94.7,22.6,0,""],[-158.6,-104.2,2,""],[-150.4,9.8,0,""],[235.7,-72.4,1,"container"],[176.1,-111.3,1,"container"],[172.3,-88.5,1,"container"],[-164.1,-81.7,1,"container"],[-289.8,-98.1,1,"container"],[121.9,-210.1,1,"container"],[-9.9,-129.4,1,"container"],[-90.4,-127.7,1,"container"],[-178.4,-201.8,2,""],[-178.8,-196.6,1,""],[-188.6,-207.1,1,""],[-286.3,16.3,0,""],[-244.5,16.1,0,""],[-219.7,16.2,0,""],[-186.4,16.2,0,""],[-171.7,16.2,0,""],[-139.3,16.3,0,""],[-91.0,16.2,0,""],[-38.4,16.1,0,""],[8.7,16.0,0,""],[51.8,15.9,0,""],[132.7,39.2,0,""],[168.0,54.9,0,""],[197.4,68.6,0,""],[235.8,85.8,0,""],[289.3,109.0,0,""],[232.6,-73.3,0,""],[119.6,-103.3,0,""],[-186.7,-103.7,0,""],[-266.4,-101.5,0,""],[-303.8,-102.4,0,""],[117.9,-123.0,0,""],[92.2,-125.9,0,""],[-302.9,-121.5,0,""],[-283.3,-124.2,0,""],[-283.4,-134.5,1,"container"],[-200.3,-124.8,0,""],[285.3,-181.8,0,""],[146.9,-219.2,0,""],[48.9,-225.3,1,"container"],[83.2,-238.7,0,""],[-138.9,-222.8,0,""],[-85.3,-223.7,1,"container"],[228.9,-208.6,0,""],[209.2,-214.6,0,""],[-179.8,-291.5,2,""],[-183.4,-314.0,2,""],[-181.5,-307.0,1,"container"],[-58.0,-308.5,0,""],[-240.5,-221.0,2,""],[-243.0,-220.8,1,"container"],[-186.9,-215.4,1,"container"],[-279.6,-226.2,1,"container"],[-279.6,-228.1,2,""],[-279.1,-247.3,2,""],[-279.5,-249.5,1,"container"],[-281.8,-321.6,0,""],[180.1,-110.2,1,"container"],[178.5,-110.7,1,"container"],[-296.1,-92.3,0,""],[-294.8,-347.4,0,""],[-319.8,-341.5,1,"container"],[-43.8,-311.0,1,"container"]],"bus":[[242.7,-95.7,"Av. Mediterráneo, 55 (Casino)",1],[70.1,-130.2,"Av. Mediterráneo, 49",1],[-138.9,-128.0,"Av. Mediterráneo, 41 (Hotel Don Pancho)",1],[-299.6,-102.4,"Av. Mediterráneo, 44",1],[-133.6,-105.5,"Av. Mediterráneo, 54",1],[71.8,-110.0,"Av. Mediterráneo, 58",1],[304.3,-51.5,"Av. Mediterráneo, 62 (Racó de l'Oix)",1]],"cross":[[50.8,-231.5],[86.0,-241.8],[40.4,-254.3],[-289.9,-326.5],[-290.2,-345.5],[-282.0,-338.5],[-300.5,-337.1],[-288.2,-223.5],[-266.6,-109.1],[-279.2,-216.9],[-308.4,-108.5],[-308.7,-118.2],[-267.6,-119.2],[-287.1,-131.1],[-299.2,-216.8],[-288.0,-207.1],[150.1,-223.6],[117.3,-220.8],[-172.7,-210.4],[-163.9,-218.8],[-180.1,-218.5],[82.7,-125.2],[83.2,-116.0],[-152.0,-111.5],[-152.2,-121.2],[-184.8,-120.5],[-184.8,-111.0],[-168.0,-98.3],[-170.4,-135.6],[106.0,-137.6],[-190.8,-333.8],[-54.7,-311.8],[-194.1,-344.8],[-168.6,-114.5],[-286.8,-112.4],[-286.9,-115.0],[118.8,-112.4],[119.5,-114.8],[119.9,-117.4],[121.1,-120.5],[-168.7,-117.4],[28.0,-222.5],[-172.6,-225.2],[-184.5,-114.2],[-184.7,-117.0],[-152.0,-114.8],[-152.1,-117.7],[-308.6,-114.6],[-308.5,-112.0]],"ent":[[297.0,13.7,1],[-110.6,1.0,1],[190.7,-112.6,1],[-59.7,-138.4,1],[-127.5,-137.1,1],[-73.1,-347.1,1],[-75.0,-348.9,1],[-42.8,-345.2,1],[-50.6,-326.4,1],[-68.0,-342.4,1],[4.0,-280.5,1],[-5.6,-286.6,1],[51.0,-270.5,1],[13.1,-279.8,1],[-8.3,-288.4,1],[-41.1,-347.9,1],[159.7,-241.5,1],[156.7,-242.1,1],[118.4,-253.6,1],[61.5,-264.1,1],[246.9,-347.8,1],[268.9,-236.8,1],[251.5,-212.4,1],[185.8,-240.2,1],[44.7,-270.5,1],[139.2,-287.2,1],[194.2,-237.9,1],[315.2,-170.4,1],[277.7,-180.9,1],[166.4,-212.0,1],[149.3,-216.8,1],[140.0,-139.6,1],[120.2,-191.2,1],[145.2,-125.2,1],[152.1,-123.3,1],[162.5,-120.4,1],[159.7,-121.2,1],[220.6,-104.3,1],[275.3,-89.0,1],[254.9,-103.1,1],[118.6,22.8,1],[147.3,-65.5,1],[255.3,-56.8,1],[316.5,78.8,1],[314.9,36.9,1],[312.3,50.2,1],[276.2,93.4,1],[255.6,84.1,1],[171.1,37.0,1],[236.8,75.7,1],[220.0,68.2,1],[202.4,60.3,1],[219.0,-66.4,1],[222.0,-63.4,1],[137.3,31.2,1],[134.3,29.8,1],[124.0,-67.7,1],[113.7,-37.2,1],[149.6,-90.6,1],[-37.9,6.5,1],[-41.0,0.1,1],[-49.4,2.1,1],[-45.5,2.1,1],[-100.5,2.8,1],[-93.6,6.4,1],[-108.5,-1.7,1],[-105.8,-1.8,1],[-113.6,-95.2,1],[-161.2,-77.1,1],[-153.2,-55.2,1],[-152.6,-36.0,1],[-152.0,-17.9,1],[-160.4,-55.3,1],[-159.7,-35.8,1],[-159.1,-17.7,1],[-155.4,6.6,1],[-138.6,6.5,1],[-134.9,6.5,1],[-37.9,-103.9,1],[-82.1,-103.0,1],[-18.9,-104.4,1],[-24.9,-104.3,1],[56.6,-81.7,1],[86.8,-60.1,1],[57.1,1.3,1],[32.9,6.4,1],[11.0,5.0,1],[-86.9,-51.8,1],[35.1,-28.1,1],[86.6,-142.6,1],[86.0,-228.1,1],[106.0,-226.9,1],[59.6,-223.1,1],[102.0,-169.0,1],[84.0,-217.2,1],[28.2,-216.7,1],[9.6,-172.1,1],[56.7,-135.7,1],[44.5,-135.5,1],[-1.0,-192.6,1],[-6.3,-208.9,1],[-31.7,-213.2,1],[-26.5,-237.7,1],[-99.3,-233.1,1],[-64.1,-312.2,1],[-73.5,-320.8,1],[-113.5,-348.2,1],[-122.6,-348.5,1],[-148.4,-260.0,1],[-167.2,-254.0,1],[-130.2,-232.2,1],[-145.6,-251.1,1],[-167.1,-250.9,1],[-165.3,-246.6,1],[-276.2,-346.3,1],[-265.4,-345.6,1],[-180.9,-257.7,1],[-278.6,-278.6,1],[-277.9,-286.1,1],[-271.8,-326.2,1],[-274.4,-314.9,1],[-278.2,-251.4,1],[-277.8,-230.7,1],[-187.4,-296.8,1],[-196.1,-325.6,1],[-278.2,-256.9,1],[-239.1,-129.9,1],[-237.0,-130.0,1],[-275.5,-178.1,1],[-276.0,-180.6,1],[-212.1,-212.5,1],[-209.6,-212.5,1],[-207.3,-212.6,1],[-178.4,-177.2,1],[-212.5,-143.5,1],[-173.9,-46.9,1],[-202.8,6.6,1],[-207.5,6.6,1],[-240.6,6.7,1],[-274.3,-14.3,1],[-268.6,-30.2,1],[-252.0,-99.9,1],[-241.6,-100.1,1],[-211.8,-100.7,1],[-209.3,-100.7,1],[-179.6,-59.2,1],[-174.2,-56.2,1],[-307.0,-346.8,1],[-309.3,-345.1,1],[-314.3,-261.4,1],[-302.0,-257.2,1],[-317.4,-293.5,1],[-300.3,-157.0,1],[-317.1,-203.4,1],[-317.2,-210.7,1],[-307.1,-70.9,1],[-306.6,-47.0,1]],"coast":[[-750.0,103.8,-635.3,98.8,-607.1,94.8,-523.7,92.5,-465.7,89.9,-313.6,92.2,-205.5,90.0,-91.1,85.2,-58.9,87.2,78.5,92.0,157.5,109.9,209.8,130.0,278.3,150.7,325.4,177.2,369.8,203.3,371.3,223.5,385.0,254.2,394.7,292.5,400.3,310.1,391.9,384.0,383.5,413.2,374.4,419.8,363.2,447.2,363.3,465.7,355.4,485.3,347.2,555.8,344.3,563.4,336.1,592.9,327.4,601.4,324.0,620.6,329.0,630.0,336.8,633.0,343.1,633.1,345.1,641.2,348.8,642.5,354.5,635.3,364.1,624.7,370.9,624.1,379.1,630.2,373.9,654.4,382.1,653.0,390.0,633.1,399.5,619.9,423.8,601.8,433.5,592.5,445.2,587.8,461.4,585.0,468.5,580.5,469.7,571.4,495.1,581.6,508.4,576.8,517.4,567.8,532.0,580.9,542.8,595.3,546.8,603.8,547.5,611.1,549.8,614.4,544.0,637.0,539.9,649.3,535.6,660.9,539.8,662.9,538.9,668.9,533.8,670.4,532.3,684.8,536.7,694.8,532.7,700.3,540.9,710.7,532.5,720.1,538.4,724.9,561.7,708.0,581.4,709.2,595.2,703.9,608.5,713.1,616.5,711.3,623.8,712.1,625.6,724.5,628.3,733.8,641.5,736.5,633.0,752.9,637.5,757.8,638.8,784.7,644.2,788.7,684.9,747.7,729.5,664.0,743.3,647.2,758.3,633.5,772.1,631.7,780.4,635.5,793.7,656.2,778.9,694.9,786.0,699.7,796.1,692.9,802.4,681.0,816.1,690.3,814.7,694.7,806.5,733.1,812.1,755.4,820.7,769.4,849.2,755.7,863.6,756.8,862.7,766.9,896.1,770.6,911.4,786.9,934.1,793.4,965.0,796.7,976.2,790.6,1033.8,801.2,1062.9,781.2,1066.5,784.2,1066.0,794.4,1073.0,803.0,1083.4,815.4,1091.8,806.4,1103.6,806.6,1109.4,822.5,1133.8,832.5,1140.8,826.7,1170.0,839.3,1202.1,825.3,1230.6,828.9,1267.8,859.1,1274.0,875.3,1266.7,910.0,1271.0,921.1,1270.1,930.1,1274.0,937.4,1284.6,938.3,1328.7,921.6,1319.5,952.0,1315.6,967.9,1319.4,990.3,1368.3,1024.6,1407.3,1028.1,1404.4,1017.0,1440.7,981.3,1488.1,935.4,1488.5,900.0,1524.2,862.0,1534.4,854.1,1521.0,847.9,1524.8,831.3,1523.1,820.8,1512.8,793.3,1514.1,780.1,1518.1,758.2,1536.0,720.6,1548.7,704.7,1571.6,684.9,1550.2,658.8,1555.4,644.7,1566.8,635.5,1575.3,646.5,1601.1,631.2,1619.2,615.1,1615.1,567.4,1651.8,549.7,1665.3,564.0,1672.7,563.4,1676.7,562.5,1699.7,559.0,1695.6,547.7,1686.5,534.9,1736.2,506.7,1774.3,516.7,1821.5,478.4,1866.4,444.2]],"host":{"n":"Edif. Carolina","phi":-9.84},"bounds":[-300,300,-330,170]};
 
 /* ================= AUDIO (todo sintetizado) ================= */
 const AU = {
@@ -1148,173 +1152,179 @@ function buildWorld() {
   buildTown();
 }
 
-/* ================= EL BARRIO: Levante, Benidorm. El local da a la Avenida de Alcoy (primera línea); enfrente, el Paseo de Levante,
-   la playa y el mar. Detrás, la segunda línea (Avenida del Mediterráneo) y la tercera (Calle Gerona); hacia la playa bajan
-   la Avenida de Bilbao, la del Periodista Emilio Romero y la de Europa, en ese orden de oeste a este.
-   Las torres de detrás no dan a la calle: hay un muro bajo con cancela y portero, se cruza el jardín (piscina, palmeras)
-   y se llega al portal. Todo se genera con una semilla fija, así que todos los jugadores ven el mismo barrio.
-   x = oeste-este, z crece hacia el mar. El local está en x[-5,5], z[-8,5]. */
-const STREETS = [
-  { n: 'Avenida de Alcoy', ax: 'x', c: 11.5, w: 7, a0: -135, a1: 135 },
-  { n: 'Av. Periodista Emilio Romero', ax: 'z', c: 20, w: 7, a0: -178.5, a1: 8 },
-  { n: 'Avenida de Bilbao', ax: 'z', c: -48, w: 7, a0: -178.5, a1: 8 },
-  { n: 'Avenida de Europa', ax: 'z', c: 48, w: 7, a0: -178.5, a1: 8 },
-  { n: 'Calle Gerona', ax: 'x', c: -175, w: 7, a0: -51.5, a1: 51.5 },
-  { n: 'Avenida del Mediterráneo', ax: 'x', c: -88, w: 9, a0: -51.5, a1: 51.5 },
-];
-const DL_STREET = 1, AV_END = 118, LIT_ST = 48, MED = 5, EDGE = 74;
-// el decorado de dentro de las torres (portal, ascensor, rellano y escalera) está lejos del barrio, fuera de la niebla
-const MOD = { x: 600, z: -600 }, FLAT_LET = 'ABCD';
-const FLAT_LOC = [[6, 22.4, 0, -1], [8.6, 22.4, 0, -1], [11, 22.4, 0, -1], [12, 21.2, -1, 0]];
-const PASEO = { z0: 17, z1: 26 }, SAND_Z1 = 52, SEA_Z = 50;
-const SOLAR = { x0: -2, x1: 14.5, z0: -155, z1: -133 };
-const DOG_ZONE = { x0: -1.5, x1: 23, z0: -161, z1: -127 }, DOG_HOME = [[8, -140], [5, -150]];
-const BUS_STOP = { x: -28, z: -82.9 };
+/* ================= EL BARRIO DE VERDAD: Levante (Rincón de Loix), Benidorm, sacado de OpenStreetMap (02d_map.js).
+   El local es un bajo del Edificio Carolina, en la Avenida de Madrid, al lado del Edificio Veracruz y su supermercado;
+   enfrente, el paseo, la playa de Levante y el mar. Edificios con sus plantas reales, tapias, cancelas, jardines,
+   piscinas, palmeras, farolas, bancos, papeleras, paradas de bus y los negocios con su nombre.
+   x = este, z crece hacia el mar. El local está en x[-5,5], z[-8,5]. */
 const CAR_COLS = [0x2a2f36, 0x5a1a16, 0x2c3a2c, 0x6a6a66, 0x1a2a4a, 0x8a7a5a];
-const TOWER_NAMES = ['TORRE CORAL', 'RESIDENCIAL MAR AZUL', 'EDIFICIO LEVANTE SOL', 'TORRE BAHÍA', 'EDIFICIO ATALAYA', 'RESIDENCIAL LAS PALMERAS', 'TORRE NEPTUNO', 'EDIFICIO MIRAMAR',
-  'RESIDENCIAL ALHAMBRA', 'TORRE MARINA', 'EDIFICIO DON JAIME', 'RESIDENCIAL COSTA BLANCA', 'TORRE IBERIA', 'EDIFICIO ACAPULCO', 'RESIDENCIAL MONTECARLO', 'TORRE GAVIOTA',
-  'EDIFICIO SIERRA HELADA', 'RESIDENCIAL EL PARAÍSO', 'TORRE LEVANTINA', 'EDIFICIO COPACABANA', 'RESIDENCIAL ISLA', 'TORRE PUIG CAMPANA', 'EDIFICIO ALTAMAR', 'RESIDENCIAL SOL Y MAR'];
-// distancia del eje de la calle a la pared o al muro de las parcelas
-function wallOff(si) { return si === 0 ? 6.5 : STREETS[si].w / 2 + 2; }
-const TOWN = layoutTown();
-/* tráfico: posiciones deterministas a partir del reloj de la noche, así todos los jugadores ven lo mismo */
-const TRAFFIC = [
-  { st: 0, c: 3, li: 1, ax: 'x', l: 10.6, a0: 128, a1: -128, v: 10.5, ph: 0 },
-  { st: 2, c: 5, li: 1, ax: 'x', l: 12.5, a0: -128, a1: 128, v: 9.5, ph: 9 },
-  { st: 1, c: 1, li: 1, ax: 'x', l: -89.8, a0: 50, a1: -50, v: 9, ph: 15 },
-  { st: 0, c: 0, li: 0, ax: 'z', l: 20.6, a0: -176, a1: 0, v: 2.6, ph: 30, gap: 150 },   // el coche negro sin luces que baja por Emilio Romero
-];
-function trafficPos(t, time) {
-  const len = Math.abs(t.a1 - t.a0), cyc = len / t.v + (t.gap || 6), u = ((time + t.ph) % cyc) / (len / t.v);
-  if (u > 1) return null;
-  const a = lerp(t.a0, t.a1, u), dir = Math.sign(t.a1 - t.a0);
-  return t.ax === 'x' ? { x: a, z: t.l, ry: dir > 0 ? -PI / 2 : PI / 2, dx: dir, dz: 0 } : { x: t.l, z: a, ry: dir > 0 ? PI : 0, dx: 0, dz: dir };
+const FLAT_LET = 'ABCD';
+const SHOP_RECT = { x0: -5.4, x1: 5.4, z0: -8.4, z1: 5.3 };
+const DRIVE = { tertiary: 1, secondary: 1, primary: 1, residential: 1, living_street: 1, unclassified: 1, service: 1 };
+
+/* ---------- ayudas de geometría 2D ---------- */
+function pip(x, z, P) { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const a = P[i], b = P[j]; if ((a[1] > z) !== (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; }
+function segDist(px, pz, ax, az, bx, bz) { const dx = bx - ax, dz = bz - az, L = dx * dx + dz * dz; let t = L ? ((px - ax) * dx + (pz - az) * dz) / L : 0; t = clamp(t, 0, 1); const qx = ax + dx * t, qz = az + dz * t; return [Math.hypot(px - qx, pz - qz), qx, qz, t]; }
+function pairs(f) { const o = []; for (let i = 0; i < f.length; i += 2) o.push([f[i], f[i + 1]]); return o; }
+function polyArea(P) { let a = 0; for (let i = 0; i < P.length; i++) { const p = P[i], q = P[(i + 1) % P.length]; a += p[0] * q[1] - q[0] * p[1]; } return a / 2; }
+function simplify(P, tol) {   // Douglas-Peucker para polígonos cerrados
+  if (P.length < 5) return P;
+  const rec = (pts) => { if (pts.length < 3) return pts; const a = pts[0], b = pts[pts.length - 1]; let md = 0, mi = 0; for (let i = 1; i < pts.length - 1; i++) { const d = segDist(pts[i][0], pts[i][1], a[0], a[1], b[0], b[1])[0]; if (d > md) { md = d; mi = i; } } if (md < tol) return [a, b]; const l = rec(pts.slice(0, mi + 1)), r = rec(pts.slice(mi)); return l.slice(0, -1).concat(r); };
+  const out = rec(P.concat([P[0]])); out.pop(); return out.length >= 3 ? out : P;
+}
+// polígono desplazado hacia fuera (ingletes limitados)
+function offsetPoly(P, d) {
+  const n = P.length, o = [];
+  for (let i = 0; i < n; i++) {
+    const a = P[(i - 1 + n) % n], b = P[i], c = P[(i + 1) % n];
+    let e1x = b[0] - a[0], e1z = b[1] - a[1], e2x = c[0] - b[0], e2z = c[1] - b[1]; const l1 = Math.hypot(e1x, e1z) || 1, l2 = Math.hypot(e2x, e2z) || 1;
+    // con área positiva (x este, z sur) la normal hacia fuera de una arista (ex,ez) es (ez,-ex)·signo
+    const s = polyArea(P) > 0 ? 1 : -1;
+    const n1x = s * e1z / l1, n1z = -s * e1x / l1, n2x = s * e2z / l2, n2z = -s * e2x / l2;
+    let mx = n1x + n2x, mz = n1z + n2z; const ml = Math.hypot(mx, mz) || 1; mx /= ml; mz /= ml;
+    const k = Math.min(2.2, 1 / Math.max(0.3, mx * n1x + mz * n1z));
+    o.push([b[0] + mx * d * k, b[1] + mz * d * k]);
+  }
+  return o;
+}
+function outN(P, i) { const a = P[i], b = P[(i + 1) % P.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, s = polyArea(P) > 0 ? 1 : -1; return [s * (b[1] - a[1]) / L, -s * (b[0] - a[0]) / L, L]; }
+
+/* ---------- colisiones por segmentos (paredes de verdad, no cajas) ---------- */
+const SEGS = { c: 8, m: new Map(), all: [] };
+function addSeg(ax, az, bx, bz, y0, y1, o) {
+  const s = { ax, az, bx, bz, y0: y0 || 0, y1: y1 === undefined ? 99 : y1, off: false };
+  if (o) Object.assign(s, o);
+  SEGS.all.push(s);
+  const c = SEGS.c, x0 = Math.floor(Math.min(ax, bx) / c), x1 = Math.floor(Math.max(ax, bx) / c), z0 = Math.floor(Math.min(az, bz) / c), z1 = Math.floor(Math.max(az, bz) / c);
+  for (let i = x0; i <= x1; i++) for (let j = z0; j <= z1; j++) { const k = i * 100000 + j; let l = SEGS.m.get(k); if (!l) SEGS.m.set(k, l = []); l.push(s); }
+  return s;
+}
+function collideSegs(p, R, y) {
+  const c = SEGS.c, ci = Math.floor(p.x / c), cj = Math.floor(p.z / c), yb = y + 0.35, yt = y + 1.7;
+  for (let it = 0; it < 2; it++) for (let i = ci - 1; i <= ci + 1; i++) for (let j = cj - 1; j <= cj + 1; j++) {
+    const l = SEGS.m.get(i * 100000 + j); if (!l) continue;
+    for (const s of l) {
+      if (s.off || s.y1 < yb || s.y0 > yt) continue;
+      const [d, qx, qz] = segDist(p.x, p.z, s.ax, s.az, s.bx, s.bz);
+      if (d < R) { if (d > 1e-5) { p.x = qx + (p.x - qx) / d * R; p.z = qz + (p.z - qz) / d * R; } else { const nx = -(s.bz - s.az), nz = s.bx - s.ax, nl = Math.hypot(nx, nz) || 1; p.x += nx / nl * R; p.z += nz / nl * R; } }
+    }
+  }
+}
+// ¿hay pared entre dos puntos? (para que no se dispare ni se toque a través de los muros)
+function segBlocked(ax, az, bx, bz, y) {
+  const c = SEGS.c, seen = new Set();
+  for (let t = 0; t <= 1.0001; t += 0.25) {
+    const k = Math.floor(lerp(ax, bx, t) / c) * 100000 + Math.floor(lerp(az, bz, t) / c), l = SEGS.m.get(k); if (!l) continue;
+    for (const s of l) { if (seen.has(s) || s.off || s.y1 < y || s.y0 > y) continue; seen.add(s); const d = (bx - ax) * (s.bz - s.az) - (bz - az) * (s.bx - s.ax); if (Math.abs(d) < 1e-9) continue; const u = ((s.ax - ax) * (s.bz - s.az) - (s.az - az) * (s.bx - s.ax)) / d, v = ((s.ax - ax) * (bz - az) - (s.az - az) * (bx - ax)) / d; if (u > 0 && u < 1 && v >= 0 && v <= 1) return true; }
+  }
+  return false;
 }
 
-function streetAt(x, z) {
-  for (let i = 0; i < STREETS.length; i++) {
-    const s = STREETS[i], h = s.w / 2 + 2.2;
-    if (s.ax === 'x' ? (z > s.c - h && z < s.c + h && x >= s.a0 && x <= s.a1) : (x > s.c - h && x < s.c + h && z >= s.a0 - 2 && z <= s.a1)) return i;
-  }
-  return -1;
+/* ---------- el barrio a partir del mapa ---------- */
+let _RD = [];
+const TOWN = layoutTown();
+function nearestRoad(x, z, drive) {
+  let best = null, bd = 1e9;
+  for (const r of _RD) { if (drive && !DRIVE[r.t]) continue; const p = r.pts; for (let i = 0; i + 1 < p.length; i++) { const [d, qx, qz, t] = segDist(x, z, p[i][0], p[i][1], p[i + 1][0], p[i + 1][1]); if (d < bd) { bd = d; best = { r, i, d, qx, qz, t }; } } }
+  return best;
 }
+function streetName(x, z) { let best = '', bd = 1e9; for (const r of TOWN.rd) { if (!r.n || !DRIVE[r.t] && r.t !== 'pedestrian') continue; const p = r.pts; for (let i = 0; i + 1 < p.length; i++) { const d = segDist(x, z, p[i][0], p[i][1], p[i + 1][0], p[i + 1][1])[0]; if (d < bd) { bd = d; best = r.n; } } } return best || 'Avenida de Madrid'; }
 function layoutTown() {
-  const r = mulberry32(4471), T = { bld: [], sdoors: [], doors: [], plots: [], lamps: [], cols: [], cars: [], bins: [], blk: { solar: SOLAR } };
-  const addB = (x0, x1, z0, z1, side, tall) => {
-    const h = tall ? [30, 39, 48, 57, 66, 75][r() * 6 | 0] : [9, 12, 12, 15, 18, 21][r() * 6 | 0];
-    T.bld.push({ x0, x1, z0, z1, h, f: r() * 4 | 0, av: tall ? 1 : 0 }); T.cols.push({ x0, x1, z0, z1 });
-    if (!side) return;
-    const t = 0.5 + (r() - 0.5) * 0.4; let x, z, nx = 0, nz = 0;
-    if (side === 'N') { z = z0; nz = -1; x = lerp(x0, x1, t); } else if (side === 'S') { z = z1; nz = 1; x = lerp(x0, x1, t); }
-    else if (side === 'W') { x = x0; nx = -1; z = lerp(z0, z1, t); } else { x = x1; nx = 1; z = lerp(z0, z1, t); }
-    T.sdoors.push({ x, z, nx, nz, b: T.bld.length - 1, lamp: r() < 0.3 });
-  };
-  // una hilera de edificios pegados (bajos comerciales), con huecos donde haga falta
-  const row = (ax, f0, f1, a0, a1, side, gaps, tall) => {
-    let a = a0;
-    while (a < a1 - 3) {
-      const g = (gaps || []).find(([g0, g1]) => a >= g0 - 0.1 && a < g1); if (g) { a = g[1]; continue; }
-      let b = Math.min(a1, a + 9 + r() * 7); const ng = (gaps || []).find(([g0]) => a < g0 && b > g0); if (ng) b = ng[0];
-      if (a1 - b < 6 && !ng) b = a1;
-      if (b - a > 0.5) { if (ax === 'z') addB(f0, f1, a, b, side, tall); else addB(a, b, f0, f1, side, tall); }
-      a = b;
-    }
-  };
-  /* residencial: muro bajo a la calle con cancela, jardín con piscina y la torre al fondo.
-     side = hacia dónde da la fachada de la parcela (E/W/N/S). */
-  const names = TOWER_NAMES.slice().sort(() => r() - 0.5);
-  const plot = (x0, x1, z0, z1, side) => {
-    const P = { x0, x1, z0, z1, side, k: T.plots.length, name: names[T.plots.length % names.length] };
-    const aZ = side === 'E' || side === 'W', sg = side === 'E' || side === 'S' ? 1 : -1;
-    const L0 = aZ ? z0 : x0, L1 = aZ ? z1 : x1, len = L1 - L0, D0 = aZ ? x0 : z0, D1 = aZ ? x1 : z1, depth = D1 - D0;
-    const front = sg > 0 ? D1 : D0, back = sg > 0 ? D0 : D1;
-    const pt = (a, d) => aZ ? [d, a] : [a, d];
-    P.pt = pt; P.aZ = aZ; P.sg = sg; P.front = front; P.L0 = L0; P.L1 = L1;
-    // la torre
-    const tw = Math.min(14, len - 9), td = Math.min(14, depth - 8.5), tb = back + sg * 2.5, tf = tb + sg * td;
-    const tc = (L0 + L1) / 2 + (r() - 0.5) * (len - tw - 5) * 0.6, h = [33, 42, 51, 60, 69, 78][r() * 6 | 0];
-    const [ax0, az0] = pt(tc - tw / 2, Math.min(tb, tf)), [ax1, az1] = pt(tc + tw / 2, Math.max(tb, tf));
-    T.bld.push({ x0: Math.min(ax0, ax1), x1: Math.max(ax0, ax1), z0: Math.min(az0, az1), z1: Math.max(az0, az1), h, f: r() * 4 | 0, tw: P.k });
-    T.cols.push({ x0: Math.min(ax0, ax1), x1: Math.max(ax0, ax1), z0: Math.min(az0, az1), z1: Math.max(az0, az1) });
-    P.h = h; P.fl = Math.floor(h / 3) - 1; P.tf = tf; P.tc = tc; P.tw = tw; P.td = td;
-    // portal en la fachada de la torre y cancela en el muro
-    const pa = tc + (r() - 0.5) * (tw - 5) * 0.6, ga = clamp(pa + (r() - 0.5) * 5, L0 + 2, L1 - 2);
-    const [px, pz] = pt(pa, tf), [gx, gz] = pt(ga, front), nx = aZ ? sg : 0, nz = aZ ? 0 : sg;
-    P.portal = { a: pa, x: px, z: pz, nx, nz }; P.gate = { a: ga, x: gx, z: gz, nx, nz };
-    // muros: el de la calle bajo (1 m, con barandilla); los de los lados y el fondo, más altos
-    P.walls = [];
-    const wall = (a0, a1, d, hgt, low) => { const [wx0, wz0] = pt(a0, d - 0.13), [wx1, wz1] = pt(a1, d + 0.13); const c = { x0: Math.min(wx0, wx1), x1: Math.max(wx0, wx1), z0: Math.min(wz0, wz1), z1: Math.max(wz0, wz1), h: hgt, low }; P.walls.push(c); T.cols.push(c); };
-    const fi = front - sg * 0.13;
-    wall(L0, ga - 0.8, fi, 1.0, 1); wall(ga + 0.8, L1, fi, 1.0, 1);
-    const sideWall = (a) => { const [sx0, sz0] = pt(a - 0.13, Math.min(front, back)), [sx1, sz1] = pt(a + 0.13, Math.max(front, back)); const c = { x0: Math.min(sx0, sx1), x1: Math.max(sx0, sx1), z0: Math.min(sz0, sz1), z1: Math.max(sz0, sz1), h: 1.8 }; P.walls.push(c); T.cols.push(c); };
-    sideWall(L0 + 0.15); sideWall(L1 - 0.15); wall(L0, L1, back + sg * 0.15, 1.8, 0);
-    // la cancela: cerrada salvo cuando te abren por el portero
-    const [cx0, cz0] = pt(ga - 0.8, fi - 0.1), [cx1, cz1] = pt(ga + 0.8, fi + 0.1);
-    P.gcol = { x0: Math.min(cx0, cx1), x1: Math.max(cx0, cx1), z0: Math.min(cz0, cz1), z1: Math.max(cz0, cz1) }; T.cols.push(P.gcol);
-    // piscina si cabe en el jardín, al otro lado del camino
-    const gd = Math.abs(front - tf);
-    if (gd >= 9) {
-      const pd = Math.min(5, gd - 4.5), pl = Math.min(9, len / 2 - 3.5), right = ga < (L0 + L1) / 2, pc = right ? L1 - 1.6 - pl / 2 : L0 + 1.6 + pl / 2;
-      const dc = (front + tf) / 2;
-      if (Math.abs(pc - ga) > pl / 2 + 1.6 && Math.abs(pc - pa) > pl / 2 + 1.6) {
-        const [qx0, qz0] = pt(pc - pl / 2, dc - pd / 2), [qx1, qz1] = pt(pc + pl / 2, dc + pd / 2);
-        P.pool = { x0: Math.min(qx0, qx1), x1: Math.max(qx0, qx1), z0: Math.min(qz0, qz1), z1: Math.max(qz0, qz1) }; T.cols.push(P.pool);
+  const r = mulberry32(4471), T = { bld: [], rd: [], ar: [], br: [], lamps: [], cars: [], cols: [], trees: [], del: [], doors: [] };
+  const [X0, X1, Z0, Z1] = MAP.bounds; T.bounds = MAP.bounds;
+  for (const b of MAP.bld) {
+    let P = pairs(b.p); if (polyArea(P) < 0) P = P.reverse();
+    let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9, cx = 0, cz = 0; for (const [x, z] of P) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); cx += x; cz += z; }
+    T.bld.push({ P, h: b.t === 'roof' ? 3.2 : Math.max(3.4, b.h), l: b.l, t: b.t, n: b.n, a: b.a, host: b.host, x0, x1, z0, z1, cx: cx / P.length, cz: cz / P.length, f: r() * 4 | 0, i: T.bld.length });
+  }
+  for (const rd of MAP.rd) T.rd.push({ pts: pairs(rd.p), w: rd.w, t: rd.t, n: rd.n, o: rd.o });
+  _RD = T.rd;
+  for (const a of MAP.ar) T.ar.push({ P: pairs(a.p), k: a.k });
+  for (const b of MAP.br) T.br.push({ pts: pairs(b.p), k: b.k, h: b.h });
+  // farolas reales; las de la primera línea, altas con globo y guirnaldas
+  for (const [x, z] of MAP.lamp) {
+    const nr = nearestRoad(x, z, true); let ax = 0, az = 1; if (nr && nr.d > 0.3) { ax = (nr.qx - x) / nr.d; az = (nr.qz - z) / nr.d; }
+    const sea = z > 4 && Math.abs(x) < 400, far = Math.hypot(x, z) > 45, v = r();
+    T.lamps.push({ x, z, ax, az, md: sea ? (v < 0.08 ? 1 : 0) : (far ? (v < 0.2 ? 2 : v < 0.45 ? 1 : 0) : 0), ph: r() * 10, fig: !sea && far, pr: sea ? 1 : 0, lit: 0 });
+  }
+  // coches aparcados junto al bordillo de las calles con tráfico
+  for (const rd of T.rd) {
+    if (!(rd.t === 'residential' || rd.t === 'tertiary' || rd.t === 'unclassified')) continue;
+    const p = rd.pts;
+    for (let i = 0; i + 1 < p.length; i++) {
+      const ax = p[i][0], az = p[i][1], bx = p[i + 1][0], bz = p[i + 1][1], L = Math.hypot(bx - ax, bz - az); if (L < 9) continue;
+      const ux = (bx - ax) / L, uz = (bz - az) / L, ry = Math.atan2(ux, uz);
+      for (let s = 5; s < L - 5; s += 5.5 + r() * 9) {
+        if (r() < 0.45) continue;
+        const sd = r() < 0.5 ? -1 : 1, off = rd.w / 2 - 1.15, x = ax + ux * s + uz * sd * off, z = az + uz * s - ux * sd * off;
+        if (Math.hypot(x, z) < 14 || x > -9 && x < 9 && z > 3 && z < 12) continue;
+        if (T.cars.some(c => Math.hypot(c.x - x, c.z - z) < 5)) continue;
+        if (MAP.cross.some(c => Math.hypot(c[0] - x, c[1] - z) < 6)) continue;
+        if (T.rd.some(o => o !== rd && DRIVE[o.t] && o.pts.some(q => Math.hypot(q[0] - x, q[1] - z) < 9))) continue;
+        if (T.bld.some(b => x > b.x0 && x < b.x1 && z > b.z0 && z < b.z1 && pip(x, z, b.P))) continue;
+        T.cars.push({ x, z, ry: ry + (sd > 0 ? 0 : PI), st: r() * 3 | 0, c: r() * CAR_COLS.length | 0 });
       }
     }
-    T.plots.push(P);
-  };
-  // primera línea: torres de apartamentos mirando al mar (con hueco para el local y las calles)
-  row('x', -10, 5, -120, 120, 'S', [[-53.5, -42.5], [-5.2, 5.2], [14.5, 25.5], [42.5, 53.5]], true);
-  // bajos comerciales en la Avenida del Mediterráneo y en Calle Gerona
-  row('x', -81.5, -68, -42.5, 14.5, 'N'); row('x', -81.5, -68, 25.5, 42.5, 'N');
-  row('x', -108, -94.5, -42.5, 14.5, 'S'); row('x', -108, -94.5, 25.5, 42.5, 'S');
-  row('x', -169.5, -156, -42.5, 14.5, 'N'); row('x', -169.5, -156, 25.5, 42.5, 'N');
-  row('x', -194, -180.5, -53.5, 53.5, 'S');
-  addB(-EDGE, -53.5, -194, -169.5, null); addB(53.5, EDGE, -194, -169.5, null); addB(-14, SOLAR.x0, -156, -132, null);
-  // los residenciales
-  for (const [z0, z1] of [[-68, -39], [-39, -10]]) { plot(-42.5, -14, z0, z1, 'W'); plot(-14, 14.5, z0, z1, 'E'); plot(25.5, 42.5, z0, z1, z0 < -50 ? 'W' : 'E'); }
-  plot(-42.5, -14, -156, -132, 'W'); plot(-42.5, -14, -132, -108, 'W'); plot(-14, 14.5, -132, -108, 'E');
-  plot(25.5, 42.5, -156, -132, 'W'); plot(25.5, 42.5, -132, -108, 'E');
-  for (let z = -10; z > -169;) { const z0 = Math.max(-169.5, z - 26.5); plot(-EDGE, -53.5, z0, z, 'E'); plot(53.5, EDGE, z0, z, 'W'); z = z0; }
-  // numeración: impares a un lado, pares al otro, contando portales y cancelas
-  const num = T.sdoors.concat(T.plots.map(P => P.gate));
-  for (const d of num) d.st = streetAt(d.x + d.nx * 3, d.z + d.nz * 3);
-  STREETS.forEach((s, si) => {
-    const list = num.filter(d => d.st === si).sort((a, b) => s.ax === 'x' ? a.x - b.x : b.z - a.z), cnt = [1, 2];
-    for (const d of list) { const side = (s.ax === 'x' ? d.z - s.c : d.x - s.c) > 0 ? 0 : 1; const n = cnt[side]; d.num = Math.min(79, n); cnt[side] = n + 2; }
-  });
-  for (const P of T.plots) { P.st = P.gate.st; P.num = P.gate.num; }
-  // pisos: cuatro puertas por rellano (A, B, C, D) en cada torre; el rellano de dentro es el mismo decorado para todas
-  T.plots.forEach((P, k) => FLAT_LOC.forEach(([x, z, nx, nz], j) => T.doors.push({ tw: k, let: j, st: P.st, num: P.num, x: MOD.x + x, z: MOD.z + z, nx, nz })));
-  // farolas: en la avenida y el paseo todas van; en las calles de detrás, muchas no
-  const lamp = (x, z, ax, az, md, fig, pr, lit) => { T.lamps.push({ x, z, ax, az, md, ph: r() * 10, fig: fig && md !== 2, pr, lit }); T.cols.push({ x0: x - 0.16, x1: x + 0.16, z0: z - 0.16, z1: z + 0.16 }); };
-  const nearV = (x, m) => STREETS.some(o => o.ax === 'z' && Math.abs(x - o.c) < m), medC = STREETS[MED].c;
-  for (let x = -110; x <= 110; x += 16) if (!nearV(x, 7) && Math.abs(x) > 6) lamp(x, 7.6, 0, 1, r() < 0.15 ? 1 : 0, false);
-  for (let x = -108; x <= 108; x += 18) lamp(x, 21.5, 0, 0, r() < 0.1 ? 1 : 0, false, 1);     // paseo: farolas de 12 m con guirnaldas
-  const md = () => { const v = r(); return v < 0.25 ? 2 : v < 0.55 ? 1 : 0; };
-  STREETS.forEach((s, si) => {
-    const off = s.w / 2 + 0.7;
-    // la Avenida de Europa y la del Mediterráneo están iluminadas: farolas seguidas, todas funcionan y ahí no salen sombras
-    if (s.ax === 'z' && s.c === LIT_ST) { let sd = 1; for (let z = -20; z > -170; z -= 10.5) { if (Math.abs(z - medC) > 7) lamp(s.c + sd * off, z, -sd, 0, 0, false, 0, 1); sd = -sd; } }
-    else if (s.ax === 'z') { let sd = 1; for (let z = -24; z > -168; z -= 18 + r() * 5) { if (Math.abs(z - medC) > 8) lamp(s.c + sd * off, z, -sd, 0, z > -30 ? 0 : md(), true); sd = -sd; } }
-    else if (si === MED) { for (const sd of [-1, 1]) for (let x = -41 + (sd > 0 ? 5.5 : 0); x <= 42; x += 11) { if (!nearV(x, 6)) lamp(x, s.c + sd * off, 0, -sd, 0, false, 0, 1); } }
-    else if (s.c < -100) { let sd = 1; for (let x = -40; x <= 40; x += 13) { if (nearV(x, 6)) continue; lamp(x, s.c + sd * off, 0, -sd, md(), true); sd = -sd; } }
-  });
-  // coches aparcados (pegados al bordillo)
-  const park = (x, z, ry) => { const st = r() * 3 | 0, w = 1.85, l = st === 1 ? 3.7 : 4.3; T.cars.push({ x, z, ry, st, c: r() * CAR_COLS.length | 0 }); const along = Math.abs(Math.sin(ry)) > 0.5; T.cols.push(along ? { x0: x - l / 2, x1: x + l / 2, z0: z - w / 2, z1: z + w / 2 } : { x0: x - w / 2, x1: x + w / 2, z0: z - l / 2, z1: z + l / 2 }); };
-  for (const x of [-92, -64, -36, 32, 70, 98]) park(x, 14.3, -PI / 2);
-  park(-13, 8.9, PI / 2); park(-62, 8.9, PI / 2); park(84, 8.9, PI / 2);
-  for (const s of STREETS) if (s.ax === 'z') for (let k = 0; k < 3; k++) { let z = -40 - k * 42 - r() * 20; if (Math.abs(z - medC) < 10) z -= 16; const sd = r() < 0.5 ? -1 : 1; park(s.c + sd * 2.45, z, sd > 0 ? PI : 0); }
-  park(-20, -172.6, PI / 2); park(30, -177.4, -PI / 2); park(-30, medC + 3.4, PI / 2); park(8, medC - 3.4, -PI / 2);
-  // límites: maceteros y vallas al final de la avenida, edificios en lo demás y el mar delante
-  T.cols.push({ x0: -160, x1: -AV_END, z0: -12, z1: 100 }, { x0: AV_END, x1: 160, z0: -12, z1: 100 }, { x0: -160, x1: -EDGE, z0: -210, z1: -10 }, { x0: EDGE, x1: 160, z0: -210, z1: -10 }, { x0: -160, x1: 160, z0: -210, z1: -194 }, { x0: -160, x1: 160, z0: SEA_Z + 4, z1: 120 });
+  }
   return T;
 }
-// dirección de un piso (sin la planta) y de un pedido (con planta y letra)
-function addrOf(k) { const d = TOWN.doors[k]; if (!d) return '?'; const P = TOWN.plots[d.tw]; return STREETS[P.st].n + ' ' + P.num + ' · ' + plotName(P); }
-function plotName(P) { return P.name.charAt(0) + P.name.slice(1).toLowerCase().replace(/ (\S)/g, (m, c) => ' ' + c.toUpperCase()); }
-function dlAddr(o) { return o ? addrOf(o.d) + ' · ' + o.f + 'º' + FLAT_LET[o.d % 4] : '?'; }
+/* tráfico: coches que recorren calles de verdad, con posiciones deterministas a partir del reloj de la noche */
+const TRAFFIC = (() => {
+  const cands = TOWN.rd.filter(r => (r.t === 'tertiary' || r.t === 'residential' || r.t === 'living_street') && r.n).map(r => {
+    let L = 0; const cum = [0]; for (let i = 0; i + 1 < r.pts.length; i++) { L += Math.hypot(r.pts[i + 1][0] - r.pts[i][0], r.pts[i + 1][1] - r.pts[i][1]); cum.push(L); }
+    const near = Math.min(...r.pts.map(p => Math.hypot(p[0], p[1]))); return { r, L, cum, near };
+  }).filter(c => c.L > 90 && c.near < 160).sort((a, b) => a.near - b.near).slice(0, 5);
+  return cands.map((c, i) => ({ pts: c.r.pts, cum: c.cum, L: c.L, off: c.r.o ? 0 : c.r.w / 4, v: c.r.t === 'living_street' ? 4 : 9 + i, ph: i * 13, gap: i === 4 ? 140 : 8, li: i === 4 ? 0 : 1, st: i % 3, c: (i * 2 + 1) % CAR_COLS.length, rev: i % 2 }));
+})();
+function trafficPos(t, time) {
+  const cyc = t.L / t.v + t.gap, u = ((time + t.ph) % cyc) / (t.L / t.v);
+  if (u > 1) return null;
+  let s = (t.rev ? 1 - u : u) * t.L, i = 0; while (i < t.cum.length - 2 && t.cum[i + 1] < s) i++;
+  const a = t.pts[i], b = t.pts[i + 1], L = t.cum[i + 1] - t.cum[i] || 1, f = (s - t.cum[i]) / L;
+  let dx = (b[0] - a[0]) / L, dz = (b[1] - a[1]) / L; if (t.rev) { dx = -dx; dz = -dz; }
+  // por la derecha de la calzada
+  const x = lerp(a[0], b[0], f) - dz * t.off, z = lerp(a[1], b[1], f) + dx * t.off;
+  return { x, z, ry: Math.atan2(-dx, -dz), dx, dz };
+}
+/* sitios especiales sacados del mapa: la parada de bus más cercana y el solar de los perros */
+const BUS_STOP = (() => { const b = MAP.bus.slice().sort((a, c) => Math.hypot(a[0], a[1]) - Math.hypot(c[0], c[1]))[0] || [-28, 9]; return { x: b[0], z: b[1], name: b[2] }; })();
+const SOLAR = (() => {
+  const lots = TOWN.ar.filter(a => a.k === 'lot' || a.k === 'scrub').map(a => { let cx = 0, cz = 0; for (const p of a.P) { cx += p[0]; cz += p[1]; } cx /= a.P.length; cz /= a.P.length; return { a, cx, cz, d: Math.hypot(cx, cz), ar: Math.abs(polyArea(a.P)) }; }).filter(o => o.ar > 150 && o.ar < 6000 && o.d > 40).sort((p, q) => p.d - q.d);
+  const o = lots[0]; if (!o) return null;
+  let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const [x, z] of o.a.P) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
+  return { P: o.a.P, x0, x1, z0, z1, cx: o.cx, cz: o.cz };
+})();
+const DOG_ZONE = SOLAR ? { x0: SOLAR.x0 - 7, x1: SOLAR.x1 + 7, z0: SOLAR.z0 - 7, z1: SOLAR.z1 + 7 } : { x0: 1e6, x1: 1e6, z0: 1e6, z1: 1e6 };
+const DOG_HOME = SOLAR ? [[SOLAR.cx - 2, SOLAR.cz], [SOLAR.cx + 2, SOLAR.cz + 1.5]] : [];
 
+/* ---------- geometría de polígonos y cintas ---------- */
+function polyGeo(P, y, tile, down) {
+  const pts = P.map(p => new THREE.Vector2(p[0], p[1])); let tri;
+  try { tri = THREE.ShapeUtils.triangulateShape(pts, []); } catch (e) { return null; }
+  const pos = new Float32Array(P.length * 3), nor = new Float32Array(P.length * 3), uv = new Float32Array(P.length * 2);
+  P.forEach((p, i) => { pos[i * 3] = p[0]; pos[i * 3 + 1] = y; pos[i * 3 + 2] = p[1]; nor[i * 3 + 1] = down ? -1 : 1; uv[i * 2] = p[0] / tile; uv[i * 2 + 1] = -p[1] / tile; });
+  // los triángulos tienen que mirar hacia arriba (o hacia abajo)
+  const idx = []; for (const t of tri) { const [a, b, c] = t, ab = [P[b][0] - P[a][0], P[b][1] - P[a][1]], ac = [P[c][0] - P[a][0], P[c][1] - P[a][1]], cr = ab[0] * ac[1] - ab[1] * ac[0]; const up = cr < 0; if (up !== !!down) idx.push(a, b, c); else idx.push(a, c, b); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex(idx); return g;
+}
+// cinta a lo largo de una polilínea (calles, aceras, caminos); uv del mundo para que los solapes no se noten
+function ribbonGeos(pts, w, y, tile, out) {
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const a = pts[i], b = pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < 0.05) continue;
+    const nx = -(b[1] - a[1]) / L * w / 2, nz = (b[0] - a[0]) / L * w / 2;
+    const q = [[a[0] + nx, a[1] + nz], [b[0] + nx, b[1] + nz], [b[0] - nx, b[1] - nz], [a[0] - nx, a[1] - nz]];
+    const g = polyGeo(q, y, tile); if (g) out.push(g);
+    if (i > 0) { const c = []; for (let k = 0; k < 10; k++) { const an = k / 10 * PI * 2; c.push([a[0] + Math.cos(an) * w / 2, a[1] + Math.sin(an) * w / 2]); } const g2 = polyGeo(c, y, tile); if (g2) out.push(g2); }
+  }
+}
+// muro, valla o seto a lo largo de un segmento
+function wallSegGeo(ax, az, bx, bz, h, th, tile) { const L = Math.hypot(bx - ax, bz - az); return bgeo(L, h, th, (ax + bx) / 2, h / 2, (az + bz) / 2, -Math.atan2(bz - az, bx - ax), tile); }
+function vquad(ax, az, bx, bz, y0, y1, u0, tile, out) {   // pared vertical de una cara, mirando a la derecha de a→b
+  const L = Math.hypot(bx - ax, bz - az); if (L < 0.01) return;
+  const nx = (bz - az) / L, nz = -(bx - ax) / L;
+  const pos = [ax, y0, az, bx, y0, bz, bx, y1, bz, ax, y1, az], nor = [nx, 0, nz, nx, 0, nz, nx, 0, nz, nx, 0, nz], uv = [u0 / tile, y0 / tile, (u0 + L) / tile, y0 / tile, (u0 + L) / tile, y1 / tile, u0 / tile, y1 / tile];
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex([0, 2, 1, 0, 3, 2]); out.push(g);
+}
 /* ---------- geometría ---------- */
 function mergeGeos(list) {
   let nv = 0, ni = 0; for (const g of list) { nv += g.attributes.position.count; ni += g.index.count; }
@@ -1453,7 +1463,7 @@ function carParts(st) {
   return P;
 }
 function partGeo(p) {
-  if (p[0] === 'w') { const g = new THREE.CylinderGeometry(p[1], p[1], p[2], 10); g.rotateZ(PI / 2); g.translate(p[4], p[5], p[6]); return g; }
+  if (p[0] === 'w') { const g = new THREE.CylinderGeometry(p[1], p[1], p[2], 7); g.rotateZ(PI / 2); g.translate(p[4], p[5], p[6]); return g; }
   const g = new THREE.BoxGeometry(p[1], p[2], p[3]); uvBox(g, p[1], p[2], p[3], 1.2); g.translate(p[4], p[5], p[6]); return g;
 }
 function carMats(c, lights) {
@@ -1477,211 +1487,188 @@ function makeDog() {
   g.visible = false; scene.add(g); return g;
 }
 
+
 /* ---------- construcción ---------- */
-/* paseo marítimo, palmeras, playa y mar */
-function buildSeafront() {
-  const r = mulberry32(777), off = { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 };
-  // baldosas del paseo con las ondas blancas y marrones
-  const wav = ctex(256, 128, (g) => {
+function waveTex() {
+  return ctex(256, 128, (g) => {
     g.fillStyle = '#e4dfd4'; g.fillRect(0, 0, 256, 128);
     for (const [y0, col] of [[18, '#7a5a40'], [64, '#9a7a5a'], [108, '#7a5a40']]) { g.fillStyle = col; g.beginPath(); g.moveTo(0, y0); for (let x = 0; x <= 256; x += 4) g.lineTo(x, y0 + Math.sin(x / 256 * PI * 4) * 10); for (let x = 256; x >= 0; x -= 4) g.lineTo(x, y0 + 9 + Math.sin(x / 256 * PI * 4) * 10); g.fill(); }
     g.strokeStyle = 'rgba(0,0,0,0.12)'; g.lineWidth = 1; for (let x = 0; x < 256; x += 32) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, 128); g.stroke(); } for (let y = 0; y < 128; y += 32) { g.beginPath(); g.moveTo(0, y); g.lineTo(256, y); g.stroke(); }
   });
-  gplane(-135, 135, PASEO.z0, PASEO.z1, new THREE.MeshLambertMaterial(Object.assign({ map: wav, color: 0xb8b4ac }, off)), 0.003, 9, 2.5);
-  addMerged([bgeo(270, 0.45, 0.5, 0, 0.22, PASEO.z1 + 0.2, 0, 1.6)], lam('conc', 0x8a8680), true);
-  // arena y mar
-  const sand = ctex(128, 128, (g) => { g.fillStyle = '#b8a27c'; g.fillRect(0, 0, 128, 128); for (let i = 0; i < 1400; i++) { const v = (Math.random() * 60 + 120) | 0; g.fillStyle = 'rgba(' + (v + 40) + ',' + (v + 20) + ',' + v + ',0.35)'; g.fillRect(Math.random() * 128, Math.random() * 128, 1.5, 1.5); } });
-  gplane(-135, 135, PASEO.z1, SAND_Z1, new THREE.MeshLambertMaterial({ map: sand, color: 0x9a8a6c }), 0, 3, 2.5);
-  D.seaTex = ctex(128, 128, (g) => { g.fillStyle = '#0c1c2c'; g.fillRect(0, 0, 128, 128); g.strokeStyle = 'rgba(120,160,190,0.35)'; g.lineWidth = 1.5; for (let i = 0; i < 26; i++) { const x = Math.random() * 128, y = Math.random() * 128, w = 10 + Math.random() * 24; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + w / 2, y - 3, x + w, y); g.stroke(); } });
-  D.sea = new THREE.Mesh(new THREE.PlaneGeometry(900, 520, 40, 20), new THREE.MeshLambertMaterial({ map: D.seaTex, color: 0x6a8aa0, emissive: 0x0a1a28 }));
-  const uv = D.sea.geometry.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 60, uv.getY(i) * 35);
-  D.sea.rotation.x = -PI / 2; D.sea.position.set(0, -0.05, SEA_Z + 260); scene.add(D.sea);
-  const glint = ctex(64, 256, (g) => { const gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, 'rgba(200,215,230,0)'); gr.addColorStop(0.5, 'rgba(200,215,230,0.5)'); gr.addColorStop(1, 'rgba(200,215,230,0.05)'); g.fillStyle = gr; for (let i = 0; i < 90; i++) { const y = Math.random() * 256, w = 6 + Math.random() * 30 * (y / 256); g.fillRect(32 - w / 2 + (Math.random() - 0.5) * 10, y, w, 1.5); } });
-  D.glint = new THREE.Mesh(new THREE.PlaneGeometry(14, 120), new THREE.MeshBasicMaterial({ map: glint, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, opacity: 0.55 }));
-  D.glint.rotation.x = -PI / 2; D.glint.position.set(-20, 0.0, SEA_Z + 64); scene.add(D.glint);
-  const foam = ctex(128, 32, (g) => { g.clearRect(0, 0, 128, 32); for (let i = 0; i < 90; i++) { g.fillStyle = 'rgba(230,240,245,' + (0.2 + Math.random() * 0.5) + ')'; g.fillRect(Math.random() * 128, 6 + Math.random() * 20, 2 + Math.random() * 7, 1.5); } });
-  D.foam = new THREE.Mesh(new THREE.PlaneGeometry(270, 2.4), new THREE.MeshBasicMaterial({ map: foam, transparent: true, opacity: 0.6, depthWrite: false, color: 0xc8d4dc }));
-  D.foam.material.map.repeat.set(30, 1); D.foam.rotation.x = -PI / 2; D.foam.position.set(0, 0.02, SEA_Z + 0.6); scene.add(D.foam);
-  // palmeras
-  const trunks = [], fronds = [];
-  const palm = (x, z, h) => {
-    const lx = (r() - 0.5) * 0.8, lz = (r() - 0.5) * 0.8;
-    for (let k = 0; k < 6; k++) { const y0 = k * h / 6, g = new THREE.CylinderGeometry(0.17 - k * 0.012, 0.22 - k * 0.012, h / 6 + 0.05, 7); g.translate(x + lx * (y0 + h / 12) / h, y0 + h / 12, z + lz * (y0 + h / 12) / h); trunks.push(g); }
-    const tx = x + lx, tz = z + lz;
-    for (let k = 0; k < 10; k++) {
-      const g = new THREE.BoxGeometry(0.55, 0.03, 2.6); g.translate(0, 0, 1.25); g.rotateX(0.35 + r() * 0.5); g.rotateY(k * PI * 2 / 10 + r() * 0.3); g.translate(tx, h, tz); fronds.push(g);
-    }
-    const c = new THREE.SphereGeometry(0.32, 6, 5); c.translate(tx, h - 0.15, tz); trunks.push(c);
-    TOWN.cols.push({ x0: x - 0.25, x1: x + 0.25, z0: z - 0.25, z1: z + 0.25 });
-  };
-  for (let x = -112; x <= 112; x += 9) { const z = (Math.round(x / 9) % 2) ? 18.6 : 24.6; if (Math.abs(x + 28) < 3) continue; palm(x + (r() - 0.5) * 2, z, 6.5 + r() * 2.5); }
-  for (let x = -100; x <= 100; x += 23) palm(x + r() * 6, 28.5 + r() * 2, 7 + r() * 2);
-  addMerged(trunks, lam('wood', 0x6a5a48), true);
-  addMerged(fronds, lam(null, 0x2a4424, { side: THREE.DoubleSide }), true);
-  // bancos de granito
-  const bench = [];
-  for (let x = -104; x <= 104; x += 14) { const z = 22.2 + (r() - 0.5) * 0.8; bench.push(bgeo(1.7, 0.14, 0.65, x, 0.5, z, 0, 1.2), cgeo(0.16, 0.2, 0.44, 6, x, 0.22, z)); TOWN.cols.push({ x0: x - 0.85, x1: x + 0.85, z0: z - 0.33, z1: z + 0.33 }); }
-  addMerged(bench, lam('conc', 0x8a8478), true);
-  // sombrillas azules cerradas y hamacas apiladas
-  const umb = [], ump = [], hm = [];
-  for (let x = -100; x <= 100; x += 3.4) for (let z = 33; z <= 43; z += 3.4) { if (r() < 0.25) continue; const p = cgeo(0.025, 0.025, 2.4, 4, x, 1.2, z); ump.push(p); const c = new THREE.ConeGeometry(0.2, 1.5, 8); c.rotateX(PI); c.translate(x, 1.9, z); umb.push(c); }
-  for (let x = -96; x <= 96; x += 12) { const z = 31 + r() * 2; for (let k = 0; k < 5; k++) hm.push(bgeo(0.7, 0.08, 1.9, x, 0.2 + k * 0.12, z, 0.05 * k, 1)); TOWN.cols.push({ x0: x - 0.4, x1: x + 0.4, z0: z - 1, z1: z + 1 }); }
-  addMerged(ump, M.steelD); addMerged(umb, lam(null, 0x1a4a9a)); addMerged(hm, lam(null, 0xd8dce0), true);
-  // caseta de socorrista
-  const tw = [];
-  for (const [dx, dz] of [[-0.8, -0.8], [0.8, -0.8], [-0.8, 0.8], [0.8, 0.8]]) tw.push(cgeo(0.06, 0.06, 2.2, 4, 12 + dx, 1.1, 44 + dz));
-  tw.push(bgeo(2.0, 0.1, 2.0, 12, 2.2, 44, 0, 1), bgeo(0.06, 1.2, 2.0, 11, 2.8, 44, 0, 1), bgeo(0.06, 1.2, 2.0, 13, 2.8, 44, 0, 1), bgeo(2.0, 1.2, 0.06, 12, 2.8, 43, 0, 1), bgeo(2.2, 0.08, 2.2, 12, 3.45, 44, 0, 1));
-  addMerged(tw, lam('wood', 0xd0d0c8), true); TOWN.cols.push({ x0: 11, x1: 13, z0: 43, z1: 45 });
-  plane(1.2, 0.35, new THREE.MeshLambertMaterial({ map: textPlate('SOCORRISTA', 128, 40, '#c8201a', '#ffffff'), side: THREE.DoubleSide }), 12, 3.1, 45.02, 0, 0);
-  // letrero del paseo
-  plane(2.4, 0.5, new THREE.MeshLambertMaterial({ map: textPlate('PASEO DE LEVANTE · PLAYA DE LEVANTE', 512, 96, '#e8e4d8', '#1a3a6a', '#1a3a6a'), side: THREE.DoubleSide }), -10, 2.7, 17.4, 0, 0);
-  addMerged([cgeo(0.05, 0.05, 2.7, 5, -11.1, 1.35, 17.4), cgeo(0.05, 0.05, 2.7, 5, -8.9, 1.35, 17.4)], M.dark);
+}
+function buildSea() {
+  const [X0, X1, Z0, Z1] = TOWN.bounds;
+  // tierra: todo lo que queda al norte de la línea de costa
+  let coast = []; for (const f of MAP.coast) coast = coast.concat(pairs(f));
+  coast = coast.filter(p => p[0] > X0 - 60 && p[0] < X1 + 60).sort((a, b) => a[0] - b[0]);
+  const land = [[X0 - 40, coast.length ? coast[0][1] : Z1]].concat(coast.map(p => [p[0], Math.min(p[1], Z1 + 40)])).concat([[X1 + 40, coast.length ? Math.min(coast[coast.length - 1][1], Z1 + 40) : Z1], [X1 + 40, Z0 - 40], [X0 - 40, Z0 - 40]]);
+  TOWN.coast = coast;
+  const g = polyGeo(land.reverse(), 0, 2.2); if (g) addMerged([g], lam('acera', 0x9a968e));
+  D.seaTex = ctex(128, 128, (g2) => { g2.fillStyle = '#0c1c2c'; g2.fillRect(0, 0, 128, 128); g2.strokeStyle = 'rgba(120,160,190,0.35)'; g2.lineWidth = 1.5; for (let i = 0; i < 26; i++) { const x = Math.random() * 128, y = Math.random() * 128, w = 10 + Math.random() * 24; g2.beginPath(); g2.moveTo(x, y); g2.quadraticCurveTo(x + w / 2, y - 3, x + w, y); g2.stroke(); } });
+  D.sea = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1000, 40, 30), new THREE.MeshLambertMaterial({ map: D.seaTex, color: 0x6a8aa0, emissive: 0x0a1a28 }));
+  const uv = D.sea.geometry.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 90, uv.getY(i) * 65);
+  D.sea.rotation.x = -PI / 2; D.sea.position.set(0, -0.25, 300); scene.add(D.sea);
+  // la orilla: espuma a lo largo de la costa
+  const foam = ctex(128, 32, (g2) => { g2.clearRect(0, 0, 128, 32); for (let i = 0; i < 90; i++) { g2.fillStyle = 'rgba(230,240,245,' + (0.2 + Math.random() * 0.5) + ')'; g2.fillRect(Math.random() * 128, 6 + Math.random() * 20, 2 + Math.random() * 7, 1.5); } });
+  const fg = []; ribbonGeos(coast, 2.4, 0.03, 6, fg);
+  D.foam = addMerged(fg, new THREE.MeshBasicMaterial({ map: foam, transparent: true, opacity: 0.6, depthWrite: false, color: 0xc8d4dc }));
+  const glint = ctex(64, 256, (g2) => { const gr = g2.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, 'rgba(200,215,230,0)'); gr.addColorStop(0.5, 'rgba(200,215,230,0.5)'); gr.addColorStop(1, 'rgba(200,215,230,0.05)'); g2.fillStyle = gr; for (let i = 0; i < 90; i++) { const y = Math.random() * 256, w = 6 + Math.random() * 30 * (y / 256); g2.fillRect(32 - w / 2 + (Math.random() - 0.5) * 10, y, w, 1.5); } });
+  D.glint = new THREE.Mesh(new THREE.PlaneGeometry(14, 140), new THREE.MeshBasicMaterial({ map: glint, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, opacity: 0.55 }));
+  D.glint.rotation.x = -PI / 2; D.glint.position.set(-20, 0.0, 160); scene.add(D.glint);
+  // la costa no deja pasar
+  for (let i = 0; i + 1 < coast.length; i++) addSeg(coast[i][0], coast[i][1] + 1.5, coast[i + 1][0], coast[i + 1][1] + 1.5, 0, 99);
+  const [bx0, bx1, bz0, bz1] = TOWN.bounds;
+  addSeg(bx0, bz0, bx1, bz0); addSeg(bx1, bz0, bx1, bz1); addSeg(bx1, bz1, bx0, bz1); addSeg(bx0, bz1, bx0, bz0);
+}
+// la orilla más cercana a un punto (para el sonido de las olas)
+function seaDist(x, z) { let bd = 1e9, q = null; const c = TOWN.coast || []; for (let i = 0; i + 1 < c.length; i++) { const [d, qx, qz] = segDist(x, z, c[i][0], c[i][1], c[i + 1][0], c[i + 1][1]); if (d < bd) { bd = d; q = [qx, qz]; } } return [bd, q]; }
+function palmGeo(x, z, h, r, trunks, fronds) {
+  // tronco de dos tramos sin tapas y hojas planas: pocas caras, que hay cientos de palmeras
+  const lx = (r() - 0.5) * 0.8, lz = (r() - 0.5) * 0.8;
+  for (let k = 0; k < 2; k++) { const y0 = k * h / 2, g = new THREE.CylinderGeometry(0.15 - k * 0.03, 0.21 - k * 0.03, h / 2 + 0.05, 5, 1, true); g.translate(x + lx * (y0 + h / 4) / h, y0 + h / 4, z + lz * (y0 + h / 4) / h); trunks.push(g); }
+  const tx = x + lx, tz = z + lz;
+  for (let k = 0; k < 7; k++) { const g = new THREE.PlaneGeometry(0.6, 2.6); g.rotateX(-PI / 2); g.translate(0, 0, 1.25); g.rotateX(0.35 + r() * 0.5); g.rotateY(k * PI * 2 / 7 + r() * 0.3); g.translate(tx, h, tz); fronds.push(g); }
 }
 function buildTown() {
-  const F = facadeMats(), r = mulberry32(31337);
-  const off = { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 };
-  // suelo: aceras y calzada encima, para todas las calles
-  const pave = lam('pave', 0x828284), road = lam('asphalt', 0x86868e, off), paint = [];
-  gplane(-135, 135, 5, 17, pave, 0, 1.8, 2.5);
-  for (const st of STREETS) {
-    const h = st.w / 2;
-    if (st.ax === 'z') { gplane(st.c - h - 2, st.c + h + 2, st.a0 - 2, 5, pave, 0, 1.8, 2.5); gplane(st.c - h, st.c + h, st.a0, 8, road, 0.004, 3.5, 2.5); for (let a = st.a0 + 9; a < -4; a += 6) paint.push(bgeo(0.14, 0.01, 2.6, st.c, 0.02, a, 0, 1)); }
-    else { if (st.c < 0) gplane(st.a0 - 2, st.a1 + 2, st.c - h - 2, st.c + h + 2, pave, 0.001, 1.8, 2.5); gplane(st.a0, st.a1, st.c - h, st.c + h, road, 0.005, 3.5, 2.5); for (let a = st.a0 + 3; a < st.a1 - 3; a += 6) if (!STREETS.some(o => o.ax === 'z' && Math.abs(a - o.c) < 5)) paint.push(bgeo(2.6, 0.01, 0.14, a, 0.022, st.c, 0, 1)); }
+  const r = mulberry32(31337);
+  buildSea();
+  // zonas: playa, jardines, piscinas, aparcamientos, solares, zonas peatonales
+  const Z = { beach: [], garden: [], parking: [], lot: [], ped: [], wave: [], pitch: [], pool: [], poolE: [], scrub: [] };
+  for (const a of TOWN.ar) {
+    let k = a.k; if (k === 'playground' || k === 'sports_centre') k = 'pitch';
+    if (k === 'ped' && a.P.some(p => p[1] > 3)) k = 'wave';
+    if (!Z[k]) continue;
+    const y = { beach: 0.008, garden: 0.012, parking: 0.01, lot: 0.011, ped: 0.009, wave: 0.009, pitch: 0.012, pool: 0.03, scrub: 0.012 }[k];
+    const g = polyGeo(a.P, y, k === 'beach' ? 3 : k === 'wave' ? 9 : 2.2); if (g) Z[k].push(g);
+    if (k === 'pool') { for (let i = 0; i < a.P.length; i++) { const p = a.P[i], q = a.P[(i + 1) % a.P.length]; Z.poolE.push(wallSegGeo(p[0], p[1], q[0], q[1], 0.14, 0.32, 1)); addSeg(p[0], p[1], q[0], q[1], 0, 0.6); } }
   }
-  for (const st of STREETS) if (st.ax === 'z') for (let k = 0; k < 6; k++) paint.push(bgeo(0.5, 0.01, 3.2, st.c - 2.6 + k * 1.05, 0.021, 6.2, 0, 1));   // pasos de cebra
-  for (const x of [-30, 0, 30, 76]) for (let k = 0; k < 4; k++) paint.push(bgeo(0.5, 0.01, 2.6, x - 1.6 + k * 1.05, 0.021, 11.5, PI / 2, 1));   // cruces al paseo
-  gplane(-14, 14.5, -114, -108, lam('concf', 0x4a4844), 0.002, 2, 2.5);
-  buildSeafront();
-  addMerged(paint, lam(null, 0x8a8778));
-  // vallas de obra al final de la avenida: luces ámbar que parpadean en la niebla
-  const bar = [], barW = []; D.amber = [];
-  for (const sx of [-1, 1]) {
-    const x = sx * (AV_END - 0.6);
-    for (let k = 0; k < 4; k++) { const z = 8.6 + k * 1.95; bar.push(bgeo(0.12, 0.9, 1.7, x, 0.75, z, 0, 1)); barW.push(bgeo(0.14, 0.22, 1.6, x, 0.95, z, 0, 1), bgeo(0.14, 0.22, 1.6, x, 0.55, z, 0, 1)); D.amber.push(box(0.16, 0.16, 0.16, bas(0xffa020), x, 1.32, z)); }
-    gplane(sx > 0 ? AV_END : -135, sx > 0 ? 135 : -AV_END, 8, 15, lam('concf', 0x3a3834, off), 0.007, 3, 2.5);
-    box(2.2, 2.0, 0.08, lam(null, 0xd8d4c4), x + sx * 0.6, 1.9, 6.6, { ry: PI / 2 });
-    for (let k = 0; k < 4; k++) { const z = 17.6 + k * 2.2; bar.push(bgeo(0.12, 0.9, 1.9, x, 0.75, z, 0, 1)); D.amber.push(box(0.16, 0.16, 0.16, bas(0xffa020), x, 1.32, z)); }
-    plane(1.6, 1.0, new THREE.MeshLambertMaterial({ map: textPlate('CALLE CORTADA', 256, 128, '#e8c020', '#141414', '#141414'), side: THREE.DoubleSide }), x - sx * 0.05, 1.6, 15.8, 0, PI / 2);
+  addMerged(Z.beach, lam('sand', 0xb0a080)); addMerged(Z.garden, lam('grass', 0x5a7a4a)); addMerged(Z.parking, lam('asph', 0x7a7a80)); addMerged(Z.lot, lam('gravel', 0x8a7a68));
+  addMerged(Z.ped, lam('pavs', 0xa8a49c)); addMerged(Z.wave, new THREE.MeshLambertMaterial({ map: waveTex(), color: 0xb8b4ac })); addMerged(Z.pitch, lam(null, 0x2a5a3a)); addMerged(Z.scrub, lam('grass', 0x4a5a3a));
+  const pw = Z.pool, pe = Z.poolE;
+  addMerged(pw, new THREE.MeshBasicMaterial({ map: poolTex(), color: 0xc8f0ff })); addMerged(pe, lam(null, 0xe8e8e0));
+  const pg = []; for (const a of TOWN.ar) if (a.k === 'pool') { const g = polyGeo(offsetPoly(a.P, 1.4), 0.035, 1e9); if (g) { fixUV(g); pg.push(g); } }
+  const gpm = addMerged(pg, new THREE.MeshBasicMaterial({ map: glowTex(60, 220, 255), transparent: true, opacity: 0.45, depthWrite: false, blending: THREE.AdditiveBlending })); if (gpm) gpm.renderOrder = 3;
+  // calles: calzada de asfalto, la Avenida de Madrid con baldosa, aceras y caminos
+  const RD = { asph: [], madrid: [], foot: [] }, paint = [];
+  for (const rd of TOWN.rd) {
+    const k = DRIVE[rd.t] ? (rd.t === 'living_street' ? 'madrid' : 'asph') : 'foot';
+    ribbonGeos(rd.pts, rd.w, k === 'asph' ? 0.02 : k === 'madrid' ? 0.018 : 0.015, k === 'asph' ? 3.5 : 2.4, RD[k]);
+    if (k === 'asph' && rd.w >= 6.5) for (let i = 0; i + 1 < rd.pts.length; i++) { const a = rd.pts[i], b = rd.pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]); for (let s = 2; s < L - 2; s += 6) { const t = s / L; paint.push(wallSegGeo(lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[0], b[0], (s + 2.6) / L), lerp(a[1], b[1], (s + 2.6) / L), 0.005, 0.14, 1).translate(0, 0.022, 0)); } }
   }
-  addMerged(bar, lam(null, 0x9a2a1a)); addMerged(barW, lam(null, 0xd8d8d0));
-  // edificios
-  const byF = [[], [], [], []];
-  for (const b of TOWN.bld) { if (b.av || b.tw !== undefined) continue; const w = b.x1 - b.x0, d = b.z1 - b.z0; byF[b.f].push(bgeo(w, b.h, d, (b.x0 + b.x1) / 2, b.h / 2, (b.z0 + b.z1) / 2, 0, 6)); }
-  buildTowers();
-  // la parte de arriba del propio local (no hay plantas encima por dentro, pero desde la calle sí)
-  byF[1].push(bgeo(10, 6, 13.2, 0, 2.95 + 3, -1.6, 0, 6));
-  F.forEach((m, i) => addMerged(byF[i], m, true));
+  addMerged(RD.asph, lam('asph', 0x8a8a92)); addMerged(RD.madrid, lam('tbeig', 0xb0a898)); addMerged(RD.foot, lam('pavs', 0xb4b0a8));
+  // pasos de cebra en los cruces del mapa
+  for (const [x, z] of MAP.cross) {
+    const nr = nearestRoad(x, z, true); if (!nr || nr.d > 4) continue;
+    const p = nr.r.pts, a = p[nr.i], b = p[nr.i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, ux = (b[0] - a[0]) / L, uz = (b[1] - a[1]) / L, w = nr.r.w;
+    for (let k = -2; k <= 2; k++) { const cx = nr.qx + ux * k * 0.95, cz = nr.qz + uz * k * 0.95; paint.push(wallSegGeo(cx - uz * w / 2.2, cz + ux * w / 2.2, cx + uz * w / 2.2, cz - ux * w / 2.2, 0.005, 0.5, 1).translate(0, 0.022, 0)); }
+  }
+  addMerged(paint, lam(null, 0xc8c4b4));
+  // tapias, vallas y setos; con hueco en cada cancela
+  const WL = [], CP = [], HD = [], RAIL = [], GATE = [];
+  const gates = MAP.gate;
+  for (const b of TOWN.br) {
+    const p = b.pts;
+    for (let i = 0; i + 1 < p.length; i++) {
+      let ax = p[i][0], az = p[i][1]; const bx = p[i + 1][0], bz = p[i + 1][1], L = Math.hypot(bx - ax, bz - az); if (L < 0.05) continue;
+      if (Math.hypot(ax - 0, az - 0) < 3 && false) continue;
+      // trozos sin cancela
+      const cuts = gates.map(g => { const [d, , , t] = segDist(g[0], g[1], ax, az, bx, bz); return d < 0.6 ? t * L : null; }).filter(v => v !== null).sort((u, v) => u - v);
+      let s0 = 0; const parts = [];
+      for (const c of cuts) { if (c - 0.75 > s0) parts.push([s0, c - 0.75]); s0 = c + 0.75; GATE.push([ax + (bx - ax) * c / L, az + (bz - az) * c / L, (bx - ax) / L, (bz - az) / L, b.h]); }
+      if (s0 < L) parts.push([s0, L]);
+      for (const [s, e] of parts) {
+        const x0 = ax + (bx - ax) * s / L, z0 = az + (bz - az) * s / L, x1 = ax + (bx - ax) * e / L, z1 = az + (bz - az) * e / L;
+        if (e - s < 0.05) continue;
+        if (b.k === 'hedge') HD.push(wallSegGeo(x0, z0, x1, z1, b.h, 0.7, 1.4));
+        else if (b.k === 'fence') { RAIL.push(wallSegGeo(x0, z0, x1, z1, 0.06, 0.06, 1).translate(0, b.h - 0.03, 0)); const pl = new THREE.PlaneGeometry(e - s, b.h - 0.1); const uv = pl.attributes.uv; for (let k = 0; k < uv.count; k++) uv.setX(k, uv.getX(k) * (e - s) / 0.6); pl.rotateY(-Math.atan2(z1 - z0, x1 - x0)); pl.translate((x0 + x1) / 2, (b.h - 0.1) / 2, (z0 + z1) / 2); RAIL.push(pl); }
+        else { const h = Math.min(b.h, 2.4); WL.push(wallSegGeo(x0, z0, x1, z1, h, 0.25, 1.2)); CP.push(wallSegGeo(x0, z0, x1, z1, 0.06, 0.32, 1).translate(0, h + 0.03, 0)); if (h < 1.3) { const pl = new THREE.PlaneGeometry(e - s, 0.55); const uv = pl.attributes.uv; for (let k = 0; k < uv.count; k++) uv.setX(k, uv.getX(k) * (e - s) / 0.6); pl.rotateY(-Math.atan2(z1 - z0, x1 - x0)); pl.translate((x0 + x1) / 2, h + 0.33, (z0 + z1) / 2); RAIL.push(pl); } }
+        addSeg(x0, z0, x1, z1, 0, b.k === 'hedge' || b.h > 1.2 ? 9 : 1.7);
+      }
+    }
+  }
+  D.barsM = new THREE.MeshLambertMaterial({ map: barsTex(), transparent: true, alphaTest: 0.4, side: THREE.DoubleSide });
+  addMerged(WL, lam('plas', 0xd8d0c0)); addMerged(CP, lam('conc', 0xf0ece0)); addMerged(HD, lam(null, 0x223a1c)); addMerged(RAIL, D.barsM);
+  // cancelas abiertas (de hierro, como las de las urbanizaciones)
+  const gl = []; for (const [x, z, ux, uz, h] of GATE) { const gh = Math.max(1.4, Math.min(2, h + 0.5)), a = Math.atan2(uz, ux) + 1.3, g = new THREE.PlaneGeometry(1.4, gh); g.translate(0.7, gh / 2, 0); g.rotateY(-a); g.translate(x - ux * 0.75, 0, z - uz * 0.75); gl.push(g); }
+  addMerged(gl, D.barsM);
+  // árboles: palmeras (la mayoría) y plátanos de sombra
+  const TR = [], FR = [], CAN = [];
+  for (const [x, z, palm] of MAP.tree) {
+    if (x > SHOP_RECT.x0 - 1 && x < SHOP_RECT.x1 + 1 && z > SHOP_RECT.z0 && z < SHOP_RECT.z1 + 2.5) continue;
+    if (palm) palmGeo(x, z, 6 + r() * 4, r, TR, FR);
+    else { TR.push(new THREE.CylinderGeometry(0.16, 0.22, 3.4, 5, 1, true).translate(x, 1.7, z)); const c = new THREE.IcosahedronGeometry(2.2 + r(), 0); c.scale(1, 0.75, 1); c.translate(x, 4.6, z); CAN.push(c); }
+    colliders.push({ x0: x - 0.25, x1: x + 0.25, z0: z - 0.25, z1: z + 0.25 });
+  }
+  addMerged(TR, lam('bark', 0x8a7a68)); addMerged(FR, lam(null, 0x2a4424, { side: THREE.DoubleSide })); addMerged(CAN, lam('grass', 0x3a5a2a));
+  // farolas: altas con globo en la primera línea; de brazo en las demás
+  const poles = []; D.lamps = [];
+  for (const L of TOWN.lamps) {
+    if (L.pr) { poles.push(cgeo(0.08, 0.13, 10.5, 6, L.x, 5.25, L.z)); L.hx = L.x; L.hz = L.z; L.hy = 10.65; const h = new THREE.Mesh(new THREE.SphereGeometry(0.34, 8, 5), bas(0xfff0d0)); h.position.set(L.x, 10.65, L.z); scene.add(h); D.lamps.push({ L, h }); colliders.push({ x0: L.x - 0.16, x1: L.x + 0.16, z0: L.z - 0.16, z1: L.z + 0.16 }); continue; }
+    poles.push(cgeo(0.06, 0.09, 4.6, 6, L.x, 2.3, L.z));
+    poles.push(wallSegGeo(L.x, L.z, L.x + L.ax * 1.1, L.z + L.az * 1.1, 0.08, 0.08, 1).translate(0, 4.51, 0));
+    L.hx = L.x + L.ax * 1.0; L.hz = L.z + L.az * 1.0;
+    D.lamps.push({ L, h: box(0.42, 0.08, 0.42, bas(L.md === 2 ? 0x1c1a16 : 0xffb45a), L.hx, 4.48, L.hz) });
+    colliders.push({ x0: L.x - 0.16, x1: L.x + 0.16, z0: L.z - 0.16, z1: L.z + 0.16 });
+  }
+  addMerged(poles, M.dark);
+  // guirnaldas de bombillas entre las farolas de la primera línea
+  const bulbs = [], prl = TOWN.lamps.filter(L => L.pr).sort((a, b) => a.x - b.x);
+  for (let i = 0; i + 1 < prl.length; i++) { const a = prl[i], b = prl[i + 1]; if (Math.hypot(a.x - b.x, a.z - b.z) > 30) continue; for (let t = 0.05; t < 1; t += 0.07) { const g = new THREE.SphereGeometry(0.08, 4, 2); g.translate(lerp(a.x, b.x, t), 9.9 - Math.sin(t * PI) * 1.6, lerp(a.z, b.z, t)); bulbs.push(g); } }
+  addMerged(bulbs, bas(0xffe8b0));
+  LG.pool = [0, 1, 2, 3].map(() => { const l = new THREE.PointLight(0xffa850, 0, 17, 1.5); scene.add(l); return l; });
+  // coches aparcados
+  D.beamTex = ctex(64, 128, (g) => { const gr = g.createLinearGradient(0, 128, 0, 0); gr.addColorStop(0, 'rgba(255,240,200,0.9)'); gr.addColorStop(1, 'rgba(255,240,200,0)'); g.fillStyle = gr; g.beginPath(); g.moveTo(26, 128); g.lineTo(38, 128); g.lineTo(64, 0); g.lineTo(0, 0); g.fill(); });
+  const cg = {}, tmp = new THREE.Object3D();
+  for (const c of TOWN.cars) {
+    tmp.position.set(c.x, 0, c.z); tmp.rotation.set(0, c.ry, 0); tmp.updateMatrix();
+    for (const p of carParts(c.st)) { const key = p[0] === 'b' ? 'b' + c.c : p[0]; const g = partGeo(p); g.applyMatrix4(tmp.matrix); (cg[key] = cg[key] || []).push(g); }
+    const L = c.st === 1 ? 3.7 : 4.3, s = Math.sin(c.ry), co = Math.cos(c.ry);
+    for (const [u, v] of [[-0.9, -L / 2], [0.9, -L / 2], [0.9, L / 2], [-0.9, L / 2]]) { }
+    addSeg(c.x - s * L / 2, c.z - co * L / 2, c.x + s * L / 2, c.z + co * L / 2, 0, 1.4, { car: 1 });
+    addSeg(c.x - s * L / 2 + co * 0.9, c.z - co * L / 2 - s * 0.9, c.x + s * L / 2 + co * 0.9, c.z + co * L / 2 - s * 0.9, 0, 1.4); addSeg(c.x - s * L / 2 - co * 0.9, c.z - co * L / 2 + s * 0.9, c.x + s * L / 2 - co * 0.9, c.z + co * L / 2 + s * 0.9, 0, 1.4);
+  }
+  const pm = carMats(0, false);
+  for (const key in cg) addMerged(cg[key], key[0] === 'b' ? lam(null, CAR_COLS[+key.slice(1)], { emissive: 0x0a0a0a }) : pm[key]);
+  // bancos, papeleras, contenedores y paradas de bus de verdad
+  buildFurniture(r);
+  // edificios (y los interiores de las torres a las que se reparte)
+  D.figWinTex = ctex(64, 64, (g) => { g.fillStyle = '#ffcf80'; g.fillRect(0, 0, 64, 64); g.fillStyle = '#060404'; g.beginPath(); g.arc(32, 22, 9, 0, 7); g.fill(); g.fillRect(20, 30, 24, 34); });
+  buildBuildings();
   // fachada del local vista desde la calle
   const shopF = lam('tilegrey', 0x6a6a64), fr = [];
   for (const [x0, x1, y0, y1] of [[-5, -3.2, 0, 2.95], [-2.0, -1.2, 0, 2.95], [3.2, 5, 0, 2.95], [-3.2, -2.0, 2.15, 2.95], [-1.2, 3.2, 0, 0.9], [-1.2, 3.2, 2.3, 2.95]]) fr.push(bgeo(x1 - x0, y1 - y0, 0.06, (x0 + x1) / 2, (y0 + y1) / 2, 5.08, 0, 1));
   addMerged(fr, shopF);
   const sign = textPlate('KEBAB PONIENTE · 24H', 512, 72, '#140c08', '#ffb23a', '#5a1a10');
   box(7.2, 0.8, 0.25, M.dark, 0, 3.45, 5.25); plane(7.0, 0.7, bas(0xffffff, { map: sign }), 0, 3.45, 5.38, 0, 0); box(7.4, 0.06, 0.4, M.dark, 0, 3.02, 5.3);
-  // persiana medio bajada encima de la puerta
   box(1.3, 0.35, 0.05, lam('corr', 0x8a8a84), -2.6, 2.0, 5.12);
-  // portales
-  const atlas = ctex(512, 512, (g) => {
-    g.fillStyle = '#d8d4c4'; g.fillRect(0, 0, 512, 512); g.fillStyle = '#1a2a5a'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = 'bold 30px sans-serif';
-    for (let n = 0; n < 80; n++) { const cx = (n % 8) * 64, cy = (n / 8 | 0) * 48; g.strokeStyle = '#1a2a5a'; g.lineWidth = 3; g.strokeRect(cx + 4, cy + 4, 56, 40); g.fillText(String(n), cx + 32, cy + 25); }
-  });
-  const plateM = new THREE.MeshLambertMaterial({ map: atlas }), doorM = lam('wood', 0x5a4232), holeM = bas(0x020203), lampM = bas(0xffc678), boardM = lam('rust', 0x8a6a50);
-  const frames = [], lamps = [];
-  TOWN.sdoors.forEach((d, k) => {
-    const ry = Math.atan2(d.nx, d.nz), grp = new THREE.Group(); grp.position.set(d.x + d.nx * 0.01, 0, d.z + d.nz * 0.01); grp.rotation.y = ry; scene.add(grp);
-    const hole = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 2.2), holeM); hole.position.set(0, 1.1, 0.005); grp.add(hole);
-    const piv = new THREE.Group(); piv.position.set(-0.56, 0, 0.06); grp.add(piv);
-    const door = new THREE.Mesh(new THREE.BoxGeometry(1.12, 2.18, 0.08), doorM); door.position.set(0.56, 1.09, 0); piv.add(door);
-    const n = Math.min(79, d.num), pg = new THREE.PlaneGeometry(0.34, 0.24), uv = pg.attributes.uv, cx = (n % 8) / 8, cy = 1 - ((n / 8 | 0) + 1) * 48 / 512;
-    for (let i = 0; i < uv.count; i++) uv.setXY(i, cx + uv.getX(i) / 8, cy + uv.getY(i) * 48 / 512);
-    const plate = new THREE.Mesh(pg, plateM); plate.position.set(0.9, 1.9, 0.03); grp.add(plate);
-    const wv = new THREE.Vector3(); grp.updateMatrixWorld();
-    for (const [x, y, w, h] of [[-0.62, 1.15, 0.1, 2.3], [0.62, 1.15, 0.1, 2.3], [0, 2.32, 1.34, 0.12]]) { wv.set(x, y, 0.06); grp.localToWorld(wv); frames.push(bgeo(w, h, 0.12, wv.x, wv.y, wv.z, ry, 1)); }
-    if (d.lamp) { wv.set(0, 2.55, 0.12); grp.localToWorld(wv); lamps.push(bgeo(0.22, 0.12, 0.16, wv.x, wv.y, wv.z, ry, 1)); }
-    hit('sd' + k, d.x + d.nx * 0.5, 1.2, d.z + d.nz * 0.5, d.nx ? 0.9 : 1.4, 2.4, d.nz ? 0.9 : 1.4);
-  });
-  addMerged(frames, lam(null, 0x2a2622)); addMerged(lamps, lampM);
-  // farolas
-  const poles = []; D.lamps = [];
-  for (const L of TOWN.lamps) {
-    if (L.pr) {   // farola alta del paseo marítimo, con un globo arriba
-      poles.push(cgeo(0.08, 0.13, 10.5, 6, L.x, 5.25, L.z)); L.hx = L.x; L.hz = L.z; L.hy = 10.65;
-      const h = new THREE.Mesh(new THREE.SphereGeometry(0.34, 10, 8), bas(0xfff0d0)); h.position.set(L.x, 10.65, L.z); scene.add(h); D.lamps.push({ L, h }); continue;
+  // parada de bus (la del que te mira): ver buildFurniture
+  // solar con perros: grava y valla de malla
+  if (SOLAR) {
+    const S = SOLAR;
+    const link = ctex(64, 64, (g) => { g.clearRect(0, 0, 64, 64); g.strokeStyle = '#9a9a92'; g.lineWidth = 2.5; for (let i = -64; i < 128; i += 16) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 64, 64); g.stroke(); g.beginPath(); g.moveTo(i + 64, 0); g.lineTo(i, 64); g.stroke(); } });
+    const linkM = new THREE.MeshLambertMaterial({ map: link, transparent: true, alphaTest: 0.4, side: THREE.DoubleSide }), fl = [], fposts = [];
+    for (let i = 0; i < S.P.length; i++) {
+      const a = S.P[i], b = S.P[(i + 1) % S.P.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < 0.5) continue;
+      if (i === 0 && L > 4) {   // la entrada: un hueco en la valla
+        const m = 0.5 - 1.2 / L; const pl = (s, e) => { const x0 = lerp(a[0], b[0], s), z0 = lerp(a[1], b[1], s), x1 = lerp(a[0], b[0], e), z1 = lerp(a[1], b[1], e), l2 = L * (e - s), g = new THREE.PlaneGeometry(l2, 2.4); const uv = g.attributes.uv; for (let k = 0; k < uv.count; k++) uv.setXY(k, uv.getX(k) * l2 / 1.2, uv.getY(k) * 2); g.rotateY(-Math.atan2(z1 - z0, x1 - x0)); g.translate((x0 + x1) / 2, 1.2, (z0 + z1) / 2); fl.push(g); addSeg(x0, z0, x1, z1, 0, 9); };
+        pl(0, m); pl(1 - m, 1); continue;
+      }
+      const g = new THREE.PlaneGeometry(L, 2.4); const uv = g.attributes.uv; for (let k = 0; k < uv.count; k++) uv.setXY(k, uv.getX(k) * L / 1.2, uv.getY(k) * 2); g.rotateY(-Math.atan2(b[1] - a[1], b[0] - a[0])); g.translate((a[0] + b[0]) / 2, 1.2, (a[1] + b[1]) / 2); fl.push(g);
+      addSeg(a[0], a[1], b[0], b[1], 0, 9);
+      for (let t = 0; t <= L; t += 3) fposts.push(cgeo(0.04, 0.04, 2.5, 4, lerp(a[0], b[0], t / L), 1.25, lerp(a[1], b[1], t / L)));
     }
-    poles.push(cgeo(0.06, 0.09, 4.6, 6, L.x, 2.3, L.z));
-    poles.push(bgeo(L.ax ? 1.1 : 0.08, 0.08, L.az ? 1.1 : 0.08, L.x + L.ax * 0.5, 4.55, L.z + L.az * 0.5, 0, 1));
-    L.hx = L.x + L.ax * 1.0; L.hz = L.z + L.az * 1.0;
-    D.lamps.push({ L, h: box(0.42, 0.08, 0.42, bas(L.md === 2 ? 0x1c1a16 : 0xffb45a), L.hx, 4.48, L.hz) });
+    addMerged(fl, linkM); addMerged(fposts, M.steelD);
+    box(4.0, 1.1, 1.8, lam('rust', 0x4a3a32), S.cx + 3, 0.55, S.cz - 3, { col: true, ry: 0.3 });
+    for (let i = 0; i < 6; i++) cyl(0.32, 0.28, 0.6, 7, M.bag, S.cx + (r() - 0.5) * 6, 0.3, S.cz + (r() - 0.5) * 6);
   }
-  addMerged(poles, M.dark);
-  // guirnaldas de bombillas entre las farolas del paseo, como en Levante
-  const bulbs = [], prl = TOWN.lamps.filter(L => L.pr).sort((a, b) => a.x - b.x);
-  for (let i = 0; i + 1 < prl.length; i++) {
-    const a = prl[i], b = prl[i + 1];
-    for (const dz of [-0.25, 0.25]) for (let t = 0.04; t < 1; t += 0.06) { const y = 9.9 - Math.sin(t * PI) * 1.6; const g = new THREE.SphereGeometry(0.07, 5, 4); g.translate(lerp(a.x, b.x, t), y, a.z + dz); bulbs.push(g); }
-  }
-  addMerged(bulbs, bas(0xffe8b0));
-  LG.pool = [0, 1, 2, 3].map(() => { const l = new THREE.PointLight(0xffa850, 0, 17, 1.5); scene.add(l); return l; });
-  // coches aparcados: modelos de verdad fusionados por color y pieza
-  D.beamTex = ctex(64, 128, (g) => { const gr = g.createLinearGradient(0, 128, 0, 0); gr.addColorStop(0, 'rgba(255,240,200,0.9)'); gr.addColorStop(1, 'rgba(255,240,200,0)'); g.fillStyle = gr; g.beginPath(); g.moveTo(26, 128); g.lineTo(38, 128); g.lineTo(64, 0); g.lineTo(0, 0); g.fill(); });
-  const cg = {}, tmp = new THREE.Object3D();
-  for (const c of TOWN.cars) {
-    tmp.position.set(c.x, 0, c.z); tmp.rotation.set(0, c.ry, 0); tmp.updateMatrix();
-    for (const p of carParts(c.st)) { const key = p[0] === 'b' ? 'b' + c.c : p[0]; const g = partGeo(p); g.applyMatrix4(tmp.matrix); (cg[key] = cg[key] || []).push(g); }
-  }
-  const pm = carMats(0, false);
-  for (const key in cg) addMerged(cg[key], key[0] === 'b' ? lam(null, CAR_COLS[+key.slice(1)], { emissive: 0x0a0a0a }) : pm[key], true);
-  // rótulos de calle
-  const signPoles = [];
-  const streetSign = (si, x, z, ry) => {
-    signPoles.push(cgeo(0.04, 0.04, 2.9, 5, x, 1.45, z));
-    const t = textPlate(STREETS[si].n.toUpperCase(), 256, 64, '#e8e4d8', '#1a2a6a', '#1a2a6a');
-    const p = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.38), new THREE.MeshLambertMaterial({ map: t, side: THREE.DoubleSide })); p.position.set(x, 2.95, z); p.rotation.y = ry; scene.add(p);
-  };
-  streetSign(0, -4.6, 7.4, 0);
-  for (let si = 1; si < STREETS.length; si++) { const st = STREETS[si]; if (st.ax === 'z') { streetSign(si, st.c + 4.6, 4.0, 0); streetSign(si, st.c - 4.6, -168.2, 0); } else { streetSign(si, -45.4, st.c + st.w / 2 + 1.1, PI / 2); streetSign(si, 45.4, st.c + st.w / 2 + 1.1, PI / 2); } }
-  addMerged(signPoles, M.dark);
-  // ventana con figura (sale de madrugada)
-  const fw = ctex(64, 64, (g) => { g.fillStyle = '#ffcf80'; g.fillRect(0, 0, 64, 64); g.fillStyle = '#060404'; g.beginPath(); g.arc(32, 22, 9, 0, 7); g.fill(); g.fillRect(20, 30, 24, 34); });
-  D.figWinTex = fw;
-
-  /* parada de bus */
-  const bs = BUS_STOP;
-  box(3.2, 2.2, 0.05, lam(null, 0x9ab0b8, { transparent: true, opacity: 0.25, depthWrite: false }), bs.x, 1.25, bs.z + 0.9, { col: true });
-  box(3.4, 0.08, 1.4, M.dark, bs.x, 2.4, bs.z + 0.4); box(2.4, 0.08, 0.4, M.wood, bs.x, 0.48, bs.z + 0.6);
-  for (const s of [-1, 1]) box(0.06, 2.4, 0.06, M.dark, bs.x + s * 1.6, 1.2, bs.z + 0.9);
-  plane(0.6, 0.6, new THREE.MeshLambertMaterial({ map: textPlate('L3 NOCTURNO', 128, 128, '#1a3a6a', '#ffffff'), side: THREE.DoubleSide }), bs.x + 2.2, 2.6, bs.z, 0, 0); box(0.06, 2.9, 0.06, M.dark, bs.x + 2.2, 1.45, bs.z);
-
-  /* solar con perros, a un lado de la calle */
-  const S = SOLAR, dirt = lam('concf', 0x5a4a3a, off);
-  gplane(S.x0, S.x1, S.z0, S.z1, dirt, 0.006, 3, 2.5);
-  const link = ctex(64, 64, (g) => { g.clearRect(0, 0, 64, 64); g.strokeStyle = '#9a9a92'; g.lineWidth = 2.5; for (let i = -64; i < 128; i += 16) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 64, 64); g.stroke(); g.beginPath(); g.moveTo(i + 64, 0); g.lineTo(i, 64); g.stroke(); } });
-  const linkM = new THREE.MeshLambertMaterial({ map: link, transparent: true, alphaTest: 0.4, side: THREE.DoubleSide }), fposts = [];
-  const fence = (x0, z0, x1, z1) => {
-    const len = Math.hypot(x1 - x0, z1 - z0), p = new THREE.Mesh(new THREE.PlaneGeometry(len, 2.4), linkM); p.position.set((x0 + x1) / 2, 1.2, (z0 + z1) / 2); p.rotation.y = -Math.atan2(z1 - z0, x1 - x0);
-    const uv = p.geometry.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * len / 1.2, uv.getY(i) * 2); scene.add(p);
-    colliders.push({ x0: Math.min(x0, x1) - 0.06, x1: Math.max(x0, x1) + 0.06, z0: Math.min(z0, z1) - 0.06, z1: Math.max(z0, z1) + 0.06 });
-    for (let t = 0; t <= len; t += 3) fposts.push(cgeo(0.04, 0.04, 2.5, 4, lerp(x0, x1, t / len), 1.25, lerp(z0, z1, t / len)));
-  };
-  const gz = (S.z0 + S.z1) / 2; fence(S.x1, S.z0, S.x1, gz - 2); fence(S.x1, gz + 2, S.x1, S.z1); fence(S.x0, S.z0, S.x1, S.z0); fence(S.x0, S.z1, S.x1, S.z1); fence(S.x0, S.z0, S.x0, S.z1);
-  addMerged(fposts, M.steelD);
-  box(4.0, 1.1, 1.8, lam('rust', 0x4a3a32), 4, 0.55, -88, { col: true, ry: 0.3 }); box(2.0, 0.5, 1.6, lam('rust', 0x2a2420), 4, 1.35, -88, { ry: 0.3 });
-  box(1.9, 0.3, 1.0, lam('bag', 0x6a6050), 9, 0.15, -76, { ry: 0.4 });
-  for (let i = 0; i < 6; i++) cyl(0.32, 0.28, 0.6, 7, M.bag, 2 + r() * 10, 0.3, -94 + r() * 20);
-  plane(1.5, 0.5, new THREE.MeshLambertMaterial({ map: textPlate('PROHIBIDO EL PASO', 256, 80, '#d8d0b8', '#8a1a12'), side: THREE.DoubleSide }), S.x1 + 0.08, 1.9, gz - 3.5, 0, PI / 2);
-  // fondo del callejón: algo colgado
-  box(0.6, 1.2, 0.05, lam('bag', 0x3a3632), -13.6, 1.6, -111, { ry: PI / 2 });
-
-  /* moto, perros, baliza de destino, faro */
-  D.bike = makeVespa(); D.dogs = DOG_HOME.map(() => makeDog());
-  D.beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 40, 8, 1, true), new THREE.MeshBasicMaterial({ color: 0x7dffa8, transparent: true, opacity: 0.16, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, side: THREE.DoubleSide }));
-  D.beacon.visible = false; scene.add(D.beacon);
+  /* moto, perros, faro y la luz del portal del pedido */
+  D.bike = makeVespa(); D.dogs = DOG_HOME.map(() => makeDog()); D.amber = [];
   D.traffic = TRAFFIC.map(t => makeCar(t.st, t.c, t.li));
   LG.porch = new THREE.PointLight(0xffc880, 0, 8, 1.4); scene.add(LG.porch); D.porch = box(0.24, 0.14, 0.18, bas(0xffe0a0), 0, -10, 0);
   LG.head = new THREE.SpotLight(0xfff0d0, 0, 46, 0.64, 0.45, 1.0); scene.add(LG.head); scene.add(LG.head.target);
   // teléfono de pedidos y bolsa térmica
   box(0.08, 0.3, 0.2, lam(null, 0xd8d4c4), 3.95, 1.55, 1.75); box(0.1, 0.22, 0.06, lam(null, 0xb8b4a4), 3.89, 1.58, 1.75);
   D.phoneLed = box(0.02, 0.03, 0.03, bas(0x300404), 3.9, 1.7, 1.66); hit('phone', 3.85, 1.55, 1.75, 0.4, 0.5, 0.5);
-  // cartel ABIERTO / CERRADO colgado en la puerta (se ve desde dentro y desde fuera)
   const sg = (t, bg) => textPlate(t, 128, 64, bg, '#ffffff', '#ffffff');
   D.signTex = [sg('ABIERTO', '#1a6a2a'), sg('CERRADO', '#8a1a12')];
   D.signF = plane(0.56, 0.28, new THREE.MeshLambertMaterial({ map: D.signTex[0], emissive: 0x333333 }), -0.6, 1.45, 5.03, 0, 0);
@@ -1690,79 +1677,75 @@ function buildTown() {
   box(0.6, 0.06, 0.5, M.wood, 3.62, 1.0, 2.7); box(0.06, 1.0, 0.06, M.dark, 3.62, 0.5, 2.7); colliders.push({ x0: 3.3, x1: 4, z0: 2.42, z1: 2.98 });
   D.bagSt = new THREE.Group(); D.bagSt.position.set(3.62, 1.03, 2.7); scene.add(D.bagSt); D.bagKey = '';
   hit('bag', 3.62, 1.2, 2.7, 0.7, 0.6, 0.6);
-  for (const c of TOWN.cols) colliders.push(c);
-  buildPlots();
   buildStreetLife();
 }
 
-/* ================= VIDA DE LA CALLE: máquinas de bebidas, locales cerrados, contenedores, basura,
-   vagabundos con perro, halos de las farolas y motas de polvo, y el faro de la moto.
-   Todo sale de una semilla fija: todos los jugadores ven lo mismo (salvo el perro, que le ladra a cada uno). */
-const LIFE = layoutLife();
-
-// ¿una farola está apagada ahora mismo? (rota, parpadeando o asustando)
-function lampOff(L) { return L.md === 2 || (L.sc > 0 && Math.sin(TIME * 70 + L.ph) > 0) || (L.md === 1 && (Math.sin(TIME * 23 + L.ph) + Math.sin(TIME * 37 + L.ph * 2) + Math.sin(TIME * 3.1 + L.ph)) > 1.1); }
-
-/* un sitio pegado a la pared de una calle. side: +1 = lado de x/z mayores. Devuelve la pared y su normal hacia la calle. */
-function lifeSpot(si, side, a, ry) {
-  const s = STREETS[si], wc = s.c + side * wallOff(si);
-  const nx = s.ax === 'z' ? -side : 0, nz = s.ax === 'z' ? 0 : -side;
-  return { si, side, a, x: s.ax === 'z' ? wc : a, z: s.ax === 'z' ? a : wc, nx, nz, ry: Math.atan2(nx, nz) };
-}
-function layoutLife() {
-  const used = [], r = mulberry32(8812);
-  const bldAt = (x, z) => TOWN.bld.some(b => x > b.x0 && x < b.x1 && z > b.z0 && z < b.z1) || TOWN.plots.some(P => x > P.x0 && x < P.x1 && z > P.z0 && z < P.z1);
-  const free = (si, side, a, hw, curb) => {
-    const s = STREETS[si], wc = s.c + side * wallOff(si), ins = wc + side * 0.3;
-    if (!curb) for (const t of [-hw, -hw / 2, 0, hw / 2, hw]) { if (!(s.ax === 'z' ? bldAt(ins, a + t) : bldAt(a + t, ins))) return false; }
-    if (s.ax === 'z' && (a > -10 || a < -169)) return false;
-    if (s.ax === 'x' && STREETS.some(o => o.ax === 'z' && Math.abs(a - o.c) < 6 + hw)) return false;
-    if (s.ax === 'z' && Math.abs(a - STREETS[MED].c) < 7.5 + hw) return false;
-    if (si === 0 && Math.abs(a) < 9 + hw) return false;   // delante del local, no
-    for (const d of TOWN.sdoors.concat(TOWN.plots.map(P => P.gate))) { const da = s.ax === 'z' ? d.z : d.x, dw = s.ax === 'z' ? d.x : d.z; if (Math.abs(dw - wc) < 0.4 && Math.abs(da - a) < hw + 1.1) return false; }
-    for (const L of TOWN.lamps) { const la = s.ax === 'z' ? L.z : L.x, lw = s.ax === 'z' ? L.x : L.z; if (Math.abs(lw - wc) < 2.2 && Math.abs(la - a) < hw + 0.8) return false; }
-    for (const u of used) if (u.si === si && u.side === side && Math.abs(u.a - a) < u.hw + hw + 0.6) return false;
-    return true;
-  };
-  const find = (si, side, a0, hw, curb) => {
-    for (let k = 0; k < 80; k++) { const a = a0 + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 0.5; if (free(si, side, a, hw, curb)) { used.push({ si, side, a, hw }); return lifeSpot(si, side, a); } }
-    return null;
-  };
-  const L = { vend: [], shops: [], sleep: [], cont: [], lit: [] };
-  // máquinas de bebidas: las mismas bebidas que vendes tú, al mismo precio
-  for (const [si, side, a] of [[1, 1, -30], [5, 1, -22], [5, -1, 30], [3, -1, -130], [0, -1, -72], [4, -1, 14], [2, 1, -150]]) { const p = find(si, side, a, 0.6); if (p) L.vend.push(p); }
-  // locales cerrados y arruinados
-  for (const [si, side, a, k] of [[0, -1, -30, 0], [0, -1, 64, 3], [5, 1, -36, 4], [5, -1, -6, 1], [4, 1, -28, 2], [4, -1, 22, 0], [5, 1, 34, 5], [4, 1, 30, 3]]) { const p = find(si, side, a, 2.15); if (p) { p.k = k; L.shops.push(p); } }
-  // en la Avenida del Mediterráneo, la iluminada, hay tiendas abiertas toda la noche
-  [[1, -8, 0], [-1, -30, 1], [-1, 36, 2]].forEach(([side, a, k]) => { const p = find(MED, side, a, 2.15); if (p) { p.k = k; L.lit.push(p); } });
-  // vagabundos durmiendo boca abajo, con su carro y su perro
-  for (const [si, side, a] of [[2, 1, -60], [4, -1, -20]]) { const p = find(si, side, a, 2.6); if (p) L.sleep.push(p); }
-  // contenedores junto al bordillo, en grupos de 2 o 3
-  const curbFree = (si, side, a, hw) => {
-    const s = STREETS[si], cw = s.c + side * (s.w / 2 + 0.6);
-    if (!free(si, side, a, hw, true)) return false;
-    for (const L2 of TOWN.lamps) { const la = s.ax === 'z' ? L2.z : L2.x, lw = s.ax === 'z' ? L2.x : L2.z; if (Math.abs(lw - cw) < 1.2 && Math.abs(la - a) < hw + 0.7) return false; }
-    for (const c of TOWN.cars) { const ca = s.ax === 'z' ? c.z : c.x, cl = s.ax === 'z' ? c.x : c.z; if (Math.abs(cl - cw) < 2.4 && Math.abs(ca - a) < hw + 2.6) return false; }
-    if (si === 0 && side > 0) return false;
-    return true;
-  };
-  STREETS.forEach((s, si) => {
-    const sides = si === 0 ? [-1] : [-1, 1];
-    const a0 = s.ax === 'z' ? -16 : s.a0 + 8, a1 = s.ax === 'z' ? -166 : s.a1 - 8, step = s.ax === 'z' ? -1 : 1;
-    let a = a0 + step * r() * 10;
-    while (step < 0 ? a > a1 : a < a1) {
-      const n = r() < 0.5 ? 2 : 3, hw = n * 0.72, side = sides[r() * sides.length | 0];
-      if (curbFree(si, side, a, hw)) {
-        used.push({ si, side, a, hw });
-        const p = lifeSpot(si, side, a); p.n = n; p.cw = s.c + side * (s.w / 2 + 0.58); p.cols = [0, 1, 2, 3].sort(() => r() - 0.5).slice(0, n); p.bags = r() * 4 | 0; p.lid = r() < 0.4 ? r() * 0.5 : 0; L.cont.push(p);
-        a += step * (26 + r() * 22);
-      } else a += step * 3;
+/* ================= VIDA DE LA CALLE (del mapa real): los negocios con su nombre y su rótulo, bancos, papeleras,
+   contenedores, paradas de bus, máquinas de bebidas, basura por el suelo, vagabundos con perro,
+   halos de las farolas, motas de polvo y el faro de la moto. */
+// el punto de fachada más cercano a (x,z): para colgar rótulos, máquinas o vagabundos
+const _facRoad = new Map();
+function nearestFacade(x, z, maxD, minL) {
+  let best = null, bd = maxD || 12;
+  for (const b of TOWN.bld) {
+    if (b.t === 'roof' || x < b.x0 - bd || x > b.x1 + bd || z < b.z0 - bd || z > b.z1 + bd) continue;
+    for (let i = 0; i < b.P.length; i++) {
+      const a = b.P[i], c = b.P[(i + 1) % b.P.length], [d, qx, qz, t] = segDist(x, z, a[0], a[1], c[0], c[1]), [nx, nz, L] = outN(b.P, i);
+      if (L < (minL || 3)) continue;
+      // mejor una fachada que dé a la calle
+      const ck = b.i + ':' + i; let rd = _facRoad.get(ck); if (rd === undefined) { const nr = nearestRoad((a[0] + c[0]) / 2 + nx * 4, (a[1] + c[1]) / 2 + nz * 4, false); rd = nr ? Math.min(nr.d, 20) : 20; _facRoad.set(ck, rd); }
+      const cost = d + rd * 0.25;
+      if (cost < bd) { bd = cost; best = { b, i, qx, qz, nx, nz, L, s: t * L, x: qx, z: qz, ry: Math.atan2(nx, nz) }; }
     }
-  });
+  }
+  return best;
+}
+function facadeFree(p, w, used) {
+  if (Math.abs(p.x) < 7 && p.z > 2 && p.z < 8) return false;                  // la fachada del propio local
+  for (const C of TOWN.del) if (C.b === p.b && C.edge === p.i && Math.abs(p.s - C.s0 + 0.7) < 2.4 + w / 2) return false;   // portal de una torre
+  for (const u of used) if (u.b === p.b && u.i === p.i && Math.abs(u.s - p.s) < (u.w + w) / 2 + 0.3) return false;
+  return true;
+}
+const POI_STYLE = {   // [color de fondo, color de letra, ¿abierto de madrugada?, texto si no tiene nombre]
+  bar: ['#3a1a0a', '#ffcf6a', 1, 'BAR'], pub: ['#0e2a12', '#f0d070', 1, 'PUB'], restaurant: ['#4a1210', '#ffe0b0', 0, 'RESTAURANTE'], fast_food: ['#b81a10', '#ffe040', 1, 'FAST FOOD'], cafe: ['#3a2410', '#f0e0c0', 0, 'CAFETERÍA'],
+  convenience: ['#0a4a2a', '#ffffff', 1, 'SUPERMERCADO 24H'], supermarket: ['#d82a1a', '#ffffff', 0, 'SUPERMERCADO'], massage: ['#5a0a4a', '#ff9ae0', 1, 'MASAJES'], tattoo: ['#0a0a0a', '#e02020', 1, 'TATTOO'],
+  stripclub: ['#2a0020', '#ff3ab0', 1, 'CLUB'], nightclub: ['#100030', '#40e0ff', 1, 'DISCO'], pharmacy: ['#0a7a3a', '#ffffff', 0, 'FARMACIA'], hairdresser: ['#e8e0d8', '#3a2a2a', 0, 'PELUQUERÍA'],
+  clothes: ['#1a1a2a', '#ffffff', 0, 'MODA'], vacant: ['#3a3630', '#8a8478', 0, ''], atm: ['#0a3a7a', '#ffffff', 1, 'CAJERO'], bank: ['#0a3a7a', '#ffffff', 0, 'BANCO'], estate_agent: ['#1a3a6a', '#ffffff', 0, 'INMOBILIARIA'],
+  hotel: ['#0a1a3a', '#e8c870', 1, 'HOTEL'], ice_cream: ['#ff9ac8', '#3a0a2a', 0, 'HELADERÍA'], bakery: ['#c8a060', '#3a1a0a', 0, 'PANADERÍA'], gift: ['#e8c020', '#1a1a1a', 0, 'SOUVENIRS'], variety_store: ['#e8c020', '#1a1a1a', 0, 'BAZAR'],
+  _: ['#2a2a30', '#e8e8e0', 0, ''],
+};
+function poiStyle(kind) { const t = kind.split(':')[1]; return POI_STYLE[t] || POI_STYLE[{ 'e-cigarette': 'tattoo', alternative: 'massage', beauty: 'massage', bookmaker: 'nightclub', adult_gaming_centre: 'nightclub', biergarten: 'bar', accessories: 'gift', mobile_phone: 'variety_store', alcohol: 'convenience', kiosk: 'convenience', newsagent: 'convenience', tobacco: 'convenience', jewelry: 'clothes', shoes: 'clothes' }[t]] || POI_STYLE._; }
+function layoutLife() {
+  const used = [], r = mulberry32(8812), L = { shops: [], vend: [], sleep: [] };
+  // los negocios del mapa, en la fachada más cercana
+  for (const [x, z, kind, name] of MAP.poi) {
+    if (Math.hypot(x, z) > 240) continue;
+    const p = nearestFacade(x, z, 14, 3.2); if (!p) continue;
+    const w = Math.min(4.2, p.L - 0.4);
+    // si el sitio está ocupado, a un lado o al otro
+    let ok = false; for (const ds of [0, 4.4, -4.4, 8.8, -8.8]) { const s = p.s + ds; if (s < w / 2 || s > p.L - w / 2) continue; const q = Object.assign({}, p, { s }), a = p.b.P[p.i], c = p.b.P[(p.i + 1) % p.b.P.length]; q.x = q.qx = a[0] + (c[0] - a[0]) * s / p.L; q.z = q.qz = a[1] + (c[1] - a[1]) * s / p.L; if (facadeFree(q, w, used)) { Object.assign(p, q); ok = true; break; } }
+    if (!ok) continue;
+    p.w = w; p.kind = kind; p.name = name; used.push(p); L.shops.push(p);
+  }
+  // máquinas de bebidas: junto a bares y tiendas de 24 horas, cerca del local
+  const nearBars = L.shops.filter(s => /bar|pub|convenience/.test(s.kind)).sort((a, b) => Math.hypot(a.x, a.z) - Math.hypot(b.x, b.z));
+  for (const s of nearBars) {
+    if (L.vend.length >= 5) break; if (L.vend.some(v => Math.hypot(v.x - s.x, v.z - s.z) < 40)) continue;
+    const a = s.b.P[s.i], c = s.b.P[(s.i + 1) % s.b.P.length];
+    for (const ds of [s.w / 2 + 0.9, -(s.w / 2 + 0.9)]) { const q = Object.assign({}, s, { s: s.s + ds }); if (q.s < 0.7 || q.s > s.L - 0.7) continue; q.x = a[0] + (c[0] - a[0]) * q.s / s.L; q.z = a[1] + (c[1] - a[1]) * q.s / s.L; if (facadeFree(q, 1.2, used)) { q.w = 1.2; used.push(q); L.vend.push(q); break; } }
+  }
+  // vagabundos: delante de locales vacíos o tiendas cerradas, lejos del kebab
+  for (const s of L.shops.filter(s => /vacant|clothes|estate|bank/.test(s.kind)).sort((a, b) => Math.hypot(a.x, a.z) - Math.hypot(b.x, b.z))) {
+    if (L.sleep.length >= 2) break; if (Math.hypot(s.x, s.z) < 45 || L.sleep.some(o => Math.hypot(o.x - s.x, o.z - s.z) < 60)) continue;
+    L.sleep.push(s);
+  }
   return L;
 }
 
-/* ---------- texturas ---------- */
+function lampOff(L) { return L.md === 2 || (L.sc > 0 && Math.sin(TIME * 70 + L.ph) > 0) || (L.md === 1 && (Math.sin(TIME * 23 + L.ph) + Math.sin(TIME * 37 + L.ph * 2) + Math.sin(TIME * 3.1 + L.ph)) > 1.1); }
+
+/* un sitio pegado a la pared de una calle. side: +1 = lado de x/z mayores. Devuelve la pared y su normal hacia la calle. */
+
 function vendTex() {
   return ctex(256, 512, (g) => {
     g.fillStyle = '#0d1a33'; g.fillRect(0, 0, 256, 512);
@@ -1794,6 +1777,7 @@ function vendTex() {
     g.fillStyle = 'rgba(0,0,0,.35)'; for (let i = 0; i < 30; i++) g.fillRect(Math.random() * 256, 82 + Math.random() * 400, 2 + Math.random() * 10, 1 + Math.random() * 3);
   });
 }
+
 function glowTex(r, gC, b) {
   return ctex(128, 128, (g) => {
     const gr = g.createRadialGradient(64, 64, 2, 64, 64, 63);
@@ -1801,27 +1785,9 @@ function glowTex(r, gC, b) {
     g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
   });
 }
+
 function dotTex() { return ctex(32, 32, (g) => { const gr = g.createRadialGradient(16, 16, 0, 16, 16, 15); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.4, 'rgba(255,255,255,.5)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 32, 32); }); }
-const SHOP_SIGNS = [['KEBAB ISTANBUL', '#3a120c', '#d8a040', [2, 9]], ['DÖNER ANKARA', '#1a2a12', '#d8c8a0', [4]], ['KEBAB EL SULTÁN', '#2a0a0a', '#e05030', [0, 11]], ['SUPERMARKET 24H', '#0e2a4a', '#f0f0e0', [5, 12]], ['SUPERMERCADO SOL', '#5a3a0a', '#f8e0a0', [3]], ['ALIMENTACIÓN · FRUTAS', '#1a3a1a', '#f0e8c8', [6, 14]]];
-function shopSignTex(k, r) {
-  const [t, bg, fg, miss] = SHOP_SIGNS[k];
-  return ctex(512, 80, (g) => {
-    g.fillStyle = bg; g.fillRect(0, 0, 512, 80);
-    g.textAlign = 'left'; g.textBaseline = 'middle'; let fs = 46; g.font = 'bold ' + fs + 'px sans-serif'; while (g.measureText(t).width > 470) { fs--; g.font = 'bold ' + fs + 'px sans-serif'; }
-    let x = (512 - g.measureText(t).width) / 2;
-    for (let i = 0; i < t.length; i++) {
-      const ch = t[i], w = g.measureText(ch).width;
-      if (miss.indexOf(i) >= 0) { g.fillStyle = 'rgba(0,0,0,.35)'; g.fillText(ch, x, 41); for (const dy of [-12, 12]) { g.fillStyle = '#6a6a60'; g.fillRect(x + w / 2 - 2, 40 + dy, 4, 4); } }   // letra caída: solo queda la marca y los tornillos
-      else { g.save(); g.translate(x + w / 2, 41); g.rotate((r() - 0.5) * 0.12); g.fillStyle = fg; g.globalAlpha = 0.55 + r() * 0.35; g.fillText(ch, -w / 2, 0); g.restore(); }
-      x += w;
-    }
-    // mugre, óxido chorreando y grietas
-    for (let i = 0; i < 40; i++) { g.fillStyle = `rgba(${40 + r() * 40 | 0},${25 + r() * 20 | 0},10,${0.2 + r() * 0.3})`; g.fillRect(r() * 512, r() * 80, 4 + r() * 30, 2 + r() * 8); }
-    for (let i = 0; i < 6; i++) { const x0 = r() * 512; const gr = g.createLinearGradient(0, 0, 0, 80); gr.addColorStop(0, 'rgba(90,50,20,.6)'); gr.addColorStop(1, 'rgba(90,50,20,0)'); g.fillStyle = gr; g.fillRect(x0, 0, 3 + r() * 5, 80); }
-    g.strokeStyle = 'rgba(0,0,0,.6)'; g.lineWidth = 1.5; g.beginPath(); let cx = r() * 512, cy = 0; g.moveTo(cx, cy); while (cy < 80) { cx += (r() - 0.5) * 30; cy += 6 + r() * 10; g.lineTo(cx, cy); } g.stroke();
-    g.strokeStyle = '#111'; g.lineWidth = 6; g.strokeRect(3, 3, 506, 74);
-  });
-}
+
 function graffiti(g, r, x0, y0, w, h) {
   const cols = ['#e03a8a', '#3ad0e0', '#f0f0f0', '#e0d020', '#30c040', '#101010', '#ff6020'];
   for (let k = 0; k < 3; k++) {
@@ -1832,6 +1798,7 @@ function graffiti(g, r, x0, y0, w, h) {
   }
   g.globalAlpha = 1;
 }
+
 function shopFrontTex(k, r, glass) {
   return ctex(256, 192, (g) => {
     if (glass) {   // escaparate roto, tapado con papeles, oscuro por dentro
@@ -1853,6 +1820,7 @@ function shopFrontTex(k, r, glass) {
   });
 }
 // atlas de basura del suelo: 4x4 casillas de 128px
+
 function litterAtlas() {
   return ctex(512, 512, (g) => {
     g.clearRect(0, 0, 512, 512); const r = mulberry32(55);
@@ -1881,21 +1849,113 @@ function litterAtlas() {
     }
   });
 }
+
 function cellPlane(i, w, h, x, y, z, ry) {
   const g = new THREE.PlaneGeometry(w, h), uv = g.attributes.uv, cx = (i % 4) / 4, cy = 1 - ((i / 4 | 0) + 1) / 4;
   for (let k = 0; k < uv.count; k++) uv.setXY(k, cx + uv.getX(k) * 0.25, cy + uv.getY(k) * 0.25);
   g.rotateX(-PI / 2); g.rotateY(ry); g.translate(x, y, z); return g;
 }
+
 function wireTex() { return ctex(64, 64, (g) => { g.clearRect(0, 0, 64, 64); g.strokeStyle = '#b8bcc0'; g.lineWidth = 3; for (let i = 0; i <= 64; i += 16) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, 64); g.stroke(); g.beginPath(); g.moveTo(0, i); g.lineTo(64, i); g.stroke(); } }); }
+
 function plaidTex(c1, c2) { return ctex(64, 64, (g) => { g.fillStyle = c1; g.fillRect(0, 0, 64, 64); g.fillStyle = c2; g.globalAlpha = 0.6; for (let i = 0; i < 64; i += 16) { g.fillRect(i, 0, 6, 64); g.fillRect(0, i, 64, 6); } g.globalAlpha = 0.25; g.fillStyle = '#000'; for (let i = 0; i < 40; i++) g.fillRect(Math.random() * 64, Math.random() * 64, 3 + Math.random() * 8, 2 + Math.random() * 5); }); }
 
-/* ---------- construcción ---------- */
-// punto en coordenadas de un sitio de pared: lx a lo largo, lz hacia la calle
+
 function sp2w(p, lx, lz) { const tx = Math.cos(p.ry), tz = -Math.sin(p.ry); return [p.x + tx * lx + p.nx * lz, p.z + tz * lx + p.nz * lz]; }
+
 function aabb(p, lx0, lx1, lz0, lz1) { const a = sp2w(p, lx0, lz0), b = sp2w(p, lx1, lz1); return { x0: Math.min(a[0], b[0]), x1: Math.max(a[0], b[0]), z0: Math.min(a[1], b[1]), z1: Math.max(a[1], b[1]) }; }
 
+
+function dogLie(dog, k) {
+  dog.position.y = -0.36 * k;
+  dog.legs.forEach((l, i) => { l.rotation.x = k * (i < 2 ? 1.45 : -1.45); });
+  dog.head.rotation.x = k * 0.35;
+}
+
+
+function moteStep(M2, top) {
+  const a = M2.pts.geometry.attributes.position, p = M2.pos;
+  for (let k = 0; k < M2.base.length; k++) {
+    const b = M2.base[k], t = TIME * b[4] + b[3];
+    let y = b[1] + Math.sin(t * 0.7) * 0.35; if (y > top) y = top - (y - top); if (y < 0.15) y = 0.15 + (0.15 - y);
+    p[k * 3] = b[0] + Math.sin(t) * 0.25; p[k * 3 + 1] = y; p[k * 3 + 2] = b[2] + Math.cos(t * 0.8) * 0.25;
+  }
+  a.needsUpdate = true;
+}
+
+
+const LIFE = layoutLife();
+
+/* ---------- mobiliario urbano del mapa ---------- */
+function buildFurniture(r) {
+  const wood = [], iron = [], cY = [], cB = [], cG = [], cGr = [], lids = [], bas2 = [], glass = [], roofs = [];
+  // bancos: de cara al mar en la primera línea, de cara a la calle en lo demás
+  for (const [x, z, dir] of MAP.bench) {
+    let ry;
+    if (dir >= 0) ry = -dir * PI / 180 + PI; else if (z > 2) ry = 0; else { const nr = nearestRoad(x, z, false); ry = nr && nr.d > 0.2 ? Math.atan2(nr.qx - x, nr.qz - z) : 0; }
+    const s = Math.sin(ry), c = Math.cos(ry), P = (lx, lz) => [x + lx * c + lz * s, z - lx * s + lz * c];
+    for (const [lz, y, h] of [[0.05, 0.45, 0.06], [-0.12, 0.45, 0.06], [-0.28, 0.75, 0.32]]) { const [px, pz] = P(0, lz); wood.push(bgeo(1.7, h, 0.14, px, y, pz, ry, 1)); }
+    for (const lx of [-0.75, 0.75]) { const [px, pz] = P(lx, -0.1); iron.push(bgeo(0.06, 0.45, 0.45, px, 0.22, pz, ry, 1)); }
+    colliders.push({ x0: x - 0.7, x1: x + 0.7, z0: z - 0.7, z1: z + 0.7 });
+  }
+  // papeleras y contenedores (amarillo envases, azul papel, iglú verde de vidrio, verde y gris de basura)
+  for (const [x, z, k] of MAP.bin) {
+    if (k === 0) { iron.push(cgeo(0.04, 0.04, 1.0, 4, x, 0.5, z)); const g = new THREE.CylinderGeometry(0.22, 0.2, 0.55, 8, 1, true); g.translate(x, 0.8, z); cGr.push(g); continue; }
+    const nr = nearestRoad(x, z, true), ry = nr && nr.d > 0.1 ? Math.atan2(nr.qx - x, nr.qz - z) + PI / 2 : 0, s = Math.sin(ry), c = Math.cos(ry);
+    const set = k === 1 ? [cY, cB, 'igloo'] : [cG, cGr];
+    set.forEach((lst, j) => {
+      const lx = (j - (set.length - 1) / 2) * 1.5, px = x + lx * c, pz = z - lx * s;
+      if (lst === 'igloo') { const g = new THREE.SphereGeometry(0.85, 10, 6, 0, PI * 2, 0, PI / 2); g.scale(1, 1.6, 1); g.translate(px, 0, pz); cG.push(g); }
+      else { lst.push(bgeo(1.34, 1.05, 0.98, px, 0.62, pz, ry, 1)); lids.push(bgeo(1.4, 0.07, 1.04, px, 1.18, pz, ry, 1)); }
+    });
+    colliders.push({ x0: x - 2.2, x1: x + 2.2, z0: z - 0.7, z1: z + 0.7 });
+  }
+  // paradas de bus con marquesina
+  for (const [x, z, name, sh] of MAP.bus) {
+    const nr = nearestRoad(x, z, true), ry = nr && nr.d > 0.1 ? Math.atan2(nr.qx - x, nr.qz - z) : 0, s = Math.sin(ry), c = Math.cos(ry), P = (lx, lz) => [x + lx * c + lz * s, z - lx * s + lz * c];
+    if (sh) {
+      { const [px, pz] = P(0, -0.9); glass.push(bgeo(3.2, 2.1, 0.04, px, 1.25, pz, ry, 1)); }
+      { const [px, pz] = P(0, -0.4); roofs.push(bgeo(3.4, 0.08, 1.4, px, 2.4, pz, ry, 1)); }
+      { const [px, pz] = P(0, -0.6); wood.push(bgeo(2.4, 0.08, 0.4, px, 0.48, pz, ry, 1)); }
+      for (const lx of [-1.6, 1.6]) { const [px, pz] = P(lx, -0.9); iron.push(cgeo(0.04, 0.04, 2.4, 4, px, 1.2, pz)); }
+      const [px, pz] = P(0, -0.9); colliders.push({ x0: px - 1.6, x1: px + 1.6, z0: pz - 0.3, z1: pz + 0.3 });
+    }
+    const [qx, qz] = P(2.0, -0.2); iron.push(cgeo(0.04, 0.04, 2.9, 4, qx, 1.45, qz));
+    plane(0.6, 0.6, new THREE.MeshLambertMaterial({ map: textPlate(name ? name.slice(0, 18).toUpperCase() : 'BUS', 128, 128, '#1a3a6a', '#ffffff'), side: THREE.DoubleSide }), qx, 2.6, qz, 0, ry);
+  }
+  addMerged(wood, lam('wood2', 0x8a6a4a)); addMerged(iron, M.dark);
+  addMerged(cY, lam('rust', 0xb08a18, { emissive: 0x060606 })); addMerged(cB, lam('rust', 0x1f4a8a, { emissive: 0x060606 })); addMerged(cG, lam('rust', 0x2f5a34, { emissive: 0x060606 })); addMerged(cGr, lam('rust', 0x5a5a56, { emissive: 0x060606 }));
+  addMerged(lids, lam(null, 0x2a3a2a)); addMerged(glass, lam(null, 0x9ab0b8, { transparent: true, opacity: 0.25, depthWrite: false })); addMerged(roofs, M.dark);
+}
+
+/* ---------- rótulos de los negocios: un atlas con todos los nombres ---------- */
+function shopWinTex(kind) {
+  return ctex(128, 96, (g) => {
+    const st = poiStyle(kind), open = st[2];
+    if (/vacant/.test(kind)) return;
+    if (open) {
+      const warm = /bar|pub|restaurant|cafe|biergarten/.test(kind), pink = /massage|strip|beauty|alternative/.test(kind);
+      g.fillStyle = pink ? '#ff60c0' : warm ? '#ffb050' : '#e8f0ff'; g.fillRect(0, 0, 128, 96);
+      g.fillStyle = 'rgba(0,0,0,.35)'; for (let i = 0; i < 4; i++) g.fillRect(8 + i * 30, 10, 18, 50);
+      if (warm) { g.fillStyle = '#1a0a04'; for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(24 + i * 38, 54, 9, 0, 7); g.fill(); g.fillRect(16 + i * 38, 62, 16, 34); } }
+      if (pink) { g.strokeStyle = '#ffffff'; g.lineWidth = 3; g.font = 'bold 18px sans-serif'; g.textAlign = 'center'; g.strokeText(/strip/.test(kind) ? 'SHOW' : 'OPEN', 64, 50); }
+      g.fillStyle = '#2a2a2a'; g.fillRect(62, 0, 4, 96);
+    }
+  });
+}
+function signAtlas(list) {
+  return ctex(2048, 2048, (g) => {
+    g.fillStyle = '#000'; g.fillRect(0, 0, 2048, 2048); g.textAlign = 'center'; g.textBaseline = 'middle';
+    list.forEach((s, i) => {
+      const x = (i % 8) * 256, y = (i / 8 | 0) * 32, st = poiStyle(s.kind), t = (s.name || st[3] || '').toUpperCase();
+      g.fillStyle = st[0]; g.fillRect(x, y, 256, 32); g.strokeStyle = 'rgba(0,0,0,.6)'; g.lineWidth = 2; g.strokeRect(x + 1, y + 1, 254, 30);
+      let fs = 22; g.font = 'bold ' + fs + 'px sans-serif'; while (g.measureText(t).width > 240 && fs > 9) { fs--; g.font = 'bold ' + fs + 'px sans-serif'; }
+      g.fillStyle = st[1]; g.fillText(t, x + 128, y + 17);
+    });
+  });
+}
 function buildStreetLife() {
-  const r = mulberry32(2024), add = (m) => { scene.add(m); return m; };
+  const r = mulberry32(2024), add = (m) => { scene.add(m); return m; }; D.litGlow = [];
   /* máquinas de bebidas */
   const vTex = vendTex(), vBody = [], vFront = [], vGlow = [], vTrim = [];
   D.vendGlowTex = glowTex(90, 160, 255);
@@ -1904,7 +1964,7 @@ function buildStreetLife() {
     vBody.push(bgeo(1.0, 1.95, 0.8, bx, 0.975, bz, p.ry, 1));
     vTrim.push(bgeo(1.04, 0.1, 0.84, bx, 1.98, bz, p.ry, 1), bgeo(1.04, 0.12, 0.84, bx, 0.06, bz, p.ry, 1));
     const fp = new THREE.PlaneGeometry(0.88, 1.76); fp.rotateY(p.ry); fp.translate(fx, 1.0, fz); vFront.push(fp);
-    const [gx, gz] = sp2w(p, 0, 1.7), gp = new THREE.PlaneGeometry(3.8, 3.4); gp.rotateX(-PI / 2); gp.rotateY(p.ry); gp.translate(gx, 0.028, gz); vGlow.push(gp);
+    const [gx, gz] = sp2w(p, 0, 1.7), gp = new THREE.PlaneGeometry(3.8, 3.4); gp.rotateX(-PI / 2); gp.rotateY(p.ry); gp.translate(gx, 0.07, gz); vGlow.push(gp);
     const [wx, wz] = sp2w(p, 0, 0.03), wp = new THREE.PlaneGeometry(3.0, 3.0); wp.rotateY(p.ry); wp.translate(wx, 1.2, wz); vGlow.push(wp);
     colliders.push(aabb(p, -0.55, 0.55, -0.1, 0.88));
     for (let t = 0; t < 3; t++) { const [hx, hz] = sp2w(p, (t - 1) * 0.29, 0.86); const al = Math.abs(p.nx) > 0.5; hit('vm' + (m * 3 + t), hx, 1.15, hz, al ? 0.2 : 0.28, 1.3, al ? 0.28 : 0.2); }
@@ -1914,106 +1974,26 @@ function buildStreetLife() {
   if (vGlow.length) { const gm = addMerged(vGlow, new THREE.MeshBasicMaterial({ map: D.vendGlowTex, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide })); gm.renderOrder = 3; }
   LG.vend = new THREE.PointLight(0x5a9aff, 0, 8, 1.4); scene.add(LG.vend);
 
-  /* locales cerrados y arruinados */
-  const frame = [], dark = [], wood = [], bags = [], boxes = [];
+  /* los negocios: rótulo con su nombre y escaparate (encendido si abre de madrugada, persiana si no) */
+  const at = signAtlas(LIFE.shops), sOn = [], sOff = [], boxes = [], winM = {}, wins = {};
   D.lifeFlick = [];
   LIFE.shops.forEach((p, i) => {
-    const glass = p.k >= 3 && i % 2 === 0, tilt = r() < 0.4 ? (r() - 0.5) * 0.22 : 0;
-    for (const lx of [-1.9, 1.9]) { const [x, z] = sp2w(p, lx, 0.07); frame.push(bgeo(0.3, 3.0, 0.14, x, 1.5, z, p.ry, 1)); }
-    { const [x, z] = sp2w(p, 0, 0.07); frame.push(bgeo(4.1, 0.28, 0.14, x, 2.78, z, p.ry, 1)); frame.push(bgeo(4.1, 0.25, 0.3, x, 0.12, z, p.ry, 1)); }
-    // persiana o escaparate
-    const [sx, sz] = sp2w(p, 0, 0.04), front = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 2.4), new THREE.MeshLambertMaterial({ map: shopFrontTex(p.k, r, glass), emissive: 0x0a0a0a }));
-    front.position.set(sx, 1.42, sz); front.rotation.y = p.ry; add(front);
-    if (glass) for (const [y, rz] of [[0.9, 0.18], [1.5, -0.12], [2.1, 0.06]]) { const [x, z] = sp2w(p, (r() - 0.5) * 0.6, 0.1); wood.push(bgeo(3.4, 0.18, 0.05, x, y, z, p.ry, 1, 0, rz)); }
-    // el rótulo, apagado y sucio; a veces medio descolgado
-    const [kx, kz] = sp2w(p, tilt ? 0.15 : 0, 0.13); dark.push(bgeo(4.1, 0.78, 0.22, kx, 3.32 - Math.abs(tilt) * 1.2, kz, p.ry, 1, 0, tilt));
-    const [lx2, lz2] = sp2w(p, tilt ? 0.15 : 0, 0.245), sg = new THREE.Mesh(new THREE.PlaneGeometry(3.95, 0.64), new THREE.MeshLambertMaterial({ map: shopSignTex(p.k, r), emissive: 0x141414 }));
-    sg.position.set(lx2, 3.32 - Math.abs(tilt) * 1.2, lz2); sg.rotation.set(0, p.ry, tilt); add(sg);
-    // un «24H» o «ABIERTO» de neón que todavía da tirones
-    if (p.k === 3 || p.k === 0) {
-      const t = ctex(128, 64, (g) => { g.fillStyle = '#000'; g.fillRect(0, 0, 128, 64); g.strokeStyle = p.k === 3 ? '#ff3030' : '#30ff80'; g.lineWidth = 4; g.font = 'bold 34px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.strokeText(p.k === 3 ? '24H' : 'OPEN', 64, 33); });
-      const [nx, nz] = sp2w(p, 1.2, 0.08), ne = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.31), new THREE.MeshBasicMaterial({ map: t, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
-      ne.position.set(nx, 2.25, nz); ne.rotation.y = p.ry; add(ne); D.lifeFlick.push({ m: ne, ph: r() * 9 });
+    const st = poiStyle(p.kind), open = st[2], vac = /vacant/.test(p.kind), ux = -p.nz, uz = p.nx;
+    const g = new THREE.PlaneGeometry(p.w - 0.2, 0.42); uvRect(g, (i % 8) * 256, (i / 8 | 0) * 32, 256, 32, 2048, 2048); g.rotateY(p.ry); g.translate(p.x + p.nx * 0.2, 2.95, p.z + p.nz * 0.2);
+    (open ? sOn : sOff).push(g); boxes.push(bgeo(p.w, 0.55, 0.16, p.x + p.nx * 0.1, 2.95, p.z + p.nz * 0.1, p.ry, 1));
+    const wk = vac ? 'vacant' : open ? (/bar|pub|restaurant|cafe|biergarten/.test(p.kind) ? 'bar' : /massage|strip|beauty|alternative/.test(p.kind) ? 'pink' : 'shop') : 'shut' + (i % 3);
+    if (!winM[wk]) winM[wk] = wk === 'vacant' ? new THREE.MeshLambertMaterial({ map: shopFrontTex(0, mulberry32(7), false), emissive: 0x0a0a0a }) : wk.startsWith('shut') ? new THREE.MeshLambertMaterial({ map: shopFrontTex(0, mulberry32(30 + i % 3), false), emissive: 0x0a0a0a }) : new THREE.MeshBasicMaterial({ map: shopWinTex(p.kind), color: 0xcccccc });
+    const wg = new THREE.PlaneGeometry(p.w - 0.4, 2.3); wg.rotateY(p.ry); wg.translate(p.x + p.nx * 0.04, 1.2, p.z + p.nz * 0.04); (wins[wk] = wins[wk] || []).push(wg);
+    // la luz del escaparate en la acera
+    if (open) { const gp = new THREE.PlaneGeometry(p.w + 1, 3.2); gp.rotateX(-PI / 2); gp.rotateY(p.ry); gp.translate(p.x + p.nx * 1.6, 0.07, p.z + p.nz * 1.6); D.litGlow.push(gp); }
+    if (open && /bar|pub|strip|massage|nightclub/.test(p.kind) && r() < 0.5) {   // neón que da tirones
+      const t = ctex(128, 64, (g2) => { g2.fillStyle = '#000'; g2.fillRect(0, 0, 128, 64); g2.strokeStyle = st[1]; g2.lineWidth = 4; g2.font = 'bold 30px sans-serif'; g2.textAlign = 'center'; g2.textBaseline = 'middle'; g2.strokeText(/massage/.test(p.kind) ? 'SPA' : 'OPEN', 64, 33); });
+      const ne = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.31), new THREE.MeshBasicMaterial({ map: t, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+      ne.position.set(p.x + p.nx * 0.06 + ux * (p.w / 2 - 0.6), 2.2, p.z + p.nz * 0.06 + uz * (p.w / 2 - 0.6)); ne.rotation.y = p.ry; add(ne); D.lifeFlick.push({ m: ne, ph: r() * 9 });
     }
-    // basura amontonada en la puerta
-    const nb = 1 + (r() * 4 | 0);
-    for (let k = 0; k < nb; k++) { const [x, z] = sp2w(p, (r() - 0.5) * 3, 0.4 + r() * 0.5), s = 0.22 + r() * 0.12, g = new THREE.SphereGeometry(s, 7, 5); g.scale(1, 0.85, 1); g.translate(x, s * 0.8, z); bags.push(g); }
-    if (r() < 0.7) { const [x, z] = sp2w(p, (r() - 0.5) * 2.6, 0.45); boxes.push(bgeo(0.5, 0.36, 0.4, x, 0.18, z, p.ry + r(), 1)); }
-    if (r() < 0.5) { const [x, z] = sp2w(p, (r() - 0.5) * 2.6, 0.5); boxes.push(bgeo(0.8, 0.04, 0.55, x, 0.02, z, p.ry + r(), 1)); }   // cartón aplastado
   });
-  /* tiendas abiertas del barrio iluminado: escaparate con luz blanca y rótulo encendido */
-  const LIT_SIGNS = [['BAZAR 24H', '#c01818', '#ffffff'], ['LOCUTORIO · ENVÍOS', '#0a3a8a', '#ffe040'], ['FARMACIA', '#0a7a3a', '#ffffff']];
-  D.litGlow = [];
-  LIFE.lit.forEach((p, i) => {
-    for (const lx of [-1.9, 1.9]) { const [x, z] = sp2w(p, lx, 0.07); frame.push(bgeo(0.3, 3.0, 0.14, x, 1.5, z, p.ry, 1)); }
-    { const [x, z] = sp2w(p, 0, 0.07); frame.push(bgeo(4.1, 0.28, 0.14, x, 2.78, z, p.ry, 1)); frame.push(bgeo(4.1, 0.25, 0.3, x, 0.12, z, p.ry, 1)); }
-    const ft = ctex(256, 192, (g) => {
-      g.fillStyle = '#f4f0e0'; g.fillRect(0, 0, 256, 192);
-      for (let y = 20; y < 180; y += 34) { g.fillStyle = '#9a9488'; g.fillRect(0, y + 26, 256, 4); for (let x = 4; x < 252; x += 9 + r() * 8) { g.fillStyle = `hsl(${r() * 360 | 0},${50 + r() * 40 | 0}%,${35 + r() * 30 | 0}%)`; const h = 10 + r() * 16; g.fillRect(x, y + 26 - h, 6 + r() * 5, h); } }
-      if (i === 2) { g.fillStyle = '#0a9a4a'; g.fillRect(100, 30, 56, 18); g.fillRect(119, 11, 18, 56); }
-      // detrás del mostrador hay alguien quieto, mirando a la calle
-      if (i === 1) { g.fillStyle = 'rgba(10,8,8,.92)'; g.beginPath(); g.arc(170, 70, 13, 0, 7); g.fill(); g.fillRect(152, 82, 36, 80); }
-      g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(0, 0, 256, 192); g.strokeStyle = '#2a2a2a'; g.lineWidth = 6; g.strokeRect(0, 0, 256, 192); g.fillRect(126, 0, 4, 192);
-    });
-    const [sx, sz] = sp2w(p, 0, 0.04), fr2 = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 2.4), new THREE.MeshBasicMaterial({ map: ft, color: 0xd8d8d0 }));
-    fr2.position.set(sx, 1.42, sz); fr2.rotation.y = p.ry; add(fr2);
-    const [kx, kz] = sp2w(p, 0, 0.13); dark.push(bgeo(4.1, 0.78, 0.22, kx, 3.32, kz, p.ry, 1));
-    const [t, bg, fg] = LIT_SIGNS[p.k], [lx2, lz2] = sp2w(p, 0, 0.245);
-    const sg = new THREE.Mesh(new THREE.PlaneGeometry(3.95, 0.64), new THREE.MeshBasicMaterial({ map: textPlate(t, 512, 80, bg, fg, fg) }));
-    sg.position.set(lx2, 3.32, lz2); sg.rotation.y = p.ry; add(sg);
-    const [gx, gz] = sp2w(p, 0, 1.8), gp = new THREE.PlaneGeometry(5, 4); gp.rotateX(-PI / 2); gp.rotateY(p.ry); gp.translate(gx, 0.031, gz); D.litGlow.push(gp);
-  });
-  addMerged(frame, lam('tilegrey', 0x4a4844)); addMerged(dark, lam('rust', 0x2a2420)); addMerged(wood, lam('wood', 0x7a6048));
-  const bagM = lam(null, 0x101012, { emissive: 0x050506 }), boxM = lam(null, 0x8a7050);
-
-  /* contenedores: verde (resto), amarillo (envases), azul (papel), gris (orgánico) */
-  const CC = [0x2f5a34, 0xb08a18, 0x1f4a8a, 0x5a5a56], cByC = [[], [], [], []], wheels = [], lids = [[], [], [], []];
-  for (const p of LIFE.cont) {
-    const s = STREETS[p.si], along = s.ax === 'z', len = p.n * 1.44;
-    for (let k = 0; k < p.n; k++) {
-      const a = p.a - len / 2 + 0.72 + k * 1.44, x = along ? p.cw : a, z = along ? a : p.cw, ry = along ? PI / 2 : 0, c = p.cols[k];
-      cByC[c].push(bgeo(1.34, 1.05, 0.98, x, 0.66, z, ry, 1));
-      const open = k === 0 && p.lid ? p.lid : 0;
-      const lg = new THREE.BoxGeometry(1.4, 0.07, 1.04); uvBox(lg, 1.4, 0.07, 1.04, 1); lg.translate(0, 0, -0.52); lg.rotateX(-open); lg.translate(0, 0, 0.52); lg.rotateY(ry + (along ? (p.cw > s.c ? PI : 0) : (p.cw > s.c ? 0 : PI))); lg.translate(x, 1.22, z); lids[c].push(lg);
-      for (const [dx, dz] of [[-0.55, -0.38], [0.55, -0.38], [-0.55, 0.38], [0.55, 0.38]]) { const g = new THREE.CylinderGeometry(0.07, 0.07, 0.05, 8); g.rotateX(PI / 2); if (along) g.rotateY(PI / 2); g.translate(x + (along ? dz : dx), 0.07, z + (along ? dx : dz)); wheels.push(g); }
-      if (open) { const g = new THREE.SphereGeometry(0.3, 7, 5); g.translate(x, 1.25, z); bags.push(g); }
-    }
-    colliders.push(along ? { x0: p.cw - 0.52, x1: p.cw + 0.52, z0: p.a - len / 2, z1: p.a + len / 2 } : { x0: p.a - len / 2, x1: p.a + len / 2, z0: p.cw - 0.52, z1: p.cw + 0.52 });
-    for (let k = 0; k < p.bags; k++) {   // bolsas tiradas al lado, porque estaba lleno
-      const off = (len / 2 + 0.35 + r() * 0.6) * (r() < 0.5 ? -1 : 1), q = (r() - 0.5) * 0.6, x = along ? p.cw + q : p.a + off, z = along ? p.a + off : p.cw + q, s = 0.2 + r() * 0.12, g = new THREE.SphereGeometry(s, 7, 5);
-      g.scale(1, 0.8, 1.1); g.translate(x, s * 0.75, z); bags.push(g);
-    }
-  }
-  cByC.forEach((l, c) => addMerged(l.concat(lids[c]), lam('rust', CC[c], { emissive: 0x060606 }), true)); addMerged(bags, bagM); addMerged(boxes, boxM);
-
-  /* basura del suelo: folletos de striptease, vapers vacíos, latas, colillas y manchas */
-  const atlas = litterAtlas(), litM = new THREE.MeshLambertMaterial({ map: atlas, emissive: 0x1a1816, emissiveMap: atlas, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-  const small = [], stains = [], vapes = [[], [], [], []], vtips = [], cans = [[], [], []];
-  const scatter = (x0, x1, z0, z1, n, f) => { for (let i = 0; i < n; i++) f(x0 + r() * (x1 - x0), z0 + r() * (z1 - z0)); };
-  const zones = [];
-  STREETS.forEach((s, si) => {
-    const h = s.w / 2;
-    if (s.ax === 'z') { const z0 = s.a0 + 2, z1 = 3; zones.push([s.c - h - 1.9, s.c - h - 0.1, z0, z1, 1], [s.c + h + 0.1, s.c + h + 1.9, z0, z1, 1], [s.c - h + 0.2, s.c + h - 0.2, z0, z1, 0.35]); }
-    else if (si === 0) zones.push([-115, 115, 5.2, 7.9, 1], [-115, 115, 15.1, 16.9, 0.8], [-115, 115, 8.2, 14.8, 0.2], [-110, 110, 17.2, 25.5, 0.25]);
-    else zones.push([s.a0, s.a1, s.c - h - 1.9, s.c - h - 0.1, 1], [s.a0, s.a1, s.c + h + 0.1, s.c + h + 1.9, 1], [s.a0, s.a1, s.c - h + 0.2, s.c + h - 0.2, 0.35]);
-  });
-  for (const [x0, x1, z0, z1, dens] of zones) {
-    const area = (x1 - x0) * (z1 - z0), lit = x0 > 40 && x1 < 56;   // en el barrio iluminado hay algo menos de mierda
-    const k = dens * (lit ? 0.5 : 1);
-    scatter(x0, x1, z0, z1, area * 0.3 * k | 0, (x, z) => { if (inShop(x, z)) return; const i = r() < 0.75 ? r() * 6 | 0 : 6 + (r() * 6 | 0); const sz = i < 6 ? [0.21, 0.29] : i === 8 ? [0.12, 0.3] : [0.3, 0.3]; small.push(cellPlane(i, sz[0], sz[1], x, 0.014, z, r() * 6.28)); });
-    scatter(x0, x1, z0, z1, area * 0.07 * k | 0, (x, z) => { if (inShop(x, z)) return; const s = 1.2 + r() * 2.2; stains.push(cellPlane(12 + (r() * 4 | 0), s, s, x, 0.009, z, r() * 6.28)); });
-    scatter(x0, x1, z0, z1, area * 0.04 * k | 0, (x, z) => {   // vaper desechable tirado
-      const ry = r() * 6.28, c = r() * 4 | 0, b = bgeo(0.024, 0.014, 0.1, x, 0.008, z, ry, 1); vapes[c].push(b);
-      vtips.push(bgeo(0.016, 0.01, 0.022, x - Math.sin(ry) * 0.06, 0.007, z - Math.cos(ry) * 0.06, ry, 1));
-    });
-    scatter(x0, x1, z0, z1, area * 0.012 * k | 0, (x, z) => { const g = new THREE.CylinderGeometry(0.033, 0.033, 0.12, 8); g.rotateZ(PI / 2); g.rotateY(r() * 6.28); g.translate(x, 0.033, z); cans[r() * 3 | 0].push(g); });
-  }
-  const sm = addMerged(stains, litM); if (sm) sm.renderOrder = 1;
-  const lm = addMerged(small, litM.clone()); if (lm) lm.renderOrder = 2;
-  addMerged(vapes[0].concat(vapes[2]), lam(null, 0xff3ab0, { emissive: 0x1a0612 })); addMerged(vapes[1].concat(vapes[3]), lam(null, 0x30d0ff, { emissive: 0x06141a }));
-  addMerged(vtips.concat(wheels), M.dark);
-  addMerged(cans[0].concat(cans[2]), lam(null, 0xb81414, { emissive: 0x0a0a0a })); addMerged(cans[1], lam(null, 0xb8bcc0, { emissive: 0x0a0a0a }));
-
+  addMerged(sOn, new THREE.MeshBasicMaterial({ map: at, color: 0xdddddd })); addMerged(sOff, new THREE.MeshLambertMaterial({ map: at, emissive: 0x141414 })); addMerged(boxes, lam(null, 0x2a2622));
+  for (const k in wins) addMerged(wins[k], winM[k]);
   /* vagabundos durmiendo boca abajo, con el carro lleno de basura y un perro */
   const wire = new THREE.MeshLambertMaterial({ map: wireTex(), transparent: true, alphaTest: 0.4, side: THREE.DoubleSide });
   D.sleepers = LIFE.sleep.map((p, i) => {
@@ -2049,6 +2029,31 @@ function buildStreetLife() {
     return s;
   });
 
+  /* basura del suelo a lo largo de las aceras: folletos de striptease, vapers, latas, colillas y manchas */
+  const atlas = litterAtlas(), litM = new THREE.MeshLambertMaterial({ map: atlas, emissive: 0x1a1816, emissiveMap: atlas, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  const small = [], stains = [], vapes = [[], []], cans = [[], []];
+  for (const rd of TOWN.rd) {
+    if (!DRIVE[rd.t] && rd.t !== 'pedestrian' && rd.t !== 'footway') continue;
+    const p = rd.pts, k = rd.t === 'footway' ? 0.4 : 1;
+    for (let i = 0; i + 1 < p.length; i++) {
+      const ax = p[i][0], az = p[i][1], bx = p[i + 1][0], bz = p[i + 1][1], L = Math.hypot(bx - ax, bz - az); if (L < 1) continue;
+      const ux = (bx - ax) / L, uz = (bz - az) / L, mid = Math.hypot((ax + bx) / 2, (az + bz) / 2); if (mid > 200) continue;
+      const n = L * 0.35 * k | 0;
+      for (let j = 0; j < n; j++) {
+        const s = r() * L, sd = (r() < 0.5 ? -1 : 1) * (rd.w / 2 + 0.2 + r() * 1.8), x = ax + ux * s - uz * sd, z = az + uz * s + ux * sd;
+        if (inShop(x, z)) continue;
+        const q = r();
+        if (q < 0.55) { const ii = r() < 0.75 ? r() * 6 | 0 : 6 + (r() * 6 | 0), sz = ii < 6 ? [0.21, 0.29] : ii === 8 ? [0.12, 0.3] : [0.3, 0.3]; small.push(cellPlane(ii, sz[0], sz[1], x, 0.05, z, r() * 6.28)); }
+        else if (q < 0.8) { const ss = 1.2 + r() * 2.2; stains.push(cellPlane(12 + (r() * 4 | 0), ss, ss, x, 0.045, z, r() * 6.28)); }
+        else if (q < 0.92) { const ry = r() * 6.28; vapes[r() * 2 | 0].push(bgeo(0.024, 0.014, 0.1, x, 0.06, z, ry, 1)); }
+        else { const g = new THREE.CylinderGeometry(0.033, 0.033, 0.12, 8); g.rotateZ(PI / 2); g.rotateY(r() * 6.28); g.translate(x, 0.08, z); cans[r() * 2 | 0].push(g); }
+      }
+    }
+  }
+  const sm = addMerged(stains, litM); if (sm) sm.renderOrder = 1;
+  const lm = addMerged(small, litM.clone()); if (lm) lm.renderOrder = 2;
+  addMerged(vapes[0], lam(null, 0xff3ab0, { emissive: 0x1a0612 })); addMerged(vapes[1], lam(null, 0x30d0ff, { emissive: 0x06141a }));
+  addMerged(cans[0], lam(null, 0xb81414, { emissive: 0x0a0a0a })); addMerged(cans[1], lam(null, 0xb8bcc0, { emissive: 0x0a0a0a }));
   /* halos de luz de las farolas en el suelo (las de las avenidas iluminadas, blancas) */
   const warm = new THREE.MeshBasicMaterial({ map: glowTex(255, 170, 90), transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending });
   const white = new THREE.MeshBasicMaterial({ map: glowTex(255, 236, 205), transparent: true, opacity: 0.95, depthWrite: false, blending: THREE.AdditiveBlending });
@@ -2057,9 +2062,9 @@ function buildStreetLife() {
   for (const L of TOWN.lamps) {
     if (L.md === 2) continue;
     const s = L.pr ? 12 : L.lit ? 13 : 9;
-    if (L.md === 0 && !L.fig) { const g = new THREE.PlaneGeometry(s, s); g.rotateX(-PI / 2); g.translate(L.hx, 0.03, L.hz); (L.lit ? steadyW : steadyY).push(g); continue; }
+    if (L.md === 0 && !L.fig) { const g = new THREE.PlaneGeometry(s, s); g.rotateX(-PI / 2); g.translate(L.hx, 0.07, L.hz); (L.lit ? steadyW : steadyY).push(g); continue; }
     const m = new THREE.Mesh(new THREE.PlaneGeometry(s, s), L.lit ? white : warm);
-    m.rotation.x = -PI / 2; m.position.set(L.hx, 0.03, L.hz); m.renderOrder = 3; scene.add(m); D.glows.push({ L, m });
+    m.rotation.x = -PI / 2; m.position.set(L.hx, 0.07, L.hz); m.renderOrder = 3; scene.add(m); D.glows.push({ L, m });
   }
   for (const [l, m] of [[steadyW.concat(D.litGlow), white], [steadyY, warm]]) { const me = addMerged(l, m); if (me) me.renderOrder = 3; }
   /* motas de polvo flotando bajo las farolas que dan luz de verdad */
@@ -2079,13 +2084,7 @@ function buildStreetLife() {
   D.beam.renderOrder = 4; D.beam.visible = false; scene.add(D.beam);
 }
 // patas del perro: tumbado (1) o de pie (0)
-function dogLie(dog, k) {
-  dog.position.y = -0.36 * k;
-  dog.legs.forEach((l, i) => { l.rotation.x = k * (i < 2 ? 1.45 : -1.45); });
-  dog.head.rotation.x = k * 0.35;
-}
 
-/* ---------- cada fotograma ---------- */
 function updStreetLife(dt) {
   if (!D.glows) return;
   const cx = camera.position.x, cz = camera.position.z;
@@ -2134,73 +2133,20 @@ function updStreetLife(dt) {
     if (s.st === 2) { s.t += dt; if (s.t > 2.5) { s.st = 0; dogLie(dog, 1); dog.position.set(s.hx, -0.36, s.hz); s.x = s.hx; s.z = s.hz; dog.rotation.y = s.ry; } }
   }
 }
-function SHOP_IN_VIEW() { return inShop(camera.position.x, camera.position.z); }
-function moteStep(M2, top) {
-  const a = M2.pts.geometry.attributes.position, p = M2.pos;
-  for (let k = 0; k < M2.base.length; k++) {
-    const b = M2.base[k], t = TIME * b[4] + b[3];
-    let y = b[1] + Math.sin(t * 0.7) * 0.35; if (y > top) y = top - (y - top); if (y < 0.15) y = 0.15 + (0.15 - y);
-    p[k * 3] = b[0] + Math.sin(t) * 0.25; p[k * 3 + 1] = y; p[k * 3 + 2] = b[2] + Math.cos(t * 0.8) * 0.25;
-  }
-  a.needsUpdate = true;
-}
+function SHOP_IN_VIEW() { return inShop(camera.position.x, camera.position.z) || inBld(camera.position.x, camera.position.z); }
 
-/* ================= RESIDENCIALES: por fuera, muro bajo con barandilla, cancela con portero automático, jardín con piscina
-   y palmeras, y la torre con su portal. Por dentro (portal, ascensor, rellano y escalera) es un único decorado lejos del barrio
-   que vale para todas las torres: cada uno ve el nombre de su torre y su planta. La escalera es un bucle: cada dos tramos, una planta. */
-const IV = { k: -1, f: 0, FL: 0, tl: 0, px: 0, pz: 0, lastFL: -99, lastF: -99 };
-const EL = { at: 0, fl: 0, door: 0, want: 0, st: '', t: 0, T: 0, dest: 0, from: 0, ot: 0, disp: -1, hum: 0, cto: 0, cfl: 0 };
-const FLH = 2.8;
-function inMod(x, z) { return x > MOD.x - 15 && x < MOD.x + 20 && z > MOD.z - 10 && z < MOD.z + 30; }
-function modZone(x, z) {
-  if (!inMod(x, z)) return '';
-  const lx = x - MOD.x, lz = z - MOD.z;
-  if (lx < 0 && lz > 12) return 'stair';
-  if (lz > 15) return lz < 20 ? 'cab1' : 'corr';
-  return lz < 0 ? 'cab0' : 'lobby';
-}
-// código de dónde estoy: torre * 100 + planta; -1 en la calle
-function myVW() { const zn = modZone(me.x, me.z); if (!zn || IV.k < 0) return -1; return IV.k * 100 + (zn === 'stair' ? IV.FL : zn === 'lobby' || zn === 'cab0' ? 0 : IV.f); }
-function plotAt(x, z) { for (const P of TOWN.plots) if (x > P.x0 && x < P.x1 && z > P.z0 && z < P.z1) return P; return null; }
-function stairY(x, z) {
-  if (modZone(x, z) !== 'stair') return 0;
-  const lx = x - MOD.x, lz = z - MOD.z;
-  if (lz >= 20) return 0; if (lz <= 14.5) return FLH / 2;
-  return lx < -3 ? (20 - lz) / 5.5 * FLH / 2 : FLH / 2 + (lz - 14.5) / 5.5 * FLH / 2;
-}
-
-/* ---------- geometría auxiliar ---------- */
-function pgeo(x0, x1, z0, z1, y, tile, seg, down) {
-  const w = x1 - x0, d = z1 - z0, g = new THREE.PlaneGeometry(w, d, Math.max(1, Math.ceil(w / (seg || 2.5))), Math.max(1, Math.ceil(d / (seg || 2.5))));
-  const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * w / tile, uv.getY(i) * d / tile);
-  g.rotateX(down ? PI / 2 : -PI / 2); g.translate((x0 + x1) / 2, y, (z0 + z1) / 2); return g;
-}
-// pared vertical de (ax,az) a (bx,bz), mirando hacia (nx,nz)
-function vgeo(ax, az, bx, bz, y0, y1, nx, nz, tile) {
-  const len = Math.hypot(bx - ax, bz - az), h = y1 - y0, g = new THREE.PlaneGeometry(len, h, Math.max(1, Math.ceil(len / 1.2)), Math.max(1, Math.ceil(h / 1.2)));
-  const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * len / tile, uv.getY(i) * h / tile);
-  g.rotateY(Math.atan2(nx, nz)); g.translate((ax + bx) / 2, (y0 + y1) / 2, (az + bz) / 2); return g;
-}
-function uvRect(g, px, py, pw, ph, W, H) {
-  const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, (px + uv.getX(i) * pw) / W, 1 - (py + (1 - uv.getY(i)) * ph) / H); return g;
-}
-// placa vertical en (x,y,z) mirando hacia (nx,nz)
-function pplate(w, h, x, y, z, nx, nz) { const g = new THREE.PlaneGeometry(w, h); g.rotateY(Math.atan2(nx, nz)); g.translate(x, y, z); return g; }
-
-/* atlas con los nombres de las torres y sus números (placa azul de calle) */
-function nameAtlas() {
-  return ctex(1024, 2048, (g) => {
-    g.fillStyle = '#000'; g.fillRect(0, 0, 1024, 2048); g.textAlign = 'center'; g.textBaseline = 'middle';
-    TOWN.plots.forEach((P, k) => {
-      let x = ((2 * k) % 2) * 512, y = ((2 * k) / 2 | 0) * 64;
-      x = 0; y = k * 64;
-      g.fillStyle = '#1a1612'; g.fillRect(x, y, 512, 64); g.strokeStyle = '#8a6a30'; g.lineWidth = 3; g.strokeRect(x + 3, y + 3, 506, 58);
-      let fs = 34; g.font = 'bold ' + fs + 'px serif'; while (g.measureText(P.name).width > 480) { fs--; g.font = 'bold ' + fs + 'px serif'; }
-      g.fillStyle = '#e8c870'; g.fillText(P.name, x + 256, y + 34);
-      // número: placa azul esmaltada
-      const nx = 512, ny = k * 64; g.fillStyle = '#e8e4d8'; g.fillRect(nx, ny, 128, 64); g.fillStyle = '#1a3a8a'; g.fillRect(nx + 6, ny + 6, 116, 52);
-      g.fillStyle = '#ffffff'; g.font = 'bold 34px sans-serif'; g.fillText(String(P.num), nx + 64, ny + 34);
-    });
+/* ================= EDIFICIOS DEL MAPA Y SUS INTERIORES.
+   Fuera: torres blancas con terrazas corridas, toldos y nombre en la azotea; bajos comerciales; marquesinas.
+   Dentro (las torres a las que se reparte): portal en la planta baja, ascensor y escalera de verdad,
+   y un rellano con cuatro puertas (A, B, C, D) en cada planta. Todo está en su sitio: no hay teletransportes. */
+const FLH = 3.0;          // altura de cada planta
+const CORE = { u0: -4.6, u1: 4.6, v1: 6.2 };   // el núcleo de escalera y ascensor, pegado a la fachada del portal
+const EL = { k: -1, y: 0, fl: 0, dest: 0, door: 0, want: 0, st: '', ot: 0, hum: 0, disp: -1 };
+const IV = { k: -1, tl: 0 };
+function poolTex() {
+  return ctex(64, 64, (g) => {
+    const gr = g.createRadialGradient(32, 32, 4, 32, 32, 46); gr.addColorStop(0, '#7af0ff'); gr.addColorStop(1, '#0a6a8a'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+    g.strokeStyle = 'rgba(220,255,255,.35)'; g.lineWidth = 1; for (let i = 0; i < 10; i++) { g.beginPath(); const y = Math.random() * 64; g.moveTo(0, y); g.bezierCurveTo(20, y - 6, 40, y + 6, 64, y); g.stroke(); }
   });
 }
 function lobbyGlassTex() {
@@ -2215,314 +2161,86 @@ function lobbyGlassTex() {
     g.fillStyle = '#3a3a3a'; g.fillRect(62, 0, 4, 160);
   });
 }
+
+function pplate(w, h, x, y, z, nx, nz) { const g = new THREE.PlaneGeometry(w, h); g.rotateY(Math.atan2(nx, nz)); g.translate(x, y, z); return g; }
 function barsTex() { return ctex(64, 64, (g) => { g.clearRect(0, 0, 64, 64); g.fillStyle = '#2a2c2e'; for (let x = 4; x < 64; x += 11) g.fillRect(x, 0, 3, 64); g.fillRect(0, 0, 64, 4); g.fillRect(0, 60, 64, 4); }); }
-function poolTex() {
-  return ctex(64, 64, (g) => {
-    const gr = g.createRadialGradient(32, 32, 4, 32, 32, 46); gr.addColorStop(0, '#7af0ff'); gr.addColorStop(1, '#0a6a8a'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
-    g.strokeStyle = 'rgba(220,255,255,.35)'; g.lineWidth = 1; for (let i = 0; i < 10; i++) { g.beginPath(); const y = Math.random() * 64; g.moveTo(0, y); g.bezierCurveTo(20, y - 6, 40, y + 6, 64, y); g.stroke(); }
-  });
-}
-
-/* ---------- por fuera ---------- */
-function buildPlots() {
-  const r = mulberry32(777);
-  const gnd = [], grs = [], pth = [], wl = [], cp = [], hd = [], rails = [], pil = [], icom = [], leds = [], trunks = [], fronds = [], water = [], edge = [], bol = [], bolTop = [], glowW = [], glowC = [], canopy = [], frames = [], plates = [], signs = [], glass = [], benches = [];
-  D.gates = []; D.barsM = new THREE.MeshLambertMaterial({ map: barsTex(), transparent: true, alphaTest: 0.4, side: THREE.DoubleSide });
-  const inPool = (P, x, z, m) => P.pool && x > P.pool.x0 - m && x < P.pool.x1 + m && z > P.pool.z0 - m && z < P.pool.z1 + m;
-  for (const P of TOWN.plots) {
-    const pt = P.pt, sg = P.sg, aZ = P.aZ, n = [P.gate.nx, P.gate.nz], ga = P.gate.a, pa = P.portal.a;
-    // suelo del jardín, césped junto a los muros y el camino de la cancela al portal
-    gnd.push(pgeo(P.x0, P.x1, P.z0, P.z1, 0.002, 1.6, 2.5));
-    const strip = (a0, a1, d0, d1, list, y) => { const [x0, z0] = pt(a0, d0), [x1, z1] = pt(a1, d1); list.push(pgeo(Math.min(x0, x1), Math.max(x0, x1), Math.min(z0, z1), Math.max(z0, z1), y, 2, 2.5)); };
-    strip(P.L0 + 0.3, P.L0 + 1.9, P.front - sg * 0.3, P.tf, grs, 0.005); strip(P.L1 - 1.9, P.L1 - 0.3, P.front - sg * 0.3, P.tf, grs, 0.005);
-    strip(ga - 0.8, ga + 0.8, P.front - sg * 0.2, P.tf + sg * 0.9, pth, 0.008); strip(Math.min(ga, pa) - 0.8, Math.max(ga, pa) + 0.8, P.tf + sg * 0.1, P.tf + sg * 1.7, pth, 0.008);
-    // muros
-    for (const w of P.walls) {
-      const cx = (w.x0 + w.x1) / 2, cz = (w.z0 + w.z1) / 2, sx = w.x1 - w.x0, sz = w.z1 - w.z0;
-      wl.push(bgeo(sx, w.h, sz, cx, w.h / 2, cz, 0, 1.2));
-      cp.push(bgeo(sx + (sx < sz ? 0.08 : 0), 0.06, sz + (sz < sx ? 0.08 : 0), cx, w.h + 0.03, cz, 0, 1));
-      if (w.low) { const along = sx > sz, g = along ? vgeo(w.x0, cz, w.x1, cz, w.h + 0.06, w.h + 0.66, 0, 1, 0.6) : vgeo(cx, w.z0, cx, w.z1, w.h + 0.06, w.h + 0.66, 1, 0, 0.6); rails.push(g); }
-      else if (r() < 0.5) hd.push(bgeo(sx + 0.1, 0.55, sz + 0.1, cx, w.h + 0.3, cz, 0, 1));
-    }
-    // cancela con sus pilares, el portero automático y las placas
-    for (const da of [-0.95, 0.95]) { const [x, z] = pt(ga + da, P.front - sg * 0.13); pil.push(bgeo(0.36, 1.75, 0.36, x, 0.875, z, 0, 1)); }
-    const sa = aZ ? -sg : sg, hingeA = ga - sa * 0.8, [hx, hz] = pt(hingeA, P.front - sg * 0.13);
-    const piv = new THREE.Group(); piv.position.set(hx, 0, hz); const base = Math.atan2(n[0], n[1]); piv.rotation.y = base; scene.add(piv);
-    const gm = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.45), D.barsM); gm.position.set(0.8, 0.85, 0); piv.add(gm);
-    const gf = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.06, 0.05), M.dark); gf.position.set(0.8, 1.58, 0); piv.add(gf);
-    D.gates.push({ P, piv, base });
-    hit('gt' + P.k, P.gate.x + n[0] * 0.1, 0.9, P.gate.z + n[1] * 0.1, aZ ? 0.7 : 1.6, 1.8, aZ ? 1.6 : 0.7);
-    { const [x, z] = pt(ga + sa * 0.95 * -1, P.front - sg * 0.13 + sg * 0.19); icom.push(pplate(0.17, 0.3, x, 1.2, z, n[0], n[1])); leds.push(pplate(0.03, 0.03, x + n[0] * 0.005, 1.31, z + n[1] * 0.005, n[0], n[1])); }
-    { const [x, z] = pt(ga - sa * 0.95 * -1, P.front - sg * 0.13 + sg * 0.19); plates.push(uvRect(pplate(0.3, 0.15, x, 1.45, z, n[0], n[1]), 512, P.k * 64, 128, 64, 1024, 2048)); }
-    { const wa = ga + (ga > (P.L0 + P.L1) / 2 ? -3 : 3), [x, z] = pt(wa, P.front - sg * 0.13 + sg * 0.14); plates.push(uvRect(pplate(2.0, 0.25, x, 0.62, z, n[0], n[1]), 0, P.k * 64, 512, 64, 1024, 2048)); }
-    // piscina iluminada
-    if (P.pool) {
-      const q = P.pool; water.push(pgeo(q.x0 + 0.25, q.x1 - 0.25, q.z0 + 0.25, q.z1 - 0.25, 0.03, q.x1 - q.x0, 1));
-      edge.push(bgeo(q.x1 - q.x0, 0.12, 0.3, (q.x0 + q.x1) / 2, 0.06, q.z0 + 0.15, 0, 1), bgeo(q.x1 - q.x0, 0.12, 0.3, (q.x0 + q.x1) / 2, 0.06, q.z1 - 0.15, 0, 1), bgeo(0.3, 0.12, q.z1 - q.z0, q.x0 + 0.15, 0.06, (q.z0 + q.z1) / 2, 0, 1), bgeo(0.3, 0.12, q.z1 - q.z0, q.x1 - 0.15, 0.06, (q.z0 + q.z1) / 2, 0, 1));
-      glowC.push(pgeo(q.x0 - 1.5, q.x1 + 1.5, q.z0 - 1.5, q.z1 + 1.5, 0.035, 1e9, 1e9));
-      fixUV(glowC[glowC.length - 1]);
-      for (const dx of [0.3, 0.7]) { const g = new THREE.TorusGeometry(0.22, 0.02, 4, 8, PI); g.rotateY(aZ ? PI / 2 : 0); g.translate(lerp(q.x0, q.x1, dx), 0.3, q.z0 + 0.3); edge.push(g); }
-    }
-    // palmeras y farolillos del jardín
-    for (const a of [P.L0 + 2.6, P.L1 - 2.6]) {
-      if (Math.abs(a - ga) < 2.6) continue;
-      const [x, z] = pt(a, P.front - sg * 2.2); if (inPool(P, x, z, 1)) continue;
-      palmGeo(x, z, 5.5 + r() * 3, r, trunks, fronds); colliders.push({ x0: x - 0.25, x1: x + 0.25, z0: z - 0.25, z1: z + 0.25 });
-    }
-    for (const t of [0.3, 0.7]) {
-      const [x, z] = pt(ga + 1.25 * (ga > pa ? -1 : 1) * 0 + 1.2, lerp(P.front, P.tf, t)); if (inPool(P, x, z, 0.5)) continue;
-      bol.push(cgeo(0.07, 0.09, 0.7, 6, x, 0.35, z)); bolTop.push(cgeo(0.1, 0.1, 0.12, 6, x, 0.76, z)); glowW.push(pgeo(x - 1.8, x + 1.8, z - 1.8, z + 1.8, 0.033, 1e9, 1e9)); fixUV(glowW[glowW.length - 1]);
-    }
-    if (Math.abs(P.front - P.tf) > 7) { const ba = ga > (P.L0 + P.L1) / 2 ? P.L0 + 4 : P.L1 - 4, [x, z] = pt(ba, lerp(P.front, P.tf, 0.75)); if (!inPool(P, x, z, 1)) { benches.push(bgeo(aZ ? 0.5 : 1.6, 0.1, aZ ? 1.6 : 0.5, x, 0.45, z, 0, 1), bgeo(0.3, 0.42, 0.3, x, 0.21, z, 0, 1)); colliders.push({ x0: x - 0.6, x1: x + 0.6, z0: z - 0.6, z1: z + 0.6 }); } }
-    // portal de la torre: cristal con el vestíbulo iluminado, marquesina y el nombre
-    const [px, pz] = [P.portal.x, P.portal.z];
-    glass.push(pplate(2.2, 2.45, px + n[0] * 0.03, 1.25, pz + n[1] * 0.03, n[0], n[1]));
-    for (const da of [-1.15, 1.15]) { const [x, z] = pt(pa + da, P.tf + sg * 0.06); frames.push(bgeo(0.12, 2.6, 0.12, x, 1.3, z, 0, 1)); }
-    { const [x, z] = pt(pa, P.tf + sg * 0.75); canopy.push(bgeo(aZ ? 1.5 : 3.4, 0.16, aZ ? 3.4 : 1.5, x, 2.95, z, 0, 1)); }
-    signs.push(uvRect(pplate(3.0, 0.38, px + n[0] * 1.51, 2.95, pz + n[1] * 1.51, n[0], n[1]), 0, P.k * 64, 512, 64, 1024, 2048));
-    glowW.push(pgeo(px + n[0] * 2 - 2.4, px + n[0] * 2 + 2.4, pz + n[1] * 2 - 2.4, pz + n[1] * 2 + 2.4, 0.034, 1e9, 1e9)); fixUV(glowW[glowW.length - 1]);
-    hit('pp' + P.k, px + n[0] * 0.3, 1.2, pz + n[1] * 0.3, aZ ? 0.5 : 2.2, 2.4, aZ ? 2.2 : 0.5);
-  }
-  addMerged(gnd, lam('pave', 0xa89a84)); addMerged(grs, lam(null, 0x24381e)); addMerged(pth, lam('pave', 0xd4c8b0));
-  addMerged(wl, lam('conc', 0xd8d0c0), true); addMerged(cp, lam('conc', 0xf0ece0)); addMerged(hd, lam(null, 0x203a1a)); addMerged(rails, D.barsM);
-  addMerged(pil, lam('conc', 0xe0d8c8), true); addMerged(icom, lam('steel', 0x9a9ea2)); addMerged(leds, bas(0x50ff70));
-  addMerged(trunks, lam('wood', 0x6a5a48), true); addMerged(fronds, lam(null, 0x2a4424, { side: THREE.DoubleSide }));
-  addMerged(water, new THREE.MeshBasicMaterial({ map: poolTex(), color: 0xc8f0ff })); addMerged(edge, lam(null, 0xe8e8e0));
-  addMerged(bol, M.dark); addMerged(bolTop, bas(0xffe0a8)); addMerged(benches, lam('conc', 0x9a948a));
-  addMerged(canopy, lam(null, 0xe0dcd0), true); addMerged(frames, lam('steel', 0x6a6e72));
-  addMerged(glass, new THREE.MeshBasicMaterial({ map: lobbyGlassTex(), color: 0xd8d0c0 }));
-  const atlas = nameAtlas(); atlas.wrapS = atlas.wrapT = THREE.ClampToEdgeWrapping;
-  addMerged(plates, new THREE.MeshLambertMaterial({ map: atlas, emissive: 0x101010 })); addMerged(signs, new THREE.MeshBasicMaterial({ map: atlas, color: 0xbbbbbb }));
-  const ga = addMerged(glowC, new THREE.MeshBasicMaterial({ map: glowTex(60, 220, 255), transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending })); if (ga) ga.renderOrder = 3;
-  const gb = addMerged(glowW, new THREE.MeshBasicMaterial({ map: glowTex(255, 200, 130), transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending })); if (gb) gb.renderOrder = 3;
-  // la ventana con la figura de madrugada, en la primera torre que da a Emilio Romero
-  const fp = TOWN.plots.find(P => P.aZ && P.sg > 0 && P.x1 === 14.5) || TOWN.plots[0];
-  D.figWin = plane(1.1, 1.3, new THREE.MeshBasicMaterial({ map: D.figWinTex }), fp.tf + 0.03 * fp.sg, 7.5, fp.tc, 0, PI / 2 * fp.sg);
-  D.figWin.visible = false;
-  buildModule();
-}
 function fixUV(g) { const uv = g.attributes.uv, p = g.attributes.position; let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (let i = 0; i < p.count; i++) { x0 = Math.min(x0, p.getX(i)); x1 = Math.max(x1, p.getX(i)); z0 = Math.min(z0, p.getZ(i)); z1 = Math.max(z1, p.getZ(i)); } for (let i = 0; i < uv.count; i++) uv.setXY(i, (p.getX(i) - x0) / (x1 - x0), (p.getZ(i) - z0) / (z1 - z0)); }
-function palmGeo(x, z, h, r, trunks, fronds) {
-  const lx = (r() - 0.5) * 0.8, lz = (r() - 0.5) * 0.8;
-  for (let k = 0; k < 6; k++) { const y0 = k * h / 6, g = new THREE.CylinderGeometry(0.15 - k * 0.01, 0.2 - k * 0.01, h / 6 + 0.05, 7); g.translate(x + lx * (y0 + h / 12) / h, y0 + h / 12, z + lz * (y0 + h / 12) / h); trunks.push(g); }
-  const tx = x + lx, tz = z + lz;
-  for (let k = 0; k < 9; k++) { const g = new THREE.BoxGeometry(0.5, 0.03, 2.3); g.translate(0, 0, 1.1); g.rotateX(0.35 + r() * 0.5); g.rotateY(k * PI * 2 / 9 + r() * 0.3); g.translate(tx, h, tz); fronds.push(g); }
-}
-
-/* ---------- por dentro: portal, ascensor, rellano y escalera ---------- */
 function dynPlate(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; const t = new THREE.CanvasTexture(c); const set = (...a) => { draw(c.getContext('2d'), ...a); t.needsUpdate = true; }; return { t, set }; }
-function buildModule() {
-  const X = MOD.x, Z = MOD.z, L = (lx) => X + lx, Lz = (lz) => Z + lz;
-  const floorL = [], wallL = [], ceilL = [], floorC = [], wallC = [], floorS = [], wallS = [], steps = [], steel = [], wood = [], fix = [], dark = [], mats = [];
-  const col = (x0, z0, x1, z1) => { const c = { x0: X + Math.min(x0, x1), x1: X + Math.max(x0, x1), z0: Z + Math.min(z0, z1), z1: Z + Math.max(z0, z1) }; colliders.push(c); return c; };
-  // pared con huecos [a0,a1,y1] (y1 = altura del hueco)
-  const wallX = (list, z, x0, x1, nz, y1, holes, tile) => {   // pared a lo largo de x, en z
-    let a = x0; const hs = (holes || []).slice().sort((p, q) => p[0] - q[0]);
-    for (const [h0, h1, hy] of hs) { if (h0 > a) list.push(vgeo(L(a), Lz(z), L(h0), Lz(z), 0, y1, 0, nz, tile)); list.push(vgeo(L(h0), Lz(z), L(h1), Lz(z), hy, y1, 0, nz, tile)); a = h1; }
-    if (a < x1) list.push(vgeo(L(a), Lz(z), L(x1), Lz(z), 0, y1, 0, nz, tile));
-  };
-  const wallZ = (list, x, z0, z1, nx, y1, holes, tile, yb) => {
-    let a = z0; const hs = (holes || []).slice().sort((p, q) => p[0] - q[0]), y0 = yb || 0;
-    for (const [h0, h1, hy] of hs) { if (h0 > a) list.push(vgeo(L(x), Lz(a), L(x), Lz(h0), y0, y1, nx, 0, tile)); list.push(vgeo(L(x), Lz(h0), L(x), Lz(h1), hy, y1, nx, 0, tile)); a = h1; }
-    if (a < z1) list.push(vgeo(L(x), Lz(a), L(x), Lz(z1), y0, y1, nx, 0, tile));
-  };
-  /* portal (vestíbulo): x 0..8, z 0..6 */
-  floorL.push(pgeo(L(0), L(8), Lz(0), Lz(6), 0, 1.2, 1)); ceilL.push(pgeo(L(0), L(8), Lz(0), Lz(6), 2.8, 2, 1.5, true));
-  wallX(wallL, 0, 0, 8, 1, 2.8, [[2.4, 3.6, 2.2], [4.6, 5.8, 2.2]], 1.4); wallX(wallL, 6, 0, 8, -1, 2.8, [[3.0, 5.0, 2.5]], 1.4);
-  wallZ(wallL, 0, 0, 6, 1, 2.8, [[2.4, 3.4, 2.1]], 1.4); wallZ(wallL, 8, 0, 6, -1, 2.8, null, 1.4);
-  col(-0.2, -0.2, 0, 6.2); col(8, -0.2, 8.2, 6.2); col(0, 6, 8, 6.2); col(0, -0.2, 2.4, 0); col(3.6, -0.2, 8, 0);
-  // cristal del portal (por dentro se ve el jardín de noche) y la salida
-  const night = ctex(64, 64, (g) => { g.fillStyle = '#0a1018'; g.fillRect(0, 0, 64, 64); g.fillStyle = '#1a2a1a'; g.fillRect(0, 44, 64, 20); g.fillStyle = '#ffd890'; g.fillRect(10, 38, 2, 4); g.fillRect(50, 36, 2, 4); g.fillStyle = 'rgba(255,255,255,.12)'; g.fillRect(0, 0, 18, 64); g.fillStyle = '#333'; g.fillRect(31, 0, 2, 64); });
-  plane(2.0, 2.5, new THREE.MeshBasicMaterial({ map: night }), L(4), 1.25, Lz(5.98), 0, PI); hit('px', L(4), 1.2, Lz(5.8), 2.0, 2.4, 0.4);
-  // buzones, planta, espejo y el otro ascensor (averiado)
-  const mail = ctex(128, 64, (g) => { g.fillStyle = '#5a4630'; g.fillRect(0, 0, 128, 64); for (let i = 0; i < 4; i++) for (let j = 0; j < 8; j++) { g.fillStyle = '#7a6040'; g.fillRect(2 + j * 16, 2 + i * 16, 13, 13); g.fillStyle = '#d8c8a0'; g.fillRect(5 + j * 16, 5 + i * 16, 7, 2); g.fillStyle = '#222'; g.fillRect(10 + j * 16, 10 + i * 16, 2, 2); } });
-  plane(2.4, 1.2, new THREE.MeshLambertMaterial({ map: mail }), L(7.97), 1.4, Lz(3), 0, -PI / 2);
-  cyl(0.25, 0.2, 0.5, 8, lam(null, 0x7a4a2a), L(7.3), 0.25, Lz(5.3)); const pl = new THREE.Mesh(new THREE.SphereGeometry(0.45, 8, 6), lam(null, 0x2a4a22)); pl.position.set(L(7.3), 0.85, Lz(5.3)); scene.add(pl); col(6.9, 4.9, 7.7, 5.7);
-  for (const dx of [-0.31, 0.31]) box(0.6, 2.2, 0.04, lam('steel', 0x9a9ea4), L(5.2 + dx), 1.1, Lz(0.0));
-  plane(0.7, 0.3, new THREE.MeshLambertMaterial({ map: textPlate('AVERIADO', 128, 56, '#f0e8d0', '#b01a1a', '#b01a1a') }), L(5.2), 1.5, Lz(0.03), 0, 0);
-  D.lobbyName = dynPlate(512, 64, (g, t) => { g.fillStyle = '#1a1612'; g.fillRect(0, 0, 512, 64); g.fillStyle = '#e8c870'; g.textAlign = 'center'; g.textBaseline = 'middle'; let fs = 34; g.font = 'bold ' + fs + 'px serif'; while (g.measureText(t).width > 490) { fs--; g.font = 'bold ' + fs + 'px serif'; } g.fillText(t, 256, 34); });
-  plane(3.2, 0.36, new THREE.MeshBasicMaterial({ map: D.lobbyName.t, color: 0xcccccc }), L(4.1), 2.6, Lz(0.03), 0, 0);
-  // puerta de la escalera en el portal
-  box(1.0, 2.1, 0.06, lam('wood', 0x6a4a32), L(0.03), 1.05, Lz(2.9), { ry: PI / 2 }); plane(0.6, 0.18, new THREE.MeshLambertMaterial({ map: textPlate('ESCALERA', 128, 40, '#2a6a3a', '#ffffff') }), L(0.08), 2.3, Lz(2.9), 0, PI / 2);
-  col(-0.2, 2.4, 0.06, 3.4); hit('sx', L(0.15), 1.1, Lz(2.9), 0.3, 2.1, 1.0);
-  /* cabinas del ascensor: abajo (z -1.4..0) y arriba (z 18.6..20); son iguales, así no se nota el salto */
-  D.liftDisp = dynPlate(64, 32, (g, t) => { g.fillStyle = '#080808'; g.fillRect(0, 0, 64, 32); g.fillStyle = '#ff4a2a'; g.font = 'bold 24px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 32, 17); });
-  D.liftDisp.set('0');
-  EL.doors = [];
-  for (const [oz, k] of [[0, 0], [20, 1]]) {
-    floorL.push(pgeo(L(2.4), L(3.6), Lz(oz - 1.4), Lz(oz), 0.001, 0.6, 0.6));
-    for (const [x, nx] of [[2.4, 1], [3.6, -1]]) steel.push(vgeo(L(x), Lz(oz - 1.4), L(x), Lz(oz), 0, 2.3, nx, 0, 0.6));
-    steel.push(pgeo(L(2.4), L(3.6), Lz(oz - 1.4), Lz(oz), 2.3, 0.6, 0.6, true));
-    plane(1.1, 1.3, bas(0x8a9098), L(3), 1.35, Lz(oz - 1.38), 0, 0);   // espejo
-    fix.push(pgeo(L(2.7), L(3.3), Lz(oz - 1.0), Lz(oz - 0.4), 2.28, 1, 1, true));
-    col(2.2, oz - 1.6, 2.4, oz); col(3.6, oz - 1.6, 3.8, oz); col(2.2, oz - 1.6, 3.8, oz - 1.4);
-    plane(0.18, 0.5, lam('steel', 0x7a7e84), L(3.57), 1.2, Lz(oz - 0.5), 0, -PI / 2); plane(0.14, 0.07, new THREE.MeshBasicMaterial({ map: D.liftDisp.t }), L(3.565), 1.55, Lz(oz - 0.5), 0, -PI / 2);
-    hit('eb' + k, L(3.45), 1.2, Lz(oz - 0.5), 0.3, 0.6, 0.5);
-    const dm = lam('steel', 0xb8bcc2), pl0 = box(0.62, 2.2, 0.05, dm, L(2.7), 1.1, Lz(oz)), pr0 = box(0.62, 2.2, 0.05, dm, L(3.3), 1.1, Lz(oz));
-    const c = col(2.4, oz - 0.06, 3.6, oz + 0.06); EL.doors.push({ l: pl0, r: pr0, c });
-    // botón de llamada y display por fuera
-    plane(0.1, 0.16, lam('steel', 0x8a8e94, { emissive: 0x201008 }), L(3.95), 1.1, Lz(oz + 0.03), 0, 0); hit('ec' + k, L(3.95), 1.1, Lz(oz + 0.1), 0.3, 0.4, 0.2);
-    plane(0.14, 0.07, new THREE.MeshBasicMaterial({ map: D.liftDisp.t }), L(3), 2.35, Lz(oz + 0.03), 0, 0);
-  }
-  /* rellano de cada planta: x 0..12, z 20..22.4 */
-  floorC.push(pgeo(L(0), L(12), Lz(20), Lz(22.4), 0, 1, 1)); ceilL.push(pgeo(L(0), L(12), Lz(20), Lz(22.4), 2.6, 2, 1.2, true));
-  wallX(wallC, 20, 0, 12, 1, 2.6, [[2.4, 3.6, 2.2]], 1.4); wallX(wallC, 22.4, 0, 12, -1, 2.6, null, 1.4);
-  wallZ(wallC, 0, 20, 22.4, 1, 2.6, null, 1.4); wallZ(wallC, 12, 20, 22.4, -1, 2.6, null, 1.4);
-  col(0, 19.8, 2.4, 20); col(3.6, 19.8, 12, 20); col(0, 22.4, 12, 22.6); col(12, 20, 12.2, 22.4); col(-0.2, 20, 0, 22.4);
-  for (const x of [2, 6, 10]) fix.push(pgeo(L(x - 0.3), L(x + 0.3), Lz(20.9), Lz(21.5), 2.58, 1, 1, true));
-  // puertas de los pisos (A, B, C, D)
-  D.doors = [];
-  const letters = ctex(256, 64, (g) => { g.fillStyle = '#c8a860'; g.fillRect(0, 0, 256, 64); g.fillStyle = '#2a1a0a'; g.font = 'bold 44px serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; for (let i = 0; i < 4; i++) g.fillText('ABCD'[i], 32 + i * 64, 34); });
-  FLAT_LOC.forEach(([x, z, nx, nz], j) => {
-    const grp = new THREE.Group(); grp.position.set(L(x) + nx * 0.01, 0, Lz(z) + nz * 0.01); grp.rotation.y = Math.atan2(nx, nz); scene.add(grp);
-    const hole = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 2.1), bas(0x020203)); hole.position.set(0, 1.05, 0.005); grp.add(hole);
-    const piv = new THREE.Group(); piv.position.set(-0.49, 0, 0.05); grp.add(piv);
-    const door = new THREE.Mesh(new THREE.BoxGeometry(0.98, 2.08, 0.07), lam('wood', 0x5a3a26)); door.position.set(0.49, 1.04, 0); piv.add(door);
-    const knob = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 4), lam(null, 0xc8a050)); knob.position.set(0.85, 1.0, 0.05); piv.add(knob);
-    const pg = new THREE.PlaneGeometry(0.16, 0.16), uv = pg.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setX(i, (j + uv.getX(i)) / 4);
-    const plate = new THREE.Mesh(pg, new THREE.MeshLambertMaterial({ map: letters, emissive: 0x181008 })); plate.position.set(0, 2.25, 0.03); grp.add(plate);
-    const mat = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.5), lam(null, 0x5a3a2a)); mat.rotation.x = -PI / 2; mat.position.set(0, 0.012, 0.35); grp.add(mat);
-    hit('fd' + j, L(x) + nx * 0.4, 1.1, Lz(z) + nz * 0.4, nx ? 0.6 : 1.1, 2.2, nz ? 0.6 : 1.1);
-    D.doors.push({ piv });
-  });
-  D.floorPlate = dynPlate(256, 96, (g, t) => { g.fillStyle = '#e8e0c8'; g.fillRect(0, 0, 256, 96); g.strokeStyle = '#3a2a1a'; g.lineWidth = 5; g.strokeRect(4, 4, 248, 88); g.fillStyle = '#2a1a0a'; g.font = 'bold 40px serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 128, 50); });
-  plane(0.8, 0.3, new THREE.MeshLambertMaterial({ map: D.floorPlate.t, emissive: 0x141210 }), L(3), 1.7, Lz(22.37), 0, PI);
-  // interruptor de la luz (con su piloto naranja) y puerta de la escalera
-  D.ledM = bas(0xff8a20);
-  plane(0.08, 0.12, lam(null, 0xe8e4d8), L(1.6), 1.2, Lz(20.02), 0, 0); plane(0.02, 0.02, D.ledM, L(1.6), 1.23, Lz(20.03), 0, 0); hit('lz1', L(1.6), 1.2, Lz(20.1), 0.3, 0.3, 0.2);
-  box(1.0, 2.1, 0.06, lam('wood', 0x6a4a32), L(0.03), 1.05, Lz(21.2), { ry: PI / 2 }); plane(0.6, 0.18, new THREE.MeshLambertMaterial({ map: textPlate('ESCALERA', 128, 40, '#2a6a3a', '#ffffff') }), L(0.08), 2.3, Lz(21.2), 0, PI / 2);
-  hit('sw', L(0.2), 1.1, Lz(21.2), 0.3, 2.1, 1.0);
-  /* escalera: x -6..0, z 13..23, en bucle; se dibujan dos plantas por arriba y dos por abajo */
-  D.stairSigns = [];
-  for (let k = -2; k <= 2; k++) {
-    const y = k * FLH;
-    for (let i = 0; i < 10; i++) {
-      steps.push(bgeo(2.95, 0.3, 0.55, L(-4.525), y + (i + 1) * 0.14 - 0.15, Lz(20 - (i + 0.5) * 0.55), 0, 0.6));
-      steps.push(bgeo(2.95, 0.3, 0.55, L(-1.475), y + FLH / 2 + (i + 1) * 0.14 - 0.15, Lz(14.5 + (i + 0.5) * 0.55), 0, 0.6));
-    }
-    floorS.push(bgeo(6, 0.3, 1.5, L(-3), y + FLH / 2 - 0.15, Lz(13.75), 0, 1.2)); floorS.push(bgeo(6, 0.3, 3, L(-3), y - 0.15, Lz(21.5), 0, 1.2));
-    fix.push(pgeo(L(-3.4), L(-2.6), Lz(21.2), Lz(21.8), y + 2.6, 1, 1, true), pgeo(L(-3.4), L(-2.6), Lz(13.5), Lz(14.1), y + FLH / 2 + 2.6, 1, 1, true));
-    dark.push(vgeo(L(-0.02), Lz(20.7), L(-0.02), Lz(21.7), y, y + 2.1, -1, 0, 1));
-    const sgn = dynPlate(256, 96, (g, t) => { g.fillStyle = '#e8e0c8'; g.fillRect(0, 0, 256, 96); g.fillStyle = '#1a2a6a'; g.font = 'bold 54px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 128, 50); });
-    plane(0.6, 0.24, new THREE.MeshLambertMaterial({ map: sgn.t, emissive: 0x141210 }), L(-1.5), y + 1.75, Lz(22.97), 0, PI); D.stairSigns.push({ k, sgn });
-  }
-  wallZ(wallS, -6, 13, 23, 1, 3 * FLH, null, 1.4, -2 * FLH - 0.3); wallZ(wallS, 0, 13, 23, -1, 3 * FLH, null, 1.4, -2 * FLH - 0.3);
-  wallS.push(vgeo(L(-6), Lz(13), L(0), Lz(13), -2 * FLH - 0.3, 3 * FLH, 0, 1, 1.4), vgeo(L(-6), Lz(23), L(0), Lz(23), -2 * FLH - 0.3, 3 * FLH, 0, -1, 1.4));
-  steps.push(bgeo(0.1, 5 * FLH, 5.5, L(-3), 0.2, Lz(17.25), 0, 1.4));   // muro entre los dos tramos
-  col(-6.2, 13, -6, 23); col(0, 13, 0.2, 23); col(-6, 12.8, 0, 13); col(-6, 23, 0, 23.2); col(-3.05, 14.5, -2.95, 20);
-  plane(0.08, 0.12, lam(null, 0xe8e4d8), L(-0.03), 1.2, Lz(22.3), 0, -PI / 2); plane(0.02, 0.02, D.ledM, L(-0.04), 1.23, Lz(22.3), 0, -PI / 2); hit('lz2', L(-0.15), 1.2, Lz(22.3), 0.2, 0.3, 0.3);
-  hit('sw', L(-0.2), 1.1, Lz(21.2), 0.3, 2.1, 1.0);
-  // materiales: el suelo de mármol del portal, terrazo en los rellanos, cemento en la escalera
-  const marble = ctex(128, 128, (g) => { for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) { g.fillStyle = (i + j) % 2 ? '#c8b8a0' : '#e8dcc8'; g.fillRect(i * 64, j * 64, 64, 64); } g.strokeStyle = 'rgba(90,70,50,.25)'; for (let k = 0; k < 14; k++) { g.beginPath(); g.moveTo(Math.random() * 128, Math.random() * 128); g.bezierCurveTo(Math.random() * 128, Math.random() * 128, Math.random() * 128, Math.random() * 128, Math.random() * 128, Math.random() * 128); g.stroke(); } });
-  const terr = ctex(64, 64, (g) => { g.fillStyle = '#b8b0a0'; g.fillRect(0, 0, 64, 64); for (let i = 0; i < 300; i++) { g.fillStyle = ['#8a8070', '#d8d0c0', '#6a5a4a', '#a89a88'][i % 4]; g.fillRect(Math.random() * 64, Math.random() * 64, 2, 2); } });
-  addMerged(floorL, new THREE.MeshLambertMaterial({ map: marble })); addMerged(wallL, lam('wall', 0xe0d8c8)); addMerged(ceilL, lam(null, 0xd8d4cc));
-  addMerged(floorC, new THREE.MeshLambertMaterial({ map: terr })); addMerged(wallC, lam('wall', 0xd0c4a0));
-  addMerged(floorS, lam('conc', 0xa8a498)); addMerged(wallS, lam('wall', 0xc8c0a8)); addMerged(steps, lam('conc', 0xb0aca0));
-  addMerged(steel, lam('steel', 0xa8acb2)); D.fixM = bas(0xfff8e8); addMerged(fix, D.fixM); addMerged(dark, lam('wood', 0x6a4a32));
-  LG.int = new THREE.PointLight(0xfff0dc, 0, 13, 1.1); scene.add(LG.int);
-}
+function uvRect(g, px, py, pw, ph, W, H) { const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, (px + uv.getX(i) * pw) / W, 1 - (py + (1 - uv.getY(i)) * ph) / H); return g; }
 
-/* ---------- moverse por dentro ---------- */
-function tpTo(x, z, yaw) {
-  me.x = x; me.z = z; me.yaw = yaw; me.pitch = 0; IV.px = x - MOD.x; IV.pz = z - MOD.z;
-  const f = $('fade'); if (f) { f.style.transition = 'none'; f.style.opacity = 1; void f.offsetWidth; f.style.transition = 'opacity .5s'; f.style.opacity = 0; }
-}
-function enterLobby(k) {
-  if (IV.k !== k) { EL.at = 0; EL.fl = 0; EL.door = 0; EL.want = 0; EL.st = ''; }
-  IV.k = k; IV.f = 0; IV.FL = 0; D.lobbyName.set(TOWN.plots[k].name); AU.play('door');
-  tpTo(MOD.x + 4, MOD.z + 5.1, 0);
-}
-function exitLobby() { const P = TOWN.plots[IV.k]; if (!P) { tpTo(1.6, -1.6, PI); return; } const n = P.portal; AU.play('door'); tpTo(n.x + n.nx * 1.4, n.z + n.nz * 1.4, Math.atan2(-n.nx, -n.nz)); }
-function liftDest() {
-  const P = TOWN.plots[IV.k], Pm = myP(), H = Pm && Pm.h;
-  let o = H && H.k === 'bag' ? W.dl.find(q => q.i === H.d && (q.d / 4 | 0) === IV.k) : null;
-  if (!o) o = W.dl.find(q => (q.d / 4 | 0) === IV.k && !q.dn);
-  return o ? o.f : P.fl;
-}
-function liftOpen() { EL.want = 1; EL.ot = 6; AU.play('ding', me.x, me.z); }
-function liftCall(w) {
-  if (EL.st) return;
-  const here = w ? IV.f : 0;
-  if ((w === 0 && EL.at === 0) || (w === 1 && EL.at === 1 && EL.fl === here)) { liftOpen(); return; }
-  EL.st = 'come'; EL.t = 2.2 + 0.3 * Math.abs(here - (EL.at ? EL.fl : 0)); EL.cto = w; EL.cfl = here; AU.play('lift', me.x, me.z);
-}
-function liftGo(dest) {
-  if (EL.st) return;
-  EL.from = EL.at ? EL.fl : 0; EL.dest = dest; EL.want = 0; EL.st = 'ride'; EL.T = EL.t = 2.2 + 0.32 * Math.abs(dest - EL.from); EL.hum = 0;
-}
-function setDisp(v) { if (EL.disp !== v) { EL.disp = v; D.liftDisp.set(String(v)); } }
-// acciones que solo hace cada jugador en su pantalla (no pasan por el anfitrión)
-function localUse(key, R, H) {
-  const kind = key.slice(0, 2), n = +key.slice(2), zn = modZone(me.x, me.z);
-  if (kind === 'pp') { const P = TOWN.plots[n]; if (W.gt && W.gt[n] > 0) return R(T('u_portal_in', plotName(P)), true, null, () => enterLobby(n)); return R(T('u_portal_shut'), false); }
-  if (key === 'px') return R(T('u_portal_out'), true, null, exitLobby);
-  if (key === 'sx') return R(T('u_stairs'), true, null, () => { IV.FL = 0; IV.tl = 25; AU.play('door'); tpTo(MOD.x - 0.7, MOD.z + 21.2, PI / 2); });
-  if (key === 'sw') {
-    if (zn === 'stair') {
-      if (IV.FL === 0) return R(T('u_to_lobby'), true, null, () => { AU.play('door'); tpTo(MOD.x + 0.7, MOD.z + 2.9, -PI / 2); });
-      return R(T('u_to_floor', IV.FL), true, null, () => { IV.f = IV.FL; AU.play('door'); tpTo(MOD.x + 0.7, MOD.z + 21.2, -PI / 2); });
+/* ---------- dónde va el núcleo de cada torre de reparto ---------- */
+// coordenadas del núcleo: u a lo largo de la fachada del portal, v hacia dentro
+function cw(C, u, v) { return [C.ox + C.ux * u + C.vx * v, C.oz + C.uz * u + C.vz * v]; }
+function cl(C, x, z) { const dx = x - C.ox, dz = z - C.oz; return [dx * C.ux + dz * C.uz, dx * C.vx + dz * C.vz]; }
+TOWN.del = (() => {
+  const out = [], ents = MAP.ent;
+  for (const b of TOWN.bld) {
+    if (b.host || !(b.t === 'res' || b.t === 'hot') || b.l < 4 || Math.hypot(b.cx, b.cz) > 250) continue;
+    const P = b.P, cand = [];
+    for (let i = 0; i < P.length; i++) {
+      const [nx, nz, L] = outN(P, i); if (L < 10) continue;
+      const a = P[i], c = P[(i + 1) % P.length], ux = (c[0] - a[0]) / L, uz = (c[1] - a[1]) / L;
+      // ¿hay una entrada del mapa en esta fachada?
+      let best = null; for (const e of ents) { const [d, , , t] = segDist(e[0], e[1], a[0], a[1], c[0], c[1]); if (d < 1.6 && (!best || e[2] > best[1])) best = [t * L, e[2]]; }
+      const nr = nearestRoad(a[0] + ux * L / 2 + nx * 3, a[1] + uz * L / 2 + nz * 3, false);
+      cand.push({ i, a, L, ux, uz, nx, nz, s: best ? best[0] : L / 2, score: (best ? 100 + best[1] * 50 : 0) + L - (nr ? nr.d : 50) });
     }
-    return R(T('u_stairs'), true, null, () => { IV.FL = IV.f; IV.tl = Math.max(IV.tl, 15); AU.play('door'); tpTo(MOD.x - 0.7, MOD.z + 21.2, PI / 2); });
-  }
-  if (kind === 'ec') return EL.st === 'ride' ? R(T('u_lift_busy'), false) : R(T('u_lift_call'), true, null, () => { AU.play('click'); liftCall(n); });
-  if (kind === 'eb') {
-    if (EL.st) return R(T('u_lift_busy'), false);
-    if (n === 1) return R(T('u_lift_down'), true, null, () => { AU.play('click'); liftGo(0); });
-    const d = liftDest();
-    if (d === 13) return R(T('u_lift_no13'), true, null, () => { AU.play('click'); liftGo(12); });
-    return R(T('u_lift_go', d), true, null, () => { AU.play('click'); liftGo(d); });
-  }
-  if (kind === 'lz') return R(T('u_light'), true, null, () => { IV.tl = 30; AU.play('click'); });
-  return null;
-}
-function updInterior(dt) {
-  // cancelas: abiertas mientras dura el permiso del portero
-  for (const g of D.gates) { const op = W.gt && W.gt[g.P.k] > 0; g.piv.rotation.y = lerp(g.piv.rotation.y, g.base + (op ? 1.45 : 0), Math.min(1, dt * 3)); g.P.gcol.off = op; }
-  const zn = modZone(me.x, me.z);
-  if (!zn) { if (LG.int) LG.int.intensity = 0; IV.px = me.x - MOD.x; IV.pz = me.z - MOD.z; return; }
-  if (IV.k < 0) { tpTo(1.6, -1.6, PI); return; }
-  const lx = me.x - MOD.x, lz = me.z - MOD.z, P = TOWN.plots[IV.k];
-  // escalera: llevar la cuenta de la planta
-  if (zn === 'stair') {
-    const land = (b) => b >= 20, inB = (a, b) => b < 20 && a > -3;
-    if (land(IV.pz) && inB(lx, lz)) { if (IV.FL <= 0) me.z = MOD.z + 20.02; else IV.FL--; }
-    else if (inB(IV.px, IV.pz) && land(lz)) IV.FL++;
-    if (land(IV.pz) && lz < 20 && lx < -3 && IV.FL >= P.fl) me.z = MOD.z + 20.02;
-  }
-  IV.px = me.x - MOD.x; IV.pz = me.z - MOD.z;
-  if (IV.FL !== IV.lastFL) { IV.lastFL = IV.FL; for (const s of D.stairSigns) { const f = IV.FL + s.k; s.sgn.set(f < 0 ? '-' : f === 0 ? T('floor0') : f > P.fl ? '' : String(f)); } }
-  if (IV.f !== IV.lastF) { IV.lastF = IV.f; D.floorPlate.set(T('floorN', IV.f)); }
-  // ascensor
-  EL.door = clamp(EL.door + (EL.want ? dt : -dt) * 1.4, 0, 1);
-  if (EL.want && !EL.st) { EL.ot -= dt; if (EL.ot <= 0) { const dz = lz - (EL.at ? 20 : 0); if (Math.abs(dz) < 0.35 && lx > 2.3 && lx < 3.7) EL.ot = 1.5; else EL.want = 0; } }
-  if (EL.st === 'come') { EL.t -= dt; if (EL.t <= 0) { EL.st = ''; EL.at = EL.cto; EL.fl = EL.cfl; setDisp(EL.at ? EL.fl : 0); liftOpen(); } }
-  if (EL.st === 'ride') {
-    EL.t -= dt; const el = EL.T - EL.t;
-    if (el > 1) { const u = clamp((el - 1) / Math.max(0.1, EL.T - 1.2), 0, 1); setDisp(Math.round(lerp(EL.from, EL.dest, u))); EL.hum -= dt; if (EL.hum <= 0) { EL.hum = 1.1; AU.play('lift', me.x, me.z); } }
-    if (EL.t <= 0) {
-      const inCab = zn === (EL.at ? 'cab1' : 'cab0'), to = EL.dest > 0 ? 1 : 0;
-      if (inCab && to !== EL.at) { me.z += (to - EL.at) * 20; IV.pz = me.z - MOD.z; }
-      if (inCab) { IV.f = EL.dest; if (EL.dest > 0) IV.tl = 20; }
-      EL.at = to; EL.fl = EL.dest; EL.st = ''; setDisp(EL.dest); liftOpen();
+    cand.sort((p, q) => q.score - p.score);
+    for (const c of cand) {
+      const s = clamp(c.s, 4.9, c.L - 4.9), ox = c.a[0] + c.ux * s, oz = c.a[1] + c.uz * s;
+      const C = { b, ox, oz, ux: c.ux, uz: c.uz, vx: -c.nx, vz: -c.nz, L: b.l, edge: c.i, s0: s };
+      let ok = true; for (const u of [-4.6, -2, 0, 2, 4.6]) for (const v of [0.3, 3, 6.2]) { const [x, z] = cw(C, u, v); if (!pip(x, z, P)) ok = false; }
+      if (!ok) continue;
+      if (TOWN.bld.some(o => o !== b && o.t !== 'roof' && pip(...cw(C, 0, 3), o.P))) continue;
+      // delante del portal tiene que haber aire: ni otro edificio pegado ni su pared
+      let blk = false; for (const u of [-2.4, -1.6, -0.8]) for (const v of [-0.3, -1.5, -3]) { const [x, z] = cw(C, u, v); if (TOWN.bld.some(o => o.t !== 'roof' && pip(x, z, o.P))) blk = true; }
+      if (blk) continue;
+      { const [x0, z0] = cw(C, -1.6, -0.15), [x1, z1] = cw(C, -1.6, -4); if (TOWN.bld.some(o => o !== b && o.t !== 'roof' && o.P.some((p, i) => { const q = o.P[(i + 1) % o.P.length], d = (x1 - x0) * (q[1] - p[1]) - (z1 - z0) * (q[0] - p[0]); if (Math.abs(d) < 1e-9) return false; const t = ((p[0] - x0) * (q[1] - p[1]) - (p[1] - z0) * (q[0] - p[0])) / d, w = ((p[0] - x0) * (z1 - z0) - (p[1] - z0) * (x1 - x0)) / d; return t >= 0 && t <= 1 && w >= 0 && w <= 1; }))) continue; }
+      C.name = b.n || ''; C.addr = b.a || ''; out.push(C); break;
     }
   }
-  EL.doors.forEach((d, k) => {
-    const a = (k === 0 ? EL.at === 0 : EL.at === 1 && EL.fl === IV.f) && !(EL.st === 'ride') ? EL.door : 0;
-    d.l.position.x = MOD.x + 2.7 - a * 0.58; d.r.position.x = MOD.x + 3.3 + a * 0.58; d.c.off = a > 0.85;
+  // dirección: la del mapa o la calle más cercana con un número
+  out.forEach((C, k) => {
+    C.k = k; const [x, z] = cw(C, 0, -2); C.street = C.addr ? C.addr.replace(/\s+\S+$/, '') : streetName(x, z);
+    C.num = C.addr ? C.addr.split(' ').pop() : String(1 + ((Math.abs(Math.round(C.ox * 7 + C.oz * 13)) % 40) | 0) * 2 - (C.ox > 0 ? 0 : 1));
+    if (!C.name) C.name = 'Edificio ' + C.street.replace(/^(Calle|Avenida|Av\.|Avinguda|Carrer)( de(l| la)?)? /, '') + ' ' + C.num;
+    for (let j = 0; j < 4; j++) TOWN.doors.push({ tw: k, let: j });
+    // camino del portal a la acera: si una tapia lo corta sin cancela, se le abre una
+    const [px, pz] = cw(C, -1.6, -0.6), nr = nearestRoad(px, pz, false), [sx, sz] = cw(C, -1.6, -9);
+    for (const [ex, ez] of [nr ? [nr.qx, nr.qz] : [sx, sz], [sx, sz]]) for (const br of TOWN.br) for (let i = 0; i + 1 < br.pts.length; i++) {
+      const p = br.pts[i], q = br.pts[i + 1], d = (ex - px) * (q[1] - p[1]) - (ez - pz) * (q[0] - p[0]); if (Math.abs(d) < 1e-9) continue;
+      const t = ((p[0] - px) * (q[1] - p[1]) - (p[1] - pz) * (q[0] - p[0])) / d, w = ((p[0] - px) * (ez - pz) - (p[1] - pz) * (ex - px)) / d;
+      if (t >= 0 && t <= 1 && w >= 0 && w <= 1 && !MAP.gate.some(g => Math.hypot(g[0] - p[0] - w * (q[0] - p[0]), g[1] - p[1] - w * (q[1] - p[1])) < 2.5)) MAP.gate.push([p[0] + w * (q[0] - p[0]), p[1] + w * (q[1] - p[1])]);
+    }
   });
-  // luz: el portal siempre; rellanos y escalera con temporizador (30 s), la cabina con algún parpadeo
-  let I = 0;
-  if (zn === 'lobby') I = 1.5;
-  else if (zn === 'cab0' || zn === 'cab1') I = EL.st === 'ride' && Math.sin(TIME * 31) > 0.97 ? 0.15 : 1.3;
-  else { IV.tl -= dt; I = IV.tl > 0 ? (IV.tl < 2 && Math.sin(TIME * 40) > 0 ? 0.3 : 1.4) : 0.12; }
-  LG.int.intensity = I; LG.int.position.set(me.x, camera.position.y + 1.0, me.z);
-  D.fixM.color.setScalar(I > 0.5 ? 1 : 0.12); D.ledM.color.setHex(Math.sin(TIME * 3) > 0 ? 0xff8a20 : 0x7a3a08);
+  return out;
+})();
+// puertas de los pisos: A y B al fondo del rellano, C y D en la pared izquierda
+const FLAT_UV = [[-2.0, 6.2, 0, -1], [0.6, 6.2, 0, -1], [-4.6, 1.4, 1, 0], [-4.6, 3.4, 1, 0]];
+function flatPos(k, f) { const C = TOWN.del[k / 4 | 0], [u, v, nu, nv] = FLAT_UV[k % 4], [x, z] = cw(C, u + nu * 0.05, v + nv * 0.05); return { x, z, y: f * FLH, nx: C.ux * nu + C.vx * nv, nz: C.uz * nu + C.vz * nv }; }
+function addrOf(k) { const C = TOWN.del[k / 4 | 0]; return C ? C.street + ' ' + C.num + ' · ' + C.name : '?'; }
+function dlAddr(o) { return o ? addrOf(o.d) + ' · ' + o.f + 'º' + FLAT_LET[o.d % 4] : '?'; }
+function plotName(C) { return C.name; }
+// ¿en qué núcleo estoy? (devuelve k o -1)
+function coreAt(x, z, m) {
+  m = m || 0;
+  for (const C of TOWN.del) { if (Math.abs(x - C.ox) > 12 || Math.abs(z - C.oz) > 12) continue; const [u, v] = cl(C, x, z); if (u > CORE.u0 - m && u < CORE.u1 + m && v > -m && v < CORE.v1 + m) return C.k; }
+  return -1;
 }
-
-/* ---------- las torres de Benidorm: hormigón blanco, terrazas corridas en cada planta, toldos de colores,
-   persianas, porches con pilares abajo y el nombre en la azotea ---------- */
-const HOTEL_NAMES = ['HOTEL LEVANTE', 'APARTAMENTOS MARISCAL', 'HOTEL CIMBEL', 'TORRE LAS PALMAS', 'HOTEL SOL Y PLAYA', 'APARTAMENTOS CORAL', 'HOTEL BRISAMAR', 'TORRE ALTAVISTA',
-  'APARTAMENTOS JARDÍN', 'HOTEL ROYAL BEACH', 'TORRE MARINO', 'HOTEL AVENIDA PLAYA', 'APARTAMENTOS ÁGUILA', 'TORRE CASTELLANA', 'HOTEL PALM BEACH', 'APARTAMENTOS SAVOY', 'HOTEL MEDITERRÁNEO SOL', 'TORRE LEVANTE MAR', 'HOTEL CAPRI', 'APARTAMENTOS BOLONIA'];
+function inBld(x, z) { return coreAt(x, z) >= 0; }
+function inMod(x, z) { return inBld(x, z); }
+// altura del suelo: escaleras y ascensor de verdad
+function groundY(x, z, y) {
+  const k = coreAt(x, z); if (k < 0) return 0;
+  const C = TOWN.del[k], [u, v] = cl(C, x, z), top = (C.L - 1) * FLH;
+  if (u < -3.0 && v > 4.6) return EL.k === k ? EL.y : Math.round(y / FLH) * FLH;    // dentro de la cabina
+  if (u < 1.9) return clamp(Math.round(y / FLH), 0, C.L - 1) * FLH;                   // rellano
+  if (v < 1.6) return clamp(Math.round(y / FLH), 0, C.L - 1) * FLH;                   // descansillo de la planta
+  if (v > 5.0) return clamp(Math.round((y - 1.5) / FLH), 0, C.L - 2) * FLH + 1.5;     // descansillo intermedio
+  if (u >= 3.25) { const h = (v - 1.6) / 3.4 * 1.5; return clamp(Math.round((y - h) / FLH), 0, C.L - 2) * FLH + h; }   // tramo de subida
+  const h = 1.5 + (5.0 - v) / 3.4 * 1.5; return clamp(Math.round((y - h) / FLH), 0, C.L - 2) * FLH + h;               // tramo de vuelta
+}
+function stairY() { return 0; }
 function towerFacade(k) {
   const tint = ['#f2eee6', '#ece4d4', '#f0e2d6', '#e8e6e0'][k], r = mulberry32(5100 + k * 31);
   const cv = document.createElement('canvas'), ce = document.createElement('canvas'); cv.width = cv.height = ce.width = ce.height = 256;
@@ -2547,73 +2265,294 @@ function towerFacade(k) {
   return new THREE.MeshLambertMaterial({ map, emissive: 0xffffff, emissiveMap: emi });
 }
 function awningTex(c1, c2) { return ctex(64, 64, (g) => { for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? c2 : c1; g.fillRect(i * 8, 0, 8, 64); } g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(0, 54, 64, 10); g.fillStyle = 'rgba(0,0,0,.12)'; for (let i = 0; i < 20; i++) g.fillRect(Math.random() * 64, Math.random() * 54, 6, 3); }); }
-function buildTowers() {
-  const r = mulberry32(9090), FM = [0, 1, 2, 3].map(towerFacade), body = [[], [], [], []], bands = [], fins = [], pillars = [], gnd = [], roof = [], signs = [], posts = [];
-  const AW = [['#2a7a3a', '#e8e4d0'], ['#d86a1a', '#f0e6d0'], ['#1a4a9a', '#e8e8e0'], ['#a82020', '#f0e8d8'], ['#2a8a8a', '#2a8a8a']], aw = AW.map(() => []);
-  const names = [];
-  TOWN.bld.forEach((b, bi) => {
-    if (!b.av && b.tw === undefined) return;
-    const P = b.tw !== undefined ? TOWN.plots[b.tw] : null, w = b.x1 - b.x0, d = b.z1 - b.z0, cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2;
-    const fx = P ? P.aZ : false;   // ¿las terrazas miran a ±x? (si no, a ±z)
-    const g0 = 3;   // planta baja aparte
-    // planta baja: en los residenciales, porche con pilares (metida hacia dentro salvo por la fachada del portal)
-    if (P) {
-      const ins = 0.9, f = P.sg;
-      let x0 = b.x0 + ins, x1 = b.x1 - ins, z0 = b.z0 + ins, z1 = b.z1 - ins;
-      if (fx) { if (f > 0) x1 = b.x1; else x0 = b.x0; } else { if (f > 0) z1 = b.z1; else z0 = b.z0; }
-      gnd.push(bgeo(x1 - x0, g0, z1 - z0, (x0 + x1) / 2, g0 / 2, (z0 + z1) / 2, 0, 3));
-      const along = fx ? d : w, n = Math.max(2, Math.round(along / 4.5));
-      for (let i = 0; i <= n; i++) for (const s of [-1, 1]) {
-        const a = -along / 2 + along * i / n;
-        const [px, pz] = fx ? [cx + s * (w / 2 - 0.25), cz + a] : [cx + a, cz + s * (d / 2 - 0.25)];
-        pillars.push(bgeo(0.45, g0, 0.45, px, g0 / 2, pz, 0, 1));
-      }
-    } else gnd.push(bgeo(w, g0, d, cx, g0 / 2, cz, 0, 3));
-    // el cuerpo de la torre
-    body[b.f].push(bgeo(w, b.h - g0, d, cx, g0 + (b.h - g0) / 2, cz, 0, 6));
-    // terrazas corridas: una banda blanca por planta en las dos fachadas largas
-    const nF = Math.floor((b.h - g0) / 3), along = fx ? d : w, across = fx ? w : d, nb = Math.max(2, Math.round(along / 4.5));
-    for (let f = 0; f < nF; f++) {
-      const y = g0 + f * 3;
-      for (const s of [-1, 1]) {
-        const off = across / 2 + 0.6;
-        if (fx) bands.push(bgeo(1.3, 1.15, along + 0.3, cx + s * off, y + 0.5, cz, 0, 1.5)); else bands.push(bgeo(along + 0.3, 1.15, 1.3, cx, y + 0.5, cz + s * off, 0, 1.5));
-        // toldos: bajados, colgando del borde de la terraza de arriba
-        if (f < nF - 1) for (let i = 0; i < nb; i++) {
-          if (r() > 0.22) continue;
-          const a = -along / 2 + along * (i + 0.5) / nb, len = along / nb - 0.4, col = r() * AW.length | 0, drop = 0.7 + r() * 1.1, o2 = across / 2 + 1.22;
-          if (fx) aw[col].push(bgeo(0.04, drop, len, cx + s * o2, y + 3 - drop / 2 - 0.05, cz + a, 0, 1)); else aw[col].push(bgeo(len, drop, 0.04, cx + a, y + 3 - drop / 2 - 0.05, cz + s * o2, 0, 1));
-        }
-      }
-    }
-    // separaciones verticales entre terrazas, de arriba abajo
-    for (let i = 0; i <= nb; i++) for (const s of [-1, 1]) {
-      const a = -along / 2 + along * i / nb, o = across / 2 + 0.62, hh = b.h - g0;
-      if (fx) fins.push(bgeo(1.25, hh, 0.16, cx + s * o, g0 + hh / 2, cz + a, 0, 1.5)); else fins.push(bgeo(0.16, hh, 1.25, cx + a, g0 + hh / 2, cz + s * o, 0, 1.5));
-    }
-    // azotea: caseta de los ascensores y el nombre en letras grandes
-    roof.push(bgeo(Math.min(5, w * 0.4), 3, Math.min(4, d * 0.4), cx, b.h + 1.5, cz, 0, 2));
-    const nm = P ? P.name : HOTEL_NAMES[names.length % HOTEL_NAMES.length], ni = names.length; names.push(nm);
-    const sw = Math.min(along * 0.9, 12), sy = b.h + 2.3, so = across / 2 - 0.5;
-    for (const s of [-1, 1]) {
-      const g = new THREE.PlaneGeometry(sw, sw / 8); uvRect(g, (ni % 2) * 512, (ni / 2 | 0) * 64, 512, 64, 1024, 2048);
-      if (fx) { g.rotateY(s > 0 ? PI / 2 : -PI / 2); g.translate(cx + s * so, sy, cz); } else { g.rotateY(s > 0 ? 0 : PI); g.translate(cx, sy, cz + s * so); }
-      signs.push(g);
-      for (const t of [-0.4, 0.4]) { const [px, pz] = fx ? [cx + s * (so - 0.1), cz + t * sw] : [cx + t * sw, cz + s * (so - 0.1)]; posts.push(cgeo(0.05, 0.05, 1.6, 4, px, b.h + 0.8, pz)); }
-    }
-  });
-  FM.forEach((m, i) => addMerged(body[i], m, true));
-  addMerged(gnd, lam('tilegrey', 0x9a968c), true); addMerged(pillars, lam('conc', 0xe8e4dc));
-  addMerged(bands, lam('conc', 0xf4f0e8, { emissive: 0x16161a })); addMerged(fins, lam('conc', 0xe4e0d8, { emissive: 0x101012 }));
-  AW.forEach(([c1, c2], i) => addMerged(aw[i], new THREE.MeshLambertMaterial({ map: awningTex(c1, c2), emissive: 0x0c0a08 })));
-  addMerged(roof, lam('conc', 0xd8d4cc)); addMerged(posts, M.dark);
-  // atlas de nombres de azotea: letras rojas encendidas
+// bajos comerciales: cristal oscuro, persianas y pilares (los rótulos de los negocios se ponen encima)
+function groundFacade() {
+  const cv = document.createElement('canvas'), ce = document.createElement('canvas'); cv.width = ce.width = 256; cv.height = ce.height = 128;
+  const g = cv.getContext('2d'), e = ce.getContext('2d'), r = mulberry32(77);
+  g.fillStyle = '#c8c0b0'; g.fillRect(0, 0, 256, 128); e.fillStyle = '#000'; e.fillRect(0, 0, 256, 128);
+  for (let i = 0; i < 4; i++) {
+    const x = i * 64 + 6, w = 52, shut = r() < 0.55;
+    g.fillStyle = '#0c1014'; g.fillRect(x, 22, w, 106);
+    if (shut) { g.fillStyle = ['#7a7468', '#8a8478', '#6a665e'][i % 3]; g.fillRect(x, 22, w, 106); g.fillStyle = 'rgba(0,0,0,.3)'; for (let s = 24; s < 128; s += 5) g.fillRect(x, s, w, 1); }
+    else { g.fillStyle = 'rgba(140,160,180,.15)'; g.fillRect(x + 4, 26, 8, 96); }
+  }
+  g.fillStyle = '#e8e2d4'; g.fillRect(0, 0, 256, 20);
+  const map = new THREE.CanvasTexture(cv), emi = new THREE.CanvasTexture(ce); for (const t of [map, emi]) t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return new THREE.MeshLambertMaterial({ map, emissive: 0xffffff, emissiveMap: emi });
+}
+// trozo [s,e] de una arista que cae dentro del local (para no tapar su fachada ni chocar dentro)
+function shopClip(ax, az, bx, bz) {
+  let t0 = 0, t1 = 1; const dx = bx - ax, dz = bz - az, R = SHOP_RECT;
+  for (const [p, q] of [[-dx, ax - R.x0], [dx, R.x1 - ax], [-dz, az - R.z0], [dz, R.z1 - az]]) { if (p === 0) { if (q < 0) return null; continue; } const t = q / p; if (p < 0) { if (t > t1) return null; if (t > t0) t0 = t; } else { if (t < t0) return null; if (t < t1) t1 = t; } }
+  return t1 > t0 ? [t0, t1] : null;
+}
+function nameAtlasAll(names) {
   const at = ctex(1024, 2048, (g) => {
     g.clearRect(0, 0, 1024, 2048); g.textAlign = 'center'; g.textBaseline = 'middle';
     names.forEach((t, i) => { const x = (i % 2) * 512, y = (i / 2 | 0) * 64; let fs = 46; g.font = 'bold ' + fs + 'px sans-serif'; while (g.measureText(t).width > 500) { fs--; g.font = 'bold ' + fs + 'px sans-serif'; } g.fillStyle = i % 3 === 2 ? '#7ad8ff' : '#ff3a2a'; g.fillText(t, x + 256, y + 34); });
   });
-  at.wrapS = at.wrapT = THREE.ClampToEdgeWrapping;
-  addMerged(signs, new THREE.MeshBasicMaterial({ map: at, transparent: true, alphaTest: 0.3, fog: false, side: THREE.DoubleSide }));
+  at.wrapS = at.wrapT = THREE.ClampToEdgeWrapping; return at;
+}
+function buildBuildings() {
+  const r = mulberry32(9090), FM = [0, 1, 2, 3].map(towerFacade), GF = groundFacade();
+  const body = [[], [], [], []], gnd = [], roof = [], bands = [], caps = [], canopy = [], posts = [], machine = [], signs = [], doors = [], doorFr = [];
+  const AW = [['#2a7a3a', '#e8e4d0'], ['#d86a1a', '#f0e6d0'], ['#1a4a9a', '#e8e8e0'], ['#a82020', '#f0e8d8'], ['#2a8a8a', '#2a8a8a']], aw = AW.map(() => []);
+  const names = [];
+  const portal = {};   // tramo de la fachada donde va el portal de cada torre de reparto: no lleva pared abajo
+  for (const C of TOWN.del) portal[C.b.i + ':' + C.edge] = C;
+  for (const b of TOWN.bld) {
+    const P = b.P, n = P.length, dist = Math.hypot(b.cx, b.cz);
+    if (b.t === 'roof') {   // marquesina: losa a 3 m sobre postes
+      const g1 = polyGeo(P, 3.1, 3), g2 = polyGeo(P, 3.0, 3, true); if (g1) canopy.push(g1); if (g2) canopy.push(g2);
+      for (let i = 0; i < n; i += Math.max(1, n / 4 | 0)) { posts.push(cgeo(0.08, 0.08, 3, 5, P[i][0], 1.5, P[i][1])); colliders.push({ x0: P[i][0] - 0.1, x1: P[i][0] + 0.1, z0: P[i][1] - 0.1, z1: P[i][1] + 0.1 }); }
+      continue;
+    }
+    const tall = b.l >= 5, gh = Math.min(3.4, b.h), fi = b.f;
+    let u = 0;
+    for (let i = 0; i < n; i++) {
+      const a = P[i], c = P[(i + 1) % n], L = Math.hypot(c[0] - a[0], c[1] - a[1]); if (L < 0.02) continue;
+      const cut = b.host ? shopClip(a[0], a[1], c[0], c[1]) : null, C = portal[b.i + ':' + i];
+      // planta baja (con hueco para el local o para el portal) y el resto de la fachada
+      const spans = cut ? [[0, cut[0]], [cut[1], 1]] : C ? [[0, (C.s0 - 1.7) / L], [(C.s0 + 0.3) / L, 1]] : [[0, 1]];
+      for (const [s, e] of spans) { if (e - s < 1e-3) continue; const x0 = lerp(a[0], c[0], s), z0 = lerp(a[1], c[1], s), x1 = lerp(a[0], c[0], e), z1 = lerp(a[1], c[1], e); vquad(x0, z0, x1, z1, 0, gh, u + s * L, 4, gnd); addSeg(x0, z0, x1, z1, 0, b.h); }
+      if (C) { const x0 = lerp(a[0], c[0], (C.s0 - 1.7) / L), z0 = lerp(a[1], c[1], (C.s0 - 1.7) / L), x1 = lerp(a[0], c[0], (C.s0 + 0.3) / L), z1 = lerp(a[1], c[1], (C.s0 + 0.3) / L); vquad(x0, z0, x1, z1, 2.6, gh, u, 4, gnd); addSeg(x0, z0, x1, z1, 2.6, b.h); C.door = addSeg(x0, z0, x1, z1, 0, 2.6); }
+      if (b.h > gh) vquad(a[0], a[1], c[0], c[1], gh, b.h, u, 6, body[fi]);
+      u += L;
+    }
+    const rg = polyGeo(P, b.h, 4); if (rg) roof.push(rg);
+    // terrazas corridas y toldos en las torres cercanas
+    if (tall && dist < 230 && (b.t === 'res' || b.t === 'hot')) {
+      const S = simplify(P, 0.6), O = offsetPoly(S, 1.25), sn = S.length;
+      const ring = [O.map(p => new THREE.Vector2(p[0], p[1])), [S.map(p => new THREE.Vector2(p[0], p[1]))]];
+      let tri = null; try { tri = THREE.ShapeUtils.triangulateShape(ring[0], ring[1]); } catch (e) { tri = null; }
+      const allp = O.concat(S);
+      for (let f = 1; f < b.l; f++) {
+        const y = f * FLH;
+        let uu = 0; for (let i = 0; i < sn; i++) { const a = O[i], c = O[(i + 1) % sn]; vquad(a[0], a[1], c[0], c[1], y, y + 1.1, uu, 1.5, bands); uu += Math.hypot(c[0] - a[0], c[1] - a[1]);
+          if (f < b.l - 1 && r() < 0.16) { const L = Math.hypot(c[0] - a[0], c[1] - a[1]); if (L > 3) { const t0 = 0.2 + r() * 0.4, t1 = Math.min(0.95, t0 + 2.5 / L + r() * 0.2), drop = 0.7 + r(); const x0 = lerp(a[0], c[0], t0), z0 = lerp(a[1], c[1], t0), x1 = lerp(a[0], c[0], t1), z1 = lerp(a[1], c[1], t1); vquad(x0, z0, x1, z1, y + 3 - drop, y + 2.95, 0, 1, aw[r() * AW.length | 0]); } } }
+        if (tri) { const pos = new Float32Array(allp.length * 3), nor = new Float32Array(allp.length * 3), uv = new Float32Array(allp.length * 2); allp.forEach((p, i) => { pos[i * 3] = p[0]; pos[i * 3 + 1] = y + 1.1; pos[i * 3 + 2] = p[1]; nor[i * 3 + 1] = 1; uv[i * 2] = p[0] / 2; uv[i * 2 + 1] = p[1] / 2; }); const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex([].concat(...tri)); caps.push(g); }
+      }
+    }
+    // azotea: caseta del ascensor y el nombre en letras grandes
+    if (b.l >= 8) {
+      const w = Math.min(5, (b.x1 - b.x0) * 0.4), d = Math.min(4, (b.z1 - b.z0) * 0.4); machine.push(bgeo(w, 3, d, b.cx, b.h + 1.5, b.cz, 0, 2));
+      if (b.n && dist < 300) {
+        const ni = names.length; names.push(b.n.toUpperCase().replace(/^EDIF\. /, 'EDIFICIO '));
+        // en la arista más larga, mirando hacia fuera
+        let bi = 0, bl = 0; for (let i = 0; i < n; i++) { const L = outN(P, i)[2]; if (L > bl) { bl = L; bi = i; } }
+        const [nx, nz] = outN(P, bi), a = P[bi], c = P[(bi + 1) % n], sw = Math.min(bl * 0.8, 14), mx = (a[0] + c[0]) / 2 - nx * 0.6, mz = (a[1] + c[1]) / 2 - nz * 0.6;
+        const g = new THREE.PlaneGeometry(sw, sw / 8); uvRect(g, (ni % 2) * 512, (ni / 2 | 0) * 64, 512, 64, 1024, 2048); g.rotateY(Math.atan2(nx, nz)); g.translate(mx, b.h + 1.9, mz); signs.push(g);
+        for (const t of [-0.4, 0.4]) posts.push(cgeo(0.05, 0.05, 1.4, 4, mx + (c[0] - a[0]) / bl * t * sw, b.h + 0.7, mz + (c[1] - a[1]) / bl * t * sw));
+      }
+    }
+  }
+  // portales que vienen en el mapa (entradas de verdad), salvo los de las torres de reparto
+  for (const [x, z] of MAP.ent) {
+    if (TOWN.del.some(C => Math.hypot(C.ox - x, C.oz - z) < 6) || (x > -6 && x < 6 && z > -9 && z < 6)) continue;
+    let best = null, bd = 1.6; for (const b of TOWN.bld) { if (b.t === 'roof' || x < b.x0 - 2 || x > b.x1 + 2 || z < b.z0 - 2 || z > b.z1 + 2) continue; for (let i = 0; i < b.P.length; i++) { const a = b.P[i], c = b.P[(i + 1) % b.P.length], [d, qx, qz] = segDist(x, z, a[0], a[1], c[0], c[1]); if (d < bd) { bd = d; best = { qx, qz, n: outN(b.P, i) }; } } }
+    if (!best) continue;
+    const [nx, nz] = best.n; doors.push(pplate(1.3, 2.3, best.qx + nx * 0.03, 1.15, best.qz + nz * 0.03, nx, nz));
+    doorFr.push(pplate(1.6, 0.18, best.qx + nx * 0.04, 2.38, best.qz + nz * 0.04, nx, nz));
+  }
+  FM.forEach((m, i) => addMerged(body[i], m)); addMerged(gnd, GF); addMerged(roof, lam('conc2', 0x6a6a68));
+  addMerged(bands, lam('plas', 0xf4f0e8, { emissive: 0x16161a })); addMerged(caps, lam('plas', 0xe8e4dc, { emissive: 0x101012, side: THREE.DoubleSide }));
+  AW.forEach(([c1, c2], i) => addMerged(aw[i], new THREE.MeshLambertMaterial({ map: awningTex(c1, c2), emissive: 0x0c0a08, side: THREE.DoubleSide })));
+  addMerged(canopy, lam('conc2', 0xb8b4ac)); addMerged(posts, M.dark); addMerged(machine, lam('plas', 0xd8d4cc));
+  addMerged(doors, new THREE.MeshLambertMaterial({ map: lobbyGlassTex(), emissive: 0x2a241a })); addMerged(doorFr, lam('steel', 0x6a6e72));
+  if (names.length) addMerged(signs, new THREE.MeshBasicMaterial({ map: nameAtlasAll(names), transparent: true, alphaTest: 0.3, fog: false, side: THREE.DoubleSide }));
+  // la ventana con la figura de madrugada: en una torre de enfrente
+  const fb = TOWN.bld.filter(b => b.l >= 6 && !b.host && Math.hypot(b.cx, b.cz) < 90).sort((a, c) => Math.hypot(a.cx, a.cz) - Math.hypot(c.cx, c.cz))[0];
+  if (fb) { let bi = 0, bd = 1e9; for (let i = 0; i < fb.P.length; i++) { const a = fb.P[i], c = fb.P[(i + 1) % fb.P.length], d = Math.hypot((a[0] + c[0]) / 2, (a[1] + c[1]) / 2); if (d < bd) { bd = d; bi = i; } } const [nx, nz] = outN(fb.P, bi), a = fb.P[bi], c = fb.P[(bi + 1) % fb.P.length]; D.figWin = plane(1.1, 1.3, new THREE.MeshBasicMaterial({ map: D.figWinTex }), (a[0] + c[0]) / 2 + nx * 0.05, 7.6, (a[1] + c[1]) / 2 + nz * 0.05, 0, Math.atan2(nx, nz)); D.figWin.visible = false; }
+  else { D.figWin = plane(1, 1, bas(0), 0, -50, 0, 0, 0); D.figWin.visible = false; }
+  buildCores();
+}
+
+/* ---------- interior de las torres: una planta tipo que se pone donde haga falta ---------- */
+// pared vertical en coordenadas del núcleo (u,v), mirando hacia (nu,nv)
+function cq(list, u0, v0, u1, v1, y0, y1, tile) { const L = Math.hypot(u1 - u0, v1 - v0); vquad(u0, v0, u1, v1, y0, y1, 0, tile || 1.4, list); }
+function cfloor(list, u0, u1, v0, v1, y, tile, down) { const g = polyGeo([[u0, v0], [u1, v0], [u1, v1], [u0, v1]], y, tile || 1.2, down); if (g) list.push(g); }
+function buildCores() {
+  if (!TOWN.del.length) return;
+  // plantilla de una planta (coordenadas del núcleo: x = u, z = v); dos versiones: planta baja (portal) y planta de pisos
+  const mk = (ground) => {
+    const fl = [], ce = [], wa = [], st = [], sl = [], dk = [];
+    cfloor(fl, -4.6, 1.9, 0, 6.2, 0.005, ground ? 1.2 : 1.0); cfloor(ce, -4.6, 1.9, 0, 6.2, 2.8, 2, true);
+    // paredes del rellano (mirando hacia dentro); vquad mira a la derecha de a→b
+    const W = (u0, v0, u1, v1) => cq(wa, u0, v0, u1, v1, 0, FLH);
+    // fachada por dentro (v=0): con el hueco del portal abajo
+    if (ground) { W(1.9, 0.02, 0.2, 0.02); W(-1.6, 0.02, -4.6, 0.02); cq(wa, 0.2, 0.02, -1.6, 0.02, 2.6, FLH); } else W(1.9, 0.02, -4.6, 0.02);
+    W(-4.6, 0.02, -4.6, 4.6);              // pared izquierda (C, D)
+    W(-4.6, 4.6, -4.4, 4.6); cq(wa, -4.4, 4.6, -3.2, 4.6, 2.3, FLH); W(-3.2, 4.6, -3.0, 4.6); W(-3.0, 4.6, -3.0, 6.2);   // frente del ascensor
+    W(-3.0, 6.2, 1.9, 6.2);                // fondo (A, B)
+    W(1.9, 6.2, 1.9, 1.3); cq(wa, 1.9, 1.3, 1.9, 0.3, 2.2, FLH); W(1.9, 0.3, 1.9, 0.02);   // hacia la escalera, con su hueco
+    // escalera: paredes, descansillos y peldaños de esta planta
+    const SW = (u0, v0, u1, v1) => cq(sl, u0, v0, u1, v1, 0, FLH);
+    SW(4.6, 0.02, 1.9, 0.02); SW(4.6, 6.2, 4.6, 0.02); SW(1.9, 6.2, 4.6, 6.2); SW(1.9, 0.02, 1.9, 0.3); SW(1.9, 1.3, 1.9, 6.2); cq(sl, 1.9, 0.3, 1.9, 1.3, 2.2, FLH);
+    cq(sl, 3.2, 5.0, 3.2, 1.6, -1.5, FLH); cq(sl, 3.3, 1.6, 3.3, 5.0, -1.5, FLH);   // muro entre tramos
+    cfloor(st, 1.9, 4.6, 0, 1.6, 0.005, 1); cfloor(st, 1.9, 4.6, 0, 1.6, -0.2, 1, true);
+    cfloor(st, 1.9, 4.6, 5.0, 6.2, 1.5, 1); cfloor(st, 1.9, 4.6, 5.0, 6.2, 1.3, 1, true);
+    for (let i = 0; i < 10; i++) {
+      st.push(bgeo(1.3, 0.3, 0.34, 3.95, (i + 1) * 0.15 - 0.15, 1.6 + (i + 0.5) * 0.34, 0, 0.6));
+      st.push(bgeo(1.3, 0.3, 0.34, 2.55, 1.5 + (i + 1) * 0.15 - 0.15, 5.0 - (i + 0.5) * 0.34, 0, 0.6));
+    }
+    // marcos de las puertas de los pisos y del ascensor
+    if (!ground) for (const [u, v, nu, nv] of FLAT_UV) { const g = new THREE.PlaneGeometry(1.25, 2.3); g.rotateY(Math.atan2(nu, nv)); g.translate(u + nu * 0.012, 1.15, v + nv * 0.012); dk.push(g); }
+    return { fl, ce, wa, st, sl, dk };
+  };
+  const mats = { fl0: lam('marb', 0xd8d0c0), fl1: lam('terr', 0xc0b8a8), ce: lam('plas', 0xd8d4cc), wa0: lam('plas2', 0xe0d8c8), wa1: lam('plas2', 0xd0c4a0), st: lam('conc2', 0xb0aca0), sl: lam('plas', 0xc8c0a8), dk: lam('wood2', 0x6a4a32) };
+  const tg = (ground) => { const t = mk(ground), o = {}; for (const k in t) if (t[k].length) o[k] = mergeGeos(t[k]); return o; };
+  const T0 = tg(true), T1 = tg(false);
+  D.core = { g: new THREE.Group(), floors: [], k: -1 }; scene.add(D.core.g); D.core.g.visible = false;
+  // cuatro plantas visibles a la vez (la tuya, la de abajo y dos de arriba): se recolocan al moverte
+  for (let i = 0; i < 4; i++) {
+    const F = new THREE.Group(); D.core.g.add(F);
+    const add = (geo, m) => { if (!geo) return; const me = new THREE.Mesh(geo, m); F.add(me); return me; };
+    const m0 = new THREE.Group(), m1 = new THREE.Group(); F.add(m0); F.add(m1);
+    for (const [T, grp, gr] of [[T0, m0, true], [T1, m1, false]]) for (const k in T) { const m = k === 'fl' ? (gr ? mats.fl0 : mats.fl1) : k === 'wa' ? (gr ? mats.wa0 : mats.wa1) : mats[k]; grp.add(new THREE.Mesh(T[k], m)); }
+    // puertas de los pisos
+    const doors = FLAT_UV.map(([u, v, nu, nv], j) => {
+      const grp = new THREE.Group(); grp.position.set(u + nu * 0.02, 0, v + nv * 0.02); grp.rotation.y = Math.atan2(nu, nv); m1.add(grp);
+      const piv = new THREE.Group(); piv.position.set(-0.49, 0, 0.04); grp.add(piv);
+      const door = new THREE.Mesh(new THREE.BoxGeometry(0.98, 2.08, 0.07), lam('wood2', 0x5a3a26)); door.position.set(0.49, 1.04, 0); piv.add(door);
+      const knob = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 4), lam(null, 0xc8a050)); knob.position.set(0.85, 1.0, 0.05); piv.add(knob);
+      const pl = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.16), new THREE.MeshLambertMaterial({ map: textPlate('ABCD'[j], 64, 64, '#c8a860', '#2a1a0a'), emissive: 0x181008 })); pl.position.set(0, 2.25, 0.05); grp.add(pl);
+      const mat = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.5), lam(null, 0x5a3a2a)); mat.rotation.x = -PI / 2; mat.position.set(0, 0.014, 0.35); grp.add(mat);
+      return { piv };
+    });
+    // número de planta en la pared, frente al ascensor; y en el descansillo de la escalera
+    const fp = dynPlate(128, 64, (g, t) => { g.fillStyle = '#e8e0c8'; g.fillRect(0, 0, 128, 64); g.strokeStyle = '#3a2a1a'; g.lineWidth = 4; g.strokeRect(3, 3, 122, 58); g.fillStyle = '#2a1a0a'; g.font = 'bold 34px serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 64, 34); });
+    const pm = new THREE.MeshLambertMaterial({ map: fp.t, emissive: 0x141210 });
+    const p1 = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.3), pm); p1.position.set(-1.5, 1.7, 6.17); p1.rotation.y = PI; F.add(p1);
+    const p2 = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.25), pm); p2.position.set(3.25, 1.7, 0.05); F.add(p2);
+    // puertas del ascensor de esta planta, botón de llamada y luces del techo
+    const dm = lam('steel', 0xb8bcc2), dl = new THREE.Mesh(new THREE.BoxGeometry(0.62, 2.25, 0.05), dm), dr = dl.clone(); dl.position.set(-4.1, 1.12, 4.58); dr.position.set(-3.5, 1.12, 4.58); F.add(dl); F.add(dr);
+    const bt = new THREE.Mesh(new THREE.PlaneGeometry(0.1, 0.16), lam('steel', 0x8a8e94, { emissive: 0x201008 })); bt.position.set(-2.7, 1.1, 4.57); bt.rotation.y = PI; F.add(bt);
+    const sw = new THREE.Mesh(new THREE.PlaneGeometry(0.08, 0.12), lam(null, 0xe8e4d8)); sw.position.set(1.86, 1.2, 2.2); sw.rotation.y = -PI / 2; F.add(sw);
+    const led = new THREE.Mesh(new THREE.PlaneGeometry(0.02, 0.02), bas(0xff8a20)); led.position.set(1.85, 1.23, 2.2); led.rotation.y = -PI / 2; F.add(led);
+    for (const [u, v] of [[-2.0, 2.2], [3.2, 0.8]]) { const fx = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.6), bas(0xfff8e8)); fx.rotation.x = PI / 2; fx.position.set(u, 2.78, v); F.add(fx); F.userData.fx = (F.userData.fx || []).concat(fx); }
+    const ih = (key, x, y, z, w, h, d) => { const me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), M.inv); me.position.set(x, y, z); me.visible = false; me.userData.key = key; F.add(me); rayTargets.push(me); return me; };
+    ih('ec', -2.7, 1.1, 4.45, 0.3, 0.4, 0.3); ih('lz', 1.75, 1.2, 2.2, 0.3, 0.3, 0.3); const fh = FLAT_UV.map(([u, v, nu, nv], j) => ih('fd' + j, u + nu * 0.4, 1.1, v + nv * 0.4, nv ? 1.1 : 0.6, 2.2, nv ? 0.6 : 1.1));
+    D.core.floors.push({ F, m0, m1, doors, fp, f: -99, dl, dr, led, fh });
+  }
+  // la cabina del ascensor (sube y baja de verdad)
+  const cab = new THREE.Group(), cm = lam('steel', 0xa8acb2);
+  const cab1 = (w, h, d, x, y, z) => { const me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), cm); me.position.set(x, y, z); cab.add(me); return me; };
+  cab1(0.05, 2.3, 1.6, -4.55, 1.15, 5.4); cab1(0.05, 2.3, 1.6, -3.05, 1.15, 5.4); cab1(1.5, 2.3, 0.05, -3.8, 1.15, 6.15); cab1(1.5, 0.05, 1.6, -3.8, 2.3, 5.4); cab1(1.5, 0.05, 1.6, -3.8, 0.0, 5.4);
+  const mir = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.3), bas(0x8a9098)); mir.position.set(-3.8, 1.35, 6.12); mir.rotation.y = PI; cab.add(mir);
+  const lt = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.5), bas(0xfff8e8)); lt.rotation.x = PI / 2; lt.position.set(-3.8, 2.27, 5.4); cab.add(lt);
+  D.liftDisp = dynPlate(64, 32, (g, t) => { g.fillStyle = '#080808'; g.fillRect(0, 0, 64, 32); g.fillStyle = '#ff4a2a'; g.font = 'bold 24px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 32, 17); }); D.liftDisp.set('0');
+  const pn = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 0.5), lam('steel', 0x7a7e84)); pn.position.set(-3.1, 1.2, 5.2); pn.rotation.y = -PI / 2; cab.add(pn);
+  const dsp = new THREE.Mesh(new THREE.PlaneGeometry(0.14, 0.07), new THREE.MeshBasicMaterial({ map: D.liftDisp.t })); dsp.position.set(-3.105, 1.55, 5.2); dsp.rotation.y = -PI / 2; cab.add(dsp);
+  { const me = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.6, 0.5), M.inv); me.position.set(-3.2, 1.2, 5.2); me.visible = false; me.userData.key = 'eb'; cab.add(me); rayTargets.push(me); }
+  D.core.g.add(cab); D.core.cab = cab;
+  // la puerta de cristal del portal y el portero automático de cada torre (fuera, siempre visibles)
+  const glassM = new THREE.MeshLambertMaterial({ map: lobbyGlassTex(), emissive: 0x3a3428 }), frameM = lam('steel', 0x6a6e72);
+  D.portals = TOWN.del.map(C => {
+    const g = new THREE.Group(); g.position.set(C.ox, 0, C.oz); g.rotation.y = Math.atan2(-C.uz, C.ux); scene.add(g);
+    const piv = new THREE.Group(); piv.position.set(-1.6, 0, -0.02); g.add(piv);
+    const leaf = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.55, 0.05), glassM); leaf.position.set(0.9, 1.28, 0); piv.add(leaf);
+    for (const [w, h, x, y] of [[0.1, 2.7, -1.65, 1.35], [0.1, 2.7, 0.25, 1.35], [2.0, 0.12, -0.7, 2.66]]) { const f = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.12), frameM); f.position.set(x, y, -0.04); g.add(f); }
+    const can = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.14, 1.4), lam('plas', 0xe0dcd0)); can.position.set(-0.7, 2.95, -0.7); g.add(can);
+    const nm = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 0.34), new THREE.MeshBasicMaterial({ map: textPlate(C.name.toUpperCase(), 512, 64, '#1a1612', '#e8c870', '#8a6a30'), color: 0xcccccc })); nm.position.set(-0.7, 3.25, -0.05); nm.rotation.y = PI; g.add(nm);
+    const ic = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.32, 0.05), lam('steel', 0x9a9ea2)); ic.position.set(0.75, 1.3, -0.04); g.add(ic);
+    const ld = new THREE.Mesh(new THREE.PlaneGeometry(0.035, 0.035), bas(0x50ff70)); ld.position.set(0.75, 1.42, -0.07); ld.rotation.y = PI; g.add(ld);
+    const pl = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.18), new THREE.MeshLambertMaterial({ map: textPlate(String(C.num), 96, 48, '#1a3a8a', '#ffffff', '#e8e4d8') })); pl.position.set(0.75, 1.75, -0.04); pl.rotation.y = PI; g.add(pl);
+    // el portero automático se usa desde la calle; desde dentro, el botón de abrir
+    const [ix, iz] = cw(C, 0.75, -0.2); hit('gt' + C.k, ix, 1.3, iz, 0.5, 0.6, 0.5);
+    const [jx, jz] = cw(C, -0.7, 0.4); hit('gi' + C.k, jx, 1.2, jz, 1.6, 2.2, 0.4);
+    // un poco de luz del vestíbulo en la acera
+    return { C, piv, ld };
+  });
+  // paredes del núcleo para chocar (en todas las plantas a la vez) y la puerta del ascensor (se abre según dónde esté la cabina)
+  for (const C of TOWN.del) {
+    const h = C.L * FLH, S = (u0, v0, u1, v1, y0, y1) => { const [ax, az] = cw(C, u0, v0), [bx, bz] = cw(C, u1, v1); return addSeg(ax, az, bx, bz, y0 || 0, y1 === undefined ? h : y1); };
+    S(-4.6, 0, -4.6, 6.2); S(-4.6, 6.2, 4.6, 6.2); S(4.6, 6.2, 4.6, 0); S(-3.0, 4.6, -3.0, 6.2);
+    S(1.9, 6.2, 1.9, 1.3); S(1.9, 0.3, 1.9, 0);
+    S(3.2, 1.6, 3.3, 5.0, -2, h); S(3.3, 1.6, 3.3, 5.0, -2, h);
+    C.liftSeg = S(-4.6, 4.6, -3.0, 4.6);
+  }
+  LG.int = new THREE.PointLight(0xfff0dc, 0, 12, 1.1); scene.add(LG.int);
+}
+
+/* ---------- moverse por dentro: ascensor, luces, portal ---------- */
+function liftDest(k) {
+  const C = TOWN.del[k], Pm = myP(), H = Pm && Pm.h;
+  let o = H && H.k === 'bag' ? W.dl.find(q => q.i === H.d && (q.d / 4 | 0) === k) : null;
+  if (!o) o = W.dl.find(q => (q.d / 4 | 0) === k && !q.dn);
+  return o ? o.f : C.L - 1;
+}
+function liftOpen() { EL.want = 1; EL.ot = 6; AU.play('ding', me.x, me.z); }
+function liftCall(k, f) {
+  if (EL.k !== k) { EL.k = k; EL.y = 0; EL.fl = 0; EL.door = 0; EL.st = ''; }
+  if (EL.st) return;
+  if (EL.fl === f && Math.abs(EL.y - f * FLH) < 0.05) { liftOpen(); return; }
+  EL.st = 'move'; EL.dest = f; EL.want = 0; AU.play('lift', me.x, me.z);
+}
+function liftGo(f) { if (EL.st) return; EL.st = 'move'; EL.dest = f; EL.want = 0; EL.hum = 0; }
+function setDisp(v) { if (EL.disp !== v) { EL.disp = v; D.liftDisp.set(String(v)); } }
+function myFloor() { return Math.round(me.y / FLH); }
+// acciones que hace cada jugador en su pantalla (no pasan por el anfitrión)
+function localUse(key, R, H) {
+  const kind = key.slice(0, 2), k = coreAt(me.x, me.z, 0.6);
+  if (kind === 'ec' && k >= 0) return EL.st === 'move' && EL.k === k ? R(T('u_lift_busy'), false) : R(T('u_lift_call'), true, null, () => { AU.play('click'); liftCall(k, myFloor()); });
+  if (kind === 'eb' && k >= 0) {
+    if (EL.st) return R(T('u_lift_busy'), false);
+    if (myFloor() > 0) return R(T('u_lift_down'), true, null, () => { AU.play('click'); liftGo(0); });
+    const d = liftDest(k);
+    if (d === 13) return R(T('u_lift_no13'), true, null, () => { AU.play('click'); liftGo(12); });
+    return R(T('u_lift_go', d), true, null, () => { AU.play('click'); liftGo(d); });
+  }
+  if (kind === 'lz') return R(T('u_light'), true, null, () => { IV.tl = 30; AU.play('click'); });
+  return null;
+}
+let _prevY = 0;
+function updInterior(dt) {
+  // puertas de los portales: abiertas mientras dura el permiso del portero
+  for (const p of D.portals || []) { const op = W.gt && W.gt[p.C.k] > 0; p.piv.rotation.y = lerp(p.piv.rotation.y, op ? -1.35 : 0, Math.min(1, dt * 3)); if (p.C.door) p.C.door.off = op; p.ld.material.color.setHex(op ? 0x50ff70 : Math.sin(TIME * 2) > 0 ? 0x1a6a2a : 0x0a2a10); }
+  const k = coreAt(me.x, me.z), near = k >= 0 ? k : coreAt(me.x, me.z, 9);
+  const DC = D.core; if (!DC) return;
+  if (near < 0) { DC.g.visible = false; LG.int.intensity = 0; IV.k = -1; _prevY = me.y; return; }
+  const C = TOWN.del[near];
+  if (DC.k !== near) { DC.k = near; DC.g.position.set(C.ox, 0, C.oz); DC.g.rotation.y = Math.atan2(-C.uz, C.ux); for (const F of DC.floors) F.f = -99; if (EL.k !== near) { EL.k = near; EL.y = 0; EL.fl = 0; EL.door = 0; EL.st = ''; setDisp(0); } }
+  DC.g.visible = true; IV.k = near;
+  // escalera: no bajar del portal ni subir de la última planta
+  if (k >= 0) {
+    const [u, v] = cl(C, me.x, me.z), top = (C.L - 1) * FLH;
+    if (u >= 1.9 && v > 1.6 && v < 5.0) {
+      if (u < 3.25 && _prevY < 0.9) { const [x, z] = cw(C, u, 1.58); me.x = x; me.z = z; me.y = 0; }
+      if (u >= 3.25 && _prevY > top - 0.9) { const [x, z] = cw(C, u, 1.58); me.x = x; me.z = z; me.y = top; }
+    }
+  }
+  _prevY = me.y;
+  // las plantas que se ven: la mía, la de abajo y las dos de arriba
+  const f0 = clamp(Math.round(me.y / FLH), 0, C.L - 1);
+  DC.floors.forEach((F, i) => {
+    const f = f0 - 1 + i; F.F.visible = f >= 0 && f < C.L; if (!F.F.visible) return;
+    if (F.f !== f) { F.f = f; F.F.position.y = f * FLH; F.m0.visible = f === 0; F.m1.visible = f > 0; F.fp.set(f === 0 ? T('floor0') : T('floorN', f)); for (const h of F.fh) h.userData.key = f > 0 ? h.userData.key : 'xx'; F.fh.forEach((h, j) => { h.userData.key = f > 0 ? 'fd' + j : 'xx'; }); }
+    // puertas de los pisos abiertas cuando sale alguien
+    F.doors.forEach((d, j) => { const n = near * 4 + j; let op = 0; for (const c of W.cu) if (c.o && c.dk === n && Math.round((c.fy || 0) / FLH) === f && ((c.st === S_DOOR && !c.hid) || (c.st === S_BACK && c.t < 1.6) || (c.st === S_ATK && c.t < 1))) op = 1; d.piv.rotation.y = lerp(d.piv.rotation.y, op * 1.3, Math.min(1, dt * 4)); });
+    const a = EL.k === near && EL.fl === f && !EL.st ? EL.door : 0; F.dl.position.x = -4.1 - a * 0.55; F.dr.position.x = -3.5 + a * 0.55;
+    F.led.material.color.setHex(Math.sin(TIME * 3) > 0 ? 0xff8a20 : 0x7a3a08);
+  });
+  // ascensor
+  EL.door = clamp(EL.door + (EL.want ? dt : -dt) * 1.4, 0, 1);
+  const inCab = (() => { if (k < 0) return false; const [u, v] = cl(C, me.x, me.z); return u < -3.0 && v > 4.6; })();
+  if (EL.want && !EL.st) { EL.ot -= dt; if (EL.ot <= 0) { const [u, v] = cl(C, me.x, me.z); if (k >= 0 && Math.abs(v - 4.6) < 0.4 && u < -2.9 && Math.abs(me.y - EL.y) < 1) EL.ot = 1.5; else EL.want = 0; } }
+  if (EL.st === 'move' && EL.door <= 0) {
+    const ty = EL.dest * FLH, dy = ty - EL.y, sp = 1.6 * dt;
+    if (Math.abs(dy) <= sp) { EL.y = ty; EL.fl = EL.dest; EL.st = ''; setDisp(EL.dest); liftOpen(); if (inCab && EL.dest > 0) IV.tl = 20; }
+    else { EL.y += Math.sign(dy) * sp; setDisp(Math.round(EL.y / FLH)); EL.hum -= dt; if (EL.hum <= 0) { EL.hum = 1.1; AU.play('lift', me.x, me.z); } }
+  }
+  DC.cab.position.y = EL.y;
+  C.liftSeg.off = EL.door > 0.85 && !EL.st && Math.abs(me.y - EL.y) < 1.2;
+  // luz: el portal siempre; rellanos y escalera con temporizador (30 s); la cabina con algún parpadeo
+  let I = 0;
+  if (k < 0) I = 0.9;
+  else if (inCab) I = EL.st && Math.sin(TIME * 31) > 0.97 ? 0.15 : 1.3;
+  else if (f0 === 0 && cl(C, me.x, me.z)[0] < 1.9) I = 1.5;
+  else { IV.tl -= dt; I = IV.tl > 0 ? (IV.tl < 2 && Math.sin(TIME * 40) > 0 ? 0.3 : 1.4) : 0.12; }
+  LG.int.intensity = I; LG.int.position.set(me.x, me.y + 2.6, me.z);
+  for (const F of DC.floors) for (const fx of F.F.userData.fx || []) fx.material.color.setScalar(I > 0.5 ? 1 : 0.15);
 }
 
 /* ================= PERSONAJES ================= */
@@ -2894,9 +2833,9 @@ function deliver(c, pid) {
   c.g[m.idx] = 1; c.sc = r2(c.sc + m.score); if (H.hm) c.hm = 1; P.h = 0; ev('ok', c.x, c.z);
   if (c.g.every(v => v)) finishOrder(c, ord); else if (m.line) say(c, m.line);
 }
-function nearestPlayer(x, z, vw) {
+function nearestPlayer(x, z, fy) {
   let best = null, bd = 1e9;
-  for (const pid in W.pl) { const p = PP[pid]; if (!p || W.pl[pid].ko > 0) continue; if (vw !== undefined && (p.vw === undefined ? -1 : p.vw) !== vw) continue; const d = Math.hypot(p.x - x, p.z - z); if (d < bd) { bd = d; best = pid; } }
+  for (const pid in W.pl) { const p = PP[pid]; if (!p || W.pl[pid].ko > 0) continue; if (Math.abs((p.y || 0) - (fy || 0)) > 2) continue; const d = Math.hypot(p.x - x, p.z - z); if (d < bd) { bd = d; best = pid; } }
   return best ? { pid: best, d: bd, x: PP[best].x, z: PP[best].z } : null;
 }
 function gunAimAt(id) { for (const pid in W.pl) { const h = W.pl[pid].h; if (h && h.k === 'gun' && PP[pid] && PP[pid].aim === id) return true; } return false; }
@@ -3050,7 +2989,7 @@ function useLogic(pid, key, doIt) {
   if (kind === 'pt') return doorLogic(pid, n, R, H);
   if (kind === 'vm') return vendLogic(pid, n, R, H, P);
   if (kind === 'gt') return gateLogic(pid, n, R, H, P);
-  if (kind === 'sd') { const d = TOWN.sdoors[n]; return R(d && d.st >= 0 ? STREETS[d.st].n + ' ' + d.num : '', false); }
+  if (kind === 'gi') return gateLogic(pid, n, R, H, P, true);
   if (kind === 'sp' && H && H.k === 'cone') return R(T('u_cone_mount', X.meat[n]), true, () => { const S = SV[n]; S.lv.fill(7); S.dn.fill(0.12); S.pend.fill(0); S.dirty = true; W.sp[n].h = 1; encodeSpit(n); P.h = 0; });
   if (kind === 'sp') return H ? R(T('u_hands'), false) : R(T('u_carve', X.meat[n]), true, null, 'cut');
   if (kind === 'tr') {
@@ -3244,7 +3183,7 @@ function simulate(dt) {
 }
 
 /* ================= RED: cooperativo por presencia ================= */
-const NETV = 9;   // versión del protocolo: todos tienen que jugar con la misma
+const NETV = 10;   // versión del protocolo: todos tienen que jugar con la misma
 const NET = { room: null, myId: 'solo', isHost: true, joined: false, acts: [], seq: 0, lastSeq: {}, lastHost: null, hostGone: 0, sendT: 0, others: [], remote: null, count: 1, evInit: false, code: '', badVer: false, lostSaid: false };
 
 /* Fuera de Claude (GitHub) la sala va por PeerJS, de navegador a navegador y sin cuentas.
@@ -3310,7 +3249,7 @@ function adoptWorld() {
   ensurePlayer(NET.myId);
 }
 function netUpdate(dt, me) {
-  PP[NET.myId] = { x: me.x, z: me.z, yaw: me.yaw, pitch: me.pitch, aim: me.aim, vw: myVW() };
+  PP[NET.myId] = { x: me.x, z: me.z, yaw: me.yaw, pitch: me.pitch, aim: me.aim, y: me.y };
   const room = NET.room; if (!room) return;
   let peers; try { peers = room.peers(); } catch (e) { return; }
   const mine = peers.find(p => p.isMe && p.sameTab);
@@ -3341,7 +3280,7 @@ function netUpdate(dt, me) {
       }
     }
   }
-  for (const p of others) { const pr = p.presence.p; if (pr) PP[p.peer] = { x: pr[0], z: pr[1], yaw: pr[2], pitch: pr[3], aim: pr[4], vw: pr[5] === undefined ? -1 : pr[5] }; else delete PP[p.peer]; }
+  for (const p of others) { const pr = p.presence.p; if (pr) PP[p.peer] = { x: pr[0], z: pr[1], yaw: pr[2], pitch: pr[3], aim: pr[4], y: +pr[5] || 0 }; else delete PP[p.peer]; }
   if (NET.isHost && W) {
     const live = {}; live[NET.myId] = 1;
     for (const p of others) {
@@ -3356,7 +3295,7 @@ function netUpdate(dt, me) {
   NET.sendT -= dt;
   if (NET.sendT <= 0) {
     NET.sendT = NET.joined ? 0.1 : 1;
-    const pr = { p: NET.joined ? [r2(me.x), r2(me.z), r2(me.yaw), r2(me.pitch), me.aim | 0, myVW(), sauceNet()] : null, a: NET.isHost ? null : NET.acts, ah: W ? W.hs : 0, w: NET.isHost && W && NET.joined ? wireW() : null };
+    const pr = { p: NET.joined ? [r2(me.x), r2(me.z), r2(me.yaw), r2(me.pitch), me.aim | 0, r2(me.y), sauceNet()] : null, a: NET.isHost ? null : NET.acts, ah: W ? W.hs : 0, w: NET.isHost && W && NET.joined ? wireW() : null };
     try { const q = room.presence(pr); if (q && q.catch) q.catch(() => { }); } catch (e) { }
   }
 }
@@ -3381,29 +3320,30 @@ function inShop(x, z) { return z < 5.3 && z > -8 && x > -4.2 && x < 4.2; }
 function dlPat(o) { return (230 + 40 * Math.max(0, genOrder(o.a, o.s).length - 1)) * (W.n === 1 ? 1.15 : 1); }
 // un pedido va a un piso: torre, planta y letra. A veces el cliente baja al portal; el anónimo siempre es en un 13º
 function newDelivery(an) {
-  const busy = W.dl.map(o => o.d / 4 | 0), towers = TOWN.plots.filter(P => busy.indexOf(P.k) < 0 && (!an || P.fl >= 14));
+  const busy = W.dl.map(o => o.d / 4 | 0), towers = TOWN.del.filter(C => busy.indexOf(C.k) < 0 && C.L >= 3 && (!an || C.L >= 15));
   if (!towers.length) return;
-  const P = towers[Math.random() * towers.length | 0], d = P.k * 4 + (Math.random() * 4 | 0);
-  let f = 1 + (Math.random() * P.fl | 0); if (f === 13) f = 12; if (an) f = 13;
+  const C = towers[Math.random() * towers.length | 0], d = C.k * 4 + (Math.random() * 4 | 0);
+  let f = 1 + (Math.random() * (C.L - 1) | 0); if (f === 13) f = 12; if (an) f = 13;
   const a = RES_IDX[Math.random() * RES_IDX.length | 0], s = (Math.random() * 1e6) | 0;
   const o = { i: W.id++, a, s, d, f, dn: !an && Math.random() < 0.4 ? 1 : 0, st: 0, g: genOrder(a, s).map(() => 0), sc: 0, p: 1, an: an ? 1 : 0, lt: 0 }; W.dl.push(o); return o;
 }
-// portero automático de la cancela
-function gateLogic(pid, k, R, H, P) {
-  const Pl = TOWN.plots[k]; if (!Pl) return R('', false);
-  const g = Pl.gate, p = PP[pid], nm = plotName(Pl);
-  if (p && plotAt(p.x, p.z) === Pl) return W.gt[k] > 0 ? R(nm, false) : R(T('u_gate_out'), true, () => { W.gt[k] = 8; ev('buzz', g.x, g.z); });
+// portero automático del portal (desde la calle) y botón de abrir (desde dentro)
+function gateLogic(pid, k, R, H, P, inner) {
+  const C = TOWN.del[k]; if (!C) return R('', false);
+  const [gx, gz] = cw(C, 0.75, -0.3), nm = C.name;
+  if (inner) return W.gt[k] > 0 ? R(nm, false) : R(T('u_gate_out'), true, () => { W.gt[k] = 8; ev('buzz', gx, gz); });
   if (W.gt[k] > 0) return R(T('u_gate_open', nm), false);
   const o = H && H.k === 'bag' ? W.dl.find(q => q.i === H.d) : null;
-  if (!o || (o.d / 4 | 0) !== k) return R(T('u_icom', STREETS[Pl.st].n + ' ' + Pl.num + ' · ' + nm), true, () => { ev('buzz', g.x, g.z); ev('icom', g.x, g.z, 0); });
+  if (!o || (o.d / 4 | 0) !== k) return R(T('u_icom', C.street + ' ' + C.num + ' · ' + nm), true, () => { ev('buzz', gx, gz); ev('icom', gx, gz, 0); });
   return R(T('u_icom_call', o.f + 'º' + FLAT_LET[o.d % 4]), true, () => {
-    W.gt[k] = 90; ev('buzz', g.x, g.z); ev('icom', g.x, g.z, (o.an ? 3 : o.dn ? 2 : 1) * 10000 + o.i);
+    W.gt[k] = 90; ev('buzz', gx, gz); ev('icom', gx, gz, (o.an ? 3 : o.dn ? 2 : 1) * 10000 + o.i);
     if (o.dn && !o.an && !W.cu.some(c => c.dl === o.i && c.st !== S_DEAD)) spawnLobby(o);
   });
 }
 // el cliente que baja: sale del ascensor y espera en el portal
 function spawnLobby(o) {
-  W.cu.push({ i: W.id++, a: o.a, s: o.s, x: MOD.x + 4, z: MOD.z + 1.6, y: 0, st: S_DOOR, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: 0, hp: 2, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, o: 1, dl: o.i, hid: 1, lb: 1, vw: (o.d / 4 | 0) * 100 });
+  const C = TOWN.del[o.d / 4 | 0], [x, z] = cw(C, -1.2, 3.2);
+  W.cu.push({ i: W.id++, a: o.a, s: o.s, x: r2(x), z: r2(z), y: r2(Math.atan2(-C.vx, -C.vz)), fy: 0, st: S_DOOR, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: 0, hp: 2, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, o: 1, dl: o.i, hid: 1, lb: 1 });
 }
 // el teléfono: hay que descolgar. k 0 pedido normal, 1 no se oye nada (y el pedido es al 13), 2 solo una respiración
 function startCall(k) { if (W.call) return false; W.call = { k, t: 0, rk: -1 }; ev('msg', 0, 0, 'phone'); return true; }
@@ -3497,17 +3437,17 @@ function bikeLogic(pid, R, H, P) {
   return R(T('u_bike_on'), true, () => { V.r = pid; V.mt = W.t; if (H) { V.b = H.d; P.h = 0; } });
 }
 function doorLogic(pid, n, R, H) {
-  const vw = PP[pid] ? PP[pid].vw : -1, fl = vw % 100, adr = T('u_flat', fl + 'º' + FLAT_LET[n % 4]);
+  const pp = PP[pid], fl = pp ? Math.round((pp.y || 0) / FLH) : 0, kk = pp ? coreAt(pp.x, pp.z, 0.6) : -1, adr = T('u_flat', fl + 'º' + FLAT_LET[n % 4]);
   if (!H || H.k !== 'bag') return R(adr, false);
   const o = W.dl.find(q => q.i === H.d);
   if (!o) return R(adr, false);
-  if (o.d !== n || o.f !== fl || (vw / 100 | 0) !== (n / 4 | 0)) return R(T('u_wrongdoor', o.f + 'º' + FLAT_LET[o.d % 4]), false);
+  if (o.d !== n || o.f !== fl || kk !== (n / 4 | 0)) return R(T('u_wrongdoor', o.f + 'º' + FLAT_LET[o.d % 4]), false);
   if (o.dn) return R(T('u_flat_down'), false);
   const at = W.cu.find(c => c.dl === o.i && c.st !== S_DEAD);
   if (at) return at.st === S_DOOR && !at.hid ? residentLogic(at, pid, R, H, W.pl[pid]) : R(T('u_wait_door'), false);
   return R(T('u_ring'), true, () => {
-    const D = TOWN.doors[n];
-    W.cu.push({ i: W.id++, a: o.a, s: o.s, x: r2(D.x + D.nx * 0.3), z: r2(D.z + D.nz * 0.3), y: r2(Math.atan2(D.nx, D.nz)), st: S_DOOR, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: o.an, hp: o.an ? 6 : 2, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, o: 1, dl: o.i, dk: n, hid: 1, vw: (n / 4 | 0) * 100 + o.f });
+    const D = flatPos(n, o.f);
+    W.cu.push({ i: W.id++, a: o.a, s: o.s, x: r2(D.x + D.nx * 0.3), z: r2(D.z + D.nz * 0.3), y: r2(Math.atan2(D.nx, D.nz)), fy: D.y, st: S_DOOR, p: 1, g: [], l: '', ln: 0, sl: -1, qi: -1, an: o.an, hp: o.an ? 6 : 2, t: 0, wp: 2, sc: 0, f: 0, b: 0, sd: 1, o: 1, dl: o.i, dk: n, hid: 1 });
     ev('bell2', D.x, D.z);
   });
 }
@@ -3547,7 +3487,7 @@ function updOutdoor(c, dt) {
     case S_DOOR:
       if (c.hid && c.t > (c.lb ? 5 : 2.2)) { c.hid = 0; ev(c.lb ? 'ding' : 'door', c.x, c.z); say(c, c.an ? 'pasa' : 'g'); }
       if (c.an && c.t > 7.5) {
-        const n = nearestPlayer(c.x, c.z, c.vw);
+        const n = nearestPlayer(c.x, c.z, c.fy);
         if (n && n.d < 13) { c.st = S_ATK; c.t = 0; c.sc = 0.4; say(c, 'atk'); ev('scream', c.x, c.z); W.dl = W.dl.filter(q => q.i !== c.dl); }
         else { c.st = S_BACK; c.t = 0; }
       }
@@ -3555,7 +3495,7 @@ function updOutdoor(c, dt) {
       break;
     case S_BACK: if (c.t > (c.an ? 0.5 : 2.6)) c.rm = 1; break;
     case S_ATK: {
-      const n = nearestPlayer(c.x, c.z, c.vw); W.fk = Math.max(W.fk, 0.15);
+      const n = nearestPlayer(c.x, c.z, c.fy); W.fk = Math.max(W.fk, 0.15);
       if (!n || c.t > 45 || inShop(n.x, n.z) || n.d > 45) { c.st = S_DIS; c.t = 0; ev('scream', c.x, c.z); break; }
       c.sc -= dt;
       if (c.sc <= 0) moveTo(c, n.x, n.z, 4.6 + 0.15 * W.n, dt); else c.y = Math.atan2(n.x - c.x, n.z - c.z);
@@ -3643,8 +3583,8 @@ function myDelivery() {
 }
 function syncTown(dt) {
   // niebla: fuera se ve un poco más lejos
-  const out = !inShop(camera.position.x, camera.position.z) && !inMod(camera.position.x, camera.position.z);
-  scene.fog.near = lerp(scene.fog.near, out ? 6 : 4, Math.min(1, dt * 3)); scene.fog.far = lerp(scene.fog.far, out ? (camera.position.z > 14 ? 70 : ride.on ? 54 : Math.abs(camera.position.x - LIT_ST) < 7 ? 46 : 38) : 25, Math.min(1, dt * 3));
+  const out = !inShop(camera.position.x, camera.position.z) && !inBld(camera.position.x, camera.position.z);
+  scene.fog.near = lerp(scene.fog.near, out ? 8 : 4, Math.min(1, dt * 3)); scene.fog.far = lerp(scene.fog.far, out ? (camera.position.z > 6 ? 90 : ride.on ? 70 : 60) : 25, Math.min(1, dt * 3));
   // las cuatro farolas encendidas más cercanas dan luz de verdad
   const flick = lampOff;
   for (const L of TOWN.lamps) if (L.sc > 0) L.sc -= dt;
@@ -3653,8 +3593,6 @@ function syncTown(dt) {
   LG.pool.forEach((l, i) => { const L = D.near && D.near[i]; if (!L) { l.intensity = 0; return; } l.position.set(L.hx, (L.hy || 4.48) - 0.3, L.hz); l.color.setHex(L.lit ? 0xffe6c0 : 0xffa850); l.intensity = flick(L) ? 0.08 : L.lit ? 2.4 : 2.1; });
   for (const o of D.lamps) o.h.material.color.setHex(flick(o.L) ? 0x1c1a16 : o.L.lit ? 0xfff0d8 : 0xffb45a);
   // portales abiertos
-  const open = {}, vw = myVW(); for (const c of W.cu) if (c.o && c.dk !== undefined && c.vw === vw && ((c.st === S_DOOR && !c.hid) || (c.st === S_BACK && c.t < 1.6) || (c.st === S_ATK && c.t < 1))) open[c.dk % 4] = 1;
-  D.doors.forEach((d, k) => { const t = open[k] ? 1 : 0; d.piv.rotation.y = lerp(d.piv.rotation.y, t * 1.3, Math.min(1, dt * 4)); });
   // la Vespino
   const V = W.vs; D.bike.visible = !ride.on;
   if (!ride.on) {
@@ -3676,12 +3614,12 @@ function syncTown(dt) {
   });
   // el portal de mi pedido tiene la luz del rellano encendida
   const dl = myDelivery();
-  if (dl && !inMod(me.x, me.z)) { const d = TOWN.plots[dl.d / 4 | 0].gate, x = d.x + d.nx * 0.15, z = d.z + d.nz * 0.15, on = !dl.an || Math.sin(TIME * 9) + Math.sin(TIME * 21) > -0.6; D.porch.position.set(x, 1.95, z); D.porch.material.color.setHex(on ? (dl.an ? 0xff6050 : 0xffe0a0) : 0x1a1410); LG.porch.position.set(d.x + d.nx * 1.2, 2.2, d.z + d.nz * 1.2); LG.porch.color.setHex(dl.an ? 0xff5040 : 0xffc880); LG.porch.intensity = on ? 1.5 : 0; }
+  if (dl && !inBld(me.x, me.z)) { const C = TOWN.del[dl.d / 4 | 0], [px, pz] = cw(C, -0.7, -0.15), d = { x: px, z: pz, nx: -C.vx, nz: -C.vz }, x = d.x, z = d.z, on = !dl.an || Math.sin(TIME * 9) + Math.sin(TIME * 21) > -0.6; D.porch.position.set(x, 3.25, z); D.porch.material.color.setHex(on ? (dl.an ? 0xff6050 : 0xffe0a0) : 0x1a1410); LG.porch.position.set(d.x + d.nx * 1.2, 2.2, d.z + d.nz * 1.2); LG.porch.color.setHex(dl.an ? 0xff5040 : 0xffc880); LG.porch.intensity = on ? 1.5 : 0; }
   else { LG.porch.intensity = 0; D.porch.position.y = -10; }
   updFigures(dt); updVermin(dt); syncFaces();
   // el mar: se mueve, y se oyen las olas cerca de la playa
-  if (D.sea) { D.seaTex.offset.x = TIME * 0.004; D.seaTex.offset.y = TIME * 0.011; D.foam.material.opacity = 0.35 + 0.3 * Math.sin(TIME * 0.9); D.foam.position.z = SEA_Z + 0.6 + Math.sin(TIME * 0.9) * 0.6; D.glint.material.map.offset.y = (TIME * 0.05) % 1; D.glint.material.opacity = 0.4 + 0.15 * Math.sin(TIME * 1.7); }
-  waveT -= dt; if (waveT <= 0) { waveT = 4.5 + Math.random() * 3; const dz = SEA_Z - camera.position.z; if (dz < 70) AU.play('wave', camera.position.x, SEA_Z - 2); }
+  if (D.sea) { D.seaTex.offset.x = TIME * 0.004; D.seaTex.offset.y = TIME * 0.011; if (D.foam) D.foam.material.opacity = 0.35 + 0.3 * Math.sin(TIME * 0.9); D.glint.material.map.offset.y = (TIME * 0.05) % 1; D.glint.material.opacity = 0.4 + 0.15 * Math.sin(TIME * 1.7); }
+  waveT -= dt; if (waveT <= 0) { waveT = 4.5 + Math.random() * 3; const [sd, q] = seaDist(camera.position.x, camera.position.z); if (q && sd < 80) AU.play('wave', q[0], q[1]); }
   // tráfico y vallas de obra
   for (const m of D.amber) m.visible = Math.sin(TIME * 5 + m.position.z) > -0.2;
   const tt = W.ph === 'play' || W.ph === 'end' ? W.t : TIME, cx = camera.position.x, cz = camera.position.z;
@@ -3708,7 +3646,7 @@ function syncTown(dt) {
   updStreetLife(dt); updInterior(dt);
   updExtras(dt);
   // el de la parada del bus: mira hacia ti y, si te acercas, ya no está
-  if (!watch) { watch = makeChar(SHADOW_LOOK, 9, 2, null); legless(watch); watch.g.position.set(BUS_STOP.x + 0.5, 0.35, BUS_STOP.z + 0.35); watch.g.rotation.y = PI; }
+  if (!watch) { watch = makeChar(SHADOW_LOOK, 9, 2, null); legless(watch); watch.g.position.set(BUS_STOP.x + 0.6, 0.35, BUS_STOP.z + 0.3); watch.g.rotation.y = PI; }
   const wk = W.hs + ':' + W.n, wv = W.ph === 'play' && W.t > HOUR_LEN && W.t < HOUR_LEN * 5 && watchGone !== wk;
   watch.g.visible = wv;
   if (wv) {
@@ -3728,7 +3666,7 @@ function syncTown(dt) {
 const FIG = []; let carHitT = 0, figCd = 120 + Math.random() * 120;
 function updFigures(dt) {
   if (!FIG.length) TOWN.lamps.forEach(L => { if (L.fig) FIG.push({ L, ch: null, st: 0, t: 0, cd: 0 }); });
-  const cx = camera.position.x, cz = camera.position.z, outside = cz < -10 && W.ph === 'play';
+  const cx = camera.position.x, cz = camera.position.z, outside = Math.hypot(cx, cz) > 40 && !inBld(cx, cz) && W.ph === 'play';
   figCd -= outside ? dt : 0;
   for (const f of FIG) {
     const L = f.L, fx = L.hx - L.ax * 0.3, fz = L.hz, d = Math.hypot(cx - fx, cz - fz);
@@ -3850,7 +3788,7 @@ function syncFaces() {
 
 /* ================= JUEGO: entrada, cámara, HUD, bucle ================= */
 const $ = id => document.getElementById(id);
-const me = { x: 1.6, z: -1.6, yaw: PI, pitch: 0, aim: 0, bob: 0, stepT: 0 };
+const me = { x: 1.6, z: -1.6, y: 0, yaw: PI, pitch: 0, aim: 0, bob: 0, stepT: 0 };
 const IN = { f: 0, s: 0, lx: 0, ly: 0, use: false, fire: false, held: false, reload: false, back: false, dev: 'kb', keys: {}, locked: false, noLock: false, drag: null, joy: null, look: null, padPrev: {} };
 const cut = { on: false, i: 0, y: 1.9, press: false, last: 7, cam: 0 };
 const ride = { on: false, spd: 0, look: 0, lean: 0, offT: 0, st: 0, thr: 0, spT: 0 };
@@ -4055,6 +3993,7 @@ function toast(t, cls) { if (!t) return; const el = document.createElement('div'
 
 /* ---------- jugador ---------- */
 function collide(p) {
+  collideSegs(p, PR, me.y);
   for (const c of colliders) {
     if (c.off) continue;
     const nx = clamp(p.x, c.x0, c.x1), nz = clamp(p.z, c.z0, c.z1), dx = p.x - nx, dz = p.z - nz, d2 = dx * dx + dz * dz;
@@ -4083,7 +4022,7 @@ function updatePlayer(dt) {
   const L = Math.hypot(f, s); if (L > 1) { f /= L; s /= L; }
   const sp = P && P.h && P.h.k === 'gun' ? 3.0 : P && P.h && P.h.k === 'body' ? 1.9 : 3.35, sy = Math.sin(me.yaw), cy = Math.cos(me.yaw);
   const vx = (-sy * f + cy * s) * sp, vz = (-cy * f - sy * s) * sp;
-  me.x += vx * dt; me.z += vz * dt; collide(me); collide(me);
+  me.x += vx * dt; me.z += vz * dt; collide(me); collide(me); me.y = groundY(me.x, me.z, me.y);
   const mv = Math.min(1, Math.hypot(f, s));
   me.bob += dt * 9 * mv; me.stepT -= dt * mv; if (mv > 0.3 && me.stepT <= 0) { me.stepT = 0.42; AU.play('step'); }
   if (prevKo > 0 && !ko) { me.x = 1.6; me.z = -1.6; me.yaw = PI; me.pitch = 0; }
@@ -4092,7 +4031,7 @@ function updatePlayer(dt) {
   // cámara
   if (cut.on) cut.cam = Math.min(1, cut.cam + dt * 5); else cut.cam = Math.max(0, cut.cam - dt * 6);
   const ey = ko ? 0.35 : 1.62 + Math.sin(me.bob) * 0.025 * mv, k = cut.cam * cut.cam * (3 - 2 * cut.cam);
-  camera.position.set(lerp(me.x, SPX[cut.i], k), lerp(ey + stairY(me.x, me.z), 1.5, k), lerp(me.z, -2.42, k));
+  camera.position.set(lerp(me.x, SPX[cut.i], k), lerp(ey + me.y, 1.5, k), lerp(me.z, -2.42, k));
   camera.rotation.y = angLerp(me.yaw, 0, k); camera.rotation.x = lerp(me.pitch, -0.07, k); camera.rotation.z = ko ? 1.2 : 0;
   if (hurtFlash > 0) { camera.rotation.z += Math.sin(TIME * 60) * 0.03 * hurtFlash; }
   AU.lis.x = me.x; AU.lis.z = me.z; AU.lis.yaw = me.yaw;
@@ -4254,13 +4193,12 @@ function syncChars(dt) {
     const px = ch.g.position.x, pz = ch.g.position.z, far = Math.hypot(c.x - px, c.z - pz) > 3, k = far ? 1 : Math.min(1, dt * 12);
     const nx = lerp(px, c.x, k), nz = lerp(pz, c.z, k);
     ch.spd = far ? 0 : lerp(ch.spd, Math.hypot(nx - px, nz - pz) / Math.max(dt, 0.001), 0.25);
-    ch.g.position.x = nx; ch.g.position.z = nz; ch.g.rotation.y = angLerp(ch.g.rotation.y, c.y, Math.min(1, dt * 9));
+    ch.g.position.x = nx; ch.g.position.z = nz; ch.g.position.y = c.fy || 0; ch.g.rotation.y = angLerp(ch.g.rotation.y, c.y, Math.min(1, dt * 9));
     const mode = c.st === S_DEAD ? 3 : c.st === S_DIS ? 4 : (c.st === S_ATK && (c.an === 1 || c.an === 3)) ? 1 : c.st === S_ROB ? 2 : 0;
     animChar(ch, dt, mode, c.an === 0 && ARCH[c.a].sp === 'drunk', TIME);
     if (ch.bag) ch.bag.visible = (c.st === S_OUT && c.b === 1) || c.st === S_RUN;
     if (c.an === 2) ch.g.visible = !W.pw || c.st === S_DIS;
     if (c.o) ch.g.visible = !c.hid;
-    if (c.vw !== undefined && c.vw !== myVW()) ch.g.visible = false;
     if (c.an === 3) { ch.g.position.y = 0.18 + Math.sin(TIME * 2 + c.i) * 0.08; for (const m of ch.mats) m.opacity = 0.3 + 0.15 * Math.sin(TIME * 7 + c.i); }
     if (c.ln !== ch.ln) { ch.ln = c.ln; showSay(c, ch); }
     ch.cx = c;
@@ -4290,7 +4228,7 @@ function syncChars(dt) {
     if (hk !== ch.hk) { ch.hk = hk; if (ch.held) ch.aR.remove(ch.held); ch.held = null; if (hk) { ch.held = itemMesh(Q.h); ch.held.position.set(0, -0.66, 0.12); ch.held.rotation.x = Q.h.k === 'gun' ? PI / 2 : 1.2; ch.aR.add(ch.held); } }
     if (hk) ch.aR.rotation.x = -1.1; ch.head.rotation.x = -pr[3] * 0.6;
     sauceRecv(p.peer, pr, ch);
-    ch.g.visible = (pr[5] === undefined ? -1 : pr[5]) === myVW();
+    ch.g.position.y = W.vs && W.vs.r === p.peer ? ch.g.position.y : (+pr[5] || 0);
   }
   for (const [id, ch] of rchars) if (!live[id]) { killChar(ch); rchars.delete(id); }
 }
@@ -4519,7 +4457,7 @@ function skyTex() {
 const FOG_IN = new THREE.Color(0x05060a), FOG_OUT = new THREE.Color(0x0c2558), AMB_OUT = new THREE.Color(0x5a6a9a);
 function updSky(dt) {
   if (!SKY) { SKY = skyTex(); SKY.wrapS = SKY.wrapT = THREE.ClampToEdgeWrapping; }
-  const out = !inShop(camera.position.x, camera.position.z) && !inMod(camera.position.x, camera.position.z);
+  const out = !inShop(camera.position.x, camera.position.z) && !inBld(camera.position.x, camera.position.z);
   scene.background = out ? SKY : FOG_IN;
   scene.fog.color.lerp(out ? FOG_OUT : FOG_IN, Math.min(1, dt * 4));
   if (out) { LG.amb.intensity = 1.0; LG.amb.color.copy(AMB_OUT); } else LG.amb.color.setHex(0x2a2e36);
@@ -4530,12 +4468,10 @@ let ARROW = null;
 function arrowTarget() {
   if (!W || W.ph !== 'play') return null;
   const x = me.x, z = me.z;
-  if (inMod(x, z)) return null;
+  if (inBld(x, z)) return null;
   const dl = myDelivery();
   if (dl) {
-    const P = TOWN.plots[dl.d / 4 | 0]; if (!P) return null;
-    if (plotAt(x, z) === P) return { x: P.portal.x + P.portal.nx * 0.8, z: P.portal.z + P.portal.nz * 0.8 };
-    return { x: P.gate.x + P.gate.nx * 1.2, z: P.gate.z + P.gate.nz * 1.2 };
+    const C = TOWN.del[dl.d / 4 | 0]; if (!C) return null; const [px, pz] = cw(C, -0.7, -1.5); return { x: px, z: pz };
   }
   // sin pedido encima: de vuelta al local
   if (!inShop(x, z)) return { x: -0.6, z: 6.2 };
@@ -4594,7 +4530,7 @@ function addStain(x, y, z, nx, ny, nz, t, s) {
 function sauceArc(ox, oy, oz, yaw, pitch, out) {
   const fx = -Math.sin(yaw) * Math.cos(pitch), fy = Math.sin(pitch), fz = -Math.cos(yaw) * Math.cos(pitch);
   let x = ox, y = oy, z = oz, vx = fx * 6.2, vy = fy * 6.2 + 1.1, vz = fz * 6.2, n = 0;
-  const floorY = (px, pz) => stairY(px, pz);
+  const floorY = (px, pz) => groundY(px, pz, oy - 1.4);
   for (let s = 0; s < 48; s++) {
     const dt = 0.025, px = x, py = y, pz = z; vy -= 9.8 * dt; x += vx * dt; y += vy * dt; z += vz * dt;
     if (out) { out[n * 3] = x; out[n * 3 + 1] = y; out[n * 3 + 2] = z; n++; }

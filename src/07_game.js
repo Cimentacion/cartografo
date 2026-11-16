@@ -1,6 +1,6 @@
 /* ================= JUEGO: entrada, cámara, HUD, bucle ================= */
 const $ = id => document.getElementById(id);
-const me = { x: 1.6, z: -1.6, yaw: PI, pitch: 0, aim: 0, bob: 0, stepT: 0 };
+const me = { x: 1.6, z: -1.6, y: 0, yaw: PI, pitch: 0, aim: 0, bob: 0, stepT: 0 };
 const IN = { f: 0, s: 0, lx: 0, ly: 0, use: false, fire: false, held: false, reload: false, back: false, dev: 'kb', keys: {}, locked: false, noLock: false, drag: null, joy: null, look: null, padPrev: {} };
 const cut = { on: false, i: 0, y: 1.9, press: false, last: 7, cam: 0 };
 const ride = { on: false, spd: 0, look: 0, lean: 0, offT: 0, st: 0, thr: 0, spT: 0 };
@@ -205,6 +205,7 @@ function toast(t, cls) { if (!t) return; const el = document.createElement('div'
 
 /* ---------- jugador ---------- */
 function collide(p) {
+  collideSegs(p, PR, me.y);
   for (const c of colliders) {
     if (c.off) continue;
     const nx = clamp(p.x, c.x0, c.x1), nz = clamp(p.z, c.z0, c.z1), dx = p.x - nx, dz = p.z - nz, d2 = dx * dx + dz * dz;
@@ -233,7 +234,7 @@ function updatePlayer(dt) {
   const L = Math.hypot(f, s); if (L > 1) { f /= L; s /= L; }
   const sp = P && P.h && P.h.k === 'gun' ? 3.0 : P && P.h && P.h.k === 'body' ? 1.9 : 3.35, sy = Math.sin(me.yaw), cy = Math.cos(me.yaw);
   const vx = (-sy * f + cy * s) * sp, vz = (-cy * f - sy * s) * sp;
-  me.x += vx * dt; me.z += vz * dt; collide(me); collide(me);
+  me.x += vx * dt; me.z += vz * dt; collide(me); collide(me); me.y = groundY(me.x, me.z, me.y);
   const mv = Math.min(1, Math.hypot(f, s));
   me.bob += dt * 9 * mv; me.stepT -= dt * mv; if (mv > 0.3 && me.stepT <= 0) { me.stepT = 0.42; AU.play('step'); }
   if (prevKo > 0 && !ko) { me.x = 1.6; me.z = -1.6; me.yaw = PI; me.pitch = 0; }
@@ -242,7 +243,7 @@ function updatePlayer(dt) {
   // cámara
   if (cut.on) cut.cam = Math.min(1, cut.cam + dt * 5); else cut.cam = Math.max(0, cut.cam - dt * 6);
   const ey = ko ? 0.35 : 1.62 + Math.sin(me.bob) * 0.025 * mv, k = cut.cam * cut.cam * (3 - 2 * cut.cam);
-  camera.position.set(lerp(me.x, SPX[cut.i], k), lerp(ey + stairY(me.x, me.z), 1.5, k), lerp(me.z, -2.42, k));
+  camera.position.set(lerp(me.x, SPX[cut.i], k), lerp(ey + me.y, 1.5, k), lerp(me.z, -2.42, k));
   camera.rotation.y = angLerp(me.yaw, 0, k); camera.rotation.x = lerp(me.pitch, -0.07, k); camera.rotation.z = ko ? 1.2 : 0;
   if (hurtFlash > 0) { camera.rotation.z += Math.sin(TIME * 60) * 0.03 * hurtFlash; }
   AU.lis.x = me.x; AU.lis.z = me.z; AU.lis.yaw = me.yaw;
@@ -404,13 +405,12 @@ function syncChars(dt) {
     const px = ch.g.position.x, pz = ch.g.position.z, far = Math.hypot(c.x - px, c.z - pz) > 3, k = far ? 1 : Math.min(1, dt * 12);
     const nx = lerp(px, c.x, k), nz = lerp(pz, c.z, k);
     ch.spd = far ? 0 : lerp(ch.spd, Math.hypot(nx - px, nz - pz) / Math.max(dt, 0.001), 0.25);
-    ch.g.position.x = nx; ch.g.position.z = nz; ch.g.rotation.y = angLerp(ch.g.rotation.y, c.y, Math.min(1, dt * 9));
+    ch.g.position.x = nx; ch.g.position.z = nz; ch.g.position.y = c.fy || 0; ch.g.rotation.y = angLerp(ch.g.rotation.y, c.y, Math.min(1, dt * 9));
     const mode = c.st === S_DEAD ? 3 : c.st === S_DIS ? 4 : (c.st === S_ATK && (c.an === 1 || c.an === 3)) ? 1 : c.st === S_ROB ? 2 : 0;
     animChar(ch, dt, mode, c.an === 0 && ARCH[c.a].sp === 'drunk', TIME);
     if (ch.bag) ch.bag.visible = (c.st === S_OUT && c.b === 1) || c.st === S_RUN;
     if (c.an === 2) ch.g.visible = !W.pw || c.st === S_DIS;
     if (c.o) ch.g.visible = !c.hid;
-    if (c.vw !== undefined && c.vw !== myVW()) ch.g.visible = false;
     if (c.an === 3) { ch.g.position.y = 0.18 + Math.sin(TIME * 2 + c.i) * 0.08; for (const m of ch.mats) m.opacity = 0.3 + 0.15 * Math.sin(TIME * 7 + c.i); }
     if (c.ln !== ch.ln) { ch.ln = c.ln; showSay(c, ch); }
     ch.cx = c;
@@ -440,7 +440,7 @@ function syncChars(dt) {
     if (hk !== ch.hk) { ch.hk = hk; if (ch.held) ch.aR.remove(ch.held); ch.held = null; if (hk) { ch.held = itemMesh(Q.h); ch.held.position.set(0, -0.66, 0.12); ch.held.rotation.x = Q.h.k === 'gun' ? PI / 2 : 1.2; ch.aR.add(ch.held); } }
     if (hk) ch.aR.rotation.x = -1.1; ch.head.rotation.x = -pr[3] * 0.6;
     sauceRecv(p.peer, pr, ch);
-    ch.g.visible = (pr[5] === undefined ? -1 : pr[5]) === myVW();
+    ch.g.position.y = W.vs && W.vs.r === p.peer ? ch.g.position.y : (+pr[5] || 0);
   }
   for (const [id, ch] of rchars) if (!live[id]) { killChar(ch); rchars.delete(id); }
 }

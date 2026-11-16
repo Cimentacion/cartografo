@@ -39,3 +39,25 @@ Todas vienen del pack **SBS - Horror Texture Pack 256x256** de Screaming Brain S
 | `drip3.png` | `Horror_Stain_12-256x256.png` | con transparencia (se incrusta como PNG a 128 px) |
 | `grime1.png` | `Horror_Stain_13-256x256.png` | con transparencia (se incrusta como PNG a 128 px) |
 | `grime2.png` | `Horror_Stain_15-256x256.png` | con transparencia (se incrusta como PNG a 128 px) |
+
+## Calle de Benidorm (ambientCG, CC0 1.0)
+
+Las texturas de la calle y de los portales vienen de [ambientCG](https://ambientcg.com) (CC0 1.0, dominio público). Las baja el workflow `fetch-benidorm.yml` (rama `kebab-data`, carpeta `data/tex/`): se usa solo el mapa de color, reducido a 128 px.
+
+| Archivo | Uso |
+|---|---|
+| `asph.png` | asfalto de las calzadas |
+| `acera.png` | aceras y paseo |
+| `pavs.png` | adoquines de calles peatonales y caminos |
+| `tbeig.png` | baldosa beige de la Avenida de Madrid |
+| `grass.png` | jardines y copas de árbol |
+| `sand.png` | playa |
+| `gravel.png` | solares |
+| `bark.png` | troncos de palmera y árbol |
+| `plas.png`, `plas2.png` | enlucido de tapias y fachadas, paredes de los portales |
+| `marb.png` | mármol del suelo de los portales |
+| `terr.png` | terrazo de rellanos y escalera |
+| `conc2.png` | hormigón |
+| `roof.png` | azoteas |
+| `metal.png` | chapa y ascensor |
+| `wood2.png` | puertas de los pisos y bancos |

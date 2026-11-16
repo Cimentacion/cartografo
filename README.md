@@ -40,9 +40,10 @@ Dentro de Claude, publicado como artefacto con la capacidad `room` (`dist/kebab-
 3. Verdura, salsas, papel de aluminio y a la mano del cliente. Patatas en la freidora, bebidas en la nevera.
 4. La verdura se acaba: se trae del almacén y se pica en la tabla.
 5. Junto a la freidora hay una nota del cocinero anterior con las reglas del turno de noche. Conviene leerla.
-6. **Reparto a domicilio.** Suena el teléfono: descuelga y toma nota (a veces no se oye nada, y ese pedido va a un 13º). Mete el pedido en la bolsa roja junto a la puerta, pon el cartel de CERRADO en el escaparate y ve en la Vespino. Las torres no dan a la calle: llama por el portero automático de la cancela (la del pedido tiene la luz encendida), cruza el jardín y entra al portal. A veces el cliente dice que baja y te espera en el portal; si no, sube en el ascensor o por la escalera hasta su planta y llama a la puerta. La luz de los rellanos y de la escalera es de temporizador. Bajo algunas farolas aparecen sombras, y en el solar hay perros.
+6. **Reparto a domicilio.** Suena el teléfono: descuelga y toma nota (a veces no se oye nada, y ese pedido va a un 13º). Mete el pedido en la bolsa roja junto a la puerta, pon el cartel de CERRADO en el escaparate y ve en la Vespino. Las torres no dan a la calle: cruzas la cancela y la zona común de la comunidad hasta el portal, llamas al portero automático (la del pedido tiene la luz encendida) y te abren. A veces el cliente dice que baja y te espera en el portal; si no, sube en el ascensor o por la escalera hasta su planta y llama a la puerta. La luz de los rellanos y de la escalera es de temporizador. Bajo algunas farolas aparecen sombras, y en el solar hay perros.
 7. Si sales y dejas el local vacío con el cartel en ABIERTO, a veces (1 de cada 20) al volver hay espíritus. No atacan: se quedan mirándote y en las paredes van saliendo caras que ya no se borran en toda la partida.
-8. El local está en Levante, Benidorm, en la Avenida de Alcoy (primera línea), frente al Paseo de Levante, la playa y el mar. Detrás están la Avenida del Mediterráneo (iluminada, con tiendas) y la Calle Gerona; hacia la playa bajan la Avenida de Bilbao, la del Periodista Emilio Romero y la de Europa.
+8. El barrio es el de verdad: unos 600 × 500 m de Levante, en Benidorm, alrededor del supermercado Veracruz, sacados de OpenStreetMap. Están en su sitio los 368 edificios con su altura y su nombre (Torre Levante, Edif. Coblanca, Edif. Tanit…), las calles, el Paseo de Levante y la playa, los jardines, piscinas y tapias de las comunidades con sus cancelas, las paradas de bus, los bancos, las papeleras y contenedores, las farolas, las palmeras y unos 115 comercios con su nombre real (bares, súper, masajes, farmacias, tiendas de recuerdos…). El local está en la planta baja del Edif. Carolina.
+9. No hay pantallas de carga ni teletransportes: los portales, rellanos, escaleras y el ascensor están dentro de cada torre de reparto, a la altura que toca. Desde la escalera de un 9º ves la calle de verdad por el hueco.
 9. Hay ratas y cucarachas por el suelo del local. No hacen nada y no se pueden matar.
 10. Si a un pedido a domicilio solo le falta la bebida, puedes llevarte la bolsa y comprarla en una de las máquinas de la calle (luz azul). Se paga de la caja, al mismo precio.
 11. La Avenida del Mediterráneo y la de Europa están iluminadas: farolas que funcionan y, en el Mediterráneo, tiendas abiertas. En las demás calles hay locales cerrados, contenedores, basura y algún vagabundo durmiendo con su perro, que te ladra si pasas cerca.
@@ -64,9 +65,15 @@ src/03_audio.js             todo el sonido, sintetizado con WebAudio
 src/04_scene.js             el local, las luces y los asadores
 src/05_chars.js             personajes: caras y ropa dibujadas por código
 src/06_sim.js               simulación, acciones y red del cooperativo
+src/02d_map.js              el barrio sacado de OpenStreetMap, generado por tools/osm2town.py
+src/04b_town.js             calles, playa, tapias, árboles, farolas y coches aparcados
+src/04c_streetlife.js       comercios, máquinas, basura, vagabundos y bancos
+src/04d_tower.js            fachadas, portales, escalera y ascensor de cada torre
 src/07_game.js              entrada, cámara, HUD y bucle principal
 assets/textures/            texturas originales (ver SOURCES.md)
 tools/build.py              une todo en un solo archivo
+tools/osm2town.py           convierte data/osm.json en src/02d_map.js
+tools/fetch/                lo que baja el mapa y las texturas (workflow fetch-benidorm.yml)
 ```
 
 ## Compilar
@@ -82,7 +89,8 @@ En `src/02b_i18n.js`: añade el código a `LANGS` y una entrada en `LX`, `STR`, 
 
 ## Créditos
 
-- Texturas: *SBS - Horror Texture Pack 256x256*, de Screaming Brain Studios, CC0 1.0.
+- Texturas: *SBS - Horror Texture Pack 256x256*, de Screaming Brain Studios, CC0 1.0; y texturas de calle de ambientCG.com, CC0 1.0.
+- Mapa: © colaboradores de OpenStreetMap, bajo licencia ODbL (openstreetmap.org/copyright).
 - three.js r128 (MIT) y PeerJS 1.5.4 (MIT), incluidos en `lib/`.
 - Fuentes Anton e IBM Plex Mono (SIL Open Font License), desde Google Fonts.
 
