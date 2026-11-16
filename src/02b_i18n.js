@@ -193,6 +193,13 @@ const ANOMX = {
 /* ---------- los 28 clientes, traducidos ---------- */
 const XL = {
   en: {
+    yusuf: { role: 'group of friends, wants halal', g: ['Salam aleikum, brother.', 'Good evening. Is the meat halal?'], pre: ['For everyone:', 'Write this down, brother:'], post: ['Halal, yes? We trust you.', 'And water or cola, no beer.'], w: ['Brother, is it going to be long?'], ok: ['Barakallahu fik, brother.', 'Very good. We will come back tomorrow.'], x: ["Let's go somewhere else, brothers."], no: ["This isn't ours, brother."] },
+    hamza: { role: "Yusuf's friend" }, bilal: { role: "Yusuf's friend" }, omar: { role: "Fátima's husband" },
+    fatima: { role: 'family, all halal', g: ["Good evening. It's halal, right?", 'Hi. Are you still cooking?'], pre: ['For us:', 'Give me'], post: ['No beer, thanks.', 'The kids like chicken.'], w: ['Will it take long?'], ok: ['Thank you, God bless you.'], x: ["Sorry, we're leaving."], no: ["That's not what we ordered."] },
+    manolofam: { role: 'the whole family', g: ['Good evening, cousin!', "What's up, brother-in-law? The whole family's here."], pre: ["Write it down, there's lots of us:", 'Give us'], post: ['And make it chicken, the family loves chicken.', 'Nice and loaded, eh, cousin?'], w: ['Cousin, the kids are hungry.'], ok: ['Olé! This is to die for, cousin.', 'God bless you, cousin.'], x: ["Let's go, family, they're not serving us here."], no: ["Cousin, that's not what I told you."] },
+    rocio: { role: "Manolo's wife" }, kiko: { role: "Manolo's son" }, tiaencarna: { name: 'Aunt Encarna', role: 'the aunt' },
+    marta: { role: 'nurse off an ER shift', g: ['Hi. Twelve-hour shift, imagine.'], pre: ['Give me', 'One'], post: ["To take away, I'm falling asleep."], w: ["I'm sleeping on my feet."], ok: ['Thanks, you saved my night.'], x: ["Never mind, I'll go to bed hungry."] },
+    olav: { role: 'sunburnt Norwegian tourist' }, tito: { role: 'waiter who just closed his bar', g: ["What's up, mate? Another one who doesn't sleep."], pre: ['Give me'], post: ["And a beer, I've earned it."], w: ['Easy, I know how it is.'], ok: ['This is heaven, mate.'], x: ["I'm off to the place across the road, no hard feelings."] },
     dave: { role: 'stag do', g: ['Amigo! Amigooo...', 'Oi oi. Evening, boss.'], pre: ['One... uno... er,', 'Mate, give us'], post: ['Por favor. Cheers.', 'And quick, before I fall over.'], w: ['Mate... is it gonna be long?', "Amigo, I'm proper starving."], ok: ["Legend! You're a legend.", 'Cheers, amigo. Best kebab in Spain.'], bad: ["This is... weird. I'll eat it anyway."], x: ["Bah. I'm off to the burger place."], no: ["No, no, no. That's not mine, mate."] },
     linda: { role: 'hen party', g: ['Hiyaaa! Are you open?', 'Ooh. It smells like heaven in here.'], pre: ['For me,', 'Give me'], post: ["I'm getting married on Saturday!", 'Thanks, handsome.'], w: ["Love, the party's wearing off."], ok: ['I love you! Come to the wedding!', "You're the best. Really."], x: ["I'm going back to the girls, then."] },
     paco: { role: 'night taxi driver', g: ['Evening.', 'Long night, eh?'], pre: ['Give me', 'The usual:'], post: ["And make it quick, the cab's double-parked.", 'People keep pouring out tonight.'], w: ["I'm getting a ticket out there, kid.", 'Are you hunting it first or what?'], ok: ["That's how it's done. See you tomorrow."], x: ["Forget the kebab. I'm off."] },
@@ -230,6 +237,13 @@ const XL = {
     pepe: { role: 'only opens the door a crack', g: ["The usual. I'm not opening any wider.", 'Pass it through here.'], ok: ['Good. The money, through the gap.'], late: ['Late. Noted.'], bad: ["No. The last one didn't do it like that."] },
   },
   ro: {
+    yusuf: { role: 'grup de prieteni, vor halal', g: ['Salam aleikum, frate.', 'Bună seara. Carnea e halal?'], pre: ['Pentru toți:', 'Notează, frate:'], post: ['Halal, da? Avem încredere.', 'Și apă sau cola, fără bere.'], w: ['Frate, mai durează?'], ok: ['Barakallahu fik, frate.', 'Foarte bun. Venim și mâine.'], x: ['Hai în altă parte, fraților.'], no: ['Asta nu e a noastră, frate.'] },
+    hamza: { role: 'prietenul lui Yusuf' }, bilal: { role: 'prietenul lui Yusuf' }, omar: { role: 'soțul Fátimei' },
+    fatima: { role: 'familie, totul halal', g: ['Bună seara. E halal, nu?'], pre: ['Pentru noi:', 'Dă-mi'], post: ['Fără bere, mulțumesc.', 'Copiilor le place puiul.'], w: ['Durează mult?'], ok: ['Mulțumesc, Dumnezeu să te binecuvânteze.'], x: ['Ne pare rău, plecăm.'], no: ['Nu asta am comandat.'] },
+    manolofam: { role: 'toată familia', g: ['Bună seara, vere!', 'Ce faci, cumnate? Am venit cu toată familia.'], pre: ['Notează, că suntem mulți:', 'Dă-ne'], post: ['Și să fie pui, că familiei îi place puiul.', 'Bine încărcat, da, vere?'], w: ['Vere, copiii sunt flămânzi.'], ok: ['Olé! E de vis, vere.', 'Să-ți dea Dumnezeu sănătate, vere.'], x: ['Hai, familie, aici nu ne servește nimeni.'], no: ['Vere, nu asta ți-am zis.'] },
+    rocio: { role: 'soția lui Manolo' }, kiko: { role: 'fiul lui Manolo' }, tiaencarna: { name: 'Mătușa Encarna', role: 'mătușa' },
+    marta: { role: 'asistentă după tura de la urgențe', g: ['Bună. Douăsprezece ore de tură, închipuie-ți.'], pre: ['Dă-mi'], post: ['La pachet, că adorm.'], w: ['Dorm în picioare.'], ok: ['Mersi, mi-ai salvat noaptea.'], x: ['Lasă, mă culc nemâncată.'] },
+    olav: { role: 'turist norvegian ars de soare' }, tito: { role: 'ospătar care tocmai și-a închis barul', g: ['Ce faci, colega? Încă unul care nu doarme.'], pre: ['Dă-mi'], post: ['Și o bere, că am meritat-o.'], w: ['Liniștit, știu cum e.'], ok: ['E raiul, colega.'], x: ['Mă duc vizavi, fără supărare.'] },
     dave: { role: 'petrecerea burlacilor', g: ['Amigo! Amigooo...', "Oi oi. Bună seara, șefu'."], pre: ['One... uno... ăă,', 'Mate, dă-mi'], post: ['Por favor. Cheers.', 'Și repede, că pic din picioare.'], w: ['Mate... mai durează mult?', 'Amigo, mor de foame, pe bune.'], ok: ['Legend! Ești o legendă.', 'Cheers, amigo. Cel mai bun kebab din Spania.'], bad: ["E... ciudat. Da' îl mănânc."], x: ['Bah. Mă duc la burgeri.'], no: ['Nu, nu, nu. Ăsta nu-i al meu, mate.'] },
     linda: { role: 'petrecerea burlăcițelor', g: ['Bunăăă! Aveți deschis?', 'Uuu. Miroase a rai aici.'], pre: ['Pentru mine,', 'Dă-mi'], post: ['Sâmbătă mă mărit!', 'Mersi, frumosule.'], w: ['Dragule, îmi trece cheful.'], ok: ['Te iubesc! Vino la nuntă!', 'Sunteți cei mai tari. Pe bune.'], x: ['Atunci mă întorc la fete.'] },
     paco: { role: 'taximetrist de noapte', g: ['Bună seara.', 'Lungă noapte, nu?'], pre: ['Dă-mi', 'Ca de obicei:'], post: ['Și repejor, că am taxiul parcat pe linia a doua.', 'Azi nu se mai termină lumea.'], w: ['Îmi iau amendă, băiete.', 'Îl vânezi sau ce faci?'], ok: ['Așa da. Pe mâine.'], x: ['Nici kebab, nici nimic. Am plecat.'] },
@@ -282,13 +296,18 @@ function aLines(a, key) {
   const t = XL[LANG][Ar.id];
   return (t && t[key]) || GENX[LANG][key] || Ar[key] || GEN[key] || ['...'];
 }
+const JCN = { es: 'Garrafa de gasolina con salsa', en: 'Petrol can of sauce', ro: 'Canistră de benzină cu sos' };
 function eur(v) { return LANG === 'en' ? '€' + v.toFixed(2) : v.toFixed(2).replace('.', ',') + ' €'; }
 function vegPhrase(v) {
   const X = LX[LANG]; if (v === 7) return X.vAll; if (v === 0) return X.vNone;
   const has = [], no = []; for (let i = 0; i < 3; i++) ((v >> i) & 1 ? has : no).push(X.veg[i]);
   return (no.length === 1 ? X.vNo : X.vOnly).replace('{0}', no.length === 1 ? no[0] : has[0]);
 }
-function saucePhrase(s) { return LX[LANG].sPh[s & 3]; }
+function saucePhrase(s) {
+  const X = LX[LANG], ex = []; if (s & 4) ex.push(X.sauce[2]); if (s & 8) ex.push(X.sauce[3]);
+  if (!ex.length) return X.sPh[s & 3];
+  return ((s & 3) ? X.sPh[s & 3] + ' + ' : '') + ex.join(' + ');
+}
 function itemPhrase(it) {
   const X = LX[LANG];
   if (it.k === 'fr') return X.frPh;
@@ -308,7 +327,7 @@ function orderPhrase(ord) {
 function itemName(h) {
   const N = LX[LANG].nm; if (!h) return N.none;
   if (h.k === 'bag') return N.bag; if (h.k === 'body') return N.body; if (h.k === 'cone') return N.cone;
-  if (h.k === 'gun') return N.gun; if (h.k === 'sb') return N.sb[h.t]; if (h.k === 'fr') return N.fr; if (h.k === 'dr') return N.dr[h.t]; if (h.k === 'vg') return N.vg[h.t]; if (h.k === 'kb') return N.kb[h.b];
+  if (h.k === 'gun') return N.gun; if (h.k === 'sb') return N.sb[h.t]; if (h.k === 'jc') return JCN[LANG] + ' · ' + LX[LANG].sauce[h.t]; if (h.k === 'fr') return N.fr; if (h.k === 'dr') return N.dr[h.t]; if (h.k === 'vg') return N.vg[h.t]; if (h.k === 'kb') return N.kb[h.b];
   return '?';
 }
 function handDesc(h) {
@@ -316,7 +335,7 @@ function handDesc(h) {
   if (h.k === 'kb') {
     const mt = h.m[0] && h.m[1] ? X.meat[2] : h.m[0] ? X.meat[0] : h.m[1] ? X.meat[1] : Hh.nomeat;
     const vg = []; for (let i = 0; i < 3; i++) if (h.v >> i & 1) vg.push(X.veg[i]);
-    const sa = []; for (let i = 0; i < 2; i++) if (h.s >> i & 1) sa.push(X.sauce[i]);
+    const sa = []; for (let i = 0; i < 4; i++) if (h.s >> i & 1) sa.push(X.sauce[i]);
     return X.base[h.b].toUpperCase() + ' · ' + mt + (h.r > 0.4 ? Hh.raw : '') + (vg.length ? ' · ' + vg.join(', ') : '') + (sa.length ? ' · ' + sa.join(', ') : '') + (h.f ? ' · ' + X.fries : '') + (h.w ? ' · ' + (h.b === 2 ? Hh.closed : Hh.wrapped) : '');
   }
   if (h.k === 'fr') return X.fries.toUpperCase() + (h.q < 0.4 ? Hh.bad : '');
@@ -325,6 +344,8 @@ function handDesc(h) {
   if (h.k === 'gun') return Hh.gun;
   if (h.k === 'bag') { const o = W && W.dl ? W.dl.find(q => q.i === h.d) : null; return Hh.bag + (o ? ' · ' + dlAddr(o) : ''); }
   if (h.k === 'body') return Hh.body; if (h.k === 'cone') return Hh.cone;
+  if (h.k === 'jc') return (JCN[LANG] + ' · ' + X.sauce[h.t]).toUpperCase() + ' · ' + Math.round(h.a * 100) + '%';
+  if (h.k === 'sb') return LX[LANG].nm.sb[h.t].toUpperCase() + ' · ' + Math.round((h.f == null ? 1 : h.f) * 100) + '%';
   return '';
 }
 function doneWord(d) { return LX[LANG].done[d < 0.35 ? 0 : d < 0.55 ? 1 : d <= 1.15 ? 2 : d <= 1.4 ? 3 : 4]; }

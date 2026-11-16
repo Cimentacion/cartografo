@@ -5,8 +5,9 @@ const colliders = [], rayTargets = [], D = {}, TX = {}, LG = {}, M = {};
 const IH = 360;
 const SLOTS = [[-2.4, 1.85], [-0.8, 1.85], [0.8, 1.85]], QUEUE = [[2.2, 2.9], [1.0, 3.8], [2.6, 4.2]];
 const DOOR_IN = [[-2.6, 6.3], [-2.6, 4.4]];
-const SEG = 10, BANDS = 6, NCELL = SEG * BANDS, SPY0 = 1.02, BH = 0.13, SPX = [-3.0, -1.8], SPZ = -3.62;
-const SV = [0, 1].map(() => ({ lv: new Uint8Array(NCELL).fill(7), dn: new Float32Array(NCELL).fill(0.75), pend: new Float32Array(NCELL), dirty: true, cs: '', ds: '' }));
+const SEG = 10, BANDS = 6, NCELL = SEG * BANDS, SPY0 = 1.02, BH = 0.13, SPX = [-3.45, -2.75, -2.05, -1.35], SPZ = -3.62;
+const SPT = [0, 1, 0, 1];   // tipo de carne de cada asador: los dos que se compran repiten pollo y ternera
+const SV = [0, 1, 2, 3].map(() => ({ lv: new Uint8Array(NCELL).fill(7), dn: new Float32Array(NCELL).fill(0.75), pend: new Float32Array(NCELL), dirty: true, cs: '', ds: '' }));
 
 function loadTextures() {
   return Promise.all(Object.keys(TEXDATA).map(k => new Promise(res => {
@@ -68,7 +69,7 @@ function hit(key, x, y, z, w, h, d) {
 }
 
 /* ---------- carne del asador ---------- */
-function spitRad(b, lv) { const R = 0.19 + 0.07 * (b / (BANDS - 1)); return 0.05 + (R - 0.05) * lv / 7; }
+function spitRad(b, lv) { const R = 0.17 + 0.06 * (b / (BANDS - 1)); return 0.05 + (R - 0.05) * lv / 7; }
 const MC = [[[0.95, 0.72, 0.66], [0.88, 0.6, 0.27], [0.6, 0.36, 0.14], [0.12, 0.085, 0.07]], [[0.82, 0.36, 0.36], [0.66, 0.38, 0.2], [0.4, 0.22, 0.12], [0.1, 0.07, 0.06]]];
 function meatColor(i, d, o) {
   const P = MC[i]; let a, b, t;
@@ -77,7 +78,9 @@ function meatColor(i, d, o) {
 }
 function meatHex(i, d) { const c = meatColor(i, d, [0, 0, 0]); return new THREE.Color(c[0], c[1], c[2]); }
 function buildSpit(i) {
-  const x = SPX[i], grp = new THREE.Group(); grp.position.set(x, 0, SPZ); scene.add(grp);
+  // todo lo del asador cuelga de un grupo: los dos que se compran están escondidos hasta entonces
+  const x = SPX[i], root = new THREE.Group(); scene.add(root);
+  const grp = new THREE.Group(); grp.position.set(x, 0, SPZ); root.add(grp);
   const nv = (SEG + 1) * (BANDS + 1) + 2, pos = new Float32Array(nv * 3), col = new Float32Array(nv * 3), uv = new Float32Array(nv * 2), idx = [];
   for (let k = 0; k <= BANDS; k++) for (let j = 0; j <= SEG; j++) { const v = k * (SEG + 1) + j; uv[v * 2] = j / SEG * 2; uv[v * 2 + 1] = k / BANDS * 1.5; }
   for (let k = 0; k < BANDS; k++) for (let j = 0; j < SEG; j++) { const a = k * (SEG + 1) + j, b = a + 1, c = a + SEG + 1, d = c + 1; idx.push(a, b, d, a, d, c); }
@@ -89,18 +92,19 @@ function buildSpit(i) {
   const mesh = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ map: TX.meat, vertexColors: true }));
   mesh.frustumCulled = false; grp.add(mesh);
   // hierro, base y bandeja
-  cyl(0.012, 0.012, 1.25, 6, M.steelD, x, 1.5, SPZ);
-  cyl(0.09, 0.07, 0.03, 8, M.steelD, x, SPY0 + BANDS * BH + 0.03, SPZ);
-  box(0.62, 0.04, 0.62, M.steel, x, 0.93, SPZ + 0.02);
-  box(0.62, 0.05, 0.02, M.steel, x, 0.965, SPZ + 0.33);
+  const o = { parent: root };
+  cyl(0.012, 0.012, 1.25, 6, M.steelD, x, 1.5, SPZ, o);
+  cyl(0.09, 0.07, 0.03, 8, M.steelD, x, SPY0 + BANDS * BH + 0.03, SPZ, o);
+  box(0.6, 0.04, 0.62, M.steel, x, 0.93, SPZ + 0.02, o);
+  box(0.6, 0.05, 0.02, M.steel, x, 0.965, SPZ + 0.33, o);
   const pile = new THREE.Mesh(new THREE.SphereGeometry(0.12, 7, 4, 0, PI * 2, 0, PI / 2), new THREE.MeshLambertMaterial({ map: TX.meat, color: 0xa86a30 }));
-  pile.position.set(x, 0.95, SPZ + 0.24); pile.scale.set(1.6, 0.01, 0.6); scene.add(pile);
+  pile.position.set(x, 0.95, SPZ + 0.24); pile.scale.set(1.6, 0.01, 0.6); root.add(pile);
   // resistencia
-  const heat = plane(0.62, 0.92, new THREE.MeshBasicMaterial({ map: D.heatTex, color: 0xffffff }), x, 1.44, -3.93, 0, 0);
-  box(0.7, 1.0, 0.05, M.steelD, x, 1.44, -3.965);
-  D.spit[i] = { grp, mesh, g, pile, heat };
-  hit('sp' + i, x, 1.45, SPZ, 0.52, 0.86, 0.4);
-  hit('tr' + i, x, 0.99, SPZ + 0.25, 0.6, 0.16, 0.22);
+  const heat = plane(0.6, 0.92, new THREE.MeshBasicMaterial({ map: D.heatTex, color: 0xffffff }), x, 1.44, -3.93, 0, 0, null, false, root);
+  box(0.68, 1.0, 0.05, M.steelD, x, 1.44, -3.965, o);
+  D.spit[i] = { root, grp, mesh, g, pile, heat };
+  hit('sp' + i, x, 1.45, SPZ, 0.5, 0.86, 0.4);
+  hit('tr' + i, x, 0.99, SPZ + 0.25, 0.58, 0.16, 0.22);
 }
 const _c3 = [0, 0, 0];
 function updateSpitMesh(i) {
@@ -111,11 +115,11 @@ function updateSpitMesh(i) {
     r /= n; dd /= n;
     const v = k * (SEG + 1) + j, a = j * 2 * PI / SEG;
     pos[v * 3] = Math.sin(a) * r; pos[v * 3 + 1] = SPY0 + k * BH; pos[v * 3 + 2] = Math.cos(a) * r;
-    meatColor(i, dd, _c3); col[v * 3] = _c3[0]; col[v * 3 + 1] = _c3[1]; col[v * 3 + 2] = _c3[2];
+    meatColor(SPT[i], dd, _c3); col[v * 3] = _c3[0]; col[v * 3 + 1] = _c3[1]; col[v * 3 + 2] = _c3[2];
   }
   const ct = (SEG + 1) * (BANDS + 1), cb = ct + 1;
   pos[ct * 3 + 1] = SPY0 + BANDS * BH; pos[cb * 3 + 1] = SPY0;
-  meatColor(i, 0.9, _c3); for (const v of [ct, cb]) { col[v * 3] = _c3[0]; col[v * 3 + 1] = _c3[1]; col[v * 3 + 2] = _c3[2]; }
+  meatColor(SPT[i], 0.9, _c3); for (const v of [ct, cb]) { col[v * 3] = _c3[0]; col[v * 3 + 1] = _c3[1]; col[v * 3 + 2] = _c3[2]; }
   sp.g.attributes.position.needsUpdate = true; sp.g.attributes.color.needsUpdate = true; sp.g.computeVertexNormals(); S.dirty = false;
 }
 function frontCells(i, rot, band) {
@@ -253,16 +257,12 @@ function buildWorld() {
   plane(2.5, 0.4, lam(null, 0x9ab0b8, { transparent: true, opacity: 0.18, side: THREE.DoubleSide, depthWrite: false }), -2.75, 1.22, 1.27, 0.25, 0);
   const cy = 1.01, cz = 0.8;
   for (let i = 0; i < 3; i++) {
-    const x = -3.5 + i * 0.45;
-    box(0.4, 0.1, 0.3, M.steelD, x, cy + 0.05, cz);
-    const fill = box(0.34, 0.1, 0.24, lam(null, VEGC[i]), x, cy + 0.11, cz); D.bins.push(fill);
-    hit('bn' + i, x, cy + 0.1, cz, 0.42, 0.24, 0.34);
+    const x = -3.7 + i * 0.4;
+    box(0.37, 0.1, 0.3, M.steelD, x, cy + 0.05, cz);
+    const fill = box(0.31, 0.1, 0.24, lam(null, VEGC[i]), x, cy + 0.11, cz); D.bins.push(fill);
+    hit('bn' + i, x, cy + 0.1, cz, 0.38, 0.24, 0.34);
   }
-  for (let i = 0; i < 2; i++) {
-    const x = -2.12 + i * 0.26, c = i ? 0xc0281e : 0xf2f0e6;
-    cyl(0.045, 0.05, 0.2, 7, lam(null, c), x, cy + 0.1, cz); cyl(0.008, 0.02, 0.06, 5, lam(null, i ? 0x7a1a14 : 0xb8b6a8), x, cy + 0.23, cz);
-    hit('sa' + i, x, cy + 0.13, cz, 0.22, 0.32, 0.26);
-  }
+  // los barreños de salsa y los botes van en 04e_kitchen.js
   cyl(0.145, 0.145, 0.07, 10, lam(null, 0xe9d9a8), -1.45, cy + 0.035, cz); hit('bs0', -1.45, cy + 0.08, cz, 0.4, 0.2, 0.36);
   for (let i = 0; i < 4; i++) cyl(0.11, 0.11, 0.028, 9, lam(null, i % 2 ? 0xd2ae6c : 0xd9b878), -0.95 + (i % 2) * 0.01, cy + 0.014 + i * 0.028, cz); hit('bs1', -0.95, cy + 0.08, cz, 0.36, 0.22, 0.36);
   for (let i = 0; i < 3; i++) box(0.22, 0.05, 0.17, lam('wood', 0xd8b47c), -0.45, cy + 0.025 + i * 0.052, cz, { ry: i * 0.07 }); hit('bs2', -0.45, cy + 0.09, cz, 0.36, 0.24, 0.36);
@@ -278,7 +278,7 @@ function buildWorld() {
   box(3.0, 0.9, 0.7, M.steel2, -2.4, 0.45, -3.65, { col: true, occ: true });
   box(3.04, 0.03, 0.74, M.steel, -2.4, 0.915, -3.65);
   D.heatTex = ctex(32, 48, (g) => { g.fillStyle = '#2a0c04'; g.fillRect(0, 0, 32, 48); for (let y = 2; y < 48; y += 6) { const gr = g.createLinearGradient(0, y, 0, y + 4); gr.addColorStop(0, '#ff5a10'); gr.addColorStop(0.5, '#ffd27a'); gr.addColorStop(1, '#ff4a08'); g.fillStyle = gr; g.fillRect(2, y, 28, 4); } });
-  buildSpit(0); buildSpit(1);
+  for (let i = 0; i < 4; i++) buildSpit(i);
   box(1.1, 0.9, 0.7, M.steel, -0.25, 0.45, -3.65, { col: true, occ: true });
   D.oil = box(0.5, 0.02, 0.5, new THREE.MeshLambertMaterial({ map: TX.oil, color: 0xc89a2a, emissive: 0x2a1a04 }), -0.52, 0.895, -3.65);
   for (const [x, z, w, d] of [[-0.52, -3.39, 0.54, 0.03], [-0.52, -3.91, 0.54, 0.03], [-0.79, -3.65, 0.03, 0.54], [-0.25, -3.65, 0.03, 0.54]]) box(w, 0.06, d, M.steelD, x, 0.92, z);
@@ -351,5 +351,14 @@ function buildWorld() {
   decal('grime1', -3.99, 1.3, -1.6, 0, PI / 2, 2.0, 1.6, 0.6); decal('grime1', 0.2, 1.5, -3.99, 0, 0, 1.6, 1.4, 0.7); decal('st1', 3.99, 1.1, 3.4, 0, -PI / 2, 1.2, 1.2, 0.55);
   decal('drip1', 2.2, 1.9, -7.49, 0, 0, 2.6, 1.4, 0.8); decal('st2', 0.51, 1.0, -6.4, 0, PI / 2, 1.3, 1.3, 0.7); decal('drip3', 1.5, 2.0, -4.21, 0, PI, 1.6, 1.2, 0.7);
   decal('st3', 3.05, 1.0, -7.435, 0, 0, 0.9, 0.9, 0.7); decal('grime2', 1, 0.45, 4.99, 0, PI, 3.6, 0.9, 0.5);
+  const pre = new Set(scene.children);
   buildTown();
+  const post = new Set(scene.children);
+  buildKitchen();
+  // el local y su cocina en un grupo: de lejos no se dibuja (las luces se quedan fuera para no recompilar sombreadores)
+  D.shopGrp = new THREE.Group(); const mv = [];
+  for (const o of scene.children) if ((pre.has(o) || !post.has(o)) && !o.isLight && (o.isMesh || o.isGroup || o.isPoints) && o !== D.shopGrp) mv.push(o);
+  for (const o of mv) D.shopGrp.add(o);
+  scene.add(D.shopGrp);
+  buildMart(); buildAO();
 }

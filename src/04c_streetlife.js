@@ -202,7 +202,7 @@ function moteStep(M2, top) {
 }
 
 
-const LIFE = layoutLife();
+let LIFE = null;   // se monta en 04d, cuando ya se sabe dónde van los portales
 
 /* ---------- mobiliario urbano del mapa ---------- */
 function buildFurniture(r) {
@@ -217,16 +217,19 @@ function buildFurniture(r) {
     colliders.push({ x0: x - 0.7, x1: x + 0.7, z0: z - 0.7, z1: z + 0.7 });
   }
   // papeleras y contenedores (amarillo envases, azul papel, iglú verde de vidrio, verde y gris de basura)
-  for (const [x, z, k] of MAP.bin) {
-    if (k === 0) { iron.push(cgeo(0.04, 0.04, 1.0, 4, x, 0.5, z)); const g = new THREE.CylinderGeometry(0.22, 0.2, 0.55, 8, 1, true); g.translate(x, 0.8, z); cGr.push(g); continue; }
-    const nr = nearestRoad(x, z, true), ry = nr && nr.d > 0.1 ? Math.atan2(nr.qx - x, nr.qz - z) + PI / 2 : 0, s = Math.sin(ry), c = Math.cos(ry);
+  for (const B of TOWN.bins) {
+    const { x, z, k } = B;
+    if (k === 0) { iron.push(cgeo(0.04, 0.04, 1.0, 4, x, 0.5, z)); const g = new THREE.CylinderGeometry(0.22, 0.2, 0.55, 8, 1, true); g.translate(x, 0.8, z); cGr.push(g); colliders.push({ x0: x - 0.22, x1: x + 0.22, z0: z - 0.22, z1: z + 0.22 }); continue; }
+    const ry = B.ry, s = Math.sin(ry), c = Math.cos(ry);
     const set = k === 1 ? [cY, cB, 'igloo'] : [cG, cGr];
     set.forEach((lst, j) => {
-      const lx = (j - (set.length - 1) / 2) * 1.5, px = x + lx * c, pz = z - lx * s;
-      if (lst === 'igloo') { const g = new THREE.SphereGeometry(0.85, 10, 6, 0, PI * 2, 0, PI / 2); g.scale(1, 1.6, 1); g.translate(px, 0, pz); cG.push(g); }
-      else { lst.push(bgeo(1.34, 1.05, 0.98, px, 0.62, pz, ry, 1)); lids.push(bgeo(1.4, 0.07, 1.04, px, 1.18, pz, ry, 1)); }
+      const lx = (j - (set.length - 1) / 2) * 1.55, px = x + lx * c, pz = z - lx * s;
+      if (lst === 'igloo') { const g = new THREE.SphereGeometry(0.72, 10, 6, 0, PI * 2, 0, PI / 2); g.scale(1, 1.75, 1); g.translate(px, 0, pz); cG.push(g); }
+      else { lst.push(bgeo(1.4, 1.05, 0.95, px, 0.62, pz, ry, 1)); lids.push(bgeo(1.46, 0.07, 1.0, px, 1.18, pz, ry, 1)); for (const wz of [-0.42, 0.42]) for (const wx of [-0.55, 0.55]) iron.push(cgeo(0.07, 0.07, 0.06, 6, px + wx * c + wz * s, 0.07, pz - wx * s + wz * c)); }
     });
-    colliders.push({ x0: x - 2.2, x1: x + 2.2, z0: z - 0.7, z1: z + 0.7 });
+    // choque: un rectángulo girado con la calle
+    const hl = set.length * 1.55 / 2 + 0.05, hw = 0.5, cs = (a, b) => [x + a * c + b * s, z - a * s + b * c];
+    const q = [cs(-hl, -hw), cs(hl, -hw), cs(hl, hw), cs(-hl, hw)]; for (let i = 0; i < 4; i++) addSeg(q[i][0], q[i][1], q[(i + 1) % 4][0], q[(i + 1) % 4][1], 0, 1.3);
   }
   // paradas de bus con marquesina
   for (const [x, z, name, sh] of MAP.bus) {
@@ -301,9 +304,9 @@ function buildStreetLife() {
     (open ? sOn : sOff).push(g); boxes.push(bgeo(p.w, 0.55, 0.16, p.x + p.nx * 0.1, 2.95, p.z + p.nz * 0.1, p.ry, 1));
     const wk = vac ? 'vacant' : open ? (/bar|pub|restaurant|cafe|biergarten/.test(p.kind) ? 'bar' : /massage|strip|beauty|alternative/.test(p.kind) ? 'pink' : 'shop') : 'shut' + (i % 3);
     if (!winM[wk]) winM[wk] = wk === 'vacant' ? new THREE.MeshLambertMaterial({ map: shopFrontTex(0, mulberry32(7), false), emissive: 0x0a0a0a }) : wk.startsWith('shut') ? new THREE.MeshLambertMaterial({ map: shopFrontTex(0, mulberry32(30 + i % 3), false), emissive: 0x0a0a0a }) : new THREE.MeshBasicMaterial({ map: shopWinTex(p.kind), color: 0xcccccc });
-    const wg = new THREE.PlaneGeometry(p.w - 0.4, 2.3); wg.rotateY(p.ry); wg.translate(p.x + p.nx * 0.04, 1.2, p.z + p.nz * 0.04); (wins[wk] = wins[wk] || []).push(wg);
+    const wg = new THREE.PlaneGeometry(p.w - 0.4, 2.3); wg.rotateY(p.ry); wg.translate(p.x + p.nx * 0.04, 1.2, p.z + p.nz * 0.04); if (!p.mart) (wins[wk] = wins[wk] || []).push(wg);
     // la luz del escaparate en la acera
-    if (open) { const gp = new THREE.PlaneGeometry(p.w + 1, 3.2); gp.rotateX(-PI / 2); gp.rotateY(p.ry); gp.translate(p.x + p.nx * 1.6, 0.07, p.z + p.nz * 1.6); D.litGlow.push(gp); }
+    if (open && !p.mart) { const gp = new THREE.PlaneGeometry(p.w + 1, 3.2); gp.rotateX(-PI / 2); gp.rotateY(p.ry); gp.translate(p.x + p.nx * 1.6, 0.07, p.z + p.nz * 1.6); D.litGlow.push(gp); }
     if (open && /bar|pub|strip|massage|nightclub/.test(p.kind) && r() < 0.5) {   // neón que da tirones
       const t = ctex(128, 64, (g2) => { g2.fillStyle = '#000'; g2.fillRect(0, 0, 128, 64); g2.strokeStyle = st[1]; g2.lineWidth = 4; g2.font = 'bold 30px sans-serif'; g2.textAlign = 'center'; g2.textBaseline = 'middle'; g2.strokeText(/massage/.test(p.kind) ? 'SPA' : 'OPEN', 64, 33); });
       const ne = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.31), new THREE.MeshBasicMaterial({ map: t, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));

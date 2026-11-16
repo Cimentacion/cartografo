@@ -13,17 +13,18 @@ let SKY = null;
 function skyTex() {
   return ctex(16, 256, (g) => {
     const gr = g.createLinearGradient(0, 0, 0, 256);
-    gr.addColorStop(0, '#04103a'); gr.addColorStop(0.45, '#0c2a78'); gr.addColorStop(0.62, '#1a46a8'); gr.addColorStop(0.75, '#14388a'); gr.addColorStop(1, '#0a1a44');
+    gr.addColorStop(0, '#01040f'); gr.addColorStop(0.45, '#05143a'); gr.addColorStop(0.62, '#0c2462'); gr.addColorStop(0.75, '#0a1c4c'); gr.addColorStop(1, '#050d24');
     g.fillStyle = gr; g.fillRect(0, 0, 16, 256);
   });
 }
-const FOG_IN = new THREE.Color(0x05060a), FOG_OUT = new THREE.Color(0x0c2558), AMB_OUT = new THREE.Color(0x5a6a9a);
+const FOG_IN = new THREE.Color(0x05060a), FOG_OUT = new THREE.Color(0x07163a), AMB_OUT = new THREE.Color(0x5a6a9a);
 function updSky(dt) {
   if (!SKY) { SKY = skyTex(); SKY.wrapS = SKY.wrapT = THREE.ClampToEdgeWrapping; }
   const out = !inShop(camera.position.x, camera.position.z) && !inBld(camera.position.x, camera.position.z);
   scene.background = out ? SKY : FOG_IN;
   scene.fog.color.lerp(out ? FOG_OUT : FOG_IN, Math.min(1, dt * 4));
-  if (out) { LG.amb.intensity = 1.0; LG.amb.color.copy(AMB_OUT); } else LG.amb.color.setHex(0x2a2e36);
+  if (!LG.hemi) { LG.hemi = new THREE.HemisphereLight(0x4a5c9a, 0x4a3a2a, 0); scene.add(LG.hemi); }
+  if (out) { LG.amb.intensity = 0.7; LG.amb.color.copy(AMB_OUT); LG.hemi.intensity = 0.55; } else { LG.amb.color.setHex(0x2a2e36); LG.hemi.intensity = 0.12; }
 }
 
 /* --- flecha verde encima de la pantalla que apunta a donde tienes que ir --- */
@@ -100,7 +101,7 @@ function sauceArc(ox, oy, oz, yaw, pitch, out) {
     // gente (clientes y compañeros)
     for (const [id, ch] of chars) { if (!ch.g.visible) continue; const gx = ch.g.position.x, gz = ch.g.position.z; if ((x - gx) ** 2 + (z - gz) ** 2 < 0.1 && y > 0.1 && y < 1.75) return { n, x, y, z, nx: -vx, ny: 0, nz: -vz, cu: id }; }
     for (const [id, ch] of rchars) { if (!ch.g.visible) continue; const gx = ch.g.position.x, gz = ch.g.position.z; if ((x - gx) ** 2 + (z - gz) ** 2 < 0.1 && y > 0.1 && y < 1.75) return { n, x, y, z, nx: -vx, ny: 0, nz: -vz, pl: id }; }
-    const fl = floorY(x, z); if (y <= fl + 0.005) return { n, x, y: fl + 0.005, z, nx: 0, ny: 1, nz: 0 };
+    const fl = floorY(x, z); if (y <= fl + 0.005) return { n, x, y: fl + (inShop(x, z) || inBld(x, z) ? 0.005 : 0.05), z, nx: 0, ny: 1, nz: 0 };
     if (y > 3.3) continue;
     for (const c of colliders) {
       if (c.off || x < c.x0 || x > c.x1 || z < c.z0 || z > c.z1 || y > (c.h || 3.2)) continue;
@@ -122,14 +123,17 @@ function drawArc(pts, buf, n, col) {
 }
 function updSauce(dt, P) {
   if (!STAINS) initStains();
-  const H = P && P.h, has = H && H.k === 'sb', press = has && !overlay && !cut.on && !ride.on && (IN.held || !!IN.padHeld || IN.fire);
+  const H = P && P.h, has = H && H.k === 'sb', want = has && !overlay && !cut.on && !ride.on && (IN.held || !!IN.padHeld || IN.fire), empty = has && H.f != null && H.f <= 0.001;
+  if (want && empty) { SQ.emptyT = (SQ.emptyT || 0) - dt; if (SQ.emptyT <= 0) { SQ.emptyT = 2.5; toast(T('sb_empty'), 'bad'); AU.play('click'); } }
+  const press = want && !empty;
+  if (press) { SQ.use = (SQ.use || 0) + dt; if (SQ.use > 0.5) { SQ.use = 0; act('sqz'); } }
   SQ.on = press ? H.t + 1 : 0;
   // gente a la que le has dado: no repetir la queja a cada gota
   for (const k in SQ.lastHit) { SQ.lastHit[k] -= dt; if (SQ.lastHit[k] <= 0) delete SQ.lastHit[k]; }
   SQ.wallT -= dt;
   if (!press) { SQ.pts.visible = false; return; }
   const [ox, oy, oz] = sauceOrigin(), h = sauceArc(ox, oy, oz, camera.rotation.y, camera.rotation.x, _arcBuf);
-  drawArc(SQ.pts, _arcBuf, h.n, SAUCE_COL[H.t]);
+  drawArc(SQ.pts, _arcBuf, h.n, KX.trays.length && W ? W.sc[H.t] : SAUCE_COL[H.t]);
   SQ.snd -= dt; if (SQ.snd <= 0) { SQ.snd = 0.2; AU.play('squirt'); }
   SQ.emit -= dt;
   if (!h.none && SQ.emit <= 0) {
@@ -157,4 +161,4 @@ function sauceRecv(peer, pr, ch) {
     const h = sauceArc(x, 1.4, z, yaw, pitch, R.buf); drawArc(R.pts, R.buf, h.n, SAUCE_COL[on - 1]);
   } else R.pts.visible = false;
 }
-function updExtras(dt) { updSky(dt); updArrow(dt); updSauce(dt, myP()); }
+function updExtras(dt) { if (D.shopGrp) D.shopGrp.visible = Math.hypot(camera.position.x, camera.position.z - 2) < 48; updSky(dt); updArrow(dt); updSauce(dt, myP()); updKitchen(dt); updMart(dt); }

@@ -78,6 +78,7 @@ TOWN.del = (() => {
   });
   return out;
 })();
+LIFE = layoutLife();
 // puertas de los pisos: A y B al fondo del rellano, C y D en la pared izquierda
 const FLAT_UV = [[-2.0, 6.2, 0, -1], [0.6, 6.2, 0, -1], [-4.6, 1.4, 1, 0], [-4.6, 3.4, 1, 0]];
 function flatPos(k, f) { const C = TOWN.del[k / 4 | 0], [u, v, nu, nv] = FLAT_UV[k % 4], [x, z] = cw(C, u + nu * 0.05, v + nv * 0.05); return { x, z, y: f * FLH, nx: C.ux * nu + C.vx * nv, nz: C.uz * nu + C.vz * nv }; }
@@ -90,7 +91,7 @@ function coreAt(x, z, m) {
   for (const C of TOWN.del) { if (Math.abs(x - C.ox) > 12 || Math.abs(z - C.oz) > 12) continue; const [u, v] = cl(C, x, z); if (u > CORE.u0 - m && u < CORE.u1 + m && v > -m && v < CORE.v1 + m) return C.k; }
   return -1;
 }
-function inBld(x, z) { return coreAt(x, z) >= 0; }
+function inBld(x, z) { return coreAt(x, z) >= 0 || inMart(x, z); }
 function inMod(x, z) { return inBld(x, z); }
 // altura del suelo: escaleras y ascensor de verdad
 function groundY(x, z, y) {
@@ -176,7 +177,9 @@ function buildBuildings() {
       const a = P[i], c = P[(i + 1) % n], L = Math.hypot(c[0] - a[0], c[1] - a[1]); if (L < 0.02) continue;
       const cut = b.host ? shopClip(a[0], a[1], c[0], c[1]) : null, C = portal[b.i + ':' + i];
       // planta baja (con hueco para el local o para el portal) y el resto de la fachada
-      const spans = cut ? [[0, cut[0]], [cut[1], 1]] : C ? [[0, (C.s0 - 1.7) / L], [(C.s0 + 0.3) / L, 1]] : [[0, 1]];
+      const MT = TOWN.mart && TOWN.mart.b === b && TOWN.mart.i === i ? TOWN.mart : null;
+      const spans = cut ? [[0, cut[0]], [cut[1], 1]] : C ? [[0, (C.s0 - 1.7) / L], [(C.s0 + 0.3) / L, 1]] : MT ? [[0, (MT.s - 0.75) / L], [(MT.s + 0.75) / L, 1]] : [[0, 1]];
+      if (MT) { const x0 = lerp(a[0], c[0], (MT.s - 0.75) / L), z0 = lerp(a[1], c[1], (MT.s - 0.75) / L), x1 = lerp(a[0], c[0], (MT.s + 0.75) / L), z1 = lerp(a[1], c[1], (MT.s + 0.75) / L); vquad(x0, z0, x1, z1, 2.4, gh, u, 4, gnd); addSeg(x0, z0, x1, z1, 2.4, b.h); }
       for (const [s, e] of spans) { if (e - s < 1e-3) continue; const x0 = lerp(a[0], c[0], s), z0 = lerp(a[1], c[1], s), x1 = lerp(a[0], c[0], e), z1 = lerp(a[1], c[1], e); vquad(x0, z0, x1, z1, 0, gh, u + s * L, 4, gnd); addSeg(x0, z0, x1, z1, 0, b.h); }
       if (C) { const x0 = lerp(a[0], c[0], (C.s0 - 1.7) / L), z0 = lerp(a[1], c[1], (C.s0 - 1.7) / L), x1 = lerp(a[0], c[0], (C.s0 + 0.3) / L), z1 = lerp(a[1], c[1], (C.s0 + 0.3) / L); vquad(x0, z0, x1, z1, 2.6, gh, u, 4, gnd); addSeg(x0, z0, x1, z1, 2.6, b.h); C.door = addSeg(x0, z0, x1, z1, 0, 2.6); }
       if (b.h > gh) vquad(a[0], a[1], c[0], c[1], gh, b.h, u, 6, body[fi]);

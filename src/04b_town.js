@@ -93,6 +93,20 @@ function layoutTown() {
     const sea = z > 4 && Math.abs(x) < 400, far = Math.hypot(x, z) > 45, v = r();
     T.lamps.push({ x, z, ax, az, md: sea ? (v < 0.08 ? 1 : 0) : (far ? (v < 0.2 ? 2 : v < 0.45 ? 1 : 0) : 0), ph: r() * 10, fig: !sea && far, pr: sea ? 1 : 0, lit: 0 });
   }
+  // contenedores: en España van en la calzada, en la franja de aparcar, pegados al bordillo y a lo largo de la calle
+  T.bins = [];
+  for (const [x, z, k] of MAP.bin) {
+    if (k === 0) { T.bins.push({ x, z, k, ry: 0 }); continue; }
+    const nr = nearestRoad(x, z, true); let o = { x, z, k, ry: 0 };
+    if (nr && nr.d < 16 && nr.r.w >= 6) {
+      const p = nr.r.pts, a = p[nr.i], b = p[nr.i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, ux = (b[0] - a[0]) / L, uz = (b[1] - a[1]) / L;
+      const sd = Math.sign(ux * (z - nr.qz) - uz * (x - nr.qx)) || 1, off = nr.r.w / 2 - 0.75;
+      const px = nr.qx - uz * sd * off, pz = nr.qz + ux * sd * off;
+      if (!MAP.cross.some(c => Math.hypot(c[0] - px, c[1] - pz) < 4.5) && !(px > -9 && px < 9 && pz > 3 && pz < 12)) o = { x: px, z: pz, k, ry: Math.atan2(-uz, ux), road: 1 };
+    }
+    if (!o.road && nr && nr.d > 0.1) { const dx = nr.qx - x, dz = nr.qz - z, d = Math.hypot(dx, dz); o.ry = Math.atan2(-dx / d, -dz / d); }
+    T.bins.push(o);
+  }
   // coches aparcados junto al bordillo de las calles con tráfico
   for (const rd of T.rd) {
     if (!(rd.t === 'residential' || rd.t === 'tertiary' || rd.t === 'unclassified')) continue;
@@ -105,6 +119,7 @@ function layoutTown() {
         const sd = r() < 0.5 ? -1 : 1, off = rd.w / 2 - 1.15, x = ax + ux * s + uz * sd * off, z = az + uz * s - ux * sd * off;
         if (Math.hypot(x, z) < 14 || x > -9 && x < 9 && z > 3 && z < 12) continue;
         if (T.cars.some(c => Math.hypot(c.x - x, c.z - z) < 5)) continue;
+        if (T.bins.some(c => c.k && Math.hypot(c.x - x, c.z - z) < 5)) continue;
         if (MAP.cross.some(c => Math.hypot(c[0] - x, c[1] - z) < 6)) continue;
         if (T.rd.some(o => o !== rd && DRIVE[o.t] && o.pts.some(q => Math.hypot(q[0] - x, q[1] - z) < 9))) continue;
         if (T.bld.some(b => x > b.x0 && x < b.x1 && z > b.z0 && z < b.z1 && pip(x, z, b.P))) continue;
@@ -144,9 +159,10 @@ const DOG_ZONE = SOLAR ? { x0: SOLAR.x0 - 7, x1: SOLAR.x1 + 7, z0: SOLAR.z0 - 7,
 const DOG_HOME = SOLAR ? [[SOLAR.cx - 2, SOLAR.cz], [SOLAR.cx + 2, SOLAR.cz + 1.5]] : [];
 
 /* ---------- geometría de polígonos y cintas ---------- */
-function polyGeo(P, y, tile, down) {
-  const pts = P.map(p => new THREE.Vector2(p[0], p[1])); let tri;
-  try { tri = THREE.ShapeUtils.triangulateShape(pts, []); } catch (e) { return null; }
+function polyGeo(P0, y, tile, down, holes) {
+  const H = holes || [], P = P0.concat(...H);
+  const v2 = (L) => L.map(p => new THREE.Vector2(p[0], p[1])); let tri;
+  try { tri = THREE.ShapeUtils.triangulateShape(v2(P0), H.map(v2)); } catch (e) { return null; }
   const pos = new Float32Array(P.length * 3), nor = new Float32Array(P.length * 3), uv = new Float32Array(P.length * 2);
   P.forEach((p, i) => { pos[i * 3] = p[0]; pos[i * 3 + 1] = y; pos[i * 3 + 2] = p[1]; nor[i * 3 + 1] = down ? -1 : 1; uv[i * 2] = p[0] / tile; uv[i * 2 + 1] = -p[1] / tile; });
   // los triángulos tienen que mirar hacia arriba (o hacia abajo)
@@ -270,24 +286,40 @@ function makeVespa() {
   scene.add(g); return g;
 }
 function makeHandle() {
-  const g = new THREE.Group(), body = lam('steel2', 0xd8c890, { emissive: 0x2a2618 }), chrome = lam('steel', 0xc8ccd0, { emissive: 0x2a2a2c }), rub = lam(null, 0x101010), glove = lam(null, 0x2a2622);
+  // vista desde el Vespino: manillar con puños, manetas, retrovisores, cuentakilómetros, la tapa del faro, el escudo
+  // y los brazos con la chaqueta saliendo de abajo hasta las manos
+  const g = new THREE.Group(), body = lam('steel2', 0xd8c890, { emissive: 0x2a2618 }), chrome = lam('steel', 0xc8ccd0, { emissive: 0x2a2a2c }), rub = lam(null, 0x141414), glove = lam(null, 0x2a2622), sleeve = lam(null, 0x2b2f36), skin = lam(null, 0xc8906a);
   const P = (geo, m, x, y, z, rx, ry, rz) => { const me = new THREE.Mesh(geo, m); me.position.set(x, y, z); me.rotation.set(rx || 0, ry || 0, rz || 0); g.add(me); return me; };
   const B = (w, h, d) => new THREE.BoxGeometry(w, h, d), C = (rt, rb, h, n) => new THREE.CylinderGeometry(rt, rb, h, n || 10);
-  P(C(0.016, 0.016, 0.62, 8), chrome, 0, 0, 0, 0, 0, PI / 2);                       // manillar
+  const between = (a, b, r0, r1, m) => { const d = new THREE.Vector3().subVectors(b, a), L = d.length(); const me = new THREE.Mesh(C(r1, r0, L, 8), m); me.position.copy(a).addScaledVector(d, 0.5); me.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); g.add(me); return me; };
+  // tapa del faro y manillar (el manillar sale de la tapa, como en el Vespino)
+  const cowl = P(new THREE.SphereGeometry(0.11, 14, 8, 0, PI * 2, 0, PI * 0.55), body, 0, -0.03, -0.03); cowl.scale.set(1.6, 0.55, 1.1);
+  P(B(0.34, 0.035, 0.12), body, 0, -0.045, 0.02);
   for (const sd of [-1, 1]) {
-    P(C(0.026, 0.026, 0.12, 8), rub, sd * 0.35, 0, 0, 0, 0, PI / 2);                  // puños
-    P(B(0.13, 0.012, 0.02), chrome, sd * 0.3, 0.012, -0.05, 0, sd * 0.25);            // manetas
-    P(C(0.005, 0.005, 0.16, 4), chrome, sd * 0.29, 0.07, 0.02, 0, 0, -sd * 0.5);       // brazo del espejo
-    P(C(0.034, 0.034, 0.01, 12), lam(null, 0x3a444c, { emissive: 0x10141a }), sd * 0.35, 0.13, 0.03, PI / 2 - 0.15);
-    const hand = P(B(0.09, 0.07, 0.11), glove, sd * 0.35, 0.025, 0.01); hand.rotation.x = 0.2;
-    P(B(0.085, 0.085, 0.5), glove, sd * 0.36, -0.12, 0.26, -0.45, -sd * 0.12);        // brazos
+    between(new THREE.Vector3(sd * 0.16, -0.035, 0.02), new THREE.Vector3(sd * 0.33, -0.005, 0.04), 0.017, 0.016, chrome);
+    P(C(0.024, 0.024, 0.13, 10), rub, sd * 0.4, -0.002, 0.045, 0, 0, PI / 2);                       // puños
+    P(B(0.012, 0.012, 0.13), chrome, sd * 0.37, 0.018, -0.02, 0, sd * 0.35, 0);                        // manetas
+    P(C(0.012, 0.012, 0.03, 6), body, sd * 0.31, 0.0, 0.04, 0, 0, PI / 2);                             // pinzas de las manetas
+    between(new THREE.Vector3(sd * 0.27, 0.0, 0.0), new THREE.Vector3(sd * 0.36, 0.2, -0.05), 0.004, 0.004, chrome);   // brazo del espejo
+    const mr = P(C(0.045, 0.045, 0.012, 14), lam(null, 0x1a1c20), sd * 0.37, 0.22, -0.06, PI / 2 - 0.1, 0, 0);
+    P(C(0.04, 0.04, 0.004, 14), new THREE.MeshBasicMaterial({ color: 0x2a3a52, fog: false }), sd * 0.37, 0.22, -0.053, PI / 2 - 0.1, 0, 0);
+    // la mano agarrando el puño y el brazo
+    const hand = P(B(0.08, 0.06, 0.09), glove, sd * 0.4, 0.012, 0.055); hand.rotation.x = 0.15;
+    for (let f = 0; f < 4; f++) P(B(0.017, 0.022, 0.05), glove, sd * (0.37 + f * 0.02), -0.022, 0.02, 0.6, 0, 0);
+    P(B(0.02, 0.022, 0.05), glove, sd * 0.355, 0.03, 0.02, 0, sd * 0.4, 0);                             // pulgar
+    between(new THREE.Vector3(sd * 0.41, 0.0, 0.1), new THREE.Vector3(sd * 0.46, -0.18, 0.36), 0.034, 0.042, sleeve);   // antebrazo
+    between(new THREE.Vector3(sd * 0.46, -0.18, 0.36), new THREE.Vector3(sd * 0.36, -0.42, 0.6), 0.045, 0.055, sleeve);
+    P(C(0.038, 0.038, 0.03, 8), skin, sd * 0.415, -0.012, 0.11, 1.2, 0, sd * 0.1);                      // muñeca asomando
   }
-  const shell = P(C(0.085, 0.07, 0.08, 14), body, 0, -0.035, -0.02, 0, 0, 0); shell.scale.set(1.25, 1, 0.9);   // carcasa del faro
+  // cuentakilómetros mirando al piloto
   D.speedo = ctex(64, 64, () => { }); D.speedoG = D.speedo.image.getContext('2d');
-  const sp = new THREE.Mesh(new THREE.CircleGeometry(0.05, 16), new THREE.MeshBasicMaterial({ map: D.speedo, fog: false })); sp.position.set(0, 0.012, 0.0); sp.rotation.x = -0.75; g.add(sp);
-  P(C(0.056, 0.056, 0.01, 16), chrome, 0, 0.007, 0.004, -0.75 + PI / 2);
-  P(B(0.48, 0.06, 0.05), body, 0, -0.33, -0.36, -0.4);                             // borde del escudo
-  g.position.set(0, -0.36, -0.6); g.visible = false; drawSpeedo(0); return g;
+  const sp = new THREE.Mesh(new THREE.CircleGeometry(0.045, 16), new THREE.MeshBasicMaterial({ map: D.speedo, fog: false })); sp.position.set(0, 0.012, 0.02); sp.rotation.x = -0.9; g.add(sp);
+  P(C(0.05, 0.05, 0.012, 16), chrome, 0, 0.006, 0.022, -0.9 + PI / 2);
+  P(B(0.03, 0.012, 0.02), new THREE.MeshBasicMaterial({ color: 0x30ff60, fog: false }), -0.09, 0.0, 0.03, -0.9);   // testigo verde
+  // escudo delantero y suelo del Vespino abajo del todo
+  const shield = P(new THREE.CylinderGeometry(0.28, 0.24, 0.5, 14, 1, true, -0.9, 1.8), body, 0, -0.38, -0.12, -0.35, PI, 0); shield.material = body;
+  P(B(0.44, 0.03, 0.04), chrome, 0, -0.13, -0.16, -0.35);
+  g.position.set(0, -0.5, -0.72); g.visible = false; drawSpeedo(0); return g;
 }
 function drawSpeedo(kmh) {
   const g = D.speedoG; if (!g) return;
@@ -349,7 +381,7 @@ function buildSea() {
   coast = coast.filter(p => p[0] > X0 - 60 && p[0] < X1 + 60).sort((a, b) => a[0] - b[0]);
   const land = [[X0 - 40, coast.length ? coast[0][1] : Z1]].concat(coast.map(p => [p[0], Math.min(p[1], Z1 + 40)])).concat([[X1 + 40, coast.length ? Math.min(coast[coast.length - 1][1], Z1 + 40) : Z1], [X1 + 40, Z0 - 40], [X0 - 40, Z0 - 40]]);
   TOWN.coast = coast;
-  const g = polyGeo(land.reverse(), 0, 2.2); if (g) addMerged([g], lam('acera', 0x9a968e));
+  const g = polyGeo(land.reverse(), 0, 2.2, false, [[[-5.05, -8.45], [5.05, -8.45], [5.05, 5.02], [-5.05, 5.02]]]);  // hueco bajo el local: el suelo de dentro no parpadea if (g) addMerged([g], lam('acera', 0x9a968e));
   D.seaTex = ctex(128, 128, (g2) => { g2.fillStyle = '#0c1c2c'; g2.fillRect(0, 0, 128, 128); g2.strokeStyle = 'rgba(120,160,190,0.35)'; g2.lineWidth = 1.5; for (let i = 0; i < 26; i++) { const x = Math.random() * 128, y = Math.random() * 128, w = 10 + Math.random() * 24; g2.beginPath(); g2.moveTo(x, y); g2.quadraticCurveTo(x + w / 2, y - 3, x + w, y); g2.stroke(); } });
   D.sea = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1000, 40, 30), new THREE.MeshLambertMaterial({ map: D.seaTex, color: 0x6a8aa0, emissive: 0x0a1a28 }));
   const uv = D.sea.geometry.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 90, uv.getY(i) * 65);
@@ -375,6 +407,40 @@ function palmGeo(x, z, h, r, trunks, fronds) {
   const tx = x + lx, tz = z + lz;
   for (let k = 0; k < 7; k++) { const g = new THREE.PlaneGeometry(0.6, 2.6); g.rotateX(-PI / 2); g.translate(0, 0, 1.25); g.rotateX(0.35 + r() * 0.5); g.rotateY(k * PI * 2 / 7 + r() * 0.3); g.translate(tx, h, tz); fronds.push(g); }
 }
+/* bordillos, aceras y líneas de borde: para que se vea dónde acaba la calzada y dónde empieza la acera */
+function buildCurbs() {
+  const C = 12, grid = new Map(), roads = TOWN.rd.filter(r => DRIVE[r.t]);
+  roads.forEach(r => { for (let i = 0; i + 1 < r.pts.length; i++) { const a = r.pts[i], b = r.pts[i + 1]; const x0 = Math.floor((Math.min(a[0], b[0]) - r.w) / C), x1 = Math.floor((Math.max(a[0], b[0]) + r.w) / C), z0 = Math.floor((Math.min(a[1], b[1]) - r.w) / C), z1 = Math.floor((Math.max(a[1], b[1]) + r.w) / C); for (let x = x0; x <= x1; x++) for (let z = z0; z <= z1; z++) { const k = x * 10000 + z; let l = grid.get(k); if (!l) grid.set(k, l = []); l.push([r, i]); } } });
+  const covered = (x, z, rd, si) => { const l = grid.get(Math.floor(x / C) * 10000 + Math.floor(z / C)); if (!l) return false; for (const [r, i] of l) { if (r === rd && Math.abs(i - si) <= 1) continue; const a = r.pts[i], b = r.pts[i + 1]; if (segDist(x, z, a[0], a[1], b[0], b[1])[0] < r.w / 2 + 0.12) return true; } return false; };
+  const cp = [], cn = [], cu = [], ci = [], lp = [], ln = [], li = [];
+  const quad = (P, N, I, U, pts, nx, ny, nz, uvs) => { const b = P.length / 3; for (const p of pts) { P.push(p[0], p[1], p[2]); N.push(nx, ny, nz); } if (U) U.push(...uvs); I.push(b, b + 1, b + 2, b, b + 2, b + 3); };
+  const SW = [];
+  for (const r of roads) {
+    if (r.t === 'living_street' || r.w < 4.5) continue;
+    for (let i = 0; i + 1 < r.pts.length; i++) {
+      const a = r.pts[i], b = r.pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < 0.3) continue;
+      const ux = (b[0] - a[0]) / L, uz = (b[1] - a[1]) / L, n = Math.max(1, Math.ceil(L / 2.5));
+      for (const sd of [-1, 1]) {
+        const nx = -uz * sd, nz = ux * sd, h = r.w / 2;
+        for (let k = 0; k < n; k++) {
+          const t0 = k / n * L, t1 = (k + 1) / n * L, mx = a[0] + ux * (t0 + t1) / 2 + nx * (h + 0.1), mz = a[1] + uz * (t0 + t1) / 2 + nz * (h + 0.1);
+          if (covered(mx, mz, r, i)) continue;
+          const P0 = [a[0] + ux * t0, a[1] + uz * t0], P1 = [a[0] + ux * t1, a[1] + uz * t1], o = (d) => [[P0[0] + nx * d, P0[1] + nz * d], [P1[0] + nx * d, P1[1] + nz * d]];
+          const [i0, i1] = o(h), [o0, o1] = o(h + 0.24), y = 0.14, ord = sd > 0;
+          // cara de arriba y cara que da a la calzada
+          const top = [[i0[0], y, i0[1]], [o0[0], y, o0[1]], [o1[0], y, o1[1]], [i1[0], y, i1[1]]];
+          quad(cp, cn, ci, cu, ord ? top : top.slice().reverse(), 0, 1, 0, [0, 0, 0.2, 0, 0.2, 1, 0, 1]);
+          const fc = [[i0[0], 0.035, i0[1]], [i1[0], 0.035, i1[1]], [i1[0], y, i1[1]], [i0[0], y, i0[1]]];
+          quad(cp, cn, ci, cu, ord ? fc : fc.slice().reverse(), -nx, 0, -nz, [0, 0, 1, 0, 1, 0.1, 0, 0.1]);
+          if (r.w >= 6) { const [l0, l1] = o(h - 0.32), [m0, m1] = o(h - 0.2), ln2 = [[l0[0], 0.047, l0[1]], [m0[0], 0.047, m0[1]], [m1[0], 0.047, m1[1]], [l1[0], 0.047, l1[1]]]; quad(lp, ln, li, null, ord ? ln2 : ln2.slice().reverse(), 0, 1, 0); }
+        }
+      }
+    }
+  }
+  const mk = (P, N, U, I) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3)); if (U) g.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2)); g.setIndex(I); return g; };
+  if (ci.length) { const m = new THREE.Mesh(mk(cp, cn, cu, ci), lam('conc', 0xd8d6cc, { side: THREE.DoubleSide })); m.frustumCulled = false; scene.add(m); }
+  if (li.length) { const m = new THREE.Mesh(mk(lp, ln, null, li), lam(null, 0xd8d8cc, { side: THREE.DoubleSide })); m.frustumCulled = false; scene.add(m); }
+}
 function buildTown() {
   const r = mulberry32(31337);
   buildSea();
@@ -384,7 +450,7 @@ function buildTown() {
     let k = a.k; if (k === 'playground' || k === 'sports_centre') k = 'pitch';
     if (k === 'ped' && a.P.some(p => p[1] > 3)) k = 'wave';
     if (!Z[k]) continue;
-    const y = { beach: 0.008, garden: 0.012, parking: 0.01, lot: 0.011, ped: 0.009, wave: 0.009, pitch: 0.012, pool: 0.03, scrub: 0.012 }[k];
+    const y = { beach: 0.006, garden: 0.022, parking: 0.016, lot: 0.018, ped: 0.012, wave: 0.0125, pitch: 0.026, pool: 0.07, scrub: 0.02 }[k];   // capas bien separadas: con el búfer logarítmico 1 mm no basta
     const g = polyGeo(a.P, y, k === 'beach' ? 3 : k === 'wave' ? 9 : 2.2); if (g) Z[k].push(g);
     if (k === 'pool') { for (let i = 0; i < a.P.length; i++) { const p = a.P[i], q = a.P[(i + 1) % a.P.length]; Z.poolE.push(wallSegGeo(p[0], p[1], q[0], q[1], 0.14, 0.32, 1)); addSeg(p[0], p[1], q[0], q[1], 0, 0.6); } }
   }
@@ -392,21 +458,22 @@ function buildTown() {
   addMerged(Z.ped, lam('pavs', 0xa8a49c)); addMerged(Z.wave, new THREE.MeshLambertMaterial({ map: waveTex(), color: 0xb8b4ac })); addMerged(Z.pitch, lam(null, 0x2a5a3a)); addMerged(Z.scrub, lam('grass', 0x4a5a3a));
   const pw = Z.pool, pe = Z.poolE;
   addMerged(pw, new THREE.MeshBasicMaterial({ map: poolTex(), color: 0xc8f0ff })); addMerged(pe, lam(null, 0xe8e8e0));
-  const pg = []; for (const a of TOWN.ar) if (a.k === 'pool') { const g = polyGeo(offsetPoly(a.P, 1.4), 0.035, 1e9); if (g) { fixUV(g); pg.push(g); } }
+  const pg = []; for (const a of TOWN.ar) if (a.k === 'pool') { const g = polyGeo(offsetPoly(a.P, 1.4), 0.075, 1e9); if (g) { fixUV(g); pg.push(g); } }
   const gpm = addMerged(pg, new THREE.MeshBasicMaterial({ map: glowTex(60, 220, 255), transparent: true, opacity: 0.45, depthWrite: false, blending: THREE.AdditiveBlending })); if (gpm) gpm.renderOrder = 3;
   // calles: calzada de asfalto, la Avenida de Madrid con baldosa, aceras y caminos
   const RD = { asph: [], madrid: [], foot: [] }, paint = [];
   for (const rd of TOWN.rd) {
     const k = DRIVE[rd.t] ? (rd.t === 'living_street' ? 'madrid' : 'asph') : 'foot';
-    ribbonGeos(rd.pts, rd.w, k === 'asph' ? 0.02 : k === 'madrid' ? 0.018 : 0.015, k === 'asph' ? 3.5 : 2.4, RD[k]);
-    if (k === 'asph' && rd.w >= 6.5) for (let i = 0; i + 1 < rd.pts.length; i++) { const a = rd.pts[i], b = rd.pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]); for (let s = 2; s < L - 2; s += 6) { const t = s / L; paint.push(wallSegGeo(lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[0], b[0], (s + 2.6) / L), lerp(a[1], b[1], (s + 2.6) / L), 0.005, 0.14, 1).translate(0, 0.022, 0)); } }
+    ribbonGeos(rd.pts, rd.w, k === 'asph' ? 0.04 : k === 'madrid' ? 0.036 : 0.03, k === 'asph' ? 3.5 : 2.4, RD[k]);
+    if (k === 'asph' && rd.w >= 6.5) for (let i = 0; i + 1 < rd.pts.length; i++) { const a = rd.pts[i], b = rd.pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]); for (let s = 2; s < L - 2; s += 6) { const t = s / L; paint.push(wallSegGeo(lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[0], b[0], (s + 2.6) / L), lerp(a[1], b[1], (s + 2.6) / L), 0.005, 0.14, 1).translate(0, 0.045, 0)); } }
   }
-  addMerged(RD.asph, lam('asph', 0x8a8a92)); addMerged(RD.madrid, lam('tbeig', 0xb0a898)); addMerged(RD.foot, lam('pavs', 0xb4b0a8));
+  addMerged(RD.asph, lam('asph', 0x55555e)); addMerged(RD.madrid, lam('tbeig', 0xb0a898)); addMerged(RD.foot, lam('pavs', 0xb4b0a8));
+  buildCurbs();
   // pasos de cebra en los cruces del mapa
   for (const [x, z] of MAP.cross) {
     const nr = nearestRoad(x, z, true); if (!nr || nr.d > 4) continue;
     const p = nr.r.pts, a = p[nr.i], b = p[nr.i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, ux = (b[0] - a[0]) / L, uz = (b[1] - a[1]) / L, w = nr.r.w;
-    for (let k = -2; k <= 2; k++) { const cx = nr.qx + ux * k * 0.95, cz = nr.qz + uz * k * 0.95; paint.push(wallSegGeo(cx - uz * w / 2.2, cz + ux * w / 2.2, cx + uz * w / 2.2, cz - ux * w / 2.2, 0.005, 0.5, 1).translate(0, 0.022, 0)); }
+    for (let k = -2; k <= 2; k++) { const cx = nr.qx + ux * k * 0.95, cz = nr.qz + uz * k * 0.95; paint.push(wallSegGeo(cx - uz * w / 2.2, cz + ux * w / 2.2, cx + uz * w / 2.2, cz - ux * w / 2.2, 0.005, 0.5, 1).translate(0, 0.045, 0)); }
   }
   addMerged(paint, lam(null, 0xc8c4b4));
   // tapias, vallas y setos; con hueco en cada cancela
@@ -416,7 +483,8 @@ function buildTown() {
     const p = b.pts;
     for (let i = 0; i + 1 < p.length; i++) {
       let ax = p[i][0], az = p[i][1]; const bx = p[i + 1][0], bz = p[i + 1][1], L = Math.hypot(bx - ax, bz - az); if (L < 0.05) continue;
-      if (Math.hypot(ax - 0, az - 0) < 3 && false) continue;
+      // la terraza del bar que había en el local no se pone: tapaba la puerta
+      if (Math.max(Math.abs(ax), Math.abs(bx)) < 13 && az > 4 && az < 8.5 && bz > 4 && bz < 8.5) continue;
       // trozos sin cancela
       const cuts = gates.map(g => { const [d, , , t] = segDist(g[0], g[1], ax, az, bx, bz); return d < 0.6 ? t * L : null; }).filter(v => v !== null).sort((u, v) => u - v);
       let s0 = 0; const parts = [];

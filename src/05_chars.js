@@ -112,6 +112,18 @@ function makeChar(look, seed, an, key) {
     if (acc === 'helmet') { const c = new THREE.Mesh(new THREE.SphereGeometry(0.142, 8, 5, 0, PI * 2, 0, PI * 0.56), mk('#dcdcdc')); c.position.set(0, 0.02, 0); c.scale.set(1, 1.15, 1.1); head.add(c); }
     if (acc === 'hood') { const c = new THREE.Mesh(new THREE.SphereGeometry(0.136, 8, 6, PI * 0.92, PI * 1.16), mk(look.top)); c.scale.set(1.05, 1.22, 1.12); c.material.side = THREE.DoubleSide; head.add(c); }
     if (acc === 'beanie') { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.121, 0.1, 8), mk('#3a3a44')); c.position.set(0, 0.1, 0); head.add(c); }
+    // telas de la cabeza: kufiya con cordón, gorrito kufi, turbante y hiyab
+    if (acc === 'kef') {
+      const kt = tx(64, 64, c => { c.fillStyle = '#f2efe6'; c.fillRect(0, 0, 64, 64); c.strokeStyle = look.kc || '#b0201a'; c.lineWidth = 2; for (let i = -64; i < 64; i += 8) { c.beginPath(); c.moveTo(i, 0); c.lineTo(i + 64, 64); c.stroke(); c.beginPath(); c.moveTo(i + 64, 0); c.lineTo(i, 64); c.stroke(); } });
+      const km = new THREE.MeshLambertMaterial({ map: kt, side: THREE.DoubleSide }); ch.mats.push(km);
+      const c = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 7, PI * 0.8, PI * 1.4, 0, PI * 0.62), km); c.scale.set(1.05, 1.25, 1.12); c.position.y = 0.01; head.add(c);
+      P(G(0.3, 0.32, 0.03), km, 0, -0.16, -0.11, head); for (const sx of [-1, 1]) { const f = P(G(0.05, 0.3, 0.12), km, sx * 0.14, -0.14, 0.0, head); f.rotation.z = sx * 0.12; }
+      const ag = new THREE.Mesh(new THREE.TorusGeometry(0.125, 0.012, 5, 14), mk('#141414')); ag.rotation.x = PI / 2; ag.position.y = 0.105; head.add(ag);
+    }
+    if (acc === 'kufi') { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.112, 0.12, 0.07, 10), mk(look.kc || '#f4f2ea', 1)); c.position.set(0, 0.11, 0); head.add(c); }
+    if (acc === 'turb') { const tm2 = mk(look.kc || '#e8e4d8', 1); for (let i = 0; i < 3; i++) { const t = new THREE.Mesh(new THREE.TorusGeometry(0.11 - i * 0.012, 0.035, 6, 12), tm2); t.rotation.x = PI / 2 + (i % 2 ? 0.25 : -0.2); t.position.y = 0.08 + i * 0.04; head.add(t); } const tp = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 5), tm2); tp.position.y = 0.13; tp.scale.y = 0.6; head.add(tp); }
+    if (acc === 'hijab') { const hm2 = mk(look.kc || '#2a3a5a'); const c = new THREE.Mesh(new THREE.SphereGeometry(0.142, 10, 8, PI * 0.78, PI * 1.44), hm2); c.scale.set(1.05, 1.24, 1.12); c.material.side = THREE.DoubleSide; head.add(c); P(G(0.3, 0.16, 0.26), hm2, 0, -0.17, -0.01, head); }
+    if (look.chain) { const ch2 = new THREE.Mesh(new THREE.TorusGeometry(0.075, 0.008, 4, 14), mk('#e8c040', 1)); ch2.rotation.x = 1.2; ch2.position.set(0, 1.4, 0.06); body.add(ch2); }
     if (acc === 'tiara') { P(G(0.15, 0.03, 0.02), mk('#f0d24a', 1), 0, 0.13, 0.06, head); P(G(0.03, 0.05, 0.02), mk('#ff6ab0', 1), 0, 0.16, 0.06, head); }
   }
   const arm = sx => { const p = new THREE.Group(); p.position.set(sx * (0.21 * w + 0.062), 1.38, 0); body.add(p); P(G(0.115, 0.3, 0.125), mTop, 0, -0.14, 0, p); P(G(0.095, 0.28, 0.1), shortSl ? mSkin : mTop, 0, -0.43, 0, p); P(G(0.085, 0.09, 0.09), mSkin, 0, -0.61, 0, p); return p; };
@@ -126,6 +138,7 @@ function makeChar(look, seed, an, key) {
   }
   const hm = new THREE.Mesh(new THREE.BoxGeometry(0.62, 1.85 * s, 0.5), M.inv); hm.position.y = 0.92 * s; hm.visible = false; hm.userData.key = key || null; g.add(hm); ch.hit = hm;
   if (key) rayTargets.push(hm);
+  if (!sh && typeof charBlob === 'function' && KX.blobMat) ch.blob = charBlob(ch);
   scene.add(g); return ch;
 }
 // sombra sin piernas: el cuerpo acaba en un jirón negro

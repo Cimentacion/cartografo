@@ -130,7 +130,8 @@ function keyHint() { return IN.dev === 'kb' ? '[E] ' : IN.dev === 'pad' ? '(A) '
 /* ---------- pantallas ---------- */
 function setOverlay(o) {
   overlay = o;
-  for (const id of ['menu', 'note', 'peep', 'end', 'over', 'pause', 'sug']) $(id).hidden = id !== o;
+  for (const id of ['menu', 'note', 'peep', 'end', 'over', 'pause', 'sug', 'sauceg']) $(id).hidden = id !== o;
+  if (o === 'end') bookOpen(); else bookClose();
   if (o && document.exitPointerLock && IN.locked) document.exitPointerLock();
   $('hud').classList.toggle('dim', !!o);
 }
@@ -274,8 +275,8 @@ function updateRide(dt, ko) {
   const vib = Math.sin(TIME * 47) * 0.004 * (0.3 + Math.abs(ride.spd) / MAX);
   camera.position.set(me.x - fx * 0.1, 1.42 + vib, me.z - fz * 0.1);
   camera.rotation.set(me.pitch, me.yaw + ride.look, ride.lean + (hurtFlash > 0 ? Math.sin(TIME * 60) * 0.03 * hurtFlash : 0));
-  D.handle.position.set(0.6 * Math.sin(ride.look), -0.36 - 0.6 * Math.sin(me.pitch) * 0.2, -0.6 * Math.cos(ride.look));
-  D.handle.rotation.set(0, -ride.look + st * 0.2 * (1 - 0.5 * Math.abs(ride.spd) / MAX), 0);
+  D.handle.position.set(0.6 * Math.sin(ride.look), -0.3 - 0.6 * Math.sin(me.pitch) * 0.2, -0.6 * Math.cos(ride.look));
+  D.handle.rotation.set(0.22, -ride.look + st * 0.2 * (1 - 0.5 * Math.abs(ride.spd) / MAX), 0);
   ride.spT -= dt; if (ride.spT <= 0) { ride.spT = 0.2; drawSpeedo(Math.round(Math.abs(ride.spd) * 3.6)); }
   AU.lis.x = me.x; AU.lis.z = me.z; AU.lis.yaw = me.yaw + ride.look;
 }
@@ -291,7 +292,7 @@ function getOffBike() {
 function onSlice(i, cell, d) {
   if (slices.length > 40) return;
   const b = Math.floor(cell / SEG), j = cell % SEG, a = (j + 0.5) * 2 * PI / SEG + spitRot(i, Tsm), r = spitRad(b, SV[i].lv[cell]);
-  const m = new THREE.Mesh(G(0.05, 0.1, 0.006), new THREE.MeshLambertMaterial({ color: meatHex(i, d) }));
+  const m = new THREE.Mesh(G(0.05, 0.1, 0.006), new THREE.MeshLambertMaterial({ color: meatHex(SPT[i], d) }));
   m.position.set(SPX[i] + Math.sin(a) * r, SPY0 + (b + 0.5) * BH, SPZ + Math.cos(a) * r + 0.01); m.rotation.y = a;
   scene.add(m); slices.push({ m, vy: -0.2, vz: 0.25 + Math.random() * 0.2, rx: 3 + Math.random() * 5 });
 }
@@ -320,8 +321,9 @@ function updateCut(dt) {
 }
 
 /* ---------- mano y escopeta ---------- */
+function hkey(h) { return JSON.stringify(h, (k, v) => k === 'a' || k === 'f' ? undefined : v); }
 function updateViewmodel(dt) {
-  const P = myP(), h = P && !cut.on && !ride.on && !(P.ko > 0) ? P.h : 0, key = h ? JSON.stringify(h) : '';
+  const P = myP(), h = P && !cut.on && !ride.on && !(P.ko > 0) ? P.h : 0, key = h ? hkey(h) : '';
   if (key !== vmKey) {
     vmKey = key; vm.remove(vmItem); vmItem = new THREE.Group(); vm.add(vmItem);
     if (h) {
@@ -331,6 +333,7 @@ function updateViewmodel(dt) {
       else if (h.k === 'kb') { it.scale.setScalar(1.25); it.rotation.x = 0.85; it.rotation.y = h.w && h.b === 0 ? 0.5 : 0; vmItem.position.set(0.04, -0.2, -0.44); arm.position.set(0.12, -0.1, 0.22); arm.rotation.y = 0.3; }
       else if (h.k === 'bag') { it.scale.setScalar(0.85); it.rotation.y = 0.5; vmItem.position.set(0.3, -0.46, -0.6); arm.position.set(0.02, 0.1, 0.22); }
       else if (h.k === 'body') { it.scale.setScalar(1.15); it.rotation.y = 0.35; vmItem.position.set(0.06, -0.4, -0.52); arm.position.set(0.22, 0.02, 0.2); }
+      else if (h.k === 'jc') { it.scale.setScalar(0.9); it.rotation.y = -0.4; vmItem.position.set(0.24, -0.46, -0.55); arm.position.set(0.02, 0.12, 0.22); }
       else if (h.k === 'sb') { it.scale.setScalar(0.62); vmItem.position.set(0.26, -0.3, -0.52); arm.position.set(0.02, -0.06, 0.24); }
       else { it.scale.setScalar(1.3); vmItem.position.set(0.2, -0.3, -0.45); arm.position.set(0.02, -0.06, 0.24); }
       vmItem.add(arm); vmKick = 1;
@@ -380,6 +383,8 @@ function updateInteract(dt) {
     else if (target.loc === 'cut') enterCut(+targetKey.slice(2));
     else if (target.loc === 'peep') openPeep();
     else if (target.loc === 'rules') openRules();
+    else if (target.loc === 'sauce') openSauceGame();
+    else if (target.loc === 'pour') { act('use', targetKey); AU.play('pour'); useCd = 0.4; }
     else if (typeof target.loc === 'function') { target.loc(); useCd = 0.4; }
     else { act('use', targetKey); useSound(targetKey); vmKick = 1; useCd = NET.isHost ? 0.12 : 0.3; }
   }
@@ -409,6 +414,8 @@ function syncChars(dt) {
     const mode = c.st === S_DEAD ? 3 : c.st === S_DIS ? 4 : (c.st === S_ATK && (c.an === 1 || c.an === 3)) ? 1 : c.st === S_ROB ? 2 : 0;
     animChar(ch, dt, mode, c.an === 0 && ARCH[c.a].sp === 'drunk', TIME);
     if (ch.bag) ch.bag.visible = (c.st === S_OUT && c.b === 1) || c.st === S_RUN;
+    if (ch.blob) { ch.blob.visible = mode !== 3 && mode !== 4 && c.an !== 2; ch.blob.position.y = c.sit ? 0.458 : 0.058; }
+    if (c.sit) { ch.g.position.y = (c.fy || 0) - 0.4; ch.lL.rotation.x = ch.lR.rotation.x = -1.45; ch.body.position.y = 0; if (c.st === S_EAT) { ch.aR.rotation.x = -1.2 + Math.sin(TIME * 3 + c.i) * 0.4; ch.head.rotation.x = 0.15 + Math.sin(TIME * 3 + c.i) * 0.08; } }
     if (c.an === 2) ch.g.visible = !W.pw || c.st === S_DIS;
     if (c.o) ch.g.visible = !c.hid;
     if (c.an === 3) { ch.g.position.y = 0.18 + Math.sin(TIME * 2 + c.i) * 0.08; for (const m of ch.mats) m.opacity = 0.3 + 0.15 * Math.sin(TIME * 7 + c.i); }
@@ -434,7 +441,7 @@ function syncChars(dt) {
     const px = ch.g.position.x, pz = ch.g.position.z, nx = lerp(px, pr[0], Math.min(1, dt * 12)), nz = lerp(pz, pr[1], Math.min(1, dt * 12));
     ch.spd = lerp(ch.spd, Math.hypot(nx - px, nz - pz) / Math.max(dt, 0.001), 0.25); ch.g.position.x = nx; ch.g.position.z = nz;
     ch.g.rotation.y = angLerp(ch.g.rotation.y, pr[2] + PI, Math.min(1, dt * 10));
-    const Q = W.pl[p.peer], hk = Q && Q.h ? JSON.stringify(Q.h) : '';
+    const Q = W.pl[p.peer], hk = Q && Q.h ? hkey(Q.h) : '';
     animChar(ch, dt, Q && Q.ko > 0 ? 3 : 0, false, TIME);
     if (W.vs && W.vs.r === p.peer) { ch.g.position.y = 0.32; ch.lL.rotation.x = ch.lR.rotation.x = -1.35; ch.aL.rotation.x = ch.aR.rotation.x = -1.1; ch.spd = 0; }
     if (hk !== ch.hk) { ch.hk = hk; if (ch.held) ch.aR.remove(ch.held); ch.held = null; if (hk) { ch.held = itemMesh(Q.h); ch.held.position.set(0, -0.66, 0.12); ch.held.rotation.x = Q.h.k === 'gun' ? PI / 2 : 1.2; ch.aR.add(ch.held); } }
@@ -461,12 +468,13 @@ function syncWorld(dt) {
   for (let i = slices.length - 1; i >= 0; i--) { const s = slices[i]; s.vy -= 6 * dt; s.m.position.y += s.vy * dt; s.m.position.z += s.vz * dt; s.m.rotation.x += s.rx * dt; if (s.m.position.y < 0.97) { scene.remove(s.m); s.m.material.dispose(); slices.splice(i, 1); } }
   if (!W) return;
   if (NET.isHost) Tsm = W.t; else { Tsm += dt; if (Math.abs(Tsm - W.t) > 0.5) Tsm = W.t; }
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < 4; i++) {
+    const on = i < nSpits(); D.spit[i].root.visible = on; if (!on || !W.sp[i]) continue;
     if (!NET.isHost) decodeSpit(i, TIME);
     const sp = D.spit[i], T = W.sp[i]; sp.mesh.rotation.y = spitRot(i, Tsm);
     if (SV[i].dirty) updateSpitMesh(i);
     const k = clamp(T.u / 40, 0, 1); sp.pile.visible = T.u >= 1; sp.pile.scale.set(1.2 + k * 0.9, 0.12 + k * 0.9, 0.5 + k * 0.4);
-    meatColor(i, T.r > 0.4 ? 0.2 : 0.85, _c3); sp.pile.material.color.setRGB(_c3[0], _c3[1], _c3[2]);
+    meatColor(SPT[i], T.r > 0.4 ? 0.2 : 0.85, _c3); sp.pile.material.color.setRGB(_c3[0], _c3[1], _c3[2]);
   }
   for (let i = 0; i < 3; i++) { const k = clamp(W.bin[i] / 16, 0, 1) * 1.5; D.bins[i].visible = W.bin[i] > 0; D.bins[i].scale.y = Math.max(0.15, k); D.bins[i].position.y = 1.07 + 0.05 * Math.max(0.15, k); }
   const ck = W.chop.t + ':' + W.chop.n;
@@ -487,9 +495,10 @@ function syncWorld(dt) {
 }
 
 /* ---------- HUD ---------- */
+const TBL = { es: 'MESA', en: 'TABLE', ro: 'MASA' };
 function ticketHTML(c) {
   const ord = genOrder(c.a, c.s), X = LX[LANG];
-  let h = '<div class="tk' + (c.p < 0.25 ? ' hot' : '') + '"><div class="tk-h"><b>' + aName(c.a) + '</b><i>' + aRole(c.a) + '</i></div>';
+  let h = '<div class="tk' + (c.p < 0.25 ? ' hot' : '') + '"><div class="tk-h"><b>' + aName(c.a) + '</b><i>' + (c.tb >= 0 ? TBL[LANG] + ' ' + (c.tb + 1) + ' · ' : '') + aRole(c.a) + '</i></div>';
   ord.forEach((it, i) => {
     let t; if (it.k === 'kb') t = '<u>' + kbShort(it) + '</u><br>' + vegPhrase(it.v) + ' · ' + saucePhrase(it.s) + (it.b === 2 ? ' · ' + X.wfries : ''); else t = '<u>' + (it.k === 'fr' ? X.fries : X.drink[it.t]) + '</u>';
     h += '<div class="tk-i' + (c.g[i] ? ' done' : '') + '">' + t + '</div>';
@@ -502,7 +511,8 @@ function updateHUD(dt) {
     if (!NET.evInit) { NET.evInit = true; lastEv = NET.isHost ? 0 : W.es; }
     for (const e of W.ev) {
       if (e[0] <= lastEv) continue; lastEv = e[0]; const type = e[1], x = e[2], z = e[3], a = e[4];
-      if (type === 'msg') toast(MSGX[LANG][a] || MSG[a], a === 'phone' || a === 'deliv' || a === 'power' || a === 'karma' || a === 'robgone' || a === 'killed' ? 'good' : 'bad');
+      if (kitchenEvent(type, x, z, a)) { }
+      else if (type === 'msg') toast(MSGX[LANG][a] || MSG[a], a === 'phone' || a === 'deliv' || a === 'power' || a === 'karma' || a === 'robgone' || a === 'killed' ? 'good' : 'bad');
       else if (type === 'cash') { toast('+' + eur(a), 'good'); AU.play('cash', x, z); }
       else if (type === 'tip') toast(T('tip', eur(a)), 'good');
       else if (type === 'ring') AU.play('ring', x, z);
@@ -563,7 +573,7 @@ function updateHUD(dt) {
   $('clock').textContent = clockStr(W.t); $('night').textContent = T('night', W.n); $('cash').textContent = eur(W.cash);
   $('rep-f').style.width = Math.round(W.rep) + '%'; $('rep-f').classList.toggle('low', W.rep < 30);
   $('coop').textContent = (NET.code ? T('room_code', NET.code) + (NET.count > 1 ? ' · ' : '') : '') + (NET.count > 1 ? T('coop', NET.count) : '');
-  let th = ''; for (const c of W.cu) if (!c.an && !c.o && c.st === S_WAIT) th += ticketHTML(c); for (const o of W.dl || []) th += dlTicketHTML(o); $('tickets').innerHTML = th;
+  let th = '', ntk = 0; for (const c of W.cu) if (!c.an && !c.o && c.st === S_WAIT) { th += ticketHTML(c); ntk++; } for (const o of W.dl || []) { th += dlTicketHTML(o); ntk++; } ticketsShow(th, ntk);
   const h = P ? P.h : 0; let hd = handDesc(h); if (h && h.k === 'gun') hd += '  ' + '●'.repeat(W.am) + '○'.repeat(2 - W.am) + '  +' + W.shl;
   $('hand').textContent = hd; $('hp').textContent = P ? '♥'.repeat(P.hp) + '♡'.repeat(Math.max(0, 3 - P.hp)) : '';
   $('tb-fire').hidden = !(h && (h.k === 'gun' || h.k === 'sb')); $('tb-rel').hidden = !(h && h.k === 'gun'); $('tb-back').hidden = !cut.on; $('tb-pause').hidden = !soloNow();
@@ -586,7 +596,7 @@ function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.min(0.05, Math.max(0.001, (now - lastT) / 1000)); lastT = now; TIME += dt;
   pollPad(dt);
-  if (overlay && (IN.use || IN.back)) { if (overlay === 'note' || overlay === 'peep' || overlay === 'pause') setOverlay(null); else if (overlay === 'menu' && IN.use) startGame(); else if (overlay === 'end' && IN.use) act('next'); else if (overlay === 'over' && IN.use) act('restart'); IN.use = IN.back = false; }
+  if (overlay && (IN.use || IN.back)) { if (overlay === 'sauceg') { if (IN.back) closeSauceGame(); } else if (overlay === 'note' || overlay === 'peep' || overlay === 'pause') setOverlay(null); else if (overlay === 'menu' && IN.use) startGame(); else if (overlay === 'end' && IN.use) act('next'); else if (overlay === 'over' && IN.use) act('restart'); IN.use = IN.back = false; }
   if (overlay) { IN.fire = false; IN.reload = false; }
   if (started) {
     updateCut(dt); updatePlayer(dt); updateInteract(dt);

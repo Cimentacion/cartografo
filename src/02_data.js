@@ -214,6 +214,49 @@ A('yolanda', 'Yolanda', 'busca a su hijo',
   { g: ['¿Has visto a un chaval con la camisa abierta? Es mi hijo.'], pre: ['Ya que estoy, ponme'], post: ['Como lo pille, se le acaba Benidorm.'],
     w: ['Date prisa, que sigo buscándolo.'], ok: ['Gracias. Si lo ves, dile que su madre lo busca.'], x: ['No puedo esperar. Sigo buscando.'] });
 
+/* ---------- grupos: un cabecilla pide por todos y los demás le acompañan ---------- */
+const FOL = { sp: 'fol', hrs: [99, 99] };
+A('yusuf', 'Yusuf', 'grupo de amigos, quiere halal',
+  { skin: SK.olive, hair: '#121010', top: '#e8e4da', ts: 'shirt', legs: '#2a2a30', h: 1.78, beard: 2, acc: 'kef', kc: '#b0201a' },
+  { b: [4, 3, 3], m: [3, 6, 2], fr: 0.6, dr: 0.7, drk: [5, 5, 0], all: 0.6, hot: 0.6, nk: [3, 4] },
+  { pat: 1.1, tip: 0.15, voice: 0.85, hrs: [0, 6], grp: [['hamza', 'bilal'], 1, 2] },
+  { g: ['Salam aleikum, hermano.', 'Buenas noches. ¿La carne es halal?'], pre: ['Para todos:', 'Apunta, hermano:'], post: ['Halal, ¿eh? Confiamos en ti.', 'Y agua o cola, nada de cerveza.'],
+    w: ['Hermano, ¿falta mucho?', 'Tranquilo, pero que tenemos hambre.'], ok: ['Barakallahu fik, hermano.', 'Muy bueno. Mañana volvemos.'], bad: ['Esto no está como siempre, hermano.'], x: ['Vamos a otro sitio, hermanos.'], no: ['Esto no es lo nuestro, hermano.'] });
+A('hamza', 'Hamza', 'amigo de Yusuf', { skin: SK.brown, hair: '#121010', top: '#3a4a3a', ts: 'tee', legs: '#22252b', h: 1.74, beard: 1, acc: 'kufi' }, {}, FOL, { g: ['Salam.'], w: ['Uf, qué hambre.'] });
+A('bilal', 'Bilal', 'amigo de Yusuf', { skin: SK.olive, hair: '#121010', top: '#e8e4d8', ts: 'shirt', legs: '#e8e4d8', h: 1.8, beard: 3, acc: 'turb', kc: '#f2efe6' }, {}, FOL, { g: ['Buenas noches.'], w: ['Paciencia, hermanos.'] });
+A('fatima', 'Fátima', 'familia, todo halal',
+  { skin: SK.tan, hair: '#121010', hs: 'short', top: '#4a3a6a', ts: 'shirt', legs: '#2a2a3a', h: 1.62, w: 0.92, fem: 1, acc: 'hijab', kc: '#2a4a6a' },
+  { b: [3, 4, 3], m: [6, 3, 1], fr: 0.7, dr: 0.6, drk: [5, 5, 0], all: 0.5, hot: 0.2, nk: [2, 3] },
+  { pat: 1.15, tip: 0.1, voice: 1.3, hrs: [0, 3], grp: [['omar'], 1, 1] },
+  { g: ['Buenas noches. Es halal, ¿verdad?', 'Hola. ¿Todavía hacéis comida?'], pre: ['Para nosotros:', 'Ponme'], post: ['Sin cerveza, gracias.', 'Que a los niños les gusta el pollo.'],
+    w: ['¿Tardará mucho?', 'Los niños nos esperan en casa.'], ok: ['Gracias, que Dios te bendiga.', 'Muy rico. Gracias.'], x: ['Lo siento, nos vamos.'], no: ['Esto no es lo que pedimos.'] });
+A('omar', 'Omar', 'marido de Fátima', { skin: SK.tan, hair: '#1a1410', top: '#2a2c30', ts: 'tee', legs: '#2a2a30', h: 1.76, beard: 2, acc: 'kufi', kc: '#e8e4d8' }, {}, FOL, { g: ['Salam.'] });
+A('manolofam', 'Manolo', 'familia al completo',
+  { skin: SK.tan, hair: '#121010', top: '#141414', ts: 'shirt', legs: '#1a1a1e', h: 1.72, w: 1.15, beard: 3, age: 0.55, chain: 1 },
+  { b: [3, 4, 4], m: [9, 1, 1], fr: 0.9, dr: 0.8, drk: [7, 2, 2], all: 0.8, hot: 0.4, nk: [4, 6] },
+  { pat: 1.0, tip: 0.2, voice: 0.8, hrs: [0, 4], grp: [['rocio', 'kiko', 'tiaencarna'], 2, 3] },
+  { g: ['¡Buenas noches, primo!', '¿Qué pasa, cuñao? Venimos toda la familia.'], pre: ['Apunta, que somos muchos:', 'Ponnos'], post: ['Y que sea pollo, que a la familia le gusta el pollo.', 'Bien cargadito, ¿eh, primo?'],
+    w: ['Primo, que los chiquillos tienen hambre.', '¿Cuánto falta, cuñao?'], ok: ['¡Olé! Esto está de muerte, primo.', 'Que Dios te lo pague, primo.'], bad: ['Esto no está como el del otro día...'], x: ['Vámonos, familia, que aquí no nos atienden.'], no: ['Primo, que esto no es lo que te he dicho.'] });
+A('rocio', 'Rocío', 'mujer de Manolo', { skin: SK.tan, hair: '#0e0c0a', hs: 'bun', top: '#c8202a', ts: 'tee', legs: '#141414', h: 1.64, w: 1.02, fem: 1, chain: 1 }, {}, FOL, { g: ['¡Hola, guapo!'], w: ['Ay, que no llega la comida.'] });
+A('kiko', 'Kiko', 'hijo de Manolo', { skin: SK.tan, hair: '#0e0c0a', top: '#f2f2f2', ts: 'tee', legs: '#2a3a6a', h: 1.75, w: 0.95, age: 0.05, chain: 1, acc: 'cap' }, {}, FOL, { g: ['¿Qué pasa, primo?'] });
+A('tiaencarna', 'Tía Encarna', 'la tía', { skin: SK.olive, hair: '#3a3a3a', hs: 'bun', top: '#1a1a1a', ts: 'shirt', legs: '#1a1a1a', ls: 'long', h: 1.56, w: 1.1, fem: 1, age: 0.85 }, {}, FOL, { g: ['Buenas noches nos dé Dios.'] });
+/* ---------- más gente suelta de la noche ---------- */
+A('marta', 'Marta', 'enfermera saliendo de urgencias',
+  { skin: SK.light, hair: '#5a3a1a', hs: 'bun', top: '#5a8ab0', ts: 'tee', legs: '#5a8ab0', h: 1.66, w: 0.9, fem: 1 },
+  { b: [6, 2, 2], m: [5, 3, 2], fr: 0.3, dr: 0.6, drk: [3, 6, 1], all: 0.4, hot: 0.3 },
+  { pat: 0.75, tip: 0.2, voice: 1.3, hrs: [0, 7] },
+  { g: ['Hola. Doce horas de turno, imagínate.', 'Buenas. ¿Aún cocináis?'], pre: ['Ponme', 'Un'], post: ['Para llevar, que me caigo de sueño.', 'Y si puede ser rápido, mejor.'], w: ['Me estoy durmiendo de pie.'], ok: ['Gracias, me has salvado la noche.'], x: ['Nada, me voy a dormir sin cenar.'] });
+A('olav', 'Olav', 'turista noruego quemado',
+  { skin: SK.burn, hair: '#e8d8a0', top: '#f2f2f2', ts: 'tee', legs: '#3a6aa8', ls: 'short', h: 1.92, w: 1.05, burn: 1 },
+  { b: [3, 3, 5], m: [3, 5, 3], fr: 0.8, dr: 0.8, drk: [2, 2, 7], all: 0.7, hot: 0.1 },
+  { pat: 1.2, tip: 0.3, voice: 0.9, hrs: [1, 6] },
+  { g: ['Hello! Hola! Is open?', 'Good evening, my friend.'], pre: ['I want... quiero', 'Uno'], post: ['No spicy please. No picante.', 'Takk! Gracias!'], w: ['Is long time, no?'], ok: ['Very good! Muy bien!', 'Best kebab Norway never had.'], x: ['Okay, bye bye.'] });
+A('tito', 'Tito', 'camarero que acaba de cerrar su bar',
+  { skin: SK.olive, hair: '#2a2018', top: '#141414', ts: 'shirt', legs: '#141414', h: 1.73, beard: 1, age: 0.35 },
+  { b: [7, 2, 1], m: [3, 4, 3], fr: 0.2, dr: 0.7, drk: [1, 2, 7], all: 0.5, hot: 0.7 },
+  { pat: 0.9, tip: 0.3, voice: 0.95, hrs: [2.5, 7] },
+  { g: ['¿Qué pasa, compañero? Otro que no duerme.', 'Buenas. Acabo de echar la persiana.'], pre: ['Ponme', 'Lo de siempre:'], post: ['Y una caña, que me la he ganado.', 'Que hoy han venido todos los guiris del mundo.'], w: ['Tranquilo, que yo sé lo que es.'], ok: ['Esto es gloria, compañero.'], x: ['Me voy al de enfrente, sin rencor.'] });
+
 /* ---------- vecinos del barrio que piden a domicilio ---------- */
 const RES = { sp: 'res', hrs: [99, 99] };
 A('rosario', 'Rosario', 'vive con seis gatos',
@@ -292,7 +335,7 @@ function genOrder(ai, seed) {
   if (Ar.sp === 'robber') return items;
   if (Ar.sp === 'beggar') return [{ k: 'dr', t: 1 }];
   if (o.fix) return o.fix.map(x => Object.assign({}, x));
-  const nk = r() < o.n2 ? 2 : 1;
+  const nk = o.nk ? o.nk[0] + (r() * (o.nk[1] - o.nk[0] + 1) | 0) : r() < o.n2 ? 2 : 1;
   for (let i = 0; i < nk; i++) {
     const b = pickW(o.b, r), m = pickW(o.m, r);
     let v; const rv = r();
@@ -300,6 +343,8 @@ function genOrder(ai, seed) {
     if (Ar.sp === 'picky') { v &= ~4; if (!v) v = 3; }
     const rs = r(); let s = rs < 0.12 ? 0 : rs < 0.6 ? 1 : 3;
     if (r() < o.hot) s |= 2; else s &= ~2;
+    const ns = typeof W !== 'undefined' && W && W.up ? W.up.sa : 2;   // con los barreños nuevos también piden alioli y barbacoa
+    if (ns >= 3 && r() < 0.3) s |= 4; if (ns >= 4 && r() < 0.3) s |= 8;
     items.push({ k: 'kb', b, m, v, s });
   }
   if (r() < o.fr && !items.some(x => x.b === 2)) items.push({ k: 'fr' });

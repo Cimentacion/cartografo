@@ -1,24 +1,25 @@
 /* ================= SIMULACIÓN (la lleva el anfitrión) ================= */
-const S_IN = 0, S_QUEUE = 1, S_GREET = 2, S_WAIT = 3, S_OUT = 4, S_FLEE = 5, S_DEAD = 6, S_ROB = 7, S_RUN = 8, S_STALK = 9, S_ATK = 10, S_DIS = 11;
+const S_IN = 0, S_QUEUE = 1, S_GREET = 2, S_WAIT = 3, S_OUT = 4, S_FLEE = 5, S_DEAD = 6, S_ROB = 7, S_RUN = 8, S_STALK = 9, S_ATK = 10, S_DIS = 11, S_SIT = 12, S_EAT = 13, S_FOL = 14;
 let W = null, SCHED = [], spitWireT = 0;
 const PP = {};   // pid -> {x,z,yaw,pitch,aim}
 
-function spitWire() { return { c: '7'.repeat(NCELL), d: 'l'.repeat(NCELL), u: 16, q: 1, r: 0 }; }
+function spitWire(mx) { return { c: String.fromCharCode(48 + (mx || 7)).repeat(NCELL), d: 'l'.repeat(NCELL), u: 16, q: 1, r: 0 }; }
 function newWorld(n, prev) {
   const keep = prev && n > 1;
   const w = {
     v: NETV, hs: prev ? prev.hs : Date.now(), ph: 'play', why: 0, n, t: 0, cash: keep ? prev.cash : 0, rep: keep ? prev.rep : 60,
     s: { sv: 0, ls: 0, e: 0, tp: 0 }, pw: 1, fk: 0, sx: 0, sd: (Math.random() * 2e9) | 0, bo: 0, fl: 0,
-    sp: [spitWire(), spitWire()], bin: [12, 12, 12], chop: { t: -1, n: 0 }, fry: { s: 0, t: 0, u: 0, q: 1 }, sh: [0, 0, 0], gr: 1, am: 2, shl: 6,
+    sp: [0, 1, 2, 3].map(() => spitWire(7 + 2 * (keep && prev.up ? prev.up.big | 0 : 0))), bin: [12, 12, 12], chop: { t: -1, n: 0 }, fry: { s: 0, t: 0, u: 0, q: 1 }, sh: [0, 0, 0], gr: 1, am: 2, shl: 6,
     bd: { s: 0, t: 0, o: 0 }, bt: 0, cu: [], pl: {}, ev: prev ? prev.ev : [], es: prev ? prev.es : 0, id: prev ? prev.id : 1, used: [], nx: 6,
   };
   newStreet(w); w.fm = keep && prev.fm ? prev.fm.slice() : [];
+  newKitchen(w, keep ? prev : null);
   if (prev) for (const k in prev.pl) w.pl[k] = { h: 0, hp: 3, ko: 0 };
   return w;
 }
 function hostStart(n) {
   W = newWorld(n, W);
-  for (const S of SV) { S.lv.fill(7); S.dn.fill(0.75); S.pend.fill(0); S.dirty = true; S.cs = S.ds = ''; }
+  for (const S of SV) { S.lv.fill(spitMax()); S.dn.fill(0.75); S.pend.fill(0); S.dirty = true; S.cs = S.ds = ''; }
   SCHED = genSchedule(W.n, W.sd); ensurePlayer(NET.myId);
 }
 function ensurePlayer(pid) { if (W && !W.pl[pid]) W.pl[pid] = { h: 0, hp: 3, ko: 0 }; }
@@ -40,7 +41,7 @@ function lineOf(c) {
   if (!c.l) return '';
   const sp = c.l.split(':'), key = sp[0], idx = +sp[1] || 0;
   if (c.an === 1 || c.an === 3) { const A2 = ANOMX[LANG], arr = A2[key] || A2.w; return arr[idx % arr.length]; }
-  if (key === 'sx' || key === 'dw') { const arr = FUNX[LANG][key]; return arr[idx % arr.length]; }
+  if (FUNX[LANG][key]) { const arr = FUNX[LANG][key]; return arr[idx % arr.length]; }
   if (!ARCH[c.a]) return '';
   if (key === 'o') { const pre = aLines(c.a, 'pre'), post = aLines(c.a, 'post'); return (pre[idx % pre.length] + ' ' + orderPhrase(genOrder(c.a, c.s)) + '. ' + post[(idx >> 1) % post.length]).trim(); }
   const arr = aLines(c.a, key); return arr[idx % arr.length];
@@ -74,13 +75,13 @@ function moveTo(c, tx, tz, sp, dt) {
   return d - s < 0.06;
 }
 function patTotal(c) { const n = genOrder(c.a, c.s).length; return (100 + 30 * Math.max(0, n - 1)) * ARCH[c.a].pat * (W.n === 1 ? 1.2 : Math.max(0.8, 1.08 - 0.04 * W.n)); }
-function leave(c, happy) { c.st = S_OUT; c.b = happy ? 1 : 0; c.sl = -1; c.qi = -1; c.wp = 0; c.t = 0; }
-function flee(c) { c.st = S_FLEE; c.sl = -1; c.qi = -1; c.wp = c.z > 4.6 ? 2 : 0; c.t = 0; }
+function leave(c, happy) { c.st = S_OUT; c.b = happy ? 1 : 0; c.sl = -1; c.qi = -1; c.wp = c.tb >= 0 ? 2 : 0; c.t = 0; c.tb = -1; c.sit = 0; }
+function flee(c) { c.st = S_FLEE; c.sl = -1; c.qi = -1; c.wp = c.z > 4.6 ? 2 : 0; c.t = 0; c.tb = -1; c.sit = 0; }
 function panic() {
   for (const c of W.cu) {
     if (c.an || c.o || c.st === S_DEAD || c.st === S_FLEE || c.st === S_ROB) continue;
     if (c.st === S_OUT && c.z > 5) continue;
-    if (c.st <= S_WAIT) W.s.ls++;
+    if (c.st <= S_WAIT || c.st === S_SIT) W.s.ls++;
     say(c, 'flee'); flee(c);
   }
 }
@@ -103,7 +104,8 @@ function pay(c, ord, noTip) {
 function finishOrder(c, ord) {
   const Ar = ARCH[c.a];
   if (Ar.sp === 'beggar') { W.rep = clamp(W.rep + 6, 0, 100); say(c, 'ok'); ev('msg', 0, 0, 'karma'); leave(c, 1); return; }
-  if (Ar.sp === 'sinpa') { say(c, 'run'); c.st = S_RUN; c.t = 0; c.sl = -1; c.wp = 0; return; }
+  if (Ar.sp === 'sinpa') { say(c, 'run'); c.st = S_RUN; c.t = 0; c.sl = -1; c.wp = c.tb >= 0 ? 2 : 0; c.tb = -1; c.sit = 0; return; }
+  if (c.tb >= 0) { c.st = S_EAT; c.t = 0; say(c, 'ok'); return; }   // en la mesa: primero se lo come
   pay(c, ord);
 }
 function deliver(c, pid) {
@@ -111,6 +113,7 @@ function deliver(c, pid) {
   if (m.idx < 0) { say(c, 'no'); ev('bad', c.x, c.z); return; }
   if (m.line === 'raw') W.rep = clamp(W.rep - 3, 0, 100);
   c.g[m.idx] = 1; c.sc = r2(c.sc + m.score); if (H.hm) c.hm = 1; P.h = 0; ev('ok', c.x, c.z);
+  if (H.sw && weirdTaste(c, H)) return;
   if (c.g.every(v => v)) finishOrder(c, ord); else if (m.line) say(c, m.line);
 }
 function nearestPlayer(x, z, fy) {
@@ -145,9 +148,11 @@ function updCustomer(c, dt) {
   if (c.an === 2) return updShadow(c, dt);
   if (c.an === 3) return updSpirit(c, dt);
   if (c.o) return updOutdoor(c, dt);
+  if (c.fo && c.st === S_FOL) return updFollower(c, dt);
   const Ar = ARCH[c.a], OUT = [[-2.6, 4.4], [-2.6, 6.3], [c.sd * 16.5, 6.6]];
   switch (c.st) {
     case S_IN: {
+      if (c.tb >= 0) { updTable(c, dt); break; }
       const tgt = c.sl >= 0 ? SLOTS[c.sl] : QUEUE[clamp(c.qi, 0, 2)], wp = c.wp < 2 ? DOOR_IN[c.wp] : tgt;
       const sp = c.an === 1 ? 1.1 : Ar.sp === 'drunk' ? 1.2 : Ar.sp === 'robber' ? 2.3 : 1.7;
       if (moveTo(c, wp[0], wp[1], sp, dt)) { if (c.wp < 2) { c.wp++; if (c.wp === 2) { ev('bell', -2.6, 4.8); if (c.an === 1) { W.fk = 3.5; ev('flick'); } } } else arrive(c); }
@@ -166,7 +171,7 @@ function updCustomer(c, dt) {
       }
       break;
     case S_WAIT:
-      c.y = angLerp(c.y, PI, Math.min(1, dt * 5));
+      if (c.tb >= 0) c.y = angLerp(c.y, TABLES[c.tb][2], Math.min(1, dt * 5)); else c.y = angLerp(c.y, PI, Math.min(1, dt * 5));
       c.p -= dt / patTotal(c) * (W.pw ? 1 : 1.4) * (SHOP_IN ? 1 : 0.4);
       if (!W.pw && !(c.f & 8)) { c.f |= 8; say(c, 'dark'); }
       if (c.p < 0.5 && !(c.f & 2)) { c.f |= 2; say(c, 'w'); }
@@ -203,6 +208,7 @@ function updCustomer(c, dt) {
       break;
     }
     case S_DIS: if (c.t > 1.2) c.rm = 1; break;
+    case S_SIT: case S_EAT: updTable(c, dt); break;
   }
 }
 
@@ -227,7 +233,7 @@ function useLogic(pid, key, doIt) {
   if (key === 'butcher') {
     const B = W.bt;
     if (H && H.k === 'body') { if (B) return R(T('u_table_busy'), false); return R(T('u_table_put'), true, () => { W.bt = { a: H.a, s: H.s, n: 0 }; P.h = 0; }); }
-    if (!H && B) return R(T('u_table_cut', B.n), true, () => { B.n++; if (B.n >= 8) { W.bt = 0; P.h = { k: 'cone' }; } });
+    if (!H && B) return R(T('u_table_cut', B.n), true, () => { B.n++; if (B.n === 4) W.ing.sng = (W.ing.sng | 0) + 4; if (B.n >= 8) { W.bt = 0; P.h = { k: 'cone' }; } });
     return R(T(B ? 'u_hands' : 'u_table_idle'), false);
   }
   if (key === 'bag') return bagLogic(pid, R, H, P);
@@ -270,14 +276,16 @@ function useLogic(pid, key, doIt) {
   if (kind === 'vm') return vendLogic(pid, n, R, H, P);
   if (kind === 'gt') return gateLogic(pid, n, R, H, P);
   if (kind === 'gi') return gateLogic(pid, n, R, H, P, true);
-  if (kind === 'sp' && H && H.k === 'cone') return R(T('u_cone_mount', X.meat[n]), true, () => { const S = SV[n]; S.lv.fill(7); S.dn.fill(0.12); S.pend.fill(0); S.dirty = true; W.sp[n].h = 1; encodeSpit(n); P.h = 0; });
-  if (kind === 'sp') return H ? R(T('u_hands'), false) : R(T('u_carve', X.meat[n]), true, null, 'cut');
+  if ((kind === 'sp' || kind === 'tr') && n >= nSpits()) return null;
+  if (kind === 'sp' && H && H.k === 'cone') return R(T('u_cone_mount', X.meat[SPT[n]]), true, () => { const S = SV[n]; S.lv.fill(spitMax()); S.dn.fill(0.12); S.pend.fill(0); S.dirty = true; W.sp[n].h = 1; encodeSpit(n); P.h = 0; });
+  if (kind === 'sp') return H ? R(T('u_hands'), false) : R(T('u_carve', X.meat[SPT[n]]), true, null, 'cut');
   if (kind === 'tr') {
     const Tr = W.sp[n];
-    if (!openKb) return R(T('u_tray_n', X.meat[n], Math.floor(Tr.u / 6)), false);
-    if (Tr.u < 6) return R(T('u_tray_low', X.meat[n]), false);
+    const mt = SPT[n];
+    if (!openKb) return R(T('u_tray_n', X.meat[mt], Math.floor(Tr.u / 6)), false);
+    if (Tr.u < 6) return R(T('u_tray_low', X.meat[mt]), false);
     if (H.m[0] + H.m[1] >= 3) return R(T('u_tray_full'), false);
-    return R(T('u_tray_add', X.meat[n]) + (Tr.r > 0.4 ? T('u_raw') : ''), true, () => { const k = H.m[0] + H.m[1]; H.q = r2((H.q * k + Tr.q) / (k + 1)); H.r = r2(Math.max(H.r, Tr.r)); H.m[n]++; if (Tr.h) H.hm = 1; Tr.u -= 6; if (Tr.u <= 0) { Tr.u = 0; Tr.q = 1; Tr.r = 0; Tr.h = 0; } });
+    return R(T('u_tray_add', X.meat[mt]) + (Tr.r > 0.4 ? T('u_raw') : ''), true, () => { const k = H.m[0] + H.m[1]; H.q = r2((H.q * k + Tr.q) / (k + 1)); H.r = r2(Math.max(H.r, Tr.r)); H.m[mt]++; if (Tr.h) H.hm = 1; Tr.u -= 6; if (Tr.u <= 0) { Tr.u = 0; Tr.q = 1; Tr.r = 0; Tr.h = 0; } });
   }
   if (kind === 'bn') {
     if (!openKb) return R(X.veg[n] + ': ' + W.bin[n], false);
@@ -285,13 +293,7 @@ function useLogic(pid, key, doIt) {
     if (W.bin[n] <= 0) return R(T('u_out', X.veg[n]), false);
     return R(T('u_add', X.veg[n]), true, () => { H.v |= 1 << n; W.bin[n]--; });
   }
-  if (kind === 'sa') {
-    if (!H) return R(T('u_bottle_take', X.sauce[n]), true, () => { P.h = { k: 'sb', t: n }; });
-    if (H.k === 'sb') return H.t === n ? R(T('u_bottle_back'), true, () => { P.h = 0; }) : R(X.sauce[n], false);
-    if (!openKb) return R(X.sauce[n], false);
-    if (H.s >> n & 1) return R(T('u_has', X.sauce[n]), false);
-    return R(T('u_pour', X.sauce[n]), true, () => { H.s |= 1 << n; });
-  }
+  const kx = kitchenLogic(pid, key, kind, n, R, H, P, openKb); if (kx) return kx;
   if (kind === 'bs') { if (H) return R(T('u_busy', X.base[n]), false); return R(T('u_base' + n), true, () => { P.h = { k: 'kb', b: n, m: [0, 0], q: 1, r: 0, v: 0, s: 0, f: 0, w: 0 }; }); }
   if (kind === 'sh') {
     const cur = W.sh[n];
@@ -307,6 +309,7 @@ function useLogic(pid, key, doIt) {
     const nm = aName(c.a);
     if (c.an === 1) { if (H && H.k !== 'gun' && (c.st === S_STALK || c.st === S_GREET)) return R(T('u_give', itemName(H), nm), true, () => { say(c, 'no'); }); return R(nm, false); }
     if (c.st === S_DEAD) return H ? R(T('u_drag'), false) : R(T('u_drag'), true, () => { P.h = { k: 'body', a: c.a, s: c.s, cr: c.cr | 0 }; c.rm = 1; });
+    if (c.st === S_SIT && c.sit) return R(T('u_take_order', nm), true, () => { say(c, 'o'); c.st = S_WAIT; c.t = 0; c.g = genOrder(c.a, c.s).map(() => 0); });
     if (c.st !== S_WAIT) return R(nm + ' · ' + aRole(c.a), false);
     if (!H || H.k === 'gun' || H.k === 'vg' || H.k === 'body' || H.k === 'cone') return R(T('u_wait', nm), false);
     return R(T('u_give', itemName(H), nm), true, () => deliver(c, pid));
@@ -314,7 +317,7 @@ function useLogic(pid, key, doIt) {
   return null;
 }
 function doCut(pid, i, cells) {
-  if (i !== 0 && i !== 1 || !Array.isArray(cells)) return;
+  if (!(i >= 0 && i < nSpits()) || !Array.isArray(cells)) return;
   const S = SV[i], T = W.sp[i]; let any = false;
   for (const c of cells) {
     if (!(c >= 0 && c < NCELL) || S.lv[c] <= 0) continue;
@@ -364,6 +367,7 @@ function applyAction(pid, a) {
   const k = a[1];
   if (k === 'next') { if (W.ph === 'end') hostStart(W.n + 1); return; }
   if (k === 'restart') { if (W.ph === 'over') hostStart(1); return; }
+  if (k === 'buy') { buyUpgrade(a[2]); return; }
   if (W.ph !== 'play') return;
   if (k === 'use') useLogic(pid, String(a[2]), true);
   else if (k === 'cut') doCut(pid, a[2], a[3]);
@@ -377,13 +381,14 @@ function applyAction(pid, a) {
     let best = null, bd = 14; for (const c of W.cu) { if (c.an || c.hid || c.st === S_DEAD || c.st === S_DIS) continue; const d = Math.hypot(c.x - a[2], c.z - a[3]); if (d < bd) { bd = d; best = c; } }
     if (best) say(best, 'dw'); else if (Object.keys(W.pl).length > 1) ev('drawc', a[2], a[3], pid + '|' + (Math.random() * 8 | 0));
   }
+  else if (kitchenAct(pid, k, a)) { }
   else if (k === 'reload') { const P = W.pl[pid]; if (P && P.h && P.h.k === 'gun' && W.am < 2 && W.shl > 0) { const n = Math.min(2 - W.am, W.shl); W.am += n; W.shl -= n; } }
 }
 
 /* ---------- asadores ---------- */
 function encodeSpit(i) {
   const S = SV[i]; let c = '', d = '';
-  for (let k = 0; k < NCELL; k++) { c += S.lv[k]; d += String.fromCharCode(97 + Math.round(clamp(S.dn[k], 0, 1.6) * 15)); }
+  for (let k = 0; k < NCELL; k++) { c += String.fromCharCode(48 + S.lv[k]); d += String.fromCharCode(97 + Math.round(clamp(S.dn[k], 0, 1.6) * 15)); }
   if (c !== W.sp[i].c || d !== W.sp[i].d) { W.sp[i].c = c; W.sp[i].d = d; S.dirty = true; }
 }
 function decodeSpit(i, time, force) {
@@ -397,11 +402,11 @@ function decodeSpit(i, time, force) {
 }
 function simSpits(dt) {
   const st = 2 * PI / SEG;
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < nSpits(); i++) {
     const S = SV[i], rot = spitRot(i, W.t);
     for (let j = 0; j < SEG; j++) { const f = -Math.cos((j + 0.5) * st + rot); if (f <= 0) continue; for (let b = 0; b < BANDS; b++) { const c = b * SEG + j, d = S.dn[c]; S.dn[c] = Math.min(1.6, d + (d < 0.8 ? 0.085 : 0.006) * f * dt); } }
   }
-  spitWireT -= dt; if (spitWireT <= 0) { spitWireT = 0.25; encodeSpit(0); encodeSpit(1); }
+  spitWireT -= dt; if (spitWireT <= 0) { spitWireT = 0.25; for (let i = 0; i < nSpits(); i++) encodeSpit(i); }
 }
 
 /* ---------- bucle del anfitrión ---------- */
@@ -422,7 +427,7 @@ function simulate(dt) {
   // clientes nuevos
   if (W.t >= W.nx && W.t < NIGHT_LEN - 14 && !W.cl) {
     const humans = W.cu.filter(c => !c.an && c.st <= S_WAIT).length;
-    if (humans < (np > 1 ? 5 : 4)) { const a = pickArch(); if (a >= 0) spawn(a, 0); }
+    if (humans < (np > 1 ? 5 : 4)) { const a = pickArch(); if (a >= 0) { const c = spawn(a, 0); seatAtTable(c); spawnGroup(c); } }
     const hr = W.t / HOUR_LEN, base = Math.max(17, 34 - W.n * 2.5);
     W.nx = W.t + base * (hr > 2.6 && hr < 5.6 ? 0.8 : 1) * (np > 1 ? 0.7 : 1) * (SHOP_IN ? 1 : 1.6) * (0.75 + Math.random() * 0.5);
   }
@@ -433,6 +438,7 @@ function simulate(dt) {
   if (B.s) { B.t += dt; const k = Math.floor(B.t / 3.4); if (k !== B.k) { B.k = k; ev(B.s === 1 ? 'knock' : 'knockf', 3.05, -7.4); } if (B.t > 25) { ev('msg', 0, 0, B.s === 1 ? 'nodeliv' : 'gone'); B.s = 0; } }
   if (B.o > 0) B.o = Math.max(0, B.o - dt);
   simSpits(dt);
+  simKitchen(dt);
   simStreet(dt, np);
   if (W.fry.s === 1) W.fry.t += dt;
   for (const c of W.cu) updCustomer(c, dt);
@@ -449,7 +455,7 @@ function simulate(dt) {
   // fin de la noche
   if (W.t >= NIGHT_LEN) {
     if (!W.fl) { W.fl = 1; ev('msg', 0, 0, 'last'); }
-    const left = W.cu.some(c => !c.an && c.st <= S_WAIT);
+    const left = W.cu.some(c => !c.an && (c.st <= S_WAIT || c.st === S_SIT || c.st === S_EAT));
     if (!left || W.t > NIGHT_LEN + 40) { W.cu = []; W.pw = 1; W.bd.s = 0; W.dl = []; W.vs.r = 0; W.call = 0; W.ph = 'end'; }
   }
   // Un cuerpo a la vista en la zona de clientes (en el suelo o a cuestas) y alguien que entra: se acabó.
@@ -463,7 +469,7 @@ function simulate(dt) {
 }
 
 /* ================= RED: cooperativo por presencia ================= */
-const NETV = 10;   // versión del protocolo: todos tienen que jugar con la misma
+const NETV = 11;   // versión del protocolo: todos tienen que jugar con la misma
 const NET = { room: null, myId: 'solo', isHost: true, joined: false, acts: [], seq: 0, lastSeq: {}, lastHost: null, hostGone: 0, sendT: 0, others: [], remote: null, count: 1, evInit: false, code: '', badVer: false, lostSaid: false };
 
 /* Fuera de Claude (GitHub) la sala va por PeerJS, de navegador a navegador y sin cuentas.
@@ -523,7 +529,7 @@ function wireW() {
 }
 function adoptWorld() {
   NET.isHost = true; NET.lastHost = null;
-  decodeSpit(0, 0, true); decodeSpit(1, 0, true);
+  for (let i = 0; i < 4; i++) decodeSpit(i, 0, true);
   SCHED = genSchedule(W.n, W.sd);
   for (const p of NET.others) { const a = p.presence.a; let mx = 0; if (Array.isArray(a)) for (const x of a) mx = Math.max(mx, x[0] | 0); NET.lastSeq[p.peer] = mx; }
   ensurePlayer(NET.myId);
