@@ -3,6 +3,8 @@ on:
   push:
     branches: [kebab-data]
     paths: ['tools/fetch/**', '.github/workflows/fetch-benidorm.yml']
+permissions:
+  contents: write
 jobs:
   fetch:
     runs-on: ubuntu-latest
@@ -12,5 +14,8 @@ jobs:
         with: { python-version: '3.12' }
       - run: pip install pillow
       - run: cd tools/fetch && python fetch.py
-      - uses: actions/upload-artifact@v4
-        with: { name: benidorm-data, path: tools/fetch/out }
+      - name: Guardar los datos en la rama
+        run: |
+          rm -rf data && mkdir -p data && cp -r tools/fetch/out/* data/
+          git config user.name "github-actions" && git config user.email "actions@github.com"
+          git add data && git commit -m "Datos de OSM y texturas descargados" && git push
