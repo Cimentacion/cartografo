@@ -134,6 +134,28 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 .langs button:first-child{border-left-width:1px}
 .langs button[aria-pressed="true"]{background:var(--ink);color:#0b0c0e;border-color:var(--ink)}
 #tbs button{font-size:14px}
+#tickets{pointer-events:auto;touch-action:pan-y;transition:transform .22s ease,opacity .22s ease}
+#tickets.away{transform:translateX(120%);opacity:0;pointer-events:none}
+.tk-x{float:right;margin:-4px -4px 0 6px;font-size:12px;opacity:.55;cursor:pointer}
+#tk-mini{position:absolute;right:16px;top:12px;pointer-events:auto;display:flex;align-items:center;gap:6px;background:var(--paper);color:var(--paper-ink);border:0;padding:6px 9px;font-family:var(--f-mono);font-size:14px;box-shadow:0 3px 0 rgba(0,0,0,.4)}
+#tk-mini.new{animation:tkb .5s ease-in-out 4}
+@keyframes tkb{50%{transform:scale(1.18)}}
+.bookwrap{max-width:900px;text-align:center}
+.bookwrap h2{margin-bottom:6px}
+#book-box{position:relative;width:100%;aspect-ratio:16/10;max-height:62vh;margin:0 auto 8px}
+#book-cv{width:100%;height:100%;display:block;touch-action:none;cursor:pointer}
+.bk-row{justify-content:center;margin-bottom:10px}.bk-row .status{margin:0 8px;min-width:12ch}
+.sgwrap{margin:auto;width:100%;max-width:640px;display:flex;flex-direction:column;gap:8px}
+.sg-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.sg-h{font-family:var(--f-sign);font-size:26px;color:var(--sodium);font-weight:400;letter-spacing:.06em;text-transform:uppercase;margin-right:6px}.sg-lbl{color:var(--dim);font-size:12px}
+#sg-types button{margin-right:4px}#sg-types button[aria-pressed="true"]{background:var(--ink);color:#0b0c0e}
+.sg-rec{margin:0;color:var(--ink);font-size:13px}
+#sg-box{width:min(100%,44vh);aspect-ratio:1/1;margin:0 auto}
+#sg-cv{width:100%;height:100%;display:block;touch-action:none;cursor:none}
+.sg-ings{display:flex;flex-wrap:wrap;gap:6px}
+.sg-ings button{font-family:var(--f-mono);font-size:12px;color:var(--ink);background:rgba(8,9,12,.7);border:1px solid rgba(236,229,208,.35);padding:6px 8px;display:flex;align-items:center;gap:5px}
+.sg-ings button i{display:inline-block;width:11px;height:11px;border-radius:50%;border:1px solid rgba(0,0,0,.5)}
+.sg-ings button.wd{border-color:#7a2a24}.sg-ings button:disabled{opacity:.35}
+.sg-msg{margin:0;min-height:1.3em;color:var(--neon-2);font-size:13px}
 #p2p{border-top:1px dashed rgba(236,229,208,.25);padding-top:14px;margin-bottom:22px}
 #p2p h2{font-family:var(--f-sign);font-weight:400;font-size:17px;letter-spacing:.08em;text-transform:uppercase;color:var(--sodium);margin:0 0 6px}
 #p2p .status{margin:0 0 10px}
@@ -190,6 +212,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
       <span id="coop"></span>
     </div>
     <div id="tickets"></div>
+    <button id="tk-mini" type="button" hidden aria-label="Pedidos"><span class="tk-ic">🧾</span><b id="tk-n">0</b></button>
     <div id="cross"></div>
     <div id="prompt"></div>
     <div id="subs"></div>
@@ -236,7 +259,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
         <dl class="keys" id="ctl-list"></dl>
       </div>
     </div>
-    <p class="ver">Kebab Poniente · 2026-11-16 13:27 UTC</p>
+    <p class="ver">Kebab Poniente · 2026-11-16 14:48 UTC</p>
   </div></section>
 
   <section id="note" class="ov" hidden><div class="paper">
@@ -267,10 +290,21 @@ button.ghost:disabled{opacity:.4;cursor:default}
   </div></section>
   <div id="upd" hidden><span data-t="upd_ready">Hay una versión nueva.</span> <button class="ghost" id="upd-go" type="button" data-t="upd_now">Actualizar ahora</button></div>
 
-  <section id="end" class="ov" hidden><div class="in card">
+  <section id="end" class="ov" hidden><div class="in card bookwrap">
     <h2 id="end-t">Noche terminada</h2>
-    <dl id="end-s"></dl>
+    <div id="book-box"><canvas id="book-cv" aria-label="Libro de mejoras"></canvas></div>
+    <div class="row bk-row"><button class="ghost" id="bk-prev" type="button">◀</button><span id="bk-info" class="status"></span><button class="ghost" id="bk-next" type="button">▶</button></div>
+    <dl id="end-s" hidden></dl>
     <button class="big" id="btn-next" type="button" data-t="next">Siguiente noche</button>
+  </div></section>
+
+  <section id="sauceg" class="ov" hidden><div class="sgwrap">
+    <div class="sg-top"><b class="sg-h" data-t="sg_h">La olla</b><span class="sg-lbl" data-t="sg_for">Salsa para el barreño de:</span><span id="sg-types"></span></div>
+    <p id="sg-rec" class="sg-rec"></p>
+    <div id="sg-box"><canvas id="sg-cv"></canvas></div>
+    <div id="sg-ings" class="sg-ings"></div>
+    <p id="sg-msg" class="sg-msg" aria-live="polite"></p>
+    <div class="row"><button class="big" id="sg-pack" type="button" data-t="sg_pack">Llenar la garrafa</button><button class="ghost" id="sg-dump" type="button" data-t="sg_dump">Tirar y empezar</button><button class="ghost" id="sg-out" type="button" data-t="sg_out">Salir</button></div>
   </div></section>
 
   <section id="over" class="ov" hidden><div class="in card">
