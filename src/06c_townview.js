@@ -7,7 +7,7 @@ function myDelivery() {
 function syncTown(dt) {
   // niebla: fuera se ve un poco más lejos
   const out = !inShop(camera.position.x, camera.position.z) && !inBld(camera.position.x, camera.position.z);
-  scene.fog.near = lerp(scene.fog.near, out ? 8 : 4, Math.min(1, dt * 3)); scene.fog.far = lerp(scene.fog.far, out ? (camera.position.z > 6 ? 90 : ride.on ? 70 : 60) : 25, Math.min(1, dt * 3));
+  scene.fog.near = lerp(scene.fog.near, out ? 2 : 4, Math.min(1, dt * 3)); scene.fog.far = lerp(scene.fog.far, out ? (ride.on ? 42 : 36) : 21, Math.min(1, dt * 3));
   // las cuatro farolas encendidas más cercanas dan luz de verdad
   const flick = lampOff;
   for (const L of TOWN.lamps) if (L.sc > 0) L.sc -= dt;

@@ -1,30 +1,23 @@
 /* ================= CIELO Y LUZ DE FUERA, FLECHA AL OBJETIVO (como en Crazy Taxi) Y BOTES DE SALSA PARA PRINGARLO TODO ================= */
 
-/* --- luz por altura: en la calle, lo de abajo más claro y lo alto de los edificios más oscuro.
-   Se mete en el trozo de la niebla, así vale para todos los materiales; dentro (niebla corta) no cambia nada. */
-(function () {
-  const C = THREE.ShaderChunk;
-  C.fog_pars_vertex += '\n#ifdef USE_FOG\nvarying float vWY;\n#endif\n';
-  C.fog_vertex = '#ifdef USE_FOG\nvWY = (modelMatrix * vec4(transformed, 1.0)).y;\n#endif\n' + C.fog_vertex;
-  C.fog_pars_fragment += '\n#ifdef USE_FOG\nvarying float vWY;\n#endif\n';
-  C.fog_fragment = '#ifdef USE_FOG\n#ifndef FOG_EXP2\n{ float outF = step(30.0, fogFar); float lo = 1.0 + 0.7 * (1.0 - smoothstep(0.5, 7.0, vWY)); float hi = mix(1.0, 0.38, smoothstep(9.0, 42.0, vWY)); gl_FragColor.rgb *= mix(1.0, lo * hi, outF); }\n#endif\n#endif\n' + C.fog_fragment;
-})();
+/* la niebla por altura está en 07f_mist.js (sustituye al trozo de niebla de three.js) */
+(function () { const C = THREE.ShaderChunk; C.fog_pars_vertex += '\n#ifdef USE_FOG\nvarying float vWY;\n#endif\n'; C.fog_vertex = '#ifdef USE_FOG\nvWY = (modelMatrix * vec4(transformed, 1.0)).y;\n#endif\n' + C.fog_vertex; C.fog_pars_fragment += '\n#ifdef USE_FOG\nvarying float vWY;\n#endif\n'; })();
 let SKY = null;
 function skyTex() {
   return ctex(16, 256, (g) => {
     const gr = g.createLinearGradient(0, 0, 0, 256);
-    gr.addColorStop(0, '#01040f'); gr.addColorStop(0.45, '#05143a'); gr.addColorStop(0.62, '#0c2462'); gr.addColorStop(0.75, '#0a1c4c'); gr.addColorStop(1, '#050d24');
+    gr.addColorStop(0, '#020204'); gr.addColorStop(0.45, '#0c0d12'); gr.addColorStop(0.62, '#1e2026'); gr.addColorStop(0.75, '#24262b'); gr.addColorStop(1, '#24262b');
     g.fillStyle = gr; g.fillRect(0, 0, 16, 256);
   });
 }
-const FOG_IN = new THREE.Color(0x05060a), FOG_OUT = new THREE.Color(0x0b1222), AMB_OUT = new THREE.Color(0x6a6a74);
+const FOG_IN = new THREE.Color(0x05060a), FOG_OUT = new THREE.Color(0x24262b), AMB_OUT = new THREE.Color(0x4a4a52);
 function updSky(dt) {
   if (!SKY) { SKY = skyTex(); SKY.wrapS = SKY.wrapT = THREE.ClampToEdgeWrapping; }
   const out = !inShop(camera.position.x, camera.position.z) && !inBld(camera.position.x, camera.position.z);
   scene.background = out ? SKY : FOG_IN;
   scene.fog.color.lerp(out ? FOG_OUT : FOG_IN, Math.min(1, dt * 4));
   if (!LG.hemi) { LG.hemi = new THREE.HemisphereLight(0x3a4a78, 0x6a5440, 0); scene.add(LG.hemi); }
-  if (out) { LG.amb.intensity = 0.62; LG.amb.color.copy(AMB_OUT); LG.hemi.intensity = 0.45; } else { LG.amb.color.setHex(0x2a2e36); LG.hemi.intensity = 0.12; }
+  if (out) { LG.amb.intensity = 0.42; LG.amb.color.copy(AMB_OUT); LG.hemi.intensity = 0.25; } else { LG.amb.color.setHex(0x2a2e36); LG.hemi.intensity = 0.12; }
 }
 
 /* --- flecha verde encima de la pantalla que apunta a donde tienes que ir --- */
@@ -51,7 +44,7 @@ function updArrow(dt) {
     body.renderOrder = 1000; side.renderOrder = 999;
     const hold = new THREE.Group(), tilt = new THREE.Group(); tilt.add(g); hold.add(tilt); camera.add(hold); ARROW = { hold, tilt, g, el: $('arrowd') };
   }
-  const t = arrowTarget(), A = ARROW;
+  const t = null, A = ARROW;   // sin flecha: hay que orientarse
   A.hold.visible = !!t && !overlay && !cut.on; if (A.el) A.el.style.display = A.hold.visible ? '' : 'none';
   if (!A.hold.visible) return;
   const dx = t.x - me.x, dz = t.z - me.z, d = Math.hypot(dx, dz);
@@ -161,4 +154,4 @@ function sauceRecv(peer, pr, ch) {
     const h = sauceArc(x, 1.4, z, yaw, pitch, R.buf); drawArc(R.pts, R.buf, h.n, SAUCE_COL[on - 1]);
   } else R.pts.visible = false;
 }
-function updExtras(dt) { if (D.windU) D.windU.value = TIME; if (D.shopGrp) D.shopGrp.visible = Math.hypot(camera.position.x, camera.position.z - 2) < 48; updSky(dt); updArrow(dt); updSauce(dt, myP()); updKitchen(dt); updMart(dt); }
+function updExtras(dt) { if (D.windU) D.windU.value = TIME; if (D.shopGrp) D.shopGrp.visible = Math.hypot(camera.position.x, camera.position.z - 2) < 48; updSky(dt); updArrow(dt); updSauce(dt, myP()); updKitchen(dt); updMart(dt); updMist(dt); }

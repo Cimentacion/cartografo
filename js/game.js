@@ -4368,7 +4368,7 @@ function myDelivery() {
 function syncTown(dt) {
   // niebla: fuera se ve un poco más lejos
   const out = !inShop(camera.position.x, camera.position.z) && !inBld(camera.position.x, camera.position.z);
-  scene.fog.near = lerp(scene.fog.near, out ? 8 : 4, Math.min(1, dt * 3)); scene.fog.far = lerp(scene.fog.far, out ? (camera.position.z > 6 ? 90 : ride.on ? 70 : 60) : 25, Math.min(1, dt * 3));
+  scene.fog.near = lerp(scene.fog.near, out ? 2 : 4, Math.min(1, dt * 3)); scene.fog.far = lerp(scene.fog.far, out ? (ride.on ? 42 : 36) : 21, Math.min(1, dt * 3));
   // las cuatro farolas encendidas más cercanas dan luz de verdad
   const flick = lampOff;
   for (const L of TOWN.lamps) if (L.sc > 0) L.sc -= dt;
@@ -5460,31 +5460,24 @@ if (document.readyState !== 'loading') { try { bindSuggest(); } catch (e) { } }
 
 /* ================= CIELO Y LUZ DE FUERA, FLECHA AL OBJETIVO (como en Crazy Taxi) Y BOTES DE SALSA PARA PRINGARLO TODO ================= */
 
-/* --- luz por altura: en la calle, lo de abajo más claro y lo alto de los edificios más oscuro.
-   Se mete en el trozo de la niebla, así vale para todos los materiales; dentro (niebla corta) no cambia nada. */
-(function () {
-  const C = THREE.ShaderChunk;
-  C.fog_pars_vertex += '\n#ifdef USE_FOG\nvarying float vWY;\n#endif\n';
-  C.fog_vertex = '#ifdef USE_FOG\nvWY = (modelMatrix * vec4(transformed, 1.0)).y;\n#endif\n' + C.fog_vertex;
-  C.fog_pars_fragment += '\n#ifdef USE_FOG\nvarying float vWY;\n#endif\n';
-  C.fog_fragment = '#ifdef USE_FOG\n#ifndef FOG_EXP2\n{ float outF = step(30.0, fogFar); float lo = 1.0 + 0.7 * (1.0 - smoothstep(0.5, 7.0, vWY)); float hi = mix(1.0, 0.38, smoothstep(9.0, 42.0, vWY)); gl_FragColor.rgb *= mix(1.0, lo * hi, outF); }\n#endif\n#endif\n' + C.fog_fragment;
-})();
+/* la niebla por altura está en 07f_mist.js (sustituye al trozo de niebla de three.js) */
+(function () { const C = THREE.ShaderChunk; C.fog_pars_vertex += '\n#ifdef USE_FOG\nvarying float vWY;\n#endif\n'; C.fog_vertex = '#ifdef USE_FOG\nvWY = (modelMatrix * vec4(transformed, 1.0)).y;\n#endif\n' + C.fog_vertex; C.fog_pars_fragment += '\n#ifdef USE_FOG\nvarying float vWY;\n#endif\n'; })();
 let SKY = null;
 function skyTex() {
   return ctex(16, 256, (g) => {
     const gr = g.createLinearGradient(0, 0, 0, 256);
-    gr.addColorStop(0, '#01040f'); gr.addColorStop(0.45, '#05143a'); gr.addColorStop(0.62, '#0c2462'); gr.addColorStop(0.75, '#0a1c4c'); gr.addColorStop(1, '#050d24');
+    gr.addColorStop(0, '#020204'); gr.addColorStop(0.45, '#0c0d12'); gr.addColorStop(0.62, '#1e2026'); gr.addColorStop(0.75, '#24262b'); gr.addColorStop(1, '#24262b');
     g.fillStyle = gr; g.fillRect(0, 0, 16, 256);
   });
 }
-const FOG_IN = new THREE.Color(0x05060a), FOG_OUT = new THREE.Color(0x0b1222), AMB_OUT = new THREE.Color(0x6a6a74);
+const FOG_IN = new THREE.Color(0x05060a), FOG_OUT = new THREE.Color(0x24262b), AMB_OUT = new THREE.Color(0x4a4a52);
 function updSky(dt) {
   if (!SKY) { SKY = skyTex(); SKY.wrapS = SKY.wrapT = THREE.ClampToEdgeWrapping; }
   const out = !inShop(camera.position.x, camera.position.z) && !inBld(camera.position.x, camera.position.z);
   scene.background = out ? SKY : FOG_IN;
   scene.fog.color.lerp(out ? FOG_OUT : FOG_IN, Math.min(1, dt * 4));
   if (!LG.hemi) { LG.hemi = new THREE.HemisphereLight(0x3a4a78, 0x6a5440, 0); scene.add(LG.hemi); }
-  if (out) { LG.amb.intensity = 0.62; LG.amb.color.copy(AMB_OUT); LG.hemi.intensity = 0.45; } else { LG.amb.color.setHex(0x2a2e36); LG.hemi.intensity = 0.12; }
+  if (out) { LG.amb.intensity = 0.42; LG.amb.color.copy(AMB_OUT); LG.hemi.intensity = 0.25; } else { LG.amb.color.setHex(0x2a2e36); LG.hemi.intensity = 0.12; }
 }
 
 /* --- flecha verde encima de la pantalla que apunta a donde tienes que ir --- */
@@ -5511,7 +5504,7 @@ function updArrow(dt) {
     body.renderOrder = 1000; side.renderOrder = 999;
     const hold = new THREE.Group(), tilt = new THREE.Group(); tilt.add(g); hold.add(tilt); camera.add(hold); ARROW = { hold, tilt, g, el: $('arrowd') };
   }
-  const t = arrowTarget(), A = ARROW;
+  const t = null, A = ARROW;   // sin flecha: hay que orientarse
   A.hold.visible = !!t && !overlay && !cut.on; if (A.el) A.el.style.display = A.hold.visible ? '' : 'none';
   if (!A.hold.visible) return;
   const dx = t.x - me.x, dz = t.z - me.z, d = Math.hypot(dx, dz);
@@ -5621,7 +5614,7 @@ function sauceRecv(peer, pr, ch) {
     const h = sauceArc(x, 1.4, z, yaw, pitch, R.buf); drawArc(R.pts, R.buf, h.n, SAUCE_COL[on - 1]);
   } else R.pts.visible = false;
 }
-function updExtras(dt) { if (D.windU) D.windU.value = TIME; if (D.shopGrp) D.shopGrp.visible = Math.hypot(camera.position.x, camera.position.z - 2) < 48; updSky(dt); updArrow(dt); updSauce(dt, myP()); updKitchen(dt); updMart(dt); }
+function updExtras(dt) { if (D.windU) D.windU.value = TIME; if (D.shopGrp) D.shopGrp.visible = Math.hypot(camera.position.x, camera.position.z - 2) < 48; updSky(dt); updArrow(dt); updSauce(dt, myP()); updKitchen(dt); updMart(dt); updMist(dt); }
 
 /* ================= LA OLLA: MINIJUEGO DE HACER SALSA REMOVIENDO CON EL DEDO =================
    Se echan cucharadas (de lo normal o de lo que no se dice), se remueve con el dedo dando vueltas
@@ -5916,5 +5909,93 @@ function bkFrame(dt) {
     if (k >= 1) { BK.spread = A.n; BK.anim = null; BK.turn.visible = false; BK.keys = ['', '']; bkSetPages(true); }
   } else if (W) bkSetPages(false);
   BK.r.render(BK.sc, BK.cam);
+}
+
+/* ================= NIEBLA A LO SILENT HILL, GENTE EN LOS BALCONES =================
+   La niebla pesa abajo y se aclara con la altura: de lejos se ve la silueta de las torres pero no la calle.
+   Cerca hay jirones de niebla (planos) que van y vienen y se deshacen al acercarte. Las vallas se pierden a lo lejos. */
+(function () {
+  const C = THREE.ShaderChunk;
+  C.fog_fragment = `#ifdef USE_FOG
+  #ifdef FOG_EXP2
+    float fogFactor = 1.0 - exp( - fogDensity * fogDensity * fogDepth * fogDepth );
+  #else
+    float fogFactor = smoothstep( fogNear, fogFar, fogDepth );
+    float outF = step( 22.0, fogFar );
+    // en la calle: algo más de luz a ras de suelo y lo alto de los edificios más oscuro
+    float lo = 1.0 + 0.22 * ( 1.0 - smoothstep( 0.5, 6.0, vWY ) ), hi = mix( 1.0, 0.45, smoothstep( 9.0, 45.0, vWY ) );
+    gl_FragColor.rgb *= mix( 1.0, lo * hi, outF );
+    // niebla de suelo: arriba pesa menos y se recortan las torres contra el cielo
+    fogFactor *= mix( 1.0, mix( 1.0, 0.3, smoothstep( 3.0, 38.0, vWY ) ), outF );
+  #endif
+  gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
+#endif`;
+})();
+const MIST = { cards: [], figs: null, t: 0 };
+const FOG_DARK = new THREE.Color(0x24262b);
+function mistTex() {
+  const t = ctex(128, 64, (g) => {
+    g.clearRect(0, 0, 128, 64);
+    for (let i = 0; i < 26; i++) { const x = 16 + Math.random() * 96, y = 20 + Math.random() * 26, r = 10 + Math.random() * 18, gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, 'rgba(255,255,255,.22)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 64); }
+  });
+  t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; return t;
+}
+function figTex() {
+  const t = ctex(32, 64, (g) => {
+    g.clearRect(0, 0, 32, 64); g.fillStyle = '#000';
+    g.beginPath(); g.ellipse(16, 9, 5.5, 7, 0, 0, 7); g.fill();                 // cabeza
+    g.fillRect(14, 15, 4, 4);                                                    // cuello
+    g.beginPath(); g.moveTo(5, 21); g.quadraticCurveTo(16, 16, 27, 21); g.lineTo(26, 46); g.lineTo(6, 46); g.closePath(); g.fill();   // hombros y torso
+    g.fillRect(3, 22, 4, 22); g.fillRect(25, 22, 4, 22); g.fillRect(8, 44, 7, 20); g.fillRect(17, 44, 7, 20);
+  });
+  t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; return t;
+}
+// vallas y rejas: se desvanecen con la distancia en vez de hacer moaré
+function fadeFar(m, d0, d1) {
+  if (!m || m.userData.fade) return; m.userData.fade = 1; m.transparent = true; m.depthWrite = true;
+  m.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <fog_fragment>', '#include <fog_fragment>\n#ifdef USE_FOG\n gl_FragColor.a *= 1.0 - smoothstep(' + d0.toFixed(1) + ', ' + d1.toFixed(1) + ', fogDepth);\n if (gl_FragColor.a < 0.04) discard;\n#endif'); };
+  m.needsUpdate = true;
+}
+function buildMist() {
+  fadeFar(D.barsM, 12, 30); scene.traverse(o => { if (o.isMesh && o.material && o.material.alphaTest && o.material.map && o.material.side === THREE.DoubleSide && o !== D.figs) { const im = o.material.map.image; if (im && im.width === 64 && im.height === 64 && o.geometry.attributes.position.count > 40) fadeFar(o.material, 14, 34); } });
+  // jirones de niebla
+  const tex = mistTex();
+  for (let i = 0; i < 26; i++) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, color: 0x9a9ea8, transparent: true, depthWrite: false, opacity: 0, fog: false }));
+    m.renderOrder = 4; m.frustumCulled = false; scene.add(m); MIST.cards.push({ m, a: 0, life: 0, vx: 0, vz: 0, dead: true });
+  }
+  // siluetas negras de pie en los balcones, mirando a la calle
+  const fg = [], r = mulberry32(666);
+  for (const b of TOWN.bld) {
+    if (!(b.l >= 4 && b.t !== 'roof' && b.t !== 'low') || Math.hypot(b.cx, b.cz) > 230 || r() > 0.85) continue;
+    const S = simplify(b.P, 0.6), n = Math.min(12, 2 + (b.l / 2 | 0) + (r() * 3 | 0));
+    for (let k = 0; k < n; k++) {
+      const i = r() * S.length | 0, a = S[i], c = S[(i + 1) % S.length], [nx, nz, L] = outN(S, i); if (L < 3) continue;
+      const t = 0.15 + r() * 0.7, f = 1 + (r() * Math.max(1, b.l - 2) | 0), x = lerp(a[0], c[0], t) + nx * 1.1, z = lerp(a[1], c[1], t) + nz * 1.1, y = f * FLH + 0.45 + 0.85;
+      if (Math.hypot(x, z) < 12) continue;
+      const g = new THREE.PlaneGeometry(0.62, 1.7); g.rotateY(Math.atan2(nx, nz)); g.translate(x, y, z); fg.push(g);
+    }
+  }
+  if (fg.length) { MIST.figs = addMerged(fg, new THREE.MeshBasicMaterial({ map: figTex(), color: 0x000000, alphaTest: 0.5, side: THREE.DoubleSide })); }
+}
+function updMist(dt) {
+  if (!MIST.cards.length) buildMist();
+  const cx = camera.position.x, cz = camera.position.z, out = !inShop(cx, cz) && !inBld(cx, cz);
+  MIST.t += dt;
+  for (const C of MIST.cards) {
+    if (C.dead) {
+      if (!out) { C.m.visible = false; continue; }
+      const a = Math.random() * PI * 2, d = 7 + Math.random() * 26, s = 5 + Math.random() * 8;
+      C.m.position.set(cx + Math.cos(a) * d, 0.7 + Math.random() * 1.8, cz + Math.sin(a) * d); C.m.scale.set(s, s * 0.45, 1);
+      C.vx = 0.25 + Math.random() * 0.35; C.vz = (Math.random() - 0.5) * 0.25; C.life = 14 + Math.random() * 14; C.a = 0; C.base = 0.35 + Math.random() * 0.45; C.dead = false; C.m.visible = true;
+    }
+    C.a += dt; C.m.position.x += C.vx * dt; C.m.position.z += C.vz * dt;
+    const d = Math.hypot(C.m.position.x - cx, C.m.position.z - cz);
+    // aparece y se va despacio, y se deshace cuando te acercas
+    const life = Math.min(1, C.a / 3) * Math.min(1, (C.life - C.a) / 3), near = clamp((d - 1.5) / 6, 0, 1), far = 1 - clamp((d - 30) / 8, 0, 1);
+    C.m.material.opacity = (out ? 1 : 0) * C.base * life * near * far;
+    C.m.rotation.set(0, Math.atan2(cx - C.m.position.x, cz - C.m.position.z), 0);
+    if (C.a > C.life || d > 40 || !out) C.dead = true;
+  }
 }
 
