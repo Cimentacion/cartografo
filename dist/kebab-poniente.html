@@ -259,7 +259,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
         <dl class="keys" id="ctl-list"></dl>
       </div>
     </div>
-    <p class="ver">Kebab Poniente · 2026-11-16 17:56 UTC</p>
+    <p class="ver">Kebab Poniente · 2026-11-16 19:12 UTC</p>
   </div></section>
 
   <section id="note" class="ov" hidden><div class="paper">
@@ -2004,6 +2004,22 @@ function makeHandle() {
   // escudo delantero y suelo del Vespino abajo del todo
   const shield = P(new THREE.CylinderGeometry(0.28, 0.24, 0.5, 14, 1, true, -0.9, 1.8), body, 0, -0.38, -0.12, -0.35, PI, 0); shield.material = body;
   P(B(0.44, 0.03, 0.04), chrome, 0, -0.13, -0.16, -0.35);
+  // del manillar para abajo: columna de dirección, interior del escudo, alfombrilla, piernas y zapatillas del repartidor
+  P(C(0.035, 0.04, 0.42, 8), body, 0, -0.25, -0.04, 0.25);
+  const inner = P(new THREE.CylinderGeometry(0.27, 0.25, 0.55, 14, 1, true, -1.1, 2.2), lam('steel2', 0xc8b880, { side: THREE.DoubleSide }), 0, -0.55, -0.06, 0.12, 0, 0);
+  P(B(0.5, 0.05, 0.05), chrome, 0, -0.84, -0.02);
+  const mat = ctex(32, 64, (q) => { q.fillStyle = '#1a1a1a'; q.fillRect(0, 0, 32, 64); q.fillStyle = '#3a3a3a'; for (let y = 2; y < 64; y += 6) q.fillRect(2, y, 28, 3); });
+  P(B(0.38, 0.03, 0.55), new THREE.MeshLambertMaterial({ map: mat }), 0, -0.86, 0.28); P(B(0.42, 0.06, 0.6), body, 0, -0.9, 0.28);
+  P(B(0.06, 0.06, 0.62), chrome, -0.22, -0.86, 0.28); P(B(0.06, 0.06, 0.62), chrome, 0.22, -0.86, 0.28);
+  const jeans = lam(null, 0x2a3448), shoe = lam(null, 0xe8e6e0), sole = lam(null, 0x2a2a2a);
+  for (const sd of [-1, 1]) {
+    const hip = new THREE.Vector3(sd * 0.13, -0.5, 0.82), knee = new THREE.Vector3(sd * 0.17, -0.45, 0.2), ank = new THREE.Vector3(sd * 0.12, -0.8, 0.26);
+    between(hip, knee, 0.085, 0.07, jeans); between(knee, ank, 0.065, 0.05, jeans); P(new THREE.SphereGeometry(0.07, 8, 6), jeans, knee.x, knee.y, knee.z);
+    P(B(0.1, 0.07, 0.24), shoe, sd * 0.12, -0.815, 0.2); P(B(0.105, 0.025, 0.25), sole, sd * 0.12, -0.845, 0.2);
+  }
+  // guardabarros y rueda delantera asomando por delante del escudo
+  P(new THREE.CylinderGeometry(0.2, 0.2, 0.1, 14, 1, true, 0, PI), body, 0, -0.92, -0.42, 0, 0, PI / 2);
+  P(new THREE.TorusGeometry(0.17, 0.05, 6, 14), rub, 0, -1.0, -0.42, 0, PI / 2, 0);
   g.position.set(0, -0.5, -0.72); g.visible = false; drawSpeedo(0); return g;
 }
 function drawSpeedo(kmh) {
@@ -5536,8 +5552,10 @@ function updateRide(dt, ko) {
   const vib = Math.sin(TIME * 47) * 0.004 * (0.3 + Math.abs(ride.spd) / MAX);
   camera.position.set(me.x - fx * 0.1, 1.42 + vib, me.z - fz * 0.1);
   camera.rotation.set(me.pitch, me.yaw + ride.look, ride.lean + (hurtFlash > 0 ? Math.sin(TIME * 60) * 0.03 * hurtFlash : 0));
-  D.handle.position.set(0.6 * Math.sin(ride.look), -0.3 - 0.6 * Math.sin(me.pitch) * 0.2, -0.6 * Math.cos(ride.look));
-  D.handle.rotation.set(0.22, -ride.look + st * 0.2 * (1 - 0.5 * Math.abs(ride.spd) / MAX), 0);
+  // la moto va fija respecto al cuerpo: al mirar abajo se ve la alfombrilla y las piernas
+  _hq.setFromEuler(_he.set(me.pitch, ride.look, 0, 'YXZ')).invert();
+  D.handle.position.set(0, -0.36, -0.6).applyQuaternion(_hq);
+  D.handle.quaternion.copy(_hq).multiply(_hq2.setFromAxisAngle(_hy, st * 0.2 * (1 - 0.5 * Math.abs(ride.spd) / MAX)));
   ride.spT -= dt; if (ride.spT <= 0) { ride.spT = 0.2; drawSpeedo(Math.round(Math.abs(ride.spd) * 3.6)); }
   AU.lis.x = me.x; AU.lis.z = me.z; AU.lis.yaw = me.yaw + ride.look;
 }
@@ -5583,6 +5601,7 @@ function updateCut(dt) {
 
 /* ---------- mano y escopeta ---------- */
 function hkey(h) { return JSON.stringify(h, (k, v) => k === 'a' || k === 'f' ? undefined : v); }
+const _hq = new THREE.Quaternion(), _hq2 = new THREE.Quaternion(), _he = new THREE.Euler(), _hy = new THREE.Vector3(0, 1, 0);
 function updateViewmodel(dt) {
   const P = myP(), h = P && !cut.on && !ride.on && !(P.ko > 0) ? P.h : 0, key = h ? hkey(h) : '';
   if (key !== vmKey) {
@@ -5871,7 +5890,7 @@ function frame(now) {
   const ds = Math.hypot(me.x + 2.4, me.z + 3.6), df = Math.hypot(me.x + 0.5, me.z + 3.6), dd = Math.hypot(me.x + 2.6, me.z - 5);
   const outside = !inShop(me.x, me.z) || ride.on;
   AU.frame(dt, { power: W ? W.pw : 1, siz: 1 / (1 + ds * ds / 7), fry: W && W.fry.s ? 1 / (1 + df * df / 6) : 0, out: outside ? 1 : 1 / (1 + dd * dd / 9), club: outside ? 0.25 : 0.5 + 0.5 / (1 + dd * dd / 9), danger, eng: ride.on && overlay !== 'pause' ? 1 : 0, rpm: Math.abs(ride.spd) / 11.5 + ride.thr * 0.12 });
-  renderer.render(scene, camera);
+  renderFrame();
 }
 window.KP = { get W() { return W; }, NET, me, IN, act, SV, cut, ride, setLang, get chars() { return chars; } };
 boot();
@@ -6457,6 +6476,84 @@ function updMist(dt) {
     C.m.rotation.set(0, Math.atan2(cx - C.m.position.x, cz - C.m.position.z), 0);
     if (C.a > C.life || d > 40 || !out) C.dead = true;
   }
+}
+
+/* ================= OCLUSIÓN AMBIENTAL EN PANTALLA Y SOMBRAS DEL FARO DE LA MOTO =================
+   La escena se pinta en una textura con su profundidad. Un segundo paso mira alrededor de cada píxel:
+   donde hay algo más cerca de la cámara justo al lado (un rincón, el pie de una pared, debajo de un coche,
+   entre las góndolas) oscurece. Con el búfer logarítmico la profundidad se pasa a metros con exp2.
+   Si el móvil no tiene texturas de profundidad, se pinta como siempre. */
+const POST = { ok: null, rt: null, sc: null, cam: null, mat: null, w: 0, h: 0, on: true, shadowT: 0 };
+function postInit() {
+  const gl = renderer.getContext();
+  POST.ok = renderer.capabilities.isWebGL2 || !!renderer.extensions.get('WEBGL_depth_texture');
+  if (!POST.ok) return;
+  POST.sc = new THREE.Scene(); POST.cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  POST.mat = new THREE.ShaderMaterial({
+    uniforms: { tCol: { value: null }, tDep: { value: null }, uRes: { value: new THREE.Vector2(1, 1) }, uLogF: { value: Math.log2(camera.far + 1) }, uProj: { value: 1 }, uStr: { value: 1 } },
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: `
+      uniform sampler2D tCol, tDep; uniform vec2 uRes; uniform float uLogF, uProj, uStr; varying vec2 vUv;
+      float lin(vec2 uv){ float d = texture2D(tDep, uv).x; return exp2(d * uLogF) - 1.0; }
+      void main(){
+        vec4 c = texture2D(tCol, vUv); float z = lin(vUv);
+        if (z > 60.0) { gl_FragColor = c; return; }
+        // radio de muestreo: unos 0,45 m en el mundo pasados a píxeles
+        float r = clamp(0.45 * uProj / z, 2.0, 40.0);
+        // pendiente local de la profundidad: lo que está en el mismo plano (suelo, pared) no cuenta como oclusión
+        vec2 px = vec2(1.0, 0.0) / uRes, py = vec2(0.0, 1.0) / uRes;
+        float gx = (lin(vUv + px) - lin(vUv - px)) * 0.5, gy = (lin(vUv + py) - lin(vUv - py)) * 0.5;
+        float lim = 0.08 * z;
+        gx = clamp(gx, -lim, lim); gy = clamp(gy, -lim, lim);
+        float occ = 0.0;
+        for (int i = 0; i < 10; i++) {
+          float a = float(i) * 2.399 + fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5) * 6.283;
+          float rr = r * (0.3 + 0.7 * fract(float(i) * 0.618));
+          vec2 o = vec2(cos(a), sin(a)) * rr;
+          float zs = lin(vUv + o / uRes), ze = z + gx * o.x + gy * o.y, dz = ze - zs;
+          occ += smoothstep(0.04 + z * 0.004, 0.3, dz) * (1.0 - smoothstep(0.9, 2.2, dz));
+        }
+        float ao = 1.0 - uStr * 0.85 * occ / 10.0;
+        ao = mix(ao, 1.0, smoothstep(22.0, 45.0, z));
+        gl_FragColor = vec4(c.rgb * ao, 1.0);
+      }`,
+    depthTest: false, depthWrite: false,
+  });
+  POST.sc.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), POST.mat));
+}
+function postSize() {
+  const v = new THREE.Vector2(); renderer.getDrawingBufferSize(v);
+  if (POST.rt && POST.w === v.x && POST.h === v.y) return;
+  if (POST.rt) { POST.rt.depthTexture.dispose(); POST.rt.dispose(); }
+  POST.w = v.x; POST.h = v.y;
+  const dt = new THREE.DepthTexture(v.x, v.y); dt.type = THREE.UnsignedIntType;
+  POST.rt = new THREE.WebGLRenderTarget(v.x, v.y, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: true, depthTexture: dt });
+  POST.mat.uniforms.tCol.value = POST.rt.texture; POST.mat.uniforms.tDep.value = dt; POST.mat.uniforms.uRes.value.set(v.x, v.y);
+}
+// sombras: solo el faro de la moto las da; el mapa se actualiza mientras vas montado
+function shadowsInit() {
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap; renderer.shadowMap.autoUpdate = false;
+  const L = LG.head; L.castShadow = true; L.shadow.mapSize.set(1024, 1024); L.shadow.camera.near = 0.6; L.shadow.camera.far = 40; L.shadow.bias = -0.0015; L.shadow.normalBias = 0.03;
+  scene.traverse(o => {
+    if (!o.isMesh || !o.material) return; const m = o.material; if (Array.isArray(m)) return;
+    if (m.isMeshBasicMaterial || m.transparent || m.blending === THREE.AdditiveBlending) return;
+    o.castShadow = true; o.receiveShadow = true;
+  });
+}
+function shadowCharFix(ch) { ch.g.traverse(o => { if (o.isMesh && !o.material.transparent) { o.castShadow = true; } }); }
+// los charcos de luz del suelo no escriben profundidad: así no se recortan unos a otros ni con el faro
+function glowFix() { scene.traverse(o => { if (o.isMesh && o.material && o.material.blending === THREE.AdditiveBlending) { o.material.depthWrite = false; o.material.polygonOffset = true; o.material.polygonOffsetFactor = -4; o.material.polygonOffsetUnits = -4; } }); }
+function renderFrame() {
+  if (POST.ok === null) { postInit(); shadowsInit(); glowFix(); }
+  // sombra del faro: cada dos fotogramas mientras vas en moto
+  if (ride.on) { POST.shadowT ^= 1; if (POST.shadowT) renderer.shadowMap.needsUpdate = true; }
+  for (const M2 of [chars, rchars]) for (const ch of M2.values()) if (!ch.sh0) { ch.sh0 = 1; shadowCharFix(ch); }
+  if (!POST.ok || !POST.on) { renderer.render(scene, camera); return; }
+  postSize();
+  POST.mat.uniforms.uLogF.value = Math.log2(camera.far + 1);
+  POST.mat.uniforms.uProj.value = POST.h / (2 * Math.tan(camera.fov * Math.PI / 360));
+  renderer.setRenderTarget(POST.rt); renderer.render(scene, camera);
+  renderer.setRenderTarget(null); renderer.render(POST.sc, POST.cam);
 }
 
 

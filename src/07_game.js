@@ -275,8 +275,10 @@ function updateRide(dt, ko) {
   const vib = Math.sin(TIME * 47) * 0.004 * (0.3 + Math.abs(ride.spd) / MAX);
   camera.position.set(me.x - fx * 0.1, 1.42 + vib, me.z - fz * 0.1);
   camera.rotation.set(me.pitch, me.yaw + ride.look, ride.lean + (hurtFlash > 0 ? Math.sin(TIME * 60) * 0.03 * hurtFlash : 0));
-  D.handle.position.set(0.6 * Math.sin(ride.look), -0.3 - 0.6 * Math.sin(me.pitch) * 0.2, -0.6 * Math.cos(ride.look));
-  D.handle.rotation.set(0.22, -ride.look + st * 0.2 * (1 - 0.5 * Math.abs(ride.spd) / MAX), 0);
+  // la moto va fija respecto al cuerpo: al mirar abajo se ve la alfombrilla y las piernas
+  _hq.setFromEuler(_he.set(me.pitch, ride.look, 0, 'YXZ')).invert();
+  D.handle.position.set(0, -0.36, -0.6).applyQuaternion(_hq);
+  D.handle.quaternion.copy(_hq).multiply(_hq2.setFromAxisAngle(_hy, st * 0.2 * (1 - 0.5 * Math.abs(ride.spd) / MAX)));
   ride.spT -= dt; if (ride.spT <= 0) { ride.spT = 0.2; drawSpeedo(Math.round(Math.abs(ride.spd) * 3.6)); }
   AU.lis.x = me.x; AU.lis.z = me.z; AU.lis.yaw = me.yaw + ride.look;
 }
@@ -322,6 +324,7 @@ function updateCut(dt) {
 
 /* ---------- mano y escopeta ---------- */
 function hkey(h) { return JSON.stringify(h, (k, v) => k === 'a' || k === 'f' ? undefined : v); }
+const _hq = new THREE.Quaternion(), _hq2 = new THREE.Quaternion(), _he = new THREE.Euler(), _hy = new THREE.Vector3(0, 1, 0);
 function updateViewmodel(dt) {
   const P = myP(), h = P && !cut.on && !ride.on && !(P.ko > 0) ? P.h : 0, key = h ? hkey(h) : '';
   if (key !== vmKey) {
@@ -610,7 +613,7 @@ function frame(now) {
   const ds = Math.hypot(me.x + 2.4, me.z + 3.6), df = Math.hypot(me.x + 0.5, me.z + 3.6), dd = Math.hypot(me.x + 2.6, me.z - 5);
   const outside = !inShop(me.x, me.z) || ride.on;
   AU.frame(dt, { power: W ? W.pw : 1, siz: 1 / (1 + ds * ds / 7), fry: W && W.fry.s ? 1 / (1 + df * df / 6) : 0, out: outside ? 1 : 1 / (1 + dd * dd / 9), club: outside ? 0.25 : 0.5 + 0.5 / (1 + dd * dd / 9), danger, eng: ride.on && overlay !== 'pause' ? 1 : 0, rpm: Math.abs(ride.spd) / 11.5 + ride.thr * 0.12 });
-  renderer.render(scene, camera);
+  renderFrame();
 }
 window.KP = { get W() { return W; }, NET, me, IN, act, SV, cut, ride, setLang, get chars() { return chars; } };
 boot();

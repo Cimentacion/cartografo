@@ -319,6 +319,22 @@ function makeHandle() {
   // escudo delantero y suelo del Vespino abajo del todo
   const shield = P(new THREE.CylinderGeometry(0.28, 0.24, 0.5, 14, 1, true, -0.9, 1.8), body, 0, -0.38, -0.12, -0.35, PI, 0); shield.material = body;
   P(B(0.44, 0.03, 0.04), chrome, 0, -0.13, -0.16, -0.35);
+  // del manillar para abajo: columna de dirección, interior del escudo, alfombrilla, piernas y zapatillas del repartidor
+  P(C(0.035, 0.04, 0.42, 8), body, 0, -0.25, -0.04, 0.25);
+  const inner = P(new THREE.CylinderGeometry(0.27, 0.25, 0.55, 14, 1, true, -1.1, 2.2), lam('steel2', 0xc8b880, { side: THREE.DoubleSide }), 0, -0.55, -0.06, 0.12, 0, 0);
+  P(B(0.5, 0.05, 0.05), chrome, 0, -0.84, -0.02);
+  const mat = ctex(32, 64, (q) => { q.fillStyle = '#1a1a1a'; q.fillRect(0, 0, 32, 64); q.fillStyle = '#3a3a3a'; for (let y = 2; y < 64; y += 6) q.fillRect(2, y, 28, 3); });
+  P(B(0.38, 0.03, 0.55), new THREE.MeshLambertMaterial({ map: mat }), 0, -0.86, 0.28); P(B(0.42, 0.06, 0.6), body, 0, -0.9, 0.28);
+  P(B(0.06, 0.06, 0.62), chrome, -0.22, -0.86, 0.28); P(B(0.06, 0.06, 0.62), chrome, 0.22, -0.86, 0.28);
+  const jeans = lam(null, 0x2a3448), shoe = lam(null, 0xe8e6e0), sole = lam(null, 0x2a2a2a);
+  for (const sd of [-1, 1]) {
+    const hip = new THREE.Vector3(sd * 0.13, -0.5, 0.82), knee = new THREE.Vector3(sd * 0.17, -0.45, 0.2), ank = new THREE.Vector3(sd * 0.12, -0.8, 0.26);
+    between(hip, knee, 0.085, 0.07, jeans); between(knee, ank, 0.065, 0.05, jeans); P(new THREE.SphereGeometry(0.07, 8, 6), jeans, knee.x, knee.y, knee.z);
+    P(B(0.1, 0.07, 0.24), shoe, sd * 0.12, -0.815, 0.2); P(B(0.105, 0.025, 0.25), sole, sd * 0.12, -0.845, 0.2);
+  }
+  // guardabarros y rueda delantera asomando por delante del escudo
+  P(new THREE.CylinderGeometry(0.2, 0.2, 0.1, 14, 1, true, 0, PI), body, 0, -0.92, -0.42, 0, 0, PI / 2);
+  P(new THREE.TorusGeometry(0.17, 0.05, 6, 14), rub, 0, -1.0, -0.42, 0, PI / 2, 0);
   g.position.set(0, -0.5, -0.72); g.visible = false; drawSpeedo(0); return g;
 }
 function drawSpeedo(kmh) {
