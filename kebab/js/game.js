@@ -2287,7 +2287,7 @@ function buildStreetLife() {
     vBody.push(bgeo(1.0, 1.95, 0.8, bx, 0.975, bz, p.ry, 1));
     vTrim.push(bgeo(1.04, 0.1, 0.84, bx, 1.98, bz, p.ry, 1), bgeo(1.04, 0.12, 0.84, bx, 0.06, bz, p.ry, 1));
     const fp = new THREE.PlaneGeometry(0.88, 1.76); fp.rotateY(p.ry); fp.translate(fx, 1.0, fz); vFront.push(fp);
-    const [gx, gz] = sp2w(p, 0, 1.7), gp = new THREE.PlaneGeometry(3.8, 3.4); gp.rotateX(-PI / 2); gp.rotateY(p.ry); gp.translate(gx, 0.17, gz); vGlow.push(gp);
+    const [gx, gz] = sp2w(p, 0, 1.7), gp = new THREE.PlaneGeometry(3.8, 3.4); gp.rotateX(-PI / 2); gp.rotateY(p.ry); gp.translate(gx, 0.17, gz);
     const [wx, wz] = sp2w(p, 0, 0.03), wp = new THREE.PlaneGeometry(3.0, 3.0); wp.rotateY(p.ry); wp.translate(wx, 1.2, wz); vGlow.push(wp);
     colliders.push(aabb(p, -0.55, 0.55, -0.1, 0.88));
     for (let t = 0; t < 3; t++) { const [hx, hz] = sp2w(p, (t - 1) * 0.29, 0.86); const al = Math.abs(p.nx) > 0.5; hit('vm' + (m * 3 + t), hx, 1.15, hz, al ? 0.2 : 0.28, 1.3, al ? 0.28 : 0.2); }
@@ -2308,7 +2308,7 @@ function buildStreetLife() {
     if (!winM[wk]) winM[wk] = wk === 'vacant' ? new THREE.MeshLambertMaterial({ map: shopFrontTex(0, mulberry32(7), false), emissive: 0x0a0a0a }) : wk.startsWith('shut') ? new THREE.MeshLambertMaterial({ map: shopFrontTex(0, mulberry32(30 + i % 3), false), emissive: 0x0a0a0a }) : new THREE.MeshBasicMaterial({ map: shopWinTex(p.kind), color: 0xcccccc });
     const wg = new THREE.PlaneGeometry(p.w - 0.4, 2.3); wg.rotateY(p.ry); wg.translate(p.x + p.nx * 0.04, 1.2, p.z + p.nz * 0.04); if (!p.mart) (wins[wk] = wins[wk] || []).push(wg);
     // la luz del escaparate en la acera
-    if (open && !p.mart) { const gp = new THREE.PlaneGeometry(p.w + 1, 3.2); gp.rotateX(-PI / 2); gp.rotateY(p.ry); gp.translate(p.x + p.nx * 1.6, 0.17, p.z + p.nz * 1.6); D.litGlow.push(gp); }
+    if (open && !p.mart) { const gp = new THREE.PlaneGeometry(p.w + 1, 3.2); gp.rotateX(-PI / 2); gp.rotateY(p.ry); gp.translate(p.x + p.nx * 1.6, 0.17, p.z + p.nz * 1.6); }
     if (open && /bar|pub|strip|massage|nightclub/.test(p.kind) && r() < 0.5) {   // neón que da tirones
       const t = ctex(128, 64, (g2) => { g2.fillStyle = '#000'; g2.fillRect(0, 0, 128, 64); g2.strokeStyle = st[1]; g2.lineWidth = 4; g2.font = 'bold 30px sans-serif'; g2.textAlign = 'center'; g2.textBaseline = 'middle'; g2.strokeText(/massage/.test(p.kind) ? 'SPA' : 'OPEN', 64, 33); });
       const ne = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.31), new THREE.MeshBasicMaterial({ map: t, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
@@ -2385,9 +2385,9 @@ function buildStreetLife() {
   for (const L of TOWN.lamps) {
     if (L.md === 2) continue;
     const s = L.pr ? 12 : L.lit ? 13 : 9;
-    if (L.md === 0 && !L.fig) { const g = new THREE.PlaneGeometry(s, s); g.rotateX(-PI / 2); g.translate(L.hx, 0.17, L.hz); (L.lit ? steadyW : steadyY).push(g); continue; }
+    if (L.md === 0 && !L.fig) { const g = new THREE.PlaneGeometry(s, s); g.rotateX(-PI / 2); g.translate(L.hx, 0.17, L.hz); continue; }
     const m = new THREE.Mesh(new THREE.PlaneGeometry(s, s), L.lit ? white : warm);
-    m.rotation.x = -PI / 2; m.position.set(L.hx, 0.17, L.hz); m.renderOrder = 3; scene.add(m); D.glows.push({ L, m });
+    m.rotation.x = -PI / 2; m.position.set(L.hx, 0.17, L.hz); m.renderOrder = 3; D.glows.push({ L, m });
   }
   for (const [l, m] of [[steadyW.concat(D.litGlow), white], [steadyY, warm]]) { const me = addMerged(l, m); if (me) me.renderOrder = 3; }
   /* motas de polvo flotando bajo las farolas que dan luz de verdad */
@@ -6181,12 +6181,28 @@ function postInit() {
       }`,
   });
   POST.mOut = new THREE.ShaderMaterial({
-    uniforms: { tCol: { value: null }, tDep: { value: null }, tAO: { value: null }, uRes: { value: new THREE.Vector2(1, 1) }, uLogF: { value: 1 } },
+    uniforms: { tCol: { value: null }, tDep: { value: null }, tAO: { value: null }, uRes: { value: new THREE.Vector2(1, 1) }, uLogF: { value: 1 }, uInvP: { value: new THREE.Matrix4() }, uCamW: { value: new THREE.Matrix4() }, uL: { value: Array.from({ length: 16 }, () => new THREE.Vector4()) }, uLC: { value: Array.from({ length: 16 }, () => new THREE.Color(0, 0, 0)) }, uFog: { value: new THREE.Vector2(10, 40) }, uAdd: { value: 1.1 } },
     vertexShader: vs, depthTest: false, depthWrite: false,
     fragmentShader: `uniform sampler2D tCol, tDep, tAO; uniform vec2 uRes; uniform float uLogF; varying vec2 vUv;
       ${POST_LIN}
+      uniform mat4 uInvP, uCamW; uniform vec4 uL[16]; uniform vec3 uLC[16]; uniform vec2 uFog; uniform float uAdd;
+      vec3 wpos(vec2 uv){ float z = lin(tDep, uv); vec4 r = uInvP * vec4(uv * 2.0 - 1.0, 1.0, 1.0); r.xyz /= r.w; return (uCamW * vec4(r.xyz * (z / -r.z), 1.0)).xyz; }
       void main(){
         vec4 c = texture2D(tCol, vUv); float z = lin(tDep, vUv);
+        // luz de farolas, escaparates y máquinas calculada sobre lo que se ve: no hay planos en el suelo que se corten
+        vec3 lig = vec3(0.0);
+        if (z < 70.0) {
+          vec3 P = wpos(vUv), Px = wpos(vUv + vec2(2.0, 0.0) / uRes), Py = wpos(vUv + vec2(0.0, 2.0) / uRes);
+          vec3 N = normalize(cross(Px - P, Py - P)); if (dot(N, cameraPosition - P) < 0.0) N = -N;
+          for (int i = 0; i < 16; i++) {
+            vec3 d = uL[i].xyz - P; float dist = length(d), r = uL[i].w;
+            if (r <= 0.0 || dist > r) continue;
+            float at = 1.0 - dist / r; at = at * sqrt(at);
+            lig += uLC[i] * at * (0.25 + 0.75 * max(dot(N, d / dist), 0.0));
+          }
+          lig *= 1.0 - smoothstep(uFog.x, uFog.y, z) * 0.85;
+        }
+        c.rgb = c.rgb * (1.0 + lig * 3.0) + lig * uAdd;
         float s = 0.0, w = 0.0;
         for (int x = -1; x <= 1; x++) for (int y = -1; y <= 1; y++) {
           vec2 o = vec2(float(x), float(y)) * 2.0 / uRes;
@@ -6233,8 +6249,31 @@ function renderFrame() {
   const lf = Math.log2(camera.far + 1);
   POST.mAO.uniforms.uLogF.value = lf; POST.mOut.uniforms.uLogF.value = lf;
   POST.mAO.uniforms.uProj.value = (POST.h >> 1) / (2 * Math.tan(camera.fov * Math.PI / 360));
+  postLights();
   renderer.setRenderTarget(POST.rt); renderer.render(scene, camera);
   POST.q.material = POST.mAO; renderer.setRenderTarget(POST.ao); renderer.render(POST.sc, POST.cam);
   POST.q.material = POST.mOut; renderer.setRenderTarget(null); renderer.render(POST.sc, POST.cam);
+}
+
+// las luces que se pasan al último paso: las 16 más cercanas a la cámara
+let PL = null;
+function postLightsList() {
+  PL = [];
+  for (const L of TOWN.lamps) { if (L.md === 2) continue; const y = L.hy || 4.6; PL.push({ x: L.hx, y, z: L.hz, r: L.pr ? 11 : L.lit ? 10.5 : 8, c: L.lit || L.pr ? [1.0, 0.9, 0.75] : [1.0, 0.62, 0.3], k: L.lit || L.pr ? 0.7 : 0.5, L }); }
+  for (const p of LIFE.shops) if (p.lit) PL.push({ x: p.x + p.nx * 0.9, y: 2.0, z: p.z + p.nz * 0.9, r: 5, c: [1.0, 0.95, 0.85], k: 0.3 });
+  for (const p of LIFE.vend) { const [x, z] = sp2w(p, 0, 0.7); PL.push({ x, y: 1.2, z, r: 4.2, c: [0.35, 0.6, 1.0], k: 0.5 }); }
+}
+function postLights() {
+  if (!PL) postLightsList();
+  const U = POST.mOut.uniforms, cx = camera.position.x, cz = camera.position.z, out = !inShop(cx, cz) && !inBld(cx, cz);
+  camera.updateMatrixWorld(); U.uInvP.value.copy(camera.projectionMatrixInverse); U.uCamW.value.copy(camera.matrixWorld);
+  if (scene.fog) U.uFog.value.set(scene.fog.near, scene.fog.far);
+  for (const l of PL) l.d = (l.x - cx) ** 2 + (l.z - cz) ** 2;
+  const near = out ? PL.filter(l => l.d < 3600).sort((a, b) => a.d - b.d).slice(0, 16) : [];
+  for (let i = 0; i < 16; i++) {
+    const l = near[i], v = U.uL.value[i], c = U.uLC.value[i];
+    if (!l || (l.L && lampOff(l.L))) { v.set(0, 0, 0, 0); c.setRGB(0, 0, 0); continue; }
+    v.set(l.x, l.y, l.z, l.r + l.y * 1.05); c.setRGB(l.c[0] * l.k, l.c[1] * l.k, l.c[2] * l.k);
+  }
 }
 
