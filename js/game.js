@@ -2287,7 +2287,7 @@ function buildStreetLife() {
     vBody.push(bgeo(1.0, 1.95, 0.8, bx, 0.975, bz, p.ry, 1));
     vTrim.push(bgeo(1.04, 0.1, 0.84, bx, 1.98, bz, p.ry, 1), bgeo(1.04, 0.12, 0.84, bx, 0.06, bz, p.ry, 1));
     const fp = new THREE.PlaneGeometry(0.88, 1.76); fp.rotateY(p.ry); fp.translate(fx, 1.0, fz); vFront.push(fp);
-    const [gx, gz] = sp2w(p, 0, 1.7), gp = new THREE.PlaneGeometry(3.8, 3.4); gp.rotateX(-PI / 2); gp.rotateY(p.ry); gp.translate(gx, 0.07, gz); vGlow.push(gp);
+    const [gx, gz] = sp2w(p, 0, 1.7), gp = new THREE.PlaneGeometry(3.8, 3.4); gp.rotateX(-PI / 2); gp.rotateY(p.ry); gp.translate(gx, 0.17, gz); vGlow.push(gp);
     const [wx, wz] = sp2w(p, 0, 0.03), wp = new THREE.PlaneGeometry(3.0, 3.0); wp.rotateY(p.ry); wp.translate(wx, 1.2, wz); vGlow.push(wp);
     colliders.push(aabb(p, -0.55, 0.55, -0.1, 0.88));
     for (let t = 0; t < 3; t++) { const [hx, hz] = sp2w(p, (t - 1) * 0.29, 0.86); const al = Math.abs(p.nx) > 0.5; hit('vm' + (m * 3 + t), hx, 1.15, hz, al ? 0.2 : 0.28, 1.3, al ? 0.28 : 0.2); }
@@ -2308,7 +2308,7 @@ function buildStreetLife() {
     if (!winM[wk]) winM[wk] = wk === 'vacant' ? new THREE.MeshLambertMaterial({ map: shopFrontTex(0, mulberry32(7), false), emissive: 0x0a0a0a }) : wk.startsWith('shut') ? new THREE.MeshLambertMaterial({ map: shopFrontTex(0, mulberry32(30 + i % 3), false), emissive: 0x0a0a0a }) : new THREE.MeshBasicMaterial({ map: shopWinTex(p.kind), color: 0xcccccc });
     const wg = new THREE.PlaneGeometry(p.w - 0.4, 2.3); wg.rotateY(p.ry); wg.translate(p.x + p.nx * 0.04, 1.2, p.z + p.nz * 0.04); if (!p.mart) (wins[wk] = wins[wk] || []).push(wg);
     // la luz del escaparate en la acera
-    if (open && !p.mart) { const gp = new THREE.PlaneGeometry(p.w + 1, 3.2); gp.rotateX(-PI / 2); gp.rotateY(p.ry); gp.translate(p.x + p.nx * 1.6, 0.07, p.z + p.nz * 1.6); D.litGlow.push(gp); }
+    if (open && !p.mart) { const gp = new THREE.PlaneGeometry(p.w + 1, 3.2); gp.rotateX(-PI / 2); gp.rotateY(p.ry); gp.translate(p.x + p.nx * 1.6, 0.17, p.z + p.nz * 1.6); D.litGlow.push(gp); }
     if (open && /bar|pub|strip|massage|nightclub/.test(p.kind) && r() < 0.5) {   // neón que da tirones
       const t = ctex(128, 64, (g2) => { g2.fillStyle = '#000'; g2.fillRect(0, 0, 128, 64); g2.strokeStyle = st[1]; g2.lineWidth = 4; g2.font = 'bold 30px sans-serif'; g2.textAlign = 'center'; g2.textBaseline = 'middle'; g2.strokeText(/massage/.test(p.kind) ? 'SPA' : 'OPEN', 64, 33); });
       const ne = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.31), new THREE.MeshBasicMaterial({ map: t, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
@@ -2385,9 +2385,9 @@ function buildStreetLife() {
   for (const L of TOWN.lamps) {
     if (L.md === 2) continue;
     const s = L.pr ? 12 : L.lit ? 13 : 9;
-    if (L.md === 0 && !L.fig) { const g = new THREE.PlaneGeometry(s, s); g.rotateX(-PI / 2); g.translate(L.hx, 0.07, L.hz); (L.lit ? steadyW : steadyY).push(g); continue; }
+    if (L.md === 0 && !L.fig) { const g = new THREE.PlaneGeometry(s, s); g.rotateX(-PI / 2); g.translate(L.hx, 0.17, L.hz); (L.lit ? steadyW : steadyY).push(g); continue; }
     const m = new THREE.Mesh(new THREE.PlaneGeometry(s, s), L.lit ? white : warm);
-    m.rotation.x = -PI / 2; m.position.set(L.hx, 0.07, L.hz); m.renderOrder = 3; scene.add(m); D.glows.push({ L, m });
+    m.rotation.x = -PI / 2; m.position.set(L.hx, 0.17, L.hz); m.renderOrder = 3; scene.add(m); D.glows.push({ L, m });
   }
   for (const [l, m] of [[steadyW.concat(D.litGlow), white], [steadyY, warm]]) { const me = addMerged(l, m); if (me) me.renderOrder = 3; }
   /* motas de polvo flotando bajo las farolas que dan luz de verdad */
@@ -4547,8 +4547,15 @@ function syncTown(dt) {
     if (d < 18 && !t.pass) { t.pass = 1; AU.play('carby', q.x, q.z); } else if (d > 26) t.pass = 0;
   });
   // faro de la moto
-  LG.head.intensity = ride.on ? 3.6 : 0;
-  if (ride.on) { LG.head.position.set(camera.position.x, 1.1, camera.position.z); LG.head.target.position.set(me.x - Math.sin(me.yaw) * 14, 0, me.z - Math.cos(me.yaw) * 14); }
+  // el faro va en la tapa de delante, no en tu cabeza: así el manillar no se ilumina ni hace sombra en la calle
+  LG.head.intensity = ride.on ? 3.2 : 0; LG.head.decay = 1.6; LG.head.distance = 34; LG.head.angle = 0.55; LG.head.penumbra = 0.6;
+  if (!D.headBeam) D.headBeam = makeHeadBeam();
+  D.headBeam.visible = ride.on;
+  if (ride.on) {
+    const fx = -Math.sin(me.yaw), fz = -Math.cos(me.yaw), hx = me.x + fx * 0.95, hz = me.z + fz * 0.95;
+    LG.head.position.set(hx, 0.95 + (me.y || 0), hz); LG.head.target.position.set(me.x + fx * 16, (me.y || 0), me.z + fz * 16);
+    D.headBeam.position.copy(LG.head.position); D.headBeam.lookAt(LG.head.target.position);
+  }
   updStreetLife(dt); updInterior(dt);
   updExtras(dt);
   // el de la parada del bus: mira hacia ti y, si te acercas, ya no está
@@ -4602,6 +4609,19 @@ function dlTicketHTML(o) {
   });
   if (o.st === 1) h += '<div class="tk-s">' + T(o.lt ? 'dl_late' : 'dl_road') + '</div>';
   return h + '<div class="tk-p"><span style="width:' + Math.round(clamp(o.p, 0, 1) * 100) + '%"></span></div></div>';
+}
+
+// cono de luz del faro: brillante junto a la moto y cada vez más débil; la niebla se lo come a lo lejos
+function makeHeadBeam() {
+  const L = 16, g = new THREE.CylinderGeometry(0.12, 3.4, L, 16, 1, true); g.translate(0, -L / 2, 0); g.rotateX(-PI / 2);
+  const m = new THREE.ShaderMaterial({
+    uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { uCol: { value: new THREE.Color(0xfff0c8) } }]), fog: true,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+    vertexShader: '#include <common>\n#include <logdepthbuf_pars_vertex>\n#include <fog_pars_vertex>\nvarying float vT; varying vec3 vN, vV;\nvoid main(){ vT = uv.y; vec4 mvPosition = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mvPosition.xyz); gl_Position = projectionMatrix * mvPosition;\n#include <logdepthbuf_vertex>\nvec3 transformed = position;\n#include <fog_vertex>\n}',
+    fragmentShader: '#include <common>\n#include <logdepthbuf_pars_fragment>\n#include <fog_pars_fragment>\nuniform vec3 uCol; varying float vT; varying vec3 vN, vV;\nvoid main(){\n#include <logdepthbuf_fragment>\nfloat t = 1.0 - vT; float a = 0.16 * pow(1.0 - t, 2.2) * pow(abs(dot(vN, vV)), 1.5);\ngl_FragColor = vec4(uCol * a, 1.0);\n#ifdef USE_FOG\nfloat fogFactor = smoothstep(fogNear, fogFar, fogDepth); gl_FragColor.rgb *= 1.0 - fogFactor;\n#endif\n}',
+  });
+  m.extensions = { derivatives: false };
+  const me = new THREE.Mesh(g, m); me.frustumCulled = false; me.renderOrder = 5; scene.add(me); return me;
 }
 
 /* ================= BICHOS Y CARAS: lo que se ve dentro del local (cada uno ve los suyos) =================
@@ -6199,10 +6219,11 @@ function shadowsInit() {
     if (m.isMeshBasicMaterial || m.transparent || m.blending === THREE.AdditiveBlending) return;
     o.castShadow = true; o.receiveShadow = true;
   });
+  D.handle.traverse(o => { o.castShadow = false; o.receiveShadow = false; });
 }
 function shadowCharFix(ch) { ch.g.traverse(o => { if (o.isMesh && !o.material.transparent) { o.castShadow = true; } }); }
 // los charcos de luz del suelo no escriben profundidad: así no se recortan unos a otros ni con el faro
-function glowFix() { scene.traverse(o => { if (o.isMesh && o.material && o.material.blending === THREE.AdditiveBlending) { o.material.depthWrite = false; o.material.polygonOffset = true; o.material.polygonOffsetFactor = -4; o.material.polygonOffsetUnits = -4; } }); }
+function glowFix() { scene.traverse(o => { if (o.isMesh && o.material && o.material.blending === THREE.AdditiveBlending && !o.material.isShaderMaterial) { o.material.depthWrite = false; o.material.polygonOffset = true; o.material.polygonOffsetFactor = -4; o.material.polygonOffsetUnits = -4; } }); }
 function renderFrame() {
   if (POST.ok === null) { postInit(); shadowsInit(); glowFix(); }
   if (ride.on) { POST.shadowT ^= 1; if (POST.shadowT) renderer.shadowMap.needsUpdate = true; }

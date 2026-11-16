@@ -64,8 +64,15 @@ function syncTown(dt) {
     if (d < 18 && !t.pass) { t.pass = 1; AU.play('carby', q.x, q.z); } else if (d > 26) t.pass = 0;
   });
   // faro de la moto
-  LG.head.intensity = ride.on ? 3.6 : 0;
-  if (ride.on) { LG.head.position.set(camera.position.x, 1.1, camera.position.z); LG.head.target.position.set(me.x - Math.sin(me.yaw) * 14, 0, me.z - Math.cos(me.yaw) * 14); }
+  // el faro va en la tapa de delante, no en tu cabeza: así el manillar no se ilumina ni hace sombra en la calle
+  LG.head.intensity = ride.on ? 3.2 : 0; LG.head.decay = 1.6; LG.head.distance = 34; LG.head.angle = 0.55; LG.head.penumbra = 0.6;
+  if (!D.headBeam) D.headBeam = makeHeadBeam();
+  D.headBeam.visible = ride.on;
+  if (ride.on) {
+    const fx = -Math.sin(me.yaw), fz = -Math.cos(me.yaw), hx = me.x + fx * 0.95, hz = me.z + fz * 0.95;
+    LG.head.position.set(hx, 0.95 + (me.y || 0), hz); LG.head.target.position.set(me.x + fx * 16, (me.y || 0), me.z + fz * 16);
+    D.headBeam.position.copy(LG.head.position); D.headBeam.lookAt(LG.head.target.position);
+  }
   updStreetLife(dt); updInterior(dt);
   updExtras(dt);
   // el de la parada del bus: mira hacia ti y, si te acercas, ya no está
@@ -119,4 +126,17 @@ function dlTicketHTML(o) {
   });
   if (o.st === 1) h += '<div class="tk-s">' + T(o.lt ? 'dl_late' : 'dl_road') + '</div>';
   return h + '<div class="tk-p"><span style="width:' + Math.round(clamp(o.p, 0, 1) * 100) + '%"></span></div></div>';
+}
+
+// cono de luz del faro: brillante junto a la moto y cada vez más débil; la niebla se lo come a lo lejos
+function makeHeadBeam() {
+  const L = 16, g = new THREE.CylinderGeometry(0.12, 3.4, L, 16, 1, true); g.translate(0, -L / 2, 0); g.rotateX(-PI / 2);
+  const m = new THREE.ShaderMaterial({
+    uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { uCol: { value: new THREE.Color(0xfff0c8) } }]), fog: true,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+    vertexShader: '#include <common>\n#include <logdepthbuf_pars_vertex>\n#include <fog_pars_vertex>\nvarying float vT; varying vec3 vN, vV;\nvoid main(){ vT = uv.y; vec4 mvPosition = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mvPosition.xyz); gl_Position = projectionMatrix * mvPosition;\n#include <logdepthbuf_vertex>\nvec3 transformed = position;\n#include <fog_vertex>\n}',
+    fragmentShader: '#include <common>\n#include <logdepthbuf_pars_fragment>\n#include <fog_pars_fragment>\nuniform vec3 uCol; varying float vT; varying vec3 vN, vV;\nvoid main(){\n#include <logdepthbuf_fragment>\nfloat t = 1.0 - vT; float a = 0.16 * pow(1.0 - t, 2.2) * pow(abs(dot(vN, vV)), 1.5);\ngl_FragColor = vec4(uCol * a, 1.0);\n#ifdef USE_FOG\nfloat fogFactor = smoothstep(fogNear, fogFar, fogDepth); gl_FragColor.rgb *= 1.0 - fogFactor;\n#endif\n}',
+  });
+  m.extensions = { derivatives: false };
+  const me = new THREE.Mesh(g, m); me.frustumCulled = false; me.renderOrder = 5; scene.add(me); return me;
 }

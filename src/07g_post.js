@@ -73,10 +73,11 @@ function shadowsInit() {
     if (m.isMeshBasicMaterial || m.transparent || m.blending === THREE.AdditiveBlending) return;
     o.castShadow = true; o.receiveShadow = true;
   });
+  D.handle.traverse(o => { o.castShadow = false; o.receiveShadow = false; });
 }
 function shadowCharFix(ch) { ch.g.traverse(o => { if (o.isMesh && !o.material.transparent) { o.castShadow = true; } }); }
 // los charcos de luz del suelo no escriben profundidad: así no se recortan unos a otros ni con el faro
-function glowFix() { scene.traverse(o => { if (o.isMesh && o.material && o.material.blending === THREE.AdditiveBlending) { o.material.depthWrite = false; o.material.polygonOffset = true; o.material.polygonOffsetFactor = -4; o.material.polygonOffsetUnits = -4; } }); }
+function glowFix() { scene.traverse(o => { if (o.isMesh && o.material && o.material.blending === THREE.AdditiveBlending && !o.material.isShaderMaterial) { o.material.depthWrite = false; o.material.polygonOffset = true; o.material.polygonOffsetFactor = -4; o.material.polygonOffsetUnits = -4; } }); }
 function renderFrame() {
   if (POST.ok === null) { postInit(); shadowsInit(); glowFix(); }
   if (ride.on) { POST.shadowT ^= 1; if (POST.shadowT) renderer.shadowMap.needsUpdate = true; }
