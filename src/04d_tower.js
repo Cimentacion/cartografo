@@ -38,10 +38,10 @@ function cl(C, x, z) { const dx = x - C.ox, dz = z - C.oz; return [dx * C.ux + d
 TOWN.del = (() => {
   const out = [], ents = MAP.ent;
   for (const b of TOWN.bld) {
-    if (b.host || !(b.t === 'res' || b.t === 'hot') || b.l < 4 || Math.hypot(b.cx, b.cz) > 250) continue;
+    if (b.host || !(b.t === 'res' || b.t === 'hot' || b.t === 'com') || b.l < 3 || Math.hypot(b.cx, b.cz) > 320) continue;
     const P = b.P, cand = [];
     for (let i = 0; i < P.length; i++) {
-      const [nx, nz, L] = outN(P, i); if (L < 10) continue;
+      const [nx, nz, L] = outN(P, i); if (L < 9.85) continue;
       const a = P[i], c = P[(i + 1) % P.length], ux = (c[0] - a[0]) / L, uz = (c[1] - a[1]) / L;
       // ¿hay una entrada del mapa en esta fachada?
       let best = null; for (const e of ents) { const [d, , , t] = segDist(e[0], e[1], a[0], a[1], c[0], c[1]); if (d < 1.6 && (!best || e[2] > best[1])) best = [t * L, e[2]]; }
@@ -54,12 +54,15 @@ TOWN.del = (() => {
       const C = { b, ox, oz, ux: c.ux, uz: c.uz, vx: -c.nx, vz: -c.nz, L: b.l, edge: c.i, s0: s };
       let ok = true; for (const u of [-4.6, -2, 0, 2, 4.6]) for (const v of [0.3, 3, 6.2]) { const [x, z] = cw(C, u, v); if (!pip(x, z, P)) ok = false; }
       if (!ok) continue;
+      { const [bx, bz] = cw(C, -1.6, -6), [cx2, cz2] = cw(C, 0, 7), B0 = TOWN.bounds; if (B0 && [[bx, bz], [cx2, cz2]].some(([x, z]) => x < B0[0] + 3 || x > B0[1] - 3 || z < B0[2] + 3 || z > B0[3] - 3)) continue; }
       if (TOWN.bld.some(o => o !== b && o.t !== 'roof' && pip(...cw(C, 0, 3), o.P))) continue;
       // delante del portal tiene que haber aire: ni otro edificio pegado ni su pared
       let blk = false; for (const u of [-2.4, -1.6, -0.8]) for (const v of [-0.3, -1.5, -3]) { const [x, z] = cw(C, u, v); if (TOWN.bld.some(o => o.t !== 'roof' && pip(x, z, o.P))) blk = true; }
       if (blk) continue;
       { const [x0, z0] = cw(C, -1.6, -0.15), [x1, z1] = cw(C, -1.6, -4); if (TOWN.bld.some(o => o !== b && o.t !== 'roof' && o.P.some((p, i) => { const q = o.P[(i + 1) % o.P.length], d = (x1 - x0) * (q[1] - p[1]) - (z1 - z0) * (q[0] - p[0]); if (Math.abs(d) < 1e-9) return false; const t = ((p[0] - x0) * (q[1] - p[1]) - (p[1] - z0) * (q[0] - p[0])) / d, w = ((p[0] - x0) * (z1 - z0) - (p[1] - z0) * (x1 - x0)) / d; return t >= 0 && t <= 1 && w >= 0 && w <= 1; }))) continue; }
-      C.name = b.n || ''; C.addr = b.a || ''; out.push(C); break;
+      if (out.some(o => o.b === b && Math.hypot(o.ox - C.ox, o.oz - C.oz) < 18)) continue;
+      C.name = b.n || ''; C.addr = b.a || ''; if (out.some(o => o.b === b)) C.name = C.name ? C.name + ' II' : ''; out.push(C);
+      if (out.filter(o => o.b === b).length >= (Math.abs(polyArea(P)) > 700 ? 2 : 1)) break;
     }
   }
   // dirección: la del mapa o la calle más cercana con un número
@@ -186,9 +189,9 @@ function buildBuildings() {
       const a = P[i], c = P[(i + 1) % n], L = Math.hypot(c[0] - a[0], c[1] - a[1]); if (L < 0.02) continue;
       const cut = b.host ? shopClip(a[0], a[1], c[0], c[1]) : null, C = portal[b.i + ':' + i];
       // planta baja (con hueco para el local o para el portal) y el resto de la fachada
-      const MT = TOWN.mart && TOWN.mart.b === b && TOWN.mart.i === i ? TOWN.mart : null;
-      const spans = cut ? [[0, cut[0]], [cut[1], 1]] : C ? [[0, (C.s0 - 1.7) / L], [(C.s0 + 0.3) / L, 1]] : MT ? [[0, (MT.s - 0.75) / L], [(MT.s + 0.75) / L, 1]] : [[0, 1]];
-      if (MT) { const x0 = lerp(a[0], c[0], (MT.s - 0.75) / L), z0 = lerp(a[1], c[1], (MT.s - 0.75) / L), x1 = lerp(a[0], c[0], (MT.s + 0.75) / L), z1 = lerp(a[1], c[1], (MT.s + 0.75) / L); vquad(x0, z0, x1, z1, 2.4, gh, u, 4, gnd); addSeg(x0, z0, x1, z1, 2.4, b.h); }
+      const MTs = (TOWN.marts || []).filter(m => m.b === b && m.i === i).sort((p, q) => p.s - q.s);
+      let spans = cut ? [[0, cut[0]], [cut[1], 1]] : C ? [[0, (C.s0 - 1.7) / L], [(C.s0 + 0.3) / L, 1]] : [[0, 1]];
+      if (!cut && !C && MTs.length) { spans = []; let s0 = 0; for (const MT of MTs) { spans.push([s0, (MT.s - 0.75) / L]); s0 = (MT.s + 0.75) / L; const x0 = lerp(a[0], c[0], (MT.s - 0.75) / L), z0 = lerp(a[1], c[1], (MT.s - 0.75) / L), x1 = lerp(a[0], c[0], (MT.s + 0.75) / L), z1 = lerp(a[1], c[1], (MT.s + 0.75) / L); vquad(x0, z0, x1, z1, 2.4, gh, u, 4, gnd); addSeg(x0, z0, x1, z1, 2.4, b.h); } spans.push([s0, 1]); }
       for (const [s, e] of spans) { if (e - s < 1e-3) continue; const x0 = lerp(a[0], c[0], s), z0 = lerp(a[1], c[1], s), x1 = lerp(a[0], c[0], e), z1 = lerp(a[1], c[1], e); vquad(x0, z0, x1, z1, 0, gh, u + s * L, 4, gnd); addSeg(x0, z0, x1, z1, 0, b.h); }
       if (C) { const x0 = lerp(a[0], c[0], (C.s0 - 1.7) / L), z0 = lerp(a[1], c[1], (C.s0 - 1.7) / L), x1 = lerp(a[0], c[0], (C.s0 + 0.3) / L), z1 = lerp(a[1], c[1], (C.s0 + 0.3) / L); vquad(x0, z0, x1, z1, 2.6, gh, u, 4, gnd); addSeg(x0, z0, x1, z1, 2.6, b.h); C.door = addSeg(x0, z0, x1, z1, 0, 2.6); }
       if (b.h > gh) vquad(a[0], a[1], c[0], c[1], gh, b.h, u, 6, body[fi]);
@@ -272,9 +275,79 @@ function buildCores() {
     }
     // marcos de las puertas de los pisos y del ascensor
     if (!ground) for (const [u, v, nu, nv] of FLAT_UV) { const g = new THREE.PlaneGeometry(1.25, 2.3); g.rotateY(Math.atan2(nu, nv)); g.translate(u + nu * 0.012, 1.15, v + nv * 0.012); dk.push(g); }
-    return { fl, ce, wa, st, sl, dk };
+    /* ---- detalle: rodapiés, zócalo, molduras, pilastras, esquinas achaflanadas, marcos, barandillas ---- */
+    const tr = [], co = [], rl = [], dd = [], inl = [], mb = [], lt = [], mi = [];
+    const CEN = [-1.3, 3.1];
+    // pieza a lo largo de una pared, saliendo hacia el rellano; gaps = tramos [desde, hasta] en metros desde el inicio
+    const strip = (list, u0, v0, u1, v1, y, h, dep, gaps, tile) => {
+      const L = Math.hypot(u1 - u0, v1 - v0); if (L < 0.05) return; const du = (u1 - u0) / L, dv = (v1 - v0) / L;
+      let nu = -dv, nv = du; if ((CEN[0] - (u0 + u1) / 2) * nu + (CEN[1] - (v0 + v1) / 2) * nv < 0) { nu = -nu; nv = -nv; }
+      const G = (gaps || []).slice().sort((a, b) => a[0] - b[0]); let s0 = 0; const parts = [];
+      for (const [a, b] of G) { if (a > s0) parts.push([s0, a]); s0 = Math.max(s0, b); } if (s0 < L) parts.push([s0, L]);
+      for (const [a, b] of parts) { const m = (a + b) / 2; list.push(bgeo(b - a, h, dep, u0 + du * m + nu * dep / 2, y + h / 2, v0 + dv * m + nv * dep / 2, Math.atan2(-dv, du), tile || 0.8)); }
+    };
+    const rod = (list, a, b, r) => { const d = new THREE.Vector3(b[0] - a[0], b[1] - a[1], b[2] - a[2]), L = d.length(), g = new THREE.CylinderGeometry(r, r, L, 6, 1); const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); g.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(q)); g.translate((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2); list.push(g); };
+    // paredes del rellano con los huecos de puertas
+    const WALLS = [
+      [-4.6, 0.02, 1.9, 0.02, ground ? [[3.0, 4.8]] : []],
+      [-4.6, 0.02, -4.6, 4.6, ground ? [] : [[0.83, 1.97], [2.83, 3.97]]],
+      [-4.6, 4.6, -3.0, 4.6, [[0.15, 1.45]]],
+      [-3.0, 4.6, -3.0, 6.2, []],
+      [-3.0, 6.2, 1.9, 6.2, ground ? [] : [[0.43, 1.57], [3.03, 4.17]]],
+      [1.9, 6.2, 1.9, 0.02, [[4.85, 5.95]]],
+    ];
+    for (const [u0, v0, u1, v1, g] of WALLS) {
+      strip(tr, u0, v0, u1, v1, 0, 0.12, 0.025, g);                 // rodapié
+      strip(tr, u0, v0, u1, v1, 2.66, 0.14, 0.09, [], 0.8);           // moldura del techo
+      strip(dd, u0, v0, u1, v1, 0.12, ground ? 1.0 : 0.85, 0.008, g, 0.6);   // zócalo de azulejo
+      strip(tr, u0, v0, u1, v1, ground ? 1.12 : 0.97, 0.05, 0.03, g); // remate del zócalo
+    }
+    // esquinas achaflanadas (en diagonal), con su rodapié
+    for (const [cu, cv, a] of [[-4.6, 0.02, PI / 4], [1.9, 6.2, PI / 4], [-3.0, 6.2, -PI / 4]]) {
+      const ou = cu + (cu < CEN[0] ? 0.17 : -0.17), ov = cv + (cv < CEN[1] ? 0.17 : -0.17);
+      co.push(bgeo(0.62, FLH, 0.08, ou, FLH / 2, ov, a, 0.8)); tr.push(bgeo(0.62, 0.12, 0.1, ou, 0.06, ov, a, 0.8));
+    }
+    // pilastras con basa y capitel
+    for (const [u, v, ax] of [[-3.3, 0.02, 0], [1.2, 0.02, 0], [-0.45, 6.2, 0], [-4.6, 2.4, 1], [-3.0, 4.6, 2]]) {
+      if (ground && u === -0.45) continue;
+      const w = 0.34, dep = 0.13, sg = v > 3 ? -1 : 1;
+      const o = ax === 1 ? [u + dep / 2, v] : ax === 2 ? [u + 0.11, v - 0.11] : [u, v + sg * dep / 2];
+      const [W1, D1] = ax === 1 ? [dep, w] : ax === 2 ? [0.22, 0.22] : [w, dep];
+      co.push(bgeo(W1, FLH, D1, o[0], FLH / 2, o[1], 0, 0.8));
+      tr.push(bgeo(W1 + 0.08, 0.16, D1 + 0.06, o[0], 0.08, o[1], 0, 0.8));
+      tr.push(bgeo(W1 + 0.1, 0.1, D1 + 0.08, o[0], 2.5, o[1], 0, 0.8)); tr.push(bgeo(W1 + 0.05, 0.06, D1 + 0.04, o[0], 2.42, o[1], 0, 0.8));
+    }
+    // marco del ascensor (acero) y cajetín con la flecha encima
+    rl.push(bgeo(0.12, 2.45, 0.1, -4.46, 1.22, 4.55, 0, 0.5), bgeo(0.12, 2.45, 0.1, -3.14, 1.22, 4.55, 0, 0.5), bgeo(1.44, 0.14, 0.1, -3.8, 2.4, 4.55, 0, 0.5), bgeo(0.36, 0.12, 0.05, -3.8, 2.56, 4.57, 0, 0.5));
+    // marcos de las puertas de los pisos (jambas y dintel en relieve)
+    if (!ground) for (const [u, v, nu, nv] of FLAT_UV) {
+      const ry = Math.atan2(nu, nv), tu = nv ? 1 : 0, tv = nu ? 1 : 0, cu = u + nu * 0.03, cvv = v + nv * 0.03;
+      for (const sd of [-1, 1]) tr.push(bgeo(nv ? 0.1 : 0.06, 2.3, nv ? 0.06 : 0.1, cu + tu * sd * 0.6, 1.15, cvv + tv * sd * 0.6, 0, 0.8));
+      tr.push(bgeo(nv ? 1.32 : 0.07, 0.12, nv ? 0.07 : 1.32, cu, 2.33, cvv, 0, 0.8));
+    }
+    // suelo: cenefa oscura alrededor del rellano
+    { const g = polyGeo([[-4.6, 0], [1.9, 0], [1.9, 6.2], [-4.6, 6.2]], 0.008, 0.8, false, [[[-4.25, 0.35], [-4.25, 4.3], [-3.3, 4.3], [-3.3, 5.85], [1.55, 5.85], [1.55, 0.35]]]); if (g) inl.push(g); }
+    // escalera: pasamanos con soportes en la pared exterior de cada tramo y cantoneras en los peldaños
+    for (let i = 0; i < 10; i++) {
+      tr.push(bgeo(1.3, 0.03, 0.05, 3.95, (i + 1) * 0.15 - 0.015, 1.6 + i * 0.34 + 0.025, 0, 0.6));
+      tr.push(bgeo(1.3, 0.03, 0.05, 2.55, 1.5 + (i + 1) * 0.15 - 0.015, 5.0 - i * 0.34 - 0.025, 0, 0.6));
+    }
+    rod(rl, [4.52, 0.9, 1.5], [4.52, 2.4, 5.05], 0.022); rod(rl, [1.98, 2.4, 5.05], [1.98, 3.9, 1.5], 0.022);
+    for (let i = 0; i < 4; i++) { const t = i / 3, v = 1.7 + t * 3.2; rod(rl, [4.6, 0.85 + t * 1.42, v], [4.53, 0.88 + t * 1.42, v], 0.012); rod(rl, [1.9, 2.35 + (1 - t) * 1.42, v], [1.97, 2.38 + (1 - t) * 1.42, v], 0.012); }
+    // apliques de pared (se encienden con el temporizador)
+    for (const [u, v, ry] of [[-4.58, 0.6, PI / 2], [1.88, 3.6, -PI / 2], [-2.9, 5.4, PI / 2]]) { const g = new THREE.CylinderGeometry(0.11, 0.11, 0.2, 8, 1, false, 0, PI); g.rotateY(ry - PI / 2); g.translate(u, 1.95, v); lt.push(g); }
+    if (ground) {
+      // buzones en la pared izquierda, espejo con marco, banco de piedra, columna exenta y felpudo
+      rl.push(bgeo(0.16, 1.0, 2.16, -4.52, 1.35, 1.9, 0, 1)); mb.push(pplate(2.1, 0.95, -4.435, 1.35, 1.9, 1, 0));
+      rl.push(bgeo(0.06, 1.7, 1.1, -0.9, 1.55, 6.16, PI / 2, 0.5)); mi.push(pplate(0.98, 1.58, -0.9, 1.55, 6.125, 0, -1));
+      co.push(bgeo(1.4, 0.08, 0.42, -0.9, 0.46, 5.95, 0, 0.8), bgeo(0.2, 0.42, 0.36, -1.45, 0.21, 5.95, 0, 0.8), bgeo(0.2, 0.42, 0.36, -0.35, 0.21, 5.95, 0, 0.8));
+      { const g = new THREE.CylinderGeometry(0.17, 0.19, 2.6, 8); g.translate(0.4, 1.3, 3.7); co.push(g); tr.push(cgeo(0.26, 0.28, 0.16, 8, 0.4, 0.08, 3.7), cgeo(0.25, 0.2, 0.16, 8, 0.4, 2.62, 3.7)); }
+      { const g = polyGeo([[-1.4, 0.15], [0.0, 0.15], [0.0, 1.05], [-1.4, 1.05]], 0.014, 1); if (g) dk.push(g); }
+    }
+    return { fl, ce, wa, st, sl, dk, tr, co, rl, dd, inl, mb, lt, mi };
   };
-  const mats = { fl0: lam('marb', 0xd8d0c0), fl1: lam('terr', 0xc0b8a8), ce: lam('plas', 0xd8d4cc), wa0: lam('plas2', 0xe0d8c8), wa1: lam('plas2', 0xd0c4a0), st: lam('conc2', 0xb0aca0), sl: lam('plas', 0xc8c0a8), dk: lam('wood2', 0x6a4a32) };
+  const mailTex = ctex(128, 64, (g) => { g.fillStyle = '#8a7a5a'; g.fillRect(0, 0, 128, 64); for (let r = 0; r < 3; r++) for (let c = 0; c < 6; c++) { const x = 3 + c * 21, y = 3 + r * 20; g.fillStyle = '#b8a070'; g.fillRect(x, y, 19, 18); g.fillStyle = '#2a2018'; g.fillRect(x + 3, y + 4, 13, 2); g.fillStyle = '#efe8d8'; g.fillRect(x + 4, y + 10, 11, 4); g.fillStyle = '#5a4a30'; g.fillRect(x + 15, y + 13, 2, 3); } });
+  const mats = { fl0: lam('marb', 0xd8d0c0), fl1: lam('terr', 0xc0b8a8), ce: lam('plas', 0xd8d4cc), wa0: lam('plas2', 0xe0d8c8), wa1: lam('plas2', 0xd0c4a0), st: lam('conc2', 0xb0aca0), sl: lam('plas', 0xc8c0a8), dk: lam('wood2', 0x6a4a32), tr: lam('marb', 0x5a4a3c), co: lam('plas', 0xe2dace), rl: lam('steel', 0x6a6460), dd0: lam('terr', 0xa89478), dd1: lam('plas2', 0xa89a7a), inl: lam('marb', 0x7a6650), mb: new THREE.MeshLambertMaterial({ map: mailTex }), mi: lam(null, 0x8a96a4, { emissive: 0x1a2028 }) };
   const tg = (ground) => { const t = mk(ground), o = {}; for (const k in t) if (t[k].length) o[k] = mergeGeos(t[k]); return o; };
   const T0 = tg(true), T1 = tg(false);
   D.core = { g: new THREE.Group(), floors: [], k: -1 }; scene.add(D.core.g); D.core.g.visible = false;
@@ -283,7 +356,7 @@ function buildCores() {
     const F = new THREE.Group(); D.core.g.add(F);
     const add = (geo, m) => { if (!geo) return; const me = new THREE.Mesh(geo, m); F.add(me); return me; };
     const m0 = new THREE.Group(), m1 = new THREE.Group(); F.add(m0); F.add(m1);
-    for (const [T, grp, gr] of [[T0, m0, true], [T1, m1, false]]) for (const k in T) { const m = k === 'fl' ? (gr ? mats.fl0 : mats.fl1) : k === 'wa' ? (gr ? mats.wa0 : mats.wa1) : mats[k]; grp.add(new THREE.Mesh(T[k], m)); }
+    for (const [T, grp, gr] of [[T0, m0, true], [T1, m1, false]]) for (const k in T) { if (k === 'lt') { const sc = new THREE.Mesh(T[k], bas(0xfff0d0)); grp.add(sc); F.userData.fx = (F.userData.fx || []).concat(sc); continue; } const m = k === 'fl' ? (gr ? mats.fl0 : mats.fl1) : k === 'wa' ? (gr ? mats.wa0 : mats.wa1) : k === 'dd' ? (gr ? mats.dd0 : mats.dd1) : mats[k]; grp.add(new THREE.Mesh(T[k], m)); }
     // puertas de los pisos
     const doors = FLAT_UV.map(([u, v, nu, nv], j) => {
       const grp = new THREE.Group(); grp.position.set(u + nu * 0.02, 0, v + nv * 0.02); grp.rotation.y = Math.atan2(nu, nv); m1.add(grp);
@@ -335,8 +408,8 @@ function buildCores() {
     // el portero automático se usa desde la calle; desde dentro, el botón de abrir
     const [ix, iz] = cw(C, 0.75, -0.2); hit('gt' + C.k, ix, 1.3, iz, 0.5, 0.6, 0.5);
     const [jx, jz] = cw(C, -0.7, 0.4); hit('gi' + C.k, jx, 1.2, jz, 1.6, 2.2, 0.4);
-    // un poco de luz del vestíbulo en la acera
-    return { C, piv, ld };
+    freezeGroup(g, [piv, ld]);
+    return { C, piv, ld, g };
   });
   // paredes del núcleo para chocar (en todas las plantas a la vez) y la puerta del ascensor (se abre según dónde esté la cabina)
   for (const C of TOWN.del) {
@@ -345,6 +418,8 @@ function buildCores() {
     S(1.9, 6.2, 1.9, 1.3); S(1.9, 0.3, 1.9, 0);
     S(3.2, 1.6, 3.3, 5.0, -2, h); S(3.3, 1.6, 3.3, 5.0, -2, h);
     C.liftSeg = S(-4.6, 4.6, -3.0, 4.6);
+    S(0.2, 3.5, 0.6, 3.5, 0, 2.8); S(0.6, 3.5, 0.6, 3.9, 0, 2.8); S(0.6, 3.9, 0.2, 3.9, 0, 2.8); S(0.2, 3.9, 0.2, 3.5, 0, 2.8);   // columna del portal
+    S(-1.6, 5.75, -0.2, 5.75, 0, 0.5);   // banco
   }
   LG.int = new THREE.PointLight(0xfff0dc, 0, 12, 1.1); scene.add(LG.int);
 }
@@ -383,7 +458,7 @@ function localUse(key, R, H) {
 let _prevY = 0;
 function updInterior(dt) {
   // puertas de los portales: abiertas mientras dura el permiso del portero
-  for (const p of D.portals || []) { const op = W.gt && W.gt[p.C.k] > 0; p.piv.rotation.y = lerp(p.piv.rotation.y, op ? -1.35 : 0, Math.min(1, dt * 3)); if (p.C.door) p.C.door.off = op; p.ld.material.color.setHex(op ? 0x50ff70 : Math.sin(TIME * 2) > 0 ? 0x1a6a2a : 0x0a2a10); }
+  for (const p of D.portals || []) { p.g.visible = Math.abs(p.C.ox - camera.position.x) + Math.abs(p.C.oz - camera.position.z) < 90; const op = W.gt && W.gt[p.C.k] > 0; p.piv.rotation.y = lerp(p.piv.rotation.y, op ? -1.35 : 0, Math.min(1, dt * 3)); if (p.C.door) p.C.door.off = op; p.ld.material.color.setHex(op ? 0x50ff70 : Math.sin(TIME * 2) > 0 ? 0x1a6a2a : 0x0a2a10); }
   const k = coreAt(me.x, me.z), near = k >= 0 ? k : coreAt(me.x, me.z, 9);
   const DC = D.core; if (!DC) return;
   if (near < 0) { DC.g.visible = false; LG.int.intensity = 0; IV.k = -1; _prevY = me.y; return; }

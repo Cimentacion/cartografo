@@ -402,7 +402,7 @@ function buildSea() {
   D.glint = new THREE.Mesh(new THREE.PlaneGeometry(14, 140), new THREE.MeshBasicMaterial({ map: glint, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, opacity: 0.55 }));
   D.glint.rotation.x = -PI / 2; D.glint.position.set(-20, 0.0, 160); scene.add(D.glint);
   // la costa no deja pasar
-  for (let i = 0; i + 1 < coast.length; i++) addSeg(coast[i][0], coast[i][1] + 1.5, coast[i + 1][0], coast[i + 1][1] + 1.5, 0, 99);
+  for (let i = 0; i + 1 < coast.length; i++) { const a = coast[i], b = coast[i + 1]; if (Math.hypot(b[0] - a[0], b[1] - a[1]) > 40 || TOWN.bld.some(o => o.t !== 'roof' && pip((a[0] + b[0]) / 2, (a[1] + b[1]) / 2 + 1.5, o.P))) continue; addSeg(a[0], a[1] + 1.5, b[0], b[1] + 1.5, 0, 99); }   // sin tramos que crucen edificios
   const [bx0, bx1, bz0, bz1] = TOWN.bounds;
   addSeg(bx0, bz0, bx1, bz0); addSeg(bx1, bz0, bx1, bz1); addSeg(bx1, bz1, bx0, bz1); addSeg(bx0, bz1, bx0, bz0);
 }
