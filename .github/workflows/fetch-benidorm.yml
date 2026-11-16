@@ -1,0 +1,16 @@
+name: fetch-benidorm
+on:
+  push:
+    branches: [kebab-data]
+    paths: ['tools/fetch/**', '.github/workflows/fetch-benidorm.yml']
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install pillow
+      - run: cd tools/fetch && python fetch.py
+      - uses: actions/upload-artifact@v4
+        with: { name: benidorm-data, path: tools/fetch/out }
