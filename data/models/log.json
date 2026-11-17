@@ -425,5 +425,26 @@
    "frozen": 0.0
   },
   "t": 1794890527.2822957
+ },
+ {
+  "balance_before": {
+   "balance": 850.0,
+   "frozen": 0.0
+  },
+  "t": 1794892372.656721
+ },
+ {
+  "id": "estanteria",
+  "task": "f0217026-b234-4f85-ae24-ca1678485e63",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2625524
+ },
+ {
+  "balance_after": {
+   "balance": 800.0,
+   "frozen": 0.0
+  },
+  "t": 1794892524.7375457
  }
 ]
