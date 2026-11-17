@@ -154,4 +154,12 @@ function sauceRecv(peer, pr, ch) {
     const h = sauceArc(x, 1.4, z, yaw, pitch, R.buf); drawArc(R.pts, R.buf, h.n, SAUCE_COL[on - 1]);
   } else R.pts.visible = false;
 }
-function updExtras(dt) { updRooms(); updPropChunks(); if (D.windU) D.windU.value = TIME; if (D.shopGrp) D.shopGrp.visible = Math.hypot(camera.position.x, camera.position.z - 2) < 48; updSky(dt); updArrow(dt); updSauce(dt, myP()); updKitchen(dt); updMart(dt); updMist(dt); }
+function updExtras(dt) { updRooms(); updPropChunks(); updFridgeDoor(dt); if (D.windU) D.windU.value = TIME; if (D.shopGrp) D.shopGrp.visible = Math.hypot(camera.position.x, camera.position.z - 2) < 48; updSky(dt); updArrow(dt); updSauce(dt, myP()); updKitchen(dt); updMart(dt); updMist(dt); }
+
+// la puerta de la nevera se abre sola cuando te acercas a coger una bebida
+function updFridgeDoor(dt) {
+  if (!D.frDoor) return;
+  const near = Math.hypot(camera.position.x - 2.9, camera.position.z + 2.1) < 1.5;
+  const want = near ? -1.65 : 0, a = D.frDoor.rotation.y; D.frDoor.rotation.y = a + (want - a) * Math.min(1, dt * (near ? 5 : 3));
+  if (near !== D.frNear) { D.frNear = near; AU.play(near ? 'door' : 'pop', 3.3, -2.1); }
+}

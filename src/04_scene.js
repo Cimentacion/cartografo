@@ -141,7 +141,7 @@ const VEGC = [0x6fae3a, 0xc63a2a, 0xe6d6e8], DRC = [0xb3261e, 0x6fb3e0, 0xd8b23a
 function propItem(id, L, ry, x, y, z) { const g = new THREE.Group(), m = propMesh(id, 1, g); if (!m) return null; m.scale.setScalar(L); m.rotation.y = ry || 0; m.position.set(x || 0, y || 0, z || 0); return g; }
 const HASPROP = (id) => typeof PROPDATA !== 'undefined' && !!PROPDATA[id];
 // muchas copias de un modelo de Tripo (contenedores, bancos, máquinas, palmeras): t = [x, y, z, ry, tamaño del lado mayor]
-const PROP_ROT = { contenedor: 0, amarillo: 0, banco: PI / 2, maquina: -PI / 2, palmera: 0, furgoneta: -PI / 2, telefono: -PI / 2, mesa: 0 };   // giro para que el frente mire a +z
+const PROP_ROT = { contenedor: 0, amarillo: 0, banco: PI / 2, maquina: -PI / 2, palmera: 0, furgoneta: -PI / 2, telefono: -PI / 2, mesa: 0, coche1: PI / 2, coche2: PI / 2, taxi: PI / 2 };   // giro para que el frente mire a +z
 function propInst(id, list, tint, mat) {
   if (!list.length || !HASPROP(id)) return null;
   let m = mat || propMat(id); if (tint != null) { m = m.clone(); m.color.setHex(tint); }
@@ -293,9 +293,13 @@ function buildWorld() {
   cyl(0.005, 0.005, 0.3, 4, M.dark, 2.2, 2.45, -5.9);
 
   // --- mostrador ---
-  box(6.6, 0.96, 0.7, M.tgrey, -0.7, 0.48, 0.95, { col: true, occ: true, tile: 1.0 });
-  box(6.7, 0.05, 0.8, M.steel, -0.7, 0.985, 0.95);
-  plane(2.5, 0.4, lam(null, 0x9ab0b8, { transparent: true, opacity: 0.18, side: THREE.DoubleSide, depthWrite: false }), -2.75, 1.22, 1.27, 0.25, 0);
+  const ctr = [box(6.6, 0.96, 0.7, M.tgrey, -0.7, 0.48, 0.95, { col: true, occ: true, tile: 1.0 }), box(6.7, 0.05, 0.8, M.steel, -0.7, 0.985, 0.95),
+    plane(2.5, 0.4, lam(null, 0x9ab0b8, { transparent: true, opacity: 0.18, side: THREE.DoubleSide, depthWrite: false }), -2.75, 1.22, 1.27, 0.25, 0)];
+  // barra de Tripo: dos tramos de mostrador de acero con la vitrina refrigerada, de cara a los clientes
+  if (HASPROP('barra')) {
+    ctr[0].material = ctr[0].material.clone(); ctr[0].material.visible = false; ctr[1].visible = false; ctr[2].visible = false;
+    for (const cx of [-2.35, 0.95]) { const m = propMesh('barra', 1, scene); m.scale.set(0.82 / 0.4, 3.8, 3.3); m.rotation.y = -PI / 2; m.position.set(cx, 0, 0.95); }
+  }
   const cy = 1.01, cz = 0.8;
   for (let i = 0; i < 3; i++) {
     const x = -3.7 + i * 0.4;
@@ -355,7 +359,7 @@ function buildWorld() {
   box(0.3, 0.004, 0.035, lam(null, 0xd0d4d8), -3.62, 0.965, -1.2); box(0.11, 0.02, 0.03, M.dark, -3.62, 0.97, -1.0, { ry: 0 });
   hit('chop', -3.62, 1.02, -1.6, 0.5, 0.26, 0.7);
   // --- nevera ---
-  box(0.65, 1.95, 1.2, M.white, 3.675, 0.975, -2.1, { col: true, occ: true });
+  const frB = box(0.65, 1.95, 1.2, M.white, 3.675, 0.975, -2.1, { col: true, occ: true });
   const frTex = ctex(64, 128, (g) => {
     g.fillStyle = '#0d1418'; g.fillRect(0, 0, 64, 128);
     const rows = [[20, '#b3261e', '#e8e8e8'], [50, '#6fb3e0', '#2a5fb0'], [80, '#d8b23a', '#2a6a3a']];
@@ -364,7 +368,28 @@ function buildWorld() {
   });
   D.fridgeFace = plane(1.1, 1.75, new THREE.MeshBasicMaterial({ map: frTex }), 3.345, 1.0, -2.1, 0, -PI / 2);
   box(0.03, 1.2, 0.04, M.steelD, 3.33, 1.1, -1.56);
-  for (let i = 0; i < 3; i++) hit('dr' + i, 3.36, 1.63 - i * 0.41, -2.1, 0.12, 0.4, 1.12);
+  let drX = 3.36;
+  // nevera de Tripo con su puerta de cristal aparte, que gira sobre la bisagra cuando te acercas
+  if (HASPROP('nevera')) {
+    frB.material = frB.material.clone(); frB.material.visible = false; D.fridgeFace.visible = false;
+    const L = 2.0, e = PROPDATA.nevera.e, g = new THREE.Group(); g.position.set(3.97 - e[0] * L / 2, 0, -2.1); g.rotation.y = PI; scene.add(g);
+    const body = propMesh('nevera', 1, g); body.scale.setScalar(L);
+    { // puerta: marco de aluminio, cristal con vaho y tirador; gira sobre la bisagra del lado +z
+      const W2 = e[2] * L * 0.96, H2 = e[1] * L * 0.8, y0 = e[1] * L * 0.04, piv = new THREE.Group(); piv.position.set(e[0] * L / 2 + 0.015, 0, W2 / 2); g.add(piv);
+      const al = lam('steel', 0xb8bcc0), dg = new THREE.Group(); dg.position.set(0, 0, -W2 / 2); piv.add(dg);
+      for (const [w, h, z, y] of [[0.035, H2, W2 / 2 - 0.0175, y0 + H2 / 2], [0.035, H2, -W2 / 2 + 0.0175, y0 + H2 / 2], [0.035, 0.05, 0, y0 + 0.025], [0.035, 0.05, 0, y0 + H2 - 0.025]]) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.03, h, h === 0.05 ? W2 : 0.035), al); b.position.set(0, y, z); dg.add(b); }
+      const gl = new THREE.Mesh(new THREE.PlaneGeometry(W2 - 0.06, H2 - 0.09), new THREE.MeshLambertMaterial({ color: 0xc8e0f0, transparent: true, opacity: 0.22, emissive: 0x18242c, side: THREE.DoubleSide, depthWrite: false }));
+      gl.rotation.y = PI / 2; gl.position.set(0, y0 + H2 / 2, 0); dg.add(gl);
+      const hd = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.5, 0.025), lam(null, 0x202224)); hd.position.set(0.04, y0 + H2 * 0.55, -W2 / 2 + 0.06); dg.add(hd);
+      D.frDoor = piv;
+    }
+    drX = 3.97 - e[0] * L - 0.05; colliders.push({ x0: drX, x1: 4, z0: -2.1 - e[2] * L / 2, z1: -2.1 + e[2] * L / 2 });
+  }
+  for (let i = 0; i < 3; i++) hit('dr' + i, drX, 1.63 - i * 0.41, -2.1, 0.12, 0.4, 0.8);
+  // --- tragaperras, extintor y campana (Tripo) ---
+  if (HASPROP('tragaperras')) { const t = propItem('tragaperras', 1.6, 0, -3.62, 0, 3.6); scene.add(t); colliders.push({ x0: -4, x1: -3.25, z0: 3.25, z1: 3.95 }); }
+  if (HASPROP('extintor')) scene.add(propItem('extintor', 0.6, PI, 3.92, 0.45, 4.3));
+  if (HASPROP('campana')) { const m = propMesh('campana', 1, scene); m.scale.set(0.75 / 0.568, 0.85, 1.25 / 0.858); m.rotation.y = -PI / 2; m.position.set(-0.25, 2.02, -3.62); }
   // --- escopeta en la pared ---
   box(0.06, 0.04, 0.04, M.wood, 3.96, 1.4, -0.25); box(0.06, 0.04, 0.04, M.wood, 3.96, 1.4, -0.85);
   D.rackGun = gunMesh(); D.rackGun.position.set(3.92, 1.46, -0.6); D.rackGun.rotation.set(0, 0, 0); scene.add(D.rackGun);

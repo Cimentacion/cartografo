@@ -10,7 +10,8 @@ SRC = sys.argv[1]
 LIST = {'vespino': 512, 'asador': 512, 'freidora': 256, 'garrafa': 256, 'farola': 256,
         'contenedor': 256, 'amarillo': 256, 'mesa': 256, 'maquina': 256, 'palmera': 256,
         'escopeta': 512, 'durum': 256, 'pita': 256, 'cajapollo': 256, 'patatas': 256, 'lata': 128, 'agua': 128,
-        'furgoneta': 512, 'vagabundo': 256, 'carro': 256, 'telefono': 256, 'banco': 256}
+        'furgoneta': 512, 'vagabundo': 256, 'carro': 256, 'telefono': 256, 'banco': 256,
+        'barra': 512, 'nevera': 512, 'tragaperras': 256, 'extintor': 256, 'campana': 256, 'coche1': 512, 'coche2': 512, 'taxi': 512}
 # triángulos máximos tras rebajar (los de los lotes 2 y 3 vienen con 1500-6000)
 FACES = {}   # sin rebajar: el rebaje de pymeshlab deformaba los modelos (bancos, contenedores...). Se usan tal cual vienen de Tripo
 
@@ -44,6 +45,7 @@ def acc(j, b, i):
     return np.array(out)
 
 out = {}
+SPLIT = {}
 for pid, tsz in LIST.items():
     p = os.path.join(SRC, pid + '.glb')
     if not os.path.exists(p): continue
@@ -78,6 +80,12 @@ for pid, tsz in LIST.items():
         if np.ptp(hi[:, 1]) > np.ptp(lo[:, 1]): P[:, 0] *= -1; P[:, 2] *= -1; N[:, 0] *= -1; N[:, 2] *= -1
         print('escopeta: girada', round(float(np.degrees(an)), 1), 'grados')
         mn, mx = P.min(0), P.max(0); P -= [(mn[0] + mx[0]) / 2, mn[1], (mn[2] + mx[2]) / 2]
+    if pid == 'nevera':
+        # la puerta de cristal (la loncha de delante, +x, sin el cartel de arriba) va aparte para que gire sobre la bisagra
+        T = I.reshape(-1, 3); cp = P[T].mean(1); e = P.max(0) - P.min(0)
+        door = (cp[:, 0] > P[:, 0].max() - e[0] * 0.07) & (cp[:, 1] > e[1] * 0.03) & (cp[:, 1] < e[1] * 0.86)
+        print('nevera: puerta', int(door.sum()), 'triángulos')
+        I = T[~door].reshape(-1)   # la puerta la hace el juego (marco, cristal y tirador)
     if pid in FACES and len(I) // 3 > FACES[pid]:
         n0 = len(I) // 3; P, N, U, I = decimate(P, U, I, FACES[pid], N); print(pid, 'rebajado', n0, '->', len(I) // 3)
         mn, mx = P.min(0), P.max(0); P -= [(mn[0] + mx[0]) / 2, mn[1], (mn[2] + mx[2]) / 2]
@@ -93,6 +101,9 @@ for pid, tsz in LIST.items():
                 'i': base64.b64encode(I.astype(np.uint16 if I.max() < 65535 else np.uint32).tobytes()).decode(), 'i32': int(I.max() >= 65535),
                 't': 'data:image/jpeg;base64,' + base64.b64encode(bb.getvalue()).decode()}
     print(pid, len(I) // 3, 'tris', len(bb.getvalue()) // 1024, 'KB tex', [round(float(v), 3) for v in ext])
+    for k, Id in SPLIT.items():   # piezas sueltas del mismo modelo (misma textura: se usa la del modelo)
+        out[k] = dict(out[pid], i=base64.b64encode(Id.astype(np.uint16 if Id.max() < 65535 else np.uint32).tobytes()).decode(), i32=int(Id.max() >= 65535), t='', tr=pid)
+    SPLIT.clear()
 
 js = '/* Modelos generados con Tripo (tripo3d.ai) y convertidos por tools/props2js.py. Cada uno: posiciones Int16 (escala 1 = lado mayor), normales Int8, UV Uint16, índices y textura JPEG. */\n'
 js += 'const PROPDATA = ' + json.dumps(out, separators=(',', ':')) + ';\n'
@@ -111,6 +122,7 @@ function propGeo(id) {
 }
 function propMat(id) {
   if (PROP.mat[id]) return PROP.mat[id];
+  if (PROPDATA[id].tr) return (PROP.mat[id] = propMat(PROPDATA[id].tr));
   const t = new THREE.TextureLoader().load(PROPDATA[id].t); t.flipY = false; t.encoding = THREE.LinearEncoding;
   return (PROP.mat[id] = new THREE.MeshLambertMaterial({ map: t, side: THREE.DoubleSide }));   // los modelos generados traen caras del revés
 }

@@ -382,9 +382,13 @@ function partGeo(p) {
 function carMats(c, lights) {
   return { b: lam(null, CAR_COLS[c], { emissive: 0x0a0a0a }), g: lam(null, 0x0b0e12, { emissive: 0x050608 }), d: lam(null, 0x141416), w: lam(null, 0x0c0c0c), f: lights ? bas(0xfff2cc) : lam(null, 0x8a8a80), t: lights ? bas(0xff2010) : lam(null, 0x5a1010), p: lam(null, 0xd8d8d0) };
 }
+// coches de Tripo: utilitario rojo, berlina y taxi (los turismos se reparten entre berlina y taxi por el color)
+function carModel(st, c) { return st === 1 ? 'coche1' : (c % 3 === 0 ? 'taxi' : 'coche2'); }
 function makeCar(st, c, lights) {
   const g = new THREE.Group(), M2 = carMats(c, lights);
-  if (st === 2 && HASPROP('furgoneta')) { const v = propItem('furgoneta', 4.4, PROP_ROT.furgoneta, 0, 0, 0); g.add(v); for (const p of carParts(st)) if (p[0] === 'f' || p[0] === 't') g.add(new THREE.Mesh(partGeo(p), M2[p[0]])); }
+  const cm = carModel(st, c);
+  if (st !== 2 && HASPROP(cm)) { g.add(propItem(cm, st === 1 ? 3.8 : 4.4, PROP_ROT[cm], 0, 0, 0)); for (const p of carParts(st)) if (p[0] === 'f' || p[0] === 't') g.add(new THREE.Mesh(partGeo(p), M2[p[0]])); }
+  else if (st === 2 && HASPROP('furgoneta')) { const v = propItem('furgoneta', 4.4, PROP_ROT.furgoneta, 0, 0, 0); g.add(v); for (const p of carParts(st)) if (p[0] === 'f' || p[0] === 't') g.add(new THREE.Mesh(partGeo(p), M2[p[0]])); }
   else for (const p of carParts(st)) g.add(new THREE.Mesh(partGeo(p), M2[p[0]]));
   if (lights) { const cone = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 11), new THREE.MeshBasicMaterial({ map: D.beamTex, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending })); cone.rotation.x = -PI / 2; cone.position.set(0, 0.03, -(carParts(st)[0][3] / 2) - 5.4); g.add(cone); }
   g.visible = false; scene.add(g); return g;
@@ -682,17 +686,18 @@ function buildTown() {
   LG.pool = [0, 1, 2, 3].map(() => { const l = new THREE.PointLight(0xffa850, 0, 17, 1.5); scene.add(l); return l; });
   // coches aparcados
   D.beamTex = ctex(64, 128, (g) => { const gr = g.createLinearGradient(0, 128, 0, 0); gr.addColorStop(0, 'rgba(255,240,200,0.9)'); gr.addColorStop(1, 'rgba(255,240,200,0)'); g.fillStyle = gr; g.beginPath(); g.moveTo(26, 128); g.lineTo(38, 128); g.lineTo(64, 0); g.lineTo(0, 0); g.fill(); });
-  const cg = {}, tmp = new THREE.Object3D(), VANS = [];
+  const cg = {}, tmp = new THREE.Object3D(), VANS = [], CARS = { coche1: [], coche2: [], taxi: [] };
   for (const c of TOWN.cars) {
     tmp.position.set(c.x, 0, c.z); tmp.rotation.set(0, c.ry, 0); tmp.updateMatrix();
     if (c.st === 2 && HASPROP('furgoneta')) VANS.push([c.x, 0, c.z, c.ry, 4.4]);   // furgoneta blanca de reparto de Tripo
+    else if (HASPROP(carModel(c.st, c.c))) CARS[carModel(c.st, c.c)].push([c.x, 0, c.z, c.ry, c.st === 1 ? 3.8 : 4.4]);
     else for (const p of carParts(c.st)) { const key = p[0] === 'b' ? 'b' + c.c : p[0]; const g = partGeo(p); g.applyMatrix4(tmp.matrix); (cg[key] = cg[key] || []).push(g); }
     const L = c.st === 1 ? 3.7 : 4.3, s = Math.sin(c.ry), co = Math.cos(c.ry);
     for (const [u, v] of [[-0.9, -L / 2], [0.9, -L / 2], [0.9, L / 2], [-0.9, L / 2]]) { }
     addSeg(c.x - s * L / 2, c.z - co * L / 2, c.x + s * L / 2, c.z + co * L / 2, 0, 1.4, { car: 1 });
     addSeg(c.x - s * L / 2 + co * 0.9, c.z - co * L / 2 - s * 0.9, c.x + s * L / 2 + co * 0.9, c.z + co * L / 2 - s * 0.9, 0, 1.4); addSeg(c.x - s * L / 2 - co * 0.9, c.z - co * L / 2 + s * 0.9, c.x + s * L / 2 - co * 0.9, c.z + co * L / 2 + s * 0.9, 0, 1.4);
   }
-  propInst('furgoneta', VANS);
+  propInst('furgoneta', VANS); for (const k in CARS) propInst(k, CARS[k]);
   const pm = carMats(0, false);
   for (const key in cg) addMerged(cg[key], key[0] === 'b' ? lam(null, CAR_COLS[+key.slice(1)], { emissive: 0x0a0a0a }) : pm[key]);
   // bancos, papeleras, contenedores y paradas de bus de verdad
