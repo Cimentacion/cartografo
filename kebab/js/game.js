@@ -995,14 +995,14 @@ const colliders = [], rayTargets = [], D = {}, TX = {}, LG = {}, M = {};
 const IH = 360;
 const SLOTS = [[-2.4, 1.85], [-0.8, 1.85], [0.8, 1.85]], QUEUE = [[2.2, 2.9], [1.0, 3.8], [2.6, 4.2]];
 const DOOR_IN = [[-2.6, 6.3], [-2.6, 4.4]];
-const SEG = 10, BANDS = 6, NCELL = SEG * BANDS, SPY0 = 1.02, BH = 0.13, SPX = [-3.45, -2.75, -2.05, -1.35], SPZ = -3.62;
+const SEG = 10, BANDS = 6, NCELL = SEG * BANDS, SPY0 = 1.27, BH = 0.1, SPX = [-3.45, -2.75, -2.05, -1.35], SPZ = -3.62;
 const SPT = [0, 1, 0, 1];   // tipo de carne de cada asador: los dos que se compran repiten pollo y ternera
 const SV = [0, 1, 2, 3].map(() => ({ lv: new Uint8Array(NCELL).fill(7), dn: new Float32Array(NCELL).fill(0.75), pend: new Float32Array(NCELL), dirty: true, cs: '', ds: '' }));
 
 function loadTextures() {
   return Promise.all(Object.keys(TEXDATA).map(k => new Promise(res => {
     const im = new Image();
-    im.onload = () => { const t = new THREE.Texture(im); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.needsUpdate = true; TX[k] = t; res(); };
+    im.onload = () => { const t = new THREE.Texture(im); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; t.needsUpdate = true; TX[k] = t; res(); };
     im.onerror = () => { TX[k] = null; res(); };
     im.src = TEXDATA[k];
   })));
@@ -1059,7 +1059,8 @@ function hit(key, x, y, z, w, h, d) {
 }
 
 /* ---------- carne del asador ---------- */
-function spitRad(b, lv) { const R = 0.17 + 0.06 * (b / (BANDS - 1)); return 0.05 + (R - 0.05) * lv / 7; }
+const PILEY = 1.1, PILEZ = 0.14;   // bandeja de la carne cortada, dentro de la carcasa del asador
+function spitRad(b, lv) { const R = 0.11 + 0.045 * (b / (BANDS - 1)); return 0.04 + (R - 0.04) * lv / 7; }
 const MC = [[[0.95, 0.72, 0.66], [0.88, 0.6, 0.27], [0.6, 0.36, 0.14], [0.12, 0.085, 0.07]], [[0.82, 0.36, 0.36], [0.66, 0.38, 0.2], [0.4, 0.22, 0.12], [0.1, 0.07, 0.06]]];
 function meatColor(i, d, o) {
   const P = MC[i]; let a, b, t;
@@ -1083,11 +1084,11 @@ function buildSpit(i) {
   mesh.frustumCulled = false; grp.add(mesh);
   // hierro, base y bandeja
   const o = { parent: root };
-  cyl(0.012, 0.012, 1.25, 6, M.steelD, x, 1.5, SPZ, o);
+  cyl(0.012, 0.012, 0.9, 6, M.steelD, x, SPY0 + 0.35, SPZ, o);
   cyl(0.09, 0.07, 0.03, 8, M.steelD, x, SPY0 + BANDS * BH + 0.03, SPZ, o);
   box(0.6, 0.04, 0.62, M.steel, x, 0.93, SPZ + 0.02, o);
   box(0.6, 0.05, 0.02, M.steel, x, 0.965, SPZ + 0.33, o);
-  const pile = new THREE.Mesh(new THREE.SphereGeometry(0.12, 7, 4, 0, PI * 2, 0, PI / 2), new THREE.MeshLambertMaterial({ map: TX.meat, color: 0xa86a30 }));
+  const pile = new THREE.Mesh(new THREE.SphereGeometry(0.085, 7, 4, 0, PI * 2, 0, PI / 2), new THREE.MeshLambertMaterial({ map: TX.meat, color: 0xa86a30 }));
   pile.position.set(x, 0.95, SPZ + 0.24); pile.scale.set(1.6, 0.01, 0.6); root.add(pile);
   // resistencia
   const heat = plane(0.6, 0.92, new THREE.MeshBasicMaterial({ map: D.heatTex, color: 0xffffff }), x, 1.44, -3.93, 0, 0, null, false, root);
@@ -1095,11 +1096,12 @@ function buildSpit(i) {
   // asador de Tripo: carcasa, bandeja y resistencia (sin su rollo, que es el del juego)
   if (typeof PROPDATA !== 'undefined' && PROPDATA.asador) {
     for (const c of root.children.slice()) if (c !== grp && c !== pile && c.geometry && c.geometry.type === 'BoxGeometry') root.remove(c);
-    heat.visible = false; const m = propMesh('asador', 1.25, root); m.rotation.y = -PI / 2; m.position.set(x, 0.93, SPZ - 0.08);
+    heat.visible = false; const m = propMesh('asador', 1.25, root); m.rotation.y = -PI / 2; m.position.set(x + 0.009, 0.93, SPZ - 0.0975);
+    pile.position.set(x, PILEY, SPZ + PILEZ); pile.scale.set(1.1, 0.01, 0.55);
   }
   D.spit[i] = { root, grp, mesh, g, pile, heat };
   hit('sp' + i, x, 1.45, SPZ, 0.5, 0.86, 0.4);
-  hit('tr' + i, x, 0.99, SPZ + 0.25, 0.58, 0.16, 0.22);
+  hit('tr' + i, x, PILEY + 0.04, SPZ + PILEZ, 0.5, 0.16, 0.2);
 }
 const _c3 = [0, 0, 0];
 function updateSpitMesh(i) {
@@ -1759,11 +1761,17 @@ function makeDog() {
 
 /* ---------- construcción ---------- */
 function waveTex() {
-  return ctex(256, 128, (g) => {
-    g.fillStyle = '#e4dfd4'; g.fillRect(0, 0, 256, 128);
-    for (const [y0, col] of [[18, '#7a5a40'], [64, '#9a7a5a'], [108, '#7a5a40']]) { g.fillStyle = col; g.beginPath(); g.moveTo(0, y0); for (let x = 0; x <= 256; x += 4) g.lineTo(x, y0 + Math.sin(x / 256 * PI * 4) * 10); for (let x = 256; x >= 0; x -= 4) g.lineTo(x, y0 + 9 + Math.sin(x / 256 * PI * 4) * 10); g.fill(); }
-    g.strokeStyle = 'rgba(0,0,0,0.12)'; g.lineWidth = 1; for (let x = 0; x < 256; x += 32) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, 128); g.stroke(); } for (let y = 0; y < 128; y += 32) { g.beginPath(); g.moveTo(0, y); g.lineTo(256, y); g.stroke(); }
+  // ondas del paseo de Levante: bandas anchas con bordes suaves y poco contraste; las rayas finas y oscuras hacían moiré a lo lejos
+  const t = ctex(256, 256, (g) => {
+    const im = g.createImageData(256, 256), d = im.data;
+    for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) {
+      const w = Math.sin((y / 256 * 2 + Math.sin(x / 256 * PI * 2) * 0.22) * PI * 2);   // dos ondas por baldosa
+      const k = 0.5 + 0.5 * Math.tanh(w * 2.2), n = (Math.random() - 0.5) * 10;
+      const i = (y * 256 + x) * 4; d[i] = 214 - 64 * k + n; d[i + 1] = 206 - 72 * k + n; d[i + 2] = 192 - 80 * k + n; d[i + 3] = 255;
+    }
+    g.putImageData(im, 0, 0);
   });
+  t.anisotropy = 8; return t;
 }
 function buildSea() {
   const [X0, X1, Z0, Z1] = TOWN.bounds;
@@ -1891,7 +1899,7 @@ function buildTown() {
     if (k === 'ped' && a.P.some(p => p[1] > 3)) k = 'wave';
     if (!Z[k]) continue;
     const y = { beach: 0.006, garden: 0.022, parking: 0.016, lot: 0.018, ped: 0.012, wave: 0.0125, pitch: 0.026, pool: 0.07, scrub: 0.02 }[k];   // capas bien separadas: con el búfer logarítmico 1 mm no basta
-    const g = polyGeo(a.P, y, k === 'beach' ? 3 : k === 'wave' ? 9 : 2.2); if (g) Z[k].push(g);
+    const g = polyGeo(a.P, y, k === 'beach' ? 3 : k === 'wave' ? 7 : 2.2); if (g) Z[k].push(g);
     if (k === 'pool') { for (let i = 0; i < a.P.length; i++) { const p = a.P[i], q = a.P[(i + 1) % a.P.length]; Z.poolE.push(wallSegGeo(p[0], p[1], q[0], q[1], 0.14, 0.32, 1)); addSeg(p[0], p[1], q[0], q[1], 0, 0.6); } }
   }
   addMerged(Z.beach, lam('sand', 0xb0a080)); addMerged(Z.garden, lam('grass', 0x5a7a4a)); addMerged(Z.parking, lam('asph', 0x7a7a80)); addMerged(Z.lot, lam('gravel', 0x8a7a68));
@@ -5294,12 +5302,12 @@ function localCut(i, cells) {
   if (!NET.isHost) { for (const c of valid) { const d = S.dn[c]; S.lv[c]--; S.dn[c] = 0.12 + Math.min(d, 1) * 0.1; S.pend[c] = TIME; } S.dirty = true; }
   act('cut', i, valid); return valid.length;
 }
-function enterCut(i) { cut.on = true; cut.i = i; cut.y = 1.88; cut.press = false; cut.last = 7; me.pitch = -0.1; }
+function enterCut(i) { cut.on = true; cut.i = i; cut.y = SPY0 + BANDS * BH - 0.04; cut.press = false; cut.last = 7; me.pitch = -0.1; }
 function updateCut(dt) {
   knife.visible = cut.on; if (!cut.on) return;
   const P = myP(); if (!W || W.ph !== 'play' || !P || P.h || P.ko > 0 || overlay) { cut.on = false; knife.visible = false; return; }
   if (IN.use || IN.back) { IN.use = IN.back = false; cut.on = false; me.yaw = 0; me.pitch = -0.07; return; }
-  cut.y = clamp(cut.y - IN.ly * 0.0032, 0.94, 1.92); IN.lx = 0; IN.ly = 0;
+  cut.y = clamp(cut.y - IN.ly * 0.0032, SPY0 - 0.06, SPY0 + BANDS * BH + 0.04); IN.lx = 0; IN.ly = 0;
   const band = Math.floor((cut.y - SPY0) / BH), press = IN.held || !!IN.padHeld || (IN.dev === 'kb' && !IN.locked && !!IN.drag);
   const rot = spitRot(cut.i, Tsm), S = SV[cut.i];
   if (press && cut.press && band < cut.last) {
