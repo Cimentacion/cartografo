@@ -1,0 +1,37 @@
+name: Compilar APK Toda una Vida
+on:
+  push:
+    branches: [main]
+    paths: ['vida/**', 'android-vida/**', '.github/workflows/vida-apk.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: vida-apk
+  cancel-in-progress: true
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17" }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: "8.11.1" }
+      - name: Meter el juego dentro de la app
+        run: |
+          mkdir -p android-vida/app/src/main/assets
+          cp vida/index.html android-vida/app/src/main/assets/index.html
+      - name: Compilar
+        working-directory: android-vida
+        run: gradle assembleRelease --no-daemon --stacktrace
+      - name: Renombrar
+        run: cp android-vida/app/build/outputs/apk/release/app-release.apk toda-una-vida.apk
+      - name: Publicar en Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: vida
+          name: "Toda una Vida (APK)"
+          body: "APK de Toda una Vida. Build #${{ github.run_number }}. El juego se actualiza solo al abrir la app; solo hay que reinstalar si cambia la app en sí."
+          files: toda-una-vida.apk
+          make_latest: false
