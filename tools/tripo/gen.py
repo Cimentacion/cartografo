@@ -20,7 +20,7 @@ def main():
         print('Falta el secreto TRIPO_API_KEY en el repositorio: no se genera nada.'); return 0
     log_p = os.path.join(OUT, 'log.json')
     log = json.load(open(log_p)) if os.path.exists(log_p) else []
-    for path in ['/user/balance', '/balance']:
+    for path in ['/account/balance']:
         b = call('GET', path); print('saldo', path, json.dumps(b)[:300])
         if b.get('code') == 0: log.append({'balance_before': b.get('data'), 't': time.time()}); break
     assets = json.load(open('tools/tripo/assets.json'))
@@ -48,7 +48,7 @@ def main():
                 if img: urllib.request.urlretrieve(img, os.path.join(OUT, a['id'] + '.webp'))
             except Exception as e: ent['dl_error'] = str(e)
         log.append(ent); json.dump(log, open(log_p, 'w'), indent=1)
-    b = call('GET', '/user/balance'); print('saldo final', json.dumps(b)[:300]); log.append({'balance_after': b.get('data'), 't': time.time()})
+    b = call('GET', '/account/balance'); print('saldo final', json.dumps(b)[:300]); log.append({'balance_after': b.get('data'), 't': time.time()})
     json.dump(log, open(log_p, 'w'), indent=1)
     return 0
 
