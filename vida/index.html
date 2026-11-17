@@ -382,6 +382,7 @@ function cumple(){
   if(a>=7&&a<=16){const r=y.mente/(a*4.2);
     log("Llegan las notas: "+(r>1.25?"sobresaliente en casi todo. En casa presumen de ti.":r>.95?"notables y algún bien.":r>.7?"aprobados raspados.":"varios suspensos. Bronca en la cena."));
     vivos(p=>p.rol=="prog").forEach(p=>rel(p,r>1.25?4:r<.7?-4:0))}
+  if(G.trabajo&&G.trabajo.pro&&AREAS[G.trabajo.pro].retiro&&a>=AREAS[G.trabajo.pro].retiro){G.pension=Math.round(G.trabajo.s*.25);logro("te retiras del deporte profesional");log(`El cuerpo ya no responde como antes. Te retiras de la competición; te queda una pequeña renta y un nombre.`);G.trabajo=null}
   if(a==18)log(`Eres mayor de edad. Ahora las decisiones, y sus consecuencias, son tuyas.`);
   if(a==67&&G.trabajo){G.pension=Math.round(G.trabajo.s*.6);G.trabajo=null;log("Te jubilas. Te queda la pensión y todo el tiempo del mundo.")}
 }
@@ -391,7 +392,7 @@ function muerteYo(causa){
   titular("Fin","Aquí termina tu vida");
   G.log.push({t:"caja",cls:"fin",tag:"",txt:`${y.nombre} ${y.apellido} muere a los ${edadTxt(y.edad)} en ${G.lugar.nombre} por ${causa}. `+
    (y.edad<12?"Apenas tuvo tiempo de nada.":`${G.trabajo?"Trabajaba "+G.trabajo.n+". ":""}${G.titulo?"Tenía estudios universitarios. ":""}${hijos?"Deja "+hijos+(hijos==1?" hijo. ":" hijos. "):""}${G.pareja&&P(G.pareja)?"Le llora "+P(G.pareja).nombre+". ":""}`)+
-   `${quer} ${quer==1?"persona le quería":"personas le querían"} de verdad.`});
+   `${quer} ${quer==1?"persona le quería":"personas le querían"} de verdad.`+(G.logros&&G.logros.length?` Logros: ${G.logros.length}. El último, a los ${G.logros[G.logros.length-1]}.`:"")});
 }
 function tick(){
   const y=G.yo;if(G.muerto)return;
@@ -424,6 +425,7 @@ function tick(){
   G.gente.forEach(p=>{if(p.vivo&&p.casa&&p.rol=="herm"&&p.edad>24*12&&ch(.03)){p.casa=false;if(!G.indep)log(`${tu(p)} se va de casa. Su cuarto se queda raro.`)}});
   // Azar
   if(ch(.22))evento();
+  if(!G.muerto&&ch(.12))chequeoVocacion();
   // Tu muerte
   if(G.muerto)return;
   if(y.salud<=0){muerteYo(G.fl.adicto?"el desgaste de años de consumo":G.fl.fuma&&a>35?"una enfermedad pulmonar":"una salud que ya no daba más de sí");return}
@@ -555,6 +557,79 @@ function conocerVecino(){
   return p.edad>=216?` Conoces a ${p.nombre}, ${gp(p,"un vecino","una vecina")} de los ${p.fam}.`:` Conoces a ${p.nombre}, ${gp(p,"el hijo","la hija")} de los ${p.fam}, que tiene ${edadTxt(p.edad)}.`;
 }
 function candidatosTrato(){return vivos(p=>p.con&&!p.lejos&&(G.yo.edad>=24||p.casa)).sort((a,b)=>(b.casa-a.casa)||b.rel-a.rel)}
+/* ---- Vocaciones: lo que más practicas abre concursos, becas y carreras ---- */
+const UMBRAL=[20,60,130,240,420],EDADMIN=[5,9,12,17,22];
+const AREAS={
+ arte:{n:"Dibujo y pintura",st:"mente",min:3,tx:["Llenas un cuaderno entero de dibujos.","Copias del natural todo lo que se queda quieto.","Pruebas con acuarelas. El papel se arruga, tú insistes.","Dibujas manos durante semanas hasta que parecen manos."],
+  t:["el concurso de dibujo del colegio","el certamen provincial de pintura joven","una plaza en la escuela de artes","ilustrando por encargo","Expones en una galería de la capital y se vende todo."],s:2200},
+ futbol:{n:"Fútbol",st:"cuerpo",min:5,tx:["Tocas balón contra la pared hasta que anochece.","Entrenas la pierna mala. Cada vez es menos mala.","Tiros a puerta, cien al día.","Juegas con los mayores y aguantas el tipo."],
+  t:["el torneo del barrio, como máximo goleador","el campeonato provincial con tu equipo","una prueba en la cantera de un club grande","jugando al fútbol como profesional","Debutas con la selección. En tu barrio cuelgan una pancarta."],s:6000,retiro:35},
+ deporte:{n:"Atletismo",st:"cuerpo",min:4,tx:["Series en la pista hasta que te tiemblan las piernas.","Bajas tu marca dos segundos.","Corres antes de que amanezca.","Aprendes a salir de tacos sin tropezar."],
+  t:["la carrera escolar","el campeonato regional de atletismo","una beca en un centro de alto rendimiento","compitiendo como atleta","Te cuelgan una medalla en un campeonato internacional."],s:2500,retiro:36},
+ judo:{n:"Judo",st:"cuerpo",min:6,tx:["Repites la misma llave mil veces.","Combates de entrenamiento hasta quedarte sin aire.","Aprendes a esperar el error del otro."],
+  t:["el torneo del gimnasio","el campeonato regional de judo","un sitio en el equipo de tecnificación","compitiendo en judo","Subes al podio en un torneo internacional."],s:2200,retiro:36},
+ musica:{n:"Música",st:"mente",min:5,tx:["Ensayas hasta que te duelen los dedos.","Sacas de oído una canción de la radio.","Metrónomo, lento, otra vez.","Compones algo tuyo, corto y raro."],
+  t:["el concurso de talentos del colegio","el certamen de jóvenes intérpretes","una plaza en el conservatorio","de la música, tocando en directo","Llenas un teatro con tu nombre en el cartel."],s:2000},
+ teatro:{n:"Teatro",st:"carisma",min:6,tx:["Ensayas un monólogo delante del espejo.","Aprendes a llorar a voluntad. Lo usas en casa.","Lees obras enteras en voz alta, haciendo todas las voces."],
+  t:["el festival de teatro escolar, con premio a la mejor interpretación","el certamen regional de teatro joven","una plaza en la escuela de arte dramático","actuando en una compañía","Te dan un papel protagonista en una película."],s:2300},
+ cocina:{n:"Cocina",st:"mente",min:6,tx:["Te sale una tortilla entera sin romperse al dar la vuelta.","Cocinas para toda la casa. Repiten.","Quemas dos sofritos y clavas el tercero.","Aprendes a hacer un caldo como es debido, de horas.","Pruebas una receta que nadie en casa sabe pronunciar."],
+  t:["el concurso de cocina de las fiestas","el concurso de jóvenes cocineros","una plaza en la escuela de hostelería","de jefe de cocina","Tu restaurante recibe una estrella. Lloras en la cámara frigorífica."],s:2600},
+ estudio:{n:"Ciencias y estudio",st:"mente",min:6,tx:["Resuelves problemas que no entran en el examen, por gusto.","Montas un experimento en la cocina. Casi todo sobrevive.","Te lees el libro del curso siguiente."],
+  t:["la olimpiada de matemáticas del colegio","la fase regional de la olimpiada científica","una beca en un instituto de excelencia","","Publicas un hallazgo que sale en los periódicos."],s:0},
+ idiomas:{n:"Idiomas",st:"mente",min:6,tx:["Ves películas sin subtítulos, parando cada minuto.","Te escribes con alguien de otro país.","Piensas un rato cada día en otro idioma."],
+  t:["el concurso de lectura en lengua extranjera","el certamen de debate en otro idioma","una beca en un liceo internacional","de intérprete","Traduces en una cumbre internacional, con el mundo escuchando."],s:2400}};
+function voc(k){G.voc=G.voc||{};return G.voc[k]||(G.voc[k]={p:0,t:0,cd:0})}
+function pr(k,n){const v=voc(k);v.p+=n*(v.beca?1.5:1)}
+function nivel(k){const v=voc(k);return v.p*(.3+G.yo[AREAS[k].st]/100)}
+function logro(txt){G.logros=G.logros||[];G.logros.push(anios()+" años: "+txt)}
+function nuevaCiudad(){const o=ORI[G.origen],t=ch(.3)?"capital":"ciudad",l=o.lug[t].filter(n=>n!=G.lugar.nombre);return {tipo:t,nombre:l.length?pick(l):o.lug.ciudad[0]}}
+function chequeoVocacion(){
+  const y=G.yo,a=y.edad/12;if(G.pend||!G.voc)return;
+  const c=Object.keys(G.voc).filter(k=>{const v=G.voc[k];return v.t<5&&v.cd<=y.edad&&a>=EDADMIN[v.t]&&nivel(k)>=UMBRAL[v.t]}).sort((p,q)=>nivel(q)-nivel(p));
+  if(!c.length)return;
+  const k=c[0],v=G.voc[k],A=AREAS[k],n=nivel(k);
+  if(v.t<2){
+    const nom=a<19?A.t[v.t]:(v.t==0?"un concurso local de aficionados":"un certamen regional")+" de "+A.n.toLowerCase();
+    if(ch(clamp(.3+(n-UMBRAL[v.t])/80,0,.85))){v.t++;add("animo",8);add("carisma",2);const pm=v.t==2?ri(100,400):0;y.dinero+=pm;
+      logro("ganas "+nom);vivos(p=>p.rol=="prog").forEach(p=>rel(p,4));
+      log(`Te presentas a ${nom} y ganas.`+(pm?` El premio son ${pm}.`:"")+(v.t==1?" El diploma acaba colgado en el pasillo.":" Sales en el periódico local, con el nombre mal escrito."))}
+    else{v.cd=y.edad+ri(10,18);add("animo",-4);log(`Te presentas a ${nom}. No ganas. Vuelves a casa repasando qué falló.`,"mala")}
+  }else if(v.t==2){
+    if(a>=19||G.indep){v.t=3;return}
+    G.pend={k:"beca",a:k};log(`Alguien se ha fijado en ti. Te ofrecen ${A.t[2]}, pero es en otra ciudad.`);
+  }else if(v.t==3){
+    if(k=="estudio"){v.t=4;G.fl.becaUni=1;add("animo",8);logro("beca completa para la universidad");log("Te conceden una beca completa para la universidad. La carrera te saldrá gratis y más rápida.");return}
+    const ent=A.retiro&&a>=30,n4=ent?"entrenando a jóvenes de "+A.n.toLowerCase():A.t[3],s4=ent?1700:A.s;
+    G.pend={k:"oferta",a:k,n:n4,s:s4,ent:ent?1:0};log(`Llega una oferta para vivir de esto: trabajar ${n4}, por ${s4} al mes.`);
+  }else{
+    if(k=="estudio"&&!G.titulo)return;
+    if(v.ent||(A.retiro&&!(G.trabajo&&G.trabajo.pro==k))){v.t=5;return}
+    v.int=(v.int||0)+1;
+    if(!ch(.3)){add("animo",-6);v.cd=y.edad+24;if(v.int>=3)v.t=5;log(vario("casi",["Te quedas a las puertas de lo más alto. Otro se lleva el sitio que era casi tuyo.","Tenías la gran oportunidad delante y no sale. Toca seguir trabajando.","Rozas la cima con los dedos. Esta vez no."])+(v.int>=3?" Empiezas a aceptar que hasta aquí has llegado, que no es poco.":""),"mala");return}
+    v.t=5;add("animo",12);add("carisma",5);y.dinero+=ri(2000,8000);logro(A.t[4]);log(A.t[4]+" Es lo más alto que se puede llegar.");
+  }
+}
+function resolverBeca(si){
+  const d=G.pend,v=voc(d.a),A=AREAS[d.a];v.t=3;
+  if(!si){v.cd=G.yo.edad+6;return `Dices que no a ${A.t[2]}. Os quedáis donde estáis; a veces te preguntas qué habría pasado.`}
+  v.beca=true;logro("consigues "+A.t[2]);add("animo",6);
+  G.lugar=nuevaCiudad();
+  if(vivos(p=>p.rol=="prog").length&&!G.casa.tipo.includes("acogida"))mudanza(`Aceptas ${A.t[2]}. Toda la familia hace las maletas rumbo a ${G.lugar.nombre}.`,true);
+  else{genVecinos();G.casa={tipo:"una residencia de estudiantes",barrio:"el campus",deQuien:null};log(`Aceptas ${A.t[2]}. Te instalas en una residencia en ${G.lugar.nombre}.`)}
+  return "A partir de ahora entrenas con los mejores: avanzas más rápido.";
+}
+function resolverOferta(si){
+  const d=G.pend,v=voc(d.a),A=AREAS[d.a];
+  if(!si){v.cd=G.yo.edad+36;return `Rechazas la oferta. Puede que vuelvan a llamar, o puede que no.`}
+  v.t=4;v.cd=G.yo.edad+48;v.ent=d.ent;G.trabajo={n:d.n,s:d.s,pro:d.ent?null:d.a};add("animo",10);logro("empiezas a trabajar "+d.n);
+  return `Firmas. Desde hoy trabajas ${d.n}. Lo que empezó como un juego te da de comer.`;
+}
+function practicar(k){
+  const A=AREAS[k];pr(k,1.5);add(A.st,1);add("animo",1);
+  if(k=="futbol"||k=="deporte"||k=="judo")add("salud",.5);
+  return vario("pr"+k,A.tx);
+}
+
 /* ---- Sitios donde conocer gente ---- */
 const FE={es:["Ir a misa","la parroquia",["el cura","la catequista"]],mx:["Ir a misa","la parroquia",["el cura","la catequista"]],uk:["Ir a la iglesia","la iglesia",["el reverendo","la organista"]],
  ro:["Ir a la iglesia","la iglesia",["el pope","la cantora del coro"]],ma:["Ir a la mezquita","la mezquita",["el imán","la maestra de la mezquita"]],jp:["Ir al templo","el templo",["el monje","la cuidadora del templo"]]};
@@ -585,12 +660,12 @@ function lugares(){
     const s=vario("patio",["Te metes en el partido de los de otra clase.","Cambias cromos en la escalera del patio.","Os sentáis en el muro a mirar pasar a todo el mundo.","Organizan un torneo en el recreo y te apuntas."]);
     if(ch(.35)){const q=per("comp",sx(),a+R()*2-1,pick(ORI[G.origen].ap),{con:true,rel:ri(15,35),rasgo:ri(0,4)});return s+` Conoces a ${q.nombre}, de otra clase, ${RASGOS[q.rasgo].n[q.sexo=="m"?0:1]}.`}return s});
   if(a>=6&&(a>=18||G.riqueza>=1))L.push({t:"Clases",s:a<18?"Extraescolares: otra gente, otras cosas":"60 al mes",fn:()=>abrirHoja("¿Qué clase?",ACT.map(c=>({t:c.t,s:Object.keys(c.st).join(" y "),fn:()=>hacer(()=>{
-    for(const k in c.st)add(k,c.st[k]);if(a>=18)y.dinero-=60;G.prof=G.prof||{};
+    for(const k in c.st)add(k,c.st[k]);pr(c.k=="pintura"?"arte":c.k,2);if(a>=18)y.dinero-=60;G.prof=G.prof||{};
     let s=vario("act"+c.k,c.tx);
     if(!G.prof[c.k]){G.prof[c.k]=1;s=`Te apuntas a ${c.t.toLowerCase()}. `+s+conocerEn(c.sitio,"adulto",c.r,c.prof)}
     else if(ch(.35))s+=conocerEn(c.sitio,"par",c.r);
     return s})})))});
-  if(a>=8)U("La biblioteca","Silencio y libros",()=>{add("mente",2);return vario("biblio",["Tardes de biblioteca. Te sellan el carné hasta gastarlo.","Encuentras un libro que no era para tu edad. Lo lees entero.","Te quedas hasta que apagan las luces de la sala."])+(ch(.2)?conocerEn("de la biblioteca","par",1):"")});
+  if(a>=8)U("La biblioteca","Silencio y libros",()=>{pr("estudio",.5);add("mente",2);return vario("biblio",["Tardes de biblioteca. Te sellan el carné hasta gastarlo.","Encuentras un libro que no era para tu edad. Lo lees entero.","Te quedas hasta que apagan las luces de la sala."])+(ch(.2)?conocerEn("de la biblioteca","par",1):"")});
   if(a>=16)U("El gimnasio",a>=18?"30 al mes":"Pesas y espejo",()=>{add("cuerpo",2);add("aspecto",1);add("salud",1);if(a>=18)y.dinero-=30;
     return vario("gym",["Un mes sin fallar al gimnasio. Te duele todo y te gusta.","Subes de peso en la barra. Alguien asiente desde el banco de al lado.","Rutina nueva. Al tercer día no puedes peinarte."])+(ch(.25)?conocerEn("del gimnasio","par",0):"")});
   if(a>=18){
@@ -619,13 +694,19 @@ function ligue(prot){
 }
 function abrirPend(){
   const d=G.pend;
+  if(d.k=="beca"){const A=AREAS[d.a];abrirHoja("Te ofrecen "+A.t[2],[
+    {t:"Aceptar",s:"Os mudáis a otra ciudad. Dejas atrás a tu gente, pero progresas más rápido",fn:()=>resolver(()=>resolverBeca(true))},
+    {t:"Quedarte",s:"Sigues como hasta ahora",fn:()=>resolver(()=>resolverBeca(false))}],true)}
+  if(d.k=="oferta"){const A=AREAS[d.a];abrirHoja("Oferta: trabajar "+d.n,[
+    {t:"Aceptar",s:d.s+" al mes"+(G.trabajo?" · dejas tu trabajo actual":""),fn:()=>resolver(()=>resolverOferta(true))},
+    {t:"Rechazar",fn:()=>resolver(()=>resolverOferta(false))}],true)}
   if(d.k=="ligue")abrirHoja(`${d.n} quiere que os vayáis juntos`,[
     {t:"Irte con "+d.n,s:"Con protección",fn:()=>resolver(()=>ligue(true))},
     {t:"Irte con "+d.n,s:"Sin protección",fn:()=>resolver(()=>ligue(false))},
     {t:"Despedirte",s:"Dos besos y a casa",fn:()=>resolver(()=>`Te despides de ${d.n} en la puerta y vuelves a casa andando.`)}],true);
 }
 function resolver(fn){
-  const r=fn();G.pend=null;
+  const r=fn();G.pend=null;TAB="diario";
   if(typeof r=="string")log(r);else if(r&&r.txt)log(r.txt,r.mal?"mala":"");
   guardar();cerrarHoja();render(true);
 }
@@ -689,7 +770,7 @@ function menuPersona(p){
   if(a<16&&pa<16){ // entre críos
     if(a>=4)O("Hacer una trastada juntos",()=>{rel(p,ri(4,7));add("animo",4);add("carisma",1);vivos(q=>q.rol=="prog").forEach(q=>rel(q,-1));
       return vario("trast",[`${p.nombre} y tú llamáis a todos los timbres del bloque y salís corriendo.`,`Llenáis globos de agua con ${p.nombre}. El resto es historia del barrio.`,`${p.nombre} vigila mientras tú coges las galletas de arriba del armario.`,`Enterráis un «tesoro» con ${p.nombre}. Ninguno recordará dónde.`])});
-    if(a>=5)O("Jugar al balón",()=>{rel(p,ri(3,6));add("cuerpo",ri(1,2));return vario("balon",[`Partidos interminables con ${p.nombre}. Gana quien llegue a veinte.`,`${p.nombre} te enseña a darle con el empeine.`,`Rompéis una maceta con el balón. Pacto de silencio con ${p.nombre}.`])});
+    if(a>=5)O("Jugar al balón",()=>{pr("futbol",.5);rel(p,ri(3,6));add("cuerpo",ri(1,2));return vario("balon",[`Partidos interminables con ${p.nombre}. Gana quien llegue a veinte.`,`${p.nombre} te enseña a darle con el empeine.`,`Rompéis una maceta con el balón. Pacto de silencio con ${p.nombre}.`])});
     if(a>=6)O("Hacer los deberes juntos",()=>{rel(p,ri(2,5));add("mente",ri(1,2)+(p.rasgo==1?1:0));return vario("deb",[`Deberes en la mesa de la cocina con ${p.nombre}. Os copiáis mutuamente.`,`${p.nombre} te explica las divisiones mejor que la maestra.`,`Acabáis los deberes pronto y sobra tarde con ${p.nombre}.`])});
     if(a>=8)O("Contarle un secreto",()=>{if(ch(.8)){rel(p,ri(8,12));return `Le cuentas a ${p.nombre} algo que no sabe nadie. Jura no decirlo, con escupitajo en la mano.`}rel(p,-12);add("animo",-6);return {txt:`Le cuentas un secreto a ${p.nombre}. Al día siguiente lo sabe toda la clase.`,mal:1}});
     if(a>=9)O("Quedarte a dormir en su casa",()=>{rel(p,ri(5,9));add("animo",4);return vario("dormir",[`Noche en casa de ${p.nombre}. Linternas, susurros y sueño cero.`,`Dormís en el suelo del salón de ${p.nombre}. Su casa huele distinto a la tuya.`])});
@@ -780,19 +861,19 @@ function acciones(){
     A("Dormir mucho",()=>{add("salud",2);return vario("dormir0",["Duermes casi todo el mes. Creces mientras tanto.","Te duermes en cualquier brazo que te coja.","Siestas largas con la persiana a medias."])});
   }else if(a<6){
     A("Jugar a tu aire",()=>{add("mente",ri(1,2));add("animo",2);return pick(["Montas una ciudad con cajas y pinzas de la ropa.","Tienes un amigo invisible durante todo el mes.","Hablas con tus muñecos y ellos te contestan."])});
-    A("Correr y trepar",()=>{add("cuerpo",ri(1,3));if(ch(.15)){add("salud",-3);return "Trepas a un árbol y bajas más rápido de lo previsto. Chichón."}return "No paras quieto ni un minuto. Vuelves a casa con las rodillas negras.".replace("quieto",g("quieto","quieta"))+(a>=3&&ch(.3)?conocerVecino():"")});
+    A("Correr y trepar",()=>{pr("deporte",.5);add("cuerpo",ri(1,3));if(ch(.15)){add("salud",-3);return "Trepas a un árbol y bajas más rápido de lo previsto. Chichón."}return "No paras quieto ni un minuto. Vuelves a casa con las rodillas negras.".replace("quieto",g("quieto","quieta"))+(a>=3&&ch(.3)?conocerVecino():"")});
     A("Preguntar por qué",()=>{add("mente",ri(1,3));const p=pick(vivos(q=>q.casa&&q.edad>14*12));if(p)rel(p,ch(.7)?2:-1);return p?`Acribillas a ${tu(p)} a preguntas. ¿Por qué el cielo? ¿Por qué la gente se muere?`:"Preguntas por qué a todo. Nadie contesta."});
-    A("Dibujar",()=>{add("mente",1);add("animo",3);add("carisma",1);return vario("dibu",["Llenas hojas de monigotes. Uno acaba en la nevera.","Dibujas a toda la familia. Todos con las manos enormes.","Descubres que mezclando todos los colores sale marrón."])});
+    A("Dibujar",()=>{pr("arte",.5);add("mente",1);add("animo",3);add("carisma",1);return vario("dibu",["Llenas hojas de monigotes. Uno acaba en la nevera.","Dibujas a toda la familia. Todos con las manos enormes.","Descubres que mezclando todos los colores sale marrón."])});
     A("Hacer una trastada",()=>{add("animo",5);add("carisma",1);vivos(p=>p.rol=="prog"&&p.casa).forEach(p=>rel(p,-2));return pick(["Pintas la pared del pasillo con rotulador.","Le cortas el pelo a una muñeca, y un poco a ti.","Escondes las llaves de casa. Nadie las encuentra en dos días."])});
   }else if(a<12){
-    A("Estudiar",()=>{add("mente",ri(2,3));add("animo",-1);return vario("estn",["Haces los deberes todos los días.","Te aprendes las tablas de multiplicar.","Dictados y más dictados. Ya casi no fallas las haches.","Te aprendes los ríos de memoria, con cancioncilla.","Un trabajo en cartulina sobre los planetas. Purpurina por toda la casa."])});
-    A("Hacer deporte",()=>{add("cuerpo",ri(2,3));add("salud",1);return vario("depn",["Te apuntas al equipo del barrio.","Nadas, corres, saltas. Duermes como un tronco.","Aprendes a montar en bici sin ruedines.","Carreras en la calle: ganas dos y pierdes una zapatilla."])});
-    A("Leer y curiosear",()=>{add("mente",ri(1,3));add("animo",1);return pick(["Devoras tebeos debajo de las sábanas.","Desmontas un reloj para ver cómo va. No vuelve a ir."])});
+    A("Estudiar",()=>{pr("estudio",.5);add("mente",ri(2,3));add("animo",-1);return vario("estn",["Haces los deberes todos los días.","Te aprendes las tablas de multiplicar.","Dictados y más dictados. Ya casi no fallas las haches.","Te aprendes los ríos de memoria, con cancioncilla.","Un trabajo en cartulina sobre los planetas. Purpurina por toda la casa."])});
+    A("Hacer deporte",()=>{pr("deporte",.5);add("cuerpo",ri(2,3));add("salud",1);return vario("depn",["Te apuntas al equipo del barrio.","Nadas, corres, saltas. Duermes como un tronco.","Aprendes a montar en bici sin ruedines.","Carreras en la calle: ganas dos y pierdes una zapatilla."])});
+    A("Leer y curiosear",()=>{pr("estudio",.25);add("mente",ri(1,3));add("animo",1);return pick(["Devoras tebeos debajo de las sábanas.","Desmontas un reloj para ver cómo va. No vuelve a ir."])});
     A("Ayudar en casa",()=>{vivos(p=>p.casa&&p.edad>16*12).forEach(p=>rel(p,3));add("carisma",1);return vario("casa",["Pones la mesa, bajas la basura, haces recados. En casa lo notan.","Aprendes a hacerte la cama. Más o menos.","Te mandan a por el pan y vuelves con el cambio justo."])+(ch(.25)?conocerVecino():"")});
     A("Jugar en la calle",()=>{add("carisma",ri(1,3));add("cuerpo",1);add("animo",3);return pick(["Pasas las tardes en la calle hasta que encienden las farolas.","Hacéis una cabaña en un solar."])+(ch(.5)?conocerVecino():"")});
   }else if(a<18){
-    A("Estudiar",()=>{add("mente",ri(2,3));add("animo",-2);return vario("esta",["Un mes de codos. Los exámenes salen.","Subrayas en tres colores. Algo queda.","Te encierras con las matemáticas hasta entenderlas de verdad.","Semana de exámenes. Vives a base de cacao y apuntes."])});
-    A("Hacer deporte",()=>{add("cuerpo",ri(2,3));add("salud",1);return vario("depa",["Entrenas en serio. El cuerpo te cambia.","Entras en el equipo del instituto.","Corres cada tarde con los cascos puestos.","Torneo del fin de semana. Volvéis con medalla de consolación."])});
+    A("Estudiar",()=>{pr("estudio",.5);add("mente",ri(2,3));add("animo",-2);return vario("esta",["Un mes de codos. Los exámenes salen.","Subrayas en tres colores. Algo queda.","Te encierras con las matemáticas hasta entenderlas de verdad.","Semana de exámenes. Vives a base de cacao y apuntes."])});
+    A("Hacer deporte",()=>{pr("deporte",.5);add("cuerpo",ri(2,3));add("salud",1);return vario("depa",["Entrenas en serio. El cuerpo te cambia.","Entras en el equipo del instituto.","Corres cada tarde con los cascos puestos.","Torneo del fin de semana. Volvéis con medalla de consolación."])});
     A("Salir con la gente",()=>{add("carisma",ri(1,3));add("animo",4);return pick(["Dais vueltas por el parque con la música puesta.","Fin de semana tras fin de semana en el mismo banco."])+(ch(.4)?conocerVecino():"")});
     A("Saltarte clases",()=>{add("animo",5);add("mente",-2);vivos(p=>p.rol=="prog").forEach(p=>rel(p,-2));return "Haces pellas medio mes. Llaman a casa."});
     if(a>=16)A("Trabajillo de verano",()=>{const n=ri(200,500);y.dinero+=n;add("cuerpo",1);return `Trabajas unas semanas y te sacas ${n}. Tu primer dinero.`});
@@ -802,14 +883,14 @@ function acciones(){
     }
   }else{
     if(!G.trabajo&&a<67)A("Buscar trabajo",()=>buscarTrabajo());
-    if(G.trabajo)A("Trabajar duro",()=>{add("animo",-2);add("salud",-.5);if(ch(.12)){G.trabajo.s=Math.round(G.trabajo.s*1.12);return `Echas horas. Te suben el sueldo a ${G.trabajo.s}.`}return vario("currar",["Echas más horas que nadie. De momento solo te lo agradecen.","Un mes de entregas. Sales de noche todos los días.","Cubres dos bajas a la vez. Nadie dice nada, pero se nota.","Resuelves un marrón que llevaba meses dando vueltas."])});
+    if(G.trabajo)A("Trabajar duro",()=>{if(G.trabajo.n.includes("cocina"))pr("cocina",1);if(G.trabajo.pro)pr(G.trabajo.pro,1.5);add("animo",-2);add("salud",-.5);if(ch(.12)){G.trabajo.s=Math.round(G.trabajo.s*1.12);return `Echas horas. Te suben el sueldo a ${G.trabajo.s}.`}return vario("currar",["Echas más horas que nadie. De momento solo te lo agradecen.","Un mes de entregas. Sales de noche todos los días.","Cubres dos bajas a la vez. Nadie dice nada, pero se nota.","Resuelves un marrón que llevaba meses dando vueltas."])});
     if(!G.titulo&&y.mente>=45&&a<40)A(G.uni?`Seguir la carrera (${G.uni}/36)`:"Empezar una carrera",()=>{
-      if(!G.uni&&G.riqueza<2&&y.dinero<300&&y.mente<70)return {txt:"Miras el precio de la matrícula. No te llega, y en casa tampoco pueden.",mal:1};
-      G.uni++;add("mente",1.5);if(G.riqueza<2&&y.mente<70)y.dinero-=120;
+      if(!G.fl.becaUni&&!G.uni&&G.riqueza<2&&y.dinero<300&&y.mente<70)return {txt:"Miras el precio de la matrícula. No te llega, y en casa tampoco pueden.",mal:1};
+      G.uni+=G.fl.becaUni?2:1;pr("estudio",.5);add("mente",1.5);if(!G.fl.becaUni&&G.riqueza<2&&y.mente<70)y.dinero-=120;
       if(G.uni>=36){G.titulo=true;add("animo",10);return "Terminas la carrera. Tu familia saca una foto que acabará enmarcada."}
       return pick(["Un mes de clases, apuntes y café de máquina.","Exámenes. Duermes poco."])});
-    A("Hacer ejercicio",()=>{add("cuerpo",ri(1,2));add("salud",1.5);return a>65?vario("andar",["Caminas cada mañana, llueva o no.","Das la vuelta larga por el paseo, saludando a medio barrio.","Gimnasia suave en el centro de mayores. Te ríes más que sudas."]):vario("ejer",["Sales a correr tres veces por semana.","Un mes de constancia: agujetas y mejor humor.","Nadas largos hasta perder la cuenta.","Subes en bici la cuesta que antes subías andando."])});
-    A("Leer y aprender",()=>{add("mente",ri(1,2));add("animo",1);return vario("leer",["Lees por las noches. Algo se te queda.","Te enganchas a una novela de ochocientas páginas.","Aprendes por tu cuenta algo que nunca te enseñaron.","Un documental detrás de otro. Ahora opinas de volcanes.","Relees un libro de hace años y es otro libro."])});
+    A("Hacer ejercicio",()=>{pr("deporte",.25);add("cuerpo",ri(1,2));add("salud",1.5);return a>65?vario("andar",["Caminas cada mañana, llueva o no.","Das la vuelta larga por el paseo, saludando a medio barrio.","Gimnasia suave en el centro de mayores. Te ríes más que sudas."]):vario("ejer",["Sales a correr tres veces por semana.","Un mes de constancia: agujetas y mejor humor.","Nadas largos hasta perder la cuenta.","Subes en bici la cuesta que antes subías andando."])});
+    A("Leer y aprender",()=>{pr("estudio",.25);add("mente",ri(1,2));add("animo",1);return vario("leer",["Lees por las noches. Algo se te queda.","Te enganchas a una novela de ochocientas páginas.","Aprendes por tu cuenta algo que nunca te enseñaron.","Un documental detrás de otro. Ahora opinas de volcanes.","Relees un libro de hace años y es otro libro."])});
     if(!(G.fl.ropa>0))A("Comprar ropa cara",()=>{if(y.dinero<500)return {txt:"Te pruebas una chaqueta que cuesta 500. La devuelves a la percha.",mal:1};y.dinero-=500;G.fl.ropa=18;add("aspecto",6);add("animo",3);return "Te gastas 500 en ropa buena de verdad. Te queda como hecha a medida."});
     if(G.pareja){const q=P(G.pareja);
       if(!G.casado&&q.rel>=75)A("Pedir matrimonio",()=>{if(ch(.2+q.rel/130)){G.casado=true;add("animo",12);y.dinero-=1500;if(G.indep)q.casa=true;return `${q.nombre} dice que sí. Boda pequeña, baile largo.`}rel(q,-8);return {txt:`${q.nombre} dice que aún no.`,mal:1}});
@@ -842,6 +923,8 @@ function acciones(){
         return a<18?`Se lo dices a ${p.nombre} con la voz temblando. Empezáis a salir: os cogéis de la mano a la vuelta del instituto.`:`Se lo dices a ${p.nombre}. Empezáis a salir.`}
       rel(p,-8);add("animo",-10);G.crush=null;return {txt:`Se lo dices a ${p.nombre}. Te contesta que mejor como amigos.`,mal:1}});
   }
+  {const ar=Object.keys(AREAS).filter(k=>a>=AREAS[k].min);
+   if(ar.length)L.push({t:"Practicar…",abre:()=>abrirHoja("¿A qué te dedicas este mes?",ar.map(k=>{const v=voc(k),n=Math.round(nivel(k));return {t:AREAS[k].n,s:"Nivel "+n+(v.t<5?" · siguiente meta a "+UMBRAL[v.t]:" · en lo más alto")+(v.beca?" · con beca":""),fn:()=>hacer(()=>practicar(k))}}))})}
   {const lg=lugares();if(lg.length)L.push({t:"Ir a…",abre:()=>abrirHoja("¿Adónde vas?",lg)})}
   A("Dejar pasar el mes",()=>vario("pasar",["Pasa el mes sin nada que contar.","Un mes más.","Los días se parecen unos a otros.","Miras el calendario y ya es fin de mes.","Rutina. No es mala palabra."]),"sec");
   L.push({t:"Dejar pasar un año",cls:"sec",anio:1});
@@ -857,7 +940,7 @@ function hacer(fn){
 }
 function pasarAnio(){
   log("Dejas correr un año entero.");
-  for(let i=0;i<12&&!G.muerto;i++)tick();
+  for(let i=0;i<12&&!G.muerto&&!G.pend;i++)tick();
   guardar();render(true);
 }
 
@@ -925,6 +1008,7 @@ function render(abajo){
      <tr><th>Estudios</th><td>${G.titulo?"Carrera terminada":G.uni?"En la universidad ("+G.uni+"/36)":anios()<6?"Ninguno":anios()<16?"En la escuela":"Enseñanza obligatoria"}</td></tr>
      <tr><th>Pareja</th><td>${G.pareja&&P(G.pareja)?esc(P(G.pareja).nombre)+(G.casado?" (matrimonio)":""):G.crush&&P(G.crush)?"Te gusta "+esc(P(G.crush).nombre):"Nadie"}</td></tr>
      <tr><th>Costumbres</th><td>${[G.fl.ropa>0&&"ropa cara",G.fe&&!G.indep&&"familia practicante",G.fl.fuma&&"fumas",G.fl.adicto&&"enganche a las drogas",G.fl.ets&&"algo sin tratar"].filter(Boolean).join(", ")||"Nada que señalar"}</td></tr></table>
+     ${G.logros&&G.logros.length?`<div class="tit">Informe ③ Logros</div><table>${G.logros.map(l=>"<tr><td>"+esc(l.charAt(0).toUpperCase()+l.slice(1))+"</td></tr>").join("")}</table>`:""}
      <p class="nota">La partida se guarda sola en este navegador. Si empiezas otra vida, esta se pierde.</p>`;
     const b=document.createElement("button");b.className="gordo";b.style.fontSize="13px";b.textContent="ABANDONAR ESTA VIDA";
     b.onclick=()=>abrirHoja("¿Abandonar esta vida?",[{t:"Sí, empezar de cero",fn:()=>{G=null;borrar();cerrarHoja();render()}}]);
