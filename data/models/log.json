@@ -82,5 +82,89 @@
    "frozen": 0.0
   },
   "t": 1794874832.956125
+ },
+ {
+  "balance_before": {
+   "balance": 2500.0,
+   "frozen": 2500.0
+  },
+  "t": 1794875251.2474656
+ },
+ {
+  "id": "vespino",
+  "task": "99147b36-9be6-4ba1-84fd-0f454282b8a7",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2651324
+ },
+ {
+  "id": "asador",
+  "task": "3847926f-34d3-47ff-8337-ef8935bcbe34",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2260444
+ },
+ {
+  "id": "freidora",
+  "task": "17cb16af-7068-4e09-b210-4639fbfcb6b0",
+  "status": "success",
+  "consumed": null,
+  "bytes": 1814472
+ },
+ {
+  "id": "contenedor",
+  "task": "c7acc6e6-c2e4-4272-ac11-97bb52dfb1ef",
+  "status": "success",
+  "consumed": null,
+  "bytes": 1859460
+ },
+ {
+  "id": "amarillo",
+  "task": "c5d9286b-199c-4723-aee1-89a388b92d07",
+  "status": "success",
+  "consumed": null,
+  "bytes": 1859588
+ },
+ {
+  "id": "mesa",
+  "task": "d1cab448-9f34-44bc-83e1-468fda18ad05",
+  "status": "success",
+  "consumed": null,
+  "bytes": 1618084
+ },
+ {
+  "id": "garrafa",
+  "task": "1781871c-f19b-4130-b5f0-1a1704903f5d",
+  "status": "success",
+  "consumed": null,
+  "bytes": 1678516
+ },
+ {
+  "id": "maquina",
+  "task": "bbd8cf4c-1b7a-4261-afdf-70cf2e97cdad",
+  "status": "success",
+  "consumed": null,
+  "bytes": 1158752
+ },
+ {
+  "id": "palmera",
+  "task": "596e0b69-cf8b-4367-8483-e661ddb9a36a",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2140756
+ },
+ {
+  "id": "farola",
+  "task": "76b45a77-02e4-421d-929b-735f0aace468",
+  "status": "success",
+  "consumed": null,
+  "bytes": 1203960
+ },
+ {
+  "balance_after": {
+   "balance": 2100.0,
+   "frozen": 2500.0
+  },
+  "t": 1794877008.260298
  }
 ]
