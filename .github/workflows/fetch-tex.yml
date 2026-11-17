@@ -1,0 +1,21 @@
+name: fetch-tex
+on:
+  push:
+    branches: [kebab-data]
+    paths: ['tools/tex/**', '.github/workflows/fetch-tex.yml']
+permissions:
+  contents: write
+jobs:
+  tex:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install pillow
+      - run: python tools/tex/tex2.py
+      - name: Guardar
+        run: |
+          git config user.name "github-actions" && git config user.email "actions@github.com"
+          git add data/tex2 && (git diff --cached --quiet || (git commit -m "Texturas CC0 de ambientCG (lote 2)" && git pull --rebase && git push))
