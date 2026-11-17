@@ -1,5 +1,118 @@
 {
- "music": [],
+ "music": [
+  {
+   "file": "m00.mp3",
+   "title": "File:Oud music by Andy R. Jordan 1V2 long.mp3",
+   "license": "CC BY-SA 3.0",
+   "artist": "Andy R. Jordan",
+   "url": "https://commons.wikimedia.org/wiki/File%3AOud_music_by_Andy_R._Jordan_1V2_long.mp3",
+   "desc": "Oud music by Andy R. Jordan"
+  },
+  {
+   "file": "m01.mp3",
+   "title": "File:Oud music by Andy R. Jordan 1V2 long.wav",
+   "license": "CC BY-SA 3.0",
+   "artist": "Andy R. Jordan",
+   "url": "https://commons.wikimedia.org/wiki/File%3AOud_music_by_Andy_R._Jordan_1V2_long.wav",
+   "desc": "Oud music by Andy R. Jordan"
+  },
+  {
+   "file": "m02.mp3",
+   "title": "File:Oud music by Andy R. Jordan 1V2 short.mp3",
+   "license": "CC BY-SA 3.0",
+   "artist": "Andy R. Jordan",
+   "url": "https://commons.wikimedia.org/wiki/File%3AOud_music_by_Andy_R._Jordan_1V2_short.mp3",
+   "desc": "Oud music by Andy R. Jordan"
+  },
+  {
+   "file": "m03.mp3",
+   "title": "File:Oud music by Andy R. Jordan 1V2 short.wav",
+   "license": "CC BY-SA 3.0",
+   "artist": "Andy R. Jordan",
+   "url": "https://commons.wikimedia.org/wiki/File%3AOud_music_by_Andy_R._Jordan_1V2_short.wav",
+   "desc": "Oud music by Andy R. Jordan"
+  },
+  {
+   "file": "m04.mp3",
+   "title": "File:Oud music by Andy R. Jordan 2v2.mp3",
+   "license": "CC BY-SA 3.0",
+   "artist": "Andy R. Jordan",
+   "url": "https://commons.wikimedia.org/wiki/File%3AOud_music_by_Andy_R._Jordan_2v2.mp3",
+   "desc": "Oud music by Andy R. Jordan"
+  },
+  {
+   "file": "m05.mp3",
+   "title": "File:Oud music by Andy R. Jordan 2v2.wav",
+   "license": "CC BY-SA 3.0",
+   "artist": "Andy R. Jordan",
+   "url": "https://commons.wikimedia.org/wiki/File%3AOud_music_by_Andy_R._Jordan_2v2.wav",
+   "desc": "Oud music by Andy R. Jordan"
+  },
+  {
+   "file": "m06.mp3",
+   "title": "File:Oud open Strings.ogg",
+   "license": "CC BY-SA 3.0",
+   "artist": "User:Bottomline",
+   "url": "https://commons.wikimedia.org/wiki/File%3AOud_open_Strings.ogg",
+   "desc": "Open strings of the Oud (common Arab tuning)"
+  },
+  {
+   "file": "m07.mp3",
+   "title": "File:08 5Mala Alkasaat.ogg",
+   "license": "Public domain",
+   "artist": "Mehamed Othman",
+   "url": "https://commons.wikimedia.org/wiki/File%3A08_5Mala_Alkasaat.ogg",
+   "desc": "MAla El Kasat"
+  },
+  {
+   "file": "m08.mp3",
+   "title": "File:Arabian Epic music.opus",
+   "license": "CC BY 3.0",
+   "artist": "Copyright Free Music",
+   "url": "https://commons.wikimedia.org/wiki/File%3AArabian_Epic_music.opus",
+   "desc": "Arabian Epic music, credit to\nWorld Music official\n\nhttps://www.youtube.com/watch?v=VAQ5tHu-uEI&amp;list=RDVAQ5tHu-uEI&amp;start_radio=1"
+  },
+  {
+   "file": "m09.mp3",
+   "title": "File:Fundamental-scale-in-Arab-music.ogg",
+   "license": "CC BY-SA 4.0",
+   "artist": "Huji",
+   "url": "https://commons.wikimedia.org/wiki/File%3AFundamental-scale-in-Arab-music.ogg",
+   "desc": "Based on Scott Lloyd Marcus' PhD thesis titled \"Arab Music Theory in the Modern Period\", page 33"
+  },
+  {
+   "file": "m10.mp3",
+   "title": "File:Kooch Song (Excerpt).ogg",
+   "license": "CC BY-SA 3.0",
+   "artist": "Aliakbari",
+   "url": "https://commons.wikimedia.org/wiki/File%3AKooch_Song_%28Excerpt%29.ogg",
+   "desc": "An excerpt from Nomad song composed by Mastero Bagher Moazen."
+  },
+  {
+   "file": "m11.mp3",
+   "title": "File:Struggle (excerpt).ogg",
+   "license": "CC BY-SA 3.0",
+   "artist": "Bagher Moazen",
+   "url": "https://commons.wikimedia.org/wiki/File%3AStruggle_%28excerpt%29.ogg",
+   "desc": "An excerpt from Nomad song composed by Mastero Bagher Moazen  from the album, Nomad."
+  },
+  {
+   "file": "m12.mp3",
+   "title": "File:Âaita Baidaouiya (1929).ogg",
+   "license": "Public domain",
+   "artist": "Unknown auhtorUnknown auhtor",
+   "url": "https://commons.wikimedia.org/wiki/File%3A%C3%82aita_Baidaouiya_%281929%29.ogg",
+   "desc": "Traditional song from Morocc performed by Chikha Aicha El Hertitia. Recorded by Harold Fleming in Casablanca. Gramophone record n° K-4631. [1]"
+  },
+  {
+   "file": "m13.mp3",
+   "title": "File:مجموعة استرياس -ماتنساه.wav",
+   "license": "CC BY-SA 4.0",
+   "artist": "Estrellas groupe",
+   "url": "https://commons.wikimedia.org/wiki/File%3A%D9%85%D8%AC%D9%85%D9%88%D8%B9%D8%A9_%D8%A7%D8%B3%D8%AA%D8%B1%D9%8A%D8%A7%D8%B3_-%D9%85%D8%A7%D8%AA%D9%86%D8%B3%D8%A7%D9%87.wav",
+   "desc": "أغنية مغربية تراثية من كلماتي وألحاني  مصرح بها لدى المكتب المغربي لحقوق المؤلفين باسمي الشخصي رشيد كسراوي سجلت سنة 2016 بالمغرب الدارالبيضاء بفريق عمل مغربي مائة بالمائة الأغنية مزيج بين الاسباني وال"
+  }
+ ],
  "sfx": [
   {
    "file": "s000.mp3",
