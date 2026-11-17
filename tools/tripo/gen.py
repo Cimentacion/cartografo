@@ -28,7 +28,9 @@ def main():
         dst = os.path.join(OUT, a['id'] + '.glb')
         if os.path.exists(dst): print('ya está', a['id']); continue
         body = {'prompt': a['prompt'], 'model': a.get('model', 'v3.1-20260211'), 'texture': True, 'pbr': False,
-                'texture_quality': a.get('tq', 'detailed'), 'smart_low_poly': True, 'face_limit': a.get('faces', 3000)}
+                'texture_quality': a.get('tq', 'detailed'), 'smart_low_poly': a.get('slp', True), 'face_limit': a.get('faces', 3000)}
+        if a.get('geo'): body['geometry_quality'] = a['geo']
+        if not body['smart_low_poly']: body.pop('smart_low_poly')
         r = call('POST', '/generation/text-to-model', body); print(a['id'], 'crear', json.dumps(r)[:300])
         if r.get('code') != 0:
             # sin low poly inteligente por si ese modelo no lo admite

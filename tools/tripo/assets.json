@@ -15,39 +15,48 @@
   "prompt": "commercial stainless steel deep fryer with two baskets, oily and worn, fast food kitchen equipment, low poly game asset, simple shapes, PS2 style"
  },
  {
-  "id": "contenedor",
-  "faces": 500,
-  "prompt": "dark green Spanish street waste container, 1000 liter plastic wheelie bin with domed lid and pedal, dirty and scratched, low poly game asset, simple shapes, PS2 style"
- },
- {
-  "id": "amarillo",
-  "faces": 500,
-  "prompt": "yellow Spanish recycling container for plastics, large plastic street bin with round openings on the lid, dirty, low poly game asset, simple shapes, PS2 style"
- },
- {
-  "id": "mesa",
-  "faces": 500,
-  "prompt": "cheap aluminium bar terrace table with a round red top and two red stacking plastic chairs, Spanish beach bar furniture, low poly game asset, simple shapes, PS2 style"
- },
- {
   "id": "garrafa",
   "faces": 500,
   "prompt": "red plastic petrol jerry can, 10 liters, with handle and spout, scuffed, low poly game asset, simple shapes, PS2 style"
  },
  {
-  "id": "maquina",
-  "faces": 500,
-  "prompt": "street drinks vending machine with a lit glass front full of cans and bottles, metal body, stickers and scratches, low poly game asset, simple shapes, PS2 style"
- },
- {
-  "id": "palmera",
-  "faces": 500,
-  "prompt": "tall date palm tree with a slightly curved rough trunk and a full crown of long drooping fronds, Mediterranean seafront, low poly game asset, simple shapes, PS2 style"
- },
- {
   "id": "farola",
   "faces": 500,
   "prompt": "tall Mediterranean seafront street lamp, dark green cast iron pole with one white glass globe on top, low poly game asset, simple shapes, PS2 style"
+ },
+ {
+  "id": "contenedor",
+  "prompt": "Spanish municipal street waste container, large 800 liter dark green plastic dumpster as used in Spain: wide rectangular body tapering towards the bottom, thick reinforced rim, big hinged curved lid with a front handle, foot pedal bar at the front to open the lid, two rubber wheels at the back and two small casters at the front, white municipal sticker on the side. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, standing upright on the ground, game asset.",
+  "faces": 6000,
+  "slp": false,
+  "geo": "detailed"
+ },
+ {
+  "id": "amarillo",
+  "prompt": "Spanish yellow recycling container for plastic and cans, 800 liter wheeled plastic dumpster: wide rectangular body tapering to the bottom, flat lid with two round openings and a central handle, foot pedal at the front, four wheels, recycling logo sticker on the side. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, standing upright on the ground, game asset.",
+  "faces": 6000,
+  "slp": false,
+  "geo": "detailed"
+ },
+ {
+  "id": "mesa",
+  "prompt": "Spanish bar terrace set: one square aluminium bistro table with a slatted metal top and four thin legs, plus two red stackable plastic chairs with armrests and a slatted backrest, placed around the table. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, standing upright on the ground, game asset.",
+  "faces": 6000,
+  "slp": false,
+  "geo": "detailed"
+ },
+ {
+  "id": "maquina",
+  "prompt": "street drinks vending machine, tall dark metal cabinet, the whole front is a glass window showing five shelves full of colorful soda cans and plastic bottles, a coin slot and selection buttons panel on the right side, a pickup tray at the bottom, brand stickers on the sides. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, standing upright on the ground, game asset.",
+  "faces": 6000,
+  "slp": false,
+  "geo": "detailed"
+ },
+ {
+  "id": "palmera",
+  "prompt": "very tall slender Canary Island date palm tree as seen on a Mediterranean seafront promenade: a thin straight rough trunk about 10 meters tall with a textured diamond pattern of old leaf bases, topped by a crown of long arching feathery green fronds drooping downward. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, standing upright on the ground, game asset.",
+  "faces": 6000,
+  "slp": false,
+  "geo": "detailed"
  }
-] 
- 
+]
