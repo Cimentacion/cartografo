@@ -212,5 +212,12 @@
   "faces": 2500,
   "slp": false,
   "geo": "standard"
+ },
+ {
+  "id": "estanteria",
+  "prompt": "metal storage shelving unit for a kebab shop storeroom, grey steel rack 2 meters tall with four shelves loaded with cardboard boxes, big tins of oil, sacks of flour and onions, plastic jugs of sauce and stacks of pita bread bags, dusty and greasy, standing against a wall. Detailed accurate geometry with all real parts modeled, worn and dirty, realistic proportions, game asset.",
+  "faces": 5000,
+  "slp": false,
+  "geo": "detailed"
  }
 ]
