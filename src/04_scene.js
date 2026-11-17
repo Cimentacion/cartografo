@@ -298,8 +298,15 @@ function buildWorld() {
     plane(2.5, 0.4, lam(null, 0x9ab0b8, { transparent: true, opacity: 0.18, side: THREE.DoubleSide, depthWrite: false }), -2.75, 1.22, 1.27, 0.25, 0)];
   // mostrador normal: frente de acero cepillado con zócalo y remaches, encimera de acero y mampara baja de cristal
   // (la vitrina de Tripo medía dos metros y tapaba todo: fuera)
-  ctr[0].material = lam('steel2', 0xb8b8b4); box(6.62, 0.12, 0.02, lam(null, 0x2a2a2c), -0.7, 0.06, 1.31);
-  for (let i = 0; i < 6; i++) box(0.03, 0.82, 0.015, M.steelD, -3.9 + i * 1.3, 0.53, 1.31);
+  // a la derecha, un tramo de la vitrina de Tripo algo más bajo (para la caja y las bandejas de lo que se sirve)
+  const BSY = 3.3, cyR = HASPROP('barra') ? 0.26 * BSY + 0.015 : 1.01;
+  if (HASPROP('barra')) {
+    ctr[0].geometry.dispose(); ctr[0].geometry = new THREE.BoxGeometry(4.4, 0.96, 0.7); ctr[0].position.x = -1.8;
+    ctr[1].geometry.dispose(); ctr[1].geometry = new THREE.BoxGeometry(4.42, 0.05, 0.8); ctr[1].position.x = -1.79;
+    const m = propMesh('barra', 1, scene); m.scale.set(0.8 / 0.4, BSY, 2.2); m.rotation.y = -PI / 2; m.position.set(1.5, 0, 0.95);
+  }
+  ctr[0].material = lam('steel2', 0xb8b8b4); box(HASPROP('barra') ? 4.4 : 6.62, 0.12, 0.02, lam(null, 0x2a2a2c), HASPROP('barra') ? -1.8 : -0.7, 0.06, 1.31);
+  for (let i = 0; i < (HASPROP('barra') ? 4 : 6); i++) box(0.03, 0.82, 0.015, M.steelD, -3.9 + i * 1.3, 0.53, 1.31);
   const cy = 1.01, cz = 0.8;
   for (let i = 0; i < 3; i++) {
     const x = -3.7 + i * 0.4;
@@ -313,11 +320,11 @@ function buildWorld() {
   for (let i = 0; i < 3; i++) box(0.22, 0.05, 0.17, lam('wood', 0xd8b47c), -0.45, cy + 0.025 + i * 0.052, cz, { ry: i * 0.07 }); hit('bs2', -0.45, cy + 0.09, cz, 0.36, 0.24, 0.36);
   box(0.36, 0.05, 0.14, M.dark, 0.05, cy + 0.025, cz); cyl(0.045, 0.045, 0.32, 8, lam(null, 0xd0d4d8, { emissive: 0x202224 }), 0.05, cy + 0.09, cz, { rz: PI / 2 }); hit('foil', 0.05, cy + 0.09, cz, 0.42, 0.22, 0.3);
   for (let i = 0; i < 3; i++) {
-    const x = 0.62 + i * 0.44; box(0.38, 0.015, 0.3, M.steelD, x, cy + 0.008, cz);
-    const g = new THREE.Group(); g.position.set(x, cy + 0.02, cz); scene.add(g); D.shelf.push({ g, key: '' });
-    hit('sh' + i, x, cy + 0.1, cz, 0.42, 0.22, 0.34);
+    const x = 0.62 + i * 0.44; box(0.38, 0.015, 0.3, M.steelD, x, cyR + 0.008, cz);
+    const g = new THREE.Group(); g.position.set(x, cyR + 0.02, cz); scene.add(g); D.shelf.push({ g, key: '' });
+    hit('sh' + i, x, cyR + 0.1, cz, 0.42, 0.22, 0.34);
   }
-  box(0.42, 0.26, 0.4, M.dark, 2.2, cy + 0.13, 0.95); box(0.3, 0.16, 0.02, bas(0x1f6a3a), 2.2, cy + 0.33, 0.9, { rx: 0.4 }); box(0.36, 0.1, 0.3, lam(null, 0x33363c), 2.2, cy + 0.02, 0.95);
+  box(0.42, 0.26, 0.4, M.dark, 2.2, cyR + 0.13, 0.95); box(0.3, 0.16, 0.02, bas(0x1f6a3a), 2.2, cyR + 0.33, 0.9, { rx: 0.4 }); box(0.36, 0.1, 0.3, lam(null, 0x33363c), 2.2, cyR + 0.02, 0.95);
 
   // --- asadores, freidora, basura ---
   box(3.0, 0.9, 0.7, M.steel2, -2.4, 0.45, -3.65, { col: true, occ: true });
