@@ -180,16 +180,6 @@ const CURROS=[
  ["en una oficina","dando clase","en un banco","en un taller propio"],
  ["en un bufete","en una clínica privada","dirigiendo una empresa"],
  ["al frente de los negocios de la familia","administrando su fortuna"]];
-const JOBS=[
- {n:"repartiendo paquetes",s:900},
- {n:"en un bar",s:1050,carisma:25},
- {n:"en una fábrica",s:1200,cuerpo:40},
- {n:"en una cocina",s:1250,cuerpo:30,mente:25},
- {n:"en una oficina",s:1500,mente:50},
- {n:"de comercial",s:1750,carisma:60},
- {n:"dando clase en un instituto",s:2000,titulo:1},
- {n:"en una ingeniería",s:2800,titulo:1,mente:70},
- {n:"en un hospital, de médico",s:3500,titulo:1,mente:85}];
 const ROL={prog:["Padre","Madre"],herm:["Hermano","Hermana"],abu:["Abuelo","Abuela"],tio:["Tío","Tía"],primo:["Primo","Prima"],
  vec:["Vecino","Vecina"],comp:["Compañero","Compañera"],conoc:["Conocido","Conocida"],hijo:["Hijo","Hija"]};
 
@@ -199,7 +189,8 @@ const CLAVE="toda-una-vida-v1";
 function guardar(){try{localStorage.setItem(CLAVE,JSON.stringify(G))}catch(e){}}
 function cargar(){try{const s=localStorage.getItem(CLAVE);if(s)G=JSON.parse(s)}catch(e){G=null}
   if(G&&!G.v2){G.gente.forEach(p=>p.con=true);G.v2=1}
-  if(G&&G.yo.aspecto==null)G.yo.aspecto=35}
+  if(G&&G.yo.aspecto==null)G.yo.aspecto=35;
+  if(G&&(G.titulo||G.uni)&&!G.carrera)G.carrera="economia"}
 function borrar(){try{localStorage.removeItem(CLAVE)}catch(e){}}
 
 const yo=()=>G.yo, anios=()=>Math.floor(G.yo.edad/12);
@@ -368,8 +359,12 @@ function nacerHermano(){
   if(G.yo.edad<72)add("animo",-4);
 }
 function nacerHijo(){
-  const h=per("hijo",sx(),0,G.yo.apellido,{casa:G.indep,con:true,rel:75});
-  log(`Nace ${gp(h,"tu hijo","tu hija")}. Le ponéis ${h.nombre}. Pesa poco y grita mucho.`);add("animo",12);
+  const y=G.yo,h=per("hijo",sx(),0,y.apellido,{casa:G.indep,con:true,rel:75}),q=G.pareja&&P(G.pareja);
+  if(G.fl.adop){G.fl.adop=0;log(`Suena el teléfono: la adopción ha salido. Vais a recoger a ${h.nombre} con el coche lleno de cosas que no hacían falta.`);add("animo",12);return}
+  let s=y.sexo=="f"?`Rompes aguas de madrugada. Catorce horas de hospital y nace ${gp(h,"tu hijo","tu hija")}: ${h.nombre}.`:`Carreras al hospital de madrugada. Horas de pasillo y nace ${gp(h,"tu hijo","tu hija")}: ${h.nombre}.`;
+  if(ch(.07)){s+=" El parto se complica y hay días de incubadora y de dormir en una silla. Al final, todo bien.";add("animo",-4);if(y.sexo=="f")add("salud",-12);else if(q)rel(q,4)}
+  else s+=" Pesa poco y grita mucho.";
+  log(s);add("animo",12);
 }
 function cumple(){
   const a=anios(),y=G.yo;
@@ -403,6 +398,7 @@ function tick(){
   if(a>50){add("cuerpo",-.1);add("salud",-.07)}
   if(a>70){add("salud",-.18);add("mente",-.05)}
   y.animo+=(55-y.animo)*.04;
+  if(G.dieta=="basura"){add("animo",1.2);add("aspecto",-.4);add("salud",-.25)}else if(G.dieta=="dieta"){add("animo",-.8);add("aspecto",.5);add("salud",.2)}
   if(G.fl.fuma)add("salud",-.18);
   if(G.fl.adicto){add("salud",-.45);y.dinero-=80;add("animo",-.5)}
   if(G.fl.ets){add("salud",-.6)}
@@ -410,12 +406,17 @@ function tick(){
   G.gente.forEach(p=>{if(p.lejos&&p.rel>5)p.rel-=.4;if(p.triste&&ch(.04))p.triste=false});
   // Dinero
   if(G.trabajo)y.dinero+=G.trabajo.s; else if(G.pension)y.dinero+=G.pension;
-  if(G.indep)y.dinero-=550+vivos(p=>p.rol=="hijo"&&p.casa&&p.edad<216).length*150;
+  if(G.indep)y.dinero-=550+Math.round((G.trabajo?G.trabajo.s:G.pension||0)*.35)+vivos(p=>p.rol=="hijo"&&p.casa&&p.edad<216).length*150;
   else if(G.trabajo&&a>=18)y.dinero-=250;
   if(G.indep&&y.dinero<0)add("animo",-1.5);
   if(y.edad==1){const ab=vivos(p=>p.rol=="abu"&&!p.con);if(ab.length){ab.forEach(p=>p.con=true);log(`${ab.length==1?"Viene":"Vienen"} a conocerte ${ab.map(p=>tu(p)).join(", ")}. Pasas de brazo en brazo.`)}}
   // Nacimientos
   if(G.nac.includes(y.edad))nacerHermano();
+  if(G.emb>0&&!G.fl.adop){const yo=y.sexo=="f";
+    if(G.emb==7)log(yo?"Primera ecografía. Un garbanzo con latido en una pantalla gris.":"Primera ecografía. Sales con una foto borrosa en la cartera.");
+    if(G.emb==4)log(yo?"Ya se nota la barriga. Antojos a las tres de la mañana.":"Montas una cuna con instrucciones en ocho idiomas. Sobran tornillos.");
+    if(G.emb==2)log(yo?"No encuentras postura para dormir. La bolsa del hospital ya está en la puerta.":"Clases de preparación al parto. Respiras tú más que nadie.");
+    if(yo)add("salud",-.3)}
   if(G.emb>0&&--G.emb==0)nacerHijo();
   // Cumpleaños
   if(y.edad%12==0)cumple();
@@ -544,6 +545,34 @@ function evento(){
     ev(2,"caida",()=>{add("salud",-9);log("Te caes en el baño. Nada roto, pero pasas a andar con cuidado.","mala")});
     ev(1,"homenaje",()=>{add("animo",8);log("En el barrio te hacen un pequeño homenaje. No sabes dónde meter las manos.")},1);
     ev(2,"memoria",()=>{add("mente",-3);log("Entras en una habitación y no recuerdas a qué. Cada vez pasa más.","mala")});
+  }
+  { // alguien se presenta en casa
+    const vis=vivos(q=>q.con&&!q.lejos&&!q.casa&&["comp","vec","conoc","primo"].includes(q.rol)&&q.rel>=15&&(a<18?Math.abs(q.edad-y.edad)<=36:q.edad>=216));
+    if(vis.length&&a>=4&&!G.pend)ev(4,"visita",()=>{const q=pick(vis);G.pend={k:"visita",id:q.id};log(a<16?`Llaman al timbre. Es ${q.nombre}: viene a jugar contigo.`:`Llaman al timbre. Es ${tu(q)}, que pasaba por aquí.`)});
+  }
+  if(a>=18&&y.salud<30)ev(5,"ingreso",()=>{y.dinero-=200;add("salud",18);add("animo",-4);log("Acabas una semana en el hospital, con suero y una ventana a un patio. Sales con un susto y una lista de cosas que cambiar.","mala")});
+  if(G.uni>0&&!G.titulo){
+    ev(3,"unifiesta",()=>{add("carisma",2);add("animo",5);add("salud",-1);log("Fiesta de la facultad. Acabas cantando en una fuente con gente de tercero."+conocerEn("de la universidad","par"))});
+    ev(2,"unisusp",()=>{G.uni=Math.max(1,G.uni-2);add("animo",-5);log("Suspendes una asignatura clave. Dos meses de carrera que hay que repetir.","mala")});
+    ev(2,"unibeca",()=>{const n=ri(300,900);y.dinero+=n;add("mente",1);log(`Un profesor te ofrece una beca de colaboración en su departamento: ${n}.`)});
+    ev(1,"erasmus",()=>{add("carisma",4);add("mente",2);add("animo",8);G.uni+=3;log("Te vas un semestre de intercambio al extranjero. Vuelves con otro acento y media maleta de recuerdos.")},1);
+  }
+  if(G.trabajo&&G.trabajo.sec){const jf=vivos(q=>q.jefe)[0],cw=vivos(q=>q.sitio=="del trabajo"&&!q.jefe&&q.con);
+    if(jf){ev(2,"jefefeliz",()=>{rel(jf,6);add("animo",4);G.trabajo.m=(G.trabajo.m||0)+3;log(`${jf.nombre}, ${tu(jf)==jf.nombre?jf.oficio:""}, te felicita delante de todos. Eso cuenta para el ascenso.`)});
+      ev(2,"jefebronca",()=>{rel(jf,-6);add("animo",-5);log(`${jf.nombre} te echa una bronca que no era para ti. Aguantas el tipo.`,"mala")});
+      ev(1,"jefenuevo",()=>{jf.jefe=false;jf.oficio=null;jf.sitio="de tu antiguo trabajo";const sj=sx(),n=per("conoc",sj,ri(33,60),pick(ORI[G.origen].ap),{con:true,rel:ri(25,40),sitio:"del trabajo",oficio:sj=="m"?"tu jefe":"tu jefa",jefe:true,casado:ch(.6),rasgo:ri(0,4)});log(`A ${jf.nombre} le trasladan. Llega ${n.nombre} a mandar, con ganas de cambiarlo todo.`)})}
+    if(cw.length){const q=pick(cw);
+      ev(2,"cwproyecto",()=>{rel(q,-8);add("animo",-4);log(`${q.nombre} se apunta un trabajo que hiciste tú. Sonríes en la reunión; por dentro no.`,"mala")});
+      ev(2,"cwfavor",()=>{rel(q,7);log(`${q.nombre} te cubre un día que llegas tarde. Le debes una.`)})}
+    ev(2,"horasextra",()=>{const n=Math.round(G.trabajo.s*.2);y.dinero+=n;add("salud",-1);log(`Mes de horas extra. Te las pagan: ${n} más.`)});
+    ev(1,"huelga",()=>{y.dinero-=Math.round(G.trabajo.s*.3);add("carisma",1);log("Huelga en el sector. Diez días en la puerta con un chaleco y un silbato. Se cobra menos este mes.")});
+    if(secDe(G.trabajo.sec).st=="cuerpo")ev(1,"accilab",()=>{add("salud",-10);y.dinero+=300;log("Accidente en el trabajo. Dos semanas de baja con el brazo en cabestrillo y una indemnización pequeña.","mala")});
+    ev(1,"cwnuevo",()=>{const q=per("conoc",sx(),clamp(a+ri(-10,8),18,60),pick(ORI[G.origen].ap),{con:true,rel:ri(20,35),sitio:"del trabajo",casado:ch(.4),rasgo:ri(0,4)});log(`Entra alguien en tu turno: ${q.nombre}. Te toca enseñarle dónde está todo.`)});
+  }
+  if(G.pareja&&a>=18){const q=P(G.pareja);
+    ev(1,"suegros",()=>{rel(q,ch(.5)?4:-4);log(vario("suegros",[`Comida con la familia de ${q.nombre}. Te examinan con el segundo plato.`,`Los padres de ${q.nombre} se quedan una semana en casa. Una semana larga.`]))});
+    ev(1,"parejahosp",()=>{rel(q,8);add("animo",-5);log(`Operan a ${q.nombre} de urgencia. Tres noches en un sillón de hospital, cogiéndole la mano.`,"mala")});
+    if(G.casado)ev(1,"hipoteca",()=>{y.dinero-=ri(300,900);add("animo",2);log(`${q.nombre} y tú firmáis una reforma de la casa. Polvo, albañiles y discusiones sobre azulejos.`)});
   }
   if(!E.length)return;
   let tot=E.reduce((s,e)=>s+e[0],0),r=R()*tot,el=E[E.length-1];
@@ -688,7 +717,7 @@ function ligue(prot){
   if(G.pareja&&ch(.3)){const q=P(G.pareja);G.pareja=null;G.casado=false;G.crush=null;q.casa=false;rel(q,-40);add("animo",-12);s+=` ${q.nombre} se entera y se va.`}
   if(!prot){
     if(ch(.14)){G.fl.ets=1;s+=" Semanas después notas que algo no va bien ahí abajo."}
-    if(G.emb==0&&ch(.12)){G.emb=9;s+=y.sexo=="f"?" El test da positivo.":" Dos meses después te llaman: hay un bebé en camino y es tuyo."}
+    if(G.emb==0&&ch(.12)){G.fl.adop=0;G.emb=9;s+=y.sexo=="f"?" El test da positivo.":" Dos meses después te llaman: hay un bebé en camino y es tuyo."}
   }
   return {txt:s,mal:!prot};
 }
@@ -700,6 +729,14 @@ function abrirPend(){
   if(d.k=="oferta"){const A=AREAS[d.a];abrirHoja("Oferta: trabajar "+d.n,[
     {t:"Aceptar",s:d.s+" al mes"+(G.trabajo?" · dejas tu trabajo actual":""),fn:()=>resolver(()=>resolverOferta(true))},
     {t:"Rechazar",fn:()=>resolver(()=>resolverOferta(false))}],true)}
+  if(d.k=="visita"){const q=P(d.id),nino=G.yo.edad<16*12;
+    if(!q||!q.vivo){G.pend=null;return}
+    abrirHoja(q.nombre+" está en la puerta",nino?[
+      {t:"Jugar con "+q.nombre,s:"Sube el vínculo",fn:()=>resolver(()=>{rel(q,ri(7,11));add("animo",4);add("carisma",1);return vario("visjug",[`Sacas todos tus juguetes y ${q.nombre} y tú ocupáis el pasillo entero.`,`Tarde de merienda y dibujos con ${q.nombre}. Se va cuando ya es de noche.`,`${q.nombre} y tú montáis una cabaña con sábanas en el salón.`])})},
+      {t:"Enseñarle tu cuarto",s:"Vínculo y carisma",fn:()=>resolver(()=>{rel(q,ri(4,7));add("carisma",2);return `Le enseñas a ${q.nombre} tus cosas una por una, como en un museo.`})},
+      {t:"Espantarle",s:"Pierdes vínculo",fn:()=>resolver(()=>{rel(q,-ri(10,16));return {txt:`Le dices a ${q.nombre} que no te apetece y le cierras la puerta. Se va mirando al suelo.`,mal:1}})}]:[
+      {t:"Invitarle a pasar",s:"Sube el vínculo",fn:()=>resolver(()=>{rel(q,ri(6,10));add("animo",3);return vario("visad",[`${q.nombre} se queda a cenar. La sobremesa se alarga.`,`Sacas algo de picar y ${q.nombre} y tú os ponéis al día.`])})},
+      {t:"Decirle que no es buen momento",s:"Pierdes vínculo",fn:()=>resolver(()=>{rel(q,-ri(6,10));return {txt:`Le dices a ${q.nombre} que hoy no puedes. Se le nota en la cara.`,mal:1}})}],true)}
   if(d.k=="ligue")abrirHoja(`${d.n} quiere que os vayáis juntos`,[
     {t:"Irte con "+d.n,s:"Con protección",fn:()=>resolver(()=>ligue(true))},
     {t:"Irte con "+d.n,s:"Sin protección",fn:()=>resolver(()=>ligue(false))},
@@ -713,7 +750,9 @@ function resolver(fn){
 /* ---- Trato con vecinos y conocidos adultos ---- */
 const PERS=[["cálido","cálida"],["reservado","reservada"],["desenvuelto","desenvuelta"],["tradicional","tradicional"],["solitario","solitaria"]];
 const PMOD=[0,-.1,.15,-.15,.05];
-function pers(p){if(p.pers==null){p.pers=ri(0,4);if(p.triste==null)p.triste=ch(.15)}return p.pers}
+function pers(p){if(p.pers==null){p.pers=ri(0,4);if(p.triste==null)p.triste=ch(.15)}if(p.dif==null)p.dif=ri(0,3);return p.pers}
+const DIF=["se le ve venir","ni fácil ni difícil","se hace de rogar","un muro"];
+function sube(p,n){pers(p);p.quim=clamp((p.quim||0)+n*(1-p.dif*.18))}
 function atr(){const y=G.yo;return (y.aspecto+y.carisma)/2+(y.cuerpo-50)/10}
 function primeraVez(p){
   let s="";
@@ -730,6 +769,32 @@ function favor(p,k){
 }
 function prob(p,base){const y=G.yo,gap=Math.abs(p.edad-y.edad)/12;
   return base+(atr()-50)/110+PMOD[pers(p)]+(p.triste?.12:0)-(p.casado?.13:0)-Math.max(0,gap-10)/100+(p.quim||0)/300}
+function cumplido(p){
+  if(ch(prob(p,.6))){sube(p,ri(2,5));rel(p,1);return vario("cumpl",[`Le dices a ${p.nombre} que hoy tiene buena cara. Se toca el pelo.`,`Le sueltas un cumplido a ${p.nombre} sin venir a cuento. Sonríe de medio lado.`,`«Te queda bien ese color.» ${p.nombre} finge no haberlo oído, pero lo ha oído.`])}
+  return {txt:`Le haces un cumplido a ${p.nombre}. «Gracias», dice, y sigue a lo suyo.`,mal:1};
+}
+function regalo(p){
+  G.yo.dinero-=50;
+  if(p.casado&&pers(p)==3){rel(p,-3);return {txt:`Le llevas un detalle a ${p.nombre}. «No puedo aceptar esto», y te lo devuelve.`,mal:1}}
+  sube(p,ri(4,8));rel(p,4);return vario("regalo",[`Le regalas a ${p.nombre} algo que mencionó hace semanas. No se lo esperaba.`,`Le dejas a ${p.nombre} un detalle con una nota. Te escribe esa misma noche.`]);
+}
+function cita(p){
+  G.yo.dinero-=70;
+  if(ch(prob(p,.45))){sube(p,ri(7,12));rel(p,4);add("animo",4);return vario("cita",[`Cena con ${p.nombre}. Se os enfría el segundo plato de tanto hablar.`,`Paseo largo con ${p.nombre}. Ninguno de los dos dice que es tarde.`,`Lleváis ${p.nombre} y tú dos horas en una terraza y parece media.`])}
+  sube(p,-2);return {txt:`Le propones quedar a ${p.nombre}. Esta semana no puede. Ni la siguiente.`,mal:1};
+}
+function bailar(p){
+  if(ch(prob(p,.45))){sube(p,ri(6,10));add("animo",3);return `Acabas bailando con ${p.nombre}, más cerca de lo que pide la canción.`}
+  return {txt:`Sacas a bailar a ${p.nombre}. Se ríe y dice que tiene dos pies izquierdos.`,mal:1};
+}
+function beso(p){
+  if(ch(prob(p,.3))){p.beso=true;sube(p,10);rel(p,5);add("animo",8);return `Te acercas a ${p.nombre} y esta vez no se aparta. Un beso corto, y luego otro que no lo es.`}
+  sube(p,-10);rel(p,-4);return {txt:`Te acercas a ${p.nombre}. Aparta la cara. «No vayas tan deprisa.»`,mal:1};
+}
+function irEnSerio(p){
+  if(ch(.3+p.rel/200)){G.pareja=p.id;G.crush=null;rel(p,10);add("animo",12);if(G.indep)p.casa=true;return `Le dices a ${p.nombre} que quieres algo de verdad. «Ya era hora.» Desde hoy sois pareja.`}
+  rel(p,-5);return {txt:`Le propones a ${p.nombre} ir en serio. «Así estamos bien, ¿no?»`,mal:1};
+}
 function coquetear(p){
   const i=pers(p);
   if(ch(prob(p,.4))){p.quim=clamp((p.quim||0)+ri(6,12));rel(p,2);add("carisma",.5);
@@ -811,11 +876,17 @@ function menuPersona(p){
   if(adAjeno&&p.rol=="vec"){O("Ayudar con las bolsas de la compra",()=>favor(p,"bolsas"));
     if(a>=6)O("Ayudar con las plantas y el patio",()=>favor(p,"jardin"));
     if(a>=14)O("Echar una mano en su trabajo",()=>favor(p,"trabajo"),"Algo de dinero")}
-  if(adAjeno&&a>=18&&!esPareja){const q=p.quim||0;
-    if(p.rel>=45)O("Coquetear",()=>coquetear(p),"Química "+Math.round(q));
+  if(adAjeno&&a>=18&&!esPareja){pers(p);const q=p.quim||0,d=p.dif*8;
+    if(p.rel>=30)O("Hacerle un cumplido",()=>cumplido(p),"Química "+Math.round(q)+" · "+DIF[p.dif]);
+    if(p.rel>=45)O("Coquetear",()=>coquetear(p));
+    if(q>=15)O("Hacerle un regalo",()=>regalo(p),"50");
     if(q>=20)O("Tomar algo juntos",()=>tomarAlgo(p));
+    if(q>=30)O("Pedirle una cita",()=>cita(p),"70");
     if(q>=35)O("Ofrecerle un masaje",()=>masaje(p));
-    if(q>=60)O("Dar el paso",()=>insinuarte(p),p.casado?"Tiene pareja: más difícil y con riesgo":"");
+    if(q>=40)O("Sacarle a bailar",()=>bailar(p));
+    if(q>=50+d&&!p.beso)O("Besarle",()=>beso(p),"Si sale mal, retrocedes");
+    if(p.beso&&q>=60+d)O("Dar el paso",()=>insinuarte(p),p.casado?"Tiene pareja: más difícil y con riesgo":"");
+    if(p.beso&&!G.pareja&&!p.casado)O("Proponerle ir en serio",()=>irEnSerio(p));
   }
   let tit=p.nombre+" · "+rolTxt(p);
   if(adAjeno)tit+=" · "+PERS[pers(p)][p.sexo=="m"?0:1]+(p.triste?" · de capa caída":"");
@@ -837,11 +908,78 @@ function estarCon(p){
   if(antes<80&&p.rel>=80)s+=` Ya es de tus personas favoritas.`;
   return s;
 }
-function buscarTrabajo(){
-  const y=G.yo,ok=JOBS.filter(j=>(!j.titulo||G.titulo)&&y.mente>=(j.mente||0)&&y.cuerpo>=(j.cuerpo||0)&&y.carisma>=(j.carisma||0));
-  if(ch(.4))return {txt:"Echas currículums por todas partes. Nadie llama.",mal:1};
-  const j=pick(ok.slice(-3));G.trabajo={n:j.n,s:j.s};add("animo",6);
-  return {txt:`Te cogen. Empiezas a trabajar ${j.n}, por ${j.s} al mes.`};
+/* ---- Trabajo: 17 sectores, 102 puestos con ascensos ---- */
+const MINS=[0,25,40,55,68,80];
+const CARRERAS={salud:"Medicina y enfermería",educacion:"Magisterio",tecnica:"Ingeniería",derecho:"Derecho",economia:"Economía y empresa",letras:"Periodismo y letras"};
+const SEC=[
+ {k:"cocina",n:"Cocina",st:"cuerpo",cur:3,L:[["friegaplatos",850],["ayudante de cocina",1050],["cociner@",1300],["jef% de partida",1600],["segund@ de cocina",2000],["jef% de cocina",2700]]},
+ {k:"sala",n:"Hostelería de sala",st:"carisma",cur:9,L:[["camarer@ de barra",950],["camarer@ de sala",1100],["encargad@ de turno",1400],["maître",1800],["director# de restaurante",2500],["dueñ@ de tu propio restaurante",3600]]},
+ {k:"comercio",n:"Comercio",st:"carisma",cur:4,L:[["reponedor#",900],["cajer@",1000],["dependient%",1100],["encargad@ de tienda",1500],["gerente de zona",2300],["director# comercial",3500]]},
+ {k:"obra",n:"Construcción",st:"cuerpo",cur:4,L:[["peón de obra",1050],["oficial de segunda",1300],["oficial de primera",1550],["encargad@ de obra",1950],["jef% de obra",2600],["contratista con cuadrilla propia",3600]]},
+ {k:"fabrica",n:"Industria",st:"cuerpo",cur:3,car:"tecnica",carN:5,L:[["operari@ de fábrica",1150],["operari@ especialista",1350],["jef% de línea",1700],["jef% de turno",2100],["jef% de producción",2800],["director# de planta",4200]]},
+ {k:"transporte",n:"Transporte",st:"cuerpo",cur:2,L:[["repartidor#",950],["conductor# de furgoneta",1150],["camioner@",1600],["jef% de tráfico",2000],["gerente de logística",2700],["director# de operaciones",3800]]},
+ {k:"oficina",n:"Administración",st:"mente",cur:2,car:"economia",carN:4,L:[["auxiliar administrativ@",1100],["administrativ@",1350],["oficial administrativ@",1600],["jef% de administración",2200],["gerente",3200],["director# general",5500]]},
+ {k:"sanidad",n:"Sanidad",st:"mente",cur:1,car:"salud",carN:2,L:[["celador#",1150],["auxiliar de enfermería",1300],["enfermer@",1900],["médic@ residente",2100],["médic@ adjunt@",3600],["jef% de servicio en el hospital",5200]]},
+ {k:"educacion",n:"Educación",st:"mente",cur:9,car:"educacion",carN:2,L:[["monitor# de comedor",800],["profesor# de academia",1200],["maestr@",1800],["profesor# de instituto",2200],["jef% de estudios",2700],["director# de instituto",3200]]},
+ {k:"tecno",n:"Tecnología",st:"mente",cur:0,car:"tecnica",carN:3,L:[["técnic@ de soporte",1250],["programador# junior",1700],["programador#",2400],["ingenier@ sénior",3300],["jef% de proyecto",4200],["director# técnic@",6000]]},
+ {k:"derecho",n:"Derecho",st:"mente",cur:9,car:"derecho",carN:1,L:[["auxiliar de despacho",1150],["pasante",1300],["abogad@",2200],["abogad@ sénior",3300],["soci@ del bufete",5500],["soci@ director# del bufete",8000]]},
+ {k:"banca",n:"Banca",st:"mente",cur:9,car:"economia",carN:2,L:[["cajer@ de banco",1300],["gestor# comercial",1700],["analista",2400],["director# de oficina",3300],["director# de zona",4800],["director# financier@",7500]]},
+ {k:"seguridad",n:"Seguridad y policía",st:"cuerpo",cur:1,L:[["vigilante",1150],["policía local",1700],["oficial de policía",2000],["subinspector#",2500],["inspector#",3100],["comisari@",4300]]},
+ {k:"campo",n:"Campo",st:"cuerpo",cur:9,L:[["jornaler@",850],["peón agrícola",1000],["tractorista",1250],["capataz",1600],["encargad@ de finca",2100],["dueñ@ de tu propia explotación",3000]]},
+ {k:"belleza",n:"Peluquería y estética",st:"aspecto",cur:1,L:[["aprendiz de peluquería",800],["peluquer@",1100],["estilista",1500],["encargad@ de salón",1900],["dueñ@ de tu propio salón",2700],["estilista de famosos",4500]]},
+ {k:"medios",n:"Prensa y medios",st:"carisma",cur:9,car:"letras",carN:2,L:[["becari@ de redacción",700],["redactor#",1300],["periodista",1800],["jef% de sección",2600],["subdirector# del periódico",3600],["director# del periódico",5200]]},
+ {k:"servicios",n:"Limpieza y mantenimiento",st:"cuerpo",cur:4,L:[["limpiador#",900],["conserje",1050],["encargad@ de mantenimiento",1400],["jef% de servicios",1800],["gerente de contratas",2500],["empresari@ de servicios",3600]]}];
+const gen=t=>{const m=G.yo.sexo=="m";return t.replace(/@/g,m?"o":"a").replace(/#/g,m?"":"a").replace(/%/g,m?"e":"a")};
+const secDe=k=>SEC.find(x=>x.k==k);
+function falta(sec,l){ // qué te impide ocupar ese puesto ("" si nada)
+  const y=G.yo;G.cursos=G.cursos||{};
+  if(sec.car&&l>=sec.carN&&!(G.titulo&&G.carrera==sec.car))return "la carrera de "+CARRERAS[sec.car];
+  if(l>=sec.cur&&!G.cursos[sec.k]&&!(sec.car&&G.titulo&&G.carrera==sec.car))return "el curso de "+sec.n.toLowerCase();
+  if(y[sec.st]<MINS[l])return "más "+sec.st+" ("+MINS[l]+")";
+  return "";
+}
+function entrada(sec){const l=sec.car&&G.titulo&&G.carrera==sec.car?sec.carN:0;return falta(sec,l)?-1:l}
+function contratar(sec,l){
+  const y=G.yo,o=ORI[G.origen];
+  G.gente.forEach(p=>{if(p.jefe){p.jefe=false;p.oficio=null;p.sitio="de tu antiguo trabajo"}else if(p.sitio=="del trabajo")p.sitio="de tu antiguo trabajo"});
+  G.trabajo={sec:sec.k,l,n:"de "+gen(sec.L[l][0]),s:sec.L[l][1],m:0};
+  const sj=sx(),j=per("conoc",sj,ri(35,60),pick(o.ap),{con:true,rel:ri(30,45),sitio:"del trabajo",oficio:sj=="m"?"tu jefe":"tu jefa",jefe:true,casado:ch(.6),rasgo:ri(0,4)});
+  const cs=[0,1].map(()=>per("conoc",sx(),clamp(y.edad/12+ri(-8,10),18,62),pick(o.ap),{con:true,rel:ri(20,40),sitio:"del trabajo",casado:ch(.4),rasgo:ri(0,4)}));
+  return ` Tu ${sj=="m"?"jefe":"jefa"} es ${j.nombre}; compartes turno con ${cs.map(p=>p.nombre).join(" y ")}.`;
+}
+function buscarEn(sec){
+  const l=entrada(sec);
+  if(ch(.4))return {txt:vario("nocurro",["Echas currículums por todas partes. Nadie llama.","Entrevista larga. «Ya te diremos algo.» No dicen nada.","Te quedas finalista para el puesto. Cogen al otro."]),mal:1};
+  const extra=contratar(sec,l);add("animo",6);
+  return `Te cogen. Empiezas a trabajar ${G.trabajo.n}, por ${G.trabajo.s} al mes.`+extra;
+}
+function currar(){
+  const y=G.yo,t=G.trabajo;add("animo",-2);add("salud",-.5);
+  if(t.n.includes("cocin"))pr("cocina",1);if(t.pro)pr(t.pro,1.5);
+  if(!t.sec){if(ch(.12)){t.s=Math.round(t.s*1.12);return `Echas horas. Te suben el sueldo a ${t.s}.`}}
+  else{
+    const sec=secDe(t.sec),jefe=vivos(p=>p.jefe)[0];t.m=(t.m||0)+1;add(sec.st,.5);if(jefe)rel(jefe,1);
+    if(t.l<5&&t.m>=12+t.l*8){
+      const f=falta(sec,t.l+1);
+      if(f){if(!t.av||t.av<y.edad){t.av=y.edad+12;return `Hay un puesto de ${gen(sec.L[t.l+1][0])} y te lo mereces, pero te falta ${f}.`}}
+      else if(ch(.25+(jefe?jefe.rel/300:0))){t.l++;t.m=0;t.n="de "+gen(sec.L[t.l][0]);t.s=sec.L[t.l][1];add("animo",8);if(t.l>=3)logro("asciendes a "+gen(sec.L[t.l][0]));
+        return `Te ascienden. Ahora trabajas ${t.n}, por ${t.s} al mes.`+(t.l==5?" No hay puesto más alto en lo tuyo.":"")}
+    }
+    if(ch(.06)){t.s=Math.round(t.s*1.05);return `Echas horas. Te suben un poco el sueldo: ${t.s}.`}
+  }
+  return vario("currar",["Echas más horas que nadie. De momento solo te lo agradecen.","Un mes de entregas. Sales de noche todos los días.","Cubres dos bajas a la vez. Nadie dice nada, pero se nota.","Resuelves un marrón que llevaba meses dando vueltas.","Formas a la persona nueva sin que nadie te lo pida.","Mes de inventario. Cuentas cosas hasta en sueños."]);
+}
+function pasoCarrera(){
+  const y=G.yo;G.uni+=G.fl.becaUni?2:1;pr("estudio",.5);add("mente",1.5);if(!G.fl.becaUni&&G.riqueza<2&&y.mente<70)y.dinero-=120;
+  if(G.uni>=36){G.titulo=true;add("animo",10);logro("terminas "+CARRERAS[G.carrera]);return `Terminas ${CARRERAS[G.carrera]}. Tu familia saca una foto que acabará enmarcada.`}
+  return vario("uni",["Un mes de clases, apuntes y café de máquina.","Exámenes. Duermes poco.","Prácticas: por fin tocas lo que llevabas años leyendo.","Trabajo en grupo. Lo haces tú, firmáis cuatro.","Una asignatura hueso. La sacas a la tercera lectura.","Biblioteca de la facultad hasta el cierre, todo el mes."]);
+}
+function empezarCarrera(k){
+  const y=G.yo;
+  if(!G.fl.becaUni&&G.riqueza<2&&y.dinero<300&&y.mente<70)return {txt:"Miras el precio de la matrícula. No te llega, y en casa tampoco pueden.",mal:1};
+  G.carrera=k;const o=ORI[G.origen],a=y.edad/12;
+  const cs=[0,1].map(()=>per("conoc",sx(),clamp(a+ri(-1,3),18,60),pick(o.ap),{con:true,rel:ri(20,40),sitio:"de la universidad",rasgo:ri(0,4)}));
+  pasoCarrera();return `Te matriculas en ${CARRERAS[k]}. El primer día te sientas entre ${cs[0].nombre} y ${cs[1].nombre}.`;
 }
 function acciones(){
   const y=G.yo,a=y.edad/12,L=[];
@@ -882,19 +1020,23 @@ function acciones(){
       if(a>=15)A("Beber en el parque",()=>{add("animo",5);add("carisma",1);add("salud",-1.5);return "Litronas en el parque los sábados. Vuelves a casa masticando chicle."},"riesgo");
     }
   }else{
-    if(!G.trabajo&&a<67)A("Buscar trabajo",()=>buscarTrabajo());
-    if(G.trabajo)A("Trabajar duro",()=>{if(G.trabajo.n.includes("cocina"))pr("cocina",1);if(G.trabajo.pro)pr(G.trabajo.pro,1.5);add("animo",-2);add("salud",-.5);if(ch(.12)){G.trabajo.s=Math.round(G.trabajo.s*1.12);return `Echas horas. Te suben el sueldo a ${G.trabajo.s}.`}return vario("currar",["Echas más horas que nadie. De momento solo te lo agradecen.","Un mes de entregas. Sales de noche todos los días.","Cubres dos bajas a la vez. Nadie dice nada, pero se nota.","Resuelves un marrón que llevaba meses dando vueltas."])});
-    if(!G.titulo&&y.mente>=45&&a<40)A(G.uni?`Seguir la carrera (${G.uni}/36)`:"Empezar una carrera",()=>{
-      if(!G.fl.becaUni&&!G.uni&&G.riqueza<2&&y.dinero<300&&y.mente<70)return {txt:"Miras el precio de la matrícula. No te llega, y en casa tampoco pueden.",mal:1};
-      G.uni+=G.fl.becaUni?2:1;pr("estudio",.5);add("mente",1.5);if(!G.fl.becaUni&&G.riqueza<2&&y.mente<70)y.dinero-=120;
-      if(G.uni>=36){G.titulo=true;add("animo",10);return "Terminas la carrera. Tu familia saca una foto que acabará enmarcada."}
-      return pick(["Un mes de clases, apuntes y café de máquina.","Exámenes. Duermes poco."])});
+    G.cursos=G.cursos||{};
+    if(!G.trabajo&&a<67)L.push({t:"Buscar trabajo",abre:()=>abrirHoja("¿Dónde echas el currículum?",SEC.map(sec=>{const l=entrada(sec);
+      return l<0?{t:sec.n,s:"Te falta "+falta(sec,sec.car&&G.titulo&&G.carrera==sec.car?sec.carN:0),fn:()=>{}}:{t:sec.n,s:"Entras de "+gen(sec.L[l][0])+" · "+sec.L[l][1]+" al mes · cuenta: "+sec.st,fn:()=>hacer(()=>buscarEn(sec))}}).sort((p,q)=>(p.s.startsWith("Te falta")?1:0)-(q.s.startsWith("Te falta")?1:0)))});
+    if(G.trabajo)A("Dejar el trabajo",()=>{const n=G.trabajo.n;G.trabajo=null;add("animo",3);return `Dejas el trabajo ${n}. Recoges tu taza y poco más.`},"sec");
+    if(a>=18){if(G.curso)A(`Seguir el curso de ${secDe(G.curso.k).n.toLowerCase()} (${G.curso.m}/6)`,()=>{y.dinero-=100;add("mente",1);if(++G.curso.m>=6){const k=G.curso.k;G.cursos[k]=1;G.curso=null;return `Terminas el curso de ${secDe(k).n.toLowerCase()}. Un título más para la carpeta, y puertas que se abren.`}return vario("curso",["Clases por las tardes, después de todo lo demás.","Prácticas del curso. Vas cogiendo mano.","Examen parcial del curso. Aprobado."])});
+      else{const cs=SEC.filter(x=>x.cur<9&&!G.cursos[x.k]);if(cs.length)L.push({t:"Hacer un curso",abre:()=>abrirHoja("Cursos (6 meses, 100 al mes)",cs.map(x=>({t:x.n,s:"Hace falta para ser "+gen(x.L[x.cur][0]),fn:()=>hacer(()=>{G.curso={k:x.k,m:1};y.dinero-=100;return `Te apuntas a un curso de ${x.n.toLowerCase()}.`})})))})}}
+    if(G.trabajo)A("Trabajar duro",()=>currar());
+    if(!G.titulo&&y.mente>=45&&a<45){
+      if(G.uni)A(`Seguir ${CARRERAS[G.carrera]||"la carrera"} (${G.uni}/36)`,()=>pasoCarrera());
+      else L.push({t:"Empezar una carrera",abre:()=>abrirHoja("¿Qué estudias? (36 meses)",Object.keys(CARRERAS).map(k=>({t:CARRERAS[k],s:"Abre: "+SEC.filter(x=>x.car==k).map(x=>x.n).join(", "),fn:()=>hacer(()=>empezarCarrera(k))})))});
+    }
     A("Hacer ejercicio",()=>{pr("deporte",.25);add("cuerpo",ri(1,2));add("salud",1.5);return a>65?vario("andar",["Caminas cada mañana, llueva o no.","Das la vuelta larga por el paseo, saludando a medio barrio.","Gimnasia suave en el centro de mayores. Te ríes más que sudas."]):vario("ejer",["Sales a correr tres veces por semana.","Un mes de constancia: agujetas y mejor humor.","Nadas largos hasta perder la cuenta.","Subes en bici la cuesta que antes subías andando."])});
     A("Leer y aprender",()=>{pr("estudio",.25);add("mente",ri(1,2));add("animo",1);return vario("leer",["Lees por las noches. Algo se te queda.","Te enganchas a una novela de ochocientas páginas.","Aprendes por tu cuenta algo que nunca te enseñaron.","Un documental detrás de otro. Ahora opinas de volcanes.","Relees un libro de hace años y es otro libro."])});
     if(!(G.fl.ropa>0))A("Comprar ropa cara",()=>{if(y.dinero<500)return {txt:"Te pruebas una chaqueta que cuesta 500. La devuelves a la percha.",mal:1};y.dinero-=500;G.fl.ropa=18;add("aspecto",6);add("animo",3);return "Te gastas 500 en ropa buena de verdad. Te queda como hecha a medida."});
     if(G.pareja){const q=P(G.pareja);
       if(!G.casado&&q.rel>=75)A("Pedir matrimonio",()=>{if(ch(.2+q.rel/130)){G.casado=true;add("animo",12);y.dinero-=1500;if(G.indep)q.casa=true;return `${q.nombre} dice que sí. Boda pequeña, baile largo.`}rel(q,-8);return {txt:`${q.nombre} dice que aún no.`,mal:1}});
-      if(G.emb==0&&q.rel>=65&&a<46&&q.edad<46*12&&vivos(p=>p.rol=="hijo").length<5)A("Buscar un hijo",()=>{if(ch(.3)){G.emb=q.sexo==y.sexo?ri(10,20):9;return q.sexo==y.sexo?"Empezáis los papeles de la adopción. Os dicen que hay para rato.":"Positivo. En nueve meses seréis uno más."}return "Lo intentáis. Este mes no ha podido ser."});
+      if(G.emb==0&&q.rel>=65&&a<46&&q.edad<46*12&&vivos(p=>p.rol=="hijo").length<5)A("Buscar un hijo",()=>{if(ch(.3)){G.fl.adop=q.sexo==y.sexo?1:0;G.emb=q.sexo==y.sexo?ri(10,20):9;return q.sexo==y.sexo?"Empezáis los papeles de la adopción. Os dicen que hay para rato.":"Positivo. En nueve meses seréis uno más."}return "Lo intentáis. Este mes no ha podido ser."});
     }
     if(G.fl.fuma)A("Dejar de fumar",()=>{if(ch(.3)){G.fl.fuma=0;add("animo",-4);return "Tiras el último paquete. Esta vez aguantas."}return {txt:"Aguantas nueve días sin fumar.",mal:1}});
     else A("Empezar a fumar",()=>{G.fl.fuma=1;add("animo",2);return "Empiezas a fumar. Dices que lo controlas."},"riesgo");
@@ -926,6 +1068,9 @@ function acciones(){
   {const ar=Object.keys(AREAS).filter(k=>a>=AREAS[k].min);
    if(ar.length)L.push({t:"Practicar…",abre:()=>abrirHoja("¿A qué te dedicas este mes?",ar.map(k=>{const v=voc(k),n=Math.round(nivel(k));return {t:AREAS[k].n,s:"Nivel "+n+(v.t<5?" · siguiente meta a "+UMBRAL[v.t]:" · en lo más alto")+(v.beca?" · con beca":""),fn:()=>hacer(()=>practicar(k))}}))})}
   {const lg=lugares();if(lg.length)L.push({t:"Ir a…",abre:()=>abrirHoja("¿Adónde vas?",lg)})}
+  if(a>=12)L.push({t:"Qué comes: "+({basura:"comida basura",dieta:"dieta"}[G.dieta]||"lo de siempre"),cls:"sec",abre:()=>abrirHoja("¿Qué comes a diario? (no gasta el mes)",[
+    {t:"Lo de siempre",s:"Sin efectos",k:""},{t:"Comida basura",s:"Más ánimo cada mes; menos aspecto y salud",k:"basura"},{t:"Dieta estricta",s:"Más aspecto y salud cada mes; menos ánimo",k:"dieta"}].map(o=>({t:o.t,s:o.s,fn:()=>{G.dieta=o.k;
+      log(o.k=="basura"?"Te pasas a la comida rápida. Qué bien sabe todo lo que hace daño.":o.k=="dieta"?"Empiezas una dieta en serio. Pesas el arroz y miras las etiquetas.":"Vuelves a comer normal, sin contar nada.");guardar();cerrarHoja();render(true)}})))});
   A("Dejar pasar el mes",()=>vario("pasar",["Pasa el mes sin nada que contar.","Un mes más.","Los días se parecen unos a otros.","Miras el calendario y ya es fin de mes.","Rutina. No es mala palabra."]),"sec");
   L.push({t:"Dejar pasar un año",cls:"sec",anio:1});
   return L;
@@ -973,7 +1118,7 @@ function pantallaCrear(){
   $("bNacer").onclick=()=>{nacer({origen:SEL.origen,riqueza:SEL.riqueza,sexo:SEL.sexo,nombre:$("nombre").value});TAB="diario";render(true)};
 }
 function barra(k,et){const v=Math.round(G.yo[k]);return `<div class="${v<25?"mal":""}">${et}<b>${v}</b><i style="width:${v}%"></i></div>`}
-function filaGente(p){return `<tr class="${p.vivo?"":"muerto"}"><td>${esc(p.nombre)} ${esc(p.apellido)}${p.id==G.crush&&p.id!=G.pareja?" ♥":""}</td><td>${rolTxt(p)}</td><td class="n">${p.vivo?edadTxt(p.edad):"†"}</td><td class="n">${Math.round(p.rel)}</td></tr>`}
+function filaGente(p){return `<tr class="${p.vivo?"":"muerto"}"><td>${esc(p.nombre)} ${esc(p.apellido)}${p.id==G.crush&&p.id!=G.pareja?" ♥":""}</td><td>${rolTxt(p)}</td><td class="n">${p.vivo?edadTxt(p.edad):"† "+edadTxt(p.edad)}</td><td class="n">${Math.round(p.rel)}</td></tr>`}
 function tablaGente(titulo,l){return l.length?`<div class="tit">${titulo}</div><table><tr><th>Nombre</th><th>Quién es</th><th>Edad</th><th>Vínculo</th></tr>${l.map(filaGente).join("")}</table>`:""}
 function render(abajo){
   if(!G){pantallaCrear();return}
@@ -1005,9 +1150,10 @@ function render(abajo){
      <div class="tit">Informe ② ¿Cómo te va?</div>
      <table><tr><th>Etapa</th><td>${etapa()}</td></tr>
      <tr><th>Trabajo</th><td>${G.trabajo?"Trabajas "+esc(G.trabajo.n)+" · "+G.trabajo.s+" al mes":G.pension?"Jubilación · "+G.pension+" al mes":anios()<16?"Aún no te toca":"Sin trabajo"}</td></tr>
-     <tr><th>Estudios</th><td>${G.titulo?"Carrera terminada":G.uni?"En la universidad ("+G.uni+"/36)":anios()<6?"Ninguno":anios()<16?"En la escuela":"Enseñanza obligatoria"}</td></tr>
+     <tr><th>Estudios</th><td>${G.titulo?"Carrera: "+(CARRERAS[G.carrera]||"terminada"):G.uni?"En la universidad ("+G.uni+"/36)":anios()<6?"Ninguno":anios()<16?"En la escuela":"Enseñanza obligatoria"}</td></tr>
      <tr><th>Pareja</th><td>${G.pareja&&P(G.pareja)?esc(P(G.pareja).nombre)+(G.casado?" (matrimonio)":""):G.crush&&P(G.crush)?"Te gusta "+esc(P(G.crush).nombre):"Nadie"}</td></tr>
-     <tr><th>Costumbres</th><td>${[G.fl.ropa>0&&"ropa cara",G.fe&&!G.indep&&"familia practicante",G.fl.fuma&&"fumas",G.fl.adicto&&"enganche a las drogas",G.fl.ets&&"algo sin tratar"].filter(Boolean).join(", ")||"Nada que señalar"}</td></tr></table>
+     <tr><th>Cursos</th><td>${Object.keys(G.cursos||{}).map(k=>secDe(k).n).join(", ")||"Ninguno"}</td></tr>
+     <tr><th>Costumbres</th><td>${[G.dieta=="basura"&&"comida basura",G.dieta=="dieta"&&"a dieta",G.fl.ropa>0&&"ropa cara",G.fe&&!G.indep&&"familia practicante",G.fl.fuma&&"fumas",G.fl.adicto&&"enganche a las drogas",G.fl.ets&&"algo sin tratar"].filter(Boolean).join(", ")||"Nada que señalar"}</td></tr></table>
      ${G.logros&&G.logros.length?`<div class="tit">Informe ③ Logros</div><table>${G.logros.map(l=>"<tr><td>"+esc(l.charAt(0).toUpperCase()+l.slice(1))+"</td></tr>").join("")}</table>`:""}
      <p class="nota">La partida se guarda sola en este navegador. Si empiezas otra vida, esta se pierde.</p>`;
     const b=document.createElement("button");b.className="gordo";b.style.fontSize="13px";b.textContent="ABANDONAR ESTA VIDA";
