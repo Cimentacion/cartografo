@@ -204,18 +204,19 @@ const CREC=[[0,.29],[1,.43],[2,.5],[4,.585],[6,.66],[8,.73],[10,.79],[12,.86],[1
 function genCuerpo(){
   const y=G.yo,pa=ri(162,190),ma=ri(150,175);
   y.altAdulta=Math.round((pa+ma+(y.sexo=="m"?13:-13))/2+ri(-6,6));y.altMod=0;y.imcD=ri(-10,20)/10;
+  if(ch(.06)){y.altAdulta=y.sexo=="m"?ri(198,215):ri(185,200);y.genAlto=1} // genética de gigantes
 }
 function altura(){ // cm
   const y=G.yo,a=y.edad/12;let f=1;
   for(let i=1;i<CREC.length;i++)if(a<CREC[i][0]){const p=CREC[i-1],q=CREC[i];f=p[1]+(q[1]-p[1])*(a-p[0])/(q[0]-p[0]);break}
-  return (y.altAdulta+y.altMod)*f;
+  return Math.min(215,y.altAdulta+y.altMod)*f;
 }
 function imcBase(){const a=G.yo.edad/12;return a<1?14+3*a:a<6?17-.3*(a-1):a<18?15.5+(a-6)*.5:a<50?21.5+(a-18)*.06:23.4}
-function imc(){return imcBase()+G.yo.imcD}
+function imc(){const h=altura()/100;return Math.min(imcBase()+G.yo.imcD,G.yo.edad>=216?200/(h*h):99)} // tope: 200 kg
 function peso(){const h=altura()/100;return imc()*h*h}
 function altTxt(){const h=altura();return h<100?Math.round(h)+" cm":(h/100).toFixed(2).replace(".",",")+" m"}
 function pesoTxt(){const p=peso();return (p<10?p.toFixed(1).replace(".",","):Math.round(p))+" kg"}
-function complexion(){const d=G.yo.imcD;return d<-3.5?"en los huesos":d<-1.5?g("delgado","delgada"):d<3?"peso normal":d<6?"algo de barriga":d<10?"sobrepeso":"obesidad"}
+function complexion(){const d=G.yo.imcD;return d<-3.5?"en los huesos":d<-1.5?g("delgado","delgada"):d<3?"peso normal":d<6?"algo de barriga":d<10?"sobrepeso":d<18?"obesidad":"obesidad mórbida"}
 function mover(n){const y=G.yo;if(y.edad<216)y.altMod=Math.min(3,y.altMod+.03);y.imcD=Math.max(-4,y.imcD-(n||.06))}
 function etapa(){const a=G.yo.edad/12;return a<2?"bebé":a<6?"infancia":a<12?"niñez":a<18?"adolescencia":a<65?"edad adulta":"vejez"}
 function edadTxt(m){const a=Math.floor(m/12);return a<1?m+(m==1?" mes":" meses"):a+(a==1?" año":" años")}
@@ -318,6 +319,7 @@ function nacer(op){
   titular("Naces",G.lugar.nombre+", "+o.pais);
   let s=`Naces en ${G.lugar.nombre}, ${LUGTXT[tipo]} de ${o.pais}. Pesas ${(peso()).toFixed(1).replace(".",",")} kg y mides ${Math.round(altura())} cm. Te llaman ${G.yo.nombre} ${ap}. Tu madre, ${madre.nombre}, tiene ${eM} años y trabaja ${madre.curro}. `;
   s+=padre?`Tu padre, ${padre.nombre}, tiene ${eP} y trabaja ${padre.curro}.`:"De tu padre nadie habla en casa.";
+  if(G.yo.genAlto)s+=" En tu familia hay que agacharse para pasar por las puertas: vienes de gente muy alta.";
   s+=tp=="joven"?" Te han tenido muy jóvenes.":tp=="mayor"?" Ya no te esperaban a estas alturas.":"";
   log(s);
   s=`Vivís en ${G.casa.tipo}, en ${G.casa.barrio}. Sois una familia ${G.riqueza==2?"de clase media":FAM[G.riqueza].toLowerCase()}.`;
@@ -421,11 +423,11 @@ function tick(){
   y.animo+=(55-y.animo)*.04;
   {const d=y.imcD;
     if(a>=18)y.imcD+=.004;if(a>60)y.altMod-=.012;
-    if(G.dieta=="basura")y.imcD=Math.min(18,d+.07);else if(G.dieta=="dieta")y.imcD=Math.max(-4.5,d-.09);
+    if(G.dieta=="basura")y.imcD=Math.min(45,d+(d>5?.14:.08));else if(G.dieta=="dieta")y.imcD=Math.max(-4.5,d-.09);
     if(!G.indep&&G.riqueza==0&&a<18){y.altMod=Math.max(-5,y.altMod-.012);y.imcD=Math.max(-4,y.imcD-.01)}
-    if(a>=12){if(d>10){add("aspecto",-.25);add("salud",-.15);add("cuerpo",-.1)}else if(d>5){add("aspecto",-.12);add("salud",-.05)}else if(d<-3.5){add("aspecto",-.1);add("salud",-.15)}}
-    const c=complexion();if(a>=14&&G.cmp&&G.cmp!=c&&(c=="sobrepeso"||c=="obesidad"||c=="en los huesos"||(c=="peso normal"&&G.cmp!="algo de barriga"&&G.cmp!=g("delgado","delgada"))))
-      log(c=="sobrepeso"?`La báscula marca ${pesoTxt()}. La ropa de hace un año ya no cierra.`:c=="obesidad"?`Pesas ${pesoTxt()}. El médico usa la palabra obesidad sin rodeos.`:c=="en los huesos"?`Te has quedado en ${pesoTxt()}. Te preguntan si estás bien.`:`Vuelves a tu peso: ${pesoTxt()}. Te notas mejor en todo.`,c=="peso normal"?"":"mala");
+    if(a>=12){if(d>18){add("aspecto",-.4);add("salud",-.12);add("cuerpo",-.25)}else if(d>10){add("aspecto",-.25);add("salud",-.15);add("cuerpo",-.1)}else if(d>5){add("aspecto",-.12);add("salud",-.05)}else if(d<-3.5){add("aspecto",-.1);add("salud",-.15)}}
+    const c=complexion();if(a>=14&&G.cmp&&G.cmp!=c&&(c=="sobrepeso"||c=="obesidad"||c=="obesidad mórbida"||c=="en los huesos"||(c=="peso normal"&&G.cmp!="algo de barriga"&&G.cmp!=g("delgado","delgada"))))
+      log(c=="sobrepeso"?`La báscula marca ${pesoTxt()}. La ropa de hace un año ya no cierra.`:c=="obesidad"?`Pesas ${pesoTxt()}. El médico usa la palabra obesidad sin rodeos.`:c=="obesidad mórbida"?`${pesoTxt()}. Te ahogas al atarte los zapatos. El médico habla del corazón y no sonríe.`:c=="en los huesos"?`Te has quedado en ${pesoTxt()}. Te preguntan si estás bien.`:`Vuelves a tu peso: ${pesoTxt()}. Te notas mejor en todo.`,c=="peso normal"?"":"mala");
     G.cmp=c}
   if(G.dieta=="basura"){add("animo",1.2);add("aspecto",-.4);add("salud",-.25)}else if(G.dieta=="dieta"){add("animo",-.8);add("aspecto",.5);add("salud",.2)}
   if(G.fl.fuma)add("salud",-.18);
@@ -458,8 +460,9 @@ function tick(){
   if(!G.muerto&&ch(.12))chequeoVocacion();
   // Tu muerte
   if(G.muerto)return;
-  if(y.salud<=0){muerteYo(G.fl.adicto?"el desgaste de años de consumo":G.fl.fuma&&a>35?"una enfermedad pulmonar":"una salud que ya no daba más de sí");return}
-  let m=mort(y.edad)*(1+Math.max(0,60-y.salud)/30);
+  if(y.salud<=0){muerteYo(y.imcD>10?`un infarto, con ${pesoTxt()}`:G.fl.adicto?"el desgaste de años de consumo":G.fl.fuma&&a>35?"una enfermedad pulmonar":"una salud que ya no daba más de sí");return}
+  if(a>=25&&y.imcD>18&&ch((y.imcD-18)*.0006)){muerteYo(`un infarto, con ${pesoTxt()}`);return}
+  let m=mort(y.edad)*(1+Math.max(0,60-y.salud)/30)*(y.imcD>18?3:y.imcD>10?1.8:1);
   if(G.fl.fuma&&a>35)m*=2; if(G.fl.adicto)m*=2.5;
   if(ch(m/12)){
     const c=a<1?"una muerte súbita en la cuna":G.fl.adicto&&ch(.6)?"una sobredosis":G.fl.fuma&&a>40&&ch(.5)?"un cáncer de pulmón":
@@ -622,6 +625,8 @@ const AREAS={
   t:["el concurso de dibujo del colegio","el certamen provincial de pintura joven","una plaza en la escuela de artes","ilustrando por encargo","Expones en una galería de la capital y se vende todo."],s:2200},
  futbol:{n:"Fútbol",st:"cuerpo",min:5,tx:["Tocas balón contra la pared hasta que anochece.","Entrenas la pierna mala. Cada vez es menos mala.","Tiros a puerta, cien al día.","Juegas con los mayores y aguantas el tipo."],
   t:["el torneo del barrio, como máximo goleador","el campeonato provincial con tu equipo","una prueba en la cantera de un club grande","jugando al fútbol como profesional","Debutas con la selección. En tu barrio cuelgan una pancarta."],s:6000,retiro:35},
+ baloncesto:{n:"Baloncesto",st:"cuerpo",min:6,tx:["Tiros libres hasta que se va la luz de la pista.","Aprendes a botar con la izquierda sin mirar el balón.","Partidillos de tres contra tres en la cancha del barrio.","Entrenas el rebote: codos fuera y a saltar."],
+  t:["el torneo escolar de baloncesto","el campeonato provincial de baloncesto","una plaza en la cantera de un club de baloncesto","jugando al baloncesto como profesional","Fichas por un equipo de la mejor liga del mundo."],s:5000,retiro:36},
  deporte:{n:"Atletismo",st:"cuerpo",min:4,tx:["Series en la pista hasta que te tiemblan las piernas.","Bajas tu marca dos segundos.","Corres antes de que amanezca.","Aprendes a salir de tacos sin tropezar."],
   t:["la carrera escolar","el campeonato regional de atletismo","una beca en un centro de alto rendimiento","compitiendo como atleta","Te cuelgan una medalla en un campeonato internacional."],s:2500,retiro:36},
  judo:{n:"Judo",st:"cuerpo",min:6,tx:["Repites la misma llave mil veces.","Combates de entrenamiento hasta quedarte sin aire.","Aprendes a esperar el error del otro."],
@@ -638,7 +643,8 @@ const AREAS={
   t:["el concurso de lectura en lengua extranjera","el certamen de debate en otro idioma","una beca en un liceo internacional","de intérprete","Traduces en una cumbre internacional, con el mundo escuchando."],s:2400}};
 function voc(k){G.voc=G.voc||{};return G.voc[k]||(G.voc[k]={p:0,t:0,cd:0})}
 function pr(k,n){const v=voc(k);v.p+=n*(v.beca?1.5:1)}
-function nivel(k){const v=voc(k);return v.p*(.3+G.yo[AREAS[k].st]/100)}
+function factorAltura(){const y=G.yo;return clamp(1+(Math.min(215,y.altAdulta+y.altMod)-(y.sexo=="m"?183:170))/45,.5,1.8)}
+function nivel(k){const v=voc(k);return v.p*(.3+G.yo[AREAS[k].st]/100)*(k=="baloncesto"?factorAltura():1)}
 function logro(txt){G.logros=G.logros||[];G.logros.push(anios()+" años: "+txt)}
 function nuevaCiudad(){const o=ORI[G.origen],t=ch(.3)?"capital":"ciudad",l=o.lug[t].filter(n=>n!=G.lugar.nombre);return {tipo:t,nombre:l.length?pick(l):o.lug.ciudad[0]}}
 function chequeoVocacion(){
@@ -684,7 +690,7 @@ function resolverOferta(si){
 }
 function practicar(k){
   const A=AREAS[k];pr(k,1.5);add(A.st,1);add("animo",1);
-  if(k=="futbol"||k=="deporte"||k=="judo"){add("salud",.5);mover()}
+  if(k=="futbol"||k=="deporte"||k=="judo"||k=="baloncesto"){add("salud",.5);mover()}
   return vario("pr"+k,A.tx);
 }
 
@@ -694,6 +700,7 @@ const FE={es:["Ir a misa","la parroquia",["el cura","la catequista"]],mx:["Ir a 
 const RASGOS=[{n:["deportista","deportista"],k:"cuerpo"},{n:["listo","lista"],k:"mente"},{n:["gracioso","graciosa"],k:"carisma"},{n:["presumido","presumida"],k:"aspecto"},{n:["tranquilo","tranquila"],k:"animo"}];
 const ACT=[
  {k:"futbol",t:"Fútbol",st:{cuerpo:2},r:0,sitio:"del fútbol",prof:["el entrenador","la entrenadora"],tx:["Entrenas martes y jueves. Los sábados, partido y bocadillo.","Te ponen de defensa. Descubres que se te da bien estorbar.","Marcas tu primer gol y lo celebras como una final."]},
+ {k:"baloncesto",t:"Baloncesto",st:{cuerpo:2},r:0,sitio:"del baloncesto",prof:["el entrenador de baloncesto","la entrenadora de baloncesto"],tx:["Entrenamiento de baloncesto: vueltas a la pista y rueda de entradas.","Juegas tus primeros minutos en partido. Metes una canasta y no sabes cómo.","Os enseñan una jugada con nombre de número. Sale a la quinta."]},
  {k:"musica",t:"Música",st:{mente:1,carisma:1},r:4,sitio:"de música",prof:["el profesor de música","la profesora de música"],tx:["Escalas y más escalas. Los vecinos golpean la pared.","Te sale una canción entera sin parar. La tocas veinte veces.","Audición de fin de trimestre. Te tiemblan las manos y aun así llegas al final."]},
  {k:"idiomas",t:"Idiomas",st:{mente:2},r:1,sitio:"de la academia",prof:["el profesor de la academia","la profesora de la academia"],tx:["Listas de verbos irregulares. Sueñas con ellas.","Entiendes por primera vez una canción entera en otro idioma.","Te hacen hablar delante de todos. Sobrevives."]},
  {k:"pintura",t:"Pintura",st:{mente:1,aspecto:1},r:3,sitio:"de pintura",prof:["el profesor de pintura","la profesora de pintura"],tx:["Un mes entero pintando la misma jarra.","Manchas tres camisetas y aprendes a mezclar el verde.","Cuelgan un cuadro tuyo en el pasillo de la academia."]},
@@ -1095,7 +1102,7 @@ function acciones(){
       rel(p,-8);add("animo",-10);G.crush=null;return {txt:`Se lo dices a ${p.nombre}. Te contesta que mejor como amigos.`,mal:1}});
   }
   {const ar=Object.keys(AREAS).filter(k=>a>=AREAS[k].min);
-   if(ar.length)L.push({t:"Practicar…",abre:()=>abrirHoja("¿A qué te dedicas este mes?",ar.map(k=>{const v=voc(k),n=Math.round(nivel(k));return {t:AREAS[k].n,s:"Nivel "+n+(v.t<5?" · siguiente meta a "+UMBRAL[v.t]:" · en lo más alto")+(v.beca?" · con beca":""),fn:()=>hacer(()=>practicar(k))}}))})}
+   if(ar.length)L.push({t:"Practicar…",abre:()=>abrirHoja("¿A qué te dedicas este mes?",ar.map(k=>{const v=voc(k),n=Math.round(nivel(k));return {t:AREAS[k].n,s:"Nivel "+n+(v.t<5?" · siguiente meta a "+UMBRAL[v.t]:" · en lo más alto")+(v.beca?" · con beca":"")+(k=="baloncesto"?(factorAltura()>1.15?" · tu altura te da ventaja":factorAltura()<.85?" · te falta altura":""):""),fn:()=>hacer(()=>practicar(k))}}))})}
   {const lg=lugares();if(lg.length)L.push({t:"Ir a…",abre:()=>abrirHoja("¿Adónde vas?",lg)})}
   if(a>=12)L.push({t:"Qué comes: "+({basura:"comida basura",dieta:"dieta"}[G.dieta]||"lo de siempre"),cls:"sec",abre:()=>abrirHoja("¿Qué comes a diario? (no gasta el mes)",[
     {t:"Lo de siempre",s:"Sin efectos",k:""},{t:"Comida basura",s:"Más ánimo cada mes; menos aspecto y salud",k:"basura"},{t:"Dieta estricta",s:"Más aspecto y salud cada mes; menos ánimo",k:"dieta"}].map(o=>({t:o.t,s:o.s,fn:()=>{G.dieta=o.k;
