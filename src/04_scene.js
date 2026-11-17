@@ -151,7 +151,7 @@ function propInst(id, list, tint, mat) {
   for (const L of cells.values()) {
     const im = new THREE.InstancedMesh(propGeo(id), m, L.length); let cx = 0, cz = 0;
     L.forEach((t, i) => { o.position.set(t[0], t[1], t[2]); o.rotation.set(0, t[3] + (PROP_ROT[id] || 0), 0); o.scale.setScalar(t[4]); o.updateMatrix(); im.setMatrixAt(i, o.matrix); cx += t[0] / L.length; cz += t[2] / L.length; });
-    im.frustumCulled = false; scene.add(im); D.propChunks.push({ m: im, x: cx, z: cz, d: id === 'palmera' ? 85 : 110 }); out.push(im);
+    im.frustumCulled = false; scene.add(im); D.propChunks.push({ m: im, x: cx, z: cz, d: id === 'palmera' ? 75 : 100 }); out.push(im);
   }
   return out;
 }

@@ -12,8 +12,7 @@ LIST = {'vespino': 512, 'asador': 512, 'freidora': 256, 'garrafa': 256, 'farola'
         'escopeta': 512, 'durum': 256, 'pita': 256, 'cajapollo': 256, 'patatas': 256, 'lata': 128, 'agua': 128,
         'furgoneta': 512, 'vagabundo': 256, 'carro': 256, 'telefono': 256, 'banco': 256}
 # triángulos máximos tras rebajar (los de los lotes 2 y 3 vienen con 1500-6000)
-FACES = {'contenedor': 900, 'amarillo': 900, 'mesa': 1200, 'maquina': 700, 'palmera': 1500, 'escopeta': 1800, 'durum': 700, 'pita': 800,
-         'cajapollo': 900, 'patatas': 700, 'lata': 300, 'agua': 300, 'furgoneta': 1800, 'vagabundo': 1200, 'carro': 1600, 'telefono': 700, 'banco': 900}
+FACES = {}   # sin rebajar: el rebaje de pymeshlab deformaba los modelos (bancos, contenedores...). Se usan tal cual vienen de Tripo
 
 def decimate(P, U, I, target, N0):
     # rebaja con colapso de aristas que respeta las UV (pymeshlab); devuelve vértices por esquina soldados
