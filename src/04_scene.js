@@ -324,7 +324,7 @@ function buildWorld() {
     const g = new THREE.Group(); g.position.set(x, cyR + 0.02, cz); scene.add(g); D.shelf.push({ g, key: '' });
     hit('sh' + i, x, cyR + 0.1, cz, 0.42, 0.22, 0.34);
   }
-  box(0.42, 0.26, 0.4, M.dark, 2.2, cyR + 0.13, 0.95); box(0.3, 0.16, 0.02, bas(0x1f6a3a), 2.2, cyR + 0.33, 0.9, { rx: 0.4 }); box(0.36, 0.1, 0.3, lam(null, 0x33363c), 2.2, cyR + 0.02, 0.95);
+  if (!HASPROP('barra')) { box(0.42, 0.26, 0.4, M.dark, 2.2, cyR + 0.13, 0.95); box(0.3, 0.16, 0.02, bas(0x1f6a3a), 2.2, cyR + 0.33, 0.9, { rx: 0.4 }); box(0.36, 0.1, 0.3, lam(null, 0x33363c), 2.2, cyR + 0.02, 0.95); }   // la caja vieja: la vitrina de Tripo ya trae la suya
 
   // --- asadores, freidora, basura ---
   box(3.0, 0.9, 0.7, M.steel2, -2.4, 0.45, -3.65, { col: true, occ: true });

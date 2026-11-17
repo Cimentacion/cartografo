@@ -1342,7 +1342,7 @@ function buildWorld() {
     const g = new THREE.Group(); g.position.set(x, cyR + 0.02, cz); scene.add(g); D.shelf.push({ g, key: '' });
     hit('sh' + i, x, cyR + 0.1, cz, 0.42, 0.22, 0.34);
   }
-  box(0.42, 0.26, 0.4, M.dark, 2.2, cyR + 0.13, 0.95); box(0.3, 0.16, 0.02, bas(0x1f6a3a), 2.2, cyR + 0.33, 0.9, { rx: 0.4 }); box(0.36, 0.1, 0.3, lam(null, 0x33363c), 2.2, cyR + 0.02, 0.95);
+  if (!HASPROP('barra')) { box(0.42, 0.26, 0.4, M.dark, 2.2, cyR + 0.13, 0.95); box(0.3, 0.16, 0.02, bas(0x1f6a3a), 2.2, cyR + 0.33, 0.9, { rx: 0.4 }); box(0.36, 0.1, 0.3, lam(null, 0x33363c), 2.2, cyR + 0.02, 0.95); }   // la caja vieja: la vitrina de Tripo ya trae la suya
 
   // --- asadores, freidora, basura ---
   box(3.0, 0.9, 0.7, M.steel2, -2.4, 0.45, -3.65, { col: true, occ: true });
@@ -5746,7 +5746,15 @@ function updateViewmodel(dt) {
     if (h) {
       const it = itemMesh(h); vmItem.add(it);
       const arm = new THREE.Mesh(G(0.075, 0.075, 0.4), lam(null, 0xc8906a));
-      if (h.k === 'gun') { it.scale.setScalar(1.15); vmItem.position.set(0.19, -0.2, -0.36); arm.position.set(0.02, -0.07, 0.3); }
+      if (h.k === 'gun') {
+        it.scale.setScalar(1.15); vmItem.position.set(0.19, -0.2, -0.36); arm.position.set(0.02, -0.07, 0.3);
+        // mano de delante en el guardamanos, fogonazo en la boca y los dos cartuchos que entran al recargar
+        const fore = new THREE.Mesh(G(0.07, 0.07, 0.3), lam(null, 0xc8906a)); fore.position.set(-0.05, -0.09, -0.12); fore.rotation.set(0.9, 0.5, 0); vmItem.add(fore);
+        const fl = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.34), new THREE.MeshBasicMaterial({ map: flashTex(), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+        fl.position.set(0, 0.0, -0.52); fl.visible = false; vmItem.add(fl);
+        const sm = lam(null, 0xb81a14), shells = [0, 1].map(i => { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.07, 6), sm); c.rotation.x = PI / 2; c.visible = false; vmItem.add(c); return c; });
+        vmItem.userData = { gun: true, base: vmItem.position.clone(), fl, shells, sx: 0, sy: 0, ly: me.yaw, lp: me.pitch, roll: 0 };
+      }
       else if (h.k === 'kb') { it.scale.setScalar(1.25); it.rotation.x = 0.85; it.rotation.y = h.w && h.b === 0 ? 0.5 : 0; vmItem.position.set(0.04, -0.2, -0.44); arm.position.set(0.12, -0.1, 0.22); arm.rotation.y = 0.3; }
       else if (h.k === 'bag') { it.scale.setScalar(0.85); it.rotation.y = 0.5; vmItem.position.set(0.3, -0.46, -0.6); arm.position.set(0.02, 0.1, 0.22); }
       else if (h.k === 'body') { it.scale.setScalar(1.15); it.rotation.y = 0.35; vmItem.position.set(0.06, -0.4, -0.52); arm.position.set(0.22, 0.02, 0.2); }
@@ -5761,6 +5769,28 @@ function updateViewmodel(dt) {
   vm.rotation.x = vmRecoil * 0.5 - (reloadT > 0 ? 0.5 * Math.sin(Math.min(1, reloadT / 1.2) * PI) : 0);
   if (reloadT > 0) reloadT -= dt; if (shotCd > 0) shotCd -= dt;
   if (flashT > 0) { flashT -= dt; LG.flash.intensity = 3.2; } else LG.flash.intensity = 0;
+  gunAnim(dt);
+}
+// la escopeta en la mano: respira, se balancea al andar, se retrasa al girar, culatazo con giro y recarga abriendo el cañón
+function gunAnim(dt) {
+  const U = vmItem.userData; if (!U || !U.gun) return;
+  let dy = me.yaw - U.ly; if (dy > PI) dy -= 2 * PI; if (dy < -PI) dy += 2 * PI; const dp = me.pitch - U.lp; U.ly = me.yaw; U.lp = me.pitch;
+  U.sx += (clamp(dy * 3, -0.14, 0.14) - U.sx) * Math.min(1, dt * 7); U.sy += (clamp(dp * 3, -0.12, 0.12) - U.sy) * Math.min(1, dt * 7);
+  const br = Math.sin(TIME * 1.7) * 0.004, b = me.bob, wl = Math.sin(b * 0.5), wb = Math.abs(Math.sin(b));
+  if (vmRecoil > 0.95) U.roll = (Math.random() - 0.5) * 0.25;
+  U.roll *= Math.exp(-dt * 5);
+  // recarga: 0-30% abre (baja, gira), 30-80% entran los cartuchos, 80-100% cierra de golpe
+  const r = reloadT > 0 ? 1 - reloadT / 1.2 : -1, open = r < 0 ? 0 : r < 0.3 ? r / 0.3 : r < 0.8 ? 1 : 1 - (r - 0.8) / 0.2;
+  vmItem.position.set(U.base.x + U.sx * 0.12 + wl * 0.014 - open * 0.08, U.base.y - wb * 0.012 + br + U.sy * 0.08 - open * 0.05, U.base.z + open * 0.06);
+  vmItem.rotation.set(U.sy * 0.5 + br * 2 + open * 0.5, U.sx * 0.7 + open * 0.35, -U.sx * 0.5 + wl * 0.025 + U.roll - open * 0.7);
+  U.shells.forEach((c, i) => { const t = r < 0 ? -1 : (r - 0.3 - i * 0.22) / 0.2; c.visible = t > 0 && t < 1; if (c.visible) c.position.set(0.08 - t * 0.08, -0.12 + t * 0.12, -0.02 + i * 0.012); });
+  if (r > 0.8 && !U.snap) { U.snap = 1; AU.play('click'); } if (r < 0) U.snap = 0;
+  U.fl.visible = flashT > 0; if (U.fl.visible) { U.fl.rotation.z = Math.random() * 6.28; U.fl.scale.setScalar(0.8 + Math.random() * 0.6); }
+}
+let _flashTex = null;
+function flashTex() {
+  if (_flashTex) return _flashTex;
+  return (_flashTex = ctex(64, 64, (g) => { const gr = g.createRadialGradient(32, 32, 2, 32, 32, 30); gr.addColorStop(0, 'rgba(255,250,220,1)'); gr.addColorStop(0.3, 'rgba(255,190,80,.9)'); gr.addColorStop(1, 'rgba(255,90,20,0)'); g.fillStyle = gr; g.beginPath(); for (let i = 0; i < 12; i++) { const a = i / 12 * PI * 2, rr = i % 2 ? 12 : 31; g.lineTo(32 + Math.cos(a) * rr, 32 + Math.sin(a) * rr); } g.fill(); }));
 }
 function tryShoot(P) {
   if (shotCd > 0 || reloadT > 0) return;
