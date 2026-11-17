@@ -1,18 +1,27 @@
 # Música árabe con licencia libre de Wikimedia Commons y packs de sonidos de terror de OpenGameArt.
 # Todo se pasa a mono, 22 kHz, MP3 de poca tasa (estilo PS2 y que pese poco). Deja data/audio/index.json con autor y licencia.
-import json, os, re, subprocess, urllib.request, urllib.parse, zipfile, io, glob, shutil, time
+import json, os, re, subprocess, urllib.request, urllib.error, urllib.parse, zipfile, io, glob, shutil, time
 OUT = 'data/audio'; os.makedirs(OUT + '/music', exist_ok=True); os.makedirs(OUT + '/sfx', exist_ok=True)
-UA = {'User-Agent': 'kebab-poniente-audio/1.0 (github actions; non-commercial game asset fetch)'}
-def get(url, tries=3):
+UA = {'User-Agent': 'KebabPonienteBot/1.1 (https://github.com/Cimentacion/cartografo; asset fetch for a free game) python-urllib'}
+def get(url, tries=6):
+    # Commons corta con 429 si se va deprisa: un segundo y medio entre llamadas y espera lo que pida Retry-After
     for i in range(tries):
+        time.sleep(1.5 if 'wikimedia' in url else 0)
         try:
             with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=300) as r: return r.read()
+        except urllib.error.HTTPError as e:
+            ra = e.headers.get('Retry-After'); w = int(ra) if ra and ra.isdigit() else 20 * (i + 1)
+            print('retry', url[:100], e, 'espera', w); time.sleep(min(w, 120))
         except Exception as e: print('retry', url[:100], e); time.sleep(4 + i * 6)
     return None
 def conv(src, dst, secs, rate='48k'):
     r = subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', src, '-t', str(secs), '-ac', '1', '-ar', '22050', '-b:a', rate, dst])
     return r.returncode == 0 and os.path.exists(dst)
 index = {'music': [], 'sfx': []}
+try:
+    old = json.load(open(f'{OUT}/index.json'))
+    if old.get('sfx'): index['sfx'] = old['sfx']
+except Exception: pass
 # ---------- música: Commons ----------
 API = 'https://commons.wikimedia.org/w/api.php?'
 OK = re.compile(r'^(CC0|Public domain|PD|CC BY(-SA)? [0-9.]+|CC BY(-SA)?)', re.I)
@@ -44,7 +53,7 @@ for t in files:
             index['music'].append({'file': name, 'title': t, 'license': lic, 'artist': art, 'url': 'https://commons.wikimedia.org/wiki/' + urllib.parse.quote(t.replace(' ', '_')), 'desc': re.sub('<[^>]+>', '', md.get('ImageDescription', {}).get('value', ''))[:200]})
             print('  música', name, t, lic)
 # ---------- sonidos de terror: OpenGameArt ----------
-PAGES = ['horror-sound-effects-library', 'horror-sfx', 'horror-hit-soundpack-1', 'eeryhorror-sfx', 'horror-2', 'ghost-monster-zombie-sounds', 'monster-sounds-0']
+PAGES = [] if index['sfx'] else ['horror-sound-effects-library', 'horror-sfx', 'horror-hit-soundpack-1', 'eeryhorror-sfx', 'horror-2', 'ghost-monster-zombie-sounds', 'monster-sounds-0']
 for slug in PAGES:
     html = get('https://opengameart.org/content/' + slug)
     if not html: continue
