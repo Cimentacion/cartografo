@@ -408,8 +408,11 @@ function buildWorld() {
     hit('vc' + i, x, 0.35, -7.15, 0.54, 0.7, 0.54);
   }
   colliders.push({ x0: 0.5, x1: 2.4, z0: -7.5, z1: -6.88 });
-  box(0.42, 1.8, 1.9, M.steel2, 3.76, 0.9, -5.55, { col: true, occ: true });
-  for (let i = 0; i < 5; i++) box(0.3, 0.26, 0.34, lam('wood', i % 2 ? 0xb89868 : 0x9a7a50), 3.5, 0.35 + (i % 3) * 0.55, -6.2 + i * 0.36, { ry: i * 0.2 });
+  const shB = box(0.42, 1.8, 1.9, M.steel2, 3.76, 0.9, -5.55, { col: true, occ: true });
+  if (HASPROP('estanteria')) {   // estantería metálica de Tripo con cajas, garrafas de aceite, sacos y cebollas
+    shB.material = shB.material.clone(); shB.material.visible = false; const e = PROPDATA.estanteria.e, L = 2.0 / e[1];
+    const m = propMesh('estanteria', 1, scene); m.scale.setScalar(L); m.rotation.y = PI; m.position.set(3.98 - e[0] * L / 2, 0, -5.55);
+  } else for (let i = 0; i < 5; i++) box(0.3, 0.26, 0.34, lam('wood', i % 2 ? 0xb89868 : 0x9a7a50), 3.5, 0.35 + (i % 3) * 0.55, -6.2 + i * 0.36, { ry: i * 0.2 });
   box(0.1, 0.52, 0.4, lam('fuse'), 0.56, 1.5, -5.3); D.fuseLever = box(0.05, 0.14, 0.05, lam(null, 0xb0201a), 0.63, 1.55, -5.3); D.fuseLed = box(0.02, 0.03, 0.03, bas(0x30ff50), 0.615, 1.7, -5.42);
   hit('fuse', 0.6, 1.5, -5.3, 0.22, 0.6, 0.5);
   // mesa de despiece

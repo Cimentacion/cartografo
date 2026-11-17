@@ -33,8 +33,17 @@ def texture_uris():
     return data
 
 
+def sound_uris():
+    # sonidos y música (assets/audio/*.mp3): música árabe de Commons y sonidos de terror de OpenGameArt
+    data = {}
+    for path in sorted(glob.glob(os.path.join(ROOT, 'assets', 'audio', '*.mp3'))):
+        data[os.path.splitext(os.path.basename(path))[0]] = 'data:audio/mpeg;base64,' + base64.b64encode(open(path, 'rb').read()).decode()
+    return data
+
+
 def main():
     tex = texture_uris()
+    snd = sound_uris()
     code = ''.join(open(f, encoding='utf-8').read() + '\n' for f in sorted(glob.glob(os.path.join(SRC, '0*.js'))))
     if '</script' in code:
         sys.exit('El código contiene </script y rompería la página.')
@@ -47,7 +56,7 @@ def main():
 
     # 1) Artefacto de Claude: todo en un archivo, three.js desde cdnjs (lo único que deja cargar).
     os.makedirs(os.path.join(ROOT, 'dist'), exist_ok=True)
-    one = shell.replace('/*__GAME__*/', 'const TEXDATA=' + json.dumps(tex) + ';\n' + code)
+    one = shell.replace('/*__GAME__*/', 'const TEXDATA=' + json.dumps(tex) + ';\nwindow.SNDDATA=' + json.dumps(snd) + ';\n' + code)
     with open(os.path.join(ROOT, 'dist', 'kebab-poniente.artifact.html'), 'w', encoding='utf-8') as f:
         f.write(one)
 
@@ -70,6 +79,9 @@ def main():
         with open(os.path.join(jsdir, 'tex-%d.js' % n), 'w', encoding='utf-8') as f:
             f.write('window.TEXDATA=Object.assign(window.TEXDATA||{},' + json.dumps(ch) + ');\n')
         tags.append('<script src="js/tex-%d.js"></script>' % n)
+    with open(os.path.join(jsdir, 'snd.js'), 'w', encoding='utf-8') as f:
+        f.write('window.SNDDATA=' + json.dumps(snd) + ';\n')
+    tags.append('<script src="js/snd.js"></script>')
     with open(os.path.join(jsdir, 'game.js'), 'w', encoding='utf-8') as f:
         f.write(code)
     tags.append('<script src="js/game.js"></script>')
