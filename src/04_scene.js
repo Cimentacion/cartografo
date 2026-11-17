@@ -296,11 +296,10 @@ function buildWorld() {
   // --- mostrador ---
   const ctr = [box(6.6, 0.96, 0.7, M.tgrey, -0.7, 0.48, 0.95, { col: true, occ: true, tile: 1.0 }), box(6.7, 0.05, 0.8, M.steel, -0.7, 0.985, 0.95),
     plane(2.5, 0.4, lam(null, 0x9ab0b8, { transparent: true, opacity: 0.18, side: THREE.DoubleSide, depthWrite: false }), -2.75, 1.22, 1.27, 0.25, 0)];
-  // barra de Tripo: dos tramos de mostrador de acero con la vitrina refrigerada, de cara a los clientes
-  if (HASPROP('barra')) {
-    ctr[0].material = ctr[0].material.clone(); ctr[0].material.visible = false; ctr[1].visible = false; ctr[2].visible = false;
-    for (const cx of [-2.35, 0.95]) { const m = propMesh('barra', 1, scene); m.scale.set(0.82 / 0.4, 3.8, 3.3); m.rotation.y = -PI / 2; m.position.set(cx, 0, 0.95); }
-  }
+  // mostrador normal: frente de acero cepillado con zócalo y remaches, encimera de acero y mampara baja de cristal
+  // (la vitrina de Tripo medía dos metros y tapaba todo: fuera)
+  ctr[0].material = lam('steel2', 0xb8b8b4); box(6.62, 0.12, 0.02, lam(null, 0x2a2a2c), -0.7, 0.06, 1.31);
+  for (let i = 0; i < 6; i++) box(0.03, 0.82, 0.015, M.steelD, -3.9 + i * 1.3, 0.53, 1.31);
   const cy = 1.01, cz = 0.8;
   for (let i = 0; i < 3; i++) {
     const x = -3.7 + i * 0.4;
