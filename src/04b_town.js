@@ -398,11 +398,17 @@ function makeDog() {
 
 /* ---------- construcción ---------- */
 function waveTex() {
-  return ctex(256, 128, (g) => {
-    g.fillStyle = '#e4dfd4'; g.fillRect(0, 0, 256, 128);
-    for (const [y0, col] of [[18, '#7a5a40'], [64, '#9a7a5a'], [108, '#7a5a40']]) { g.fillStyle = col; g.beginPath(); g.moveTo(0, y0); for (let x = 0; x <= 256; x += 4) g.lineTo(x, y0 + Math.sin(x / 256 * PI * 4) * 10); for (let x = 256; x >= 0; x -= 4) g.lineTo(x, y0 + 9 + Math.sin(x / 256 * PI * 4) * 10); g.fill(); }
-    g.strokeStyle = 'rgba(0,0,0,0.12)'; g.lineWidth = 1; for (let x = 0; x < 256; x += 32) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, 128); g.stroke(); } for (let y = 0; y < 128; y += 32) { g.beginPath(); g.moveTo(0, y); g.lineTo(256, y); g.stroke(); }
+  // ondas del paseo de Levante: bandas anchas con bordes suaves y poco contraste; las rayas finas y oscuras hacían moiré a lo lejos
+  const t = ctex(256, 256, (g) => {
+    const im = g.createImageData(256, 256), d = im.data;
+    for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) {
+      const w = Math.sin((y / 256 * 2 + Math.sin(x / 256 * PI * 2) * 0.22) * PI * 2);   // dos ondas por baldosa
+      const k = 0.5 + 0.5 * Math.tanh(w * 2.2), n = (Math.random() - 0.5) * 10;
+      const i = (y * 256 + x) * 4; d[i] = 214 - 64 * k + n; d[i + 1] = 206 - 72 * k + n; d[i + 2] = 192 - 80 * k + n; d[i + 3] = 255;
+    }
+    g.putImageData(im, 0, 0);
   });
+  t.anisotropy = 8; return t;
 }
 function buildSea() {
   const [X0, X1, Z0, Z1] = TOWN.bounds;
@@ -530,7 +536,7 @@ function buildTown() {
     if (k === 'ped' && a.P.some(p => p[1] > 3)) k = 'wave';
     if (!Z[k]) continue;
     const y = { beach: 0.006, garden: 0.022, parking: 0.016, lot: 0.018, ped: 0.012, wave: 0.0125, pitch: 0.026, pool: 0.07, scrub: 0.02 }[k];   // capas bien separadas: con el búfer logarítmico 1 mm no basta
-    const g = polyGeo(a.P, y, k === 'beach' ? 3 : k === 'wave' ? 9 : 2.2); if (g) Z[k].push(g);
+    const g = polyGeo(a.P, y, k === 'beach' ? 3 : k === 'wave' ? 7 : 2.2); if (g) Z[k].push(g);
     if (k === 'pool') { for (let i = 0; i < a.P.length; i++) { const p = a.P[i], q = a.P[(i + 1) % a.P.length]; Z.poolE.push(wallSegGeo(p[0], p[1], q[0], q[1], 0.14, 0.32, 1)); addSeg(p[0], p[1], q[0], q[1], 0, 0.6); } }
   }
   addMerged(Z.beach, lam('sand', 0xb0a080)); addMerged(Z.garden, lam('grass', 0x5a7a4a)); addMerged(Z.parking, lam('asph', 0x7a7a80)); addMerged(Z.lot, lam('gravel', 0x8a7a68));

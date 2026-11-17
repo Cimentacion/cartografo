@@ -5,14 +5,14 @@ const colliders = [], rayTargets = [], D = {}, TX = {}, LG = {}, M = {};
 const IH = 360;
 const SLOTS = [[-2.4, 1.85], [-0.8, 1.85], [0.8, 1.85]], QUEUE = [[2.2, 2.9], [1.0, 3.8], [2.6, 4.2]];
 const DOOR_IN = [[-2.6, 6.3], [-2.6, 4.4]];
-const SEG = 10, BANDS = 6, NCELL = SEG * BANDS, SPY0 = 1.02, BH = 0.13, SPX = [-3.45, -2.75, -2.05, -1.35], SPZ = -3.62;
+const SEG = 10, BANDS = 6, NCELL = SEG * BANDS, SPY0 = 1.27, BH = 0.1, SPX = [-3.45, -2.75, -2.05, -1.35], SPZ = -3.62;
 const SPT = [0, 1, 0, 1];   // tipo de carne de cada asador: los dos que se compran repiten pollo y ternera
 const SV = [0, 1, 2, 3].map(() => ({ lv: new Uint8Array(NCELL).fill(7), dn: new Float32Array(NCELL).fill(0.75), pend: new Float32Array(NCELL), dirty: true, cs: '', ds: '' }));
 
 function loadTextures() {
   return Promise.all(Object.keys(TEXDATA).map(k => new Promise(res => {
     const im = new Image();
-    im.onload = () => { const t = new THREE.Texture(im); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.needsUpdate = true; TX[k] = t; res(); };
+    im.onload = () => { const t = new THREE.Texture(im); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; t.needsUpdate = true; TX[k] = t; res(); };
     im.onerror = () => { TX[k] = null; res(); };
     im.src = TEXDATA[k];
   })));
@@ -69,7 +69,8 @@ function hit(key, x, y, z, w, h, d) {
 }
 
 /* ---------- carne del asador ---------- */
-function spitRad(b, lv) { const R = 0.17 + 0.06 * (b / (BANDS - 1)); return 0.05 + (R - 0.05) * lv / 7; }
+const PILEY = 1.1, PILEZ = 0.14;   // bandeja de la carne cortada, dentro de la carcasa del asador
+function spitRad(b, lv) { const R = 0.11 + 0.045 * (b / (BANDS - 1)); return 0.04 + (R - 0.04) * lv / 7; }
 const MC = [[[0.95, 0.72, 0.66], [0.88, 0.6, 0.27], [0.6, 0.36, 0.14], [0.12, 0.085, 0.07]], [[0.82, 0.36, 0.36], [0.66, 0.38, 0.2], [0.4, 0.22, 0.12], [0.1, 0.07, 0.06]]];
 function meatColor(i, d, o) {
   const P = MC[i]; let a, b, t;
@@ -93,11 +94,11 @@ function buildSpit(i) {
   mesh.frustumCulled = false; grp.add(mesh);
   // hierro, base y bandeja
   const o = { parent: root };
-  cyl(0.012, 0.012, 1.25, 6, M.steelD, x, 1.5, SPZ, o);
+  cyl(0.012, 0.012, 0.9, 6, M.steelD, x, SPY0 + 0.35, SPZ, o);
   cyl(0.09, 0.07, 0.03, 8, M.steelD, x, SPY0 + BANDS * BH + 0.03, SPZ, o);
   box(0.6, 0.04, 0.62, M.steel, x, 0.93, SPZ + 0.02, o);
   box(0.6, 0.05, 0.02, M.steel, x, 0.965, SPZ + 0.33, o);
-  const pile = new THREE.Mesh(new THREE.SphereGeometry(0.12, 7, 4, 0, PI * 2, 0, PI / 2), new THREE.MeshLambertMaterial({ map: TX.meat, color: 0xa86a30 }));
+  const pile = new THREE.Mesh(new THREE.SphereGeometry(0.085, 7, 4, 0, PI * 2, 0, PI / 2), new THREE.MeshLambertMaterial({ map: TX.meat, color: 0xa86a30 }));
   pile.position.set(x, 0.95, SPZ + 0.24); pile.scale.set(1.6, 0.01, 0.6); root.add(pile);
   // resistencia
   const heat = plane(0.6, 0.92, new THREE.MeshBasicMaterial({ map: D.heatTex, color: 0xffffff }), x, 1.44, -3.93, 0, 0, null, false, root);
@@ -105,11 +106,12 @@ function buildSpit(i) {
   // asador de Tripo: carcasa, bandeja y resistencia (sin su rollo, que es el del juego)
   if (typeof PROPDATA !== 'undefined' && PROPDATA.asador) {
     for (const c of root.children.slice()) if (c !== grp && c !== pile && c.geometry && c.geometry.type === 'BoxGeometry') root.remove(c);
-    heat.visible = false; const m = propMesh('asador', 1.25, root); m.rotation.y = -PI / 2; m.position.set(x, 0.93, SPZ - 0.08);
+    heat.visible = false; const m = propMesh('asador', 1.25, root); m.rotation.y = -PI / 2; m.position.set(x + 0.009, 0.93, SPZ - 0.0975);
+    pile.position.set(x, PILEY, SPZ + PILEZ); pile.scale.set(1.1, 0.01, 0.55);
   }
   D.spit[i] = { root, grp, mesh, g, pile, heat };
   hit('sp' + i, x, 1.45, SPZ, 0.5, 0.86, 0.4);
-  hit('tr' + i, x, 0.99, SPZ + 0.25, 0.58, 0.16, 0.22);
+  hit('tr' + i, x, PILEY + 0.04, SPZ + PILEZ, 0.5, 0.16, 0.2);
 }
 const _c3 = [0, 0, 0];
 function updateSpitMesh(i) {

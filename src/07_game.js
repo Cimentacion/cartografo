@@ -304,12 +304,12 @@ function localCut(i, cells) {
   if (!NET.isHost) { for (const c of valid) { const d = S.dn[c]; S.lv[c]--; S.dn[c] = 0.12 + Math.min(d, 1) * 0.1; S.pend[c] = TIME; } S.dirty = true; }
   act('cut', i, valid); return valid.length;
 }
-function enterCut(i) { cut.on = true; cut.i = i; cut.y = 1.88; cut.press = false; cut.last = 7; me.pitch = -0.1; }
+function enterCut(i) { cut.on = true; cut.i = i; cut.y = SPY0 + BANDS * BH - 0.04; cut.press = false; cut.last = 7; me.pitch = -0.1; }
 function updateCut(dt) {
   knife.visible = cut.on; if (!cut.on) return;
   const P = myP(); if (!W || W.ph !== 'play' || !P || P.h || P.ko > 0 || overlay) { cut.on = false; knife.visible = false; return; }
   if (IN.use || IN.back) { IN.use = IN.back = false; cut.on = false; me.yaw = 0; me.pitch = -0.07; return; }
-  cut.y = clamp(cut.y - IN.ly * 0.0032, 0.94, 1.92); IN.lx = 0; IN.ly = 0;
+  cut.y = clamp(cut.y - IN.ly * 0.0032, SPY0 - 0.06, SPY0 + BANDS * BH + 0.04); IN.lx = 0; IN.ly = 0;
   const band = Math.floor((cut.y - SPY0) / BH), press = IN.held || !!IN.padHeld || (IN.dev === 'kb' && !IN.locked && !!IN.drag);
   const rot = spitRot(cut.i, Tsm), S = SV[cut.i];
   if (press && cut.press && band < cut.last) {
