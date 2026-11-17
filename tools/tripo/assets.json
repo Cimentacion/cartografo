@@ -1,12 +1,52 @@
 [
-  {"id": "vespino", "faces": 5000, "prompt": "1990s Spanish moped scooter like a Vespino, cream paint, front leg shield, round headlight on the handlebar, small wheels, flat floorboard, worn and dirty, game asset, realistic proportions"},
-  {"id": "asador", "faces": 4000, "prompt": "vertical doner kebab rotisserie: stainless steel base, vertical spit with a large cone of grilled meat, gas heating panel behind, drip tray, greasy, kebab shop equipment, game asset"},
-  {"id": "freidora", "faces": 2500, "prompt": "commercial stainless steel deep fryer with two baskets, oily and worn, fast food kitchen equipment, game asset"},
-  {"id": "contenedor", "faces": 2000, "prompt": "dark green Spanish street waste container, 1000 liter plastic wheelie bin with domed lid and pedal, dirty and scratched, game asset"},
-  {"id": "amarillo", "faces": 2000, "prompt": "yellow Spanish recycling container for plastics, large plastic street bin with round openings on the lid, dirty, game asset"},
-  {"id": "mesa", "faces": 2500, "prompt": "cheap aluminium bar terrace table with a round red top and two red stacking plastic chairs, Spanish beach bar furniture, game asset"},
-  {"id": "garrafa", "faces": 1500, "prompt": "red plastic petrol jerry can, 10 liters, with handle and spout, scuffed, game asset"},
-  {"id": "maquina", "faces": 3000, "prompt": "street drinks vending machine with a lit glass front full of cans and bottles, metal body, stickers and scratches, game asset"},
-  {"id": "palmera", "faces": 5000, "prompt": "tall date palm tree with a slightly curved rough trunk and a full crown of long drooping fronds, Mediterranean seafront, game asset"},
-  {"id": "farola", "faces": 1500, "prompt": "tall Mediterranean seafront street lamp, dark green cast iron pole with one white glass globe on top, game asset"}
+ {
+  "id": "vespino",
+  "faces": 500,
+  "prompt": "1990s Spanish moped scooter like a Vespino, cream paint, front leg shield, round headlight on the handlebar, small wheels, flat floorboard, worn and dirty, low poly game asset, simple shapes, PS2 style, realistic proportions"
+ },
+ {
+  "id": "asador",
+  "faces": 500,
+  "prompt": "vertical doner kebab rotisserie: stainless steel base, vertical spit with a large cone of grilled meat, gas heating panel behind, drip tray, greasy, kebab shop equipment, low poly game asset, simple shapes, PS2 style"
+ },
+ {
+  "id": "freidora",
+  "faces": 500,
+  "prompt": "commercial stainless steel deep fryer with two baskets, oily and worn, fast food kitchen equipment, low poly game asset, simple shapes, PS2 style"
+ },
+ {
+  "id": "contenedor",
+  "faces": 500,
+  "prompt": "dark green Spanish street waste container, 1000 liter plastic wheelie bin with domed lid and pedal, dirty and scratched, low poly game asset, simple shapes, PS2 style"
+ },
+ {
+  "id": "amarillo",
+  "faces": 500,
+  "prompt": "yellow Spanish recycling container for plastics, large plastic street bin with round openings on the lid, dirty, low poly game asset, simple shapes, PS2 style"
+ },
+ {
+  "id": "mesa",
+  "faces": 500,
+  "prompt": "cheap aluminium bar terrace table with a round red top and two red stacking plastic chairs, Spanish beach bar furniture, low poly game asset, simple shapes, PS2 style"
+ },
+ {
+  "id": "garrafa",
+  "faces": 500,
+  "prompt": "red plastic petrol jerry can, 10 liters, with handle and spout, scuffed, low poly game asset, simple shapes, PS2 style"
+ },
+ {
+  "id": "maquina",
+  "faces": 500,
+  "prompt": "street drinks vending machine with a lit glass front full of cans and bottles, metal body, stickers and scratches, low poly game asset, simple shapes, PS2 style"
+ },
+ {
+  "id": "palmera",
+  "faces": 500,
+  "prompt": "tall date palm tree with a slightly curved rough trunk and a full crown of long drooping fronds, Mediterranean seafront, low poly game asset, simple shapes, PS2 style"
+ },
+ {
+  "id": "farola",
+  "faces": 500,
+  "prompt": "tall Mediterranean seafront street lamp, dark green cast iron pole with one white glass globe on top, low poly game asset, simple shapes, PS2 style"
+ }
 ]
