@@ -190,6 +190,7 @@ function guardar(){try{localStorage.setItem(CLAVE,JSON.stringify(G))}catch(e){}}
 function cargar(){try{const s=localStorage.getItem(CLAVE);if(s)G=JSON.parse(s)}catch(e){G=null}
   if(G&&!G.v2){G.gente.forEach(p=>p.con=true);G.v2=1}
   if(G&&G.yo.aspecto==null)G.yo.aspecto=35;
+  if(G&&G.yo.altAdulta==null)genCuerpo();
   if(G&&(G.titulo||G.uni)&&!G.carrera)G.carrera="economia"}
 function borrar(){try{localStorage.removeItem(CLAVE)}catch(e){}}
 
@@ -198,6 +199,24 @@ const g=(m,f)=>G.yo.sexo=="m"?m:f;
 const gp=(p,m,f)=>p.sexo=="m"?m:f;
 const P=id=>G.gente.find(p=>p.id==id);
 const vivos=f=>G.gente.filter(p=>p.vivo&&(!f||f(p)));
+/* ---- Altura y peso ---- */
+const CREC=[[0,.29],[1,.43],[2,.5],[4,.585],[6,.66],[8,.73],[10,.79],[12,.86],[14,.93],[16,.98],[18,1]];
+function genCuerpo(){
+  const y=G.yo,pa=ri(162,190),ma=ri(150,175);
+  y.altAdulta=Math.round((pa+ma+(y.sexo=="m"?13:-13))/2+ri(-6,6));y.altMod=0;y.imcD=ri(-10,20)/10;
+}
+function altura(){ // cm
+  const y=G.yo,a=y.edad/12;let f=1;
+  for(let i=1;i<CREC.length;i++)if(a<CREC[i][0]){const p=CREC[i-1],q=CREC[i];f=p[1]+(q[1]-p[1])*(a-p[0])/(q[0]-p[0]);break}
+  return (y.altAdulta+y.altMod)*f;
+}
+function imcBase(){const a=G.yo.edad/12;return a<1?14+3*a:a<6?17-.3*(a-1):a<18?15.5+(a-6)*.5:a<50?21.5+(a-18)*.06:23.4}
+function imc(){return imcBase()+G.yo.imcD}
+function peso(){const h=altura()/100;return imc()*h*h}
+function altTxt(){const h=altura();return h<100?Math.round(h)+" cm":(h/100).toFixed(2).replace(".",",")+" m"}
+function pesoTxt(){const p=peso();return (p<10?p.toFixed(1).replace(".",","):Math.round(p))+" kg"}
+function complexion(){const d=G.yo.imcD;return d<-3.5?"en los huesos":d<-1.5?g("delgado","delgada"):d<3?"peso normal":d<6?"algo de barriga":d<10?"sobrepeso":"obesidad"}
+function mover(n){const y=G.yo;if(y.edad<216)y.altMod=Math.min(3,y.altMod+.03);y.imcD=Math.max(-4,y.imcD-(n||.06))}
 function etapa(){const a=G.yo.edad/12;return a<2?"bebé":a<6?"infancia":a<12?"niñez":a<18?"adolescencia":a<65?"edad adulta":"vejez"}
 function edadTxt(m){const a=Math.floor(m/12);return a<1?m+(m==1?" mes":" meses"):a+(a==1?" año":" años")}
 function add(k,v){const y=G.yo;y[k]=clamp(y[k]+v)}
@@ -258,6 +277,7 @@ function nacer(op){
   const ap=pick(o.ap), apM=pick(o.ap.filter(x=>x!=ap)), sexo=op.sexo||sx();
   G.yo={nombre:"",apellido:ap,sexo,edad:0,salud:ri(60,92),animo:70,mente:ri(0,4),cuerpo:ri(0,4),carisma:ri(2,8),aspecto:ri(20,50),dinero:0};
   G.yo.nombre=(op.nombre||"").trim()||pick(sexo=="m"?o.m:o.f);
+  genCuerpo();
   const tipo=pick(["aldea","pueblo","pueblo","ciudad","ciudad","ciudad","capital"]);
   G.lugar={tipo,nombre:pick(o.lug[tipo])};
   G.fe=ch(origen=="ma"?.7:origen=="jp"?.3:.5);
@@ -296,7 +316,7 @@ function nacer(op){
   const vec=genVecinos();
   // Relato del nacimiento
   titular("Naces",G.lugar.nombre+", "+o.pais);
-  let s=`Naces en ${G.lugar.nombre}, ${LUGTXT[tipo]} de ${o.pais}. Te llaman ${G.yo.nombre} ${ap}. Tu madre, ${madre.nombre}, tiene ${eM} años y trabaja ${madre.curro}. `;
+  let s=`Naces en ${G.lugar.nombre}, ${LUGTXT[tipo]} de ${o.pais}. Pesas ${(peso()).toFixed(1).replace(".",",")} kg y mides ${Math.round(altura())} cm. Te llaman ${G.yo.nombre} ${ap}. Tu madre, ${madre.nombre}, tiene ${eM} años y trabaja ${madre.curro}. `;
   s+=padre?`Tu padre, ${padre.nombre}, tiene ${eP} y trabaja ${padre.curro}.`:"De tu padre nadie habla en casa.";
   s+=tp=="joven"?" Te han tenido muy jóvenes.":tp=="mayor"?" Ya no te esperaban a estas alturas.":"";
   log(s);
@@ -368,7 +388,8 @@ function nacerHijo(){
 }
 function cumple(){
   const a=anios(),y=G.yo;
-  titular(`Cumples ${a} ${a==1?"año":"años"}`,`Capítulo ${a} · ${etapa()}`);
+  titular(`Cumples ${a} ${a==1?"año":"años"}`,`Capítulo ${a} · ${etapa()} · ${altTxt()}, ${pesoTxt()}`);
+  if(a==18)log(`Dejas de crecer: te quedas en ${altTxt()}.`);
   if(a==3)log("Empiezas el parvulario. Lloras en la puerta el primer día; el segundo ya no tanto.");
   if(a==6){const n=[];for(let i=0;i<4;i++)n.push(per("comp",sx(),6+R()*.9,pick(ORI[G.origen].ap),{con:true,rel:ri(15,40)}));
     log(`Empiezas el colegio. En tu clase están ${n.map(p=>p.nombre).join(", ")}.`)}
@@ -398,6 +419,14 @@ function tick(){
   if(a>50){add("cuerpo",-.1);add("salud",-.07)}
   if(a>70){add("salud",-.18);add("mente",-.05)}
   y.animo+=(55-y.animo)*.04;
+  {const d=y.imcD;
+    if(a>=18)y.imcD+=.004;if(a>60)y.altMod-=.012;
+    if(G.dieta=="basura")y.imcD=Math.min(18,d+.07);else if(G.dieta=="dieta")y.imcD=Math.max(-4.5,d-.09);
+    if(!G.indep&&G.riqueza==0&&a<18){y.altMod=Math.max(-5,y.altMod-.012);y.imcD=Math.max(-4,y.imcD-.01)}
+    if(a>=12){if(d>10){add("aspecto",-.25);add("salud",-.15);add("cuerpo",-.1)}else if(d>5){add("aspecto",-.12);add("salud",-.05)}else if(d<-3.5){add("aspecto",-.1);add("salud",-.15)}}
+    const c=complexion();if(a>=14&&G.cmp&&G.cmp!=c&&(c=="sobrepeso"||c=="obesidad"||c=="en los huesos"||(c=="peso normal"&&G.cmp!="algo de barriga"&&G.cmp!=g("delgado","delgada"))))
+      log(c=="sobrepeso"?`La báscula marca ${pesoTxt()}. La ropa de hace un año ya no cierra.`:c=="obesidad"?`Pesas ${pesoTxt()}. El médico usa la palabra obesidad sin rodeos.`:c=="en los huesos"?`Te has quedado en ${pesoTxt()}. Te preguntan si estás bien.`:`Vuelves a tu peso: ${pesoTxt()}. Te notas mejor en todo.`,c=="peso normal"?"":"mala");
+    G.cmp=c}
   if(G.dieta=="basura"){add("animo",1.2);add("aspecto",-.4);add("salud",-.25)}else if(G.dieta=="dieta"){add("animo",-.8);add("aspecto",.5);add("salud",.2)}
   if(G.fl.fuma)add("salud",-.18);
   if(G.fl.adicto){add("salud",-.45);y.dinero-=80;add("animo",-.5)}
@@ -508,7 +537,7 @@ function evento(){
     ev(2,"nuevoclase",()=>{const q=per("comp",sx(),a+R()*.8-.4,pick(ORI[G.origen].ap),{con:true,rel:ri(15,35),rasgo:ri(0,4)});log(`Llega alguien a mitad de curso: ${q.nombre}. Le sientan a tu lado.`)});
   }
   if(a>=12&&a<18){
-    ev(2,"estiron",()=>{add("cuerpo",3);add("aspecto",2);log("Das el estirón. Los pantalones del año pasado te quedan por el tobillo.")},1);
+    ev(2,"estiron",()=>{y.altMod+=1.5;add("cuerpo",3);add("aspecto",2);log("Das el estirón. Los pantalones del año pasado te quedan por el tobillo.")},1);
     ev(2,"acne",()=>{add("aspecto",-3);add("animo",-3);log("Te sale la cara llena de granos. Evitas los espejos una temporada.","mala")},1);
     ev(1,"concierto",()=>{add("animo",8);add("carisma",1);log("Tu primer concierto. Vuelves sin voz y con la camiseta de otro.")},1);
   }
@@ -655,7 +684,7 @@ function resolverOferta(si){
 }
 function practicar(k){
   const A=AREAS[k];pr(k,1.5);add(A.st,1);add("animo",1);
-  if(k=="futbol"||k=="deporte"||k=="judo")add("salud",.5);
+  if(k=="futbol"||k=="deporte"||k=="judo"){add("salud",.5);mover()}
   return vario("pr"+k,A.tx);
 }
 
@@ -689,13 +718,13 @@ function lugares(){
     const s=vario("patio",["Te metes en el partido de los de otra clase.","Cambias cromos en la escalera del patio.","Os sentáis en el muro a mirar pasar a todo el mundo.","Organizan un torneo en el recreo y te apuntas."]);
     if(ch(.35)){const q=per("comp",sx(),a+R()*2-1,pick(ORI[G.origen].ap),{con:true,rel:ri(15,35),rasgo:ri(0,4)});return s+` Conoces a ${q.nombre}, de otra clase, ${RASGOS[q.rasgo].n[q.sexo=="m"?0:1]}.`}return s});
   if(a>=6&&(a>=18||G.riqueza>=1))L.push({t:"Clases",s:a<18?"Extraescolares: otra gente, otras cosas":"60 al mes",fn:()=>abrirHoja("¿Qué clase?",ACT.map(c=>({t:c.t,s:Object.keys(c.st).join(" y "),fn:()=>hacer(()=>{
-    for(const k in c.st)add(k,c.st[k]);pr(c.k=="pintura"?"arte":c.k,2);if(a>=18)y.dinero-=60;G.prof=G.prof||{};
+    if(c.st.cuerpo)mover();for(const k in c.st)add(k,c.st[k]);pr(c.k=="pintura"?"arte":c.k,2);if(a>=18)y.dinero-=60;G.prof=G.prof||{};
     let s=vario("act"+c.k,c.tx);
     if(!G.prof[c.k]){G.prof[c.k]=1;s=`Te apuntas a ${c.t.toLowerCase()}. `+s+conocerEn(c.sitio,"adulto",c.r,c.prof)}
     else if(ch(.35))s+=conocerEn(c.sitio,"par",c.r);
     return s})})))});
   if(a>=8)U("La biblioteca","Silencio y libros",()=>{pr("estudio",.5);add("mente",2);return vario("biblio",["Tardes de biblioteca. Te sellan el carné hasta gastarlo.","Encuentras un libro que no era para tu edad. Lo lees entero.","Te quedas hasta que apagan las luces de la sala."])+(ch(.2)?conocerEn("de la biblioteca","par",1):"")});
-  if(a>=16)U("El gimnasio",a>=18?"30 al mes":"Pesas y espejo",()=>{add("cuerpo",2);add("aspecto",1);add("salud",1);if(a>=18)y.dinero-=30;
+  if(a>=16)U("El gimnasio",a>=18?"30 al mes":"Pesas y espejo",()=>{mover(.08);add("cuerpo",2);add("aspecto",1);add("salud",1);if(a>=18)y.dinero-=30;
     return vario("gym",["Un mes sin fallar al gimnasio. Te duele todo y te gusta.","Subes de peso en la barra. Alguien asiente desde el banco de al lado.","Rutina nueva. Al tercer día no puedes peinarte."])+(ch(.25)?conocerEn("del gimnasio","par",0):"")});
   if(a>=18){
     U("El bar del barrio","30 · Caras de siempre",()=>{add("carisma",1);add("animo",3);y.dinero-=30;
@@ -753,7 +782,7 @@ const PMOD=[0,-.1,.15,-.15,.05];
 function pers(p){if(p.pers==null){p.pers=ri(0,4);if(p.triste==null)p.triste=ch(.15)}if(p.dif==null)p.dif=ri(0,3);return p.pers}
 const DIF=["se le ve venir","ni fácil ni difícil","se hace de rogar","un muro"];
 function sube(p,n){pers(p);p.quim=clamp((p.quim||0)+n*(1-p.dif*.18))}
-function atr(){const y=G.yo;return (y.aspecto+y.carisma)/2+(y.cuerpo-50)/10}
+function atr(){const y=G.yo;return (y.aspecto+y.carisma)/2+(y.cuerpo-50)/10+clamp((y.altAdulta+y.altMod-(y.sexo=="m"?176:163))/3,-4,4)-Math.max(0,y.imcD-4)*.8}
 function primeraVez(p){
   let s="";
   if(G.fl.virgen!==false){G.fl.virgen=false;s+=" Es tu primera vez. Dura poco y no se te olvida nunca."}
@@ -999,19 +1028,19 @@ function acciones(){
     A("Dormir mucho",()=>{add("salud",2);return vario("dormir0",["Duermes casi todo el mes. Creces mientras tanto.","Te duermes en cualquier brazo que te coja.","Siestas largas con la persiana a medias."])});
   }else if(a<6){
     A("Jugar a tu aire",()=>{add("mente",ri(1,2));add("animo",2);return pick(["Montas una ciudad con cajas y pinzas de la ropa.","Tienes un amigo invisible durante todo el mes.","Hablas con tus muñecos y ellos te contestan."])});
-    A("Correr y trepar",()=>{pr("deporte",.5);add("cuerpo",ri(1,3));if(ch(.15)){add("salud",-3);return "Trepas a un árbol y bajas más rápido de lo previsto. Chichón."}return "No paras quieto ni un minuto. Vuelves a casa con las rodillas negras.".replace("quieto",g("quieto","quieta"))+(a>=3&&ch(.3)?conocerVecino():"")});
+    A("Correr y trepar",()=>{pr("deporte",.5);mover();add("cuerpo",ri(1,3));if(ch(.15)){add("salud",-3);return "Trepas a un árbol y bajas más rápido de lo previsto. Chichón."}return "No paras quieto ni un minuto. Vuelves a casa con las rodillas negras.".replace("quieto",g("quieto","quieta"))+(a>=3&&ch(.3)?conocerVecino():"")});
     A("Preguntar por qué",()=>{add("mente",ri(1,3));const p=pick(vivos(q=>q.casa&&q.edad>14*12));if(p)rel(p,ch(.7)?2:-1);return p?`Acribillas a ${tu(p)} a preguntas. ¿Por qué el cielo? ¿Por qué la gente se muere?`:"Preguntas por qué a todo. Nadie contesta."});
     A("Dibujar",()=>{pr("arte",.5);add("mente",1);add("animo",3);add("carisma",1);return vario("dibu",["Llenas hojas de monigotes. Uno acaba en la nevera.","Dibujas a toda la familia. Todos con las manos enormes.","Descubres que mezclando todos los colores sale marrón."])});
     A("Hacer una trastada",()=>{add("animo",5);add("carisma",1);vivos(p=>p.rol=="prog"&&p.casa).forEach(p=>rel(p,-2));return pick(["Pintas la pared del pasillo con rotulador.","Le cortas el pelo a una muñeca, y un poco a ti.","Escondes las llaves de casa. Nadie las encuentra en dos días."])});
   }else if(a<12){
     A("Estudiar",()=>{pr("estudio",.5);add("mente",ri(2,3));add("animo",-1);return vario("estn",["Haces los deberes todos los días.","Te aprendes las tablas de multiplicar.","Dictados y más dictados. Ya casi no fallas las haches.","Te aprendes los ríos de memoria, con cancioncilla.","Un trabajo en cartulina sobre los planetas. Purpurina por toda la casa."])});
-    A("Hacer deporte",()=>{pr("deporte",.5);add("cuerpo",ri(2,3));add("salud",1);return vario("depn",["Te apuntas al equipo del barrio.","Nadas, corres, saltas. Duermes como un tronco.","Aprendes a montar en bici sin ruedines.","Carreras en la calle: ganas dos y pierdes una zapatilla."])});
+    A("Hacer deporte",()=>{pr("deporte",.5);mover();add("cuerpo",ri(2,3));add("salud",1);return vario("depn",["Te apuntas al equipo del barrio.","Nadas, corres, saltas. Duermes como un tronco.","Aprendes a montar en bici sin ruedines.","Carreras en la calle: ganas dos y pierdes una zapatilla."])});
     A("Leer y curiosear",()=>{pr("estudio",.25);add("mente",ri(1,3));add("animo",1);return pick(["Devoras tebeos debajo de las sábanas.","Desmontas un reloj para ver cómo va. No vuelve a ir."])});
     A("Ayudar en casa",()=>{vivos(p=>p.casa&&p.edad>16*12).forEach(p=>rel(p,3));add("carisma",1);return vario("casa",["Pones la mesa, bajas la basura, haces recados. En casa lo notan.","Aprendes a hacerte la cama. Más o menos.","Te mandan a por el pan y vuelves con el cambio justo."])+(ch(.25)?conocerVecino():"")});
     A("Jugar en la calle",()=>{add("carisma",ri(1,3));add("cuerpo",1);add("animo",3);return pick(["Pasas las tardes en la calle hasta que encienden las farolas.","Hacéis una cabaña en un solar."])+(ch(.5)?conocerVecino():"")});
   }else if(a<18){
     A("Estudiar",()=>{pr("estudio",.5);add("mente",ri(2,3));add("animo",-2);return vario("esta",["Un mes de codos. Los exámenes salen.","Subrayas en tres colores. Algo queda.","Te encierras con las matemáticas hasta entenderlas de verdad.","Semana de exámenes. Vives a base de cacao y apuntes."])});
-    A("Hacer deporte",()=>{pr("deporte",.5);add("cuerpo",ri(2,3));add("salud",1);return vario("depa",["Entrenas en serio. El cuerpo te cambia.","Entras en el equipo del instituto.","Corres cada tarde con los cascos puestos.","Torneo del fin de semana. Volvéis con medalla de consolación."])});
+    A("Hacer deporte",()=>{pr("deporte",.5);mover();add("cuerpo",ri(2,3));add("salud",1);return vario("depa",["Entrenas en serio. El cuerpo te cambia.","Entras en el equipo del instituto.","Corres cada tarde con los cascos puestos.","Torneo del fin de semana. Volvéis con medalla de consolación."])});
     A("Salir con la gente",()=>{add("carisma",ri(1,3));add("animo",4);return pick(["Dais vueltas por el parque con la música puesta.","Fin de semana tras fin de semana en el mismo banco."])+(ch(.4)?conocerVecino():"")});
     A("Saltarte clases",()=>{add("animo",5);add("mente",-2);vivos(p=>p.rol=="prog").forEach(p=>rel(p,-2));return "Haces pellas medio mes. Llaman a casa."});
     if(a>=16)A("Trabajillo de verano",()=>{const n=ri(200,500);y.dinero+=n;add("cuerpo",1);return `Trabajas unas semanas y te sacas ${n}. Tu primer dinero.`});
@@ -1031,7 +1060,7 @@ function acciones(){
       if(G.uni)A(`Seguir ${CARRERAS[G.carrera]||"la carrera"} (${G.uni}/36)`,()=>pasoCarrera());
       else L.push({t:"Empezar una carrera",abre:()=>abrirHoja("¿Qué estudias? (36 meses)",Object.keys(CARRERAS).map(k=>({t:CARRERAS[k],s:"Abre: "+SEC.filter(x=>x.car==k).map(x=>x.n).join(", "),fn:()=>hacer(()=>empezarCarrera(k))})))});
     }
-    A("Hacer ejercicio",()=>{pr("deporte",.25);add("cuerpo",ri(1,2));add("salud",1.5);return a>65?vario("andar",["Caminas cada mañana, llueva o no.","Das la vuelta larga por el paseo, saludando a medio barrio.","Gimnasia suave en el centro de mayores. Te ríes más que sudas."]):vario("ejer",["Sales a correr tres veces por semana.","Un mes de constancia: agujetas y mejor humor.","Nadas largos hasta perder la cuenta.","Subes en bici la cuesta que antes subías andando."])});
+    A("Hacer ejercicio",()=>{pr("deporte",.25);mover();add("cuerpo",ri(1,2));add("salud",1.5);return a>65?vario("andar",["Caminas cada mañana, llueva o no.","Das la vuelta larga por el paseo, saludando a medio barrio.","Gimnasia suave en el centro de mayores. Te ríes más que sudas."]):vario("ejer",["Sales a correr tres veces por semana.","Un mes de constancia: agujetas y mejor humor.","Nadas largos hasta perder la cuenta.","Subes en bici la cuesta que antes subías andando."])});
     A("Leer y aprender",()=>{pr("estudio",.25);add("mente",ri(1,2));add("animo",1);return vario("leer",["Lees por las noches. Algo se te queda.","Te enganchas a una novela de ochocientas páginas.","Aprendes por tu cuenta algo que nunca te enseñaron.","Un documental detrás de otro. Ahora opinas de volcanes.","Relees un libro de hace años y es otro libro."])});
     if(!(G.fl.ropa>0))A("Comprar ropa cara",()=>{if(y.dinero<500)return {txt:"Te pruebas una chaqueta que cuesta 500. La devuelves a la percha.",mal:1};y.dinero-=500;G.fl.ropa=18;add("aspecto",6);add("animo",3);return "Te gastas 500 en ropa buena de verdad. Te queda como hecha a medida."});
     if(G.pareja){const q=P(G.pareja);
@@ -1124,7 +1153,7 @@ function render(abajo){
   if(!G){pantallaCrear();return}
   const y=G.yo;
   $("crear").hidden=true;$("vista").hidden=false;$("acc").hidden=false;$("tabs").hidden=false;$("stats").hidden=false;$("cab").classList.add("compacta");
-  $("ficha").innerHTML=`<span>${esc(y.nombre)} ${esc(y.apellido)}</span><span>${edadTxt(y.edad)}</span><span>${esc(G.lugar.nombre)}</span>`+(anios()>=16?`<span>${Math.round(y.dinero)} en el bolsillo</span>`:"");
+  $("ficha").innerHTML=`<span>${esc(y.nombre)} ${esc(y.apellido)}</span><span>${edadTxt(y.edad)}</span><span>${altTxt()} · ${pesoTxt()}</span><span>${esc(G.lugar.nombre)}</span>`+(anios()>=16?`<span>${Math.round(y.dinero)} en el bolsillo</span>`:"");
   $("stats").innerHTML=barra("salud","Salud")+barra("animo","Ánimo")+barra("mente","Mente")+barra("cuerpo","Cuerpo")+barra("carisma","Carisma")+barra("aspecto","Aspecto");
   document.querySelectorAll("#tabs button[data-t]").forEach(b=>b.classList.toggle("on",b.dataset.t==TAB));
   const v=$("vista");
@@ -1149,6 +1178,7 @@ function render(abajo){
      <tr><th>Origen</th><td>${ORI[G.origen].n}</td></tr></table>
      <div class="tit">Informe ② ¿Cómo te va?</div>
      <table><tr><th>Etapa</th><td>${etapa()}</td></tr>
+     <tr><th>Cuerpo</th><td>${altTxt()}, ${pesoTxt()}${anios()>=14?" · "+complexion():""}</td></tr>
      <tr><th>Trabajo</th><td>${G.trabajo?"Trabajas "+esc(G.trabajo.n)+" · "+G.trabajo.s+" al mes":G.pension?"Jubilación · "+G.pension+" al mes":anios()<16?"Aún no te toca":"Sin trabajo"}</td></tr>
      <tr><th>Estudios</th><td>${G.titulo?"Carrera: "+(CARRERAS[G.carrera]||"terminada"):G.uni?"En la universidad ("+G.uni+"/36)":anios()<6?"Ninguno":anios()<16?"En la escuela":"Enseñanza obligatoria"}</td></tr>
      <tr><th>Pareja</th><td>${G.pareja&&P(G.pareja)?esc(P(G.pareja).nombre)+(G.casado?" (matrimonio)":""):G.crush&&P(G.crush)?"Te gusta "+esc(P(G.crush).nombre):"Nadie"}</td></tr>
