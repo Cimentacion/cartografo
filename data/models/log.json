@@ -215,5 +215,103 @@
    "frozen": 2500.0
   },
   "t": 1794878165.1583648
+ },
+ {
+  "balance_before": {
+   "balance": 1850.0,
+   "frozen": 0.0
+  },
+  "t": 1794879038.7394576
+ },
+ {
+  "id": "escopeta",
+  "task": "fc9affb2-279d-49a3-afce-6c277cd096eb",
+  "status": "success",
+  "consumed": null,
+  "bytes": 3270976
+ },
+ {
+  "id": "durum",
+  "task": "c20b5fe0-5c26-4ca1-bec3-1bf052938ba3",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2557992
+ },
+ {
+  "id": "pita",
+  "task": "2a4d4e74-a07c-4289-9627-40876ceacc15",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2835512
+ },
+ {
+  "id": "cajapollo",
+  "task": "5b6b3124-01fe-4885-9402-24e81581236d",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2571212
+ },
+ {
+  "id": "patatas",
+  "task": "c4cd4fdb-73ba-4097-82a6-5dd8930b7557",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2131732
+ },
+ {
+  "id": "lata",
+  "task": "21000f41-7802-4c67-9042-87f4cf33130c",
+  "status": "success",
+  "consumed": null,
+  "bytes": 1834200
+ },
+ {
+  "id": "agua",
+  "task": "61fe5d6b-973f-4fcc-8d34-0c131513b526",
+  "status": "success",
+  "consumed": null,
+  "bytes": 1724496
+ },
+ {
+  "id": "furgoneta",
+  "task": "f82f8a38-e363-4225-9592-947e9095651c",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2936920
+ },
+ {
+  "id": "vagabundo",
+  "task": "13ccc62c-3d08-4774-b6ba-9745482a6f64",
+  "status": "success",
+  "consumed": null,
+  "bytes": 3415728
+ },
+ {
+  "id": "carro",
+  "task": "fedbd905-c41e-4eb1-9de3-14a20bb68406",
+  "status": "success",
+  "consumed": null,
+  "bytes": 3095732
+ },
+ {
+  "id": "telefono",
+  "task": "eecc8943-e55f-493b-8791-12cbb356ad39",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2187164
+ },
+ {
+  "id": "banco",
+  "task": "cb9e5229-e6c6-46f9-b345-b8042cf109e4",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2506384
+ },
+ {
+  "balance_after": {
+   "balance": 1250.0,
+   "frozen": 0.0
+  },
+  "t": 1794880894.007235
  }
 ]
