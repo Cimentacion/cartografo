@@ -106,3 +106,22 @@ Segundo lote de [ambientCG](https://ambientcg.com) (CC0 1.0, dominio público), 
 ## Modelos 3D (Tripo)
 
 Generados con la API de Tripo (tripo3d.ai) a partir de descripciones de texto; los GLB originales están en la rama `kebab-tripo` (`data/models`) y `tools/props2js.py` los convierte en `src/02f_props.js`: Vespino, asador (sin su rollo de carne), freidora (sin sus cestas), garrafa de gasolina, farola del paseo, contenedores verde y amarillo, máquina de bebidas, palmera, escopeta, dürüm, pita, caja de pollo, cono de patatas, lata, botella de agua, furgoneta, vagabundo durmiendo, carro de la compra, teléfono de pared y banco. Los de más de 1500 triángulos se rebajan con pymeshlab respetando las costuras de la textura.
+
+## Sonidos (assets/audio)
+
+Sonidos de terror lejanos (`hor00`–`hor11`), recortados y pasados a mono 22 kHz:
+
+| archivo | original | pack | autor | licencia |
+|---|---|---|---|---|
+| hor00 | Ambience_Hell_00 | [Horror Sound Effects Library](https://opengameart.org/content/horror-sound-effects-library) | Little Robot Sound Factory (www.littlerobotsoundfactory.com) | CC-BY 3.0 |
+| hor01 | Ambience_MurderofCrows_00 | ídem | Little Robot Sound Factory | CC-BY 3.0 |
+| hor02 | Breath_Scared_00 | ídem | Little Robot Sound Factory | CC-BY 3.0 |
+| hor03 | Gate_Open_00 | ídem | Little Robot Sound Factory | CC-BY 3.0 |
+| hor04 | Laugh_Evil_00 | ídem | Little Robot Sound Factory | CC-BY 3.0 |
+| hor05 | Monster_00 | ídem | Little Robot Sound Factory | CC-BY 3.0 |
+| hor06 | Zombie_00 | ídem | Little Robot Sound Factory | CC-BY 3.0 |
+| hor07 | horror_effect1 | [Horror SFX](https://opengameart.org/content/horror-sfx) | TinyWorlds | CC0 |
+| hor08 | horror_effect2 | ídem | TinyWorlds | CC0 |
+| hor09 | Very Bassy 1 | [Horror Hit Soundpack 1](https://opengameart.org/content/horror-hit-soundpack-1) | psychhead_ | CC0 |
+| hor10 | heartbeat | [Eery/Horror SFX](https://opengameart.org/content/eeryhorror-sfx) | AllergicRacoon | CC-BY 3.0 |
+| hor11 | warpedradio | ídem | AllergicRacoon | CC-BY 3.0 |
