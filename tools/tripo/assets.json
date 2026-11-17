@@ -159,8 +159,8 @@
  },
  {
   "id": "fluorescente",
-  "prompt": "old ceiling fluorescent light fixture: long metal housing with two exposed fluorescent tubes, yellowed plastic diffuser hanging half broken, dead flies inside, dusty. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
-  "faces": 2000,
+  "prompt": "ceiling mounted fluorescent light fixture: a long narrow white metal box 120 cm long and 10 cm wide holding two long thin glowing white fluorescent tubes underneath, simple rectangular shape, dusty, seen from below, game asset.",
+  "faces": 1000,
   "slp": false,
   "geo": "standard"
  },
@@ -201,7 +201,7 @@
  },
  {
   "id": "aire",
-  "prompt": "exterior air conditioning unit for a balcony, white metal box with a round fan grille, rusty bracket, dripping pipe, dirty. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "prompt": "split system air conditioner outdoor unit, a white rectangular metal box about 80 cm wide and 55 cm tall with a large round black fan grille on the front left and a vented panel on the right, mounted on two rusty L-shaped wall brackets, copper pipes coming out of the side, dirty and weathered, simple solid shape, game asset.",
   "faces": 1500,
   "slp": false,
   "geo": "standard"
