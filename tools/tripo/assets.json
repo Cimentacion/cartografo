@@ -142,5 +142,75 @@
   "faces": 4000,
   "slp": false,
   "geo": "detailed"
+ },
+ {
+  "id": "barra",
+  "prompt": "kebab shop front counter, 3 meters long: stainless steel base with dented panels, on top a long refrigerated glass display case with metal trays of salad, tomato, onion, cabbage and sauces, a cash register on one end, napkin dispenser, greasy and worn, seen from the customer side. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 6000,
+  "slp": false,
+  "geo": "detailed"
+ },
+ {
+  "id": "nevera",
+  "prompt": "commercial upright drinks fridge with a single full height glass door and a lit sign panel on top, white metal body, five shelves full of soda cans and water bottles visible through the glass, door handle on the right side, stickers, dirty. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 5000,
+  "slp": false,
+  "geo": "detailed"
+ },
+ {
+  "id": "fluorescente",
+  "prompt": "old ceiling fluorescent light fixture: long metal housing with two exposed fluorescent tubes, yellowed plastic diffuser hanging half broken, dead flies inside, dusty. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 2000,
+  "slp": false,
+  "geo": "standard"
+ },
+ {
+  "id": "coche1",
+  "prompt": "1990s small Spanish hatchback car like a SEAT Ibiza, red paint faded, dents and rust, dirty windows, standing on four wheels. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 3000,
+  "slp": false,
+  "geo": "standard"
+ },
+ {
+  "id": "coche2",
+  "prompt": "1990s compact sedan car like a Renault 19, silver grey paint, dirty, scratched bumpers, standing on four wheels. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 3000,
+  "slp": false,
+  "geo": "standard"
+ },
+ {
+  "id": "taxi",
+  "prompt": "Spanish city taxi, white 2000s sedan like a Skoda Octavia with a green light on the roof and a blue TAXI sign, dirty, standing on four wheels. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 3000,
+  "slp": false,
+  "geo": "standard"
+ },
+ {
+  "id": "tragaperras",
+  "prompt": "old Spanish bar slot machine, colorful lit front panel with fruit symbols, coin slot and buttons, standing on a small metal stand, worn. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 3000,
+  "slp": false,
+  "geo": "standard"
+ },
+ {
+  "id": "extintor",
+  "prompt": "red fire extinguisher hanging on a wall bracket, with hose and pressure gauge, dusty. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 1500,
+  "slp": false,
+  "geo": "standard"
+ },
+ {
+  "id": "aire",
+  "prompt": "exterior air conditioning unit for a balcony, white metal box with a round fan grille, rusty bracket, dripping pipe, dirty. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 1500,
+  "slp": false,
+  "geo": "standard"
+ },
+ {
+  "id": "campana",
+  "prompt": "stainless steel kitchen extractor hood for a commercial kitchen, wall mounted, with grease filters, very greasy and dirty. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 2500,
+  "slp": false,
+  "geo": "standard"
  }
 ]
