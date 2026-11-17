@@ -5752,7 +5752,6 @@ function updateViewmodel(dt) {
       if (h.k === 'gun') {
         it.scale.setScalar(1.15); vmItem.position.set(0.19, -0.2, -0.36); arm.position.set(0.02, -0.07, 0.3);
         // mano de delante en el guardamanos, fogonazo en la boca y los dos cartuchos que entran al recargar
-        const fore = new THREE.Mesh(G(0.07, 0.07, 0.3), lam(null, 0xc8906a)); fore.position.set(-0.05, -0.09, -0.12); fore.rotation.set(0.9, 0.5, 0); vmItem.add(fore);
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.34), new THREE.MeshBasicMaterial({ map: flashTex(), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
         fl.position.set(0, 0.0, -0.52); fl.visible = false; vmItem.add(fl);
         const sm = lam(null, 0xb81a14), shells = [0, 1].map(i => { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.07, 6), sm); c.rotation.x = PI / 2; c.visible = false; vmItem.add(c); return c; });
@@ -5764,7 +5763,8 @@ function updateViewmodel(dt) {
       else if (h.k === 'jc') { it.scale.setScalar(0.9); it.rotation.y = -0.4; vmItem.position.set(0.24, -0.46, -0.55); arm.position.set(0.02, 0.12, 0.22); }
       else if (h.k === 'sb') { it.scale.setScalar(0.62); vmItem.position.set(0.26, -0.3, -0.52); arm.position.set(0.02, -0.06, 0.24); }
       else { it.scale.setScalar(1.3); vmItem.position.set(0.2, -0.3, -0.45); arm.position.set(0.02, -0.06, 0.24); }
-      vmItem.add(arm); vmKick = 1;
+      if (h.k !== 'gun') vmItem.add(arm);   // con la escopeta no se ve el brazo de caja: tapaba media pantalla
+      vmKick = 1;
     }
   }
   vmKick = Math.max(0, vmKick - dt * 5); vmRecoil = Math.max(0, vmRecoil - dt * 3.2);
