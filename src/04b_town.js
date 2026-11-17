@@ -311,13 +311,16 @@ function makeHandle() {
     between(new THREE.Vector3(sd * 0.27, 0.0, 0.0), new THREE.Vector3(sd * 0.36, 0.2, -0.05), 0.004, 0.004, chrome);   // brazo del espejo
     const mr = P(C(0.045, 0.045, 0.012, 14), lam(null, 0x1a1c20), sd * 0.37, 0.22, -0.06, PI / 2 - 0.1, 0, 0);
     P(C(0.04, 0.04, 0.004, 14), new THREE.MeshBasicMaterial({ color: 0x2a3a52, fog: false }), sd * 0.37, 0.22, -0.053, PI / 2 - 0.1, 0, 0);
-    // la mano agarrando el puño y el brazo
-    const hand = P(B(0.08, 0.06, 0.09), glove, sd * 0.4, 0.012, 0.055); hand.rotation.x = 0.15;
-    for (let f = 0; f < 4; f++) P(B(0.017, 0.022, 0.05), glove, sd * (0.37 + f * 0.02), -0.022, 0.02, 0.6, 0, 0);
-    P(B(0.02, 0.022, 0.05), glove, sd * 0.355, 0.03, 0.02, 0, sd * 0.4, 0);                             // pulgar
-    between(new THREE.Vector3(sd * 0.41, 0.0, 0.1), new THREE.Vector3(sd * 0.46, -0.18, 0.36), 0.034, 0.042, sleeve);   // antebrazo
-    between(new THREE.Vector3(sd * 0.46, -0.18, 0.36), new THREE.Vector3(sd * 0.36, -0.42, 0.6), 0.045, 0.055, sleeve);
-    P(C(0.038, 0.038, 0.03, 8), skin, sd * 0.415, -0.012, 0.11, 1.2, 0, sd * 0.1);                      // muñeca asomando
+    // la mano agarrando el puño y el brazo. Con el Vespino de Tripo los puños están más cerca de ti y más abajo: la mano va donde está el puño
+    const tp = typeof PROPDATA !== 'undefined' && PROPDATA.vespino, ox = tp ? -0.06 : 0, oy = tp ? -0.03 : 0, oz = tp ? 0.215 : 0;
+    const Q = (x, y, z) => new THREE.Vector3(sd * (x + ox), y + oy, z + oz);
+    const hand = P(B(0.08, 0.06, 0.09), glove, sd * (0.4 + ox), 0.012 + oy, 0.055 + oz); hand.rotation.x = 0.15;
+    for (let f = 0; f < 4; f++) P(B(0.017, 0.022, 0.05), glove, sd * (0.37 + f * 0.02 + ox), -0.022 + oy, 0.02 + oz, 0.6, 0, 0);
+    P(B(0.02, 0.022, 0.05), glove, sd * (0.355 + ox), 0.03 + oy, 0.02 + oz, 0, sd * 0.4, 0);                             // pulgar
+    const elb = tp ? new THREE.Vector3(sd * 0.44, -0.24, 0.5) : Q(0.46, -0.18, 0.36), sho = tp ? new THREE.Vector3(sd * 0.34, -0.5, 0.7) : Q(0.36, -0.42, 0.6);
+    between(Q(0.41, 0.0, 0.1), elb, 0.034, 0.042, sleeve);   // antebrazo
+    between(elb, sho, 0.045, 0.055, sleeve);
+    P(C(0.038, 0.038, 0.03, 8), skin, sd * (0.415 + ox), -0.012 + oy, 0.11 + oz, 1.2, 0, sd * 0.1);                      // muñeca asomando
   }
   // cuentakilómetros mirando al piloto
   D.speedo = ctex(64, 64, () => { }); D.speedoG = D.speedo.image.getContext('2d');
@@ -421,15 +424,19 @@ function buildSea() {
   const cz = (x) => { if (!coast.length) return Z1; if (x <= coast[0][0]) return coast[0][1]; for (let i = 0; i + 1 < coast.length; i++) { const a = coast[i], b = coast[i + 1]; if (x <= b[0]) return lerp(a[1], b[1], (x - a[0]) / Math.max(1e-6, b[0] - a[0])); } return coast[coast.length - 1][1]; };
   const LP = [], LU = [], LI = [], zf = Z0 - 40;
   for (let x = X0 - 40; x < X1 + 40; x += 2) {
-    const x2 = x + 2, za = Math.min(cz(x), Z1 + 40), zb = Math.min(cz(x2), Z1 + 40), k = LP.length / 3;
-    LP.push(x, 0, zf, x2, 0, zf, x2, 0, zb, x, 0, za); LU.push(x / 2.2, -zf / 2.2, x2 / 2.2, -zf / 2.2, x2 / 2.2, -zb / 2.2, x / 2.2, -za / 2.2); LI.push(k, k + 2, k + 1, k, k + 3, k + 2);
+    // troceada también a lo largo cada 6 m: triángulos de cientos de metros dan mala profundidad en algunas GPU y el mar asomaba a rayas
+    const x2 = x + 2, za = Math.min(cz(x), Z1 + 40), zb = Math.min(cz(x2), Z1 + 40), n = Math.max(1, Math.ceil((Math.max(za, zb) - zf) / 6));
+    for (let s = 0; s < n; s++) {
+      const a0 = zf + (za - zf) * s / n, a1 = zf + (za - zf) * (s + 1) / n, b0 = zf + (zb - zf) * s / n, b1 = zf + (zb - zf) * (s + 1) / n, k = LP.length / 3;
+      LP.push(x, 0, a0, x2, 0, b0, x2, 0, b1, x, 0, a1); LU.push(x / 2.2, -a0 / 2.2, x2 / 2.2, -b0 / 2.2, x2 / 2.2, -b1 / 2.2, x / 2.2, -a1 / 2.2); LI.push(k, k + 2, k + 1, k, k + 3, k + 2);
+    }
   }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(LP, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(LU, 2)); g.setAttribute('normal', new THREE.Float32BufferAttribute(LP.map((v, i) => i % 3 === 1 ? 1 : 0), 3)); g.setIndex(LI);
   void land; if (g) addMerged([g], lam('acera', 0x9a968e));
   D.seaTex = ctex(128, 128, (g2) => { g2.fillStyle = '#0c1c2c'; g2.fillRect(0, 0, 128, 128); g2.strokeStyle = 'rgba(120,160,190,0.35)'; g2.lineWidth = 1.5; for (let i = 0; i < 26; i++) { const x = Math.random() * 128, y = Math.random() * 128, w = 10 + Math.random() * 24; g2.beginPath(); g2.moveTo(x, y); g2.quadraticCurveTo(x + w / 2, y - 3, x + w, y); g2.stroke(); } });
   D.sea = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1000, 40, 30), new THREE.MeshLambertMaterial({ map: D.seaTex, color: 0x6a8aa0, emissive: 0x0a1a28 }));
   const uv = D.sea.geometry.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 90, uv.getY(i) * 65);
-  D.sea.rotation.x = -PI / 2; D.sea.position.set(0, -0.25, 300); scene.add(D.sea);
+  D.sea.rotation.x = -PI / 2; D.sea.position.set(0, -0.6, 300); scene.add(D.sea);
   // la orilla: espuma a lo largo de la costa
   const foam = ctex(128, 32, (g2) => { g2.clearRect(0, 0, 128, 32); for (let i = 0; i < 90; i++) { g2.fillStyle = 'rgba(230,240,245,' + (0.2 + Math.random() * 0.5) + ')'; g2.fillRect(Math.random() * 128, 6 + Math.random() * 20, 2 + Math.random() * 7, 1.5); } });
   const fg = []; ribbonGeos(coast, 2.4, 0.03, 6, fg);

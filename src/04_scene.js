@@ -69,7 +69,7 @@ function hit(key, x, y, z, w, h, d) {
 }
 
 /* ---------- carne del asador ---------- */
-const PILEY = 1.1, PILEZ = 0.14;   // bandeja de la carne cortada, dentro de la carcasa del asador
+const PILEY = 1.15, PILEZ = 0.14;   // bandeja de la carne cortada, dentro de la carcasa del asador
 function spitRad(b, lv) { const R = 0.11 + 0.045 * (b / (BANDS - 1)); return 0.04 + (R - 0.04) * lv / 7; }
 const MC = [[[0.95, 0.72, 0.66], [0.88, 0.6, 0.27], [0.6, 0.36, 0.14], [0.12, 0.085, 0.07]], [[0.82, 0.36, 0.36], [0.66, 0.38, 0.2], [0.4, 0.22, 0.12], [0.1, 0.07, 0.06]]];
 function meatColor(i, d, o) {

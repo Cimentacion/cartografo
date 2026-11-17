@@ -28,7 +28,9 @@ function postInit() {
           float fi = float(i), a = fi * 2.39996, rr = r * sqrt((fi + 0.5) / 12.0);
           vec2 o = vec2(cos(a), sin(a)) * rr;
           float dz = z + gx * o.x + gy * o.y - lin(tDep, vUv + o / uRes);
-          occ += smoothstep(0.05 + z * 0.005, 0.35, dz) * (1.0 - smoothstep(1.0, 2.4, dz));
+          // la tolerancia crece con la pendiente en pantalla: el suelo visto de canto ya no se raya a bandas
+          float tol = 0.05 + z * 0.006 + length(vec2(gx, gy)) * rr * 0.35;
+          occ += smoothstep(tol, tol + 0.3, dz) * (1.0 - smoothstep(1.0 + tol, 2.4 + tol, dz));
         }
         float ao = 1.0 - 0.8 * occ / 12.0;
         gl_FragColor = vec4(vec3(mix(ao, 1.0, smoothstep(20.0, 40.0, z))), 1.0);
@@ -48,6 +50,8 @@ function postInit() {
         if (z < 70.0) {
           vec3 P = wpos(vUv), Px = wpos(vUv + vec2(2.0, 0.0) / uRes), Py = wpos(vUv + vec2(0.0, 2.0) / uRes);
           vec3 N = normalize(cross(Px - P, Py - P)); if (dot(N, cameraPosition - P) < 0.0) N = -N;
+          // en el suelo la normal sacada de la profundidad sale con escalones (más en unas GPU que en otras) y la luz hacía rayas: el suelo mira arriba
+          N = normalize(mix(N, vec3(0.0, 1.0, 0.0), 1.0 - smoothstep(0.1, 0.25, P.y)));
           for (int i = 0; i < 16; i++) {
             vec3 d = uL[i].xyz - P; float dist = length(d), r = uL[i].w;
             if (r <= 0.0 || dist > r) continue;
@@ -90,13 +94,21 @@ function shadowsInit() {
     o.castShadow = true; o.receiveShadow = true;
   });
   D.handle.traverse(o => { o.castShadow = false; o.receiveShadow = false; });
+  // dentro del local manda su propia luz: la sombra del faro desde la calle lo dejaba negro
+  if (D.shopGrp) D.shopGrp.traverse(o => { o.receiveShadow = false; });
 }
 function shadowCharFix(ch) { ch.g.traverse(o => { if (o.isMesh && !o.material.transparent) { o.castShadow = true; } }); }
 // los charcos de luz del suelo no escriben profundidad: así no se recortan unos a otros ni con el faro
 function glowFix() { scene.traverse(o => { if (o.isMesh && o.material && o.material.blending === THREE.AdditiveBlending && !o.material.isShaderMaterial) { o.material.depthWrite = false; o.material.polygonOffset = true; o.material.polygonOffsetFactor = -4; o.material.polygonOffsetUnits = -4; } }); }
 function renderFrame() {
   if (POST.ok === null) { postInit(); shadowsInit(); glowFix(); }
-  if (ride.on) { POST.shadowT ^= 1; if (POST.shadowT) renderer.shadowMap.needsUpdate = true; }
+  // la sombra del faro en Lambert (r128) oscurece TODA la luz directa del píxel, no solo la del faro: al bajarte de la moto
+  // se quedaba el mapa de sombras viejo y dentro del local salía una sombra negrísima. Sin moto, el faro mira al cielo y el mapa queda limpio.
+  if (ride.on) { POST.shOff = 0; POST.shadowT ^= 1; if (POST.shadowT) renderer.shadowMap.needsUpdate = true; }
+  else if (POST.shOff !== 1) {
+    POST.shOff = 1; LG.head.position.set(camera.position.x, 400, camera.position.z); LG.head.target.position.set(camera.position.x, 900, camera.position.z);
+    LG.head.updateMatrixWorld(); LG.head.target.updateMatrixWorld(); renderer.shadowMap.needsUpdate = true;
+  }
   for (const M2 of [chars, rchars]) for (const ch of M2.values()) if (!ch.sh0) { ch.sh0 = 1; shadowCharFix(ch); }
   if (!POST.ok || !POST.on) { renderer.render(scene, camera); return; }
   postSize();

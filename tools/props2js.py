@@ -8,7 +8,7 @@ from PIL import Image, ImageEnhance
 SRC = sys.argv[1]
 # id: (tamaño de textura, quitar la carne del rollo)
 LIST = {'vespino': 512, 'asador': 512, 'freidora': 256, 'garrafa': 256, 'farola': 256,
-        'contenedor': 256, 'amarillo': 256, 'mesa': 256, 'maquina': 256, 'palmera': 256}
+        }   # segundo lote (contenedor, amarillo, mesa, maquina, palmera): fuera hasta que se aprueben y se rebajen
 
 def acc(j, b, i):
     a = j['accessors'][i]; bv = j['bufferViews'][a['bufferView']]
@@ -33,16 +33,14 @@ for pid, tsz in LIST.items():
     I = acc(j, bin_, prim['indices']).reshape(-1).astype(np.uint32)
     img = j['images'][0]; bv = j['bufferViews'][img['bufferView']]
     im = Image.open(io.BytesIO(bin_[bv.get('byteOffset', 0): bv.get('byteOffset', 0) + bv['byteLength']])).convert('RGB')
+    mn, mx = P.min(0), P.max(0); P -= [(mn[0] + mx[0]) / 2, mn[1], (mn[2] + mx[2]) / 2]
     if pid == 'asador':
-        # fuera el rollo de carne (va el del juego, que se corta): triángulos cuyo color es carne, en el centro
-        a = np.asarray(im).astype(float); H, Wd = a.shape[:2]; T = I.reshape(-1, 3)
-        cu = U[T].mean(1); cp = P[T].mean(1)
-        px = a[np.clip((cu[:, 1] * H).astype(int), 0, H - 1), np.clip((cu[:, 0] * Wd).astype(int), 0, Wd - 1)]
-        r, g, bl = px[:, 0], px[:, 1], px[:, 2]
-        meat = (r > g * 1.18) & (r > bl * 1.4) & (r > 90) & (np.abs(cp[:, 0]) < 0.2) & (cp[:, 2] > -0.15)
+        # fuera el rollo de carne entero (va el del juego, que se corta): todo triángulo cuyo centro cae en el hueco del rollo,
+        # sea del color que sea (antes, por color, quedaban trozos de grasa clara pegados)
+        T = I.reshape(-1, 3); cp = P[T].mean(1)
+        meat = (cp[:, 0] > -0.08) & (cp[:, 0] < 0.24) & (cp[:, 1] > 0.235) & (cp[:, 1] < 0.81) & (np.abs(cp[:, 2]) < 0.165)
         print('asador: carne quitada', int(meat.sum()), 'de', len(T)); I = T[~meat].reshape(-1)
     # base en el suelo y centrado en x/z
-    mn, mx = P.min(0), P.max(0); P -= [(mn[0] + mx[0]) / 2, mn[1], (mn[2] + mx[2]) / 2]
     ext = P.max(0) - P.min(0)
     # textura: más pequeña, algo más sucia y apagada para la noche
     t = im.resize((tsz, tsz), Image.LANCZOS); t = ImageEnhance.Color(t).enhance(0.85); t = ImageEnhance.Brightness(t).enhance(0.92)
@@ -73,7 +71,7 @@ function propGeo(id) {
 function propMat(id) {
   if (PROP.mat[id]) return PROP.mat[id];
   const t = new THREE.TextureLoader().load(PROPDATA[id].t); t.flipY = false; t.encoding = THREE.LinearEncoding;
-  return (PROP.mat[id] = new THREE.MeshLambertMaterial({ map: t }));
+  return (PROP.mat[id] = new THREE.MeshLambertMaterial({ map: t, side: THREE.DoubleSide }));   // los modelos generados traen caras del revés
 }
 // alto del modelo (en unidades del modelo, lado mayor = 1)
 function propH(id) { return PROPDATA[id] ? PROPDATA[id].e[1] : 1; }
