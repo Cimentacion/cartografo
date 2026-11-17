@@ -368,7 +368,7 @@ function buildWorld() {
     g.fillStyle = '#16242a'; g.fillRect(0, 108, 64, 20);
   });
   D.fridgeFace = plane(1.1, 1.75, new THREE.MeshBasicMaterial({ map: frTex }), 3.345, 1.0, -2.1, 0, -PI / 2);
-  box(0.03, 1.2, 0.04, M.steelD, 3.33, 1.1, -1.56);
+  if (!HASPROP('nevera')) box(0.03, 1.2, 0.04, M.steelD, 3.33, 1.1, -1.56);   // tirador de la nevera vieja
   let drX = 3.36;
   // nevera de Tripo con su puerta de cristal aparte, que gira sobre la bisagra cuando te acercas
   if (HASPROP('nevera')) {
