@@ -11,7 +11,7 @@ LIST = {'vespino': 512, 'asador': 512, 'freidora': 256, 'garrafa': 256, 'farola'
         'contenedor': 256, 'amarillo': 256, 'mesa': 256, 'maquina': 256, 'palmera': 256,
         'escopeta': 512, 'durum': 256, 'pita': 256, 'cajapollo': 256, 'patatas': 256, 'lata': 128, 'agua': 128,
         'furgoneta': 512, 'vagabundo': 256, 'carro': 256, 'telefono': 256, 'banco': 256,
-        'barra': 512, 'nevera': 512, 'tragaperras': 256, 'extintor': 256, 'campana': 256, 'coche1': 512, 'coche2': 512, 'taxi': 512}
+        'barra': 512, 'nevera': 512, 'tragaperras': 256, 'extintor': 256, 'campana': 256, 'coche1': 512, 'coche2': 512, 'taxi': 512, 'aire': 128, 'fluorescente': 128}
 # triángulos máximos tras rebajar (los de los lotes 2 y 3 vienen con 1500-6000)
 FACES = {}   # sin rebajar: el rebaje de pymeshlab deformaba los modelos (bancos, contenedores...). Se usan tal cual vienen de Tripo
 

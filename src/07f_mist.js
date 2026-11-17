@@ -63,6 +63,12 @@ function buildMist() {
       const g = new THREE.PlaneGeometry(0.62, 1.7); g.rotateY(Math.atan2(nx, nz)); g.translate(x, y, z); fg.push(g);
     }
   }
+  // aparatos de aire acondicionado colgados en las fachadas de las torres (Tripo)
+  if (HASPROP('aire')) { const ac = [], r2 = mulberry32(4242);
+    for (const b of TOWN.bld) { if (!(b.l >= 4 && b.t !== 'roof') || Math.hypot(b.cx, b.cz) > 200) continue; const S = simplify(b.P, 0.6);
+      for (let k = 0; k < Math.min(14, b.l); k++) { const i = r2() * S.length | 0, a = S[i], c = S[(i + 1) % S.length], [nx, nz, L] = outN(S, i); if (L < 3) continue;
+        const t = 0.1 + r2() * 0.8, f = 1 + (r2() * (b.l - 1) | 0); ac.push([lerp(a[0], c[0], t) + nx * 0.32, f * FLH + 0.15 + r2() * 0.3, lerp(a[1], c[1], t) + nz * 0.32, Math.atan2(-nz, nx), 0.8]); } }
+    propInst('aire', ac); }
   if (fg.length) { MIST.figs = addMerged(fg, new THREE.MeshBasicMaterial({ map: figTex(), color: 0x000000, alphaTest: 0.5, side: THREE.DoubleSide })); }
 }
 function updMist(dt) {

@@ -289,6 +289,7 @@ function buildWorld() {
   LG.flash = new THREE.PointLight(0xfff0c0, 0, 14, 1.5); scene.add(LG.flash);
   LG.torch = new THREE.SpotLight(0xdfe8ff, 0, 11, 0.5, 0.6, 1.3); scene.add(LG.torch); scene.add(LG.torch.target);
   D.tubes = [box(1.3, 0.05, 0.12, bas(0xeaffea), -0.6, 2.86, -1.7), box(1.3, 0.05, 0.12, bas(0xeaffea), 0, 2.86, 3.1)];
+  if (HASPROP('fluorescente')) for (const [x, z] of [[-0.6, -1.7], [0, 3.1]]) { const f = propItem('fluorescente', 1.35, PI / 2, x, 2.6, z); scene.add(f); } if (HASPROP('fluorescente')) D.tubes.forEach(t => { t.position.y = 2.62; t.scale.set(0.95, 0.6, 0.5); });   // la carcasa del fluorescente, con los tubos debajo
   D.bulb = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 5), bas(0xffe2b0)); D.bulb.position.set(2.2, 2.28, -5.9); scene.add(D.bulb);
   cyl(0.005, 0.005, 0.3, 4, M.dark, 2.2, 2.45, -5.9);
 
