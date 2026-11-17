@@ -40,6 +40,12 @@ for pid, tsz in LIST.items():
         T = I.reshape(-1, 3); cp = P[T].mean(1)
         meat = (cp[:, 0] > -0.08) & (cp[:, 0] < 0.24) & (cp[:, 1] > 0.235) & (cp[:, 1] < 0.81) & (np.abs(cp[:, 2]) < 0.165)
         print('asador: carne quitada', int(meat.sum()), 'de', len(T)); I = T[~meat].reshape(-1)
+    if pid == 'freidora':
+        # fuera las cestas de alambre y el mango que trae el modelo dentro de la cuba: la cesta es la del juego, que sube y baja.
+        # coordenadas normalizadas a la caja del modelo (x, z en -0.5..0.5; y en 0..1)
+        e = P.max(0) - P.min(0); T = I.reshape(-1, 3); cn = P[T].mean(1) / e
+        cut = (np.abs(cn[:, 0]) < 0.39) & (cn[:, 1] > 0.4) & (cn[:, 1] < 0.84) & (cn[:, 2] > -0.3) & (cn[:, 2] < 0.29)
+        print('freidora: cestas quitadas', int(cut.sum()), 'de', len(T)); I = T[~cut].reshape(-1)
     # base en el suelo y centrado en x/z
     ext = P.max(0) - P.min(0)
     # textura: más pequeña, algo más sucia y apagada para la noche

@@ -291,13 +291,18 @@ function buildWorld() {
   if (typeof PROPDATA !== 'undefined' && PROPDATA.freidora) { frBox.visible = false; const m = propMesh('freidora', 1, scene); const e = PROPDATA.freidora.e; m.scale.set(1.1 / e[0], 1.5 / e[1], 0.7 / e[2]); m.position.set(-0.25, 0, -3.65); D.frProp = m; }
   D.oil = box(0.5, 0.02, 0.5, new THREE.MeshLambertMaterial({ map: TX.oil, color: 0xc89a2a, emissive: 0x2a1a04 }), -0.52, 0.895, -3.65);
   if (!D.frProp) for (const [x, z, w, d] of [[-0.52, -3.39, 0.54, 0.03], [-0.52, -3.91, 0.54, 0.03], [-0.79, -3.65, 0.03, 0.54], [-0.25, -3.65, 0.03, 0.54]]) box(w, 0.06, d, M.steelD, x, 0.92, z);
+  if (D.frProp) fryerKit();
+  else {
   D.basket = new THREE.Group(); D.basket.position.set(-0.52, 1.15, -3.65); scene.add(D.basket);
-  for (const [x, z, w, d] of [[0, 0.17, 0.36, 0.012], [0, -0.17, 0.36, 0.012], [0.17, 0, 0.012, 0.36], [-0.17, 0, 0.012, 0.36]]) box(w, 0.14, d, M.dark, x, 0, z, { parent: D.basket });
-  box(0.36, 0.01, 0.36, M.dark, 0, -0.07, 0, { parent: D.basket }); box(0.03, 0.03, 0.3, M.dark, 0, 0.08, 0.3, { parent: D.basket });
-  D.basketFries = box(0.3, 0.07, 0.3, new THREE.MeshLambertMaterial({ color: 0xe6dca0 }), 0, -0.03, 0, { parent: D.basket });
-  box(0.44, 0.05, 0.5, M.steelD, 0.05, 0.925, -3.65);
-  D.friesPile = box(0.36, 0.08, 0.42, new THREE.MeshLambertMaterial({ color: 0xe2b83a }), 0.05, 0.96, -3.65);
-  hit('fz', -0.52, 1.03, -3.65, 0.56, 0.42, 0.56); hit('ft', 0.05, 0.99, -3.65, 0.46, 0.22, 0.52);
+    for (const [x, z, w, d] of [[0, 0.17, 0.36, 0.012], [0, -0.17, 0.36, 0.012], [0.17, 0, 0.012, 0.36], [-0.17, 0, 0.012, 0.36]]) box(w, 0.14, d, M.dark, x, 0, z, { parent: D.basket });
+    box(0.36, 0.01, 0.36, M.dark, 0, -0.07, 0, { parent: D.basket }); box(0.03, 0.03, 0.3, M.dark, 0, 0.08, 0.3, { parent: D.basket });
+    D.basketFries = box(0.3, 0.07, 0.3, new THREE.MeshLambertMaterial({ color: 0xe6dca0 }), 0, -0.03, 0, { parent: D.basket });
+    box(0.44, 0.05, 0.5, M.steelD, 0.05, 0.925, -3.65);
+    D.friesPile = box(0.36, 0.08, 0.42, new THREE.MeshLambertMaterial({ color: 0xe2b83a }), 0.05, 0.96, -3.65);
+    D.basketY = [1.17, 0.99];
+  }
+  if (D.frProp) { hit('fz', -0.42, 1.0, -3.66, 0.4, 0.36, 0.42); hit('ft', 0.06, 0.97, -3.66, 0.3, 0.2, 0.44); }
+  else { hit('fz', -0.52, 1.03, -3.65, 0.56, 0.42, 0.56); hit('ft', 0.05, 0.99, -3.65, 0.46, 0.22, 0.52); }
   cyl(0.26, 0.22, 0.7, 8, M.bag, 0.8, 0.35, -3.62); cyl(0.27, 0.27, 0.03, 8, M.dark, 0.8, 0.71, -3.62, { open: true });
   colliders.push({ x0: 0.55, x1: 1.05, z0: -4, z1: -3.38 }); hit('trash', 0.8, 0.45, -3.62, 0.56, 0.9, 0.56);
   for (let i = 0; i < 4; i++) { const f = box(0.012, 0.012, 0.012, bas(0x050505), 0.8, 1, -3.6); D.flies.push(f); }
@@ -370,4 +375,52 @@ function buildWorld() {
   for (const o of mv) D.shopGrp.add(o);
   scene.add(D.shopGrp);
   buildMart(); buildAO();
+}
+
+/* freidora de Tripo: aceite dentro de la cuba, cesta de rejilla de verdad con su mango y escurridor perforado al lado
+   donde se van amontonando las patatas fritas, palito a palito */
+function friesSticks(n, sx, sz, hmax, seed) {
+  const rnd = mulberry32(seed), geo = new THREE.BoxGeometry(0.011, 0.011, 0.075), m = new THREE.MeshLambertMaterial({ color: 0xe2b83a });
+  const im = new THREE.InstancedMesh(geo, m, n), o = new THREE.Object3D(), L = [];
+  for (let i = 0; i < n; i++) {
+    const a = rnd() * PI * 2, r = Math.sqrt(rnd()), x = Math.cos(a) * r * sx, z = Math.sin(a) * r * sz;
+    const y = 0.006 + rnd() * hmax * (1 - 0.75 * r * r); L.push([x, y, z, rnd() * PI, (rnd() - 0.5) * 0.7, (rnd() - 0.5) * 0.4]);
+  }
+  L.sort((p, q) => p[1] - q[1]);   // de abajo arriba: al subir la cuenta el montón crece por encima
+  L.forEach((p, i) => { o.position.set(p[0], p[1], p[2]); o.rotation.set(p[4], p[3], p[5]); o.updateMatrix(); im.setMatrixAt(i, o.matrix); });
+  im.userData.n = n; return im;
+}
+function fryerKit() {
+  // aceite: toda la cuba, por debajo del borde
+  D.oil.geometry.dispose(); D.oil.geometry = new THREE.BoxGeometry(0.88, 0.01, 0.44); D.oil.position.set(-0.25, 0.83, -3.66);
+  const wire = ctex(64, 64, (g) => { g.clearRect(0, 0, 64, 64); g.strokeStyle = '#d8dcdf'; g.lineWidth = 2; for (let i = 2; i < 64; i += 8) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, 64); g.stroke(); g.beginPath(); g.moveTo(0, i); g.lineTo(64, i); g.stroke(); } });
+  const wm = new THREE.MeshLambertMaterial({ map: wire, color: 0xa8acb0, alphaTest: 0.4, transparent: false, side: THREE.DoubleSide });
+  const chrome = lam('steel', 0xc8ccd0), grip = lam(null, 0x161412);
+  const W = 0.3, H = 0.15, Dp = 0.36;
+  D.basket = new THREE.Group(); D.basket.position.set(-0.42, 1.12, -3.66); scene.add(D.basket);
+  const pl = (w, h, rep, x, y, z, rx, ry) => { const t = wire.clone(); t.needsUpdate = true; t.repeat.set(w * rep, h * rep); const mm = wm.clone(); mm.map = t; const me = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mm); me.position.set(x, y, z); me.rotation.set(rx || 0, ry || 0, 0); D.basket.add(me); return me; };
+  pl(W, Dp, 3, 0, -H / 2, 0, -PI / 2); pl(W, H, 3, 0, 0, Dp / 2); pl(W, H, 3, 0, 0, -Dp / 2); pl(Dp, H, 3, W / 2, 0, 0, 0, PI / 2); pl(Dp, H, 3, -W / 2, 0, 0, 0, PI / 2);
+  // aros de arriba y de abajo
+  for (const y of [H / 2, -H / 2]) {
+    box(W + 0.01, 0.01, 0.01, chrome, 0, y, Dp / 2, { parent: D.basket }); box(W + 0.01, 0.01, 0.01, chrome, 0, y, -Dp / 2, { parent: D.basket });
+    box(0.01, 0.01, Dp + 0.01, chrome, W / 2, y, 0, { parent: D.basket }); box(0.01, 0.01, Dp + 0.01, chrome, -W / 2, y, 0, { parent: D.basket });
+  }
+  // mango: dos varillas desde el borde de delante que se juntan, y el puño negro
+  const rod = (a, b, r, m) => { const d = new THREE.Vector3().subVectors(b, a), L = d.length(), me = new THREE.Mesh(new THREE.CylinderGeometry(r, r, L, 6), m); me.position.copy(a).addScaledVector(d, 0.5); me.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); D.basket.add(me); return me; };
+  const j = new THREE.Vector3(0, H / 2 + 0.05, Dp / 2 + 0.12);
+  rod(new THREE.Vector3(-0.06, H / 2, Dp / 2), j, 0.005, chrome); rod(new THREE.Vector3(0.06, H / 2, Dp / 2), j, 0.005, chrome);
+  rod(j, new THREE.Vector3(0, H / 2 + 0.1, Dp / 2 + 0.3), 0.006, chrome);
+  rod(new THREE.Vector3(0, H / 2 + 0.08, Dp / 2 + 0.22), new THREE.Vector3(0, H / 2 + 0.115, Dp / 2 + 0.34), 0.016, grip);
+  // gancho de atrás para colgarla
+  rod(new THREE.Vector3(-0.05, H / 2, -Dp / 2), new THREE.Vector3(-0.05, H / 2 + 0.04, -Dp / 2 - 0.03), 0.004, chrome); rod(new THREE.Vector3(0.05, H / 2, -Dp / 2), new THREE.Vector3(0.05, H / 2 + 0.04, -Dp / 2 - 0.03), 0.004, chrome);
+  D.basketFries = friesSticks(46, W * 0.42, Dp * 0.42, 0.06, 11); D.basketFries.position.y = -H / 2; D.basket.add(D.basketFries);
+  D.basketY = [1.12, 0.86];   // colgada / dentro del aceite
+  // escurridor: bandeja perforada a la derecha de la cuba, con su borde
+  const perf = ctex(64, 64, (g) => { g.fillStyle = '#9a9ea2'; g.fillRect(0, 0, 64, 64); g.fillStyle = '#1a1a1a'; for (let y = 4; y < 64; y += 8) for (let x = (y / 8 % 2) * 4 + 4; x < 64; x += 8) { g.beginPath(); g.arc(x, y, 2, 0, 7); g.fill(); } });
+  perf.repeat.set(2, 3); const tx = 0.06, tz = -3.66, ty = 0.905;
+  box(0.26, 0.008, 0.42, new THREE.MeshLambertMaterial({ map: perf }), tx, ty, tz);
+  for (const [x, z, w, d] of [[tx, tz + 0.21, 0.26, 0.01], [tx, tz - 0.21, 0.26, 0.01], [tx + 0.13, tz, 0.01, 0.42], [tx - 0.13, tz, 0.01, 0.42]]) box(w, 0.04, d, M.steel, x, ty + 0.02, z);
+  // pala de servir las patatas, apoyada
+  box(0.12, 0.004, 0.1, M.steel, tx - 0.03, ty + 0.02, tz + 0.12, { rx: 0.25 }); box(0.02, 0.02, 0.12, grip, tx - 0.03, ty + 0.05, tz + 0.22, { rx: 0.25 });
+  D.friesPile = friesSticks(110, 0.1, 0.16, 0.09, 23); D.friesPile.position.set(tx, ty, tz - 0.02); D.friesPile.count = 0; scene.add(D.friesPile);
 }

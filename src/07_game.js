@@ -482,9 +482,9 @@ function syncWorld(dt) {
   for (let i = 0; i < 3; i++) { const k = clamp(W.bin[i] / 16, 0, 1) * 1.5; D.bins[i].visible = W.bin[i] > 0; D.bins[i].scale.y = Math.max(0.15, k); D.bins[i].position.y = 1.07 + 0.05 * Math.max(0.15, k); }
   const ck = W.chop.t + ':' + W.chop.n;
   if (ck !== D.chopKey) { if (D.chopKey && W.chop.n > 0 && D.chopKey !== ck) AU.play('chop', -3.6, -1.6); D.chopKey = ck; clearGroup(D.chopVeg); if (W.chop.t >= 0) { const m = itemMesh({ k: 'vg', t: W.chop.t }); m.scale.set(1 + W.chop.n * 0.12, Math.max(0.2, 1 - W.chop.n * 0.14), 1 + W.chop.n * 0.12); D.chopVeg.add(m); } }
-  const F = W.fry; D.basket.position.y = lerp(D.basket.position.y, F.s ? 0.99 : 1.17, Math.min(1, dt * 6)); D.basketFries.visible = F.s === 1;
+  const F = W.fry; D.basket.position.y = lerp(D.basket.position.y, D.basketY[F.s ? 1 : 0], Math.min(1, dt * 6)); D.basketFries.visible = F.s === 1;
   if (F.s) { const q = F.t; D.basketFries.material.color.setHex(q < 9 ? 0xe6dca0 : q < 19 ? 0xe2b83a : q < 27 ? 0xa8762a : 0x2a1a10); TX.oil && (TX.oil.offset.x = Math.sin(TIME * 9) * 0.02, TX.oil.offset.y = Math.cos(TIME * 7) * 0.02); }
-  D.friesPile.visible = F.u > 0; D.friesPile.scale.y = 0.3 + F.u * 0.3; D.friesPile.material.color.setHex(F.q < 0.4 ? 0x5a3a1a : F.q < 0.8 ? 0xb8862a : 0xe2b83a);
+  D.friesPile.visible = F.u > 0; if (D.friesPile.isInstancedMesh) D.friesPile.count = Math.round(Math.min(4, F.u) / 4 * D.friesPile.userData.n); else D.friesPile.scale.y = 0.3 + F.u * 0.3; D.friesPile.material.color.setHex(F.q < 0.4 ? 0x5a3a1a : F.q < 0.8 ? 0xb8862a : 0xe2b83a);
   for (let i = 0; i < 3; i++) { const sk = W.sh[i] ? JSON.stringify(W.sh[i]) : ''; if (sk !== D.shelf[i].key) { D.shelf[i].key = sk; clearGroup(D.shelf[i].g); if (sk) D.shelf[i].g.add(itemMesh(W.sh[i])); } }
   D.rackGun.visible = !!W.gr;
   const bk = W.bt ? W.bt.s + ':' + W.bt.n : '';
