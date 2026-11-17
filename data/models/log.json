@@ -397,5 +397,33 @@
    "frozen": 0.0
   },
   "t": 1794886669.3774157
+ },
+ {
+  "balance_before": {
+   "balance": 910.0,
+   "frozen": 0.0
+  },
+  "t": 1794890276.8350859
+ },
+ {
+  "id": "fluorescente",
+  "task": "09ee0890-ea4c-4fe3-b08a-4422ab175261",
+  "status": "success",
+  "consumed": null,
+  "bytes": 1678668
+ },
+ {
+  "id": "aire",
+  "task": "01607fb9-7bf7-4fa4-93db-86ec088eceff",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2919468
+ },
+ {
+  "balance_after": {
+   "balance": 850.0,
+   "frozen": 0.0
+  },
+  "t": 1794890527.2822957
  }
 ]
