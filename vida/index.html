@@ -62,6 +62,10 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--oro);outline-of
 .caja p::first-letter{font-family:var(--f-titular);font-size:2.3em;float:left;line-height:.9;padding:2px 5px 0 0;color:var(--blanco);text-shadow:0 1px 0 rgba(26,23,64,.35)}
 .caja em{font-style:normal;white-space:nowrap}
 .caja.mala{background:#8f8ab8}
+.caja.clave{background:#1b1840;color:var(--oro);border:1.5px solid var(--oro)}
+.caja.clave p::first-letter{color:#fff3b8;text-shadow:none}
+.vieja{filter:brightness(.7) saturate(.85)}
+.tit.vieja{opacity:.75}
 .caja.fin{background:var(--tinta);color:var(--blanco);border:2px solid var(--oro)}
 .caja.fin p::first-letter{color:var(--oro)}
 .tit{font-family:var(--f-titular);color:var(--caqui);font-size:19px;line-height:1.2;margin-top:6px;text-wrap:balance;flex:none;-webkit-text-stroke:.4px #000}
@@ -222,8 +226,9 @@ function etapa(){const a=G.yo.edad/12;return a<2?"bebé":a<6?"infancia":a<12?"ni
 function edadTxt(m){const a=Math.floor(m/12);return a<1?m+(m==1?" mes":" meses"):a+(a==1?" año":" años")}
 function add(k,v){const y=G.yo;y[k]=clamp(y[k]+v)}
 function rel(p,v){if(p)p.rel=clamp(p.rel+v)}
-function log(txt,cls){txt=txt.charAt(0).toUpperCase()+txt.slice(1);G.log.push({t:"caja",txt,cls:cls||"",tag:edadTxt(G.yo.edad)+" · "+etapa()});if(G.log.length>160)G.log.splice(0,G.log.length-160)}
-function titular(txt,sub){G.log.push({t:"tit",txt,sub:sub||""})}
+const RE_CLAVE=/^Naces en|primeros pasos|primera palabra|Nace |da a luz|^Muere |ha muerto|y ganas\.|Te ascienden|Te cogen\.|Terminas (la carrera|Med|Mag|Ing|Der|Eco|Per|Cie)|dice que sí|sois pareja|Empezáis a salir|está embarazada|test da positivo|Positivo\.|Os mudáis|Te ofrecen|Llega una oferta|Firmas\.|Es tu primera vez|Eres mayor de edad|Empiezas el colegio|Pasas al instituto|Te jubilas|Te vas de casa|centro de acogida|se separan|Es lo más alto|propia escuela|beca completa|Dejas de crecer|adopción ha salido|Abres un grupo|Te matriculas|Te quedas sin padres|un infarto/;
+function log(txt,cls){txt=txt.charAt(0).toUpperCase()+txt.slice(1);cls=(cls||"")+(RE_CLAVE.test(txt)?" clave":"");G.lid=(G.lid||0)+1;G.log.push({t:"caja",txt,cls,n:G.tn||0,i:G.lid,tag:edadTxt(G.yo.edad)+" · "+etapa()});if(G.log.length>160)G.log.splice(0,G.log.length-160)}
+function titular(txt,sub){G.lid=(G.lid||0)+1;G.log.push({t:"tit",txt,sub:sub||"",n:G.tn||0,i:G.lid})}
 function rolTxt(p){
   if(p.id==G.pareja)return G.casado?gp(p,"Marido","Mujer"):gp(p,"Novio","Novia");
   if(p.amante)return "Amante"+(p.casado?" ("+gp(p,"casado","casada")+")":"");
@@ -1197,6 +1202,7 @@ function acciones(){
 }
 function hacer(fn){
   if(G.muerto)return;
+  G.tn=(G.tn||0)+1;
   const r=fn();
   if(typeof r=="string")log(r);else if(r&&r.txt)log(r.txt,r.mal?"mala":"");
   if(G.muerteDirecta){const c=G.muerteDirecta;delete G.muerteDirecta;G.yo.edad++;muerteYo(c)}
@@ -1204,6 +1210,7 @@ function hacer(fn){
   TAB="diario";guardar();cerrarHoja();render(true);
 }
 function pasarAnio(){
+  G.tn=(G.tn||0)+1;
   log("Dejas correr un año entero.");
   for(let i=0;i<12&&!G.muerto&&!G.pend;i++)tick();
   guardar();render(true);
@@ -1235,12 +1242,34 @@ function pantallaCrear(){
   $("crear").querySelectorAll(".chips button").forEach(b=>b.onclick=()=>{
     const k=b.parentNode.dataset.k,v=b.dataset.v;SEL[k]=v=="null"?null:(k=="riqueza"?+v:v);
     b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x==b))});
-  $("bNacer").onclick=()=>{nacer({origen:SEL.origen,riqueza:SEL.riqueza,sexo:SEL.sexo,nombre:$("nombre").value});TAB="diario";render(true)};
+  $("bNacer").onclick=()=>{visto=0;nacer({origen:SEL.origen,riqueza:SEL.riqueza,sexo:SEL.sexo,nombre:$("nombre").value});TAB="diario";render(true)};
 }
 function barra(k,et){const v=Math.round(G.yo[k]);return `<div class="${v<25?"mal":""}">${et}<b>${v}</b><i style="width:${v}%"></i></div>`}
 function filaGente(p){return `<tr class="${p.vivo?"":"muerto"}"><td>${esc(p.nombre)} ${esc(p.apellido)}${p.id==G.crush&&p.id!=G.pareja?" ♥":""}${p.vivo&&p.quim>0&&anios()>=18?" · química "+Math.round(p.quim):""}${p.vivo&&p.emb>0?" · embarazada":""}</td><td>${rolTxt(p)}</td><td class="n">${p.vivo?edadTxt(p.edad):"† "+edadTxt(p.edad)}</td><td class="n">${Math.round(p.rel)}</td></tr>`}
 function tablaGente(titulo,l){return l.length?`<div class="tit">${titulo}</div><table><tr><th>Nombre</th><th>Quién es</th><th>Edad</th><th>Vínculo</th></tr>${l.map(filaGente).join("")}</table>`:""}
+let visto=0,tecleo=null;
+function pararTecleo(){if(tecleo){clearInterval(tecleo.t);const f=tecleo.fin;tecleo=null;f()}}
+function teclear(els,v){ // los mensajes nuevos se escriben solos; un toque los completa
+  if(!els.length)return;
+  let lento=true;try{lento=!matchMedia("(prefers-reduced-motion:reduce)").matches}catch(e){}
+  if(!lento)return;
+  const cola=els.map(el=>{const ns=[];const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode())ns.push([n,n.nodeValue]);return {el,ns}});
+  const total=cola.reduce((s,c)=>s+c.ns.reduce((q,x)=>q+x[1].length,0),0),paso=Math.max(2,Math.ceil(total/140));
+  cola.forEach(c=>{c.el.style.display="none";c.ns.forEach(x=>x[0].nodeValue="")});
+  let ci=0,ni=0,ch_=0;
+  const abre=()=>{if(ci<cola.length){cola[ci].el.style.display="";if(cola[ci].el.classList.contains("tit")){cola[ci].ns.forEach(x=>x[0].nodeValue=x[1]);ci++;ni=0;ch_=0;abre()}}};
+  const fin=()=>{cola.forEach(c=>{c.el.style.display="";c.ns.forEach(x=>x[0].nodeValue=x[1])});v.scrollTop=v.scrollHeight};
+  abre();
+  tecleo={fin,t:setInterval(()=>{
+    if(ci>=cola.length){pararTecleo();return}
+    const c=cola[ci];let q=paso;
+    while(q>0&&ni<c.ns.length){const x=c.ns[ni],k=Math.min(q,x[1].length-ch_);ch_+=k;q-=k;x[0].nodeValue=x[1].slice(0,ch_);if(ch_>=x[1].length){ni++;ch_=0}}
+    if(ni>=c.ns.length){ci++;ni=0;ch_=0;abre()}
+    v.scrollTop=v.scrollHeight;
+  },16)};
+}
 function render(abajo){
+  pararTecleo();
   if(!G){pantallaCrear();return}
   const y=G.yo;
   $("crear").hidden=true;$("vista").hidden=false;$("acc").hidden=false;$("tabs").hidden=false;$("stats").hidden=false;$("cab").classList.add("compacta");
@@ -1249,9 +1278,11 @@ function render(abajo){
   document.querySelectorAll("#tabs button[data-t]").forEach(b=>b.classList.toggle("on",b.dataset.t==TAB));
   const v=$("vista");
   if(TAB=="diario"){
-    v.innerHTML=G.log.slice(-70).map(e=>e.t=="tit"?`<div class="tit">${esc(e.txt)}${e.sub?"<small>"+esc(e.sub)+"</small>":""}</div>`:
-      `<div class="caja ${e.cls}"><p>${esc(e.txt)}${e.tag?" <em>("+esc(e.tag)+")</em>":""}</p></div>`).join("");
-    if(abajo)v.scrollTop=v.scrollHeight;
+    const tn=G.tn||0,at=e=>(e.cls!="fin"&&(e.n||0)<tn?" vieja":"")+'"'+(abajo&&e.i>visto?" data-new":"");
+    v.innerHTML=G.log.slice(-70).map(e=>e.t=="tit"?`<div class="tit${at(e)}>${esc(e.txt)}${e.sub?"<small>"+esc(e.sub)+"</small>":""}</div>`:
+      `<div class="caja ${e.cls}${at(e)}><p>${esc(e.txt)}${e.tag?" <em>("+esc(e.tag)+")</em>":""}</p></div>`).join("");
+    visto=G.lid||0;
+    if(abajo){v.scrollTop=v.scrollHeight;teclear([...v.querySelectorAll("[data-new]")],v)}
   }else if(TAB=="familia"){
     const viv=G.gente.filter(p=>p.vivo&&p.con),fam=["prog","herm","abu","tio","primo","hijo"];
     v.innerHTML=tablaGente("En casa contigo",viv.filter(p=>p.casa))+
@@ -1299,7 +1330,8 @@ $("bFull").onclick=()=>{
   }catch(e){abrirHoja("Aquí no se puede poner a pantalla completa. Instala el APK: ahí va siempre completa.",[])}
 };
 window.__atras=()=>{if($("hoja").classList.contains("on")){if(!(G&&G.pend))cerrarHoja();return 1}return 0};
-cargar();render(true);
+$("vista").addEventListener("click",pararTecleo);
+cargar();visto=G?(G.lid||0):0;render(true);
 </script>
 </body>
 </html>
