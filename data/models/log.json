@@ -166,5 +166,54 @@
    "frozen": 2500.0
   },
   "t": 1794877008.260298
+ },
+ {
+  "balance_before": {
+   "balance": 2100.0,
+   "frozen": 2500.0
+  },
+  "t": 1794877389.883277
+ },
+ {
+  "id": "contenedor",
+  "task": "d922c481-4fcd-4bfc-8139-989d6ae79a0a",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2156600
+ },
+ {
+  "id": "amarillo",
+  "task": "da70d17f-d3d4-4508-bd5e-6965c1d3d882",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2619464
+ },
+ {
+  "id": "mesa",
+  "task": "fe565ae8-d646-4e84-b8fe-ae8bbc3d5c97",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2944528
+ },
+ {
+  "id": "maquina",
+  "task": "c8189617-118c-4824-9db8-a008fc0f28b8",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2802692
+ },
+ {
+  "id": "palmera",
+  "task": "dbd32856-9766-4a56-86c6-6cd3a00fc6b4",
+  "status": "success",
+  "consumed": null,
+  "bytes": 3864192
+ },
+ {
+  "balance_after": {
+   "balance": 1850.0,
+   "frozen": 2500.0
+  },
+  "t": 1794878165.1583648
  }
 ]
