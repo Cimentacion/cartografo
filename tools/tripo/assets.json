@@ -58,5 +58,89 @@
   "faces": 6000,
   "slp": false,
   "geo": "detailed"
+ },
+ {
+  "id": "escopeta",
+  "prompt": "sawed-off double-barrel shotgun, side by side twin steel barrels cut short, dark blued metal receiver with two hammers and a trigger guard, worn walnut wood pistol grip stock and fore-end, held in first person, oriented horizontally lying on its side. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 6000,
+  "slp": false,
+  "geo": "detailed"
+ },
+ {
+  "id": "durum",
+  "prompt": "durum kebab wrap: a long rolled flatbread wrap filled with sliced doner meat, lettuce, tomato and white sauce, the lower half wrapped in crumpled aluminium foil and a paper napkin, the top open showing the filling, food prop. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 4000,
+  "slp": false,
+  "geo": "detailed"
+ },
+ {
+  "id": "pita",
+  "prompt": "pita kebab sandwich: a round pocket pita bread stuffed with sliced doner meat, lettuce, tomato, onion and white garlic sauce dripping, half wrapped in white greasy paper, food prop. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 4000,
+  "slp": false,
+  "geo": "detailed"
+ },
+ {
+  "id": "cajapollo",
+  "prompt": "open white takeaway food box made of cardboard with the lid open, full of sliced chicken kebab meat, french fries, lettuce and drizzled white and red sauce, a plastic fork stuck in, food prop. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 4000,
+  "slp": false,
+  "geo": "detailed"
+ },
+ {
+  "id": "patatas",
+  "prompt": "paper cone of golden french fries, red and white striped paper cone, fries sticking out of the top, food prop. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 3000,
+  "slp": false,
+  "geo": "detailed"
+ },
+ {
+  "id": "lata",
+  "prompt": "generic red soda can, 33 cl aluminium drink can, dented, no brand logo, condensation, food prop. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 1500,
+  "slp": false,
+  "geo": "detailed"
+ },
+ {
+  "id": "agua",
+  "prompt": "small 50 cl plastic water bottle with blue cap and a plain blue label, slightly crushed, food prop. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 1500,
+  "slp": false,
+  "geo": "detailed"
+ },
+ {
+  "id": "furgoneta",
+  "prompt": "old white Spanish delivery van from the late 1990s like a Citroen Berlingo or Renault Kangoo, boxy compact van with sliding side door and two rear doors, rusty dented bumpers, dirty windows, standing on the ground with four wheels. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 6000,
+  "slp": false,
+  "geo": "detailed"
+ },
+ {
+  "id": "vagabundo",
+  "prompt": "homeless man sleeping face down on flattened cardboard boxes on the pavement, covered by a dirty torn grey blanket, worn sneakers sticking out, a plastic bag and an empty bottle next to his head. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 5000,
+  "slp": false,
+  "geo": "detailed"
+ },
+ {
+  "id": "carro",
+  "prompt": "old supermarket shopping cart overflowing with junk: black garbage bags, blankets, cardboard, plastic bottles, a broken umbrella, rusty metal wire cart with four small wheels. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 5000,
+  "slp": false,
+  "geo": "detailed"
+ },
+ {
+  "id": "telefono",
+  "prompt": "beige 1990s wall-mounted landline telephone with a handset on the hook, push-button keypad, coiled spiral cord hanging, yellowed plastic, greasy fingerprints. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 2500,
+  "slp": false,
+  "geo": "detailed"
+ },
+ {
+  "id": "banco",
+  "prompt": "Spanish public street bench: wooden slat seat and backrest with dark green cast iron side legs and armrests, standing on the ground. Detailed accurate geometry with all real parts modeled, worn and dirty with grime and scratches, realistic proportions, game asset.",
+  "faces": 4000,
+  "slp": false,
+  "geo": "detailed"
  }
 ]
