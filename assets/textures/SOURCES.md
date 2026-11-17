@@ -125,3 +125,12 @@ Sonidos de terror lejanos (`hor00`–`hor11`), recortados y pasados a mono 22 kH
 | hor09 | Very Bassy 1 | [Horror Hit Soundpack 1](https://opengameart.org/content/horror-hit-soundpack-1) | psychhead_ | CC0 |
 | hor10 | heartbeat | [Eery/Horror SFX](https://opengameart.org/content/eeryhorror-sfx) | AllergicRacoon | CC-BY 3.0 |
 | hor11 | warpedradio | ídem | AllergicRacoon | CC-BY 3.0 |
+
+Música de la tele (`tvm0`–`tvm3`), primer minuto de cada pista, en mono, con fundido:
+
+| archivo | pista | autor | licencia |
+|---|---|---|---|
+| tvm0 | [Mala Alkasaat](https://commons.wikimedia.org/wiki/File:08_5Mala_Alkasaat.ogg) | Mehamed Othman | dominio público |
+| tvm1 | [Âaita Baidaouiya (1929)](https://commons.wikimedia.org/wiki/File:%C3%82aita_Baidaouiya_(1929).ogg) | Chikha Aicha El Hertitia (grabación de Harold Fleming, Casablanca) | dominio público |
+| tvm2 | [ماتنساه (Matensah)](https://commons.wikimedia.org/wiki/File:%D9%85%D8%AC%D9%85%D9%88%D8%B9%D8%A9_%D8%A7%D8%B3%D8%AA%D8%B1%D9%8A%D8%A7%D8%B3_-%D9%85%D8%A7%D8%AA%D9%86%D8%B3%D8%A7%D9%87.wav) | Estrellas groupe (Rachid Kasraoui) | CC BY-SA 4.0 |
+| tvm3 | [Oud music 2v2](https://commons.wikimedia.org/wiki/File:Oud_music_by_Andy_R._Jordan_2v2.mp3) | Andy R. Jordan | CC BY-SA 3.0 |
