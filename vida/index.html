@@ -185,7 +185,7 @@ const CURROS=[
  ["en un bufete","en una clínica privada","dirigiendo una empresa"],
  ["al frente de los negocios de la familia","administrando su fortuna"]];
 const ROL={prog:["Padre","Madre"],herm:["Hermano","Hermana"],abu:["Abuelo","Abuela"],tio:["Tío","Tía"],primo:["Primo","Prima"],
- vec:["Vecino","Vecina"],comp:["Compañero","Compañera"],conoc:["Conocido","Conocida"],hijo:["Hijo","Hija"]};
+ vec:["Vecino","Vecina"],comp:["Compañero","Compañera"],conoc:["Conocido","Conocida"],hijo:["Hijo","Hija"],nieto:["Nieto","Nieta"],sobr:["Sobrino","Sobrina"]};
 
 /* ============ Estado ============ */
 let G=null, TAB="diario";
@@ -224,10 +224,10 @@ function complexion(){const d=G.yo.imcD;return d<-3.5?"en los huesos":d<-1.5?g("
 function mover(n){const y=G.yo;if(y.edad<216)y.altMod=Math.min(3,y.altMod+.03);y.imcD=Math.max(-4,y.imcD-(n||.06))}
 function etapa(){const a=G.yo.edad/12;return a<2?"bebé":a<6?"infancia":a<12?"niñez":a<18?"adolescencia":a<65?"edad adulta":"vejez"}
 function edadTxt(m){const a=Math.floor(m/12);return a<1?m+(m==1?" mes":" meses"):a+(a==1?" año":" años")}
-function add(k,v){const y=G.yo;y[k]=clamp(y[k]+v)}
+function add(k,v){const y=G.yo;if(v>0)v*=multRasgo(k);y[k]=clamp(y[k]+v)}
 function rel(p,v){if(p){p.rel=clamp(p.rel+v);if(v>0&&G.yo&&G.yo.edad<192&&p.edad<216&&["vec","comp","conoc"].includes(p.rol)&&Math.abs(p.edad-G.yo.edad)<=36)p.inf=(p.inf||0)+1}}
 const deInfancia=p=>(p.inf||0)>=10;
-const RE_CLAVE=/^Naces en|carruaje|Umbraluz no te|báculo|dice que es tu padre|besando a|primeros pasos|primera palabra|Nace |da a luz|^Muere |ha muerto|y ganas\.|Te ascienden|Te cogen\.|Terminas (la carrera|Med|Mag|Ing|Der|Eco|Per|Cie)|dice que sí|sois pareja|Empezáis a salir|está embarazada|test da positivo|Positivo\.|Os mudáis|Te ofrecen|Llega una oferta|Firmas\.|Es tu primera vez|Eres mayor de edad|Empiezas el colegio|Pasas al instituto|Te jubilas|Te vas de casa|centro de acogida|se separan|Es lo más alto|propia escuela|beca completa|Dejas de crecer|adopción ha salido|Abres un grupo|Te matriculas|Te quedas sin padres|se vuelve a casar|un infarto/;
+const RE_CLAVE=/^Naces en|carruaje|Umbraluz no te|báculo|dice que es tu padre|besando a|primeros pasos|primera palabra|Nace |da a luz|^Muere |ha muerto|y ganas\.|Te ascienden|Te cogen\.|Terminas (la carrera|Med|Mag|Ing|Der|Eco|Per|Cie)|dice que sí|sois pareja|Empezáis a salir|está embarazada|test da positivo|Positivo\.|Os mudáis|Te ofrecen|Llega una oferta|Firmas\.|Es tu primera vez|Eres mayor de edad|Empiezas el colegio|Pasas al instituto|Te jubilas|Te vas de casa|centro de acogida|se separan|Es lo más alto|propia escuela|beca completa|Dejas de crecer|adopción ha salido|Abres un grupo|Te matriculas|Te quedas sin padres|se te ve el carácter|termina de cuajar|Firmas la hipoteca|a la quiebra|Te condenan|Sales de prisión|Te detienen|Firmas testamento|te hace abuel|usa una palabra nueva|Sigues la historia|última cuota|segundo local|Cita en el notario|ya no puedes vivir sin ayuda|se vuelve a casar|un infarto/;
 function log(txt,cls){txt=txt.charAt(0).toUpperCase()+txt.slice(1);cls=(cls||"")+(RE_CLAVE.test(txt)?" clave":"");G.lid=(G.lid||0)+1;G.log.push({t:"caja",txt,cls,n:G.tn||0,i:G.lid,tag:edadTxt(G.yo.edad)+" · "+etapa()});if(G.log.length>160)G.log.splice(0,G.log.length-160)}
 function titular(txt,sub){G.lid=(G.lid||0)+1;G.log.push({t:"tit",txt,sub:sub||"",n:G.tn||0,i:G.lid})}
 function rolTxt(p){
@@ -244,7 +244,7 @@ function rolTxt(p){
   return r;
 }
 function tu(p){ // "tu abuela Carmen"
-  const base={prog:["tu padre","tu madre"],herm:["tu hermano","tu hermana"],abu:["tu abuelo","tu abuela"],tio:["tu tío","tu tía"],primo:["tu primo","tu prima"],hijo:["tu hijo","tu hija"]}[p.rol];
+  const base={prog:["tu padre","tu madre"],herm:["tu hermano","tu hermana"],abu:["tu abuelo","tu abuela"],tio:["tu tío","tu tía"],primo:["tu primo","tu prima"],hijo:["tu hijo","tu hija"],nieto:["tu nieto","tu nieta"],sobr:["tu sobrino","tu sobrina"]}[p.rol];
   if(p.id==G.pareja)return p.nombre;
   if(p.astra)return ({madr:gp(p,"tu padrastro","tu madrastra"),herm:gp(p,"tu hermanastro","tu hermanastra"),prima:gp(p,"tu «primo»","tu «prima»")})[p.astra]+" "+p.nombre;
   return base?base[p.sexo=="m"?0:1]+" "+p.nombre:p.nombre;
@@ -394,7 +394,7 @@ function nacerHermano(){
   if(G.yo.edad<72)add("animo",-4);
 }
 function nacerHijo(){
-  const y=G.yo,h=per("hijo",sx(),0,y.apellido,{casa:G.indep,con:true,rel:75}),q=G.pareja&&P(G.pareja);
+  const y=G.yo,h=per("hijo",sx(),0,y.apellido,{casa:G.indep,con:true,rel:75,otro:G.pareja||G.padre||null}),q=G.pareja&&P(G.pareja);
   if(G.fl.adop){G.fl.adop=0;log(`Suena el teléfono: la adopción ha salido. Vais a recoger a ${h.nombre} con el coche lleno de cosas que no hacían falta.`);add("animo",12);return}
   let s=y.sexo=="f"?`Rompes aguas de madrugada. Catorce horas de hospital y nace ${gp(h,"tu hijo","tu hija")}: ${h.nombre}.`:`Carreras al hospital de madrugada. Horas de pasillo y nace ${gp(h,"tu hijo","tu hija")}: ${h.nombre}.`;
   if(ch(.07)){s+=" El parto se complica y hay días de incubadora y de dormir en una silla. Al final, todo bien.";add("animo",-4);if(y.sexo=="f")add("salud",-12);else if(q)rel(q,4)}
@@ -421,6 +421,8 @@ function cumple(){
   }
   if(a==18&&G.mg){if(G.mg.anos>=4&&(y.magia||0)>=55){G.mago=1;logro("te gradúas en Umbraluz");log("Umbraluz te entrega el báculo en una ceremonia a la luz del lago. Eres mago de pleno derecho; ahí fuera hay oficios que la gente corriente ni imagina.".replace("mago de",g("mago de","maga de")))}
     else log("Cumples la edad y Umbraluz no te entrega el báculo: te faltaron cursos o te faltó magia. Te queda lo aprendido y una vida corriente.","mala")}
+  if(a==12&&!(G.rasgos&&G.rasgos.length))rasgosInfancia();
+  if(a==18)rasgosJuventud();
   if(a==18)log(`Eres mayor de edad. Ahora las decisiones, y sus consecuencias, son tuyas.`);
   if(a==67&&G.trabajo){G.pension=Math.round(G.trabajo.s*.6);G.trabajo=null;log("Te jubilas. Te queda la pensión y todo el tiempo del mundo.")}
 }
@@ -431,6 +433,7 @@ function muerteYo(causa){
   G.log.push({t:"caja",cls:"fin",tag:"",txt:`${y.nombre} ${y.apellido} muere a los ${edadTxt(y.edad)} en ${G.lugar.nombre} por ${causa}. `+
    (y.edad<12?"Apenas tuvo tiempo de nada.":`${G.trabajo?"Trabajaba "+G.trabajo.n+". ":""}${G.titulo?"Tenía estudios universitarios. ":""}${hijos?"Deja "+hijos+(hijos==1?" hijo. ":" hijos. "):""}${G.pareja&&P(G.pareja)?"Le llora "+P(G.pareja).nombre+". ":""}`)+
    `${quer} ${quer==1?"persona le quería":"personas le querían"} de verdad.`+(G.logros&&G.logros.length?` Logros: ${G.logros.length}. El último, a los ${G.logros[G.logros.length-1]}.`:"")});
+  G.log.push({t:"caja",cls:"fin",tag:"",txt:necrologica(causa)});
 }
 function tick(){
   const y=G.yo;if(G.muerto)return;
@@ -473,13 +476,15 @@ function tick(){
   // Cumpleaños
   if(y.edad%12==0)cumple();
   // Muertes ajenas
-  G.gente.slice().forEach(p=>{if(p.vivo&&ch(mort(p.edad)/12))morir(p)});
+  G.gente.slice().forEach(p=>{if(p.vivo&&ch(mort(p.edad)/12)){morir(p);trasMuerte(p)}});
   // Hijos se van de casa
   G.gente.forEach(p=>{if(p.vivo&&p.casa&&p.rol=="herm"&&p.edad>24*12&&ch(.03)){p.casa=false;if(!G.indep)log(`${tu(p)} se va de casa. Su cuarto se queda raro.`)}});
+  tickEcos();tickDinero();tickSalud();
+  if(G.carcel&&--G.carcel.m<=0)liberar();
   // Azar
   if(enMagia()&&y.edad%12==9)finCursoMagia();
   if(ch(.22)){if(enMagia())eventoMagia();else evento()}
-  if(!G.muerto&&ch(.12))chequeoVocacion();
+  if(!G.muerto&&!G.carcel&&ch(.12))chequeoVocacion();
   // Tu muerte
   if(G.muerto)return;
   if(y.salud<=0){muerteYo(y.imcD>10?`un infarto, con ${pesoTxt()}`:G.fl.adicto?"el desgaste de años de consumo":G.fl.fuma&&a>35?"una enfermedad pulmonar":"una salud que ya no daba más de sí");return}
@@ -497,6 +502,7 @@ function vario(k,arr){ // elige un texto sin repetir los dos últimos de esa lis
   u.push(i);while(u.length>Math.min(Math.max(2,Math.ceil(arr.length*.75)),arr.length-1))u.shift();G.vr[k]=u;return arr[i];
 }
 function evento(){
+  if(G.carcel){eventoCarcel();return}
   const y=G.yo,a=y.edad/12,E=[];G.rec=G.rec||[];G.una=G.una||{};
   const ev=(w,id,fn,una)=>{if(G.rec.includes(id)||(una&&G.una[id]))return;E.push([w,id,fn,una])};
   const padres=vivos(p=>p.rol=="prog");
@@ -602,6 +608,7 @@ function evento(){
   }
   if(!G.indep&&padres.length)eventosTelenovela(ev,a);
   if(padres.length)eventosPoliticos(ev,a);
+  eventosExtra(ev,a);
   if(a>=6&&a<18&&!G.pend){const bs=vivos(q=>q.bully&&!q.lejos&&(q.cdb||0)<=y.edad);
     if(bs.length)ev(5,"bully",()=>{const b=pick(bs);G.pend={k:"bully",id:b.id};log(vario("bully",[`${b.nombre} te tira la mochila al suelo delante de todos.`,`${b.nombre} ha hecho correr un mote sobre ti. Ya lo repite media clase.`,`${b.nombre} te espera a la salida con dos más.`,`${b.nombre} te quita el almuerzo y se lo come mirándote.`,`${b.nombre} te esconde la ropa después de gimnasia.`]),"mala")})}
   if(a>=25){const eb=G.gente.find(q=>q.vivo&&q.bully!=null&&q.rol=="comp");if(eb)ev(1,"exmaton",()=>{log(eb.bully?`Te cruzas con ${eb.nombre}, que te amargó el colegio. Te mira, no te reconoce, y sigue andando. Tú sí.`:`Te cruzas con ${eb.nombre}, de los tiempos del colegio. Os dais un abrazo raro. «Menudos éramos.»`)},1)}
@@ -679,7 +686,7 @@ function finCursoMagia(){
 function eventoMagia(){
   const y=G.yo,E=[],H=CASASM[G.mg.casa];G.rec=G.rec||[];G.una=G.una||{};
   const ev=(w,id,fn,una)=>{if(G.rec.includes(id)||(una&&G.una[id]))return;E.push([w,id,fn,una])};
-  const cs=vivos(q=>q.umb&&q.edad<216&&!q.rival),rv=vivos(q=>q.rival)[0],pf=vivos(q=>q.umb&&q.edad>=216);
+  const cs=vivos(q=>q.umb&&q.edad<216&&!q.rival),rv=vivos(q=>q.rival)[0],pf=vivos(q=>q.umb&&q.edad>=216&&q.oficio);
   ev(3,"mexamen",()=>{if((y.magia||0)>=(G.mg.anos+1)*8){magia(1);G.mg.pts+=3;log("Examen sorpresa de conjuros. Tu pluma levita a la primera. Puntos para "+H.n+".")}else{add("animo",-4);G.mg.pts-=1;log("Examen sorpresa. Tu pluma se prende fuego en vez de levitar.","mala")}});
   ev(2,"mcriatura",()=>{add("cuerpo",1);add("animo",3);log("Se escapa algo con demasiadas patas del aula de criaturas. Media escuela lo persigue por los pasillos; la otra media huye de él.")});
   if(rv)ev(3,"mrival",()=>{if(ch(.3+(y.magia||0)/150)){magia(2);rel(rv,6);add("animo",5);G.mg.pts+=2;log(`${rv.nombre} te reta delante de todos. Le desarmas con un conjuro limpio. Desde lejos, casi parece que te respeta.`)}else{add("animo",-5);rel(rv,-4);log(`${rv.nombre} te reta delante de todos y te deja con el pelo de color verde tres días.`,"mala")}});
@@ -924,6 +931,7 @@ function ligue(prot){
 }
 function abrirPend(){
   const d=G.pend;
+  if(d.k=="dec"){abrirDecision(d);return}
   if(d.k=="beca"){const A=AREAS[d.a];abrirHoja("Te ofrecen "+A.t[2],[
     {t:"Aceptar",s:"Os mudáis a otra ciudad. Dejas atrás a tu gente, pero progresas más rápido",fn:()=>resolver(()=>resolverBeca(true))},
     {t:"Quedarte",s:"Sigues como hasta ahora",fn:()=>resolver(()=>resolverBeca(false))}],true)}
@@ -1271,6 +1279,7 @@ const secDe=k=>SEC.find(x=>x.k==k);
 function falta(sec,l){ // qué te impide ocupar ese puesto ("" si nada)
   const y=G.yo;G.cursos=G.cursos||{};
   if(sec.mago&&!G.mago)return "haber terminado Umbraluz";
+  if(G.fl.antec&&["seguridad","banca","educacion","derecho","sanidad"].includes(sec.k))return "no tener antecedentes penales";
   if(sec.st=="magia")return (y.magia||0)<MINS[l]?"más magia ("+MINS[l]+")":"";
   if(sec.car&&l>=sec.carN&&!(G.titulo&&G.carrera==sec.car))return "la carrera de "+CARRERAS[sec.car];
   if(l>=sec.cur&&!G.cursos[sec.k]&&!(sec.car&&G.titulo&&G.carrera==sec.car))return "el curso de "+sec.n.toLowerCase();
@@ -1333,12 +1342,13 @@ function empezarCarrera(k){
   pasoCarrera();return `Te matriculas en ${CARRERAS[k]}. El primer día te sientas entre ${cs[0].nombre} y ${cs[1].nombre}.`;
 }
 function acciones(){
+  if(G.carcel)return accionesCarcel();
   if(enMagia())return accionesMagia();
   return accionesVida();
 }
 function accionesVida(){
   const y=G.yo,a=y.edad/12,L=[];
-  const A=(t,fn,cls)=>L.push({t,fn,cls});
+  const A=(t,fn,cls)=>L.push({t,fn:()=>{cuenta(t);return fn()},cls});
   const elegir=(t,titulo,lista,fn,cls)=>L.push({t,cls,abre:()=>abrirHoja(titulo,lista.map(p=>({t:p.nombre+" "+p.apellido,s:rolTxt(p)+" · "+edadTxt(p.edad)+" · vínculo "+Math.round(p.rel),fn:()=>fn(p)})))});
   const trato=candidatosTrato();
   if(a<2){
@@ -1426,6 +1436,7 @@ function accionesVida(){
   if(a>=12)L.push({t:"Qué comes: "+({basura:"comida basura",dieta:"dieta"}[G.dieta]||"lo de siempre"),cls:"sec",abre:()=>abrirHoja("¿Qué comes a diario? (no gasta el mes)",[
     {t:"Lo de siempre",s:"Sin efectos",k:""},{t:"Comida basura",s:"Más ánimo cada mes; menos aspecto y salud",k:"basura"},{t:"Dieta estricta",s:"Más aspecto y salud cada mes; menos ánimo",k:"dieta"}].map(o=>({t:o.t,s:o.s,fn:()=>{G.dieta=o.k;
       log(o.k=="basura"?"Te pasas a la comida rápida. Qué bien sabe todo lo que hace daño.":o.k=="dieta"?"Empiezas una dieta en serio. Pesas el arroz y miras las etiquetas.":"Vuelves a comer normal, sin contar nada.");guardar();cerrarHoja();render(true)}})))});
+  if(a>=18)accionesExtra(L,a);
   A("Dejar pasar el mes",()=>vario("pasar",["Pasa el mes sin nada que contar.","Un mes más.","Los días se parecen unos a otros.","Miras el calendario y ya es fin de mes.","Rutina. No es mala palabra.","Un mes de lunes. Ni bueno ni malo.","Se te va el mes entre recados.","Nada que apuntar en el diario, y lo apuntas.","Treinta días que caben en una frase.","Ves llover desde la ventana más de lo que te gustaría admitir.","El mes pasa de puntillas.","Tachas días en el calendario sin fijarte en cuáles."]),"sec");
   L.push({t:"Dejar pasar un año",cls:"sec",anio:1});
   return L;
@@ -1445,6 +1456,458 @@ function pasarAnio(){
   log("Dejas correr un año entero.");
   for(let i=0;i<12&&!G.muerto&&!G.pend;i++)tick();
   guardar();render(true);
+}
+
+/* ================= AMPLIACIÓN: decisiones, carácter, hijos, dinero, delito, vejez y legado ================= */
+const TRAZOS={travieso:["travieso","traviesa"],estudioso:["estudioso","estudiosa"],inquieto:["inquieto","inquieta"],sociable:["sociable","sociable"],responsable:["responsable","responsable"],
+ sonador:["soñador","soñadora"],solitario:["solitario","solitaria"],rebelde:["rebelde","rebelde"],disciplinado:["disciplinado","disciplinada"],presumido:["presumido","presumida"],
+ trabajador:["trabajador","trabajadora"],honrado:["honrado","honrada"],tramposo:["tramposo","tramposa"],leal:["leal","leal"],chivato:["chivato","chivata"],generoso:["generoso","generosa"],
+ egoista:["egoísta","egoísta"],valiente:["valiente","valiente"],prudente:["prudente","prudente"]};
+const OPUESTO={honrado:"tramposo",tramposo:"honrado",leal:"chivato",chivato:"leal",generoso:"egoista",egoista:"generoso",valiente:"prudente",prudente:"valiente"};
+const MULT={mente:["estudioso",1.2],cuerpo:["inquieto",1.15],carisma:["sociable",1.2],aspecto:["presumido",1.2],animo:["sonador",1.1]};
+function tiene(k){return !!(G.rasgos&&G.rasgos.includes(k))}
+function multRasgo(k){const m=MULT[k];return (m&&tiene(m[0])?m[1]:1)*(k=="cuerpo"&&tiene("disciplinado")?1.1:1)}
+function trazoTxt(k){return TRAZOS[k][G.yo.sexo=="m"?0:1]}
+function rasgosTxt(){return (G.rasgos||[]).map(trazoTxt).join(", ")}
+function cuenta(t){G.cn=G.cn||{};G.cn[t]=(G.cn[t]||0)+1}
+function ponRasgo(k){G.rasgos=G.rasgos||[];if(G.rasgos.includes(k))return false;const o=OPUESTO[k];if(o)G.rasgos=G.rasgos.filter(x=>x!=o);G.rasgos.push(k);if(G.rasgos.length>5)G.rasgos.shift();return true}
+function moral(k,n){ // las decisiones van dejando fama
+  n=n||1;G.mor=G.mor||{};G.mor[k]=(G.mor[k]||0)+n;const o=OPUESTO[k];if(o)G.mor[o]=(G.mor[o]||0)-n;
+  if(G.mor[k]>=2&&ponRasgo(k))return ` Se te va quedando fama de ${trazoTxt(k)}.`;return "";
+}
+function rasgosInfancia(){
+  const c=G.cn||{},n=k=>c[k]||0,am=vivos(p=>p.con&&["vec","comp","conoc"].includes(p.rol)&&p.rel>=50).length;
+  const s={travieso:n("Hacer una trastada")*1.5,estudioso:n("Estudiar")+n("Leer y curiosear")*.7,inquieto:n("Hacer deporte")+n("Correr y trepar"),sociable:n("Jugar en la calle")+am*3,
+    responsable:n("Ayudar en casa")*1.5,sonador:n("Jugar a tu aire")+n("Dibujar")+n("Preguntar por qué")*.5,solitario:am==0?9:0};
+  let l=Object.keys(s).filter(k=>s[k]>=6).sort((p,q)=>s[q]-s[p]).slice(0,2);
+  if(l.includes("solitario")&&l.includes("sociable"))l=l.filter(k=>k!="solitario");
+  if(!l.length)l=[G.yo.mente>=G.yo.cuerpo?"sonador":"inquieto"];
+  l.forEach(ponRasgo);G.cn12=Object.assign({},c);
+  log(`Con doce años ya se te ve el carácter: eres ${l.map(trazoTxt).join(" y ")}. Eso abre unas puertas y entorna otras.`);
+}
+function rasgosJuventud(){
+  const c=G.cn||{},b=G.cn12||{},n=k=>(c[k]||0)-(b[k]||0);
+  const s={rebelde:n("Saltarte clases")*1.5+n("Beber en el parque")*.7+(G.fl.fuma?3:0),disciplinado:n("Estudiar")*.5+n("Hacer deporte")*.5,presumido:n("Cuidar tu aspecto"),trabajador:n("Trabajillo de verano")*3};
+  if(s.rebelde>=9)s.disciplinado=0;
+  const k=Object.keys(s).filter(x=>s[x]>=(x=="rebelde"?9:5)).sort((p,q)=>s[q]-s[p])[0];
+  if(k&&ponRasgo(k))log(`A los dieciocho el carácter termina de cuajar: además, ${trazoTxt(k)}.`);
+}
+
+/* ---- Ecos: lo que decides vuelve años después ---- */
+function eco(k,meses,d){G.ecos=G.ecos||[];G.ecos.push({k,en:G.yo.edad+Math.max(1,Math.round(meses)),d:d||{}})}
+function decidir(id,d){G.pend=Object.assign({},d||{},{k:"dec",dec:id})}
+const viv=id=>{const p=P(id);return p&&p.vivo?p:null};
+const ECO={
+ carteraBien:d=>{const n=ri(100,400)*(anios()>=18?4:1);G.yo.dinero+=n;add("animo",5);return `Suena el teléfono: es la persona a la que devolviste aquella cartera. No lo ha olvidado. Te hace llegar ${n} y una nota: «Queda poca gente así.»`},
+ carteraMal:d=>{vivos(q=>q.rol=="vec"&&q.con&&!q.lejos).forEach(q=>rel(q,-8));add("animo",-4);return {txt:"Resulta que alguien te vio quedarte con aquella cartera. En el barrio la historia ha ido creciendo sola, y no a tu favor.",mal:1}},
+ amigoLeal:d=>{const f=viv(d.id);if(!f)return null;f.lejos=false;f.con=true;rel(f,15);const n=ri(500,2500)*(d.fuerte?2:1);G.yo.dinero+=n;add("animo",6);
+   return `${f.nombre} te llama después de tantos años. «Tú no dijiste nada cuando pudiste. Yo de eso no me olvido.» Te echa una mano cuando más falta hace: ${n}, sin papeles ni plazos.`},
+ amigoChivado:d=>{const f=viv(d.id);if(!f)return null;add("animo",-6);rel(f,-10);return {txt:`Te cruzas con ${f.nombre}, a quien delataste en el colegio. Resulta que es quien decide en un asunto que te importaba. Te mira, sonríe y dice que no.`,mal:1}},
+ copion:d=>{G.yo.mente=clamp(G.yo.mente-4);return {txt:"Lo que no estudiaste entonces te pasa factura ahora: hay una base que todos tienen y tú solo aparentas. Te toca aprenderlo tarde y a escondidas.",mal:1}},
+ defendido:d=>{const v=viv(d.id);if(!v)return null;v.lejos=false;v.con=true;rel(v,20);const n=ri(1000,3000);G.yo.dinero+=n;add("animo",8);
+   return `${v.nombre}, aquel crío al que defendiste contra la valla del patio, te reconoce por la calle. Le ha ido bien. «Fuiste el único.» Insiste en devolverte el favor: ${n} y su teléfono para lo que haga falta.`},
+ noDefendido:d=>{add("animo",-5);return {txt:"Sueñas con el patio del colegio y con aquel crío contra la valla. Tú mirabas hacia otro lado. Te despiertas antes de saber cómo acaba.",mal:1}},
+ inspeccion:d=>{if(ch(.5)){add("animo",3);return "Aquellas facturas que firmaste prescriben sin que nadie pregunte. Duermes mejor desde hoy."}return detener("falsedad documental",2)},
+ denuncia:d=>{if(ch(.6)){const n=ri(3000,8000);G.yo.dinero+=n;add("animo",8);return `Lo que denunciaste sale en la prensa y te dan la razón. Cobras ${n} de indemnización y hay quien te para por la calle para darte la mano.`}
+   add("animo",-8);return {txt:"Tenías razón en lo que denunciaste, y no ha servido de nada. En el sector corre la voz: nadie contrata a quien levanta alfombras.",mal:1}},
+ devuelve:d=>{const f=viv(d.id);if(!f)return null;if(ch(.6)){G.yo.dinero+=d.n;rel(f,8);return `${f.nombre} te devuelve los ${d.n} que le prestaste, con una botella de propina. «Me sacaste de una buena.»`}
+   rel(f,-25);return {txt:`${f.nombre} no te ha devuelto los ${d.n}. Ya ni lo menciona, y cambia de acera cuando te ve venir.`,mal:1}},
+ culpa:d=>{add("animo",-8);return {txt:"Piensas en tus padres más de lo que querrías. En lo que pudiste hacer y dejaste para otros.",mal:1}},
+ camara:d=>{if(ch(.55))return null;const n=ri(600,1500);G.yo.dinero-=n;add("animo",-4);return {txt:`Había una cámara. Te llega una carta del juzgado por el coche que golpeaste: ${n} entre daños y multa por darte a la fuga.`,mal:1}},
+ testigo:d=>{if(ch(.3)){add("animo",-8);return {txt:"Te rayan el buzón y te dejan una nota sin firma. Testificar tenía su precio. Miras dos veces antes de entrar al portal.",mal:1}}
+   G.yo.dinero+=300;add("animo",5);return "El dueño del local te para en la calle para darte las gracias por haber hablado. Te deja pagado un año de cafés, que acabas cobrando en metálico: 300."},
+ chantajeado:d=>{if(ch(.7))return null;return detener("chantaje",1)},
+ rinon:d=>{const h=viv(d.id);if(!h)return null;if(ch(.5)){morir(h);trasMuerte(h);add("animo",-15);return {txt:`El donante que esperaba ${h.nombre} no llegó a tiempo. Tú eras compatible. Con eso vas a tener que vivir.`,mal:1}}
+   rel(h,-40);return `${tu(h)} encuentra otro donante y sale adelante. No te lo echa en cara. Tampoco te llama.`},
+ secreto:d=>{if(ch(.7))return null;vivos(q=>q.rol=="conoc"&&q.con&&!q.lejos).forEach(q=>rel(q,-5));return {txt:"Se descubre el lío de tu amigo y, de paso, que tú le cubrías. Tu nombre sale en la conversación más veces de las que te gustaría.",mal:1}},
+ salvado:d=>{const n=ri(200,900);G.yo.dinero+=n;add("animo",7);return `Te escribe la familia del hombre al que ayudaste en la acera. Sigue vivo gracias a esos minutos. Mandan una carta, una caja de vino y ${n} que no hay forma de rechazar.`},
+ herencia:d=>{if(G.pend||G.carcel){eco("herencia",2,d);return null}decidir("herencia",d);return `Cita en el notario. Tus padres dejan ${d.n}`+(d.cuid?" y una carta para ti, por los años que pasaste a su lado.":".")}
+};
+function tickEcos(){
+  if(!G.ecos||!G.ecos.length)return;const y=G.yo,due=G.ecos.filter(e=>e.en<=y.edad);if(!due.length)return;
+  G.ecos=G.ecos.filter(e=>e.en>y.edad);
+  due.forEach(e=>{const f=ECO[e.k];if(!f)return;const r=f(e.d);if(typeof r=="string")log(r);else if(r&&r.txt)log(r.txt,r.mal?"mala":"")});
+}
+
+/* ---- Decisiones ---- */
+const amigoPeq=()=>pick(vivos(p=>p.con&&!p.lejos&&["vec","comp","conoc"].includes(p.rol)&&p.edad<216&&Math.abs(p.edad-G.yo.edad)<=36&&p.rel>=25&&!p.bully));
+const amigoAd=m=>pick(vivos(p=>p.con&&!p.lejos&&["vec","comp","conoc"].includes(p.rol)&&p.edad>=216&&p.rel>=(m||50)&&p.id!=G.pareja&&!p.amante&&!p.astra));
+const DEC={
+ cartera:{min:9,max:80,rep:1,w:1,prep:()=>({n:ri(40,300)*(anios()>=18?3:1)}),tit:d=>"Una cartera en el suelo",
+  txt:d=>`Encuentras una cartera en la acera. Dentro hay ${d.n} y un carné con una foto de alguien que sonríe.`,
+  ops:d=>[{t:"Devolverla entera",s:"Buscas a su dueño",fn:()=>{add("animo",3);if(ch(.5))eco("carteraBien",ri(8,48));return "Llevas la cartera a la dirección del carné. Te dan las gracias dos veces, sin creérselo del todo."+moral("honrado")}},
+   {t:"Quedarte el dinero",s:"Nadie ha visto nada",fn:()=>{G.yo.dinero+=d.n;if(ch(.35))eco("carteraMal",ri(2,10));return `Te guardas los ${d.n} y tiras la cartera a una papelera. El carné te mira un segundo antes de caer.`+moral("tramposo")}},
+   {t:"Dejarla donde estaba",fn:()=>"Pasas de largo. No es asunto tuyo."+moral("prudente")}]},
+ encubrir:{min:9,max:16,w:3,prep:()=>{const f=amigoPeq();return f?{id:f.id,q:pick(["rompe de un balonazo el cristal del gimnasio","copia las respuestas del examen de la mesa del profesor","pinta el nombre del director en la pared del baño"])}:null},
+  tit:d=>"El director pregunta quién ha sido",txt:d=>`${P(d.id).nombre} ${d.q}, y solo lo has visto tú. El director entra en clase y pregunta quién ha sido.`,
+  ops:d=>{const f=P(d.id);return [
+   {t:"Callar",s:"Castigan a toda la clase",fn:()=>{rel(f,12);add("animo",-3);eco("amigoLeal",ri(96,240),{id:f.id});return `No dices nada. Os quedáis todos sin recreo una semana. ${f.nombre} te pasa un papel doblado: «Te debo una.»`+moral("leal")}},
+   {t:"Decir quién fue",fn:()=>{rel(f,-35);vivos(q=>q.rol=="prog").forEach(q=>rel(q,3));if(ch(.6))eco("amigoChivado",ri(120,260),{id:f.id});return {txt:`Levantas la mano y dices su nombre. ${f.nombre} no vuelve a sentarse contigo.`+moral("chivato"),mal:1}}},
+   {t:"Decir que fuiste tú",s:"Te comes el castigo",fn:()=>{rel(f,25);vivos(q=>q.rol=="prog").forEach(q=>rel(q,-6));eco("amigoLeal",ri(96,240),{id:f.id,fuerte:1});return `Te levantas y dices que has sido tú. Un mes de castigo y una nota a casa. ${f.nombre} no sabe ni dónde mirar.`+moral("leal")+moral("valiente")}}]}},
+ copiar:{min:10,max:17,w:2,tit:d=>"El examen",txt:d=>"Examen importante y no has estudiado nada. Quien se sienta a tu lado tiene la hoja bien a la vista.",
+  ops:d=>[{t:"Copiar",s:"Puede salir mal",fn:()=>{if(ch(.3)){vivos(q=>q.rol=="prog").forEach(q=>rel(q,-8));return {txt:"Te pillan mirando. Un cero, una nota a casa y la vergüenza de recoger tus cosas delante de todos."+moral("tramposo"),mal:1}}
+     add("animo",3);if(ch(.6))eco("copion",ri(24,72));return "Copias medio examen. Sacas mejor nota que nunca y nadie pregunta."+moral("tramposo")}},
+   {t:"Hacerlo por tu cuenta",fn:()=>{add("mente",2);add("animo",-2);return "Lo haces con lo que sabes, que es poco. Suspendes, pero el suspenso es tuyo."+moral("honrado")}}]},
+ defender:{min:8,max:16,w:3,prep:()=>{const l=vivos(p=>p.con&&p.rol=="comp"&&!p.bully&&p.edad<216&&p.rel<45),v=l.length?pick(l):per("comp",sx(),G.yo.edad/12+R()-.5,pick(ORI[G.origen].ap),{con:true,rel:15}),b=vivos(p=>p.bully&&!p.lejos)[0];return {id:v.id,b:b?b.id:0}},
+  tit:d=>"En el patio",txt:d=>`En el recreo, ${d.b&&P(d.b)?P(d.b).nombre:"uno de los mayores"} tiene a ${P(d.id).nombre} contra la valla. Todo el patio mira hacia otro lado.`,
+  ops:d=>{const v=P(d.id);return [
+   {t:"Meterte en medio",s:"Puedes cobrar tú",fn:()=>{rel(v,30);eco("defendido",ri(120,300),{id:v.id});const gana=ch(.4+G.yo.cuerpo/200);if(gana)add("carisma",2);else add("salud",-5);
+     return (gana?`Te plantas delante y no te mueves. Se van. ${v.nombre} recoge su mochila sin saber qué decir.`:`Te metes y cobráis los dos. Labio partido y parte a casa. ${v.nombre} te espera a la salida todos los días desde entonces.`)+moral("valiente")}},
+   {t:"Avisar a un profesor",fn:()=>{rel(v,10);return `Vas a buscar a un profesor. Llega tarde, pero llega.`+moral("prudente")}},
+   {t:"Mirar hacia otro lado",fn:()=>{add("animo",-4);if(ch(.5))eco("noDefendido",ri(60,240));return {txt:"Te pones a mirar los cordones de tus zapatillas hasta que suena el timbre.",mal:1}}}]}},
+ tienda:{min:11,max:17,w:2,tit:d=>"«Te toca»",txt:d=>"Tus amigos se van llenando los bolsillos en una tienda y te pasan la mochila abierta: «Te toca.»",
+  ops:d=>[{t:"Coger algo",s:"Puede haber guardia",fn:()=>{G.del=G.del||{n:0,bot:0,cont:0};G.del.n++;if(ch(.25)){vivos(q=>q.rol=="prog").forEach(q=>rel(q,-12));ten(10);return {txt:"Una mano en el hombro antes de llegar a la puerta. Te tienen en un cuartito hasta que llegan tus padres. El camino a casa es el silencio más largo de tu vida."+moral("tramposo"),mal:1}}
+     add("carisma",1);return "Sales con el corazón en la garganta y unos auriculares en el bolsillo. Os reís hasta la plaza."+moral("tramposo")}},
+   {t:"Negarte",fn:()=>{add("carisma",-1);return "Dices que no. Te llaman de todo durante una semana. A la segunda ya se les ha olvidado."+moral("honrado")}},
+   {t:"Irte sin decir nada",fn:()=>"Dices que te esperan en casa y sales antes de que nadie conteste."+moral("prudente")}]},
+ facturas:{min:19,max:62,w:2,cond:()=>G.trabajo&&G.trabajo.sec,tit:d=>"Unas facturas que no cuadran",txt:d=>"Tu jefe cierra la puerta del despacho y te pide que firmes unas facturas que no cuadran. «Es un favor. Se te tendrá en cuenta.»",
+  ops:d=>{const j=vivos(p=>p.jefe)[0];return [
+   {t:"Firmar",s:"Un sobre ahora; quién sabe después",fn:()=>{const n=ri(800,3000);G.yo.dinero+=n;if(j)rel(j,10);eco("inspeccion",ri(18,60));return `Firmas. A final de mes aparece un sobre con ${n} en tu cajón.`+moral("tramposo")}},
+   {t:"Negarte",s:"Puede costarte el puesto",fn:()=>{if(j)rel(j,-15);if(ch(.3)){G.trabajo=null;add("animo",-8);return {txt:"Dices que no. Dos semanas después hay «una reestructuración» y tu mesa es la única que sobra."+moral("honrado"),mal:1}}return "Dices que no. Tu jefe asiente despacio. Desde entonces no te cuentan nada."+moral("honrado")}},
+   {t:"Denunciarlo",s:"Pierdes el trabajo seguro",fn:()=>{G.trabajo=null;add("animo",-6);eco("denuncia",ri(6,18));return "Lo llevas a inspección con copias de todo. Te despiden antes del viernes. Recoges la taza con la cabeza alta."+moral("honrado")+moral("valiente")}}]}},
+ prestamo:{min:20,max:78,rep:1,w:1,cond:()=>G.yo.dinero>=800,prep:()=>{const f=amigoAd(50);return f?{id:f.id,n:Math.min(Math.round(G.yo.dinero*.4/100)*100,ri(5,30)*100)||500}:null},
+  tit:d=>P(d.id).nombre+" te pide dinero",txt:d=>`${P(d.id).nombre} te pide ${d.n} prestados. «En dos meses te los devuelvo, te lo juro por lo que quieras.»`,
+  ops:d=>{const f=P(d.id);return [
+   {t:"Prestárselos",s:d.n+" · puede que no vuelvan",fn:()=>{G.yo.dinero-=d.n;rel(f,8);eco("devuelve",ri(3,14),{id:f.id,n:d.n});return `Le dejas los ${d.n}. ${f.nombre} te abraza más fuerte de lo normal.`+moral("generoso")}},
+   {t:"Regalárselos",s:d.n+" · sin deuda",fn:()=>{G.yo.dinero-=d.n;rel(f,15);return `«No me los devuelvas.» ${f.nombre} se queda sin palabras, que en su caso es mucho decir.`+moral("generoso",2)}},
+   {t:"Decir que no puedes",fn:()=>{rel(f,-10);return {txt:`Le dices que ahora mismo no puedes. ${f.nombre} dice que lo entiende, con cara de no entenderlo.`,mal:1}}}]}},
+ cuidar:{min:35,max:68,w:3,cond:()=>G.indep,prep:()=>{const p=vivos(q=>q.rol=="prog"&&q.edad>=72*12&&!q.cuidas&&!q.resi)[0];return p?{id:p.id}:null},
+  tit:d=>tu(P(d.id)).replace(/^t/,"T")+" ya no puede vivir sin ayuda",txt:d=>`${tu(P(d.id))} se deja el gas encendido por segunda vez. Ya no puede vivir sin ayuda, y en la familia todos miran al techo.`,
+  ops:d=>{const p=P(d.id),hs=vivos(q=>q.rol=="herm"&&q.edad>=216);const o=[
+   {t:"Traerle a tu casa",s:"Años de cuidados",fn:()=>{p.casa=true;p.cuidas=1;rel(p,20);add("animo",-4);return `Le haces sitio en casa a ${tu(p)}. Cambian los horarios, las comidas y el volumen de la tele.`+moral("generoso")}},
+   {t:"Pagarle una residencia",s:"400 al mes mientras viva",fn:()=>{p.resi=1;rel(p,-5);return `Encuentras una residencia decente para ${tu(p)}. El primer día te despide desde la ventana y no sabes dónde meterte.`}}];
+   o.push({t:hs.length?"Que se ocupen tus hermanos":"No hacer nada",fn:()=>{rel(p,-30);hs.forEach(q=>rel(q,-15));eco("culpa",ri(10,30));return {txt:hs.length?`Dices que tú no puedes. ${hs[0].nombre} carga con todo y te lo recordará en cada comida familiar.`:`Lo vas dejando. ${tu(p)} se apaña como puede, que es mal.`+moral("egoista"),mal:1}}});return o}},
+ golpe:{min:18,max:82,rep:1,w:1,cond:()=>G.coche,tit:d=>"Un bollo en un coche ajeno",txt:d=>"Aparcando, le haces un bollo enorme a un coche. No hay nadie mirando. O eso parece.",
+  ops:d=>[{t:"Dejar una nota con tu teléfono",fn:()=>{const n=ri(200,600);G.yo.dinero-=n;return `Dejas una nota en el parabrisas. Te llaman esa tarde y acabas pagando ${n}.`+moral("honrado")}},
+   {t:"Irte",fn:()=>{eco("camara",ri(1,4));return "Miras alrededor, metes primera y te vas despacio, como quien no ha roto un plato."+moral("tramposo")}}]},
+ testigo:{min:20,max:82,rep:1,w:1,prep:()=>{const v=pick(vivos(p=>p.rol=="vec"&&p.con&&!p.lejos&&p.edad>=216&&p.id!=G.pareja&&!p.amante));return v?{id:v.id}:null},
+  tit:d=>"Lo que viste desde la ventana",txt:d=>`De madrugada ves a ${P(d.id).nombre} sacando cajas del local de abajo. A la mañana siguiente hay policía en el portal preguntando si alguien vio algo.`,
+  ops:d=>{const v=P(d.id);return [
+   {t:"Contar lo que viste",fn:()=>{v.rel=0;eco("testigo",ri(2,8));return `Cuentas lo que viste, con nombre y hora. ${v.nombre} deja de vivir en el edificio poco después.`+moral("valiente")+moral("honrado")}},
+   {t:"Decir que dormías",fn:()=>{rel(v,10);return `Dices que no viste nada. ${v.nombre} empieza a saludarte con demasiada amabilidad.`+moral("prudente")}},
+   {t:"Pedirle dinero por callar",fn:()=>{const n=ri(500,2000);G.yo.dinero+=n;v.rel=0;eco("chantajeado",ri(2,10));return `Llamas a su puerta y le explicas lo que cuesta tu mala memoria. ${v.nombre} paga ${n} sin regatear.`+moral("tramposo",2)}}]}},
+ emigrar:{min:20,max:45,w:.6,cond:()=>G.indep&&!G.prop&&!G.neg,tit:d=>"Una oferta en el extranjero",prep:()=>({c:pick(["Múnich","Londres","Toronto","Zúrich","Melbourne","Dublín","Rotterdam"])}),
+  txt:d=>`Te ofrecen un trabajo en ${d.c}: el doble de sueldo, otro idioma y nadie conocido en miles de kilómetros.`,
+  ops:d=>[{t:"Irte",s:"Dejas atrás a casi todos",fn:()=>{G.gente.forEach(p=>{if(p.vivo&&!p.casa)p.lejos=true});G.lugar={tipo:"capital",nombre:d.c};genCasa();G.casa.deQuien=null;genVecinos();
+     if(G.trabajo){G.trabajo.s=Math.round(G.trabajo.s*1.8)}else G.trabajo={n:"en lo que sale, lejos de casa",s:1900};add("animo",-6);logro("emigras a "+d.c);
+     return `Facturas dos maletas y una vida. En ${d.c} llueve distinto. Ahora ganas ${G.trabajo.s} al mes y llamas a casa los domingos.`+moral("valiente")}},
+   {t:"Quedarte",fn:()=>{add("animo",2);return "Dices que no. Algunas noches miras vuelos que no vas a coger."+moral("prudente")}}]},
+ rinon:{min:25,max:60,w:.08,prep:()=>{const h=pick(vivos(p=>p.rol=="herm"&&p.con&&p.edad>=216&&p.rel>=20));return h?{id:h.id}:null},
+  tit:d=>"Eres compatible",txt:d=>`A ${tu(P(d.id))} le fallan los riñones. Os hacen pruebas a toda la familia. Eres compatible.`,
+  ops:d=>{const h=P(d.id);return [
+   {t:"Donarle un riñón",s:"Tu salud lo paga para siempre",fn:()=>{G.yo.salud=clamp(G.yo.salud-14);h.rel=100;add("animo",10);logro("donas un riñón a "+h.nombre);return `Entráis al quirófano con media hora de diferencia. Despiertas con una cicatriz y con ${tu(h)} en la cama de al lado, haciendo chistes malos.`+moral("generoso",2)+moral("valiente")}},
+   {t:"No hacerlo",fn:()=>{eco("rinon",ri(6,18),{id:h.id});return {txt:`Dices que no puedes. ${tu(h)} dice que lo entiende. Nadie más en la familia dice nada, y eso se oye.`+moral("prudente"),mal:1}}}]}},
+ hijoLio:{min:30,max:75,rep:1,w:2,prep:()=>{const h=pick(vivos(p=>p.rol=="hijo"&&p.casa&&p.edad>=13*12&&p.edad<216));return h?{id:h.id,q:pick(["ha faltado tres semanas a clase","ha rayado un coche con las llaves","se ha pegado con otro crío a la salida","ha aparecido a las cinco de la mañana sin saber decir dónde estaba"])}:null},
+  tit:d=>"Problemas con "+P(d.id).nombre,txt:d=>`Te llaman: ${P(d.id).nombre} ${d.q}.`,
+  ops:d=>{const h=P(d.id);hijoIni(h);return [
+   {t:"Castigo duro",fn:()=>{rel(h,-10);if(ch(.6)){h.rumbo=clamp(h.rumbo+8);return `Un mes sin salir y sin teléfono. ${h.nombre} te odia con método, pero endereza.`}h.rumbo=clamp(h.rumbo-10);return {txt:`Un mes sin salir. ${h.nombre} sale por la ventana.`,mal:1}}},
+   {t:"Sentarte a hablar",fn:()=>{rel(h,8);h.rumbo=clamp(h.rumbo+5);return `Hablas con ${h.nombre} dos horas, casi todas escuchando. No lo arregla todo. Arregla algo.`}},
+   {t:"Quitarle importancia",fn:()=>{rel(h,4);h.rumbo=clamp(h.rumbo-8);return `«Cosas de la edad.» ${h.nombre} toma nota de que no pasa nada.`}}]}},
+ hijoPide:{min:45,max:95,rep:1,w:1,cond:()=>G.yo.dinero>=1500,prep:()=>{const h=pick(vivos(p=>p.rol=="hijo"&&!p.casa&&p.edad>=22*12&&(p.rumbo||50)<50));return h?{id:h.id,n:ri(8,40)*100}:null},
+  tit:d=>P(d.id).nombre+" necesita dinero",txt:d=>`${P(d.id).nombre} aparece sin avisar. Tarda media hora en decirlo: necesita ${d.n}.`,
+  ops:d=>{const h=P(d.id);return [{t:"Dárselo",s:""+d.n,fn:()=>{G.yo.dinero-=Math.min(d.n,G.yo.dinero);rel(h,10);hijoIni(h);h.rumbo=clamp(h.rumbo+ri(-4,8));return `Le das los ${d.n} sin preguntar para qué. ${h.nombre} te da un beso en la frente, como cuando era al revés.`+moral("generoso")}},
+   {t:"Decirle que se apañe",fn:()=>{rel(h,-15);return {txt:`Le dices que ya es mayor. ${h.nombre} se va sin terminar el café.`,mal:1}}}]}},
+ secretoAmigo:{min:20,max:75,w:1,prep:()=>{const f=pick(vivos(p=>p.con&&!p.lejos&&["vec","comp","conoc"].includes(p.rol)&&p.edad>=216&&p.rel>=55&&p.casado&&!p.amante&&!p.astra&&p.id!=G.pareja));return f?{id:f.id}:null},
+  tit:d=>P(d.id).nombre+" te pide una coartada",txt:d=>`${P(d.id).nombre} te confiesa que engaña a su pareja y te pide que digas que el sábado estuvo contigo.`,
+  ops:d=>{const f=P(d.id);return [{t:"Cubrirle",fn:()=>{rel(f,10);eco("secreto",ri(3,24));return `Dices que sí, que estuvisteis viendo el partido. Mientes regular, pero cuela.`+moral("leal")}},
+   {t:"Negarte",fn:()=>{rel(f,-8);return `Le dices que a ti no te meta. ${f.nombre} cambia de tema y de tono.`+moral("honrado")}},
+   {t:"Contárselo a su pareja",fn:()=>{f.rel=0;f.casado=false;return {txt:`Se lo cuentas a quien tenía que saberlo. ${f.nombre} se queda sin matrimonio y tú sin amigo.`+moral("chivato"),mal:1}}}]}},
+ timba:{min:18,max:75,rep:1,w:1,cond:()=>G.yo.dinero>=500,tit:d=>"Una partida",txt:d=>"Un conocido te lleva a la trastienda de un bar. Hay una mesa, humo y cinco tipos serios. «Con 500 entras.»",
+  ops:d=>[{t:"Sentarte a jugar",s:"500",fn:()=>{G.yo.dinero-=500;if(ch(.35)){const n=ri(12,30)*100;G.yo.dinero+=n;add("animo",8);return `La noche te sonríe. Te levantas con ${n} y la sensación peligrosa de que esto se te da bien.`}add("animo",-5);return {txt:"Pierdes los 500 en cuarenta minutos. Te invitan a una copa, que es lo más caro que has bebido nunca.",mal:1}}},
+   {t:"Mirar y no jugar",fn:()=>"Te quedas de pie, mirando. Aprendes más viendo perder a los demás."+moral("prudente")}]},
+ desplome:{min:16,max:85,rep:1,w:1,tit:d=>"Un hombre en el suelo",txt:d=>"Un hombre se desploma en mitad de la acera. La gente lo rodea, mira y sigue andando.",
+  ops:d=>[{t:"Arrodillarte a ayudar",fn:()=>{add("animo",6);if(ch(.7))eco("salvado",ri(2,8));return "Te arrodillas, pides que llamen a una ambulancia y no te mueves de su lado hasta que llega. Te tiemblan las manos una hora después."+moral("valiente")}},
+   {t:"Seguir andando",fn:()=>{add("animo",-3);return {txt:"Alguien se ocupará. Sigues andando. Te giras dos veces.",mal:1}}}]},
+ /* --- decisiones que no salen al azar --- */
+ herencia:{man:1,tit:d=>"La herencia: "+d.n,txt:d=>"",
+  ops:d=>{const hs=vivos(q=>q.rol=="herm"&&q.edad>=216),k=hs.length+1,m=d.cuid?1.5:1;
+   if(!hs.length)return [{t:"Firmar",s:"Todo para ti",fn:()=>{G.yo.dinero+=d.n;return `Firmas donde te dicen. ${d.n} y una casa llena de cosas que nadie más recuerda.`}}];
+   return [{t:"Repartir a partes iguales",s:Math.round(d.n/k*m)+" para ti",fn:()=>{const n=Math.round(d.n/k*m);G.yo.dinero+=n;hs.forEach(q=>rel(q,8));return `Repartís sin una mala palabra. Te tocan ${n}`+(d.cuid?", con un poco más por expreso deseo suyo.":".")}},
+    {t:"Pelear por más",s:"Abogados y rencor",fn:()=>{hs.forEach(q=>rel(q,-45));if(ch(.55)){const n=Math.round(d.n*.7);G.yo.dinero+=n;return `Dos años de abogados. Te quedas con ${n} y sin hermanos con los que celebrarlo.`+moral("egoista",2)}
+      const n=Math.round(d.n*.25);G.yo.dinero+=n;return {txt:`Dos años de abogados. Entre minutas y costas quedan ${n} para ti, y ya nadie se sienta contigo en Navidad.`+moral("egoista",2),mal:1}}},
+    {t:"Renunciar a tu parte",fn:()=>{hs.forEach(q=>rel(q,25));return "Dices que no quieres nada. Tus hermanos tardan en creérselo."+moral("generoso",2)}}]}},
+ juicio:{man:1,tit:d=>"El juicio",txt:d=>"",
+  ops:d=>{const c=2500*d.g;return [
+   {t:"Contratar a un buen abogado",s:G.yo.dinero>=c?c+" · tus mejores opciones":"No te llega: hacen falta "+c,fn:()=>{if(G.yo.dinero<c)return sentencia(d,.2,1);G.yo.dinero-=c;return sentencia(d,.5,1)}},
+   {t:"Abogado de oficio",s:"Gratis, y con cuarenta casos más",fn:()=>sentencia(d,.2,1)},
+   {t:"Declararte culpable",s:"Pena reducida",fn:()=>sentencia(d,0,.6)}]}},
+ depender:{man:1,tit:d=>"Ya no puedes vivir sin ayuda",txt:d=>"",
+  ops:d=>{const hj=vivos(p=>p.rol=="hijo"&&p.edad>=216&&!p.secreto),o=[];
+   hj.filter(h=>h.rel>=55).forEach(h=>o.push({t:"Irte a vivir con "+h.nombre,s:"Vínculo "+Math.round(h.rel),fn:()=>{G.vejez={t:"hijo",id:h.id};add("animo",8);return `${h.nombre} te prepara el cuarto que da al patio. «Aquí vas a estar mejor que solo.» Tiene razón, y cuesta admitirlo.`.replace("solo",g("solo","sola"))}}));
+   const fr=hj.filter(h=>h.rel<55);
+   if(fr.length&&!o.length)o.push({t:"Pedírselo a "+fr[0].nombre,s:"Vínculo "+Math.round(fr[0].rel),fn:()=>{add("animo",-8);G.vejez={t:"publica"};return {txt:`Se lo pides a ${fr[0].nombre}. Hay un silencio largo al teléfono. «Es que ahora mismo no podemos.» Te busca plaza en una residencia pública y promete venir en Navidad.`,mal:1}}});
+   o.push({t:"Residencia de pago",s:"900 al mes",fn:()=>{G.vejez={t:"resi"};return "Eliges una residencia con jardín. Te llevas dos maletas y las fotos. La habitación huele a limpio y a nadie."}});
+   o.push({t:"Residencia pública",fn:()=>{G.vejez={t:"publica"};add("animo",-5);return "Te dan plaza en una residencia pública. Compartes cuarto con alguien que ronca y cuenta la misma historia cada tarde."}});
+   o.push({t:"Seguir en tu casa pase lo que pase",s:"Riesgo de caídas",fn:()=>{G.vejez={t:"solo"};return "Dices que de tu casa te sacan con los pies por delante. Pones barras en el baño y el teléfono cerca de la cama."}});return o}}
+};
+function abrirDecision(d){const D=DEC[d.dec];if(!D){G.pend=null;return}
+  let ops;try{ops=D.ops(d)}catch(e){G.pend=null;return}
+  abrirHoja(D.tit(d),ops.map(o=>({t:o.t,s:o.s,fn:()=>resolver(o.fn)})),true);
+}
+
+/* ---- Hijos y nietos ---- */
+const CARH=[["aplicado","aplicada"],["rebelde","rebelde"],["sensible","sensible"],["independiente","independiente"]];
+function hijoIni(h){if(h.rumbo==null){h.rumbo=ri(35,65);h.car=ri(0,3)}return h}
+function eventosHijos(ev,a){
+  const y=G.yo,hj=vivos(q=>q.rol=="hijo"&&!q.secreto&&q.con);if(!hj.length)return;
+  const q=hijoIni(pick(hj)),e=q.edad/12,c=CARH[q.car][q.sexo=="m"?0:1];
+  if(e>=3&&e<12&&q.casa)ev(3,"hijocrio",()=>{rel(q,ri(2,5));add("animo",3);log(vario("hijocrio",[`${q.nombre} te pide que mires debajo de la cama por si hay monstruos. Miras. No hay. Por si acaso, miras otra vez.`,`${q.nombre} te regala un dibujo en el que eres más alto que la casa.`,`A ${q.nombre} se le cae el primer diente. Negocias con el ratón una tarifa razonable.`,`${q.nombre} pasa la noche con fiebre. Tú la pasas con la mano en su frente.`,`${q.nombre} aprende a montar en bici. Sueltas el sillín sin avisar y funciona.`,`${q.nombre} pregunta de dónde vienen los niños en mitad del supermercado, a voces.`,`Función del colegio. ${q.nombre} hace de árbol y saluda todo el rato. El mejor árbol.`,`${q.nombre} te dice que eres la persona más fuerte del mundo. No le corriges.`]))});
+  if(e>=7&&e<17&&q.casa)ev(2,"hijotutor",()=>{const b=q.rumbo>=55;add("animo",b?4:-4);log(b?vario("tutB",[`Tutoría de ${q.nombre}: «Ojalá tuviera treinta como ${gp(q,"él","ella")}.» Sales flotando.`,`${q.nombre} gana un premio en el colegio. Aplaudes hasta que te duelen las manos.`,`A ${q.nombre} le va bien sin que tengas que estar encima. Es ${c}, y se nota.`]):vario("tutM",[`Tutoría de ${q.nombre}: tres suspensos y «no es mal chaval, pero…».`,`Encuentras las notas de ${q.nombre} escondidas en el fondo de la mochila. Con razón.`,`${q.nombre} va a la deriva este curso. Hablas, hablas y no sabes si te oye.`]),b?"":"mala")});
+  if(e>=13&&e<18&&q.casa)ev(2,"hijoadol",()=>{rel(q,ri(-4,3));log(vario("hijoadol",[`${q.nombre} te contesta con monosílabos durante un mes entero. Uno de ellos es «vale».`,`${q.nombre} te dice que no entiendes nada. Lo peor es que te acuerdas de haberlo dicho tú.`,`Descubres que ${q.nombre} tiene una vida entera de la que no sabes nada. Es lo normal. Duele igual.`,`${q.nombre} te pide que le dejes a dos calles del instituto, no en la puerta.`,`Una tarde, sin venir a cuento, ${q.nombre} se sienta a tu lado en el sofá y ve la tele contigo. No dices nada, por no romperlo.`]))});
+  if(e>=18&&!q.salida)ev(4,"hijosalida"+q.id,()=>{q.salida=1;const r=q.rumbo;
+    if(r>=65){add("animo",8);log(`${q.nombre} entra en la universidad. Le ayudas con la matrícula y con las cajas. Vuelves a casa presumiendo sin disimulo.`)}
+    else if(r>=40){add("animo",3);log(`${q.nombre} encuentra su primer trabajo. Te enseña la nómina como si fuera un diploma.`)}
+    else if(r>=25){add("animo",-4);log(`${q.nombre} deja los estudios y encadena trabajos de un mes. «Ya veré», dice a todo.`,"mala")}
+    else{add("animo",-8);y.dinero-=Math.min(Math.max(0,y.dinero),600);log(`Te llaman de comisaría de madrugada: ${q.nombre}. Pagas lo que hay que pagar y volvéis a casa en un taxi, sin hablar.`,"mala")}},1);
+  if(e>=24&&!q.conyuge&&q.rumbo>=30)ev(2,"hijoboda"+q.id,()=>{const sc=ch(.9)?(q.sexo=="m"?"f":"m"):q.sexo,c2=per("conoc",sc,e+ri(-4,5),pick(ORI[G.origen].ap),{con:true,rel:ri(30,50),de:q.id,crianza:true,oficio:gp({sexo:sc},"tu yerno","tu nuera")});q.conyuge=c2.id;q.casa=false;
+    const n=Math.min(Math.max(0,y.dinero),ri(5,30)*100);y.dinero-=n;add("animo",8);log(`Se casa ${q.nombre}, con ${c2.nombre}. Lloras en el discurso, bailas fatal y pones ${n} para el banquete.`)},1);
+  if(e>=25&&q.conyuge&&viv(q.conyuge)&&e<45&&vivos(p=>p.rol=="nieto"&&p.de==q.id).length<3)ev(2,"nieto"+q.id,()=>{const n=per("nieto",sx(),0,q.apellido,{con:true,rel:60,de:q.id});add("animo",10);
+    if(!G.fl.abu){G.fl.abu=1;logro("nace tu primer nieto, "+n.nombre)}log(`${q.nombre} te hace ${g("abuelo","abuela")}: nace ${n.nombre}. Cabe en un antebrazo y ya manda en toda la familia.`)});
+  if(e>=20&&!q.casa)ev(2,"hijollama",()=>{if(q.rel>=60){add("animo",4);rel(q,2);log(vario("hijoB",[`${q.nombre} te llama cada domingo, puntual. Habláis de nada en concreto durante una hora.`,`${q.nombre} se presenta con comida hecha «porque había sobrado». No había sobrado.`,`${q.nombre} te pide consejo para algo serio. Te lo piensas mucho antes de contestar.`]))}
+    else if(q.rel<35){add("animo",-5);log(vario("hijoM",[`Hace meses que no sabes nada de ${q.nombre}. Te enteras de sus cosas por terceros.`,`Llamas a ${q.nombre}. Salta el buzón. Dejas un mensaje demasiado largo.`,`${q.nombre} olvida tu cumpleaños. Dices que no importa.`]),"mala")}
+    else log(`${q.nombre} pasa por casa de vez en cuando. Se queda poco, pero viene.`)});
+  const nt=vivos(p=>p.rol=="nieto"&&p.edad>=24&&p.edad<14*12);
+  if(nt.length)ev(2,"nietos",()=>{const n=pick(nt);rel(n,ri(3,6));add("animo",5);log(vario("nietos",[`Te dejan a ${n.nombre} el fin de semana. Le das todo lo que sus padres le prohíben.`,`${n.nombre} te pide que le cuentes cómo era todo «en la antigüedad», o sea, cuando tú eras joven.`,`Recoges a ${n.nombre} del colegio. Te presenta a sus amigos como si fueras famoso.`,`${n.nombre} te gana a las cartas y sospechas que no le has dejado.`]))});
+}
+
+/* ---- Dinero: casa, coche, negocio, ruina ---- */
+const PRECIO=[45000,70000,110000,180000,350000];
+const NEGOCIOS=[["un bar",15000,"carisma"],["una tienda de barrio",12000,"carisma"],["un taller",20000,"cuerpo"],["una academia",10000,"mente"],["una tienda por internet",6000,"mente"],["un restaurante",40000,"carisma"]];
+function patrimonio(){const y=G.yo;return Math.round(y.dinero+(G.prop?G.prop.v-G.prop.deuda:0)+(G.neg?G.neg.inv*G.neg.sal/60:0)+(G.coche?G.coche.v:0))}
+function menuDinero(){
+  const y=G.yo,a=anios(),ops=[],H=(t,s,fn,ok)=>ops.push(ok===false?{t,s,fn:()=>{}}:{t,s,fn:()=>hacer(fn)});
+  if(G.indep&&!G.prop){const v=PRECIO[G.riqueza],en=Math.round(v*.2),cu=Math.round(v*.8*1.35/300);
+    H("Comprar una casa",y.dinero>=en?`Entrada de ${en} · hipoteca de ${cu} al mes, 25 años`:`Te falta para la entrada: ${en}`,()=>{y.dinero-=en;G.prop={v,deuda:Math.round(v*.8*1.35),cuota:cu};add("animo",8);logro("compras tu casa");
+      return `Firmas la hipoteca con un bolígrafo atado a una cadenita. ${G.casa.tipo.charAt(0).toUpperCase()+G.casa.tipo.slice(1)} es tuya, y del banco, durante veinticinco años.`},y.dinero>=en)}
+  if(G.prop)H("Vender la casa",`Vale ${G.prop.v}`+(G.prop.deuda>0?` · debes ${Math.round(G.prop.deuda)}`:" · pagada"),()=>{const n=Math.round(G.prop.v-G.prop.deuda);y.dinero+=n;G.prop=null;return `Vendes la casa. Después de cancelar con el banco te quedan ${n}. Vuelves a pagar alquiler.`});
+  if(!G.coche){H("Comprar un coche de segunda mano",y.dinero>=3000?"3000 · 50 al mes de gastos":"Te faltan 3000",()=>{y.dinero-=3000;G.coche={n:"un coche con muchos kilómetros",v:2500};add("animo",4);return "Compras un coche con muchos kilómetros y un ambientador de pino. Arranca a la segunda. Es tuyo."},y.dinero>=3000);
+    H("Comprar un coche nuevo",y.dinero>=18000?"18000 · se nota al llegar":"Te faltan 18000",()=>{y.dinero-=18000;G.coche={n:"un coche nuevo",v:15000,bueno:1};add("animo",8);add("aspecto",3);return "Sales del concesionario oliendo a nuevo. Das una vuelta de más por el barrio, despacio, con la ventanilla bajada."},y.dinero>=18000)}
+  else H("Vender el coche","Te dan "+Math.round(G.coche.v*.8),()=>{y.dinero+=Math.round(G.coche.v*.8);if(G.coche.bueno)add("aspecto",-3);G.coche=null;return "Vendes el coche. Redescubres el autobús y sus horarios."});
+  if(!G.neg&&a>=22)ops.push({t:"Montar un negocio",s:"Puede hacerte rico o hundirte",fn:()=>abrirHoja("¿Qué montas?",NEGOCIOS.map(n=>({t:n[0].charAt(0).toUpperCase()+n[0].slice(1),s:y.dinero>=n[1]?`${n[1]} de inversión · cuenta: ${n[2]}`:`Te faltan ${n[1]}`,fn:y.dinero>=n[1]?()=>hacer(()=>{y.dinero-=n[1];G.neg={n:n[0],inv:n[1],st:n[2],sal:50,m:0,ac:0,ded:3};add("animo",8);logro("abres "+n[0]);return `Abres ${n[0]}. El primer día vienen tus conocidos, y al segundo, nadie. Así empieza todo.`}):()=>{}})))});
+  if(G.neg){H("Volcarte en el negocio","Tres meses de empujón · agota",()=>{G.neg.ded=3;add("animo",-3);add("salud",-1);return vario("negded",["Abres antes, cierras después y haces tú las cuentas de madrugada.","Cambias la carta, el rótulo y hasta la música. Algo se mueve.","Te pateas la zona repartiendo tarjetas. Dos clientes nuevos, que ya es algo.","Un mes sin un solo día libre. El negocio lo nota. Tú también."])});
+    H("Vender el negocio","Te ofrecen "+Math.round(G.neg.inv*G.neg.sal/60),()=>{const n=Math.round(G.neg.inv*G.neg.sal/60);y.dinero+=n;const nn=G.neg.n;G.neg=null;return `Traspasas ${nn} por ${n}. El último día echas tú la persiana.`})}
+  if(a>=45)ops.push({t:G.test?"Cambiar el testamento":"Hacer testamento",s:"150 · no gasta el mes",fn:menuTestamento});
+  abrirHoja(`Dinero y bienes · ${Math.round(y.dinero)} en mano · patrimonio ${patrimonio()}`,ops);
+}
+function tickDinero(){
+  const y=G.yo,a=y.edad/12;if(!G.indep&&!G.carcel)G.riqF=G.riqueza;
+  if(G.prop&&G.indep){y.dinero+=550;if(G.prop.deuda>0){y.dinero-=G.prop.cuota;G.prop.deuda-=G.prop.cuota;if(G.prop.deuda<=0){G.prop.deuda=0;add("animo",10);logro("terminas de pagar la casa");log("Pagas la última cuota de la hipoteca. La casa es tuya del todo. Te sientas en el suelo del salón un rato largo.")}}
+    if(ch(.004)){G.prop.v=Math.round(G.prop.v*(1+ri(-8,14)/100))}}
+  if(G.coche){y.dinero-=50;G.coche.v=Math.max(300,G.coche.v*.992);if(ch(.004)){const n=ri(300,1200);y.dinero-=n;log(`El coche te deja ${g("tirado","tirada")} en mitad de la carretera. Grúa y taller: ${n}.`,"mala")}}
+  vivos(p=>p.resi&&p.rol=="prog").forEach(()=>{y.dinero-=400});
+  if(G.neg){const n=G.neg,perf=(y[n.st]-45)/50+(n.ded>0?.35:0)+(G.carcel?-.6:0)+(G.trabajo?-.15:0)+(R()*2-1)*.8,gan=Math.round(n.inv*.03*perf);
+    y.dinero+=gan;n.ac+=gan;n.sal=clamp(n.sal+perf*4-1);n.m++;if(n.ded>0)n.ded--;
+    if(n.sal<=0){const d=ri(5,20)*1000;y.dinero-=d;add("animo",-15);log(`${n.n.charAt(0).toUpperCase()+n.n.slice(1)} va a la quiebra. Echas el cierre debiendo ${d} a proveedores y al banco. El rótulo se queda puesto unos meses, como una lápida.`,"mala");G.neg=null}
+    else{if(n.m%12==0){log(n.ac>=0?`Cierras el año en ${n.n} con ${n.ac} de beneficio.`:`Cierras el año en ${n.n} con ${-n.ac} de pérdidas.`,n.ac>=0?"":"mala");n.ac=0}
+      if(n.sal>=95&&!n.g){n.g=1;n.inv=Math.round(n.inv*1.6);add("animo",10);logro("tu negocio abre un segundo local");log(`${n.n.charAt(0).toUpperCase()+n.n.slice(1)} va tan bien que abres un segundo local. Ya hay gente que trabaja para ti y a la que no conoces.`)}}}
+  if(tiene("trabajador")&&G.trabajo&&ch(.012)){G.trabajo.s=Math.round(G.trabajo.s*1.03);log(`Se nota que no escurres el bulto: te suben el sueldo a ${G.trabajo.s}.`)}
+  // Ruina
+  if(y.edad<(G.ruinaCd||0)){if(y.dinero<-6000)y.dinero=-6000}
+  else if(G.indep&&a>=18&&y.dinero<-6000){G.ruina=(G.ruina||0)+1;
+    if(G.ruina==1)log("Debes más de lo que puedes pagar. Empiezan a llegar cartas con membrete y letra pequeña.","mala");
+    if(G.ruina>=4){G.ruina=0;G.ruinaCd=y.edad+96;if(!G.neg&&!G.coche&&!G.prop&&G.fl.arr){y.dinero=-3000;return}G.fl.arr=1;let s="El banco ejecuta.";
+      if(G.neg){y.dinero+=Math.round(G.neg.inv*G.neg.sal/120);G.neg=null;s+=" Se queda el negocio."}
+      if(G.coche){y.dinero+=Math.round(G.coche.v*.5);G.coche=null;s+=" Se llevan el coche con una grúa."}
+      if(G.prop){y.dinero+=Math.round((G.prop.v*.7)-G.prop.deuda);G.prop=null;s+=" Subastan la casa por menos de lo que vale."}
+      if(y.dinero<-3000){const pa=vivos(p=>p.rol=="prog"&&!p.lejos)[0];y.dinero=-500;add("animo",-15);
+        if(pa){G.indep=false;G.gente.forEach(p=>{if(p.casa&&p.rol!="hijo")p.casa=false});vivos(p=>p.rol=="prog"&&!p.lejos).forEach(p=>p.casa=true);G.riqueza=G.riqF==null?1:G.riqF;genCasa();G.casa.deQuien=pa.id;genVecinos();
+          s+=` Con ${Math.floor(a)} años vuelves a casa de tus padres, a tu cuarto de siempre, con la misma colcha.`}
+        else{G.riqueza=0;genCasa();G.casa.deQuien=null;genVecinos();s+=" Acabas en una habitación alquilada, con lo que cabe en dos bolsas."}}
+      log(s,"mala")}}
+  else G.ruina=0;
+}
+
+/* ---- Delito, juicio y cárcel ---- */
+const DELITOS=[{k:"hurto",t:"Robar carteras y tiendas",s:"Poco dinero · riesgo bajo",r:.09,g:1,bot:[50,300],tx:["Un día de mercado con las manos rápidas.","Sales de tres tiendas con más de lo que entraste.","Una cartera en el metro. Ni te mira."]},
+ {k:"trapicheo",t:"Trapichear",s:"Dinero fácil · riesgo medio",r:.12,g:2,bot:[300,900],tx:["Vendes en el parque lo que otro te fía. Tu parte.","Un mes de recados que no se apuntan en ningún sitio.","Mueves mercancía de un portal a otro."]},
+ {k:"estafa",t:"Montar una estafa",s:"Hace falta labia (carisma 55)",r:.13,g:2,bot:[1000,5000],st:"carisma",min:55,tx:["Vendes un coche que no es tuyo a alguien que tenía prisa.","Una inversión «segura» que solo era segura para ti.","Alquilas el mismo piso de playa a cuatro familias."]},
+ {k:"palo",t:"Dar un palo",s:"Mucho dinero · riesgo alto",r:.22,g:3,bot:[3000,12000],st:"cuerpo",min:40,tx:["Un chalet vacío en agosto. Entráis y salís en doce minutos.","La caja de un almacén, un domingo de madrugada.","Un furgón de reparto que alguien dejó sin vigilar."]}];
+function menuDelito(){
+  const y=G.yo;abrirHoja("Buscarte la vida"+(G.fl.antec?" · con antecedentes":""),DELITOS.map(d=>{const no=d.st&&y[d.st]<d.min;return {t:d.t,s:no?`Te falta ${d.st} (${d.min})`:d.s,fn:no?()=>{}:()=>hacer(()=>delito(d))}}));
+}
+function delito(d){
+  const y=G.yo;G.del=G.del||{n:0,bot:0,cont:0};
+  const r=d.r-(tiene("tramposo")?.03:0)-Math.min(.05,(G.del.cont||0)*.01)+(G.fl.adicto?.04:0)+(G.fl.antec?.03:0);
+  if(tiene("honrado"))add("animo",-6);
+  if(ch(r))return detener(d.t.toLowerCase(),d.g);
+  const n=ri(d.bot[0],d.bot[1]);y.dinero+=n;G.del.n++;G.del.bot+=n;add("animo",2);
+  return vario("del"+d.k,d.tx)+` Te sacas ${n}.`+(G.del.n==3?moral("tramposo",2):"");
+}
+function detener(desc,g){
+  if(G.pend||G.carcel){G.yo.dinero-=500;return {txt:"Te libras por los pelos de un lío con la policía. Te cuesta 500 y un susto.",mal:1}}
+  decidir("juicio",{g,desc});add("animo",-10);
+  return {txt:`Te detienen por ${desc}. Una noche en el calabozo, huellas, foto de frente y de perfil. Hay fecha de juicio.`,mal:1};
+}
+function sentencia(d,pAbs,mult){
+  if(ch(pAbs)){add("animo",8);return "El juez lee despacio. Absolución por falta de pruebas. Sales a la calle y el aire sabe distinto."}
+  const re=G.fl.antec?1.5:1;
+  if(d.g==1&&!G.fl.antec){const n=Math.round(ri(600,2000)*mult);G.yo.dinero-=n;G.fl.antec=1;return {txt:`Te condenan: multa de ${n} y antecedentes penales. Hay puertas que desde hoy ya no se abren.`,mal:1}}
+  const m=Math.max(2,Math.round((d.g==1?ri(3,8):d.g==2?ri(10,30):ri(40,96))*mult*re));
+  return encarcelar(m);
+}
+function encarcelar(m){
+  const y=G.yo;G.fl.antec=1;const q=G.pareja&&P(G.pareja);
+  G.carcel={m,tot:m,cond:0,ind:G.indep,casa:G.casa};G.trabajo=null;G.indep=false;
+  G.gente.forEach(p=>{if(p.casa){p.encasa=1;p.casa=false}else p.encasa=0});
+  G.casa={tipo:"una celda compartida",barrio:"el módulo 3",deQuien:null};add("animo",-20);logro("entras en prisión");
+  let s=`Te condenan a ${m>=24?Math.floor(m/12)+" años"+(m%12?" y "+m%12+" meses":""):m+" meses"} de prisión. Entras en prisión con una bolsa de plástico y un número.`;
+  if(q&&ch(G.casado?.35:.6)){G.pareja=null;G.casado=false;q.encasa=0;rel(q,-40);s+=` ${q.nombre} no viene al juicio. Tampoco después.`}
+  return {txt:s,mal:1};
+}
+function liberar(){
+  const c=G.carcel,y=G.yo;G.fl.mesesCarcel=(G.fl.mesesCarcel||0)+(c.tot-Math.max(0,c.m));G.carcel=null;G.indep=c.ind;
+  if(c.ind){G.casa=c.casa;G.gente.forEach(p=>{if(p.vivo&&p.encasa&&(p.id==G.pareja||p.rol=="hijo"&&p.edad<22*12||p.cuidas))p.casa=true});if(!G.prop){G.riqueza=Math.max(0,G.riqueza-1);genCasa();G.casa.deQuien=null;genVecinos()}}
+  else{const pa=vivos(p=>p.rol=="prog"&&!p.lejos);if(pa.length){pa.forEach(p=>p.casa=true);G.casa=c.casa}else{G.indep=true;G.riqueza=0;genCasa();G.casa.deQuien=null;genVecinos()}}
+  add("animo",15);logro("sales de prisión");
+  log(`Sales de prisión. Te devuelven la bolsa de plástico con lo que traías. Fuera hay demasiado cielo y nadie sabe qué decirte.`+(G.pareja&&P(G.pareja)?` ${P(G.pareja).nombre} te espera en la puerta.`:""));
+}
+function accionesCarcel(){
+  const y=G.yo,c=G.carcel,L=[],A=(t,fn,cls)=>L.push({t,fn,cls});
+  A("Cumplir sin meterte en líos",()=>{c.cond+=2;add("animo",-1);return vario("carc0",["Un mes de recuento, patio y recuento. No das un problema.","Aprendes a no mirar a quien no debes y a no deber nada a nadie.","Tachas el mes en la pared, como en las películas. Ayuda poco.","Te sabes el horario del módulo mejor que tu nombre."])});
+  A("Hacer pesas en el patio",()=>{add("cuerpo",2);add("salud",.5);mover();return vario("carc1",["Barras, flexiones y garrafas llenas de agua. El cuerpo es lo único que aquí mejora.","Entrenas con los veteranos. Te corrigen la postura sin decir palabra."])});
+  A("Leer y estudiar",()=>{add("mente",2);c.cond+=1;pr("estudio",.5);return vario("carc2",["La biblioteca de la prisión tiene tres estanterías. Te lees dos.","Te apuntas a las clases del módulo. El maestro viene los martes.","Estudias por las noches con una linterna de boli."])});
+  A("Trabajar en el taller",()=>{y.dinero+=90;c.cond+=1;add("cuerpo",.5);return vario("carc3",["Coses balones ocho horas al día por 90 al mes.","Lavandería. Dobla, plancha, dobla. 90 a final de mes.","Te ponen en cocina. Pelas patatas para cuatrocientos."])});
+  A("Hacer contactos",()=>{G.del=G.del||{n:0,bot:0,cont:0};G.del.cont++;add("carisma",1);c.cond-=1;return vario("carc4",["Te sientas en la mesa adecuada del comedor. Aquí se aprende más que fuera.","Alguien te explica cómo se hacen las cosas bien, para la próxima.","Te deben un favor y lo apuntas. Fuera valdrá más."])},"riesgo");
+  A("Trapichear dentro",()=>{c.cond-=2;if(ch(.2)){c.m+=6;return {txt:"Registro sorpresa en la celda. Encuentran lo que guardabas. Seis meses más.",mal:1}}const n=ri(100,400);y.dinero+=n;return `Tabaco, tarjetas y favores. Te sacas ${n} sin salir del pasillo.`},"riesgo");
+  const fam=vivos(p=>p.con&&!p.lejos&&(["prog","herm","hijo","nieto"].includes(p.rol)||p.id==G.pareja)&&p.edad>=96);
+  if(fam.length)A("Pedir una visita",()=>{const p=pick(fam);if(ch(.25+p.rel/140)){rel(p,6);add("animo",8);return `Viene a verte ${tu(p)}. Cuarenta minutos a través de un cristal. Habláis de todo menos de esto.`}add("animo",-6);return {txt:`Pides visita con ${tu(p)}. El día señalado nadie pronuncia tu nombre por megafonía.`,mal:1}});
+  A("Dejar pasar el mes",()=>vario("carcp",["Un mes igual que el anterior.","Aquí los días son largos y los meses, cortos.","Recuento, comida, patio, recuento."]),"sec");
+  L.push({t:"Dejar pasar un año",cls:"sec",anio:1});
+  return L;
+}
+function eventoCarcel(){
+  const y=G.yo,c=G.carcel;
+  const E=[()=>{add("salud",-ri(4,10));c.cond-=1;log("Pelea en el patio. No la empezaste tú, pero acabas en enfermería con la ceja abierta.","mala")},
+   ()=>{const q=per("conoc",y.sexo,y.edad/12+ri(-8,15),pick(ORI[G.origen].ap),{con:true,rel:ri(25,45),oficio:gp(y,"tu compañero de celda","tu compañera de celda"),crianza:true});log(`Cambian a quien dormía en la litera de arriba. Ahora compartes celda con ${q.nombre}, que ronca y sabe de todo.`)},
+   ()=>{add("animo",6);const p=pick(vivos(p=>p.con&&p.rel>=40&&p.edad>=120));log(p?`Llega carta de ${tu(p)}. La lees tres veces y la guardas debajo del colchón.`:"Reparten el correo. Para ti no hay nada. Nunca hay nada.",p?"":"mala")},
+   ()=>{add("animo",-5);log("Motín en el módulo de al lado. Tres días encerrados sin patio, oyendo golpes en las tuberías.","mala")},
+   ()=>{if(c.cond>=8){c.m=Math.max(1,c.m-2);log("Buena conducta: te quitan dos meses de condena. El funcionario te lo dice como quien da la hora.")}else log("Revisan tu expediente. Sin novedades: ni un día menos.")},
+   ()=>{add("animo",4);log("Partido de fútbol entre módulos. Durante noventa minutos nadie está preso.")},
+   ()=>{add("animo",-4);log("Navidad dentro. Turrón duro, villancicos por megafonía y todo el mundo mirando al suelo.","mala")},
+   ()=>{add("mente",2);log("Un veterano te enseña a jugar al ajedrez con piezas de miga de pan. Pierdes veinte seguidas.")}];
+  G.vr=G.vr||{};let i;do{i=Math.floor(R()*E.length)}while(i==G.vr.carcE);G.vr.carcE=i;E[i]();
+}
+
+/* ---- Salud crónica, vejez y testamento ---- */
+const CRON=[["diabetes",()=>G.yo.imcD>6?3:1],["hipertensión",()=>2],["artrosis",()=>anios()>=55?2:0],["una bronquitis crónica",()=>G.fl.fuma?4:0],["una cardiopatía",()=>anios()>=50?1.5:0],["asma",()=>1]];
+function tickSalud(){
+  const y=G.yo,a=y.edad/12;
+  if(G.cron){if(G.cron.trat){y.dinero-=45;add("salud",-.03)}else{add("salud",-.3);if(ch(.012)){add("salud",-10);log(`Una crisis de ${G.cron.n} te lleva a urgencias de madrugada. «¿Está usted siguiendo el tratamiento?» No contestas.`,"mala")}}}
+  if(G.vejez){const v=G.vejez;
+    if(v.t=="hijo"){const h=viv(v.id);if(!h){G.vejez=null}else{add("salud",.15);y.animo=clamp(y.animo+.4)}}
+    else if(v.t=="resi"){y.dinero-=900;add("salud",.1);if(y.dinero<-2000){v.t="publica";log("Se acaba el dinero para la residencia. Te trasladan a una pública, con tus dos maletas.","mala")}}
+    else if(v.t=="publica"){y.animo=clamp(y.animo-.6)}
+    else if(v.t=="solo"){add("salud",-.15);if(ch(.01)){add("salud",-15);log("Te caes en el pasillo y pasas horas en el suelo hasta que alguien oye los golpes.","mala")}}}
+  else if(a>=74&&(y.salud<40||a>=84)&&!G.pend&&!G.carcel){decidir("depender");log("El médico habla con mucho cuidado y tú entiendes perfectamente: ya no puedes vivir sin ayuda. Toca decidir dónde.","mala")}
+  vivos(p=>p.rol=="hijo").forEach(h=>{hijoIni(h);if(h.edad<216&&h.casa)h.rumbo=clamp(h.rumbo+(h.rel-55)/400+(tiene("responsable")?.03:0)-(G.fl.adicto?.15:0));else if(h.edad>=216&&!h.casa&&h.rel>40)h.rel-=.12;if(G.carcel){h.rel=Math.max(5,h.rel-.3);if(h.edad<216)h.rumbo=clamp(h.rumbo-.3)}});
+}
+function epitafios(){const y=G.yo,r=(G.rasgos||[])[0];
+  return [`Aquí yace ${y.nombre}, que hizo lo que pudo.`,"Vivió como quiso y casi siempre pagó la cuenta.",`${g("Querido","Querida")} por los suyos, ${g("temido","temida")} a las cartas.`,`Ya os dije que estaba ${g("malo","mala")}.`,"Volveré. Guardadme el sitio.",r?`Fue ${trazoTxt(r)} hasta el final.`:"No dejó nada a medias, salvo esto."];
+}
+function menuTestamento(){
+  const y=G.yo,hj=vivos(p=>p.rol=="hijo"),q=G.pareja&&P(G.pareja),ops=[];
+  const paso2=(t,id,txt)=>abrirHoja("¿Qué quieres en la lápida?",epitafios().map(e=>({t:e,fn:()=>{y.dinero-=150;G.test={t,id,ep:e};log(`Firmas testamento ante notario: ${txt}. En la lápida pondrá: «${e}»`);guardar();cerrarHoja();render(true)}})));
+  if(hj.length>1)ops.push({t:"A partes iguales entre tus hijos",fn:()=>paso2("iguales",0,"todo a partes iguales entre tus hijos")});
+  hj.forEach(h=>ops.push({t:"Todo a "+h.nombre,s:"Vínculo "+Math.round(h.rel),fn:()=>paso2("uno",h.id,"todo para "+h.nombre)}));
+  if(q)ops.push({t:"Todo a "+q.nombre,fn:()=>paso2("pareja",q.id,"todo para "+q.nombre)});
+  ops.push({t:"Todo a una causa benéfica",fn:()=>paso2("benef",0,"todo para una causa benéfica")});
+  abrirHoja("Testamento · patrimonio "+patrimonio(),ops);
+}
+function trasMuerte(p){
+  const y=G.yo;
+  if(p.rol=="prog"&&y.edad>=216&&!vivos(q=>q.rol=="prog").length&&!G.fl.her){G.fl.her=1;const b=[1500,6000,20000,60000,200000][G.riqF==null?G.riqueza:G.riqF];eco("herencia",2,{n:Math.round(b*(.6+R()*.8)/100)*100,cuid:p.cuidas?1:0})}
+  if(G.vejez&&G.vejez.t=="hijo"&&G.vejez.id==p.id)G.vejez=null;
+}
+
+/* ---- Acciones y eventos añadidos ---- */
+function accionesExtra(L,a){
+  const y=G.yo;
+  L.push({t:"Dinero y bienes…",abre:menuDinero});
+  if(a<70)L.push({t:"Buscarte la vida…",cls:"riesgo",abre:menuDelito});
+  if(G.cron)L.push({t:"Tratamiento de "+G.cron.n+": "+(G.cron.trat?"lo sigues":"lo has dejado"),cls:"sec",abre:()=>{G.cron.trat=!G.cron.trat;log(G.cron.trat?"Vuelves a tomarte en serio el tratamiento: pastillas, controles y menos sal. 45 al mes.":"Dejas el tratamiento. Te encuentras bien, de momento.");guardar();render(true)}});
+}
+function eventosExtra(ev,a){
+  const y=G.yo;
+  if(!G.pend)for(const id in DEC){const D=DEC[id];if(D.man||a<D.min||a>D.max||(D.cond&&!D.cond()))continue;
+    ev(D.w,"dec_"+id,()=>{const d=D.prep?D.prep():{};if(!d||G.pend)return;decidir(id,d);log(D.txt(G.pend))},!D.rep)}
+  eventosHijos(ev,a);
+  if(a>=40&&!G.cron){const l=CRON.map(c=>[c[0],c[1]()]).filter(c=>c[1]>0),w=.5*(a>=60?2:1)*(y.salud<50?2:1);
+    ev(w,"cronica",()=>{let t=l.reduce((s,c)=>s+c[1],0),r=R()*t,k=l[0];for(const c of l){if((r-=c[1])<=0){k=c;break}}
+      G.cron={n:k[0],trat:true};add("animo",-6);log(`El médico te sienta, cierra la carpeta y usa una palabra nueva: ${k[0]}. Es para siempre. Se puede llevar bien o se puede llevar mal, y eso depende de ti.`,"mala")},1)}
+  if(G.coche&&a>=18)ev(1,"cocheviaje",()=>{add("animo",5);log(vario("coche",["Coges el coche sin rumbo un domingo. Acabas comiendo en un pueblo cuyo nombre no recuerdas.","Viaje largo por carretera, con la música alta y las ventanillas bajadas.","Llevas a medio barrio a la playa en tu coche. Arena en los asientos hasta diciembre."]))});
+  if(G.prop)ev(1,"casaprop",()=>{const n=ri(300,1500);y.dinero-=n;log(vario("casap",[`Tejado, caldera o tuberías: la casa siempre pide algo. Este mes, ${n}.`,`Reunión de propietarios. Tres horas para decidir el color del portal, y una derrama de ${n}.`,`Pintas la casa entera. ${n} y olor a pintura un mes.`]),"mala")});
+  if(G.fl.antec&&a>=18&&!G.trabajo)ev(2,"antec",()=>{add("animo",-4);log(vario("antec",["La entrevista iba bien hasta la casilla de antecedentes. «Ya le llamaremos.»","Un vecino nuevo se entera de dónde estuviste. Ya no deja la puerta abierta.","Te piden un certificado de penales para un trabajo. No lo entregas."]),"mala")});
+  if(tiene("sociable")&&a>=14)ev(1,"rsoc",()=>{add("carisma",1);log("Entras en un sitio donde no conoces a nadie y sales con tres teléfonos nuevos. Es un don."+(a>=18?conocerEn("de por ahí","par"):""))});
+  if(tiene("solitario")&&a>=12)ev(1,"rsol",()=>{add("animo",4);add("mente",1);log("Pasas un fin de semana entero sin hablar con nadie. Lo necesitabas.")});
+  if(tiene("rebelde")&&G.trabajo)ev(1,"rreb",()=>{const j=vivos(p=>p.jefe)[0];if(j)rel(j,-8);log("Le dices a tu jefe lo que piensas, con todas las letras, delante de todos. Sienta bien durante diez minutos.","mala")});
+  if(tiene("generoso")&&a>=18)ev(1,"rgen",()=>{vivos(p=>p.con&&!p.lejos&&p.rel>=40).slice(0,4).forEach(p=>rel(p,3));add("animo",3);log("Alguien cuenta delante de ti un favor que hiciste y habías olvidado. La gente se acuerda.")});
+  if(tiene("tramposo")&&a>=18)ev(1,"rtram",()=>{const n=ri(100,600);y.dinero+=n;log(`Encuentras un resquicio que no era para ti y lo aprovechas: ${n}. Nadie se da cuenta.`)});
+  if(tiene("honrado")&&a>=18)ev(1,"rhon",()=>{add("animo",3);log("Te dan de más en el cambio y lo devuelves. La cajera te mira como a un animal en extinción.")});
+}
+
+/* ---- Final: necrológica y seguir como heredero ---- */
+function necrologica(causa){
+  const y=G.yo,a=Math.floor(y.edad/12),hj=G.gente.filter(p=>p.rol=="hijo"),nt=G.gente.filter(p=>p.rol=="nieto"),pat=patrimonio(),q=G.pareja&&P(G.pareja);
+  let s=`NECROLÓGICA · ${y.nombre} ${y.apellido}, ${a} ${a==1?"año":"años"}, ${G.lugar.nombre}. `;
+  if(a<12)return s+"No hay mucho que escribir, y eso es lo peor que se puede decir de una vida.";
+  if(G.rasgos&&G.rasgos.length)s+=`Quienes le trataron le recuerdan como alguien ${rasgosTxt().replace(/, ([^,]*)$/," y $1")}. `;
+  s+=G.trabajo?`Trabajó ${G.trabajo.n} hasta el final. `:G.pension?"Llevaba años de merecida jubilación. ":"";
+  if(G.neg)s+=`Deja ${G.neg.n} con la persiana subida. `;
+  if(q)s+=`Le llora ${q.nombre}${G.casado?", con quien compartió matrimonio":""}. `;
+  if(hj.length)s+=`Deja ${hj.length==1?(hj[0].sexo=="m"?"un hijo":"una hija"):hj.length+" hijos"}${nt.length?` y ${nt.length==1?"un nieto":nt.length+" nietos"}`:""}. `;
+  if(G.fl.mesesCarcel)s+=`Pasó ${G.fl.mesesCarcel} meses en prisión, cosa que nunca ocultó del todo. `;
+  if(G.logros&&G.logros.length)s+=`En su diario quedaron apuntados ${G.logros.length} hitos. Los últimos: ${G.logros.slice(-3).map(l=>"«"+l.replace(/^(\d+) años: (.*)$/,"$2 ($1 años)")+"»").join(", ")}. `;
+  s+=pat>0?`Deja un patrimonio de ${pat}`+(G.test?(G.test.t=="benef"?", que irá a una causa benéfica":G.test.t=="iguales"?", a repartir entre sus hijos":P(G.test.id)?", todo para "+P(G.test.id).nombre:""):"")+". ":pat<0?"Deja deudas, que nadie reclamará. ":"";
+  if(G.gen>1)s+=`Era la generación número ${G.gen} de los ${y.apellido} en esta historia. `;
+  return s+`En su lápida se lee: «${G.test&&G.test.ep?G.test.ep:pick(epitafios())}»`;
+}
+function parteDe(h){
+  const hj=vivos(p=>p.rol=="hijo"),pat=Math.max(0,patrimonio()),t=G.test;
+  if(!t||t.t=="iguales")return Math.round(pat/Math.max(1,hj.length));
+  if(t.t=="uno")return t.id==h.id?pat:0;
+  return 0;
+}
+function herederos(){return vivos(p=>p.rol=="hijo"&&p.edad>=216)}
+function continuarComo(id){
+  const h=P(id),v=G.yo;if(!h||!h.vivo)return;hijoIni(h);
+  const parte=parteDe(h),otro=P(h.madre||h.otro||G.pareja),edadV=v.edad,nomV=v.nombre,apV=v.apellido,sexV=v.sexo,r=h.rumbo,ed=h.edad/12;
+  const padre={id:G.nid++,nombre:nomV,apellido:apV,sexo:sexV,edad:edadV,rol:"prog",rel:h.rel,vivo:false,casa:false,lejos:false,con:true};
+  let pareja=null;const lista=[];
+  G.gente.forEach(p=>{
+    if(p.id==h.id)return;["quim","beso","amante","pas","gus","desc","no","inf","jefe","cuidas","resi","encasa"].forEach(k=>delete p[k]);p.casa=false;
+    if(otro&&p.id==otro.id){p.rol="prog";p.astra=null;p.oficio=null;p.sitio=null;p.lejos=false;p.con=true;lista.push(p)}
+    else if(p.rol=="hijo"){p.rol="herm";p.secreto=0;p.lejos=false;lista.push(p)}
+    else if(p.rol=="prog"){if(p.vivo){p.rol="abu";p.lado=sexV=="m"?"p":"m";lista.push(p)}}
+    else if(p.rol=="herm"){if(p.vivo){p.rol="tio";lista.push(p)}}
+    else if(p.rol=="nieto"){if(p.de==h.id){p.rol="hijo";p.casa=p.edad<216;p.rel=Math.max(p.rel,65)}else p.rol="sobr";lista.push(p)}
+    else if(p.id==h.conyuge){if(p.vivo){pareja=p;p.oficio=null;p.crianza=false;p.rel=70;p.casa=true;lista.push(p)}}
+    else if(p.id==G.pareja&&p.vivo){p.rol="conoc";p.astra="madr";p.crianza=true;p.de=padre.id;p.casado=false;lista.push(p)}
+  });
+  lista.push(padre);G.gente=lista;
+  const y={nombre:h.nombre,apellido:h.apellido,sexo:h.sexo,edad:h.edad,salud:clamp(92-(ed-18)*.5+ri(-8,8)),animo:55,mente:clamp(28+r*.5+ri(-8,8)),cuerpo:ri(35,65),carisma:ri(30,65),aspecto:ri(30,65),dinero:parte};
+  G.yo=y;genCuerpo();y.edad=h.edad;
+  G.dinastia=(G.dinastia||[]).concat([`${nomV} ${apV} (${Math.floor(edadV/12)} años)`]);G.gen=(G.gen||1)+1;
+  Object.assign(G,{trabajo:null,pension:0,titulo:false,uni:0,carrera:null,cursos:{},curso:null,voc:{},fl:{},hitos:{anda:1,habla:1},crush:null,pareja:pareja?pareja.id:null,casado:!!pareja,emb:0,nac:[],pend:null,muerto:false,indep:true,
+    mg:null,mago:0,don:0,mor:{},cn:{},cn12:null,del:null,carcel:null,cron:null,vejez:null,test:null,prop:null,neg:null,coche:null,ecos:[],una:{},rec:[],logros:[],tension:0,dieta:"",prof:{},ruina:0,cmp:null,padre:null});
+  G.rasgos=[["estudioso","responsable"],["rebelde"],["sonador"],["trabajador"]][h.car||0].slice();
+  if(G.gente.some(p=>p.rol=="hijo"))G.fl.virgen=false;
+  if(r>=65&&ed>=23){G.titulo=true;G.carrera=pick(Object.keys(CARRERAS))}
+  G.riqueza=parte>150000?4:parte>50000?3:parte>10000?2:1;G.riqF=G.riqueza;genCasa();G.casa.deQuien=null;genVecinos();
+  titular(`${y.nombre} ${y.apellido}`,`Generación ${G.gen} · ${edadTxt(y.edad)}`);
+  log(`Sigues la historia como ${y.nombre}, ${gp(y,"hijo","hija")} de ${nomV}. Heredas ${parte>0?parte:"poco más que el apellido"}${parte>0?" y un apellido":""}. Vives en ${G.casa.tipo}, en ${G.casa.barrio}`+(pareja?`, con ${pareja.nombre}.`:".")+(G.titulo?` Tienes la carrera de ${CARRERAS[G.carrera]}.`:""));
+  TAB="diario";guardar();render(true);
+}
+function filasExtra(){
+  const y=G.yo,b=[];
+  if(G.rasgos&&G.rasgos.length)b.push(["Carácter",rasgosTxt()]);
+  const bi=[G.prop&&("casa en propiedad"+(G.prop.deuda>0?" (debes "+Math.round(G.prop.deuda)+")":" pagada")),G.coche&&G.coche.n,G.neg&&(G.neg.n+" · "+(G.neg.sal>=70?"va viento en popa":G.neg.sal>=40?"se mantiene":"hace aguas"))].filter(Boolean);
+  if(anios()>=18)b.push(["Patrimonio",patrimonio()+(bi.length?" · "+bi.join(", "):"")]);
+  if(G.cron)b.push(["Salud",G.cron.n+(G.cron.trat?" · en tratamiento":" · sin tratar")]);
+  if(G.carcel)b.push(["Condena","Te quedan "+G.carcel.m+" meses"]);else if(G.fl.antec)b.push(["Antecedentes","Penales"+(G.fl.mesesCarcel?" · "+G.fl.mesesCarcel+" meses cumplidos":"")]);
+  if(G.vejez)b.push(["Vejez",{hijo:"vives con "+(P(G.vejez.id)?P(G.vejez.id).nombre:"tu familia"),resi:"residencia de pago",publica:"residencia pública",solo:"en tu casa, por tu cuenta"}[G.vejez.t]]);
+  if(G.test)b.push(["Testamento",{iguales:"a partes iguales entre tus hijos",uno:"todo para "+(P(G.test.id)?P(G.test.id).nombre:"un hijo"),pareja:"todo para tu pareja",benef:"todo a una causa benéfica"}[G.test.t]]);
+  if(G.dinastia&&G.dinastia.length)b.push(["Antes de ti",G.dinastia.join(" → ")]);
+  return b.map(r=>`<tr><th>${r[0]}</th><td>${esc(String(r[1]))}</td></tr>`).join("");
 }
 
 /* ============ Interfaz ============ */
@@ -1517,7 +1980,7 @@ function render(abajo){
     visto=G.lid||0;
     if(abajo){v.scrollTop=v.scrollHeight;teclear([...v.querySelectorAll("[data-new]")],v)}
   }else if(TAB=="familia"){
-    const viv=G.gente.filter(p=>p.vivo&&p.con),fam=["prog","herm","abu","tio","primo","hijo"];
+    const viv=G.gente.filter(p=>p.vivo&&p.con),fam=["prog","herm","abu","tio","primo","hijo","nieto","sobr"];
     v.innerHTML=tablaGente("En casa contigo",viv.filter(p=>p.casa))+
       tablaGente("Familia",viv.filter(p=>!p.casa&&(fam.includes(p.rol)||p.id==G.pareja)))+
       tablaGente("Barrio y conocidos",viv.filter(p=>!p.casa&&!fam.includes(p.rol)&&p.id!=G.pareja&&!p.lejos))+
@@ -1540,7 +2003,7 @@ function render(abajo){
      <tr><th>Cursos</th><td>${Object.keys(G.cursos||{}).map(k=>secDe(k).n).join(", ")||"Ninguno"}</td></tr>
      ${!G.indep?`<tr><th>Ambiente en casa</th><td>${ambiente()}</td></tr>`:""}
      ${G.mg?`<tr><th>Magia</th><td>${G.mago?g("Mago graduado","Maga graduada"):"Umbraluz"} · casa ${CASASM[G.mg.casa].n} · ${G.mg.anos} ${G.mg.anos==1?"curso":"cursos"}</td></tr>`:""}
-     <tr><th>Costumbres</th><td>${[G.dieta=="basura"&&"comida basura",G.dieta=="dieta"&&"a dieta",G.fl.ropa>0&&"ropa cara",G.fe&&!G.indep&&"familia practicante",G.fl.fuma&&"fumas",G.fl.adicto&&"enganche a las drogas",G.fl.ets&&"algo sin tratar"].filter(Boolean).join(", ")||"Nada que señalar"}</td></tr></table>
+     <tr><th>Costumbres</th><td>${[G.dieta=="basura"&&"comida basura",G.dieta=="dieta"&&"a dieta",G.fl.ropa>0&&"ropa cara",G.fe&&!G.indep&&"familia practicante",G.fl.fuma&&"fumas",G.fl.adicto&&"enganche a las drogas",G.fl.ets&&"algo sin tratar"].filter(Boolean).join(", ")||"Nada que señalar"}</td></tr>${filasExtra()}</table>
      ${G.logros&&G.logros.length?`<div class="tit">Informe ③ Logros</div><table>${G.logros.map(l=>"<tr><td>"+esc(l.charAt(0).toUpperCase()+l.slice(1))+"</td></tr>").join("")}</table>`:""}
      <p class="nota">La partida se guarda sola en este navegador. Si empiezas otra vida, esta se pierde.</p>`;
     const b=document.createElement("button");b.className="gordo";b.style.fontSize="13px";b.textContent="ABANDONAR ESTA VIDA";
@@ -1548,7 +2011,8 @@ function render(abajo){
     v.appendChild(b);v.scrollTop=0;
   }
   const acc=$("acc");acc.innerHTML="";
-  if(G.muerto){const b=document.createElement("button");b.className="ancho";b.textContent="Nacer otra vez";b.onclick=()=>{G=null;borrar();render()};acc.appendChild(b);return}
+  if(G.muerto){herederos().forEach(h=>{const b=document.createElement("button");b.className="ancho";b.textContent=`Seguir como ${h.nombre} (${gp(h,"hijo","hija")}, ${edadTxt(h.edad)})`;b.onclick=()=>continuarComo(h.id);acc.appendChild(b)});
+    const b=document.createElement("button");b.className="ancho";b.textContent="Nacer otra vez";b.onclick=()=>{G=null;borrar();render()};acc.appendChild(b);return}
   if(G.pend)abrirPend();
   acciones().forEach(o=>{const b=document.createElement("button");b.textContent=o.t;if(o.cls)b.className=o.cls;
     b.onclick=o.anio?pasarAnio:o.abre?o.abre:()=>{TAB="diario";hacer(o.fn)};acc.appendChild(b)});
