@@ -515,7 +515,7 @@ function updateHUD(dt) {
     for (const e of W.ev) {
       if (e[0] <= lastEv) continue; lastEv = e[0]; const type = e[1], x = e[2], z = e[3], a = e[4];
       if (kitchenEvent(type, x, z, a)) { }
-      else if (type === 'msg') toast(MSGX[LANG][a] || MSG[a], a === 'phone' || a === 'deliv' || a === 'power' || a === 'karma' || a === 'robgone' || a === 'killed' ? 'good' : 'bad');
+      else if (type === 'msg') toast(MSGX[LANG][a] || MSG[a], a === 'phone' || a === 'deliv' || a === 'aj' || a === 'power' || a === 'karma' || a === 'robgone' || a === 'killed' ? 'good' : 'bad');
       else if (type === 'cash') { toast('+' + eur(a), 'good'); AU.play('cash', x, z); }
       else if (type === 'tip') toast(T('tip', eur(a)), 'good');
       else if (type === 'ring') AU.play('ring', x, z);

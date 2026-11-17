@@ -12,7 +12,7 @@ function newWorld(n, prev) {
     sp: [0, 1, 2, 3].map(() => spitWire(7 + 2 * (keep && prev.up ? prev.up.big | 0 : 0))), bin: [12, 12, 12], chop: { t: -1, n: 0 }, fry: { s: 0, t: 0, u: 0, q: 1 }, sh: [0, 0, 0], gr: 1, am: 2, shl: 6,
     bd: { s: 0, t: 0, o: 0 }, bt: 0, cu: [], pl: {}, ev: prev ? prev.ev : [], es: prev ? prev.es : 0, id: prev ? prev.id : 1, used: [], nx: 6,
   };
-  newStreet(w); w.fm = keep && prev.fm ? prev.fm.slice() : [];
+  newStreet(w); w.aj = prev && prev.aj ? Object.assign({}, prev.aj) : {}; w.fm = keep && prev.fm ? prev.fm.slice() : [];
   newKitchen(w, keep ? prev : null);
   if (prev) for (const k in prev.pl) w.pl[k] = { h: 0, hp: 3, ko: 0 };
   return w;
@@ -275,6 +275,13 @@ function useLogic(pid, key, doIt) {
   if (kind === 'pt') return doorLogic(pid, n, R, H);
   if (kind === 'vm') return vendLogic(pid, n, R, H, P);
   if (kind === 'gt') return gateLogic(pid, n, R, H, P);
+  if (kind === 'aj') {
+    const A = ATAJOS[n], p = PP[pid]; if (!A || !p) return null;
+    if (W.aj[n]) return R(T('u_aj_open'), false);
+    const side = ((p.x - A.x) * -A.uz + (p.z - A.z) * A.ux) >= 0 ? 1 : -1;
+    if (side !== A.s) return R(T('u_aj_lock'), false);
+    return R(T('u_aj_do'), true, () => { W.aj[n] = 1; ev('door', A.x, A.z); ev('msg', 0, 0, 'aj'); });
+  }
   if (kind === 'gi') return gateLogic(pid, n, R, H, P, true);
   if ((kind === 'sp' || kind === 'tr') && n >= nSpits()) return null;
   if (kind === 'sp' && H && H.k === 'cone') return R(T('u_cone_mount', X.meat[SPT[n]]), true, () => { const S = SV[n]; S.lv.fill(spitMax()); S.dn.fill(0.12); S.pend.fill(0); S.dirty = true; W.sp[n].h = 1; encodeSpit(n); P.h = 0; });

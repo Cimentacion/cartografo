@@ -137,7 +137,27 @@ function frontCells(i, rot, band) {
 
 /* ---------- objetos que se llevan en la mano ---------- */
 const VEGC = [0x6fae3a, 0xc63a2a, 0xe6d6e8], DRC = [0xb3261e, 0x6fb3e0, 0xd8b23a];
+// modelo de Tripo dentro de un grupo: tamaño por el lado mayor (L), girado y desplazado
+function propItem(id, L, ry, x, y, z) { const g = new THREE.Group(), m = propMesh(id, 1, g); if (!m) return null; m.scale.setScalar(L); m.rotation.y = ry || 0; m.position.set(x || 0, y || 0, z || 0); return g; }
+const HASPROP = (id) => typeof PROPDATA !== 'undefined' && !!PROPDATA[id];
+// muchas copias de un modelo de Tripo (contenedores, bancos, máquinas, palmeras): t = [x, y, z, ry, tamaño del lado mayor]
+const PROP_ROT = { contenedor: 0, amarillo: 0, banco: PI / 2, maquina: -PI / 2, palmera: 0, furgoneta: -PI / 2, telefono: -PI / 2, mesa: 0 };   // giro para que el frente mire a +z
+function propInst(id, list, tint, mat) {
+  if (!list.length || !HASPROP(id)) return null;
+  let m = mat || propMat(id); if (tint != null) { m = m.clone(); m.color.setHex(tint); }
+  // por trozos de 50 m: solo se pintan los que están cerca (la niebla tapa lo demás)
+  const cells = new Map(); for (const t of list) { const k = Math.floor(t[0] / 50) + ':' + Math.floor(t[2] / 50); if (!cells.has(k)) cells.set(k, []); cells.get(k).push(t); }
+  const o = new THREE.Object3D(), out = []; D.propChunks = D.propChunks || [];
+  for (const L of cells.values()) {
+    const im = new THREE.InstancedMesh(propGeo(id), m, L.length); let cx = 0, cz = 0;
+    L.forEach((t, i) => { o.position.set(t[0], t[1], t[2]); o.rotation.set(0, t[3] + (PROP_ROT[id] || 0), 0); o.scale.setScalar(t[4]); o.updateMatrix(); im.setMatrixAt(i, o.matrix); cx += t[0] / L.length; cz += t[2] / L.length; });
+    im.frustumCulled = false; scene.add(im); D.propChunks.push({ m: im, x: cx, z: cz, d: id === 'palmera' ? 85 : 110 }); out.push(im);
+  }
+  return out;
+}
+function updPropChunks() { if (!D.propChunks) return; const cx = camera.position.x, cz = camera.position.z; for (const c of D.propChunks) c.m.visible = Math.abs(c.x - cx) + Math.abs(c.z - cz) < c.d; }
 function gunMesh() {
+  if (HASPROP('escopeta')) return propItem('escopeta', 0.74, PI / 2, 0, -0.07, -0.06);   // la boca del cañón hacia -z
   const g = new THREE.Group(), st = lam(null, 0x2a2c30), wd = lam('wood', 0x8a5a36);
   for (const s of [-1, 1]) { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.017, 0.4, 6), st); b.rotation.x = PI / 2; b.position.set(s * 0.018, 0.02, -0.2); g.add(b); }
   const rc = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.07, 0.16), st); rc.position.set(0, 0.01, 0.05); g.add(rc);
@@ -151,6 +171,15 @@ function itemMesh(h) {
   if (h.k === 'gun') return gunMesh();
   if (h.k === 'jc') return jcMesh(h);
   if (h.k === 'sb') { add(new THREE.CylinderGeometry(0.045, 0.05, 0.2, 8), lam(null, h.t ? 0xc0281e : 0xf2f0e6), 0, 0.1, 0); add(new THREE.CylinderGeometry(0.008, 0.02, 0.06, 6), lam(null, h.t ? 0x7a1a14 : 0xb8b6a8), 0, 0.23, 0); g.rotation.x = -0.5; return g; }
+  if (h.k === 'dr' && HASPROP(h.t === 1 ? 'agua' : 'lata')) {
+    if (h.t === 1) return propItem('agua', 0.19, 0, 0, 0, 0);
+    const it = propItem('lata', 0.125, 0, 0, 0, 0); if (h.t === 2) it.traverse(o => { if (o.isMesh) { o.material = o.material.clone(); o.material.color.setHex(0xe8c860); } });   // la cerveza: lata dorada
+    return it;
+  }
+  if (h.k === 'fr' && HASPROP('patatas')) {
+    const it = propItem('patatas', 0.2, 0, 0, 0, 0); if (h.q < 0.4) it.traverse(o => { if (o.isMesh) { o.material = o.material.clone(); o.material.color.setHex(h.q < 0.2 ? 0x5a4030 : 0xfff0c8); } });   // quemadas o crudas
+    return it;
+  }
   if (h.k === 'dr') {
     if (h.t === 1) { add(new THREE.CylinderGeometry(0.03, 0.032, 0.17, 7), lam(null, DRC[1], { transparent: true, opacity: 0.75 }), 0, 0.085, 0); add(new THREE.CylinderGeometry(0.014, 0.014, 0.03, 6), lam(null, 0x2a5fb0), 0, 0.185, 0); }
     else { add(new THREE.CylinderGeometry(0.033, 0.033, 0.12, 8), lam(null, DRC[h.t]), 0, 0.06, 0); add(new THREE.CylinderGeometry(0.03, 0.033, 0.008, 8), lam(null, 0xc8ccd0), 0, 0.124, 0); }
@@ -186,6 +215,10 @@ function itemMesh(h) {
   }
   // kebab
   const bread = lam(null, h.b === 1 ? 0xd9b878 : 0xe9d9a8), foil = lam(null, 0xc9cdd2, { emissive: 0x1a1c1e });
+  if (h.w && HASPROP(['durum', 'pita', 'cajapollo'][h.b])) {
+    // envuelto: el dürüm en papel de aluminio, la pita en su papel y la caja de pollo abierta
+    return h.b === 0 ? propItem('durum', 0.24, 0, 0, 0, 0) : h.b === 1 ? propItem('pita', 0.17, 0, 0, 0, 0) : propItem('cajapollo', 0.22, 0, 0, 0, 0);
+  }
   if (h.w) {
     if (h.b === 0) { const r = add(new THREE.CylinderGeometry(0.042, 0.042, 0.22, 7), foil, 0, 0.045, 0); r.rotation.z = PI / 2; const e = add(new THREE.CylinderGeometry(0.036, 0.036, 0.05, 7), bread, 0.125, 0.045, 0); e.rotation.z = PI / 2; }
     else if (h.b === 1) { const r = add(new THREE.CylinderGeometry(0.105, 0.105, 0.06, 8, 1, false, 0, PI), foil, 0, 0.035, 0); r.rotation.y = PI / 2; }

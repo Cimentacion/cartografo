@@ -131,7 +131,8 @@ function layoutTown() {
 }
 /* tráfico: coches que recorren calles de verdad, con posiciones deterministas a partir del reloj de la noche */
 const TRAFFIC = (() => {
-  const cands = TOWN.rd.filter(r => (r.t === 'tertiary' || r.t === 'residential' || r.t === 'living_street') && r.n).map(r => {
+  // la Avenida de Madrid es paseo: por ahí no pasan coches
+  const cands = TOWN.rd.filter(r => (r.t === 'tertiary' || r.t === 'residential') && r.n).map(r => {
     let L = 0; const cum = [0]; for (let i = 0; i + 1 < r.pts.length; i++) { L += Math.hypot(r.pts[i + 1][0] - r.pts[i][0], r.pts[i + 1][1] - r.pts[i][1]); cum.push(L); }
     const near = Math.min(...r.pts.map(p => Math.hypot(p[0], p[1]))); return { r, L, cum, near };
   }).filter(c => c.L > 90 && c.near < 160).sort((a, b) => a.near - b.near).slice(0, 5);
@@ -191,14 +192,15 @@ function vquad(ax, az, bx, bz, y0, y1, u0, tile, out) {   // pared vertical de u
 function mergeGeos(list) {
   let nv = 0, ni = 0; for (const g of list) { nv += g.attributes.position.count; ni += g.index.count; }
   const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), uv = new Float32Array(nv * 2), idx = new Uint32Array(ni);
+  const ws = list[0].attributes.wsz ? new Float32Array(nv * 2) : null;   // tamaño del cristal de los escaparates (habitaciones)
   let vo = 0, io = 0;
   for (const g of list) {
-    pos.set(g.attributes.position.array, vo * 3); nor.set(g.attributes.normal.array, vo * 3); uv.set(g.attributes.uv.array, vo * 2);
+    pos.set(g.attributes.position.array, vo * 3); nor.set(g.attributes.normal.array, vo * 3); uv.set(g.attributes.uv.array, vo * 2); if (ws && g.attributes.wsz) ws.set(g.attributes.wsz.array, vo * 2);
     const ia = g.index.array; for (let i = 0; i < ia.length; i++) idx[io + i] = ia[i] + vo;
     io += ia.length; vo += g.attributes.position.count; g.dispose();
   }
   const m = new THREE.BufferGeometry();
-  m.setAttribute('position', new THREE.BufferAttribute(pos, 3)); m.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); m.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); m.setIndex(new THREE.BufferAttribute(idx, 1));
+  m.setAttribute('position', new THREE.BufferAttribute(pos, 3)); m.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); m.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); m.setIndex(new THREE.BufferAttribute(idx, 1)); if (ws) m.setAttribute('wsz', new THREE.BufferAttribute(ws, 2));
   m.computeBoundingSphere(); return m;
 }
 const _mx = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _s1 = new THREE.Vector3(1, 1, 1), _p = new THREE.Vector3();
@@ -382,7 +384,8 @@ function carMats(c, lights) {
 }
 function makeCar(st, c, lights) {
   const g = new THREE.Group(), M2 = carMats(c, lights);
-  for (const p of carParts(st)) g.add(new THREE.Mesh(partGeo(p), M2[p[0]]));
+  if (st === 2 && HASPROP('furgoneta')) { const v = propItem('furgoneta', 4.4, PROP_ROT.furgoneta, 0, 0, 0); g.add(v); for (const p of carParts(st)) if (p[0] === 'f' || p[0] === 't') g.add(new THREE.Mesh(partGeo(p), M2[p[0]])); }
+  else for (const p of carParts(st)) g.add(new THREE.Mesh(partGeo(p), M2[p[0]]));
   if (lights) { const cone = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 11), new THREE.MeshBasicMaterial({ map: D.beamTex, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending })); cone.rotation.x = -PI / 2; cone.position.set(0, 0.03, -(carParts(st)[0][3] / 2) - 5.4); g.add(cone); }
   g.visible = false; scene.add(g); return g;
 }
@@ -499,6 +502,19 @@ function palmMat() {
   };
   return m;
 }
+// una calle de coches que acaba en la Avenida de Madrid (paseo) no mete su asfalto en el paseo: se corta antes
+function paseoTrim(rd) {
+  let P = rd.pts.slice();
+  for (const end of [0, 1]) {
+    const i = end ? P.length - 1 : 0, j = end ? P.length - 2 : 1; if (j < 0 || j >= P.length) continue;
+    const p = P[i], q = P[j];
+    const hit = TOWN.rd.find(o => o.t === 'living_street' && o.pts.some((v, k) => k + 1 < o.pts.length && segDist(p[0], p[1], v[0], v[1], o.pts[k + 1][0], o.pts[k + 1][1])[0] < 2));
+    if (!hit) continue;
+    const L = Math.hypot(p[0] - q[0], p[1] - q[1]), cut = hit.w / 2 + 0.3; if (L <= cut + 0.5) continue;
+    P[i] = [p[0] + (q[0] - p[0]) * cut / L, p[1] + (q[1] - p[1]) * cut / L];
+  }
+  return P;
+}
 /* bordillos, aceras y líneas de borde: para que se vea dónde acaba la calzada y dónde empieza la acera */
 function buildCurbs() {
   const C = 12, grid = new Map(), roads = TOWN.rd.filter(r => DRIVE[r.t] && r.t !== 'service');
@@ -558,7 +574,7 @@ function buildTown() {
     // los accesos de servicio (garajes, patios) van del mismo adoquín que la acera; los caminos que caen dentro de una plaza no se pintan encima
     const k = DRIVE[rd.t] && rd.t !== 'service' ? (rd.t === 'living_street' ? 'madrid' : 'asph') : 'foot';
     if (k === 'foot') { const m = rd.pts[rd.pts.length >> 1]; if (TOWN.ar.some(a => (a.k === 'ped' || a.k === 'parking') && pip(m[0], m[1], a.P))) continue; }
-    ribbonGeos(rd.pts, rd.w, k === 'asph' ? 0.04 : k === 'madrid' ? 0.036 : 0.03, k === 'asph' ? 3.5 : 2.4, RD[k]);
+    ribbonGeos(k === 'asph' ? paseoTrim(rd) : rd.pts, rd.w, k === 'asph' ? 0.04 : k === 'madrid' ? 0.036 : 0.03, k === 'asph' ? 3.5 : 2.4, RD[k]);
     if (k === 'asph' && rd.w >= 6.5) for (let i = 0; i + 1 < rd.pts.length; i++) { const a = rd.pts[i], b = rd.pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]); for (let s = 2; s < L - 2; s += 6) { const t = s / L; paint.push(wallSegGeo(lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[0], b[0], (s + 2.6) / L), lerp(a[1], b[1], (s + 2.6) / L), 0.005, 0.14, 1).translate(0, 0.045, 0)); } }
   }
   addMerged(RD.asph, lam('asph', 0x55555e)); addMerged(RD.madrid, lam('tbeig', 0xb0a898)); addMerged(RD.foot, lam('pavs', 0xb4b0a8));
@@ -570,9 +586,24 @@ function buildTown() {
     for (let k = -2; k <= 2; k++) { const cx = nr.qx + ux * k * 0.95, cz = nr.qz + uz * k * 0.95; paint.push(wallSegGeo(cx - uz * w / 2.2, cz + ux * w / 2.2, cx + uz * w / 2.2, cz - ux * w / 2.2, 0.005, 0.5, 1).translate(0, 0.045, 0)); }
   }
   addMerged(paint, lam(null, 0xc8c4b4));
+  // donde una calle de coches muere en el paseo (Avenida de Madrid o zona peatonal): bordillo de cierre y pilonas, no asfalto que se mete en el paseo
+  const bol = [], cap = [];
+  for (const rd of TOWN.rd) {
+    if (!DRIVE[rd.t] || rd.t === 'service' || rd.t === 'living_street') continue;
+    for (const end of [0, rd.pts.length - 1]) {
+      const p = rd.pts[end], q = rd.pts[end === 0 ? 1 : end - 1]; if (!q) continue;
+      const meets = TOWN.rd.some(o => (o.t === 'living_street' || o.t === 'pedestrian') && o.pts.some((v, i) => i + 1 < o.pts.length && segDist(p[0], p[1], v[0], v[1], o.pts[i + 1][0], o.pts[i + 1][1])[0] < 4));
+      const cont = TOWN.rd.some(o => o !== rd && DRIVE[o.t] && o.t !== 'living_street' && o.t !== 'service' && o.pts.some(v => Math.hypot(v[0] - p[0], v[1] - p[1]) < 3));
+      if (!meets || cont) continue;
+      const L = Math.hypot(p[0] - q[0], p[1] - q[1]) || 1, ux = (p[0] - q[0]) / L, uz = (p[1] - q[1]) / L, nx = -uz, nz = ux, h = rd.w / 2, cx = p[0] - ux * 1.2, cz = p[1] - uz * 1.2;
+      cap.push(wallSegGeo(cx - nx * (h + 0.2), cz - nz * (h + 0.2), cx + nx * (h + 0.2), cz + nz * (h + 0.2), 0.14, 0.3, 1).translate(0, 0.0, 0));
+      for (let s = -h + 0.6; s <= h - 0.5; s += 1.4) { const bx = cx + nx * s - ux * 0.5, bz = cz + nz * s - uz * 0.5; bol.push(cgeo(0.07, 0.08, 0.85, 8, bx, 0.43, bz), cgeo(0.08, 0.08, 0.06, 8, bx, 0.7, bz)); addSeg(bx - nx * 0.1, bz - nz * 0.1, bx + nx * 0.1, bz + nz * 0.1, 0, 0.9, { car: 1 }); }
+    }
+  }
+  addMerged(cap, lam('conc', 0xd8d6cc)); addMerged(bol, lam(null, 0x2a2c2e, { emissive: 0x0a0a0a }));
   // tapias, vallas y setos; con hueco en cada cancela
   const WL = [], CP = [], HD = [], RAIL = [], GATE = [];
-  const gates = MAP.gate;
+  const gates = MAP.gate, AJ_H = [];
   for (const b of TOWN.br) {
     const p = b.pts;
     for (let i = 0; i + 1 < p.length; i++) {
@@ -580,7 +611,9 @@ function buildTown() {
       // la terraza del bar que había en el local no se pone: tapaba la puerta
       if (Math.max(Math.abs(ax), Math.abs(bx)) < 13 && az > 4 && az < 8.5 && bz > 4 && bz < 8.5) continue;
       // trozos sin cancela
-      const cuts = gates.map(g => { const [d, , , t] = segDist(g[0], g[1], ax, az, bx, bz); return d < 0.6 ? [t * L, g[2] || 0.75, !!g[2]] : null; }).filter(v => v !== null).sort((u, v) => u[0] - v[0]);
+      const cuts = gates.map(g => { const [d, , , t] = segDist(g[0], g[1], ax, az, bx, bz); return d < 0.6 ? [t * L, g[2] || 0.75, !!g[2]] : null; })
+        .concat(ATAJOS.map((g, ai) => { const [d, , , t] = segDist(g.x, g.z, ax, az, bx, bz); if (d > 0.35) return null; AJ_H[ai] = Math.max(AJ_H[ai] || 0, b.h); return [t * L, 0.7, true]; }))
+        .filter(v => v !== null).sort((u, v) => u[0] - v[0]);
       let s0 = 0; const parts = [];
       for (const [c, hw, open] of cuts) { if (c - hw > s0) parts.push([s0, c - hw]); s0 = Math.max(s0, c + hw); if (!open) GATE.push([ax + (bx - ax) * c / L, az + (bz - az) * c / L, (bx - ax) / L, (bz - az) / L, b.h]); }
       if (s0 < L) parts.push([s0, L]);
@@ -590,24 +623,45 @@ function buildTown() {
         if (b.k === 'hedge') HD.push(wallSegGeo(x0, z0, x1, z1, b.h, 0.7, 1.4));
         else if (b.k === 'fence') { RAIL.push(wallSegGeo(x0, z0, x1, z1, 0.06, 0.06, 1).translate(0, b.h - 0.03, 0)); const pl = new THREE.PlaneGeometry(e - s, b.h - 0.1); const uv = pl.attributes.uv; for (let k = 0; k < uv.count; k++) uv.setX(k, uv.getX(k) * (e - s) / 0.6); pl.rotateY(-Math.atan2(z1 - z0, x1 - x0)); pl.translate((x0 + x1) / 2, (b.h - 0.1) / 2, (z0 + z1) / 2); RAIL.push(pl); }
         else { const h = Math.min(b.h, 2.4); WL.push(wallSegGeo(x0, z0, x1, z1, h, 0.25, 1.2)); CP.push(wallSegGeo(x0, z0, x1, z1, 0.06, 0.32, 1).translate(0, h + 0.03, 0)); if (h < 1.3) { const pl = new THREE.PlaneGeometry(e - s, 0.55); const uv = pl.attributes.uv; for (let k = 0; k < uv.count; k++) uv.setX(k, uv.getX(k) * (e - s) / 0.6); pl.rotateY(-Math.atan2(z1 - z0, x1 - x0)); pl.translate((x0 + x1) / 2, h + 0.33, (z0 + z1) / 2); RAIL.push(pl); } }
-        addSeg(x0, z0, x1, z1, 0, b.k === 'hedge' || b.h > 1.2 ? 9 : 1.7);
+        addSeg(x0, z0, x1, z1, 0, b.k === 'hedge' || b.h > 1.2 ? 9 : 1.7, { br: b });
       }
     }
   }
   D.barsM = new THREE.MeshLambertMaterial({ map: barsTex(), transparent: true, alphaTest: 0.4, side: THREE.DoubleSide });
   addMerged(WL, lam('plas', 0xd8d0c0)); addMerged(CP, lam('conc', 0xf0ece0)); addMerged(HD, lam(null, 0x223a1c)); addMerged(RAIL, D.barsM);
+  buildAtajos(AJ_H);
   // cancelas abiertas (de hierro, como las de las urbanizaciones)
   const gl = []; for (const [x, z, ux, uz, h] of GATE) { const gh = Math.max(1.4, Math.min(2, h + 0.5)), a = Math.atan2(uz, ux) + 1.3, g = new THREE.PlaneGeometry(1.4, gh); g.translate(0.7, gh / 2, 0); g.rotateY(-a); g.translate(x - ux * 0.75, 0, z - uz * 0.75); gl.push(g); }
   addMerged(gl, D.barsM);
   // árboles: palmeras (la mayoría) y plátanos de sombra
-  const TR = [], FR = [], CAN = [];
+  const TR = [], FR = [], CAN = [], PALM = [];
   for (const [x, z, palm] of MAP.tree) {
     if (x > SHOP_RECT.x0 - 1 && x < SHOP_RECT.x1 + 1 && z > SHOP_RECT.z0 && z < SHOP_RECT.z1 + 2.5) continue;
-    if (palm) palmGeo(x, z, 6 + r() * 4, r, TR, FR);
+    if (palm && HASPROP('palmera')) PALM.push([x, 0, z, r() * PI * 2, 7 + r() * 3.5]);
+    else if (palm) palmGeo(x, z, 6 + r() * 4, r, TR, FR);
     else { TR.push(new THREE.CylinderGeometry(0.16, 0.22, 3.4, 5, 1, true).translate(x, 1.7, z)); const c = new THREE.IcosahedronGeometry(2.2 + r(), 0); c.scale(1, 0.75, 1); c.translate(x, 4.6, z); CAN.push(c); }
     colliders.push({ x0: x - 0.25, x1: x + 0.25, z0: z - 0.25, z1: z + 0.25 });
   }
   addMerged(TR, lam('bark', 0x8a7a68)); addMerged(FR, palmMat()); addMerged(CAN, lam('grass', 0x3a5a2a));
+  // palmeras de Tripo, todas en una sola malla instanciada, con el viento moviendo las hojas (más cuanto más arriba)
+  if (PALM.length) {
+    D.windU = D.windU || { value: 0 };
+    const pm = propMat('palmera').clone(); pm.onBeforeCompile = (sh) => {
+      sh.uniforms.uWind = D.windU;
+      sh.vertexShader = 'uniform float uWind;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+        { float tip = position.y * position.y * smoothstep(0.55, 0.85, position.y + 0.25 * length(position.xz));
+          float ph = 0.0;
+          #ifdef USE_INSTANCING
+          ph = instanceMatrix[3].x * 0.21 + instanceMatrix[3].z * 0.17;
+          #endif
+          float gust = 0.6 + 0.4 * sin(uWind * 0.37 + ph * 0.3);
+          transformed.x += sin(uWind * 1.7 + ph + position.z * 6.0) * 0.022 * tip * gust;
+          transformed.z += cos(uWind * 1.3 + ph * 1.3 + position.x * 6.0) * 0.018 * tip * gust;
+          transformed.y += sin(uWind * 2.3 + ph * 2.0 + position.x * 9.0) * 0.012 * tip; }`);
+    };
+    pm.customProgramCacheKey = () => 'palmTripo';
+    D.palms = propInst('palmera', PALM, null, pm);
+  }
   // farolas: altas con globo en la primera línea; de brazo en las demás
   const poles = [], prL = []; D.lamps = [];
   for (const L of TOWN.lamps) {
@@ -628,15 +682,17 @@ function buildTown() {
   LG.pool = [0, 1, 2, 3].map(() => { const l = new THREE.PointLight(0xffa850, 0, 17, 1.5); scene.add(l); return l; });
   // coches aparcados
   D.beamTex = ctex(64, 128, (g) => { const gr = g.createLinearGradient(0, 128, 0, 0); gr.addColorStop(0, 'rgba(255,240,200,0.9)'); gr.addColorStop(1, 'rgba(255,240,200,0)'); g.fillStyle = gr; g.beginPath(); g.moveTo(26, 128); g.lineTo(38, 128); g.lineTo(64, 0); g.lineTo(0, 0); g.fill(); });
-  const cg = {}, tmp = new THREE.Object3D();
+  const cg = {}, tmp = new THREE.Object3D(), VANS = [];
   for (const c of TOWN.cars) {
     tmp.position.set(c.x, 0, c.z); tmp.rotation.set(0, c.ry, 0); tmp.updateMatrix();
-    for (const p of carParts(c.st)) { const key = p[0] === 'b' ? 'b' + c.c : p[0]; const g = partGeo(p); g.applyMatrix4(tmp.matrix); (cg[key] = cg[key] || []).push(g); }
+    if (c.st === 2 && HASPROP('furgoneta')) VANS.push([c.x, 0, c.z, c.ry, 4.4]);   // furgoneta blanca de reparto de Tripo
+    else for (const p of carParts(c.st)) { const key = p[0] === 'b' ? 'b' + c.c : p[0]; const g = partGeo(p); g.applyMatrix4(tmp.matrix); (cg[key] = cg[key] || []).push(g); }
     const L = c.st === 1 ? 3.7 : 4.3, s = Math.sin(c.ry), co = Math.cos(c.ry);
     for (const [u, v] of [[-0.9, -L / 2], [0.9, -L / 2], [0.9, L / 2], [-0.9, L / 2]]) { }
     addSeg(c.x - s * L / 2, c.z - co * L / 2, c.x + s * L / 2, c.z + co * L / 2, 0, 1.4, { car: 1 });
     addSeg(c.x - s * L / 2 + co * 0.9, c.z - co * L / 2 - s * 0.9, c.x + s * L / 2 + co * 0.9, c.z + co * L / 2 - s * 0.9, 0, 1.4); addSeg(c.x - s * L / 2 - co * 0.9, c.z - co * L / 2 + s * 0.9, c.x + s * L / 2 - co * 0.9, c.z + co * L / 2 + s * 0.9, 0, 1.4);
   }
+  propInst('furgoneta', VANS);
   const pm = carMats(0, false);
   for (const key in cg) addMerged(cg[key], key[0] === 'b' ? lam(null, CAR_COLS[+key.slice(1)], { emissive: 0x0a0a0a }) : pm[key]);
   // bancos, papeleras, contenedores y paradas de bus de verdad
@@ -685,7 +741,8 @@ function buildTown() {
   LG.porch = new THREE.PointLight(0xffc880, 0, 8, 1.4); scene.add(LG.porch); D.porch = box(0.24, 0.14, 0.18, bas(0xffe0a0), 0, -10, 0);
   LG.head = new THREE.SpotLight(0xfff0d0, 0, 46, 0.64, 0.45, 1.0); scene.add(LG.head); scene.add(LG.head.target);
   // teléfono de pedidos y bolsa térmica
-  box(0.08, 0.3, 0.2, lam(null, 0xd8d4c4), 3.95, 1.55, 1.75); box(0.1, 0.22, 0.06, lam(null, 0xb8b4a4), 3.89, 1.58, 1.75);
+  if (!HASPROP('telefono')) { box(0.08, 0.3, 0.2, lam(null, 0xd8d4c4), 3.95, 1.55, 1.75); box(0.1, 0.22, 0.06, lam(null, 0xb8b4a4), 3.89, 1.58, 1.75); }
+  if (HASPROP('telefono')) { const ph = propItem('telefono', 0.26, PI, 3.94, 1.42, 1.75); scene.add(ph); D.phoneProp = ph; }
   D.phoneLed = box(0.02, 0.03, 0.03, bas(0x300404), 3.9, 1.7, 1.66); hit('phone', 3.85, 1.55, 1.75, 0.4, 0.5, 0.5);
   const sg = (t, bg) => textPlate(t, 128, 64, bg, '#ffffff', '#ffffff');
   D.signTex = [sg('ABIERTO', '#1a6a2a'), sg('CERRADO', '#8a1a12')];
@@ -696,4 +753,37 @@ function buildTown() {
   D.bagSt = new THREE.Group(); D.bagSt.position.set(3.62, 1.03, 2.7); scene.add(D.bagSt); D.bagKey = '';
   hit('bag', 3.62, 1.2, 2.7, 0.7, 0.6, 0.6);
   buildStreetLife();
+}
+
+/* ---------- atajos: puertas de chapa en tapias y vallas que cortan callejones sin salida. Solo se abren desde un lado
+   (el del fondo del callejón); una vez abiertas se quedan abiertas, también las noches siguientes ---------- */
+function buildAtajos(AJ_H) {
+  D.atajos = [];
+  const sheet = lam('rust', 0x6a5a4c), frame = lam(null, 0x24262a, { emissive: 0x050505 }), bar = lam('steel', 0x9a9ea2);
+  ATAJOS.forEach((A, i) => {
+    const h = Math.max(1.15, Math.min(2.2, (AJ_H[i] || 1.4) + 0.25)), ry = -Math.atan2(A.uz, A.ux), g = new THREE.Group(); g.position.set(A.x, 0, A.z); g.rotation.y = ry; scene.add(g);
+    // marco: dos postes y dintel
+    for (const sx of [-0.68, 0.68]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.08, h + 0.08, 0.12), frame); p.position.set(sx, (h + 0.08) / 2, 0); g.add(p); }
+    const top = new THREE.Mesh(new THREE.BoxGeometry(1.44, 0.07, 0.12), frame); top.position.set(0, h + 0.05, 0); g.add(top);
+    // hoja: chapa con su marco y pasador; gira sobre el poste de la izquierda
+    const piv = new THREE.Group(); piv.position.set(-0.63, 0, 0); g.add(piv);
+    const leaf = new THREE.Mesh(new THREE.BoxGeometry(1.24, h - 0.08, 0.035), sheet); leaf.position.set(0.63, h / 2, 0); piv.add(leaf);
+    for (const yy of [0.12, h / 2, h - 0.14]) { const t = new THREE.Mesh(new THREE.BoxGeometry(1.26, 0.05, 0.05), frame); t.position.set(0.63, yy, 0); piv.add(t); }
+    const latch = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.035, 0.035), bar); latch.position.set(1.12, 1.0, 0.04 * A.s); piv.add(latch);
+    const knob = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.07, 6), bar); knob.rotation.x = PI / 2; knob.position.set(1.12, 1.0, 0.07 * A.s); piv.add(knob);
+    // cartel pintado a mano del lado que no abre
+    const sg = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.2), new THREE.MeshLambertMaterial({ map: textPlate('PRIVADO', 128, 52, '#d8d0b8', '#7a1810', '#7a1810') }));
+    sg.position.set(0.63, 1.45, -0.025 * A.s); sg.rotation.y = A.s > 0 ? PI : 0; piv.add(sg);
+    const s = addSeg(A.x - A.ux * 0.68, A.z - A.uz * 0.68, A.x + A.ux * 0.68, A.z + A.uz * 0.68, 0, 9);
+    hit('aj' + i, A.x, 1.0, A.z, 1.1, 1.9, 1.1);
+    D.atajos.push({ g, piv, s, a: 0 });
+  });
+}
+function updAtajos(dt) {
+  if (!D.atajos) return;
+  D.atajos.forEach((o, i) => {
+    const op = !!(W.aj && W.aj[i]); o.s.off = op;
+    const want = op ? 1.75 * ATAJOS[i].s : 0; o.a += (want - o.a) * Math.min(1, dt * 3); o.piv.rotation.y = o.a;
+    o.g.visible = Math.abs(o.g.position.x - camera.position.x) + Math.abs(o.g.position.z - camera.position.z) < 120;
+  });
 }

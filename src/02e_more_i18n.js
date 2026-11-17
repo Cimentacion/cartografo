@@ -14,7 +14,7 @@ Object.assign(STR.es, {
   sb_empty: 'El bote está vacío. Rellénalo en el barreño o con la garrafa.', jc_ready: 'Garrafa llena: viértela en el barreño del mostrador.', jc_left: 'Tenías las manos ocupadas: la garrafa se queda junto a la olla.',
   bk_h: 'Libro de cuentas', bk_prev: 'Atrás', bk_next: 'Pasar página', bk_buy: 'Comprar', bk_max: 'Ya lo tienes todo', bk_poor: 'No te llega', bk_lv: 'Nivel {0} de {1}', bk_have: 'Caja: {0}', bk_tap: 'Toca la página para comprar',
   bk_end: 'Siguiente noche', bk_sum: 'Resumen de la noche {0}',
-  sg_h: 'La olla', sg_for: 'Salsa para el barreño de:', sg_rec: 'Receta: {0}', sg_stir: 'Remueve con el dedo dentro de la olla', sg_mix: 'Mezcla {0}%', sg_full: 'La olla está llena',
+  sg_h: 'La olla', sg_for: 'Salsa para el barreño de:', sg_rec: 'Receta: {0}', sg_stir: 'Coge un ingrediente con el dedo y tíralo a la olla. Toca el caldo para remover', sg_mix: 'Mezcla {0}%', sg_full: 'La olla está llena',
   sg_pack: 'Llenar la garrafa', sg_dump: 'Tirar y empezar', sg_out: 'Salir', sg_need: 'Echa al menos 4 cucharadas y remueve bien', sg_none: 'No te queda', sg_splash: '¡Que salpica!', sg_q: 'Calidad {0}',
   sg_weird: 'Lleva cosas que no se dicen', t_buy: 'Comprado: {0}',
 });
@@ -30,7 +30,7 @@ Object.assign(STR.en, {
   sb_empty: 'The bottle is empty. Refill it at the tub or from the can.', jc_ready: 'Can filled: pour it into the tub on the counter.', jc_left: 'Your hands were full: the can stays by the pot.',
   bk_h: 'Ledger', bk_prev: 'Back', bk_next: 'Turn page', bk_buy: 'Buy', bk_max: 'Fully upgraded', bk_poor: 'Not enough cash', bk_lv: 'Level {0} of {1}', bk_have: 'Cash: {0}', bk_tap: 'Tap the page to buy',
   bk_end: 'Next night', bk_sum: 'Night {0} summary',
-  sg_h: 'The pot', sg_for: 'Sauce for the tub:', sg_rec: 'Recipe: {0}', sg_stir: 'Stir with your finger inside the pot', sg_mix: 'Mixed {0}%', sg_full: 'The pot is full',
+  sg_h: 'The pot', sg_for: 'Sauce for the tub:', sg_rec: 'Recipe: {0}', sg_stir: 'Grab an ingredient with your finger and throw it in the pot. Touch the broth to stir', sg_mix: 'Mixed {0}%', sg_full: 'The pot is full',
   sg_pack: 'Fill the can', sg_dump: 'Dump and restart', sg_out: 'Leave', sg_need: 'Add at least 4 spoonfuls and stir well', sg_none: 'None left', sg_splash: 'It\'s splashing!', sg_q: 'Quality {0}',
   sg_weird: 'Contains things we don\'t talk about', t_buy: 'Bought: {0}',
 });
@@ -46,7 +46,7 @@ Object.assign(STR.ro, {
   sb_empty: 'Sticla e goală. Umple-o din lighean sau din canistră.', jc_ready: 'Canistra e plină: toarn-o în ligheanul de pe tejghea.', jc_left: 'Aveai mâinile ocupate: canistra rămâne lângă oală.',
   bk_h: 'Registrul', bk_prev: 'Înapoi', bk_next: 'Întoarce pagina', bk_buy: 'Cumpără', bk_max: 'Ai tot', bk_poor: 'Nu-ți ajung banii', bk_lv: 'Nivelul {0} din {1}', bk_have: 'Casa: {0}', bk_tap: 'Atinge pagina ca să cumperi',
   bk_end: 'Noaptea următoare', bk_sum: 'Rezumatul nopții {0}',
-  sg_h: 'Oala', sg_for: 'Sos pentru ligheanul de:', sg_rec: 'Rețeta: {0}', sg_stir: 'Amestecă cu degetul în oală', sg_mix: 'Amestecat {0}%', sg_full: 'Oala e plină',
+  sg_h: 'Oala', sg_for: 'Sos pentru ligheanul de:', sg_rec: 'Rețeta: {0}', sg_stir: 'Ia un ingredient cu degetul și aruncă-l în oală. Atinge zeama ca să amesteci', sg_mix: 'Amestecat {0}%', sg_full: 'Oala e plină',
   sg_pack: 'Umple canistra', sg_dump: 'Aruncă și ia-o de la capăt', sg_out: 'Ieși', sg_need: 'Pune cel puțin 4 linguri și amestecă bine', sg_none: 'Nu mai ai', sg_splash: 'Stropește!', sg_q: 'Calitate {0}',
   sg_weird: 'Are lucruri despre care nu se vorbește', t_buy: 'Cumpărat: {0}',
 });
@@ -99,3 +99,7 @@ Object.assign(FUNX.ro, {
   q4: ['De ce e sosul alb atât de gros?', 'Sosul ăsta alb are o textură... curioasă.'], q8: ['Are gust de friteuză, la propriu.', 'Foarte uleios sosul, nu?'],
   q16: ['Are un pic gust de clor, da?', 'Are gust de podea abia spălată.'], q32: ['E un muc de țigară? E un muc de țigară!', 'Are gust de scrumieră de terasă.'],
 });
+/* atajos: puertas en tapias y vallas que solo se abren desde un lado */
+Object.assign(STR.es, { u_aj_do: 'Abrir la puerta (atajo)', u_aj_lock: 'Cerrada. Se abre desde el otro lado', u_aj_open: 'Atajo abierto', t_aj: 'Atajo abierto: ya puedes pasar por aquí' });
+Object.assign(STR.en, { u_aj_do: 'Open the door (shortcut)', u_aj_lock: 'Locked. It opens from the other side', u_aj_open: 'Shortcut open', t_aj: 'Shortcut open: you can come through here now' });
+Object.assign(STR.ro, { u_aj_do: 'Deschide ușa (scurtătură)', u_aj_lock: 'Încuiată. Se deschide din partea cealaltă', u_aj_open: 'Scurtătură deschisă', t_aj: 'Scurtătură deschisă: acum poți trece pe aici' });

@@ -8,7 +8,31 @@ from PIL import Image, ImageEnhance
 SRC = sys.argv[1]
 # id: (tamaño de textura, quitar la carne del rollo)
 LIST = {'vespino': 512, 'asador': 512, 'freidora': 256, 'garrafa': 256, 'farola': 256,
-        }   # segundo lote (contenedor, amarillo, mesa, maquina, palmera): fuera hasta que se aprueben y se rebajen
+        'contenedor': 256, 'amarillo': 256, 'mesa': 256, 'maquina': 256, 'palmera': 256,
+        'escopeta': 512, 'durum': 256, 'pita': 256, 'cajapollo': 256, 'patatas': 256, 'lata': 128, 'agua': 128,
+        'furgoneta': 512, 'vagabundo': 256, 'carro': 256, 'telefono': 256, 'banco': 256}
+# triángulos máximos tras rebajar (los de los lotes 2 y 3 vienen con 1500-6000)
+FACES = {'contenedor': 900, 'amarillo': 900, 'mesa': 1200, 'maquina': 700, 'palmera': 1500, 'escopeta': 1800, 'durum': 700, 'pita': 800,
+         'cajapollo': 900, 'patatas': 700, 'lata': 300, 'agua': 300, 'furgoneta': 1800, 'vagabundo': 1200, 'carro': 1600, 'telefono': 700, 'banco': 900}
+
+def decimate(P, U, I, target, N0):
+    # rebaja con colapso de aristas que respeta las UV (pymeshlab); devuelve vértices por esquina soldados
+    import pymeshlab
+    m = pymeshlab.Mesh(vertex_matrix=P.astype(np.float64), face_matrix=I.reshape(-1, 3).astype(np.int32), v_tex_coords_matrix=U.astype(np.float64))
+    ms = pymeshlab.MeshSet(); ms.add_mesh(m)
+    ms.compute_texcoord_transfer_vertex_to_wedge()
+    # rebaja respetando las costuras de la textura: se para cuando ya no puede sin romper las UV (mejor algo más de polígonos que texturas rotas)
+    ms.meshing_decimation_quadric_edge_collapse_with_texture(targetfacenum=int(target), qualitythr=0.5, preserveboundary=True, boundaryweight=1.0, optimalplacement=True, preservenormal=True, extratcoordw=1.0)
+    o = ms.current_mesh(); o.compact(); V = o.vertex_matrix(); F = o.face_matrix(); W = o.wedge_tex_coord_matrix()
+    assert F.max() < len(V), 'índices fuera de rango tras rebajar'
+    pos = V[F.reshape(-1)]; uv = W.reshape(-1, 2)
+    key = np.round(np.hstack([pos * 1e5, uv * 1e5])).astype(np.int64)
+    _, first, inv = np.unique(key, axis=0, return_index=True, return_inverse=True)
+    P2 = pos[first].astype(np.float32); U2 = uv[first].astype(np.float32); I2 = inv.reshape(-1).astype(np.uint32)
+    # normales: las del modelo original en el vértice más cercano (las de las caras rebajadas salen con el giro cambiado a trozos)
+    from scipy.spatial import cKDTree
+    _, nn = cKDTree(P).query(P2); N2 = N0[nn]
+    return P2, N2.astype(np.float32), U2, I2
 
 def acc(j, b, i):
     a = j['accessors'][i]; bv = j['bufferViews'][a['bufferView']]
@@ -46,6 +70,18 @@ for pid, tsz in LIST.items():
         e = P.max(0) - P.min(0); T = I.reshape(-1, 3); cn = P[T].mean(1) / e
         cut = (np.abs(cn[:, 0]) < 0.39) & (cn[:, 1] > 0.4) & (cn[:, 1] < 0.84) & (cn[:, 2] > -0.3) & (cn[:, 2] < 0.29)
         print('freidora: cestas quitadas', int(cut.sum()), 'de', len(T)); I = T[~cut].reshape(-1)
+    if pid == 'escopeta':
+        # viene en diagonal: el eje largo a +x (componente principal en el suelo) y la boca del cañón a +x (el lado más fino)
+        xz = P[:, [0, 2]] - P[:, [0, 2]].mean(0); w, V = np.linalg.eigh(np.cov(xz.T)); ax = V[:, np.argmax(w)]; an = np.arctan2(ax[1], ax[0])
+        c, s_ = np.cos(-an), np.sin(-an); x2 = P[:, 0] * c - P[:, 2] * s_; z2 = P[:, 0] * s_ + P[:, 2] * c; P = np.stack([x2, P[:, 1], z2], 1).astype(np.float32)
+        Nx = N[:, 0] * c - N[:, 2] * s_; Nz = N[:, 0] * s_ + N[:, 2] * c; N = np.stack([Nx, N[:, 1], Nz], 1).astype(np.float32)
+        mid = (P[:, 0].min() + P[:, 0].max()) / 2; hi = P[P[:, 0] > mid + (P[:, 0].max() - mid) * 0.6]; lo = P[P[:, 0] < mid - (mid - P[:, 0].min()) * 0.6]
+        if np.ptp(hi[:, 1]) > np.ptp(lo[:, 1]): P[:, 0] *= -1; P[:, 2] *= -1; N[:, 0] *= -1; N[:, 2] *= -1
+        print('escopeta: girada', round(float(np.degrees(an)), 1), 'grados')
+        mn, mx = P.min(0), P.max(0); P -= [(mn[0] + mx[0]) / 2, mn[1], (mn[2] + mx[2]) / 2]
+    if pid in FACES and len(I) // 3 > FACES[pid]:
+        n0 = len(I) // 3; P, N, U, I = decimate(P, U, I, FACES[pid], N); print(pid, 'rebajado', n0, '->', len(I) // 3)
+        mn, mx = P.min(0), P.max(0); P -= [(mn[0] + mx[0]) / 2, mn[1], (mn[2] + mx[2]) / 2]
     # base en el suelo y centrado en x/z
     ext = P.max(0) - P.min(0)
     # textura: más pequeña, algo más sucia y apagada para la noche

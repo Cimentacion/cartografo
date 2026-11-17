@@ -117,42 +117,26 @@ function groundY(x, z, y) {
   const h = 1.5 + (5.0 - v) / 3.4 * 1.5; return clamp(Math.round((y - h) / FLH), 0, C.L - 2) * FLH + h;               // tramo de vuelta
 }
 function stairY() { return 0; }
-function towerFacade(k) {
-  const tint = ['#f2eee6', '#ece4d4', '#f0e2d6', '#e8e6e0'][k], r = mulberry32(5100 + k * 31);
-  const cv = document.createElement('canvas'), ce = document.createElement('canvas'); cv.width = cv.height = ce.width = ce.height = 256;
-  const g = cv.getContext('2d'), e = ce.getContext('2d');
-  g.fillStyle = tint; g.fillRect(0, 0, 256, 256); e.fillStyle = '#000'; e.fillRect(0, 0, 256, 256);
-  for (let i = 0; i < 900; i++) { g.fillStyle = `rgba(${90 + r() * 40 | 0},${85 + r() * 30 | 0},70,${0.04 + r() * 0.06})`; g.fillRect(r() * 256, r() * 256, 1 + r() * 4, 1 + r() * 4); }
-  // dos plantas de 3 m (128 px) por dos huecos de 3 m: puerta de terraza corredera + ventana
-  for (let fy = 0; fy < 2; fy++) for (let bx = 0; bx < 2; bx++) {
-    const x = bx * 128 + 10, y = fy * 128 + 14, w = 108, h = 104, lit = r() < 0.13, tv = lit && r() < 0.35, blind = r();
-    g.fillStyle = '#5a5a58'; g.fillRect(x - 3, y - 3, w + 6, h + 6);
-    g.fillStyle = lit ? (tv ? '#86a0ff' : '#ffc878') : '#10161e'; g.fillRect(x, y, w, h);
-    if (lit) { e.fillStyle = tv ? '#4a5ea0' : '#b88648'; e.fillRect(x, y, w, h); g.fillStyle = 'rgba(120,60,30,.4)'; g.fillRect(x, y, 22, h); g.fillRect(x + w - 22, y, 22, h); e.fillStyle = '#2a1608'; e.fillRect(x, y, 22, h); e.fillRect(x + w - 22, y, 22, h); }
-    else { g.fillStyle = 'rgba(150,170,190,.12)'; g.fillRect(x + 6, y + 4, 14, h - 8); }
-    // persiana enrollable de lamas (bajada del todo, a medias o subida)
-    const bh = blind < 0.35 ? h : blind < 0.6 ? h * (0.3 + r() * 0.4) : 0;
-    if (bh) { g.fillStyle = ['#d8cfb8', '#c8bca0', '#e2dccc'][r() * 3 | 0]; g.fillRect(x, y, w, bh); g.fillStyle = 'rgba(0,0,0,.18)'; for (let s = 2; s < bh; s += 5) g.fillRect(x, y + s, w, 1); e.fillStyle = '#000'; e.fillRect(x, y, w, bh); }
-    g.fillStyle = '#8a8a86'; g.fillRect(x + w / 2 - 1, y + bh, 2, h - bh);
-    g.fillStyle = '#c8c4bc'; g.fillRect(x - 3, y - 10, w + 6, 6);   // caja de la persiana
-  }
-  const map = new THREE.CanvasTexture(cv), emi = new THREE.CanvasTexture(ce);
-  for (const t of [map, emi]) t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  return new THREE.MeshLambertMaterial({ map, emissive: 0xffffff, emissiveMap: emi });
-}
 function awningTex(c1, c2) { return ctex(64, 64, (g) => { for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? c2 : c1; g.fillRect(i * 8, 0, 8, 64); } g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(0, 54, 64, 10); g.fillStyle = 'rgba(0,0,0,.12)'; for (let i = 0; i < 20; i++) g.fillRect(Math.random() * 64, Math.random() * 54, 6, 3); }); }
 // bajos comerciales: cristal oscuro, persianas y pilares (los rótulos de los negocios se ponen encima)
-function groundFacade() {
+function groundFacade(v) {
+  // bajos: zócalo de piedra, azulejo o mármol, cristal oscuro y persianas metálicas (los rótulos se ponen encima)
   const cv = document.createElement('canvas'), ce = document.createElement('canvas'); cv.width = ce.width = 256; cv.height = ce.height = 128;
-  const g = cv.getContext('2d'), e = ce.getContext('2d'), r = mulberry32(77);
-  g.fillStyle = '#c8c0b0'; g.fillRect(0, 0, 256, 128); e.fillStyle = '#000'; e.fillRect(0, 0, 256, 128);
+  const g = cv.getContext('2d'), e = ce.getContext('2d'), r = mulberry32(77 + v * 13), tk = ['xstn', 'xgres', 'imarb', 'xcon47'][v], tint = ['#c8bca8', '#d8d4cc', '#9a9894', '#c8c4bc'][v];
+  if (TX[tk] && TX[tk].image) { g.drawImage(TX[tk].image, 0, 0, 128, 128); g.drawImage(TX[tk].image, 128, 0, 128, 128); } else { g.fillStyle = tint; g.fillRect(0, 0, 256, 128); }
+  g.globalCompositeOperation = 'multiply'; g.fillStyle = tint; g.fillRect(0, 0, 256, 128); g.globalCompositeOperation = 'source-over';
+  e.fillStyle = '#000'; e.fillRect(0, 0, 256, 128);
   for (let i = 0; i < 4; i++) {
     const x = i * 64 + 6, w = 52, shut = r() < 0.55;
     g.fillStyle = '#0c1014'; g.fillRect(x, 22, w, 106);
-    if (shut) { g.fillStyle = ['#7a7468', '#8a8478', '#6a665e'][i % 3]; g.fillRect(x, 22, w, 106); g.fillStyle = 'rgba(0,0,0,.3)'; for (let s = 24; s < 128; s += 5) g.fillRect(x, s, w, 1); }
-    else { g.fillStyle = 'rgba(140,160,180,.15)'; g.fillRect(x + 4, 26, 8, 96); }
+    if (shut) {
+      const sc = TX.icorr && r() < 0.4 ? null : ['#7a7468', '#8a8478', '#6a665e'][i % 3];
+      if (sc) { g.fillStyle = sc; g.fillRect(x, 22, w, 106); } else g.drawImage(TX.icorr.image, 0, 0, 128, 256, x, 22, w, 106);
+      g.fillStyle = 'rgba(0,0,0,.3)'; for (let s = 24; s < 128; s += 5) g.fillRect(x, s, w, 1);
+      if (r() < 0.5) { g.strokeStyle = ['#d83a8a', '#2a8ad8', '#e8d82a', '#ffffff'][r() * 4 | 0]; g.lineWidth = 3; g.beginPath(); for (let k = 0; k < 5; k++) g.lineTo(x + 6 + r() * (w - 12), 50 + r() * 50); g.stroke(); }   // pintadas
+    } else { g.fillStyle = 'rgba(140,160,180,.15)'; g.fillRect(x + 4, 26, 8, 96); }
   }
-  g.fillStyle = '#e8e2d4'; g.fillRect(0, 0, 256, 20);
+  g.fillStyle = 'rgba(30,26,22,.35)'; g.fillRect(0, 0, 256, 20);
   const map = new THREE.CanvasTexture(cv), emi = new THREE.CanvasTexture(ce); for (const t of [map, emi]) t.wrapS = t.wrapT = THREE.RepeatWrapping;
   return new THREE.MeshLambertMaterial({ map, emissive: 0xffffff, emissiveMap: emi });
 }
@@ -170,8 +154,8 @@ function nameAtlasAll(names) {
   at.wrapS = at.wrapT = THREE.ClampToEdgeWrapping; return at;
 }
 function buildBuildings() {
-  const r = mulberry32(9090), FM = [0, 1, 2, 3].map(towerFacade), GF = groundFacade();
-  const body = [[], [], [], []], gnd = [], roof = [], bands = [], caps = [], canopy = [], posts = [], machine = [], signs = [], doors = [], doorFr = [];
+  const r = mulberry32(9090), FM = FACADES.map((f, i) => towerFacade(i)), GF = [0, 1, 2, 3].map(groundFacade);
+  const body = FM.map(() => []), gnd = [[], [], [], []], roof = [], bands = [], caps = [], canopy = [], posts = [], machine = [], signs = [], doors = [], doorFr = [];
   const AW = [['#2a7a3a', '#e8e4d0'], ['#d86a1a', '#f0e6d0'], ['#1a4a9a', '#e8e8e0'], ['#a82020', '#f0e8d8'], ['#2a8a8a', '#2a8a8a']], aw = AW.map(() => []);
   const names = [];
   const portal = {};   // tramo de la fachada donde va el portal de cada torre de reparto: no lleva pared abajo
@@ -183,7 +167,7 @@ function buildBuildings() {
       for (let i = 0; i < n; i += Math.max(1, n / 4 | 0)) { posts.push(cgeo(0.08, 0.08, 3, 5, P[i][0], 1.5, P[i][1])); colliders.push({ x0: P[i][0] - 0.1, x1: P[i][0] + 0.1, z0: P[i][1] - 0.1, z1: P[i][1] + 0.1 }); }
       continue;
     }
-    const tall = b.l >= 5, gh = Math.min(3.4, b.h), fi = b.f;
+    const tall = b.l >= 5, gh = Math.min(3.4, b.h), fi = (b.f + b.i * 3) % FM.length, gi = (b.i * 5 + b.f) % 4;
     let u = 0;
     for (let i = 0; i < n; i++) {
       const a = P[i], c = P[(i + 1) % n], L = Math.hypot(c[0] - a[0], c[1] - a[1]); if (L < 0.02) continue;
@@ -191,9 +175,9 @@ function buildBuildings() {
       // planta baja (con hueco para el local o para el portal) y el resto de la fachada
       const MTs = (TOWN.marts || []).filter(m => m.b === b && m.i === i).sort((p, q) => p.s - q.s);
       let spans = cut ? [[0, cut[0]], [cut[1], 1]] : C ? [[0, (C.s0 - 1.7) / L], [(C.s0 + 0.3) / L, 1]] : [[0, 1]];
-      if (!cut && !C && MTs.length) { spans = []; let s0 = 0; for (const MT of MTs) { spans.push([s0, (MT.s - 0.75) / L]); s0 = (MT.s + 0.75) / L; const x0 = lerp(a[0], c[0], (MT.s - 0.75) / L), z0 = lerp(a[1], c[1], (MT.s - 0.75) / L), x1 = lerp(a[0], c[0], (MT.s + 0.75) / L), z1 = lerp(a[1], c[1], (MT.s + 0.75) / L); vquad(x0, z0, x1, z1, 2.4, gh, u, 4, gnd); addSeg(x0, z0, x1, z1, 2.4, b.h); } spans.push([s0, 1]); }
-      for (const [s, e] of spans) { if (e - s < 1e-3) continue; const x0 = lerp(a[0], c[0], s), z0 = lerp(a[1], c[1], s), x1 = lerp(a[0], c[0], e), z1 = lerp(a[1], c[1], e); vquad(x0, z0, x1, z1, 0, gh, u + s * L, 4, gnd); addSeg(x0, z0, x1, z1, 0, b.h); }
-      if (C) { const x0 = lerp(a[0], c[0], (C.s0 - 1.7) / L), z0 = lerp(a[1], c[1], (C.s0 - 1.7) / L), x1 = lerp(a[0], c[0], (C.s0 + 0.3) / L), z1 = lerp(a[1], c[1], (C.s0 + 0.3) / L); vquad(x0, z0, x1, z1, 2.6, gh, u, 4, gnd); addSeg(x0, z0, x1, z1, 2.6, b.h); C.door = addSeg(x0, z0, x1, z1, 0, 2.6); }
+      if (!cut && !C && MTs.length) { spans = []; let s0 = 0; for (const MT of MTs) { spans.push([s0, (MT.s - 0.75) / L]); s0 = (MT.s + 0.75) / L; const x0 = lerp(a[0], c[0], (MT.s - 0.75) / L), z0 = lerp(a[1], c[1], (MT.s - 0.75) / L), x1 = lerp(a[0], c[0], (MT.s + 0.75) / L), z1 = lerp(a[1], c[1], (MT.s + 0.75) / L); vquad(x0, z0, x1, z1, 2.4, gh, u, 4, gnd[gi]); addSeg(x0, z0, x1, z1, 2.4, b.h); } spans.push([s0, 1]); }
+      for (const [s, e] of spans) { if (e - s < 1e-3) continue; const x0 = lerp(a[0], c[0], s), z0 = lerp(a[1], c[1], s), x1 = lerp(a[0], c[0], e), z1 = lerp(a[1], c[1], e); vquad(x0, z0, x1, z1, 0, gh, u + s * L, 4, gnd[gi]); addSeg(x0, z0, x1, z1, 0, b.h); }
+      if (C) { const x0 = lerp(a[0], c[0], (C.s0 - 1.7) / L), z0 = lerp(a[1], c[1], (C.s0 - 1.7) / L), x1 = lerp(a[0], c[0], (C.s0 + 0.3) / L), z1 = lerp(a[1], c[1], (C.s0 + 0.3) / L); vquad(x0, z0, x1, z1, 2.6, gh, u, 4, gnd[gi]); addSeg(x0, z0, x1, z1, 2.6, b.h); C.door = addSeg(x0, z0, x1, z1, 0, 2.6); }
       if (b.h > gh) vquad(a[0], a[1], c[0], c[1], gh, b.h, u, 6, body[fi]);
       u += L;
     }
@@ -232,7 +216,7 @@ function buildBuildings() {
     const [nx, nz] = best.n; doors.push(pplate(1.3, 2.3, best.qx + nx * 0.03, 1.15, best.qz + nz * 0.03, nx, nz));
     doorFr.push(pplate(1.6, 0.18, best.qx + nx * 0.04, 2.38, best.qz + nz * 0.04, nx, nz));
   }
-  FM.forEach((m, i) => addMerged(body[i], m)); addMerged(gnd, GF); addMerged(roof, lam('conc2', 0x6a6a68));
+  FM.forEach((m, i) => addMerged(body[i], m)); gnd.forEach((l, i) => addMerged(l, GF[i])); addMerged(roof, lam('conc2', 0x6a6a68));
   addMerged(bands, lam('plas', 0xf4f0e8, { emissive: 0x16161a })); addMerged(caps, lam('plas', 0xe8e4dc, { emissive: 0x101012, side: THREE.DoubleSide }));
   AW.forEach(([c1, c2], i) => addMerged(aw[i], new THREE.MeshLambertMaterial({ map: awningTex(c1, c2), emissive: 0x0c0a08, side: THREE.DoubleSide })));
   addMerged(canopy, lam('conc2', 0xb8b4ac)); addMerged(posts, M.dark); addMerged(machine, lam('plas', 0xd8d4cc));

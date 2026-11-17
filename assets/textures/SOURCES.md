@@ -63,6 +63,46 @@ Las texturas de la calle y de los portales vienen de [ambientCG](https://ambient
 | `wood2.png` (WoodFloor064) | puertas de los pisos y bancos |
 
 
+## Fachadas e interiores (ambientCG, CC0 1.0)
+
+Segundo lote de [ambientCG](https://ambientcg.com) (CC0 1.0, dominio público), bajado por el workflow `fetch-tex.yml` (rama `kebab-data`, carpeta `data/tex2/`): enlucidos, gresite, ladrillo y hormigón de las fachadas (`x…`) y suelos, paredes y muebles de las habitaciones que se ven por las ventanas y escaparates (`i…`). Solo el mapa de color, a 256 px.
+
+| Archivo (material de ambientCG) |
+|---|
+| `xpl2.png` (Plaster002) |
+| `xpl7.png` (Plaster007) |
+| `xpp6.png` (PaintedPlaster006) |
+| `xpp17.png` (PaintedPlaster017) |
+| `xcon46.png` (Concrete046) |
+| `xcon47.png` (Concrete047A) |
+| `xbrk.png` (Bricks105) |
+| `xstn.png` (Bricks109A) |
+| `xgres.png` (Tiles043) |
+| `xmosa.png` (Tiles133A) |
+| `xtw.png` (Tiles036) |
+| `ihyd.png` (Tiles131) |
+| `ichk.png` (Tiles074) |
+| `iktl.png` (Tiles105) |
+| `it139.png` (Tiles139) |
+| `it142.png` (Tiles142) |
+| `iwf40.png` (WoodFloor040) |
+| `iwf43.png` (WoodFloor043) |
+| `iwf51.png` (WoodFloor051) |
+| `icarp.png` (Carpet012) |
+| `iwp1.png` (Wallpaper001A) |
+| `iwp2.png` (Wallpaper002B) |
+| `ipeel.png` (PaintedPlaster010) |
+| `ipeel2.png` (PaintedPlaster013) |
+| `imarb.png` (Marble016) |
+| `itrav.png` (Travertine009) |
+| `iterr.png` (Terrazzo018) |
+| `ionyx.png` (Onyx015) |
+| `icard.png` (Cardboard004) |
+| `iplank.png` (Planks037A) |
+| `ipwood.png` (PaintedWood007B) |
+| `icorr.png` (CorrugatedSteel007B) |
+
+
 ## Modelos 3D (Tripo)
 
-Generados con la API de Tripo (tripo3d.ai) a partir de descripciones de texto; los GLB originales están en la rama `kebab-tripo` (`data/models`) y `tools/props2js.py` los convierte en `src/02f_props.js`: Vespino, asador (sin su rollo de carne), freidora, garrafa de gasolina y farola del paseo.
+Generados con la API de Tripo (tripo3d.ai) a partir de descripciones de texto; los GLB originales están en la rama `kebab-tripo` (`data/models`) y `tools/props2js.py` los convierte en `src/02f_props.js`: Vespino, asador (sin su rollo de carne), freidora (sin sus cestas), garrafa de gasolina, farola del paseo, contenedores verde y amarillo, máquina de bebidas, palmera, escopeta, dürüm, pita, caja de pollo, cono de patatas, lata, botella de agua, furgoneta, vagabundo durmiendo, carro de la compra, teléfono de pared y banco. Los de más de 1500 triángulos se rebajan con pymeshlab respetando las costuras de la textura.

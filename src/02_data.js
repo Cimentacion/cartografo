@@ -299,7 +299,7 @@ const ANOM = {
   pasa: ['Pasa. Pasa dentro.', 'Aquí no vive nadie desde hace años.', 'Deja la bolsa. Y pasa.'],
   w: ['Hueles a caliente.', 'No me mires los ojos.', 'Llevas mucho rato despierto.', 'El de antes tampoco me sirvió.'], no: ['No. Cruda.'], atk: ['HAMBRE.'],
 };
-const MSG = {
+const MSG = { aj: 'Atajo abierto',
   karma: 'Julián se va cenado. El barrio se entera. (+reputación)', sinpa: 'Se ha ido sin pagar.', robbed: 'Te han vaciado la caja.',
   robgone: 'El atracador sale corriendo.', deliv: 'Reparto recibido: verdura y cartuchos.', nodeliv: 'El repartidor se ha cansado de llamar.',
   blackout: 'Se ha ido la luz. El cuadro está en el almacén.', power: 'Vuelve la luz.', binfull: 'Verdura cortada y a la cubeta.',
