@@ -313,5 +313,89 @@
    "frozen": 0.0
   },
   "t": 1794880894.007235
+ },
+ {
+  "balance_before": {
+   "balance": 1250.0,
+   "frozen": 0.0
+  },
+  "t": 1794885242.7797866
+ },
+ {
+  "id": "barra",
+  "task": "8702d5da-01b7-4884-b7ca-ba355d3add2b",
+  "status": "success",
+  "consumed": null,
+  "bytes": 3200748
+ },
+ {
+  "id": "nevera",
+  "task": "01fc2798-143e-40e8-bdf5-0a8dd43d7006",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2739840
+ },
+ {
+  "id": "fluorescente",
+  "task": "88dc4d60-0820-4a31-acd8-b3f5cdd7aea9",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2390336
+ },
+ {
+  "id": "coche1",
+  "task": "4c43d66e-fa67-4474-831c-bea57cc69afc",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2557544
+ },
+ {
+  "id": "coche2",
+  "task": "cce2bcc3-5f3b-46ac-9936-c776a369720b",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2604156
+ },
+ {
+  "id": "taxi",
+  "task": "d89febe0-9a42-4389-9fef-db56e7dc9eaf",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2776188
+ },
+ {
+  "id": "tragaperras",
+  "task": "72ea4366-6e5e-46aa-b5a1-db55360ed83a",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2657984
+ },
+ {
+  "id": "extintor",
+  "task": "0edba3c1-ab55-4337-9d7a-b5ccd3be69a3",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2044896
+ },
+ {
+  "id": "aire",
+  "task": "7523be49-b93d-4668-825c-9c4c63d908c9",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2137236
+ },
+ {
+  "id": "campana",
+  "task": "3a68e316-a249-46c7-98a1-ab3758cd3653",
+  "status": "success",
+  "consumed": null,
+  "bytes": 2079528
+ },
+ {
+  "balance_after": {
+   "balance": 910.0,
+   "frozen": 0.0
+  },
+  "t": 1794886669.3774157
  }
 ]
