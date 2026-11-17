@@ -219,5 +219,12 @@
   "faces": 5000,
   "slp": false,
   "geo": "detailed"
+ },
+ {
+  "id": "tele",
+  "prompt": "old 1990s CRT television, boxy grey plastic case with a curved glass screen, mounted high on a black metal wall bracket arm, dusty, a cable hanging, the screen is dark and flat, seen from the front. Detailed accurate geometry, worn and dirty, realistic proportions, game asset.",
+  "faces": 3000,
+  "slp": false,
+  "geo": "standard"
  }
 ]
