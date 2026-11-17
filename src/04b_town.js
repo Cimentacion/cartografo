@@ -275,6 +275,7 @@ function makeVespa() {
   P(B(0.18, 0.08, 0.01), lam(null, 0xe8e4d8), 0, 0.55, 0.64);
   P(B(0.03, 0.22, 0.03), dk, -0.12, 0.12, 0.05, 0, 0, 0.5);
   // portabultos y baúl de reparto con letrero
+  const keep0 = g.children.length;
   P(B(0.4, 0.03, 0.36), chrome, 0, 0.9, 0.5);
   const tb = textPlate('KEBAB PONIENTE', 128, 40, '#a0201a', '#ffd8a0');
   P(B(0.46, 0.4, 0.44), [lam(null, 0xa0201a, { emissive: 0x300806 }), lam(null, 0xa0201a, { emissive: 0x300806 }), lam(null, 0x7a1812), lam(null, 0xa0201a), new THREE.MeshLambertMaterial({ map: tb, emissive: 0x401010 }), new THREE.MeshLambertMaterial({ map: tb, emissive: 0x401010 })], 0, 1.12, 0.5);
@@ -283,6 +284,13 @@ function makeVespa() {
   const cone = new THREE.Mesh(new THREE.ConeGeometry(1.6, 7, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0xfff0c0, transparent: true, opacity: 0.06, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
   cone.rotation.x = -PI / 2; cone.position.set(0, 0.7, -4.2); cone.visible = false; g.add(cone); g.cone = cone;
   const hb = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.4, 1.7), M.inv); hb.position.y = 0.7; hb.visible = false; hb.userData.key = 'vespa'; g.add(hb); rayTargets.push(hb);
+  // el Vespino modelado con Tripo sustituye a la carrocería hecha con cajas (se quedan el baúl, el piloto, el haz y la caja de choque)
+  if (typeof PROPDATA !== 'undefined' && PROPDATA.vespino) {
+    for (let i = keep0 - 1; i >= 0; i--) { const c = g.children[i]; if (c !== D.tail) g.remove(c); }
+    const m = propMesh('vespino', 1.12, g); m.rotation.y = PI / 2; m.position.set(0, 0, -0.02);
+    D.tail.position.set(0, 0.62, 0.86);
+    for (const c of g.children) if (c.geometry && c.geometry.type === 'BoxGeometry' && c.position.z > 0.45 && c.position.y > 0.85) { c.position.z += 0.24; c.position.y -= 0.1; }
+  }
   scene.add(g); return g;
 }
 function makeHandle() {
@@ -335,7 +343,13 @@ function makeHandle() {
   // guardabarros y rueda delantera asomando por delante del escudo
   P(new THREE.CylinderGeometry(0.2, 0.2, 0.1, 14, 1, true, 0, PI), body, 0, -0.92, -0.42, 0, 0, PI / 2);
   P(new THREE.TorusGeometry(0.17, 0.05, 6, 14), rub, 0, -1.0, -0.42, 0, PI / 2, 0);
-  g.position.set(0, -0.5, -0.72); g.visible = false; drawSpeedo(0); return g;
+  g.position.set(0, -0.5, -0.72); g.visible = false; drawSpeedo(0);
+  // vista desde encima del Vespino de Tripo: se ve el manillar, el escudo, la alfombrilla y la rueda; quedan los brazos y las piernas
+  if (typeof PROPDATA !== 'undefined' && PROPDATA.vespino) {
+    for (const c of g.children.slice()) if (c.material !== sleeve && c.material !== glove && c.material !== skin && c.material !== jeans && c.material !== shoe && c.material !== sole) g.remove(c);
+    const m = propMesh('vespino', 1.12, g); m.rotation.y = PI / 2; m.position.set(0, -0.98, 0.5); m.material = m.material.clone(); m.material.emissive.setHex(0x0e0c0a);
+  }
+  return g;
 }
 function drawSpeedo(kmh) {
   const g = D.speedoG; if (!g) return;
@@ -582,8 +596,9 @@ function buildTown() {
   }
   addMerged(TR, lam('bark', 0x8a7a68)); addMerged(FR, palmMat()); addMerged(CAN, lam('grass', 0x3a5a2a));
   // farolas: altas con globo en la primera línea; de brazo en las demás
-  const poles = []; D.lamps = [];
+  const poles = [], prL = []; D.lamps = [];
   for (const L of TOWN.lamps) {
+    if (L.pr && PROPDATA.farola) { prL.push(L); L.hx = L.x; L.hz = L.z; L.hy = 5.25; const h = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 5), bas(0xfff0d0)); h.position.set(L.x, 5.27, L.z); scene.add(h); D.lamps.push({ L, h }); colliders.push({ x0: L.x - 0.16, x1: L.x + 0.16, z0: L.z - 0.16, z1: L.z + 0.16 }); continue; }
     if (L.pr) { poles.push(cgeo(0.08, 0.13, 10.5, 6, L.x, 5.25, L.z)); L.hx = L.x; L.hz = L.z; L.hy = 10.65; const h = new THREE.Mesh(new THREE.SphereGeometry(0.34, 8, 5), bas(0xfff0d0)); h.position.set(L.x, 10.65, L.z); scene.add(h); D.lamps.push({ L, h }); colliders.push({ x0: L.x - 0.16, x1: L.x + 0.16, z0: L.z - 0.16, z1: L.z + 0.16 }); continue; }
     poles.push(cgeo(0.06, 0.09, 4.6, 6, L.x, 2.3, L.z));
     poles.push(wallSegGeo(L.x, L.z, L.x + L.ax * 1.1, L.z + L.az * 1.1, 0.08, 0.08, 1).translate(0, 4.51, 0));
@@ -592,9 +607,10 @@ function buildTown() {
     colliders.push({ x0: L.x - 0.16, x1: L.x + 0.16, z0: L.z - 0.16, z1: L.z + 0.16 });
   }
   addMerged(poles, M.dark);
+  if (prL.length) { const im = new THREE.InstancedMesh(propGeo('farola'), propMat('farola'), prL.length), s = 5.6 / propH('farola'), mx = new THREE.Matrix4(); prL.forEach((L, i) => { mx.makeScale(s, s, s).setPosition(L.x, 0, L.z); im.setMatrixAt(i, mx); }); im.frustumCulled = false; scene.add(im); }
   // guirnaldas de bombillas entre las farolas de la primera línea
   const bulbs = [], prl = TOWN.lamps.filter(L => L.pr).sort((a, b) => a.x - b.x);
-  for (let i = 0; i + 1 < prl.length; i++) { const a = prl[i], b = prl[i + 1]; if (Math.hypot(a.x - b.x, a.z - b.z) > 30) continue; for (let t = 0.05; t < 1; t += 0.07) { const g = new THREE.SphereGeometry(0.08, 4, 2); g.translate(lerp(a.x, b.x, t), 9.9 - Math.sin(t * PI) * 1.6, lerp(a.z, b.z, t)); bulbs.push(g); } }
+  for (let i = 0; i + 1 < prl.length; i++) { const a = prl[i], b = prl[i + 1]; if (Math.hypot(a.x - b.x, a.z - b.z) > 30) continue; for (let t = 0.05; t < 1; t += 0.07) { const g = new THREE.SphereGeometry(0.08, 4, 2); g.translate(lerp(a.x, b.x, t), (a.hy || 10.65) - 0.75 - Math.sin(t * PI) * 1.2, lerp(a.z, b.z, t)); bulbs.push(g); } }
   addMerged(bulbs, bas(0xffe8b0));
   LG.pool = [0, 1, 2, 3].map(() => { const l = new THREE.PointLight(0xffa850, 0, 17, 1.5); scene.add(l); return l; });
   // coches aparcados

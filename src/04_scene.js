@@ -102,6 +102,11 @@ function buildSpit(i) {
   // resistencia
   const heat = plane(0.6, 0.92, new THREE.MeshBasicMaterial({ map: D.heatTex, color: 0xffffff }), x, 1.44, -3.93, 0, 0, null, false, root);
   box(0.68, 1.0, 0.05, M.steelD, x, 1.44, -3.965, o);
+  // asador de Tripo: carcasa, bandeja y resistencia (sin su rollo, que es el del juego)
+  if (typeof PROPDATA !== 'undefined' && PROPDATA.asador) {
+    for (const c of root.children.slice()) if (c !== grp && c !== pile && c.geometry && c.geometry.type === 'BoxGeometry') root.remove(c);
+    heat.visible = false; const m = propMesh('asador', 1.25, root); m.rotation.y = -PI / 2; m.position.set(x, 0.93, SPZ - 0.08);
+  }
   D.spit[i] = { root, grp, mesh, g, pile, heat };
   hit('sp' + i, x, 1.45, SPZ, 0.5, 0.86, 0.4);
   hit('tr' + i, x, 0.99, SPZ + 0.25, 0.58, 0.16, 0.22);
@@ -279,9 +284,10 @@ function buildWorld() {
   box(3.04, 0.03, 0.74, M.steel, -2.4, 0.915, -3.65);
   D.heatTex = ctex(32, 48, (g) => { g.fillStyle = '#2a0c04'; g.fillRect(0, 0, 32, 48); for (let y = 2; y < 48; y += 6) { const gr = g.createLinearGradient(0, y, 0, y + 4); gr.addColorStop(0, '#ff5a10'); gr.addColorStop(0.5, '#ffd27a'); gr.addColorStop(1, '#ff4a08'); g.fillStyle = gr; g.fillRect(2, y, 28, 4); } });
   for (let i = 0; i < 4; i++) buildSpit(i);
-  box(1.1, 0.9, 0.7, M.steel, -0.25, 0.45, -3.65, { col: true, occ: true });
+  const frBox = box(1.1, 0.9, 0.7, M.steel, -0.25, 0.45, -3.65, { col: true, occ: true });
+  if (typeof PROPDATA !== 'undefined' && PROPDATA.freidora) { frBox.visible = false; const m = propMesh('freidora', 1, scene); const e = PROPDATA.freidora.e; m.scale.set(1.1 / e[0], 1.5 / e[1], 0.7 / e[2]); m.position.set(-0.25, 0, -3.65); D.frProp = m; }
   D.oil = box(0.5, 0.02, 0.5, new THREE.MeshLambertMaterial({ map: TX.oil, color: 0xc89a2a, emissive: 0x2a1a04 }), -0.52, 0.895, -3.65);
-  for (const [x, z, w, d] of [[-0.52, -3.39, 0.54, 0.03], [-0.52, -3.91, 0.54, 0.03], [-0.79, -3.65, 0.03, 0.54], [-0.25, -3.65, 0.03, 0.54]]) box(w, 0.06, d, M.steelD, x, 0.92, z);
+  if (!D.frProp) for (const [x, z, w, d] of [[-0.52, -3.39, 0.54, 0.03], [-0.52, -3.91, 0.54, 0.03], [-0.79, -3.65, 0.03, 0.54], [-0.25, -3.65, 0.03, 0.54]]) box(w, 0.06, d, M.steelD, x, 0.92, z);
   D.basket = new THREE.Group(); D.basket.position.set(-0.52, 1.15, -3.65); scene.add(D.basket);
   for (const [x, z, w, d] of [[0, 0.17, 0.36, 0.012], [0, -0.17, 0.36, 0.012], [0.17, 0, 0.012, 0.36], [-0.17, 0, 0.012, 0.36]]) box(w, 0.14, d, M.dark, x, 0, z, { parent: D.basket });
   box(0.36, 0.01, 0.36, M.dark, 0, -0.07, 0, { parent: D.basket }); box(0.03, 0.03, 0.3, M.dark, 0, 0.08, 0.3, { parent: D.basket });

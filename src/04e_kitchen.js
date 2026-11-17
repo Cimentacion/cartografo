@@ -10,6 +10,7 @@ function labelTex(txt, bg, fg, w, h) {
 }
 // garrafa de gasolina roja, con la pegatina del color de la salsa
 function jcMesh(h) {
+  if (typeof PROPDATA !== 'undefined' && PROPDATA.garrafa) { const g = new THREE.Group(); propMesh('garrafa', 0.32, g); const st = new THREE.Mesh(new THREE.PlaneGeometry(0.1, 0.07), lam(null, h && h.c != null ? h.c : 0xeeeeee)); st.position.set(0.072, 0.14, 0); st.rotation.y = PI / 2; g.add(st); return g; }
   const g = new THREE.Group(), red = lam(null, 0xa8160e), dk = lam(null, 0x2a0806);
   const b = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.27, 0.1), red); b.position.y = 0.135; g.add(b);
   for (const x of [-0.05, 0.05]) { const r = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.03, 0.08), dk); r.position.set(x, 0.29, 0); g.add(r); }

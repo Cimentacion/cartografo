@@ -61,3 +61,8 @@ Las texturas de la calle y de los portales vienen de [ambientCG](https://ambient
 | `roof.png` (RoofingTiles012A) | azoteas |
 | `metal.png` (Metal063) | chapa y ascensor |
 | `wood2.png` (WoodFloor064) | puertas de los pisos y bancos |
+
+
+## Modelos 3D (Tripo)
+
+Generados con la API de Tripo (tripo3d.ai) a partir de descripciones de texto; los GLB originales están en la rama `kebab-tripo` (`data/models`) y `tools/props2js.py` los convierte en `src/02f_props.js`: Vespino, asador (sin su rollo de carne), freidora, garrafa de gasolina y farola del paseo.
