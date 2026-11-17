@@ -1,0 +1,23 @@
+name: tripo-modelos
+on:
+  push:
+    branches: [kebab-tripo]
+    paths: ['tools/tripo/**', '.github/workflows/tripo.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: { group: tripo, cancel-in-progress: false }
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: python tools/tripo/gen.py
+        env: { TRIPO_API_KEY: '${{ secrets.TRIPO_API_KEY }}' }
+      - name: Guardar los modelos en la rama
+        run: |
+          git config user.name "github-actions" && git config user.email "actions@github.com"
+          git add data/models && (git diff --cached --quiet || (git commit -m "Modelos de Tripo" && git push))
