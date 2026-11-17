@@ -1,0 +1,1109 @@
+{
+ "music": [],
+ "sfx": [
+  {
+   "file": "s000.mp3",
+   "src": "Ambience_Hell_00",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s001.mp3",
+   "src": "Ambience_Hell_01",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s002.mp3",
+   "src": "Ambience_Hell_02",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s003.mp3",
+   "src": "Ambience_MonstersBelly_00",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s004.mp3",
+   "src": "Ambience_MurderofCrows_00",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s005.mp3",
+   "src": "Blood_Dripping_Loop_00",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s006.mp3",
+   "src": "Blood_Dripping_Loop_01",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s007.mp3",
+   "src": "Blood_Dripping_Loop_02",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s008.mp3",
+   "src": "Blood_Drip_00",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s009.mp3",
+   "src": "Blood_Drip_01",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s010.mp3",
+   "src": "Blood_Drip_02",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s011.mp3",
+   "src": "Blood_Drip_03",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s012.mp3",
+   "src": "Blood_Drip_04",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s013.mp3",
+   "src": "Blood_Drip_05",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s014.mp3",
+   "src": "Blood_Drip_06",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s015.mp3",
+   "src": "Blood_Drip_07",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s016.mp3",
+   "src": "Blood_Drip_08",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s017.mp3",
+   "src": "Blood_Drip_09",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s018.mp3",
+   "src": "Bonecrack_00",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s019.mp3",
+   "src": "Bonecrack_01",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s020.mp3",
+   "src": "Bonecrack_02",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s021.mp3",
+   "src": "Bonecrack_03",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s022.mp3",
+   "src": "Breath_Scared_00",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s023.mp3",
+   "src": "Breath_Scared_01",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s024.mp3",
+   "src": "Breath_Scared_02",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s025.mp3",
+   "src": "Breath_Scared_03",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s026.mp3",
+   "src": "Breath_Scared_04",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s027.mp3",
+   "src": "Breath_Scared_05",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s028.mp3",
+   "src": "Breath_Scared_06",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s029.mp3",
+   "src": "Breath_Scared_07",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s030.mp3",
+   "src": "Breath_Scared_08",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s031.mp3",
+   "src": "Breath_Scared_09",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s032.mp3",
+   "src": "Breath_Scared_10",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s033.mp3",
+   "src": "Breath_Scared_11",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s034.mp3",
+   "src": "Breath_Scared_12",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s035.mp3",
+   "src": "Breath_Scared_13",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s036.mp3",
+   "src": "Breath_Scared_14",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s037.mp3",
+   "src": "Breath_Scared_15",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s038.mp3",
+   "src": "Breath_Scared_16",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s039.mp3",
+   "src": "Breath_Scared_17",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s040.mp3",
+   "src": "Breath_Scared_18",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s041.mp3",
+   "src": "Evil_Machine_Loop_00",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s042.mp3",
+   "src": "Gate_Open_00",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s043.mp3",
+   "src": "Jingle_Achievement_00",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s044.mp3",
+   "src": "Jingle_Lose_00",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s045.mp3",
+   "src": "Jingle_Win_00",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s046.mp3",
+   "src": "Laugh_Evil_00",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s047.mp3",
+   "src": "Laugh_Evil_01",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s048.mp3",
+   "src": "Laugh_Evil_02",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s049.mp3",
+   "src": "Monster_00",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s050.mp3",
+   "src": "Monster_01",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s051.mp3",
+   "src": "Monster_02",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s052.mp3",
+   "src": "Monster_03",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s053.mp3",
+   "src": "Monster_04",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s054.mp3",
+   "src": "Monster_05",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s055.mp3",
+   "src": "Monster_06",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s056.mp3",
+   "src": "Scream_Male_00",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s057.mp3",
+   "src": "Scream_Male_01",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s058.mp3",
+   "src": "Scream_Male_02",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s059.mp3",
+   "src": "Scream_Male_03",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s060.mp3",
+   "src": "Scream_Male_04",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s061.mp3",
+   "src": "Stab_Knife_00",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s062.mp3",
+   "src": "Stab_Knife_01",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s063.mp3",
+   "src": "Stab_Knife_02",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s064.mp3",
+   "src": "Zombie_00",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s065.mp3",
+   "src": "Zombie_01",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s066.mp3",
+   "src": "Zombie_02",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s067.mp3",
+   "src": "Zombie_03",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s068.mp3",
+   "src": "Zombie_04",
+   "page": "horror-sound-effects-library",
+   "license": "CC-BY 3.0",
+   "author": "Little Robot Sound Factory",
+   "url": "https://opengameart.org/content/horror-sound-effects-library"
+  },
+  {
+   "file": "s069.mp3",
+   "src": "horror_effect1",
+   "page": "horror-sfx",
+   "license": "CC0",
+   "author": "TinyWorlds",
+   "url": "https://opengameart.org/content/horror-sfx"
+  },
+  {
+   "file": "s070.mp3",
+   "src": "horror_effect2",
+   "page": "horror-sfx",
+   "license": "CC0",
+   "author": "TinyWorlds",
+   "url": "https://opengameart.org/content/horror-sfx"
+  },
+  {
+   "file": "s071.mp3",
+   "src": "Bassy 1",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s072.mp3",
+   "src": "Bassy 10",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s073.mp3",
+   "src": "Bassy 11",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s074.mp3",
+   "src": "Bassy 2",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s075.mp3",
+   "src": "Bassy 3",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s076.mp3",
+   "src": "Bassy 4",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s077.mp3",
+   "src": "Bassy 5",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s078.mp3",
+   "src": "Bassy 6",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s079.mp3",
+   "src": "Bassy 7",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s080.mp3",
+   "src": "Bassy 8",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s081.mp3",
+   "src": "Bassy 9",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s082.mp3",
+   "src": "High 1",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s083.mp3",
+   "src": "High 10",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s084.mp3",
+   "src": "High 11",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s085.mp3",
+   "src": "High 12",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s086.mp3",
+   "src": "High 13",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s087.mp3",
+   "src": "High 14",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s088.mp3",
+   "src": "High 15",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s089.mp3",
+   "src": "High 16",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s090.mp3",
+   "src": "High 17",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s091.mp3",
+   "src": "High 18",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s092.mp3",
+   "src": "High 19",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s093.mp3",
+   "src": "High 2",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s094.mp3",
+   "src": "High 20",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s095.mp3",
+   "src": "High 3",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s096.mp3",
+   "src": "High 4",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s097.mp3",
+   "src": "High 5",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s098.mp3",
+   "src": "High 6",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s099.mp3",
+   "src": "High 7",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s100.mp3",
+   "src": "High 8",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s101.mp3",
+   "src": "High 9",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s102.mp3",
+   "src": "Mid 1",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s103.mp3",
+   "src": "Mid 10",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s104.mp3",
+   "src": "Mid 11",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s105.mp3",
+   "src": "Mid 12",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s106.mp3",
+   "src": "Mid 13",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s107.mp3",
+   "src": "Mid 14",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s108.mp3",
+   "src": "Mid 15",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s109.mp3",
+   "src": "Mid 16",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s110.mp3",
+   "src": "Mid 17",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s111.mp3",
+   "src": "Mid 18",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s112.mp3",
+   "src": "Mid 19",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s113.mp3",
+   "src": "Mid 2",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s114.mp3",
+   "src": "Mid 20",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s115.mp3",
+   "src": "Mid 3",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s116.mp3",
+   "src": "Mid 4",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s117.mp3",
+   "src": "Mid 5",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s118.mp3",
+   "src": "Mid 6",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s119.mp3",
+   "src": "Mid 7",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s120.mp3",
+   "src": "Mid 8",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s121.mp3",
+   "src": "Mid 9",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s122.mp3",
+   "src": "Very Bassy 1",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s123.mp3",
+   "src": "Very Bassy 2",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s124.mp3",
+   "src": "Very Bassy 3",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s125.mp3",
+   "src": "Very Bassy 4",
+   "page": "horror-hit-soundpack-1",
+   "license": "CC0",
+   "author": "psychhead_",
+   "url": "https://opengameart.org/content/horror-hit-soundpack-1"
+  },
+  {
+   "file": "s126.mp3",
+   "src": "boat",
+   "page": "eeryhorror-sfx",
+   "license": "CC-BY 3.0",
+   "author": "AllergicRacoon",
+   "url": "https://opengameart.org/content/eeryhorror-sfx"
+  },
+  {
+   "file": "s127.mp3",
+   "src": "electric",
+   "page": "eeryhorror-sfx",
+   "license": "CC-BY 3.0",
+   "author": "AllergicRacoon",
+   "url": "https://opengameart.org/content/eeryhorror-sfx"
+  },
+  {
+   "file": "s128.mp3",
+   "src": "explode",
+   "page": "eeryhorror-sfx",
+   "license": "CC-BY 3.0",
+   "author": "AllergicRacoon",
+   "url": "https://opengameart.org/content/eeryhorror-sfx"
+  },
+  {
+   "file": "s129.mp3",
+   "src": "feedback",
+   "page": "eeryhorror-sfx",
+   "license": "CC-BY 3.0",
+   "author": "AllergicRacoon",
+   "url": "https://opengameart.org/content/eeryhorror-sfx"
+  },
+  {
+   "file": "s130.mp3",
+   "src": "feedbackOSC",
+   "page": "eeryhorror-sfx",
+   "license": "CC-BY 3.0",
+   "author": "AllergicRacoon",
+   "url": "https://opengameart.org/content/eeryhorror-sfx"
+  },
+  {
+   "file": "s131.mp3",
+   "src": "heartbeat",
+   "page": "eeryhorror-sfx",
+   "license": "CC-BY 3.0",
+   "author": "AllergicRacoon",
+   "url": "https://opengameart.org/content/eeryhorror-sfx"
+  },
+  {
+   "file": "s132.mp3",
+   "src": "morse",
+   "page": "eeryhorror-sfx",
+   "license": "CC-BY 3.0",
+   "author": "AllergicRacoon",
+   "url": "https://opengameart.org/content/eeryhorror-sfx"
+  },
+  {
+   "file": "s133.mp3",
+   "src": "orchestra",
+   "page": "eeryhorror-sfx",
+   "license": "CC-BY 3.0",
+   "author": "AllergicRacoon",
+   "url": "https://opengameart.org/content/eeryhorror-sfx"
+  },
+  {
+   "file": "s134.mp3",
+   "src": "pianohit",
+   "page": "eeryhorror-sfx",
+   "license": "CC-BY 3.0",
+   "author": "AllergicRacoon",
+   "url": "https://opengameart.org/content/eeryhorror-sfx"
+  },
+  {
+   "file": "s135.mp3",
+   "src": "randomLFO",
+   "page": "eeryhorror-sfx",
+   "license": "CC-BY 3.0",
+   "author": "AllergicRacoon",
+   "url": "https://opengameart.org/content/eeryhorror-sfx"
+  },
+  {
+   "file": "s136.mp3",
+   "src": "warpedradio",
+   "page": "eeryhorror-sfx",
+   "license": "CC-BY 3.0",
+   "author": "AllergicRacoon",
+   "url": "https://opengameart.org/content/eeryhorror-sfx"
+  },
+  {
+   "file": "s137.mp3",
+   "src": "zoomc",
+   "page": "eeryhorror-sfx",
+   "license": "CC-BY 3.0",
+   "author": "AllergicRacoon",
+   "url": "https://opengameart.org/content/eeryhorror-sfx"
+  }
+ ]
+}
