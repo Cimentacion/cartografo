@@ -1,6 +1,7 @@
-/* Chicas de Tripo en la pantalla de Nocturna: three.js dibuja a 176×220 con un material PS1
-   (vértices ajustados al píxel, textura afín, luz dura por faceta) y el resultado se mezcla en el búfer del juego. */
+/* Chicas de Tripo en la pantalla de Nocturna: three.js las dibuja al doble de resolución que el fondo (352×440),
+   con vértices ajustados a la rejilla, textura sin filtrar y luz suave; el juego las mezcla con el fondo, la viñeta y el tramado. */
 const PS1G=(function(){
+  const SC=2,W=RW*SC,H=RH*SC;
   let R=null,cv=null;const G={};let px=null;
   const VS=`
     #include <common>
@@ -36,16 +37,16 @@ const PS1G=(function(){
   function mat(tex,facet){
     if(tex){tex.magFilter=THREE.NearestFilter;tex.minFilter=THREE.NearestFilter;tex.generateMipmaps=false;tex.needsUpdate=true}
     return new THREE.ShaderMaterial({vertexShader:VS,fragmentShader:FS,skinning:true,extensions:{derivatives:true},side:THREE.DoubleSide,
-      uniforms:{map:{value:tex},res:{value:new THREE.Vector2(RW,RH)},L:{value:new THREE.Vector3(...nrm([-0.62,0.48,0.62]))},
+      uniforms:{map:{value:tex},res:{value:new THREE.Vector2(W*.5,H*.5)},L:{value:new THREE.Vector3(...nrm([-0.62,0.48,0.62]))},
         RIM:{value:new THREE.Vector3(...nrm([0.85,0.25,-0.45]))},tint:{value:new THREE.Vector3(1,1,1)},facet:{value:facet}}});
   }
   function init(){
     if(R)return true;
     if(!window.THREE||!THREE.GLTFLoader)return false;
-    cv=document.createElement('canvas');cv.width=RW;cv.height=RH;
+    cv=document.createElement('canvas');cv.width=W;cv.height=H;
     try{R=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:false,preserveDrawingBuffer:true})}catch(e){return false}
-    R.setPixelRatio(1);R.setSize(RW,RH,false);R.setClearColor(0x000000,0);
-    px=new Uint8Array(RW*RH*4);return true;
+    R.setPixelRatio(1);R.setSize(W,H,false);R.setClearColor(0x000000,0);
+    px=new Uint8Array(W*H*4);return true;
   }
   /* cfg: {glb:base64, clips:{gesto:'nombre de clip'}, facet, frame:{y,h}} */
   function load(id,cfg){
@@ -53,7 +54,7 @@ const PS1G=(function(){
     const bin=Uint8Array.from(atob(cfg.glb),c=>c.charCodeAt(0)).buffer;
     return new Promise(res=>new THREE.GLTFLoader().parse(bin,'',gl=>{
       const root=gl.scene;const meshes=[];
-      root.traverse(o=>{if(o.isMesh){o.material=mat(o.material.map,cfg.facet??.65);o.frustumCulled=false;meshes.push(o)}});
+      root.traverse(o=>{if(o.isMesh){o.material=mat(o.material.map,cfg.facet??0);o.frustumCulled=false;meshes.push(o)}});
       const scene=new THREE.Scene();scene.add(root);
       /* encuadre de busto a partir de la caja del personaje en reposo */
       const box=new THREE.Box3().setFromObject(root),H=box.max.y-box.min.y,cx=(box.min.x+box.max.x)/2,cz=(box.min.z+box.max.z)/2;
@@ -73,12 +74,13 @@ const PS1G=(function(){
         const cur=pc.sub(pb).normalize(),dq=new THREE.Quaternion().setFromUnitVectors(cur,dir.clone().normalize());
         const wq=new THREE.Quaternion();b.getWorldQuaternion(wq);const pq=new THREE.Quaternion();b.parent.getWorldQuaternion(pq);
         b.quaternion.copy(pq.invert().multiply(dq.multiply(wq)));root.updateMatrixWorld(true)};
-      {root.updateMatrixWorld(true);const pl=new THREE.Vector3(),pr=new THREE.Vector3();let L=null,Rr=null;
+      if(cfg.lowerArms!==false){root.updateMatrixWorld(true);const pl=new THREE.Vector3(),pr=new THREE.Vector3();let L=null,Rr=null;
         root.traverse(o=>{if(o.name==='L_Upperarm')L=o;if(o.name==='R_Upperarm')Rr=o});
         if(L&&Rr){L.getWorldPosition(pl);Rr.getWorldPosition(pr);const side=pl.clone().sub(pr).normalize(),up=new THREE.Vector3(0,1,0);
           const fwd=new THREE.Vector3().crossVectors(side,up).normalize();
-          aim('L_Upperarm','L_Forearm',up.clone().multiplyScalar(-1).addScaledVector(side,.16).addScaledVector(fwd,-.02));
-          aim('R_Upperarm','R_Forearm',up.clone().multiplyScalar(-1).addScaledVector(side,-.16).addScaledVector(fwd,-.02));
+          const sp=cfg.armSpread??.16;
+          aim('L_Upperarm','L_Forearm',up.clone().multiplyScalar(-1).addScaledVector(side,sp).addScaledVector(fwd,-.02));
+          aim('R_Upperarm','R_Forearm',up.clone().multiplyScalar(-1).addScaledVector(side,-sp).addScaledVector(fwd,-.02));
           /* codo apenas doblado hacia delante */
           const ff=fwd.clone();root.updateMatrixWorld(true);
           const bendDir=(s)=>up.clone().multiplyScalar(-1).addScaledVector(side,s*.10).addScaledVector(ff,.0);
@@ -95,7 +97,7 @@ const PS1G=(function(){
           tracks.push(new THREE.VectorKeyframeTrack(b.name+'.position',[0],[b.position.x,b.position.y,b.position.z]))});
         acts.__rest=mixer.clipAction(new THREE.AnimationClip('__rest',T,tracks));}
       for(const c of gl.animations){acts[c.name]=mixer.clipAction(c)}
-      G[id]={loop:cfg.loop||[],scene,cam,root,turn,pelvis,head,rest:null,hrest:null,tgt:new THREE.Vector3(cx,ty,cz),off:cam.position.clone().sub(new THREE.Vector3(cx,ty,cz)),cs:null,mixer,acts,clips:cfg.clips||{},cur:null,meshes};
+      G[id]={hs:cfg.headScale||1,loop:cfg.loop||[],scene,cam,root,turn,pelvis,head,rest:null,hrest:null,tgt:new THREE.Vector3(cx,ty,cz),off:cam.position.clone().sub(new THREE.Vector3(cx,ty,cz)),cs:null,mixer,acts,clips:cfg.clips||{},cur:null,meshes};
       console.log('[ps1g]',id,'head',!!head,'pelvis',!!pelvis,'clips',Object.keys(acts),'alto',H.toFixed(2));
       play(id,'rest');res(G[id]);
     },e=>{console.warn('[ps1g]',e);res(null)}));
@@ -114,15 +116,16 @@ const PS1G=(function(){
     if(once&&!g.hooked){g.hooked=true;g.mixer.addEventListener('finished',e=>{if(e.action===g.cur){g.cur=null;play(id,'rest',e.action)}})}
     const prev=g.cur||from;if(prev&&prev!==a)prev.crossFadeTo(a,.45,false);g.cur=a;
   }
-  /* dibuja la chica id sobre buf (Float32 RGB 0..255) */
-  function draw(id,buf,dt,opt){
-    const g=G[id];if(!g)return false;
+  /* anima y dibuja la chica id; devuelve los píxeles RGBA a W×H (fila 0 abajo) */
+  function render(id,dt,opt){
+    const g=G[id];if(!g)return null;
     g.mixer.update(dt);
+    if(g.head&&g.hs!==1)g.head.scale.setScalar(g.hs);
     /* anclar la pelvis: las animaciones no se desplazan por la escena */
     if(g.pelvis){g.root.position.set(0,0,0);g.scene.updateMatrixWorld(true);const p=new THREE.Vector3();g.pelvis.getWorldPosition(p);
       if(!g.rest)g.rest=p.clone();
       const d=new THREE.Vector3(g.rest.x-p.x,0,g.rest.z-p.z);g.turn.worldToLocal(d.add(g.turn.position));g.root.position.copy(d)}
-    /* la cámara sigue a la cabeza con suavidad (reverencias, risas, brazos arriba) */
+    /* la cámara sigue a la cabeza con suavidad */
     if(g.head){g.scene.updateMatrixWorld(true);const h=new THREE.Vector3();g.head.getWorldPosition(h);
       if(!g.hrest)g.hrest=h.clone();
       const want=g.tgt.clone().add(h.clone().sub(g.hrest).multiplyScalar(.9));
@@ -131,13 +134,15 @@ const PS1G=(function(){
     const tn=opt&&opt.tint||[1,1,1];for(const m of g.meshes)m.material.uniforms.tint.value.set(...tn);
     g.turn.position.x=(opt&&opt.xoff||0)*.1;
     R.render(g.scene,g.cam);
-    const gl=R.getContext();gl.readPixels(0,0,RW,RH,gl.RGBA,gl.UNSIGNED_BYTE,px);
-    const skip=opt&&opt.skipOdd;
-    for(let y=0;y<RH;y++){const sy=RH-1-y;
-      if(skip&&(y&1))continue;
-      for(let x=0;x<RW;x++){const o=(sy*RW+x)*4;if(px[o+3]<128)continue;const k=(y*RW+x)*3;
-        buf[k]=px[o];buf[k+1]=px[o+1];buf[k+2]=px[o+2]}}
+    const gl=R.getContext();gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,px);
+    return px;
+  }
+  /* compatibilidad: dibuja reducida sobre el búfer RGB del fondo (RW×RH) */
+  function draw(id,buf,dt,opt){
+    const p=render(id,dt,opt);if(!p)return false;
+    for(let y=0;y<RH;y++){const sy=H-1-y*SC;if(opt&&opt.skipOdd&&(y&1))continue;
+      for(let x=0;x<RW;x++){const o=(sy*W+x*SC)*4;if(p[o+3]<128)continue;const k=(y*RW+x)*3;buf[k]=p[o];buf[k+1]=p[o+1];buf[k+2]=p[o+2]}}
     return true;
   }
-  return{load,play,draw,has:id=>!!G[id]};
+  return{load,play,draw,render,has:id=>!!G[id],SC,W,H};
 })();
