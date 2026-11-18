@@ -1665,7 +1665,7 @@ function eventosHijos(ev,a){
     else if(r>=40){add("animo",3);log(`${q.nombre} encuentra su primer trabajo. Te enseña la nómina como si fuera un diploma.`)}
     else if(r>=25){add("animo",-4);log(`${q.nombre} deja los estudios y encadena trabajos de un mes. «Ya veré», dice a todo.`,"mala")}
     else{add("animo",-8);y.dinero-=Math.min(Math.max(0,y.dinero),600);log(`Te llaman de comisaría de madrugada: ${q.nombre}. Pagas lo que hay que pagar y volvéis a casa en un taxi, sin hablar.`,"mala")}},1);
-  if(e>=24&&!q.conyuge&&q.rumbo>=30)ev(2,"hijoboda"+q.id,()=>{const sc=ch(.9)?(q.sexo=="m"?"f":"m"):q.sexo,c2=per("conoc",sc,e+ri(-4,5),pick(ORI[G.origen].ap),{con:true,rel:ri(30,50),de:q.id,crianza:true,oficio:gp({sexo:sc},"tu yerno","tu nuera")});q.conyuge=c2.id;q.casa=false;
+  if(e>=24&&!q.conyuge&&q.rumbo>=30)ev(2,"hijoboda"+q.id,()=>{const sc=ch(.9)?(q.sexo=="m"?"f":"m"):q.sexo,c2=per("conoc",sc,e+ri(-4,5),pick(ORI[G.origen].ap),{con:true,rel:ri(30,50),de:q.id,casado:true,oficio:gp({sexo:sc},"tu yerno","tu nuera")});q.conyuge=c2.id;q.casa=false;
     const n=Math.min(Math.max(0,y.dinero),ri(5,30)*100);y.dinero-=n;add("animo",8);log(`Se casa ${q.nombre}, con ${c2.nombre}. Lloras en el discurso, bailas fatal y pones ${n} para el banquete.`)},1);
   if(e>=25&&q.conyuge&&viv(q.conyuge)&&e<45&&vivos(p=>p.rol=="nieto"&&p.de==q.id).length<3)ev(2,"nieto"+q.id,()=>{const n=per("nieto",sx(),0,q.apellido,{con:true,rel:60,de:q.id});add("animo",10);
     if(!G.fl.abu){G.fl.abu=1;logro("nace tu primer nieto, "+n.nombre)}log(`${q.nombre} te hace ${g("abuelo","abuela")}: nace ${n.nombre}. Cabe en un antebrazo y ya manda en toda la familia.`)});
@@ -1785,7 +1785,7 @@ function accionesCarcel(){
 function eventoCarcel(){
   const y=G.yo,c=G.carcel;
   const E=[()=>{add("salud",-ri(4,10));c.cond-=1;log("Pelea en el patio. No la empezaste tú, pero acabas en enfermería con la ceja abierta.","mala")},
-   ()=>{const q=per("conoc",y.sexo,y.edad/12+ri(-8,15),pick(ORI[G.origen].ap),{con:true,rel:ri(25,45),oficio:gp(y,"tu compañero de celda","tu compañera de celda"),crianza:true});log(`Cambian a quien dormía en la litera de arriba. Ahora compartes celda con ${q.nombre}, que ronca y sabe de todo.`)},
+   ()=>{const q=per("conoc",y.sexo,y.edad/12+ri(-8,15),pick(ORI[G.origen].ap),{con:true,rel:ri(25,45),oficio:gp(y,"tu compañero de celda","tu compañera de celda")});log(`Cambian a quien dormía en la litera de arriba. Ahora compartes celda con ${q.nombre}, que ronca y sabe de todo.`)},
    ()=>{add("animo",6);const p=pick(vivos(p=>p.con&&p.rel>=40&&p.edad>=120));log(p?`Llega carta de ${tu(p)}. La lees tres veces y la guardas debajo del colchón.`:"Reparten el correo. Para ti no hay nada. Nunca hay nada.",p?"":"mala")},
    ()=>{add("animo",-5);log("Motín en el módulo de al lado. Tres días encerrados sin patio, oyendo golpes en las tuberías.","mala")},
    ()=>{if(c.cond>=8){c.m=Math.max(1,c.m-2);log("Buena conducta: te quitan dos meses de condena. El funcionario te lo dice como quien da la hora.")}else log("Revisan tu expediente. Sin novedades: ni un día menos.")},
