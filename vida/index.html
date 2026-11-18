@@ -88,7 +88,7 @@ td.n{text-align:right;white-space:nowrap}
 /* Creación */
 #crear{flex:1;overflow-y:auto;padding:4px 16px 16px;display:flex;flex-direction:column;gap:10px;min-height:0}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chips button{border:1px solid var(--blanco);border-radius:999px;padding:7px 12px;font-size:13px}
+.chips button{border:1px solid var(--blanco);border-radius:999px;padding:7px 12px;font-size:13px;max-width:100%;text-align:left}
 .chips button.on{background:var(--lila);color:var(--tinta);border-color:var(--lila)}
 #nombre{font:inherit;width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--blanco);background:rgba(255,255,255,.08);color:var(--blanco)}
 .gordo{font-family:var(--f-titular);background:linear-gradient(180deg,#fff3b8,var(--oro));color:var(--tinta);border-radius:12px;padding:12px;font-size:18px;letter-spacing:2px}
@@ -291,11 +291,12 @@ function nacer(op){
   G.yo={nombre:"",apellido:ap,sexo,edad:0,salud:ri(60,92),animo:70,mente:ri(0,4),cuerpo:ri(0,4),carisma:ri(2,8),aspecto:ri(20,50),dinero:0};
   G.yo.nombre=(op.nombre||"").trim()||pick(sexo=="m"?o.m:o.f);
   genCuerpo();
-  const tipo=pick(["aldea","pueblo","pueblo","ciudad","ciudad","ciudad","capital"]);
+  const hog=op.hogar||null; // inicio preparado: hmenor, prima, hmayor
+  const tipo=hog=="prima"?"aldea":pick(["aldea","pueblo","pueblo","ciudad","ciudad","ciudad","capital"]);
   G.lugar={tipo,nombre:pick(o.lug[tipo])};
   G.fe=ch(origen=="ma"?.7:origen=="jp"?.3:.5);
   // Padres
-  const tp=pick(["joven","normal","normal","mayor"]);
+  const tp=hog?"normal":pick(["joven","normal","normal","mayor"]);
   const eM=tp=="joven"?ri(17,21):tp=="normal"?ri(24,33):ri(37,43);
   const eP=Math.max(17,eM+(tp=="joven"?ri(0,5):ri(-2,9)));
   const madre=per("prog","f",eM,apM,{casa:true,con:true,rel:72,curro:pick(CURROS[G.riqueza])});
@@ -307,8 +308,10 @@ function nacer(op){
   const maxH=tp=="joven"?(ch(.2)?1:0):tp=="normal"?ri(0,2):ri(0,3);
   const mayores=[];
   for(let i=0;i<maxH;i++){const e=ri(1,Math.max(1,Math.min(eM-17,16)));if(eM-e>=16)mayores.push(per("herm",sx(),e+R(),ap,{casa:e<24,con:true,rel:ri(40,60)}))}
+  if(hog=="hmayor")mayores.push(per("herm","f",2+R()*.15,ap,{casa:true,con:true,rel:ri(45,60)}));
+  if(hog=="hmenor"){G.nac.push(12);G.fl.nacF=12}
   let t=0;const nf=tp=="joven"?ri(0,3):tp=="normal"?ri(0,2):(ch(.2)?1:0);
-  for(let i=0;i<nf;i++){t+=ri(14,60);if(eM*12+t<44*12)G.nac.push(t)}
+  for(let i=0;i<nf;i++){t+=ri(14,60);if(eM*12+t<44*12&&!(hog=="hmenor"&&t<24))G.nac.push(t)}
   // Abuelos
   const abu=[];
   [["p",padre?eP:null],["m",eM]].forEach(([lado,ep])=>{if(ep==null)return;["m","f"].forEach(s=>{
@@ -327,7 +330,9 @@ function nacer(op){
   }
   let tiaCasa=null;
   if(!conv&&tios.length&&ch(.12)){tiaCasa=pick(tios);tiaCasa.casa=tiaCasa.con=true;primos.filter(p=>p.de==tiaCasa.id).forEach(p=>p.casa=p.con=true)}
-  genCasa();
+  if(hog=="prima"){tiaCasa=tios.filter(q=>q.sexo=="f"&&q.edad<38*12)[0]||per("tio","f",clamp(eM+ri(-6,3),20,36),apM,{lado:"m"});
+    tiaCasa.casa=tiaCasa.con=true;tiaCasa.rel=Math.max(tiaCasa.rel,50);primos.filter(p=>p.de==tiaCasa.id).forEach(p=>p.casa=p.con=true);G.fl.primaEn=12;G.fl.primaDe=tiaCasa.id}
+  genCasa();if(hog=="prima")G.casa.tipo="una casa de campo con corral y huerto";
   const vec=genVecinos();
   // Relato del nacimiento
   titular("Naces",G.lugar.nombre+", "+o.pais);
@@ -388,9 +393,14 @@ function morir(p){
     }
   }
 }
+function nacerPrima(){ // inicio preparado: la prima que nace un año después y se cría contigo
+  const t=P(G.fl.primaDe);G.fl.primaEn=null;if(!t||!t.vivo)return;
+  const h=per("primo","f",0,t.apellido,{de:t.id,casa:t.casa,con:true,lejos:t.lejos,rel:45});
+  log(`${tu(t)} da a luz en la habitación del fondo, con la comadrona del pueblo. Es una niña: tu prima ${h.nombre}. Vais a crecer puerta con puerta.`);
+}
 function nacerHermano(){
   const m=vivos(p=>p.rol=="prog"&&p.sexo=="f")[0];if(!m||G.indep)return;
-  const h=per("herm",sx(),0,G.yo.apellido,{casa:true,con:true,rel:45});
+  const h=per("herm",G.fl.nacF==G.yo.edad?"f":sx(),0,G.yo.apellido,{casa:true,con:true,rel:45});
   log(`Tu madre vuelve del hospital con un bulto en brazos: ${gp(h,"tu hermano","tu hermana")} ${h.nombre}. `+(G.yo.edad<60?"De pronto ya no eres el centro de la casa.":"La casa vuelve a oler a bebé."));
   if(G.yo.edad<72)add("animo",-4);
 }
@@ -468,6 +478,7 @@ function tick(){
   if(y.edad==1){const ab=vivos(p=>p.rol=="abu"&&!p.con);if(ab.length){ab.forEach(p=>p.con=true);log(`${ab.length==1?"Viene":"Vienen"} a conocerte ${ab.map(p=>tu(p)).join(", ")}. Pasas de brazo en brazo.`)}}
   // Nacimientos
   if(G.nac.includes(y.edad))nacerHermano();
+  if(G.fl.primaEn&&G.fl.primaEn==y.edad)nacerPrima();
   G.gente.forEach(p=>{if(p.pp>0)p.pp--;if(p.vivo&&p.emb>0&&--p.emb==0){nacerDe(p);p.pp=14}});
   if(G.emb>0&&!G.fl.adop){const yo=y.sexo=="f";
     if(G.emb==7)log(yo?"Primera ecografía. Un garbanzo con latido en una pantalla gris.":"Primera ecografía. Sales con una foto borrosa en la cartera.");
@@ -2785,7 +2796,7 @@ function abrirHoja(titulo,ops,fijo){
 function cerrarHoja(){$("hoja").classList.remove("on")}
 $("hoja").addEventListener("click",e=>{if(e.target.id=="hoja"&&!(G&&G.pend))cerrarHoja()});
 
-const SEL={origen:null,riqueza:null,sexo:null,don:null};
+const SEL={origen:null,riqueza:null,sexo:null,don:null,hogar:null};
 function pantallaCrear(){
   $("cab").classList.remove("compacta");$("stats").hidden=true;$("tabs").hidden=true;$("vista").hidden=true;$("acc").hidden=true;$("crear").hidden=false;
   $("ficha").innerHTML="<span>Simulador de vida</span><span>Solo texto</span><span>1 acción = 1 mes</span>";
@@ -2797,12 +2808,13 @@ function pantallaCrear(){
    grupo("Informe ② Familia","Cuánto hay en la nevera cuando llegas","riqueza",[[null,"Al azar"]].concat(FAM.map((f,i)=>[i,f])))+
    grupo("Informe ③ Sexo","","sexo",[[null,"Al azar"],["m","Niño"],["f","Niña"]])+
    grupo("Informe ④ Magia","Con el don, la escuela de Umbraluz vendrá a buscarte. Sin él, quizá lo desarrolles sin saberlo","don",[[null,"Al azar"],[1,"Nacer con el don"]])+
-   `<div class="tit">Informe ⑤ Nombre<small>Déjalo vacío y lo eligen tus padres</small></div><input id="nombre" maxlength="18" placeholder="Nombre" autocomplete="off">`+
+   grupo("Informe ⑤ Hogar","Un comienzo ya preparado, si quieres","hogar",[[null,"Al azar"],["hmenor","Futura hermana pequeña (1 año de diferencia)"],["prima","Convivir con prima pequeña (1 año de diferencia) en casa de campo"],["hmayor","Hermana mayor (2 años de diferencia)"]])+
+   `<div class="tit">Informe ⑥ Nombre<small>Déjalo vacío y lo eligen tus padres</small></div><input id="nombre" maxlength="18" placeholder="Nombre" autocomplete="off">`+
    `<button class="gordo" id="bNacer">NACER</button>`;
   $("crear").querySelectorAll(".chips button").forEach(b=>b.onclick=()=>{
     const k=b.parentNode.dataset.k,v=b.dataset.v;SEL[k]=v=="null"?null:(k=="riqueza"?+v:v);
     b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x==b))});
-  $("bNacer").onclick=()=>{visto=0;nacer({origen:SEL.origen,riqueza:SEL.riqueza,sexo:SEL.sexo,don:SEL.don,nombre:$("nombre").value});TAB="diario";render(true)};
+  $("bNacer").onclick=()=>{visto=0;nacer({origen:SEL.origen,riqueza:SEL.riqueza,sexo:SEL.sexo,don:SEL.don,hogar:SEL.hogar,nombre:$("nombre").value});TAB="diario";render(true)};
 }
 function barra(k,et){const v=Math.round(G.yo[k]);return `<div class="${v<25?"mal":""}">${et}<b>${v}</b><i style="width:${v}%"></i></div>`}
 function filaGente(p){return `<tr class="${p.vivo?"":"muerto"}"><td>${esc(p.nombre)} ${esc(p.apellido)}${p.id==G.crush&&p.id!=G.pareja?" ♥":""}${p.vivo&&p.quim>0&&anios()>=18?" · química "+Math.round(p.quim):""}${p.vivo&&p.emb>0?" · embarazada":""}</td><td>${rolTxt(p)}</td><td class="n">${p.vivo?edadTxt(p.edad):"† "+edadTxt(p.edad)}</td><td class="n">${Math.round(p.rel)}</td></tr>`}
