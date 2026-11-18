@@ -191,7 +191,7 @@ const ROL={prog:["Padre","Madre"],herm:["Hermano","Hermana"],abu:["Abuelo","Abue
 let G=null, TAB="diario";
 const CLAVE="toda-una-vida-v1";
 function guardar(){try{localStorage.setItem(CLAVE,JSON.stringify(G))}catch(e){}}
-function cargar(){try{const s=localStorage.getItem(CLAVE);if(s)G=JSON.parse(s);if(G&&G.yo&&G.gente)G.gente.forEach(p=>{if(p.crianza&&!p.astra&&Math.abs(G.yo.edad-p.edad)<=84)p.crianza=false})}catch(e){G=null}
+function cargar(){try{const s=localStorage.getItem(CLAVE);if(s)G=JSON.parse(s);if(G&&G.yo&&G.gente)G.gente.forEach(p=>{if(p.crianza&&!p.astra&&Math.abs(G.yo.edad-p.edad)<=60)p.crianza=false})}catch(e){G=null}
   if(G&&!G.v2){G.gente.forEach(p=>p.con=true);G.v2=1}
   if(G&&G.yo.aspecto==null)G.yo.aspecto=35;
   if(G&&G.yo.altAdulta==null)genCuerpo();
