@@ -64,6 +64,36 @@ const PS1G=(function(){
       const turn=new THREE.Group();scene.add(turn);turn.add(root);turn.rotation.y=(cfg.face??-Math.PI/2)+(f.yaw??-.22);
       let pelvis=null,head=null;root.traverse(o=>{if(o.isBone&&/pelvis|hip/i.test(o.name)&&!pelvis)pelvis=o;if(o.isBone&&/^head$/i.test(o.name))head=o});
       const mixer=new THREE.AnimationMixer(root),acts={};
+      /* reposo propio: la pose de enlace (brazos caídos, hombros relajados) con respiración y balanceo suaves.
+         El standing_relax de Tripo encoge los hombros y arquea los brazos. */
+      const bind={};root.traverse(b=>{if(b.isBone)bind[b.name]={q:b.quaternion.clone(),p:b.position.clone()}});
+      /* bajar los brazos de la pose en T: girar cada brazo en el mundo hasta que cuelgue junto al cuerpo */
+      const aim=(name,child,dir)=>{let b=null,c=null;root.traverse(o=>{if(o.name===name)b=o;if(o.name===child)c=o});if(!b||!c)return;
+        root.updateMatrixWorld(true);const pb=new THREE.Vector3(),pc=new THREE.Vector3();b.getWorldPosition(pb);c.getWorldPosition(pc);
+        const cur=pc.sub(pb).normalize(),dq=new THREE.Quaternion().setFromUnitVectors(cur,dir.clone().normalize());
+        const wq=new THREE.Quaternion();b.getWorldQuaternion(wq);const pq=new THREE.Quaternion();b.parent.getWorldQuaternion(pq);
+        b.quaternion.copy(pq.invert().multiply(dq.multiply(wq)));root.updateMatrixWorld(true)};
+      {root.updateMatrixWorld(true);const pl=new THREE.Vector3(),pr=new THREE.Vector3();let L=null,Rr=null;
+        root.traverse(o=>{if(o.name==='L_Upperarm')L=o;if(o.name==='R_Upperarm')Rr=o});
+        if(L&&Rr){L.getWorldPosition(pl);Rr.getWorldPosition(pr);const side=pl.clone().sub(pr).normalize(),up=new THREE.Vector3(0,1,0);
+          const fwd=new THREE.Vector3().crossVectors(side,up).normalize();
+          aim('L_Upperarm','L_Forearm',up.clone().multiplyScalar(-1).addScaledVector(side,.16).addScaledVector(fwd,-.02));
+          aim('R_Upperarm','R_Forearm',up.clone().multiplyScalar(-1).addScaledVector(side,-.16).addScaledVector(fwd,-.02));
+          /* codo apenas doblado hacia delante */
+          const ff=fwd.clone();root.updateMatrixWorld(true);
+          const bendDir=(s)=>up.clone().multiplyScalar(-1).addScaledVector(side,s*.10).addScaledVector(ff,.0);
+          aim('L_Forearm','L_Hand',bendDir(1));aim('R_Forearm','R_Hand',bendDir(-1));
+          console.log('[ps1g] fwd',fwd.toArray().map(v=>v.toFixed(2)))}}
+      {const tracks=[],T=6,K=24,ax=new THREE.Vector3(),q=new THREE.Quaternion();
+        const sway={Spine01:[[1,0,0],.012,1],Spine02:[[1,0,0],.015,1],NeckTwist01:[[0,1,0],.04,.5],Head:[[0,1,0],.06,.5],
+          L_Upperarm:[[0,0,1],.02,1],R_Upperarm:[[0,0,1],-.02,1],L_Forearm:[[0,0,1],.025,1],R_Forearm:[[0,0,1],-.025,1]};
+        root.traverse(b=>{if(!b.isBone)return;const times=[],vals=[];const sw=sway[b.name];
+          for(let k=0;k<=K;k++){const t=k/K*T;times.push(t);q.copy(b.quaternion);
+            if(sw){ax.set(...sw[0]);q.multiply(new THREE.Quaternion().setFromAxisAngle(ax,Math.sin(t/T*Math.PI*2*sw[2]*(sw[2]<1?2:2))*sw[1]))}
+            vals.push(q.x,q.y,q.z,q.w)}
+          tracks.push(new THREE.QuaternionKeyframeTrack(b.name+'.quaternion',times,vals));
+          tracks.push(new THREE.VectorKeyframeTrack(b.name+'.position',[0],[b.position.x,b.position.y,b.position.z]))});
+        acts.__rest=mixer.clipAction(new THREE.AnimationClip('__rest',T,tracks));}
       for(const c of gl.animations){acts[c.name]=mixer.clipAction(c)}
       G[id]={loop:cfg.loop||[],scene,cam,root,turn,pelvis,head,rest:null,hrest:null,tgt:new THREE.Vector3(cx,ty,cz),off:cam.position.clone().sub(new THREE.Vector3(cx,ty,cz)),cs:null,mixer,acts,clips:cfg.clips||{},cur:null,meshes};
       console.log('[ps1g]',id,'head',!!head,'pelvis',!!pelvis,'clips',Object.keys(acts),'alto',H.toFixed(2));
@@ -71,6 +101,7 @@ const PS1G=(function(){
     },e=>{console.warn('[ps1g]',e);res(null)}));
   }
   function clipFor(g,gesture){
+    if(gesture==='rest'&&g.acts.__rest&&!g.clips.rest)return g.acts.__rest;
     const want=g.clips[gesture]||g.clips.rest;
     if(want&&g.acts[want])return g.acts[want];
     const k=Object.keys(g.acts).find(n=>want&&n.toLowerCase().includes(want.toLowerCase()))||Object.keys(g.acts)[0];
