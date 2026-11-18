@@ -228,7 +228,8 @@ function add(k,v){const y=G.yo;if(v>0)v*=multRasgo(k);y[k]=clamp(y[k]+v)}
 function rel(p,v){if(p){p.rel=clamp(p.rel+v);if(v>0&&G.yo&&G.yo.edad<192&&p.edad<216&&["vec","comp","conoc"].includes(p.rol)&&Math.abs(p.edad-G.yo.edad)<=36)p.inf=(p.inf||0)+1}}
 const deInfancia=p=>(p.inf||0)>=10;
 const RE_CLAVE=/^Naces en|carruaje|Umbraluz no te|báculo|dice que es tu padre|besando a|primeros pasos|primera palabra|Nace |da a luz|^Muere |ha muerto|y ganas\.|Te ascienden|Te cogen\.|Terminas (la carrera|Med|Mag|Ing|Der|Eco|Per|Cie)|dice que sí|sois pareja|Empezáis a salir|está embarazada|test da positivo|Positivo\.|Os mudáis|Te ofrecen|Llega una oferta|Firmas\.|Es tu primera vez|Eres mayor de edad|Empiezas el colegio|Pasas al instituto|Te jubilas|Te vas de casa|centro de acogida|se separan|Es lo más alto|propia escuela|beca completa|Dejas de crecer|adopción ha salido|Abres un grupo|Te matriculas|Te quedas sin padres|aterrizas en|billete solo de ida|Vuelves a |Lo haces\. Esa noche|Un inspector llama|con una idea que ya no se va|lo necesitas, y lo sabes|Estáis cenando|Se va la luz en todo el barrio|Se te cae el vaso|carruaje negro|El carruaje arranca|El carruaje os deja|Os llevan al gran salón|«Bienvenidos|«Estaréis aquí|La piedra cae|Morcante|agua del Pozo|ala norte|Te quedas con un|Te quedas con una|^\d{4}\. |Carta de un notario|Se muda al piso de enfrente|quiere montar un grupo|no puede fallar|una lata con un plano|Llega al trabajo|sales elegid|bastón de mando|han dejado de hablarse|se te ve el carácter|termina de cuajar|Firmas la hipoteca|a la quiebra|Te condenan|Sales de prisión|Te detienen|Firmas testamento|te hace abuel|usa una palabra nueva|Sigues la historia|última cuota|segundo local|Cita en el notario|ya no puedes vivir sin ayuda|se vuelve a casar|un infarto/;
-function log(txt,cls){txt=txt.charAt(0).toUpperCase()+txt.slice(1);cls=(cls||"")+(RE_CLAVE.test(txt)?" clave":"");G.lid=(G.lid||0)+1;G.log.push({t:"caja",txt,cls,n:G.tn||0,i:G.lid,tag:edadTxt(G.yo.edad)+" · "+etapa()});if(G.log.length>160)G.log.splice(0,G.log.length-160)}
+function log(txt,cls){if(/mala/.test(cls||"")&&G.yo&&G.yo.edad>=72)G.renc=Math.min(100,(G.renc||0)+1.2); // lo malo deja poso: rencor
+  txt=txt.charAt(0).toUpperCase()+txt.slice(1);cls=(cls||"")+(RE_CLAVE.test(txt)?" clave":"");G.lid=(G.lid||0)+1;G.log.push({t:"caja",txt,cls,n:G.tn||0,i:G.lid,tag:edadTxt(G.yo.edad)+" · "+etapa()});if(G.log.length>160)G.log.splice(0,G.log.length-160)}
 function titular(txt,sub){G.lid=(G.lid||0)+1;G.log.push({t:"tit",txt,sub:sub||"",n:G.tn||0,i:G.lid})}
 function rolTxt(p){
   if(p.id==G.pareja)return G.casado?gp(p,"Marido","Mujer"):gp(p,"Novio","Novia");
@@ -492,7 +493,7 @@ function tick(){
   G.gente.slice().forEach(p=>{if(p.vivo&&ch(mort(p.edad)/12)){morir(p);trasMuerte(p)}});
   // Hijos se van de casa
   G.gente.forEach(p=>{if(p.vivo&&p.casa&&p.rol=="herm"&&p.edad>24*12&&ch(.03)){p.casa=false;if(!G.indep)log(`${tu(p)} se va de casa. Su cuarto se queda raro.`)}});
-  tickMundo();tickMagia();tickCompulsion();tickOscuro();if(G.exo&&G.indep)G.yo.dinero+=(exo()||{barato:0}).barato;tickEcos();tickDinero();tickSalud();tickCadena();
+  tickMundo();tickMagia();tickCompulsion();tickOscuro();tickTurbio();if(G.exo&&G.indep)G.yo.dinero+=(exo()||{barato:0}).barato;tickEcos();tickDinero();tickSalud();tickCadena();
   if(G.carcel&&--G.carcel.m<=0)liberar();
   // Azar
   if(enMagia()&&y.edad%12==9)finCursoMagia();
@@ -1888,7 +1889,7 @@ function necrologica(causa){
   if(G.logros&&G.logros.length)s+=`En su diario quedaron apuntados ${G.logros.length} hitos. Los últimos: ${G.logros.slice(-3).map(l=>"«"+l.replace(/^(\d+) años: (.*)$/,"$2 ($1 años)")+"»").join(", ")}. `;
   s+=pat>0?`Deja un patrimonio de ${pat}`+(G.test?(G.test.t=="benef"?", que irá a una causa benéfica":G.test.t=="iguales"?", a repartir entre sus hijos":P(G.test.id)?", todo para "+P(G.test.id).nombre:""):"")+". ":pat<0?"Deja deudas, que nadie reclamará. ":"";
   if(G.gen>1)s+=`Era la generación número ${G.gen} de los ${y.apellido} en esta historia. `;
-  s+=oscNecro();
+  s+=oscNecro()+turNecro();
   return s+`En su lápida se lee: «${G.test&&G.test.ep?G.test.ep:pick(epitafios())}»`;
 }
 function parteDe(h){
@@ -2770,10 +2771,131 @@ DEC.inspector={man:1,tit:d=>"El inspector",txt:d=>"",ops:d=>{const y=G.yo,o=G.os
  {t:"Confesar",fn:()=>{o.preso=1;return {txt:"Dejas que se siente. Se lo cuentas todo, por orden, sin que tenga que preguntar. Escribe durante dos horas. "+encarcelar(480).txt,mal:1}}}]}};
 function oscNecro(){const o=G.osc;if(!o||!o.n)return "";
   return o.preso?`Cumplía condena por ${o.n==1?"un atentado":o.n+" atentados"} que costaron ${o.vic} vidas. Nadie reclamó el cuerpo durante días. `:`Lo que no sabrá nadie: detrás de ${o.n==1?"un atentado":o.n+" atentados"} y ${o.vic} muertos estaba esta persona de apariencia corriente, que saludaba en el portal. Se lo lleva a la tumba. `}
+/* ---- Lo que el mundo te debe: rencor, ajustes de cuentas, encargos y atracos (todo entre adultos) ---- */
+function agravio(){const l=["todas las veces que agachaste la cabeza","lo poco que te ha regalado nadie"];
+  if(G.gente.some(p=>p.bully))l.push("la mochila en el suelo del patio y todos mirando");
+  if(G.fl.sinPadre)l.push("un padre del que en casa nadie hablaba");
+  if(G.riqueza==0)l.push("todas las neveras vacías");
+  if(G.fl.mesesCarcel)l.push("los años que te quitaron ahí dentro");
+  if(G.fl.antec)l.push("cada puerta que se cerró al leer tus antecedentes");
+  if(G.fl.viudo)l.push("la cama que se quedó a medias");
+  if(!G.trabajo)l.push("todos los «ya le llamaremos»");
+  if(G.gente.some(p=>p.ex))l.push("quien se fue sin mirar atrás");
+  if(vivos(p=>p.jefe&&p.rel<35).length)l.push("cada lunes aguantando a quien te manda");
+  return pick(l)}
+function tur(){return G.tur=G.tur||{sosp:0,mu:0,atr:0,enc:0,arma:0,ven:0,calle:0}}
+function turSube(n){const t=tur();t.sosp=clamp(t.sosp+Math.max(1,n));t.ult=G.yo.edad}
+function rencor(n){G.renc=clamp((G.renc||0)+n)}
+const turSospTxt=()=>{const s=tur().sosp;return s<15?"nadie te mira":s<40?"algún cabo suelto":s<70?"te están buscando":"tienen tu nombre"};
+const porque=()=>` Piensas en ${agravio()}. El mundo empezó primero.`;
+function menuTurbio(){
+  const y=G.yo,t=tur(),r=Math.round(G.renc||0),ops=[];
+  const A=(tx,s,fn,no)=>ops.push({t:tx,s:no||s,fn:no?()=>{}:()=>hacer(fn)});
+  ops.push({t:"Quitar a alguien de en medio…",s:r<50&&!t.obj?"Todavía no odias tanto (rencor 50)":t.obj&&P(t.obj.id)&&P(t.obj.id).vivo?"Tienes a "+P(t.obj.id).nombre+" entre ceja y ceja":"Elegir a quién",fn:r<50&&!t.obj?()=>{}:menuObjetivo});
+  ops.push({t:"Atracar un banco…",s:t.banco?"Plan "+t.banco.plan+" · banda "+t.banco.banda:"Mucho dinero o muchos años",fn:menuBanco});
+  if(t.mu>=1||G.fl.mesesCarcel)A("Aceptar un encargo","Matar por dinero a quien no conoces",encargo,!t.arma&&y.cuerpo<50?"Sin arma ni cuerpo (50)":"");
+  A("Cobrar «protección» en el barrio","Dinero cada vez · hay que imponer",extorsion,y.cuerpo<45?"Te falta cuerpo (45)":"");
+  A("Quemar algo que te hizo daño","Desahoga. Deja humo",incendio);
+  A("Conseguir un arma","2500 · alguien que conoce a alguien",()=>{y.dinero-=2500;if(ch(G.fl.antec?.08:.18)){turSube(10);return {txt:"El contacto no aparece, el dinero tampoco, y alguien ha apuntado tu matrícula.",mal:1}}t.arma=1;turSube(3);return "Un aparcamiento, un sobre y una bolsa de deporte que pesa más de lo que parece. No preguntas de dónde viene. La guardas donde nadie mira."+porque()},t.arma?"Ya tienes una":y.dinero<2500?"Te faltan 2500":"");
+  A("Estudiar venenos",`Meses de biblioteca y paciencia (${t.ven}/4)`,()=>{t.ven++;add("mente",1);return ["Libros de toxicología sacados con el carné de otra persona. Tomas apuntes en clave.","Aprendes que casi todo depende de la cantidad. Lo apuntas y quemas el papel.","Lees sentencias antiguas: en todas, al envenenador lo pilló la prisa. Tú no tienes prisa.","Ya distingues lo que se nota de lo que no. Cierras el último libro."][Math.min(3,t.ven-1)]},y.mente<60?"Te falta mente (60)":t.ven>=4?"Ya sabes lo que hay que saber":"");
+  A("Soltar lastre","120 · hablar con alguien antes de que sea tarde",()=>{y.dinero-=120;rencor(-8);add("animo",3);return vario("lastre",["Una consulta con una caja de pañuelos en la mesa. Dices cosas que nunca habías dicho en voz alta. Pesan menos fuera.","Hablas una hora entera sin que nadie te interrumpa. Sales con la mandíbula menos apretada.","«¿Y qué habría tenido que pasar para que no te sintieras así?» No lo sabes. Pero te lo llevas a casa."])});
+  abrirHoja("Lo que el mundo te debe · rencor "+r+" · "+turSospTxt(),ops);
+}
+function extorsion(){const y=G.yo,t=tur();
+  if(ch(.1+(G.fl.antec?.03:0)))return detener("extorsión",2);
+  const n=ri(400,1500);y.dinero+=n;t.calle++;turSube(2);
+  return vario("extor",[`Entras en tres bares a explicar lo fácil que es que se rompa un escaparate. Pagan los tres: ${n}.`,`El del taller no quería entender. Ahora entiende. ${n} al mes, «por la tranquilidad».`,`Recoges los sobres sin contar delante de ellos. Luego cuentas: ${n}. Nadie te mira a la cara.`])+(t.calle==1?porque():"");
+}
+function incendio(){const t=tur();
+  if(ch(.12))return detener("un incendio provocado",2);
+  add("animo",6);rencor(-10);turSube(8);
+  return vario("incend",["Arde de madrugada el sitio donde más veces te hicieron sentir poca cosa. Lo ves desde lejos, con las manos en los bolsillos. No hay nadie dentro; eso lo comprobaste.","Un coche que conocías muy bien amanece negro y sin cristales. Su dueño mira a todos lados en la acera. A ti no.","Las llamas se ven desde tu ventana. Duermes de un tirón por primera vez en meses."])+porque();
+}
+function encargo(){const y=G.yo,t=tur();
+  if(!ch(clamp(.5+(t.arma?.2:0)+y.cuerpo/400+y.mente/400,.1,.92))){
+    if(ch(.5)){if(t.mu)t.preso=1;return {txt:"El encargo sale mal: había alguien más, hay gritos, hay luces azules antes de que llegues a la esquina. "+encarcelar(ri(200,300)).txt,mal:1}}
+    add("salud",-30);turSube(25);return {txt:"El encargo sale mal y eres tú quien vuelve sangrando. No cobras. Coses lo que puedes en el baño, con la radio alta.",mal:1}}
+  const n=ri(8,25)*1000;y.dinero+=n;t.mu++;t.enc++;turSube(15-y.mente/10);add("animo",-8);
+  return {txt:vario("encargo",[`Un nombre, una foto y una dirección. No sabes qué hizo ni te lo dicen. Dos semanas después hay ${n} en una consigna de la estación.`,`No le conocías de nada. Eso lo hace más fácil y bastante peor. Cobras ${n} en billetes usados.`,`Haces el trabajo y vuelves en autobús, como cualquiera. ${n}. En el asiento de al lado, alguien te pregunta la hora.`])+(t.enc==1?" Ya eres de los que cobran por esto.":""),mal:1};
+}
+/* -- Atraco a un banco -- */
+function menuBanco(){const y=G.yo,t=tur(),b=t.banco=t.banco||{plan:0,banda:0};
+  abrirHoja(`El banco · plan ${b.plan}/6 · banda ${b.banda}/3`,[
+   {t:"Estudiar la sucursal",s:"Horarios, cámaras, el día que llega el dinero",fn:()=>hacer(()=>{b.plan=Math.min(6,b.plan+1);turSube(1);return vario("bancoplan",["Abres una cuenta solo para sentarte a esperar turno y mirar. Cuentas pasos, puertas y segundos.","Desayunas una semana entera en el bar de enfrente. Ya sabes cuándo cambia el guardia y cuándo se aburre.","Dibujas el plano de memoria en una servilleta. Luego te la comes, por si acaso.","Averiguas qué día llega el furgón. Ese día el banco pesa más."])})},
+   {t:"Buscar gente de fiar",s:G.fl.antec||y.carisma>=50?"Más manos, más botín que repartir":"Sin antecedentes ni labia (carisma 50) nadie te escucha",fn:G.fl.antec||y.carisma>=50?()=>hacer(()=>{if(b.banda>=3)return "Ya sois suficientes. Uno más sería uno que habla.";if(ch(.1)){b.plan=Math.max(0,b.plan-2);return detener("conspiración para un atraco",2)}b.banda++;return vario("banda",["Uno que conduce como si el coche fuera suyo desde niño. Dice que sí antes de oír la cifra.","Una conocida de un conocido que abre lo que le pongan delante. Cobra parte entera.","Un tipo callado que estuvo dentro y no quiere volver. Por eso es de fiar."])}):()=>{}},
+   {t:"Entrar",s:b.plan<2?"Sin preparar es una ruleta":"El día del furgón",fn:()=>hacer(atraco)}]);
+}
+function atraco(){const y=G.yo,t=tur(),b=t.banco||{plan:0,banda:0};t.banco=null;
+  if(ch(clamp(.2+b.plan*.1+b.banda*.07+y.mente/400+(t.arma?.05:0),.08,.88))){
+    const n=Math.round((ri(40,110)*1000+b.plan*6000)*(1+b.banda*.5)/(1+b.banda));y.dinero+=n;t.atr++;turSube(38-b.plan*5);add("animo",10);logro("atracas un banco");
+    return `Cuatro minutos. Nadie se hace el héroe y nadie sale herido. `+(b.banda?`Repartís en un garaje, sin miraros mucho: te tocan ${n}.`:`Lo has hecho a solas: ${n}, en una bolsa que no te atreves a abrir hasta el día siguiente.`)+` Esa noche tu banco sale en el telediario y tú cenas delante, despacio.`+porque()}
+  const r=R();
+  if(r<.1){G.muerteDirecta="un disparo en la puerta de un banco";return {txt:"La alarma salta antes de tiempo. Sales corriendo hacia una calle que ya está cortada. Oyes la voz de alto. No paras.",mal:1}}
+  if(r<.25){t.mu++;t.preso=1;return {txt:"Todo se tuerce en diez segundos: un guardia que no debía estar, un forcejeo, un disparo que no estaba en el plan. El guardia no se levanta. "+encarcelar(ri(280,400)).txt,mal:1}}
+  if(r<.5){add("salud",-35);turSube(40);return {txt:"Sales sin un billete y con una bala en el costado. Te cose alguien que no hace preguntas y cobra como si las hiciera.",mal:1}}
+  return {txt:"Hay un botón debajo de un mostrador que no viste. Cuando sales, la calle ya es azul. "+encarcelar(ri(96,180)).txt,mal:1};
+}
+/* -- Quitar a alguien de en medio -- */
+function menuObjetivo(){const t=tur();
+  if(t.obj){const p=P(t.obj.id);if(p&&p.vivo){menuPlan(p);return}t.obj=null}
+  const l=vivos(p=>p.con&&!p.lejos&&p.edad>=216&&!["hijo","nieto"].includes(p.rol)&&p.id!=G.pareja&&(p.rel<35||p.jefe||p.bully)).sort((a,b)=>(b.jefe?1:0)-(a.jefe?1:0)||a.rel-b.rel);
+  abrirHoja("¿Quién sobra?",l.length?l.map(p=>({t:p.nombre+" "+p.apellido,s:rolTxt(p)+" · "+edadTxt(p.edad)+" · vínculo "+Math.round(p.rel),fn:()=>{t.obj={id:p.id,plan:0};guardar();menuPlan(p)}})):[{t:"No odias a nadie lo bastante",s:"Hace falta alguien con quien te lleves mal, tu jefe o quien te amargó el colegio",fn:()=>cerrarHoja()}]);
+}
+function menuPlan(p){const y=G.yo,t=tur(),o=t.obj,cerca=p.jefe||p.casa||p.rel>=20;
+  const M=(tx,s,met,no)=>({t:tx,s:no||s,fn:no?()=>{}:()=>hacer(()=>matar(p,met))});
+  abrirHoja(p.nombre+" · plan "+Math.floor(o.plan),[
+   {t:"Seguirle y aprender sus rutinas",s:"Cuanto más sepas, menos puede fallar",fn:()=>hacer(()=>{o.plan+=1+y.mente/80;return vario("seguir",[`Sabes a qué hora sale ${p.nombre}, dónde aparca y qué noches vuelve a pie.`,`Tres semanas detrás de ${p.nombre}, a cuarenta metros. Tiene costumbres. Todo el mundo las tiene.`,`Apuntas las luces de su casa: cuál se enciende primero, cuál se apaga la última.`,`${p.nombre} te saluda por la calle sin saber que llevas un mes mirándole la nuca.`])})},
+   M("Veneno","Limpio si sabes lo que haces · depende de tu mente","ven",t.ven<4?"Antes tienes que estudiar venenos":!cerca?"No estás lo bastante cerca de su vida":""),
+   M("Un disparo","Seguro y ruidoso","tiro",!t.arma?"No tienes arma":""),
+   M("Un cuchillo","Cuerpo a cuerpo · depende de tu físico","cuch",y.cuerpo<45?"Te falta cuerpo (45)":""),
+   {t:"Olvidarte de "+p.nombre,s:"Dejarle vivir",fn:()=>hacer(()=>{t.obj=null;rencor(-5);return `Rompes los apuntes. ${p.nombre} seguirá con su vida sin saber nunca lo cerca que estuvo.`})}]);
+}
+function matar(p,met){const y=G.yo,t=tur(),o=t.obj||{plan:0},pl=o.plan,joven=p.edad<50*12;
+  const ok=clamp(met=="ven"?.4+y.mente/250+pl*.06:met=="tiro"?.6+pl*.06+y.mente/500:.25+y.cuerpo/200+pl*.05-(joven?.1:0),.05,.95);
+  if(!ch(ok)){
+    if(met=="ven"){o.plan=Math.max(0,pl-1);if(ch(.3)){turSube(20);return {txt:`${p.nombre} pasa tres días en el hospital y sale. Le hacen análisis. Alguien, en algún despacho, levanta una ceja.`,mal:1}}return {txt:`${p.nombre} se queja del estómago una tarde y al día siguiente está como siempre. Te has quedado ${g("corto","corta")}. Nadie sospecha nada, tú tampoco duermes.`,mal:1}}
+    p.rel=0;t.obj=null;
+    if(met=="tiro"){if(ch(.35))return {txt:`Fallas. ${p.nombre} corre, grita y te ha visto la cara. `+encarcelar(ri(96,150)).txt,mal:1};turSube(35);return {txt:`Te tiembla el pulso y fallas. ${p.nombre} se tira al suelo; tú corres hasta que te arden los pulmones. No te ha visto la cara. Crees.`,mal:1}}
+    add("salud",-ri(15,35));if(ch(.5))return {txt:`${p.nombre} es más fuerte de lo que calculabas. Forcejeáis, grita, se encienden ventanas. `+encarcelar(ri(96,150)).txt,mal:1};
+    turSube(40);return {txt:`${p.nombre} se defiende mejor de lo que esperabas. Sales de allí con un corte en el brazo y sin haber terminado nada. Ahora sabe que alguien le quiere muerto.`.replace("muerto",gp(p,"muerto","muerta")),mal:1}}
+  p.vivo=false;p.casa=false;p.asesinado=1;if(p.id==G.crush)G.crush=null;t.mu++;rencor(-25);add("animo",tiene("tramposo")?-4:-12);
+  decidir("cuerpo",{id:p.id,met,pl});
+  const s=met=="ven"?`Lo haces sin tocarle. Un café que no preparó ${gp(p,"él","ella")}, una tarde cualquiera. ${p.nombre} se encuentra mal, se sienta, y ya no se levanta.`:met=="tiro"?`Un solo ruido, más seco de lo que suena en las películas. ${p.nombre} cae sin enterarse. El eco tarda más que ${gp(p,"él","ella")}.`:`Es rápido y no se parece a nada que hubieras imaginado. ${p.nombre} te mira un segundo, sin entender, y luego ya no mira.`;
+  return {txt:s+porque()+" Ahora queda lo difícil.",mal:1};
+}
+DEC.cuerpo={man:1,tit:d=>"¿Y ahora qué haces con "+P(d.id).nombre+"?",txt:d=>"",ops:d=>{const y=G.yo,t=tur(),p=P(d.id),motivo=p.jefe||p.bully||p.rel<15;
+  const fin=s=>{t.obj=null;if(motivo){turSube(10);s+=" Todo el mundo sabía cómo os llevabais: eres de los primeros a los que preguntan."}
+    if(p.jefe&&G.trabajo&&ch(.25)){G.trabajo.s=Math.round(G.trabajo.s*1.15);s+=` En el trabajo hay un minuto de silencio y, al mes, una vacante. Te la ofrecen a ti: ${G.trabajo.s}.`}
+    try{trasMuerte(p)}catch(e){}return {txt:s,mal:1}};
+  return [
+   {t:"Irte y dejarlo como está",s:d.met=="ven"?"Si lo hiciste bien, parecerá el corazón":"Lo encontrarán enseguida",fn:()=>{if(d.met=="ven"){const n=Math.max(3,24-y.mente/4);turSube(n);return fin(n<8?"El médico firma un infarto sin levantar la vista del papel. Vas al entierro. Das el pésame.":"Piden una autopsia «por protocolo». Tardan semanas en decir algo, y no dicen que no.")}turSube(d.met=="tiro"?42-d.pl*3:36-d.pl*3);return fin("Te vas andando, sin correr. Lo encuentran antes de que llegues a casa. Sale en el periódico con una foto antigua.")}},
+   y.mente<60?null:{t:"Hacer que parezca un accidente",s:"Depende de tu cabeza",fn:()=>{if(ch(clamp(.3+y.mente/200+d.pl*.05,.1,.92))){turSube(5);return fin("Lo colocas todo como si la mala suerte hubiera pasado por allí. El atestado dice «caída fortuita». Nadie lo discute.")}turSube(45);return fin("Algo no encaja en la escena, y hay gente que cobra por notar esas cosas. El atestado dice «muerte violenta».")}},
+   y.cuerpo<45?null:{t:"Deshacerte del cuerpo",s:"Depende de tu físico, tu cabeza"+(G.coche?" y tienes coche":" · sin coche es peor"),fn:()=>{if(ch(clamp(.25+y.cuerpo/250+y.mente/400+(G.coche?.12:0)+d.pl*.03,.08,.9))){p.desap=1;turSube(8);return fin(`Es la noche más larga de tu vida y la que más pesa, en todos los sentidos. Al amanecer no queda nada. ${p.nombre} pasa a ser un cartel de «desaparecido» en las farolas, cada mes más descolorido.`.replace("desaparecido",gp(p,"desaparecido","desaparecida")))}turSube(50);return fin("Pesa más de lo que creías, tardas más de lo que tenías, y alguien que paseaba al perro a deshoras se queda mirando. Sales de allí sabiendo que tienes los días contados.")}}].filter(Boolean)}};
+DEC.inspector2={man:1,tit:d=>"Preguntas",txt:d=>"",ops:d=>{const y=G.yo,t=tur();return [
+ {t:"Contestar con calma",s:"Depende de tu cabeza y tu labia",fn:()=>{if(ch(.3+y.carisma/220+y.mente/260)){t.sosp=Math.max(t.mu*4,t.sosp-18);return "Contestas despacio, sin adornar, mirando a los ojos lo justo. Se van dándote las gracias. Tardas una hora en poder soltar el vaso."}turSube(15);return {txt:"Das un detalle que nadie te había pedido. La inspectora lo apunta sin prisa. «No salga de la ciudad.»",mal:1}}},
+ {t:"Huir del país esta misma noche",fn:()=>{t.sosp=Math.max(t.mu*3,t.sosp-22);if(G.prop){y.dinero+=Math.round((G.prop.v-G.prop.deuda)*.4);G.prop=null}G.neg=null;return {txt:mudarExo(pick(EXO),true)+" Dejas la nevera llena y las llaves puestas.",mal:1}}},
+ {t:"Confesar",fn:()=>{t.sosp=0;if(t.mu)t.preso=1;return {txt:"Dices que sí, que fuiste tú, y notas que llevabas años esperando decirlo. "+encarcelar(t.mu?ri(240,400):ri(96,180)).txt,mal:1}}}]}};
+function tickTurbio(){
+  const y=G.yo;if(G.renc>0)G.renc=Math.max(0,G.renc-(y.animo>70?.1:.04));
+  if((G.renc||0)>=35&&!G.fl.rencAviso&&y.edad>=216&&!G.carcel){G.fl.rencAviso=1;log("Llevas la cuenta de todo lo que te han hecho, y la cuenta ya no cabe en una libreta. Algo se ha torcido por dentro y no hace ruido. Entre tus opciones aparece «Lo que el mundo te debe».","mala")}
+  const t=G.tur;if(!t||G.carcel)return;
+  if(t.sosp>0&&(!t.ult||y.edad-t.ult>6))t.sosp=Math.max(t.mu*4,t.sosp-.3);
+  if(t.sosp>=70&&ch(.12)){t.sosp=20;if(t.mu)t.preso=1;log("Te esperan en el portal, dos delante y dos detrás. Uno te dice tu nombre completo, con los dos apellidos. "+encarcelar(t.mu?ri(240,400):ri(96,180)).txt,"mala");return}
+  if(t.sosp>=40&&!G.pend&&(!t.insp||y.edad-t.insp>24)){t.insp=y.edad;decidir("inspector2");log("Dos policías de paisano te esperan a la salida. «Solo queremos descartarle. ¿Tiene un momento?»","mala")}
+}
+function eventosTurbio(ev){const t=G.tur;
+  if((G.renc||0)>=50)ev(1,"rumia",()=>{add("animo",-3);log(vario("rumia",[`Noche en vela repasando ${agravio()}. Por la mañana sonríes igual que siempre.`,`Alguien te pide perdón por pisarte en el autobús y te quedas mirándole demasiado tiempo.`,`Haces una lista mental. Es corta, pero la sabes de memoria.`]),"mala")});
+  if(t&&t.mu&&!G.carcel)ev(2,"turculpa",()=>{add("animo",-5);log(vario("turculpa",["Te lavas las manos más de lo normal. No es por higiene.","Alguien por la calle se le parece de espaldas. Se te para todo hasta que se gira.","Sueñas con una puerta que alguien abre desde dentro. Te despiertas antes de ver quién.","Pasas por delante de su portal. Han cambiado el nombre del buzón.","Descubres que se puede vivir con ello. Eso es lo que más miedo te da."]),"mala")});
+}
+function turNecro(){const t=G.tur;if(!t||!(t.mu||t.atr))return "";let s="";
+  if(t.mu)s+=t.preso?`Mató a ${t.mu==1?"una persona":t.mu+" personas"} y lo pagó entre rejas. `:`Nadie supo nunca que ${t.mu==1?"una muerte llevaba":t.mu+" muertes llevaban"} su firma. Saludaba en el portal. `;
+  if(t.atr)s+=`Atracó ${t.atr==1?"un banco":t.atr+" bancos"}. `;
+  return s+"Decía que el mundo había empezado primero. "}
 function accionesExtra5(L,a){
   if(a<70&&!enEra("pand"))L.push({t:"Ligar esta noche",cls:"riesgo",fn:ligarNoche});
   if(G.fl.adsex)L.push({t:"Ir a terapia",fn:terapiaSexo});
   if(G.osc&&!G.osc.fin)L.push({t:"El camino oscuro…",cls:"riesgo",abre:menuOscuro});
+  if(a<78&&((G.renc||0)>=35||G.tur))L.push({t:"Lo que el mundo te debe…",cls:"riesgo",abre:menuTurbio});
 }
 function eventosExtra5(ev,a){
   const y=G.yo,E=exo();
@@ -2781,6 +2903,7 @@ function eventosExtra5(ev,a){
     ev(2,"exogen",()=>{const r=ri(0,3);if(r==0){y.dinero-=200;log("Toca renovar el visado: colas, sellos, fotos de carné y 200 en tasas.","mala")}else if(r==1){add("animo",-5);log("Te entra una nostalgia tonta por una comida, un olor, una palabra que aquí no existe.","mala")}
       else if(r==2){add("salud",-6);log("Unas fiebres te tienen una semana en cama, bebiendo suero y jurando que no vuelves a comer en la calle. Vuelves a comer en la calle.","mala")}else{add("animo",4);log("Te cruzas con alguien de tu tierra en el sitio más inesperado. Habláis una hora de comida, de fútbol y de qué hacéis aquí.")}});
     ev(1,"exovis",()=>{const p=pick(vivos(q=>q.lejos&&q.rel>=55&&q.edad>=216));if(p){rel(p,6);add("animo",6);log(`${cap(tu(p))} viene a verte desde casa, con embutido escondido en la maleta. Le enseñas tu vida nueva como quien enseña una casa.`)}})}
+  eventosTurbio(ev);
   const o=G.osc;
   if(o&&o.n&&!G.carcel){ev(2,"oscculpa",()=>{add("animo",-6);log(vario("oscculpa",["En la tele ponen el aniversario. Hablan las familias. Cambias de canal y luego vuelves a ponerlo.","Sueñas con velas en una acera. Te despiertas antes de que nadie se gire a mirarte.","En tu calle vive alguien que estuvo allí aquel día. Cojea. Te saluda cada mañana.","Alguien cuenta delante de ti dónde estaba cuando pasó. Tú asientes, como todos."]),"mala")});
     if(o.fug&&G.exo)ev(1,"oscextra",()=>{if(ch(.3)){o.preso=1;G.exo=null;G.fl.emig=0;log("Dos hombres de paisano te esperan en la puerta de casa, a miles de kilómetros de donde empezó todo. Orden internacional. Te suben a un avión esposado. "+encarcelar(480).txt,"mala")}else log("Ves tu cara, más joven, en un periódico atrasado que alguien ha dejado en un café. Pagas y te vas sin terminar.","mala")})}
