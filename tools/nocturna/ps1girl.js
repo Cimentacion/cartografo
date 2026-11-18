@@ -6,7 +6,7 @@ const PS1G=(function(){
     #include <common>
     #include <skinning_pars_vertex>
     uniform vec2 res;
-    varying vec2 vUvA;varying float vW;varying vec3 vV;varying vec3 vNs;
+    varying vec2 vUv;varying vec3 vV;varying vec3 vNs;
     void main(){
       #include <beginnormal_vertex>
       #include <skinbase_vertex>
@@ -15,22 +15,21 @@ const PS1G=(function(){
       #include <skinning_vertex>
       vec4 mv=modelViewMatrix*vec4(transformed,1.);
       vec4 p=projectionMatrix*mv;
-      vec2 h=res*.5;p.xy=floor(p.xy/p.w*h+.5)/h*p.w;
-      vW=p.w;vUvA=uv*p.w;vV=mv.xyz;vNs=normalize(normalMatrix*objectNormal);
+      vec2 h=res;p.xy=floor(p.xy/p.w*h+.5)/h*p.w;
+      vUv=uv;vV=mv.xyz;vNs=normalize(normalMatrix*objectNormal);
       gl_Position=p;
     }`;
   const FS=`
     uniform sampler2D map;uniform vec3 L;uniform vec3 RIM;uniform vec3 tint;uniform float facet;
-    varying vec2 vUvA;varying float vW;varying vec3 vV;varying vec3 vNs;
+    varying vec2 vUv;varying vec3 vV;varying vec3 vNs;
     void main(){
-      vec4 t=texture2D(map,vUvA/vW);
+      vec4 t=texture2D(map,vUv);
       if(t.a<.5)discard;
-      vec3 nf=normalize(cross(dFdx(vV),dFdy(vV)));
-      vec3 ns=normalize(vNs);if(dot(ns,-vV)<0.)ns=-ns;
-      vec3 n=normalize(mix(ns,nf,facet));
-      float d=max(dot(n,L),0.);float k=pow(d,.85);
-      float rim=max(dot(n,RIM),0.)*pow(1.-abs(n.z),1.5);
-      vec3 sh=vec3(.20+k*1.08+rim*.22,.22+k*1.0+rim*.32,.30+k*.88+rim*.55);
+      vec3 n=normalize(vNs);if(dot(n,-vV)<0.)n=-n;
+      /* la textura de Tripo ya trae el sombreado pintado: luz suave encima, sin facetas */
+      float d=max(dot(n,L),0.);
+      float rim=max(dot(n,RIM),0.)*pow(1.-abs(n.z),2.);
+      vec3 sh=vec3(.78+d*.30+rim*.10,.78+d*.28+rim*.14,.82+d*.24+rim*.24);
       gl_FragColor=vec4(t.rgb*sh*tint,1.);
     }`;
   function nrm(v){const l=Math.hypot(...v);return v.map(x=>x/l)}
