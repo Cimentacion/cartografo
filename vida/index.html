@@ -234,6 +234,7 @@ function rolTxt(p){
   if(p.id==G.pareja)return G.casado?gp(p,"Marido","Mujer"):gp(p,"Novio","Novia");
   if(p.rol=="herm"&&p.medio)return gp(p,"Medio hermano","Media hermana");
   if(p.astra)return ({madr:gp(p,"Padrastro","Madrastra"),herm:gp(p,"Hermanastro","Hermanastra"),prima:gp(p,"«Primo» de mentira","«Prima» de mentira")})[p.astra]+(p.amante?" · amante":"");
+  if(p.amante&&SANGRE.includes(p.rol))return ROL[p.rol][p.sexo=="m"?0:1]+" · amante";
   if(p.amante)return "Amante"+(p.casado?" ("+gp(p,"casado","casada")+")":"");
   if(p.rol=="hijo"&&p.secreto)return gp(p,"Hijo","Hija")+" (en secreto)";
   let r=ROL[p.rol][p.sexo=="m"?0:1];
@@ -1106,9 +1107,19 @@ function eventosPoliticos(ev,a){ // bodas tardías, hermanastros, madrastras y �
     if(y.dinero>=300){y.dinero-=300;rel(h,-10);log(`${tu(h)} os ha visto a ${am.nombre} y a ti. No dice nada: solo enseña la mano abierta. Su silencio te cuesta 300.`,"mala")}
     else{rel(h,-15);log(`${tu(h)} os ha visto a ${am.nombre} y a ti, y no tienes con qué pagar su silencio.`+pillada(am),"mala")}});
 }
+function pilladaSangre(p){ // lío con un hermano o un primo (siempre entre adultos): si se sabe, la familia arde
+  const ps=vivos(q=>q.rol=="prog"&&!q.lejos),h=p.rol=="herm";
+  vivos(q=>SANGRE.includes(q.rol)&&q.id!=p.id&&q.con&&q.edad>=216).forEach(q=>rel(q,h?-22:-10));ten(h?40:20);add("animo",h?-14:-8);p.pas=Math.max(0,(p.pas||0)-10);
+  if(!h)return vario("pillaprimo",[` Una tía os ve de la mano dos calles más allá de donde creíais estar a salvo. En la siguiente comida familiar se habla de todo menos de eso, a gritos.`,` Lo vuestro llega a oídos de la familia. «Entre primos…», dice alguien, y deja la frase sin terminar. La mitad os retira el saludo; la otra mitad pregunta detalles.`]);
+  let s=ps.length?` ${tu(pick(ps))} abre la puerta sin llamar. No hay explicación posible y nadie la pide. El silencio dura semanas.`:` Alguien de la familia os ve. Nadie lo dice en voz alta, pero dejan de invitaros a las mismas cosas.`;
+  if(p.casa&&!G.indep&&ch(.5)){p.casa=false;s+=` ${p.nombre} se va de casa esa misma semana.`}
+  else s+=" Desde entonces, en casa, cuando entráis los dos en una habitación alguien sale.";
+  return s;
+}
 function riesgos(p){
   let s="";
   if(p.astra=="madr"||p.astra=="herm"){if(ch(.09))s+=pillada(p)}
+  else if(p.rol=="herm"||p.rol=="primo"){if(ch(p.rol=="herm"?.12:.07))s+=pilladaSangre(p)}
   else if(p.casado&&ch(.07))s+=escandalo(p);
   if(G.pareja&&G.pareja!=p.id&&ch(.15)){const q=P(G.pareja);G.pareja=null;G.casado=false;G.crush=null;q.casa=false;rel(q,-40);add("animo",-12);s+=` ${q.nombre} se entera de lo tuyo y se va.`}
   return s;
@@ -1219,7 +1230,7 @@ function menuPersona(p){
   if(adAjeno&&p.rol=="vec"){O("Ayudar con las bolsas de la compra",()=>favor(p,"bolsas"));
     if(a>=6)O("Ayudar con las plantas y el patio",()=>favor(p,"jardin"));
     if(a>=14)O("Echar una mano en su trabajo",()=>favor(p,"trabajo"),"Algo de dinero")}
-  if(adAjeno&&a>=18&&pa>=18&&!esPareja&&!p.crianza){pers(p);virgenIni(p);const q=p.quim||0,d=p.dif*5;
+  if((adAjeno||deSuQuinta(p))&&a>=18&&pa>=18&&!esPareja&&!p.crianza&&!p.vaciado){pers(p);virgenIni(p);const q=p.quim||0,d=p.dif*5;
     if(p.amante){
       ops.push({t:"Quedar a solas",s:"Pasión "+Math.round(p.pas||0)+(p.casado?" · a escondidas: riesgo de que os descubran":""),fn:()=>menuEncuentro(p)});
       if(p.casado&&(p.pas||0)>=40)O("Pedirle que deje a su pareja",()=>pedirQueLoDeje(p),"Depende de la pasión y el vínculo");
@@ -1241,7 +1252,7 @@ function menuPersona(p){
   if(esPareja&&a>=18&&pa>=18)ops.push({t:"Quedar a solas",s:"Pasión "+Math.round(p.pas||0),fn:()=>menuEncuentro(p)});
   if(a>=6)ops.push({t:G.fijo==p.id?"Quitar de arriba":"Fijar arriba en las listas",s:"No gasta el mes",fn:()=>{G.fijo=G.fijo==p.id?null:p.id;guardar();menuPersona(p)}});
   let tit=p.nombre+" · "+rolTxt(p)+amorTit(p);
-  if(adAjeno)tit+=" · "+PERS[pers(p)][p.sexo=="m"?0:1]+(p.triste?" · de capa caída":"")+(a>=18&&(p.quim||0)>0?" · química "+Math.round(p.quim):"")+(a>=18&&deInfancia(p)?" · os conocéis desde críos":"");
+  if(adAjeno||deSuQuinta(p))tit+=" · "+PERS[pers(p)][p.sexo=="m"?0:1]+(p.triste?" · de capa caída":"")+(a>=18&&(p.quim||0)>0?" · química "+Math.round(p.quim):"")+(a>=18&&deInfancia(p)?" · os conocéis desde críos":"");
   if(p.rasgo!=null)tit+=" · "+RASGOS[p.rasgo].n[p.sexo=="m"?0:1];
   abrirHoja(tit+(p.ult?" · Lo último: "+p.ult:""),ops);
 }
@@ -1409,7 +1420,7 @@ function accionesVida(){
     A("Leer y aprender",()=>{pr("estudio",.25);add("mente",ri(1,2));add("animo",1);return vario("leer",["Lees por las noches. Algo se te queda.","Te enganchas a una novela de ochocientas páginas.","Aprendes por tu cuenta algo que nunca te enseñaron.","Un documental detrás de otro. Ahora opinas de volcanes.","Relees un libro de hace años y es otro libro.","Te sacas el carné de la biblioteca y lo amortizas.","Aprendes a arreglar un grifo viendo vídeos. El grifo sobrevive.","Un curso gratuito por internet. Lo acabas, que ya es más que la mayoría.","Lees el periódico entero, hasta las esquelas.","Te da por la historia. Aburres a todo el mundo con los romanos.","Empiezas un cuaderno de notas. Lo llenas en tres semanas.","Crucigramas, sudokus y un ajedrez contra ti."])});
     if(!(G.fl.ropa>0))A("Comprar ropa cara",()=>{if(y.dinero<500)return {txt:vario("ropano",["Te pruebas una chaqueta que cuesta 500. La devuelves a la percha.","Miras el escaparate, miras la cartera. Gana la cartera.","Entras en la tienda buena. La dependienta te calcula de un vistazo y acierta.","Te enamoras de un abrigo de 500. Será otro mes."]),mal:1};y.dinero-=500;G.fl.ropa=18;add("aspecto",6);add("animo",3);return "Te gastas 500 en ropa buena de verdad. Te queda como hecha a medida."});
     if(G.pareja){const q=P(G.pareja);
-      if(!G.casado&&q.rel>=75&&q.edad>=216)A("Pedir matrimonio",()=>{if(ch(.2+q.rel/130)){G.casado=true;add("animo",12);y.dinero-=1500;if(G.indep)q.casa=true;return `${q.nombre} dice que sí. Boda pequeña, baile largo.`}rel(q,-8);return {txt:`${q.nombre} dice que aún no.`,mal:1}});
+      if(!G.casado&&q.rel>=75&&q.edad>=216&&q.rol!="herm")A("Pedir matrimonio",()=>{if(ch(.2+q.rel/130)){G.casado=true;add("animo",12);y.dinero-=1500;if(G.indep)q.casa=true;return `${q.nombre} dice que sí. Boda pequeña, baile largo.`}rel(q,-8);return {txt:`${q.nombre} dice que aún no.`,mal:1}});
       if(G.emb==0&&q.rel>=65&&a<46&&q.edad>=216&&q.edad<46*12&&vivos(p=>p.rol=="hijo").length<5)A("Buscar un hijo",()=>{if(ch(.3)){G.fl.adop=q.sexo==y.sexo?1:0;G.emb=q.sexo==y.sexo?ri(10,20):9;return q.sexo==y.sexo?"Empezáis los papeles de la adopción. Os dicen que hay para rato.":"Positivo. En nueve meses seréis uno más."}return "Lo intentáis. Este mes no ha podido ser."});
     }
     if(G.fl.fuma)A("Dejar de fumar",()=>{if(ch(.3)){G.fl.fuma=0;add("animo",-4);return "Tiras el último paquete. Esta vez aguantas."}return {txt:vario("nofuma",["Aguantas nueve días sin fumar.","Lo dejas un lunes. El jueves pides uno «solo por esta vez».","Parches, chicles y mal humor. A la tercera semana recaes.","Tiras el mechero. Luego compras otro."]),mal:1}});
@@ -2524,7 +2535,9 @@ function escenaIntro(n){
 
 /* ================= AMPLIACIÓN 4: amor y vida íntima (siempre entre adultos), listas con fijado y gente de todas las edades ================= */
 const SANGRE=["prog","herm","abu","tio","primo","hijo","nieto","sobr"];
-function adultoLibre(p){return p.vivo&&p.con&&p.edad>=216&&G.yo.edad>=216&&!SANGRE.includes(p.rol)&&!p.crianza&&!p.vaciado}
+// familia de tu misma generación (hermanos y primos con menos de 10 años de diferencia), siempre los dos adultos
+function deSuQuinta(p){return ["herm","primo"].includes(p.rol)&&!p.astra&&p.edad>=216&&G.yo.edad>=216&&Math.abs(p.edad-G.yo.edad)<=120}
+function adultoLibre(p){return p.vivo&&p.con&&p.edad>=216&&G.yo.edad>=216&&(!SANGRE.includes(p.rol)||deSuQuinta(p))&&!p.crianza&&!p.vaciado}
 function fijarArriba(l){if(!G.fijo)return l;const i=l.findIndex(p=>p.id==G.fijo);if(i>0){const p=l.splice(i,1)[0];l.unshift(p)}return l}
 function sube(p,n){pers(p);p.quim=clamp((p.quim||0)+n*2*(1-p.dif*.14)*(deInfancia(p)?1.3:1))}
 function virgenIni(p){if(p.virgen==null){const e=p.edad/12;p.virgen=e>=18&&e<24&&ch([.55,.45,.35,.25,.18,.12][Math.floor(e)-18])}return p.virgen}
