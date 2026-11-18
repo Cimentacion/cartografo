@@ -2,7 +2,7 @@ name: nocturna-tripo
 on:
   push:
     branches: [nocturna-tripo]
-    paths: ['tools/nocturna/**', '.github/workflows/nocturna-tripo.yml']
+    paths: ['tools/nocturna/girls.json', 'tools/nocturna/gen.py']
   workflow_dispatch:
 permissions:
   contents: write
