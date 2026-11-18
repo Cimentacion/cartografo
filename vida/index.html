@@ -74,6 +74,8 @@ table{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:
 th,td{border:1px solid var(--blanco);padding:4px 6px;text-align:left}
 th{font-family:var(--f-titular);font-weight:400;color:var(--caqui);font-size:11px}
 td.n{text-align:right;white-space:nowrap}
+.ficha{margin-bottom:10px;font-size:13px}.ficha td{padding:5px 6px;border-bottom:1px solid rgba(128,128,128,.25);vertical-align:top;text-align:left}.ficha td:first-child{opacity:.7;width:36%}
+.ficha td.fsec{opacity:1;font-weight:700;color:var(--oro);padding-top:12px;border-bottom:1px solid var(--oro)}.ficha td.fno{opacity:.6;font-style:italic}
 .muerto td{opacity:.5}
 .nota{font-size:12px;line-height:1.4;font-weight:700}
 
@@ -191,7 +193,8 @@ const ROL={prog:["Padre","Madre"],herm:["Hermano","Hermana"],abu:["Abuelo","Abue
 let G=null, TAB="diario";
 const CLAVE="toda-una-vida-v1";
 function guardar(){try{localStorage.setItem(CLAVE,JSON.stringify(G))}catch(e){}}
-function cargar(){try{const s=localStorage.getItem(CLAVE);if(s)G=JSON.parse(s);if(G&&G.yo&&G.gente)G.gente.forEach(p=>{if(p.crianza&&!p.astra&&Math.abs(G.yo.edad-p.edad)<=60)p.crianza=false})}catch(e){G=null}
+function cargar(){try{const s=localStorage.getItem(CLAVE);if(s)G=JSON.parse(s);if(G&&G.yo&&G.gente)G.gente.forEach(p=>{
+  if(p.vivo&&p.edad>=216&&p.edad<27*12&&(p.inf||0)>=10&&p.rel>=55&&!p.casado&&!p.ex&&!p.pv&&p.virgen===false){if(p.cama){p.pv=1;if(G.amor)G.amor.pv=(G.amor.pv||0)+1}else p.virgen=null}if(p.crianza&&!p.astra&&Math.abs(G.yo.edad-p.edad)<=60)p.crianza=false})}catch(e){G=null}
   if(G&&!G.v2){G.gente.forEach(p=>p.con=true);G.v2=1}
   if(G&&G.yo.aspecto==null)G.yo.aspecto=35;
   if(G&&G.yo.altAdulta==null)genCuerpo();
@@ -233,6 +236,7 @@ function log(txt,cls){if(/mala/.test(cls||"")&&G.yo&&G.yo.edad>=72)G.renc=Math.m
 function titular(txt,sub){G.lid=(G.lid||0)+1;G.log.push({t:"tit",txt,sub:sub||"",n:G.tn||0,i:G.lid})}
 function rolTxt(p){
   if(p.id==G.pareja)return G.casado?gp(p,"Marido","Mujer"):gp(p,"Novio","Novia");
+  if(p.esposa)return gp(p,"Marido","Mujer")+" (también)";
   if(p.rol=="herm"&&p.medio)return gp(p,"Medio hermano","Media hermana");
   if(p.astra)return ({madr:gp(p,"Padrastro","Madrastra"),herm:gp(p,"Hermanastro","Hermanastra"),prima:gp(p,"«Primo» de mentira","«Prima» de mentira")})[p.astra]+(p.amante?" · amante":"");
   if(p.amante&&SANGRE.includes(p.rol))return ROL[p.rol][p.sexo=="m"?0:1]+" · amante";
@@ -493,7 +497,7 @@ function tick(){
   G.gente.slice().forEach(p=>{if(p.vivo&&ch(mort(p.edad)/12)){morir(p);trasMuerte(p)}});
   // Hijos se van de casa
   G.gente.forEach(p=>{if(p.vivo&&p.casa&&p.rol=="herm"&&p.edad>24*12&&ch(.03)){p.casa=false;if(!G.indep)log(`${tu(p)} se va de casa. Su cuarto se queda raro.`)}});
-  tickMundo();tickMagia();tickCompulsion();tickOscuro();tickTurbio();if(G.exo&&G.indep)G.yo.dinero+=(exo()||{barato:0}).barato;tickEcos();tickDinero();tickSalud();tickCadena();
+  tickMundo();tickMagia();tickCompulsion();tickOscuro();tickTurbio();tickHarem();if(G.exo&&G.indep)G.yo.dinero+=(exo()||{barato:0}).barato;tickEcos();tickDinero();tickSalud();tickCadena();
   if(G.carcel&&--G.carcel.m<=0)liberar();
   // Azar
   if(enMagia()&&y.edad%12==9)finCursoMagia();
@@ -1133,7 +1137,7 @@ function riesgos(p){
   if(p.astra=="madr"||p.astra=="herm"){if(ch(.09))s+=pillada(p)}
   else if(p.rol=="herm"||p.rol=="primo"){if(ch(p.rol=="herm"?.12:.07))s+=pilladaSangre(p)}
   else if(p.casado&&ch(.07))s+=escandalo(p);
-  if(G.pareja&&G.pareja!=p.id&&ch(.15)){const q=P(G.pareja);G.pareja=null;G.casado=false;G.crush=null;q.casa=false;rel(q,-40);add("animo",-12);s+=` ${q.nombre} se entera de lo tuyo y se va.`}
+  if(G.pareja&&G.pareja!=p.id&&!p.esposa&&ch(.15)){const q=P(G.pareja);G.pareja=null;G.casado=false;G.crush=null;q.casa=false;rel(q,-40);add("animo",-12);s+=` ${q.nombre} se entera de lo tuyo y se va.`}
   return s;
 }
 function embarazoPosible(p){ // solo parejas de distinto sexo y con la mujer entre 18 y 44
@@ -1187,7 +1191,7 @@ function pedirDinero(p){
 function menuPersona(p){
   const y=G.yo,a=y.edad/12,pa=p.edad/12,ops=[];
   if(a<2){hacer(()=>estarCon(p));return}
-  const O=(t,fn,s)=>ops.push({t,s,fn:()=>hacer(fn)});
+  const O=(t,fn,s)=>ops.push({t,s,fn:()=>hacer(()=>{p.vis=(p.vis||0)+1;return fn()})});
   const fam=["prog","abu","tio"].includes(p.rol),ajeno=["vec","conoc","comp"].includes(p.rol),par=Math.abs(pa-a)<=4,esPareja=p.id==G.pareja;
   O(a<12?(pa<16?"Jugar":"Estar un rato"):"Charlar",()=>estarCon(p));
   if(a<16&&pa<16){ // entre críos
@@ -1243,6 +1247,7 @@ function menuPersona(p){
     if(a>=6)O("Ayudar con las plantas y el patio",()=>favor(p,"jardin"));
     if(a>=14)O("Echar una mano en su trabajo",()=>favor(p,"trabajo"),"Algo de dinero")}
   if((adAjeno||deSuQuinta(p))&&a>=18&&pa>=18&&!esPareja&&!p.crianza&&!p.vaciado){pers(p);virgenIni(p);const q=p.quim||0,d=p.dif*5;
+    if(p.amante&&G.casado&&G.pareja&&!p.esposa&&!p.casado&&esposas().length<3&&(p.pas||0)>=40&&p.rel>=60)O("Pedirle que sea también tu "+gp(p,"marido","mujer"),()=>segundaEsposa(p),"3000 · depende de "+P(G.pareja).nombre+", de tu dinero y de dónde vivas");
     if(p.amante){
       ops.push({t:"Quedar a solas",s:"Pasión "+Math.round(p.pas||0)+(p.casado?" · a escondidas: riesgo de que os descubran":""),fn:()=>menuEncuentro(p)});
       if(p.casado&&(p.pas||0)>=40)O("Pedirle que deje a su pareja",()=>pedirQueLoDeje(p),"Depende de la pasión y el vínculo");
@@ -1262,6 +1267,7 @@ function menuPersona(p){
     lujoExtra(p,ops,O,q);amorExtra(p,ops,O,q,d);
   }
   if(esPareja&&a>=18&&pa>=18)ops.push({t:"Quedar a solas",s:"Pasión "+Math.round(p.pas||0),fn:()=>menuEncuentro(p)});
+  if(a>=6)ops.push({t:"Ver su ficha",s:"Lo que sabes de "+gp(p,"él","ella")+" · no gasta el mes",fn:()=>fichaPersona(p)});
   if(a>=6)ops.push({t:G.fijo==p.id?"Quitar de arriba":"Fijar arriba en las listas",s:"No gasta el mes",fn:()=>{G.fijo=G.fijo==p.id?null:p.id;guardar();menuPersona(p)}});
   let tit=p.nombre+" · "+rolTxt(p)+amorTit(p);
   if(adAjeno||deSuQuinta(p))tit+=" · "+PERS[pers(p)][p.sexo=="m"?0:1]+(p.triste?" · de capa caída":"")+(a>=18&&(p.quim||0)>0?" · química "+Math.round(p.quim):"")+(a>=18&&deInfancia(p)?" · os conocéis desde críos":"");
@@ -1448,7 +1454,7 @@ function accionesVida(){
       return `Te vas de casa. Alquilas ${G.casa.tipo} en ${G.casa.barrio}. En la escalera aún no conoces a nadie.`});
   }
   if(a>=12)A("Cuidar tu aspecto",()=>{add("aspecto",ri(1,3));if(a>=18)y.dinero-=40;return vario("aspecto",["Te cortas el pelo de otra manera y cambias de ropa. Te miras distinto.","Empiezas a fijarte en cómo vistes y en cómo andas.","Horas delante del espejo. Algo vas aprendiendo.","Aprendes qué colores te sientan bien y cuáles te apagan.","Te cuidas la piel. Alguien te pregunta si has dormido mejor.","Tiras media ropa del armario. La que queda es la buena.","Cambias de colonia. Alguien se gira en el ascensor.","Enderezas la espalda al andar. Ganas dos centímetros gratis.","Peluquería en serio, por primera vez. Sales con otra cara."])});
-  if(G.pareja&&a>=18&&P(G.pareja).edad>=216&&P(G.pareja).rel>=45)L.push({t:"A solas con "+P(G.pareja).nombre,abre:()=>menuEncuentro(P(G.pareja))});
+  if(a>=18){const sl=aSolasLista();if(sl.length==1)L.push({t:"A solas con "+sl[0].nombre,abre:()=>menuEncuentro(sl[0])});else if(sl.length>1)L.push({t:"A solas con…",abre:menuASolas})}
   if(trato.length)elegir(a<2?"Estar con…":a<12?"Jugar con…":"Pasar tiempo con…","¿Con quién?",trato,p=>menuPersona(p));
   const lejos=vivos(p=>p.con&&p.lejos&&p.rel>3).sort((p,q)=>q.rel-p.rel);
   if(a>=6&&lejos.length)elegir("Llamar a…","¿A quién llamas?",lejos,p=>hacer(()=>{rel(p,ri(3,6));add("animo",2);
@@ -2552,7 +2558,9 @@ function deSuQuinta(p){return ["herm","primo"].includes(p.rol)&&!p.astra&&p.edad
 function adultoLibre(p){return p.vivo&&p.con&&p.edad>=216&&G.yo.edad>=216&&(!SANGRE.includes(p.rol)||deSuQuinta(p))&&!p.crianza&&!p.vaciado}
 function fijarArriba(l){if(!G.fijo)return l;const i=l.findIndex(p=>p.id==G.fijo);if(i>0){const p=l.splice(i,1)[0];l.unshift(p)}return l}
 function sube(p,n){pers(p);p.quim=clamp((p.quim||0)+n*2*(1-p.dif*.14)*(deInfancia(p)?1.3:1))}
-function virgenIni(p){if(p.virgen==null){const e=p.edad/12;p.virgen=e>=18&&e<24&&ch([.55,.45,.35,.25,.18,.12][Math.floor(e)-18])}return p.virgen}
+function virgenIni(p){if(p.virgen==null){const e=p.edad/12;
+  if(e>=18&&e<27&&deInfancia(p)&&p.rel>=55&&!p.casado&&!p.ex)p.virgen=ch(.93); // os habéis criado juntos y nunca tuvo a nadie más
+  else p.virgen=e>=18&&e<24&&ch([.55,.45,.35,.25,.18,.12][Math.floor(e)-18])}return p.virgen}
 function reservado(p){return (p.quim||0)>=25&&!p.amante&&p.id!=G.pareja}
 // el dinero tapa los años: el patrimonio y el lujo que le has dado rebajan lo que pesa la diferencia de edad
 function tapaLujo(p){const pat=patrimonio();return clamp(((p.lujo||0)/70+(pat>=1e6?.6:pat>=3e5?.4:pat>=1e5?.2:0))*100)/100}
@@ -2572,14 +2580,14 @@ function lujoExtra(p,ops,O,q){
 function primeraVez(p){
   let s="";const y=G.yo;G.amor=G.amor||{n:0,pv:0};
   if(G.fl.virgen!==false){G.fl.virgen=false;G.fl.pvEdad=anios();G.fl.pvCon=p?p.nombre:"alguien de una noche";s+=" Es tu primera vez. Dura poco y no se te olvida nunca."}
-  if(p){if(!p.cama){p.cama=1;G.amor.n++}
+  if(p){if(!p.cama){p.cama=1;p.camaE=anios();G.amor.n++}
     if(virgenIni(p)){p.virgen=false;p.pv=1;G.amor.pv++;rel(p,12);p.pas=clamp((p.pas||0)+10);p.quim=clamp((p.quim||0)+10);
       s+=` Para ${p.nombre} era la primera vez. Te lo dice después, bajito, con la cabeza en tu hombro. Eso os une de una forma que no esperabas.`}}
   else G.amor.n++;
   return s;
 }
 function beso(p){
-  if(ch(prob(p,.45))){p.beso=true;sube(p,8);rel(p,5);add("animo",8);return vario("beso",[`Te acercas a ${p.nombre} y esta vez no se aparta. Un beso corto, y luego otro que no lo es.`,`En el portal, a punto de despediros, ${p.nombre} no se despide. Os besáis con la luz de la escalera apagándose sola.`,`Os calláis los dos a la vez. Lo siguiente es un beso que llevaba semanas esperando turno.`,`${p.nombre} te quita algo de la cara con el dedo y ya no aparta la mano. El beso sale solo.`])}
+  if(ch(prob(p,.45))){p.beso=true;p.besoE=p.besoE||anios();sube(p,8);rel(p,5);add("animo",8);return vario("beso",[`Te acercas a ${p.nombre} y esta vez no se aparta. Un beso corto, y luego otro que no lo es.`,`En el portal, a punto de despediros, ${p.nombre} no se despide. Os besáis con la luz de la escalera apagándose sola.`,`Os calláis los dos a la vez. Lo siguiente es un beso que llevaba semanas esperando turno.`,`${p.nombre} te quita algo de la cara con el dedo y ya no aparta la mano. El beso sale solo.`])}
   p.quim=clamp((p.quim||0)-2);return {txt:vario("nobeso",[`Te acercas a ${p.nombre}. Aparta la cara. «No vayas tan deprisa.»`,`Vas a besar a ${p.nombre} y te pone dos dedos en la boca. «Todavía no.» Sonríe, eso sí.`]),mal:1};
 }
 function insinuarte(p){
@@ -2638,7 +2646,7 @@ function eventosAmor(ev,a){
   }
   const am=vivos(p=>p.amante&&p.id!=G.pareja&&!p.lejos&&p.edad>=216);
   if(am.length){const p=pick(am);
-    if((p.pas||0)>=50&&G.pareja&&!G.pend)ev(2,"ampide",()=>{decidir("ampide",{id:p.id});log(`${p.nombre} ya no quiere seguir a escondidas. «O lo dejas, o lo dejamos.»`,"mala")},1);
+    if((p.pas||0)>=50&&G.pareja&&!p.esposa&&!G.pend)ev(2,"ampide",()=>{decidir("ampide",{id:p.id});log(`${p.nombre} ya no quiere seguir a escondidas. «O lo dejas, o lo dejamos.»`,"mala")},1);
     ev(1,"amfrio",()=>{p.pas=clamp((p.pas||0)-10);if((p.pas||0)<=0){p.amante=false;p.ex=1;log(`Lo de ${p.nombre} se apaga solo. Un día ya no os llamáis y ninguno pregunta por qué.`,"mala")}else log(`${p.nombre} tarda cada vez más en contestar. Lo vuestro pide que le echéis leña.`)});
   }
   const res=vivos(p=>reservado(p)&&!p.lejos&&adultoLibre(p));
@@ -2891,6 +2899,70 @@ function turNecro(){const t=G.tur;if(!t||!(t.mu||t.atr))return "";let s="";
   if(t.mu)s+=t.preso?`Mató a ${t.mu==1?"una persona":t.mu+" personas"} y lo pagó entre rejas. `:`Nadie supo nunca que ${t.mu==1?"una muerte llevaba":t.mu+" muertes llevaban"} su firma. Saludaba en el portal. `;
   if(t.atr)s+=`Atracó ${t.atr==1?"un banco":t.atr+" bancos"}. `;
   return s+"Decía que el mundo había empezado primero. "}
+/* ---- Fichas de personaje, «A solas con…» y varias esposas (lo íntimo, siempre entre adultos) ---- */
+function conoces(p){return Math.round((p.vis||0)+p.rel/10+(p.inf||0)/2+(p.cama?8:0)+(p.id==G.pareja||p.esposa?10:0)+(p.casa?6:0))}
+const VIVENCIAS=["pasó un año entero fuera y volvió con otro acento","perdió a alguien muy cercano y no habla de ello","estuvo a punto de casarse con otra persona","dejó unos estudios a medias","ganó un premio del que presume poco","tuvo un accidente del que le queda una cicatriz","se arruinó una vez y volvió a levantarse","no se habla con un hermano desde hace años","quiso dedicarse a la música","salvó a alguien de ahogarse en una playa","repitió un curso y lo cuenta riéndose","trabajó una temporada en un barco","le dejaron por carta","tiene un miedo absurdo a los pájaros","guarda todas las entradas de cine desde los quince años","estuvo un mes sin hablar con nadie por una apuesta"];
+function fichaGen(p){const e=p.edad/12,o=ORI[G.origen];let f=p.fi;
+  if(!f){f=p.fi={};const fam=["prog","herm","abu"].includes(p.rol)||p.casa,niv=fam?(G.riqF==null?G.riqueza:G.riqF):clamp(pick([0,1,1,2,2,2,3,3,4])+(p.jefe?1:0),0,4);
+    f.pat=Math.round([400,3000,14000,45000,180000][niv]*(.5+R())*Math.min(1.6,Math.max(.15,e/40))/100)*100;
+    const cand=G.gente.filter(q=>q.vivo&&q.id!=p.id&&Math.abs(q.edad-p.edad)<96&&!(q.fam&&q.fam==p.fam)&&!["hijo","nieto"].includes(q.rol)).sort(()=>R()-.5).slice(0,ri(0,2));
+    f.am=cand.map(q=>({id:q.id}));for(let i=ri(1,2);i>0;i--)f.am.push({n:nombreNuevo(sx())+" "+pick(o.ap)});
+    f.viv=VIVENCIAS.map((_,i)=>i).sort(()=>R()-.5).slice(0,2)}
+  if(!f.it&&e>=18&&G.yo.edad>=216){virgenIni(p);const t=f.it={};
+    t.beso=p.beso&&p.virgen&&deInfancia(p)?null:pick(["en una fiesta, con alguien de quien no recuerda el apellido","con alguien de su clase, a la salida","un verano, en el pueblo","más tarde que sus amigos, y le dio igual"]);
+    if(!p.virgen&&!p.pv){t.pvE=ri(18,Math.max(18,Math.min(Math.floor(e),26)));t.pvCon=pick([gp(p,"una novia","un novio")+" de entonces","alguien de la universidad","un amor de verano","alguien con quien ya no se habla","la pareja con la que más duró"])}}
+  return f}
+function fichaPersona(p){
+  const f=fichaGen(p),c=conoces(p),e=p.edad/12,ad=e>=18&&G.yo.edad>=216,F=[],bot=[];
+  const row=(k,v)=>F.push(`<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`),sec=t=>F.push(`<tr><td colspan="2" class="fsec">${esc(t)}</td></tr>`),falta=n=>F.push(`<tr><td colspan="2" class="fno">Todavía no ${gp(p,"le","la")} conoces lo bastante (${c}/${n}). Pasad más tiempo juntos.</td></tr>`);
+  sec("Lo que se ve");row("Edad",p.vivo?edadTxt(p.edad):"murió con "+edadTxt(p.edad));row("Quién es",rolTxt(p));row("Vínculo",Math.round(p.rel)+" / 100");
+  row("Dónde está",!p.vivo?"—":p.casa?"vive contigo":p.lejos?"vive lejos":"cerca");if(e>=18)row("Estado",p.id==G.pareja?(G.casado?"casado contigo":"sale contigo").replace("casado",gp(p,"casado","casada")):p.esposa?gp(p,"también es tu marido","también es tu mujer"):p.casado?gp(p,"casado","casada"):gp(p,"soltero","soltera"));
+  sec("Carácter");if(c>=4){row("Forma de ser",PERS[pers(p)][p.sexo=="m"?0:1]+(p.triste?" · de capa caída":""));if(p.rasgo!=null)row("Se le da bien",RASGOS[p.rasgo].n[p.sexo=="m"?0:1]);if(ad&&p.dif!=null&&adultoLibre(p))row("Para ligar",DIF[p.dif])}else falta(4);
+  sec("Trabajo y dinero");if(c>=8){row("Se dedica a",e<16?"estudiar":p.curro||p.oficio&&!/^tu /.test(p.oficio)&&p.oficio||(p.jefe?"mandar en tu trabajo":e<23?"estudiar":e>=67?"cobrar la pensión":"lo que va saliendo"));row("Patrimonio",e<18?"la paga de sus padres":"unos "+f.pat)}else falta(8);
+  sec("Su gente");if(c>=12){
+    const fam=G.gente.filter(q=>q.id!=p.id&&(q.fam&&q.fam==p.fam&&p.rol=="vec"||q.de==p.id||p.de==q.id||q.hijoDe==p.id||p.hijoDe==q.id));
+    row("Familia",fam.length?fam.map(q=>q.nombre+(q.vivo?"":" †")+(q.con?"":" (no le conoces)")).join(", "):SANGRE.includes(p.rol)?"la tuya":"no te ha hablado de nadie");
+    row("Amistades",f.am.map(a=>{const q=a.id&&P(a.id);return q?q.nombre+" "+q.apellido+(q.con?"":" (no le conoces)"):a.n+" (no le conoces)"}).join(", ")||"pocas");
+    row("Cosas que le han pasado",f.viv.map(i=>VIVENCIAS[i]).join("; "));
+    f.am.forEach(a=>{const q=a.id&&P(a.id);if(q&&q.vivo&&!q.con&&p.vivo&&!p.lejos&&G.yo.edad>=72)bot.push({t:"Que te presente a "+q.nombre,s:"Gasta el mes",fn:()=>hacer(()=>{q.con=true;q.lejos=false;q.rel=Math.max(q.rel,ri(15,30));rel(p,2);p.vis=(p.vis||0)+1;return `${p.nombre} te presenta a ${q.nombre} ${q.apellido}. «Ya era hora de que os conocierais.»`})})})
+  }else falta(12);
+  if(ad){sec("Vida íntima");if(c>=16){const t=f.it||{};
+    row("Primer beso",p.besoE&&!t.beso?"contigo, a los "+p.besoE:t.beso||"no lo cuenta");
+    row("Primera vez",p.pv?"contigo"+(p.camaE?", a los "+p.camaE:""):p.virgen?"nunca ha estado con nadie":t.pvE?`a los ${t.pvE}, con ${t.pvCon}`:"no lo cuenta");
+    if(p.besoE&&t.beso)row("Vuestro primer beso","a los "+p.besoE+" (tu edad)");if(p.camaE&&!p.pv)row("Vuestra primera noche","a los "+p.camaE+" (tu edad)");
+    if(p.cama){row("Pasión",Math.round(p.pas||0)+" / 100");row("Lo que le gusta",p.desc&&p.desc.length?p.desc.map(i=>GUSTOS[i]).join("; "):"aún no lo has descubierto")}
+    if(vivos(q=>q.rol=="hijo"&&q.otro==p.id).length)row("Hijos contigo",vivos(q=>q.rol=="hijo"&&q.otro==p.id).map(q=>q.nombre).join(", "))
+  }else falta(16)}
+  const h=$("hojaIn");h.innerHTML="<h2>"+esc(p.nombre+" "+p.apellido)+"</h2><table class='ficha'>"+F.join("")+"</table>";
+  bot.concat([{t:"Volver",cls:"sec",fn:()=>p.vivo?menuPersona(p):cerrarHoja()}]).forEach(o=>{const b=document.createElement("button");if(o.cls)b.className=o.cls;b.innerHTML=esc(o.t)+(o.s?"<small>"+esc(o.s)+"</small>":"");b.onclick=o.fn;h.appendChild(b)});
+  $("hoja").classList.add("on");h.scrollTop=0;
+}
+function aSolasLista(){const q=G.pareja&&P(G.pareja),l=[];
+  if(q&&q.vivo&&q.edad>=216&&q.rel>=45&&!q.lejos)l.push(q);
+  return l.concat(vivos(p=>p.amante&&p.id!=G.pareja&&p.edad>=216&&!p.lejos).sort((a,b)=>(b.esposa?1:0)-(a.esposa?1:0)||(b.pas||0)-(a.pas||0)))}
+function menuASolas(){const l=fijarArriba(aSolasLista());
+  abrirHoja("¿A solas con quién?",l.map(p=>({t:p.nombre+" "+p.apellido,s:[rolTxt(p),edadTxt(p.edad),"pasión "+Math.round(p.pas||0),p.casado&&p.id!=G.pareja?"a escondidas":"",p.virgen?"nunca ha estado con nadie":""].filter(Boolean).join(" · "),fn:()=>menuEncuentro(p)})));
+}
+const esposas=()=>vivos(p=>p.esposa);
+const poligamiaLegal=()=>G.origen=="ma"&&!G.exo||!!(G.exo&&["egipto","indonesia"].includes(G.exo.k));
+function segundaEsposa(p){const y=G.yo,w=P(G.pareja),leg=poligamiaLegal();
+  if(y.dinero<3000)return {txt:`Para otra boda hacen falta 3000 y no los tienes. ${p.nombre} no pregunta dos veces.`,mal:1};
+  if(!ch(clamp(.3+(p.pas||0)/200+(p.lujo||0)/200+p.rel/400-(pers(p)==3&&!leg?.2:0),.05,.95))){p.quim=clamp((p.quim||0)-10);rel(p,-6);return {txt:`Se lo propones a ${p.nombre}. «¿${gp(p,"El segundo","La segunda")}? Yo no soy ${gp(p,"el segundo","la segunda")} de nadie.» Tarda días en volver a cogerte el teléfono.`,mal:1}}
+  if(!ch(clamp(.15+w.rel/300+(leg?.3:0)+(patrimonio()>=3e5?.15:0)+(esposas().length?.1:0),.05,.9))){
+    if(ch(.45)){const s=romper(w,false).txt;return {txt:`Se lo cuentas a ${w.nombre} con todo el cuidado del mundo. No sirve de nada. `+s,mal:1}}
+    rel(w,-25);ten(20);return {txt:`Se lo planteas a ${w.nombre}. Te escucha hasta el final sin pestañear. «Ni se te ocurra volver a decirlo.» Esa noche duermes en el sofá, y la siguiente.`,mal:1}}
+  y.dinero-=3000;p.esposa=1;p.amante=true;p.casado=false;rel(p,12);rel(w,-8);add("animo",10);if(G.indep)p.casa=true;logro("formas una casa con más de una esposa");
+  return (leg?`Boda con ${p.nombre}, con papeles, invitados y una mesa larga. ${w.nombre} está en primera fila, muy recta.`:`No hay juzgado que firme eso aquí, así que lo hacéis a vuestra manera: una comida, unos anillos y una promesa delante de quien quiso venir. Para la ley, ${p.nombre} es una persona que vive en tu casa. Para vosotros, no.`)+` Desde hoy en casa hay un cepillo de dientes más y un equilibrio nuevo que cuidar.`;
+}
+function tickHarem(){const y=G.yo,l=esposas();if(!l.length)return;
+  l.forEach(p=>{if(!p.amante||p.ex){p.esposa=0;p.casa=false}});const v=esposas();if(!v.length)return;
+  if(G.indep&&!G.carcel)y.dinero-=200*v.length;
+  if(!G.pareja||!P(G.pareja)||!P(G.pareja).vivo){const p=v[0];p.esposa=0;p.amante=false;G.pareja=p.id;G.casado=true;if(G.indep)p.casa=true;log(`En casa las cosas se recolocan solas: ahora es ${p.nombre} quien lleva el anillo delante de todo el mundo.`)}
+}
+function eventosHarem(ev){const v=esposas(),w=G.pareja&&P(G.pareja);if(!v.length||!w||G.carcel)return;const p=pick(v);
+  ev(2,"haremcelos",()=>{if(ch(.5)){rel(w,-6);rel(p,-4);add("animo",-4);log(vario("haremc",[`${w.nombre} y ${p.nombre} llevan tres días sin dirigirse la palabra. Tú eres el único tema del que no hablan.`,`Has pasado dos noches seguidas en la misma habitación y alguien lleva la cuenta.`,`Discusión en la cocina por a quién le toca qué. No va de fregar.`]),"mala")}else{rel(w,3);rel(p,3);add("animo",4);log(vario("haremb",[`Vuelves a casa y te encuentras a ${w.nombre} y ${p.nombre} riéndose de ti en el sofá. Es la mejor noticia de la semana.`,`Cena de todos en casa. Por un rato parece lo más normal del mundo.`,`${p.nombre} le cubre un turno a ${w.nombre} sin que nadie se lo pida. La casa funciona.`]))}});
+  ev(1,"haremvec",()=>{vivos(q=>q.rol=="vec"&&q.con&&!q.lejos).forEach(q=>rel(q,-3));log(vario("haremv",["En el portal dejan de hablar cuando entráis todos juntos. Luego hablan más.","Una vecina pregunta «¿y esta chica quién es, una prima?» con cara de saber perfectamente quién es.","En la reunión de vecinos se discute la gotera del tercero mirándote a ti."]))});
+}
 function accionesExtra5(L,a){
   if(a<70&&!enEra("pand"))L.push({t:"Ligar esta noche",cls:"riesgo",fn:ligarNoche});
   if(G.fl.adsex)L.push({t:"Ir a terapia",fn:terapiaSexo});
@@ -2903,7 +2975,7 @@ function eventosExtra5(ev,a){
     ev(2,"exogen",()=>{const r=ri(0,3);if(r==0){y.dinero-=200;log("Toca renovar el visado: colas, sellos, fotos de carné y 200 en tasas.","mala")}else if(r==1){add("animo",-5);log("Te entra una nostalgia tonta por una comida, un olor, una palabra que aquí no existe.","mala")}
       else if(r==2){add("salud",-6);log("Unas fiebres te tienen una semana en cama, bebiendo suero y jurando que no vuelves a comer en la calle. Vuelves a comer en la calle.","mala")}else{add("animo",4);log("Te cruzas con alguien de tu tierra en el sitio más inesperado. Habláis una hora de comida, de fútbol y de qué hacéis aquí.")}});
     ev(1,"exovis",()=>{const p=pick(vivos(q=>q.lejos&&q.rel>=55&&q.edad>=216));if(p){rel(p,6);add("animo",6);log(`${cap(tu(p))} viene a verte desde casa, con embutido escondido en la maleta. Le enseñas tu vida nueva como quien enseña una casa.`)}})}
-  eventosTurbio(ev);
+  eventosTurbio(ev);eventosHarem(ev);
   const o=G.osc;
   if(o&&o.n&&!G.carcel){ev(2,"oscculpa",()=>{add("animo",-6);log(vario("oscculpa",["En la tele ponen el aniversario. Hablan las familias. Cambias de canal y luego vuelves a ponerlo.","Sueñas con velas en una acera. Te despiertas antes de que nadie se gire a mirarte.","En tu calle vive alguien que estuvo allí aquel día. Cojea. Te saluda cada mañana.","Alguien cuenta delante de ti dónde estaba cuando pasó. Tú asientes, como todos."]),"mala")});
     if(o.fug&&G.exo)ev(1,"oscextra",()=>{if(ch(.3)){o.preso=1;G.exo=null;G.fl.emig=0;log("Dos hombres de paisano te esperan en la puerta de casa, a miles de kilómetros de donde empezó todo. Orden internacional. Te suben a un avión esposado. "+encarcelar(480).txt,"mala")}else log("Ves tu cara, más joven, en un periódico atrasado que alguien ha dejado en un café. Pagas y te vas sin terminar.","mala")})}
