@@ -1256,7 +1256,7 @@ function menuPersona(p){
   if(adAjeno&&p.rol=="vec"){O("Ayudar con las bolsas de la compra",()=>favor(p,"bolsas"));
     if(a>=6)O("Ayudar con las plantas y el patio",()=>favor(p,"jardin"));
     if(a>=14)O("Echar una mano en su trabajo",()=>favor(p,"trabajo"),"Algo de dinero")}
-  if((adAjeno||deSuQuinta(p))&&a>=18&&pa>=18&&!esPareja&&!p.vaciado){pers(p);virgenIni(p);const q=p.quim||0,d=p.dif*5;
+  if((adAjeno||deSuQuinta(p))&&a>=18&&pa>=18&&!esPareja&&!p.amigoDe&&!p.vaciado){pers(p);virgenIni(p);const q=p.quim||0,d=p.dif*5;
     if(p.amante&&G.casado&&G.pareja&&!p.esposa&&!p.casado&&esposas().length<3&&(p.pas||0)>=40&&p.rel>=60)O("Pedirle que sea también tu "+gp(p,"marido","mujer"),()=>segundaEsposa(p),"3000 · depende de "+P(G.pareja).nombre+", de tu dinero y de dónde vivas");
     if(p.amante){
       ops.push({t:"Quedar a solas",s:"Pasión "+Math.round(p.pas||0)+(p.casado?" · a escondidas: riesgo de que os descubran":""),fn:()=>menuEncuentro(p)});
@@ -2570,7 +2570,7 @@ function escenaIntro(n){
 const SANGRE=["prog","herm","abu","tio","primo","hijo","nieto","sobr"];
 // hermanos y primos, siempre los dos adultos (sin límite de diferencia de edad)
 function deSuQuinta(p){return ["herm","primo"].includes(p.rol)&&!p.astra&&p.edad>=216&&G.yo.edad>=216}
-function adultoLibre(p){return p.vivo&&p.con&&p.edad>=216&&G.yo.edad>=216&&(!SANGRE.includes(p.rol)||deSuQuinta(p))&&!p.vaciado}
+function adultoLibre(p){return p.vivo&&p.con&&p.edad>=216&&G.yo.edad>=216&&(!SANGRE.includes(p.rol)||deSuQuinta(p))&&!p.amigoDe&&!p.vaciado}
 function fijarArriba(l){if(!G.fijo)return l;const i=l.findIndex(p=>p.id==G.fijo);if(i>0){const p=l.splice(i,1)[0];l.unshift(p)}return l}
 function sube(p,n){pers(p);p.quim=clamp((p.quim||0)+n*2*(1-p.dif*.14)*(deInfancia(p)?1.3:1))}
 function virgenIni(p){if(p.virgen==null){const e=p.edad/12;
