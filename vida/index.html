@@ -253,7 +253,7 @@ function tu(p){ // "tu abuela Carmen"
 function nombreNuevo(sexo){const o=ORI[G.origen],l=sexo=="m"?o.m:o.f;let n;for(let i=0;i<10;i++){n=pick(l);if(!G.gente.some(p=>p.nombre==n)&&n!=(G.yo&&G.yo.nombre))break}return n}
 function per(rol,sexo,aniosE,ap,x){
   const p={id:G.nid++,nombre:nombreNuevo(sexo),apellido:ap,sexo,edad:Math.max(0,Math.round(aniosE*12)),rol,rel:ri(25,55),vivo:true,casa:false,lejos:false,con:false};
-  Object.assign(p,x||{});if(G.yo&&G.yo.edad>=216&&p.edad<192&&G.yo.edad-p.edad>60&&["vec","conoc","comp"].includes(rol))p.crianza=true; // solo si era un crío (menos de 16) y tú un adulto bastante mayorG.gente.push(p);return p;
+  Object.assign(p,x||{});if(G.yo&&G.yo.edad>=216&&p.edad<192&&G.yo.edad-p.edad>60&&["vec","conoc","comp"].includes(rol))p.crianza=true;G.gente.push(p);return p; // crianza: solo si era un crío (menos de 16) y tú un adulto bastante mayor
 }
 const sx=()=>ch(.5)?"m":"f";
 
