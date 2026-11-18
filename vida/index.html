@@ -2962,6 +2962,7 @@ function fichaPersona(p,volver){
     row("Primer beso",p.besoE&&!t.beso?"contigo, a los "+p.besoE:t.beso||"no lo cuenta");
     row("Primera vez",p.pv?"contigo"+(p.camaE?", a los "+p.camaE:""):p.virgen?"nunca ha estado con nadie":t.pvE?`a los ${t.pvE}, con ${t.pvCon}`:"no lo cuenta");
     if(p.besoE&&t.beso)row("Vuestro primer beso","a los "+p.besoE+" (tu edad)");if(p.camaE&&!p.pv)row("Vuestra primera noche","a los "+p.camaE+" (tu edad)");
+    if(p.id==G.pareja||p.esposa)row("Fidelidad",fidelTxt(p));
     if(p.cama){row("Pasión",Math.round(p.pas||0)+" / 100");row("Lo que le gusta",p.desc&&p.desc.length?p.desc.map(i=>GUSTOS[i]).join("; "):"aún no lo has descubierto")}
     if(vivos(q=>q.rol=="hijo"&&q.otro==p.id).length)row("Hijos contigo",vivos(q=>q.rol=="hijo"&&q.otro==p.id).map(q=>q.nombre).join(", "))
   }else falta(16)}
@@ -3747,12 +3748,20 @@ DEC.pillados={man:1,tit:d=>"Os han visto",txt:d=>"",ops:d=>{const a=G.arc&&G.arc
 /* ---------- Cuernos: la pareja desatendida, en casa o en la isla (siempre adultos) ---------- */
 const lioN=q=>{const l=q.lio||{},r=l.id&&P(l.id);return r?r.nombre:l.n||"alguien"};
 function lioEmpieza(q,r,isla){q.lio={id:r&&r.id||null,n:r?null:nombreNuevo(q.sexo=="m"?"f":"m"),m:0,isla:isla?1:0};q.liosN=(q.liosN||0)+1}
+function infidelidad(q){ // cuánto pesa la forma de ser de cada persona: 1 = normal, cerca de 0 = casi imposible
+  pers(q);let m=[.9,.7,1.5,.4,1][q.pers]*[1.3,1,.8,.6][q.dif||0];
+  if(q.pv&&!q.fueInfiel)m*=.03; // fuiste su primera y única persona
+  if(deInfancia(q))m*=.6;if(vivos(h=>h.rol=="hijo"&&(h.otro==q.id||h.madre==q.id)).length)m*=.7;
+  if(q.rel>=85)m*=.6;else if(q.rel<40)m*=1.5;if((q.lujo||0)>=60)m*=.7;
+  if(q.fueInfiel)m*=2;if(vivos(p=>p.amante&&p.id!=q.id).length)m*=1.3;
+  return m}
+function fidelTxt(q){const m=infidelidad(q);return m<.1?"no se le pasa por la cabeza estar con nadie más":m<.5?"de fiar":m<1?"depende de cómo le cuides":m<1.6?"si le descuidas, mira hacia fuera":"se le van los ojos"}
 function tickCuernos(){const y=G.yo;if(y.edad<216||G.muerto)return;
   const enIsla=G.carcel&&G.carcel.tipo=="isla",l=vivos(q=>(q.id==G.pareja||q.esposa)&&q.edad>=216&&!q.vpArc);
   l.forEach(q=>{if(q.aten==null)q.aten=y.edad;
     if(enIsla){const x=G.carcel.isla;if(!q.isla)return;const riv=islenos().filter(r=>r.id!=q.id&&r.edad>=216&&r.sexo!=q.sexo);
       if(!q.lio){if(!riv.length)return;const gap=x.m-(x.int||0);if(gap<2){q.deriva=Math.max(0,(q.deriva||0)-4);return}
-        const r=viv(q.derCon)||pick(riv);q.derCon=r.id;const antes=q.deriva||0;q.deriva=antes+ri(6,12)+(gap>6?5:0);rel(q,-1);
+        const r=viv(q.derCon)||pick(riv);q.derCon=r.id;const antes=q.deriva||0;q.deriva=antes+(ri(6,12)+(gap>6?5:0))*Math.min(1.6,infidelidad(q));rel(q,-1);
         const paso=n=>!q.fueInfiel&&antes<n&&q.deriva>=n;
         if(q.fueInfiel&&antes<60&&q.deriva>=60)log(`${q.nombre} vuelve a buscar la compañía de ${r.nombre}. Ya sabes cómo acaba esto si sigues sin acercarte.`,"mala");
         if(paso(30))log(`${q.nombre} y ${r.nombre} pasan cada vez más rato juntos, pescando en la poza. ${cap1(gp(q,"Él","Ella"))} se ríe con ${gp(r,"él","ella")} de una forma que hacía tiempo que no le oías.`);
@@ -3764,7 +3773,7 @@ function tickCuernos(){const y=G.yo;if(y.edad<216||G.muerto)return;
     if(G.carcel)return;const des=y.edad-q.aten;
     if(!q.lio){if(des>=18&&!q.avisoD){q.avisoD=1;log(vario("desat",[`${q.nombre} te dice, sin enfado, que ya no sabe cómo te va el día. Hace año y medio que no hacéis nada juntos.`,`${q.nombre} se arregla para cenar contigo. No levantas la vista del plato. Recoge la mesa ${gp(q,"solo","sola")}.`,`«¿Tú te acuerdas de cuándo fue la última vez?», pregunta ${q.nombre} desde su lado de la cama. No te acuerdas.`]),"mala");rel(q,-4)}
       if(des<12)q.avisoD=0;
-      if(des>=24&&ch(clamp(.01+(des-24)/12*.012+(q.pers==2?.01:0)+(q.lejos?.015:0)-(q.rel>=85?.008:0),.004,.07))){const c=vivos(r=>r.con&&!r.lejos&&r.edad>=216&&r.sexo!=q.sexo&&r.id!=q.id&&["conoc","vec","comp"].includes(r.rol)&&Math.abs(r.edad-q.edad)<18*12);lioEmpieza(q,c.length&&ch(.5)?pick(c):null)}
+      if(des>=24&&ch(clamp(.012+(des-24)/12*.012+(q.lejos?.015:0),0,.07)*infidelidad(q))){const c=vivos(r=>r.con&&!r.lejos&&r.edad>=216&&r.sexo!=q.sexo&&r.id!=q.id&&["conoc","vec","comp"].includes(r.rol)&&Math.abs(r.edad-q.edad)<18*12);lioEmpieza(q,c.length&&ch(.5)?pick(c):null)}
       return}
     const L=q.lio;L.m++;rel(q,-.6);q.pas=clamp((q.pas||0)-1);
     if(des<4&&q.rel>=60&&ch(.1)){q.lio=null;q.fueInfiel=1;return} // vuelves a estar: lo deja sin que llegues a saberlo
