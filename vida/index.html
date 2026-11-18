@@ -103,6 +103,13 @@ td.n{text-align:right;white-space:nowrap}
 #hoja h2{font-family:var(--f-titular);font-weight:400;color:var(--caqui);font-size:16px;margin-bottom:4px}
 #hoja button{text-align:left;background:var(--lila);color:var(--tinta);border-radius:10px;padding:10px 12px;font-size:14px}
 #hoja button small{display:block;font-size:11px;opacity:.8}
+#hoja h2.conF{display:flex;align-items:flex-start;gap:8px}#hoja h2.conF span{flex:1}
+#hoja button.fic{flex:none;display:flex;align-items:center;gap:5px;background:var(--caqui);color:var(--tinta);border-radius:999px;padding:6px 11px;font-size:11px;font-family:inherit}
+#hoja button.fic svg{width:16px;height:16px;display:block}
+.arbol{font-size:13px;line-height:1.35}.arbol .gen{color:var(--oro);font-weight:700;border-bottom:1px solid var(--oro);margin:12px 0 4px;padding-bottom:2px}.arbol .gen:first-child{margin-top:0}
+.arbol .sub{opacity:.7;font-size:11px;margin:6px 0 2px;text-transform:uppercase;letter-spacing:1px}
+.arbol .nodo{padding:6px 4px;border-bottom:1px solid rgba(128,128,128,.22);cursor:pointer}.arbol .nodo.m{opacity:.55}.arbol .nodo.nc{font-style:italic;cursor:default}.arbol .nodo.yo{color:var(--oro);cursor:default}
+.arbolB{display:block;width:100%;background:var(--caqui);color:var(--tinta);border-radius:10px;padding:9px 8px;font-size:13px;margin-bottom:8px}
 #hoja button.sec{background:transparent;color:var(--blanco);border:1px solid var(--blanco);text-align:center}
 .copy{font-size:9px;font-weight:700;color:#5d5848;text-align:left;padding:2px 12px 0;flex:none;display:none}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none}}
@@ -1179,7 +1186,7 @@ function menuEncuentro(p){
     abrirHoja("¿Con cuidado?",[{t:"Con protección",fn:()=>hacer(()=>encuentro(p,modo,true))},{t:"Sin protección",s:"Puede haber embarazo",fn:()=>hacer(()=>encuentro(p,modo,false))}])};
   const ops=[{t:"Algo tranquilo",s:"Sube la pasión poco a poco",fn:()=>paso2("tranquilo")},{t:"Probar algo nuevo",s:"Puedes descubrir lo que le gusta, o no acertar",fn:()=>paso2("probar")}];
   if(p.desc.length)ops.push({t:"Ir a lo que le gusta",s:p.desc.map(i=>GUSTOS[i]).join(" · "),fn:()=>paso2("favorito")});
-  abrirHoja(`A solas con ${p.nombre} · pasión ${Math.round(p.pas||0)}`,ops);
+  abrirHoja(`A solas con ${p.nombre} · pasión ${Math.round(p.pas||0)}`,ops,0,p);
 }
 function pedirQueLoDeje(p){
   if(ch(.1+(p.pas||0)/250+p.rel/400)){p.casado=false;const c=vivos(q=>q.fam&&q.fam==p.fam&&q.id!=p.id&&q.edad>=216)[0];if(c){c.casado=false;c.rel=0}
@@ -1277,12 +1284,11 @@ function menuPersona(p){
     lujoExtra(p,ops,O,q);amorExtra(p,ops,O,q,d);
   }
   if(esPareja&&a>=18&&pa>=18)ops.push({t:"Quedar a solas",s:"Pasión "+Math.round(p.pas||0),fn:()=>menuEncuentro(p)});
-  if(a>=6)ops.push({t:"Ver su ficha",s:"Lo que sabes de "+gp(p,"él","ella")+" · no gasta el mes",fn:()=>fichaPersona(p)});
   if(a>=6)ops.push({t:G.fijo==p.id?"Quitar de arriba":"Fijar arriba en las listas",s:"No gasta el mes",fn:()=>{G.fijo=G.fijo==p.id?null:p.id;guardar();menuPersona(p)}});
   let tit=p.nombre+" · "+rolTxt(p)+amorTit(p);
   if(adAjeno||deSuQuinta(p))tit+=" · "+PERS[pers(p)][p.sexo=="m"?0:1]+(p.triste?" · de capa caída":"")+(a>=18&&(p.quim||0)>0?" · química "+Math.round(p.quim):"")+(a>=18&&deInfancia(p)?" · os conocéis desde críos":"");
   if(p.rasgo!=null)tit+=" · "+RASGOS[p.rasgo].n[p.sexo=="m"?0:1];
-  abrirHoja(tit+(p.ult?" · Lo último: "+p.ult:""),ops);
+  abrirHoja(tit+(p.ult?" · Lo último: "+p.ult:""),ops,0,p);
 }
 function candidatosAmor(){
   const y=G.yo;
@@ -1297,6 +1303,7 @@ function estarCon(p){
   else{s=p.id==G.pareja?vario("planes",[`Un mes de planes con ${p.nombre}. Las cosas van bien.`,`Domingos de sofá con ${p.nombre}. No hace falta más.`,`${p.nombre} y tú cocináis algo complicado. Sale regular y os da igual.`,`Os perdéis ${p.nombre} y tú por un barrio que no conocíais.`,`Una semana mala que ${p.nombre} te hace más corta.`]):vario("quedas",[`Quedas a menudo con ${tu(p)}.`,`Un mes de cañas y sobremesas con ${tu(p)}.`,`${tu(p)} y tú retomáis la costumbre de veros cada semana.`,`Paseos largos con ${tu(p)}, hablando de todo y de nada.`,`Le ayudas con un recado a ${tu(p)} y acabáis cenando.`]);add("carisma",.5)}
   if(p.rasgo!=null&&a>=2)add(RASGOS[p.rasgo].k,1);
   if(antes<80&&p.rel>=80)s+=` Ya es de tus personas favoritas.`;
+  if(a>=6){const m=mencionMuerto(p);if(m)s+=" "+m}
   return s;
 }
 /* ---- Trabajo: 17 sectores, 102 puestos con ascensos ---- */
@@ -2927,10 +2934,10 @@ function fichaGen(p){const e=p.edad/12,o=ORI[G.origen];let f=p.fi;
     t.beso=p.beso&&p.virgen&&deInfancia(p)?null:pick(["en una fiesta, con alguien de quien no recuerda el apellido","con alguien de su clase, a la salida","un verano, en el pueblo","más tarde que sus amigos, y le dio igual"]);
     if(!p.virgen&&!p.pv){t.pvE=ri(18,Math.max(18,Math.min(Math.floor(e),26)));t.pvCon=pick([gp(p,"una novia","un novio")+" de entonces","alguien de la universidad","un amor de verano","alguien con quien ya no se habla","la pareja con la que más duró"])}}
   return f}
-function fichaPersona(p){
+function fichaPersona(p,volver){
   const f=fichaGen(p),c=conoces(p),e=p.edad/12,ad=e>=18&&G.yo.edad>=216,F=[],bot=[];
   const row=(k,v)=>F.push(`<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`),sec=t=>F.push(`<tr><td colspan="2" class="fsec">${esc(t)}</td></tr>`),falta=n=>F.push(`<tr><td colspan="2" class="fno">Todavía no ${gp(p,"le","la")} conoces lo bastante (${c}/${n}). Pasad más tiempo juntos.</td></tr>`);
-  sec("Lo que se ve");row("Edad",p.vivo?edadTxt(p.edad):"murió con "+edadTxt(p.edad));row("Quién es",rolTxt(p));row("Vínculo",Math.round(p.rel)+" / 100");
+  sec("Lo que se ve");row("Edad",p.vivo?edadTxt(p.edad):"murió con "+edadTxt(p.edad)+(p.anoM>0?", en "+p.anoM:""));row("Quién es",rolTxt(p));row("Vínculo",Math.round(p.rel)+" / 100");
   row("Dónde está",!p.vivo?"—":p.casa?"vive contigo":p.lejos?"vive lejos":"cerca");if(e>=18)row("Estado",p.id==G.pareja?(G.casado?"casado contigo":"sale contigo").replace("casado",gp(p,"casado","casada")):p.esposa?gp(p,"también es tu marido","también es tu mujer"):p.casado?gp(p,"casado","casada"):gp(p,"soltero","soltera"));
   sec("Carácter");if(c>=4){row("Forma de ser",PERS[pers(p)][p.sexo=="m"?0:1]+(p.triste?" · de capa caída":""));if(p.rasgo!=null)row("Se le da bien",RASGOS[p.rasgo].n[p.sexo=="m"?0:1]);if(ad&&p.dif!=null&&adultoLibre(p))row("Para ligar",DIF[p.dif])}else falta(4);
   sec("Trabajo y dinero");if(c>=8){row("Se dedica a",e<16?"estudiar":p.curro||p.oficio&&!/^tu /.test(p.oficio)&&p.oficio||(p.jefe?"mandar en tu trabajo":e<23?"estudiar":e>=67?"cobrar la pensión":"lo que va saliendo"));row("Patrimonio",e<18?"la paga de sus padres":"unos "+f.pat)}else falta(8);
@@ -2949,7 +2956,46 @@ function fichaPersona(p){
     if(vivos(q=>q.rol=="hijo"&&q.otro==p.id).length)row("Hijos contigo",vivos(q=>q.rol=="hijo"&&q.otro==p.id).map(q=>q.nombre).join(", "))
   }else falta(16)}
   const h=$("hojaIn");h.innerHTML="<h2>"+esc(p.nombre+" "+p.apellido)+"</h2><table class='ficha'>"+F.join("")+"</table>";
-  bot.concat([{t:"Volver",cls:"sec",fn:()=>p.vivo?menuPersona(p):cerrarHoja()}]).forEach(o=>{const b=document.createElement("button");if(o.cls)b.className=o.cls;b.innerHTML=esc(o.t)+(o.s?"<small>"+esc(o.s)+"</small>":"");b.onclick=o.fn;h.appendChild(b)});
+  bot.concat([{t:"Volver",cls:"sec",fn:()=>volver?volver():p.vivo?menuPersona(p):cerrarHoja()}]).forEach(o=>{const b=document.createElement("button");if(o.cls)b.className=o.cls;b.innerHTML=esc(o.t)+(o.s?"<small>"+esc(o.s)+"</small>":"");b.onclick=o.fn;h.appendChild(b)});
+  $("hoja").classList.add("on");h.scrollTop=0;
+}
+/* ---- Año de defunción, recuerdo de los muertos en las charlas y árbol genealógico ---- */
+function sellarMuertos(){const ini=!G.selM;G.gente.forEach(p=>{if(!p.vivo&&p.anoM==null)p.anoM=ini?0:ano()});G.selM=1} // 0 = no se sabe el año (partidas antiguas)
+function enComun(p,d){const f=q=>SANGRE.includes(q.rol)||!!q.astra||q.id==G.pareja||!!q.esposa;
+  return f(p)&&f(d)||!!(p.fam&&p.fam==d.fam)||!!(p.sitio&&p.sitio==d.sitio)||d.de==p.id||p.de==d.id||p.rol==d.rol&&["vec","comp"].includes(p.rol)||!!(p.fi&&p.fi.am.some(x=>x.id==d.id))||!!(d.fi&&d.fi.am.some(x=>x.id==p.id))}
+function mencionMuerto(p){
+  if(!ch(.15))return "";const a=G.yo.edad/12;
+  const l=G.gente.filter(d=>!d.vivo&&d.con&&d.id!=p.id&&d.rel>=20&&enComun(p,d));
+  if(!l.length)return "";
+  const d=pick(l),n=d.anoM>0?ano()-d.anoM:0,hace=n>=2?`hace ya ${n} años`:n==1?"hace un año":n==0&&d.anoM>0?"este mismo año":"";
+  rel(p,2);add("animo",d.rel>=60?-2:-1);
+  if(a<12)return vario("muertoN",[`${p.nombre} te habla de ${d.nombre}, que ya no está${hace?" desde "+hace:""}. Escuchas sin interrumpir.`,`Preguntas por ${d.nombre}. ${p.nombre} tarda en contestar.`,`${p.nombre} te enseña una foto donde sale ${d.nombre}. «Mira, aquí todavía estaba.»`]);
+  const L=[`Sale el nombre de ${tu(d)}${hace?", que murió "+hace:""}. ${p.nombre} se queda ${gp(p,"callado","callada")} un momento.`,
+    `«¿Te acuerdas de ${d.nombre}?», dice ${p.nombre}. Os reís de una historia vieja y luego os quedáis en silencio.`,
+    `${p.nombre} dice que todavía guarda una foto de ${d.nombre}.${hace?" Murió "+hace+".":""}`,
+    `Habláis de ${tu(d)}. ${p.nombre} cuenta algo de ${gp(d,"él","ella")} que no sabías.`,
+    `«A ${d.nombre} le habría gustado esto», suelta ${p.nombre} sin venir a cuento.`,
+    `${p.nombre} pasó por el cementerio y le dejó flores a ${d.nombre}${hace?", que faltó "+hace:""}. Te lo cuenta como quien no quiere la cosa.`];
+  if(a>=18)L.push(`${p.nombre} levanta el vaso: «Por ${d.nombre}».${hace?" Se fue "+hace+".":""} Brindáis.`);
+  return vario("muerto",L);
+}
+function arbol(){
+  const y=G.yo,g=G.gente.filter(p=>p.id!=null),L=[],hecho={};
+  const nodo=(p,niv,et)=>{if(!p||hecho[p.id])return;hecho[p.id]=1;L.push(`<div class="nodo${p.vivo?"":" m"}${p.con?"":" nc"}" style="padding-left:${4+niv*18}px" data-id="${p.id}">${niv?"└ ":""}<b>${esc(p.nombre+" "+p.apellido)}</b> · ${esc(et||rolTxt(p))} · ${p.vivo?edadTxt(p.edad):"† "+edadTxt(p.edad)+(p.anoM>0?" ("+p.anoM+")":"")}${p.con?"":" · no llegaste a conocerle"}</div>`)};
+  const gen=(t,fn)=>{const n=L.length;L.push(`<div class="gen">${t}</div>`);fn();if(L.length==n+1)L.pop()};
+  const sub=(t,fn)=>{const n=L.length;L.push(`<div class="sub">${t}</div>`);fn();if(L.length==n+1)L.pop()};
+  const R_=r=>g.filter(p=>p.rol==r&&!p.astra);
+  gen("Abuelos",()=>{sub("Por parte de padre",()=>R_("abu").filter(p=>p.lado=="p").forEach(p=>nodo(p,0)));sub("Por parte de madre",()=>R_("abu").filter(p=>p.lado=="m").forEach(p=>nodo(p,0)));R_("abu").forEach(p=>nodo(p,0))});
+  gen("Padres y tíos",()=>{R_("prog").forEach(p=>nodo(p,0));g.filter(p=>p.astra=="madr").forEach(p=>nodo(p,0));
+    const tios=l=>l.forEach(t=>{nodo(t,0);g.filter(q=>q.rol=="primo"&&q.de==t.id).forEach(q=>nodo(q,1))});
+    sub("Tíos paternos",()=>tios(R_("tio").filter(p=>p.lado=="p")));sub("Tíos maternos",()=>tios(R_("tio").filter(p=>p.lado=="m")));tios(R_("tio"));R_("primo").forEach(q=>nodo(q,0))});
+  gen("Tu generación",()=>{L.push(`<div class="nodo yo" style="padding-left:4px"><b>${esc(y.nombre+" "+y.apellido)}</b> · tú · ${edadTxt(y.edad)}</div>`);
+    if(G.pareja&&P(G.pareja))nodo(P(G.pareja),1);g.filter(p=>p.esposa).forEach(p=>nodo(p,1));
+    R_("herm").forEach(p=>{nodo(p,0);g.filter(q=>q.rol=="sobr"&&q.de==p.id).forEach(q=>nodo(q,1))});g.filter(p=>p.astra=="herm"||p.astra=="prima").forEach(p=>nodo(p,0));R_("sobr").forEach(p=>nodo(p,0))});
+  gen("Hijos y nietos",()=>{R_("hijo").forEach(h=>{const o=P(h.otro||h.madre);nodo(h,0,rolTxt(h)+(o?" · con "+o.nombre:""));if(h.conyuge&&P(h.conyuge))nodo(P(h.conyuge),1,gp(P(h.conyuge),"Yerno","Nuera"));g.filter(q=>q.rol=="nieto"&&q.de==h.id).forEach(q=>nodo(q,1))});R_("nieto").forEach(q=>nodo(q,0))});
+  const h=$("hojaIn");h.innerHTML="<h2>Árbol genealógico · familia "+esc(y.apellido)+"</h2><div class='arbol'>"+(L.join("")||"<p>No te queda familia que apuntar.</p>")+"</div>";
+  h.querySelectorAll(".nodo[data-id]").forEach(el=>{const p=P(+el.dataset.id);if(p&&p.con&&y.edad>=72)el.onclick=()=>fichaPersona(p,arbol)});
+  const c=document.createElement("button");c.className="sec";c.textContent="Cerrar";c.onclick=cerrarHoja;h.appendChild(c);
   $("hoja").classList.add("on");h.scrollTop=0;
 }
 function aSolasLista(){const q=G.pareja&&P(G.pareja),l=[];
@@ -3247,8 +3293,11 @@ function eventosExtra5(ev,a){
 }
 
 /* ============ Interfaz ============ */
-function abrirHoja(titulo,ops,fijo){
-  const h=$("hojaIn");h.innerHTML="<h2>"+esc(titulo)+"</h2>";
+const ICO_FICHA='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M5.5 16c.6-2 2-3 3.5-3s2.9 1 3.5 3M15 9h4M15 13h4"/></svg>';
+function abrirHoja(titulo,ops,fijo,per){
+  const h=$("hojaIn"),conF=per&&per.con&&G&&G.yo&&G.yo.edad>=72;
+  h.innerHTML=conF?"<h2 class='conF'><span>"+esc(titulo)+"</span></h2>":"<h2>"+esc(titulo)+"</h2>";
+  if(conF){const b=document.createElement("button");b.className="fic";b.setAttribute("aria-label","Ver ficha de "+per.nombre);b.innerHTML=ICO_FICHA+"Ficha";b.onclick=()=>fichaPersona(per);h.firstChild.appendChild(b)}
   ops.forEach(o=>{const b=document.createElement("button");b.innerHTML=esc(o.t)+(o.s?"<small>"+esc(o.s)+"</small>":"");b.onclick=o.fn;h.appendChild(b)});
   if(!fijo){const c=document.createElement("button");c.className="sec";c.textContent="Cancelar";c.onclick=cerrarHoja;h.appendChild(c)}
   $("hoja").classList.add("on");h.scrollTop=0;
@@ -3277,8 +3326,8 @@ function pantallaCrear(){
   $("bNacer").onclick=()=>{visto=0;nacer({origen:SEL.origen,riqueza:SEL.riqueza,sexo:SEL.sexo,don:SEL.don,hogar:SEL.hogar,nombre:$("nombre").value});TAB="diario";render(true)};
 }
 function barra(k,et){const v=Math.round(G.yo[k]);return `<div class="${v<25?"mal":""}">${et}<b>${v}</b><i style="width:${v}%"></i></div>`}
-function filaGente(p){return `<tr class="${p.vivo?"":"muerto"}"><td>${esc(p.nombre)} ${esc(p.apellido)}${p.id==G.crush&&p.id!=G.pareja?" ♥":""}${p.vivo&&p.quim>0&&anios()>=18?" · química "+Math.round(p.quim):""}${p.vivo&&p.emb>0?" · embarazada":""}</td><td>${rolTxt(p)}</td><td class="n">${p.vivo?edadTxt(p.edad):"† "+edadTxt(p.edad)}</td><td class="n">${Math.round(p.rel)}</td></tr>`}
-function tablaGente(titulo,l){return l.length?`<div class="tit">${titulo}</div><table><tr><th>Nombre</th><th>Quién es</th><th>Edad</th><th>Vínculo</th></tr>${l.map(filaGente).join("")}</table>`:""}
+function filaGente(p){return `<tr class="${p.vivo?"":"muerto"}"><td>${esc(p.nombre)} ${esc(p.apellido)}${p.id==G.crush&&p.id!=G.pareja?" ♥":""}${p.vivo&&p.quim>0&&anios()>=18?" · química "+Math.round(p.quim):""}${p.vivo&&p.emb>0?" · embarazada":""}</td><td>${rolTxt(p)}</td><td class="n">${p.vivo?edadTxt(p.edad):"† "+edadTxt(p.edad)+(p.anoM>0?" · "+p.anoM:"")}</td><td class="n">${Math.round(p.rel)}</td></tr>`}
+function tablaGente(titulo,l){return l.length?`<div class="tit">${titulo}</div><table><tr><th>Nombre</th><th>Quién es</th><th>Edad · † año</th><th>Vínculo</th></tr>${l.map(filaGente).join("")}</table>`:""}
 let visto=0,tecleo=null;
 function pararTecleo(){if(tecleo){clearInterval(tecleo.t);const f=tecleo.fin;tecleo=null;f()}}
 function teclear(els,v){ // los mensajes nuevos se escriben solos; un toque los completa
@@ -3303,7 +3352,7 @@ function teclear(els,v){ // los mensajes nuevos se escriben solos; un toque los 
 function render(abajo){
   pararTecleo();
   if(!G){pantallaCrear();return}
-  const y=G.yo;
+  const y=G.yo;sellarMuertos();
   $("crear").hidden=true;$("vista").hidden=false;$("acc").hidden=false;$("tabs").hidden=false;$("stats").hidden=false;$("cab").classList.add("compacta");
   $("ficha").innerHTML=`<span>${esc(y.nombre)} ${esc(y.apellido)}</span><span>${edadTxt(y.edad)} · ${MESES[mes()]} de ${ano()}</span><span>${altTxt()} · ${pesoTxt()}</span><span>${enMagia()?"Umbraluz · "+CASASM[G.mg.casa].n+" · "+FASE[G.mg.f||0]:esc(G.lugar.nombre)}</span>`+(anios()>=16?`<span>${Math.round(y.dinero)} en el bolsillo</span>`:"");
   $("stats").innerHTML=barra("salud","Salud")+barra("animo","Ánimo")+barra("mente","Mente")+barra("cuerpo","Cuerpo")+barra("carisma","Carisma")+barra("aspecto","Aspecto")+(y.magia!=null?barra("magia","Magia"):"");
@@ -3318,12 +3367,12 @@ function render(abajo){
     if(abajo){v.scrollTop=v.scrollHeight;teclear([...v.querySelectorAll("[data-new]")],v)}
   }else if(TAB=="familia"){
     const viv=G.gente.filter(p=>p.vivo&&p.con),fam=["prog","herm","abu","tio","primo","hijo","nieto","sobr"];
-    v.innerHTML=tablaGente("En casa contigo",viv.filter(p=>p.casa))+
+    v.innerHTML=`<button class="arbolB" id="bArbol">Árbol genealógico · toda la familia</button>`+tablaGente("En casa contigo",viv.filter(p=>p.casa))+
       tablaGente("Familia",viv.filter(p=>!p.casa&&(fam.includes(p.rol)||p.id==G.pareja)))+
       tablaGente("Barrio y conocidos",viv.filter(p=>!p.casa&&!fam.includes(p.rol)&&p.id!=G.pareja&&!p.lejos))+
       tablaGente("Los que quedaron lejos",viv.filter(p=>p.lejos&&p.rel>=20))+
       tablaGente("En el recuerdo",G.gente.filter(p=>!p.vivo&&p.con&&(fam.includes(p.rol)||p.rel>=50)));
-    v.scrollTop=0;
+    $("bArbol").onclick=arbol;v.scrollTop=0;
   }else{
     const d=G.casa.deQuien&&P(G.casa.deQuien);
     v.innerHTML=`<div class="tit">Informe ① ¿Dónde vives?</div>
