@@ -900,10 +900,19 @@ const ACT=[
 function conocerEn(sitio,tipo,rasgo,oficio){
   const y=G.yo,a=y.edad/12;
   if(vivos(p=>p.rol=="conoc"&&!p.lejos).length>=16)return "";
-  const r=R(),joven=a>=26?(ch(.6)?ri(18,25):ri(18,Math.floor(a)-3)):ri(18,Math.max(18,Math.floor(a))); // de adulto: un tercio de tu quinta, un tercio más jóvenes que tú, un tercio de cualquier edad
-  const e=tipo=="adulto"?ri(a>=30?22:28,62):a<18?Math.max(2,a+ri(-4,2)+R()):(r<.33?clamp(a+ri(-6,6),18,90):r<.68?joven:ri(18,78)),sexo=sx();
+  const r=R(),min=a<24?Math.max(16,Math.floor(a)-3):18; // con veintipocos es normal tratar con gente de 2 o 3 años menos
+  const joven=a>=26?(ch(.6)?ri(18,25):ri(18,Math.floor(a)-3)):ri(min,Math.max(min,Math.floor(a)));
+  let e=tipo=="adulto"?ri(a>=30?22:28,62):a<18?Math.max(2,a+ri(-4,2)+R()):(r<.33?clamp(a+ri(-6,6),min,90):r<.68?joven:ri(18,78));const sexo=sx();
+  if(tipo!="adulto"&&!oficio){
+    if(a>=6&&a<18&&ch(.3)){ // de crío también conoces a mayores: maestros, amistades de tus padres, gente del barrio
+      const ps=vivos(q=>q.rol=="prog"&&!q.lejos),pr=ps.length?pick(ps):null,ti=pick(vivos(q=>q.rol=="tio"&&q.con&&!q.lejos));
+      const k=pick([0,0,1,1,2,3].filter(x=>(x!=1||pr)&&(x!=3||ti)));e=ri(22,55);
+      oficio=k==0?(a<12?["maestro","maestra"]:["profesor","profesora"]):k==1?[`amigo de ${tu(pr)}`,`amiga de ${tu(pr)}`]:k==2?["vecino de otra calle","vecina de otra calle"]:[`amigo de ${tu(ti)}`,`amiga de ${tu(ti)}`];
+    }else if(a>=18&&ch(.18)){ // la pandilla de tus hermanos pequeños
+      const h=pick(vivos(q=>q.rol=="herm"&&q.con&&!q.lejos&&q.edad<y.edad&&q.edad>=120));
+      if(h){e=Math.max(10,h.edad/12+ri(-1,1));sitio="del grupo de "+tu(h)}}}
   const p=per("conoc",sexo,e,pick(ORI[G.origen].ap),{con:true,rel:ri(15,35),sitio,oficio:oficio?oficio[sexo=="m"?0:1]:null,rasgo:rasgo==null||ch(.3)?ri(0,4):rasgo,casado:e>28&&ch(.5)});
-  return ` Conoces a ${p.nombre}, ${p.oficio?p.oficio:RASGOS[p.rasgo].n[sexo=="m"?0:1]+", "+edadTxt(p.edad)}.`;
+  return ` Conoces a ${p.nombre}, ${p.oficio?p.oficio+", "+edadTxt(p.edad):RASGOS[p.rasgo].n[sexo=="m"?0:1]+", "+edadTxt(p.edad)+(/^del grupo de tu herman/.test(sitio||"")?", "+sitio:"")}.`;
 }
 function lugares(){
   const y=G.yo,a=y.edad/12,o=G.origen,L=[];
