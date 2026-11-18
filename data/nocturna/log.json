@@ -1,0 +1,56 @@
+[
+ {
+  "balance_before": {
+   "balance": 770.0,
+   "frozen": 0.0
+  },
+  "t": 1794983814.2234855
+ },
+ {
+  "step": "ilse:modelo",
+  "task": "4a02d36e-ebb8-4040-9ba6-343628a1a2bb",
+  "status": "success",
+  "credits": 50.0,
+  "output": {
+   "model_url": "https://openapi-dl.data.tripo3d.com/tcli_ec71596064bd4b79a9b2980103819edb/20261118/4a02d36e-ebb8-4040-9ba6-343628a1a2bb/tripo_model_4a02d36e-ebb8-4040-9ba6-343628a1a2bb.glb?Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9vcGVuYXBpLWRsLmRhdGEudHJpcG8zZC5jb20vdGNsaV9lYzcxNTk2MDY0YmQ0Yjc5YTliMjk4MDEwMzgxOWVkYi8yMDI2MTExOC80YTAyZDM2ZS1lYmI4LTQwNDAtOWJhNi0zNDM2MjhhMWEyYmIvdHJpcG9fbW9kZWxfNGEwMmQzNmUtZWJiOC00MDQwLTliYTYtMzQzNjI4YTFhMmJiLmdsYiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc5NTA3MDI4Nn19fV19&Signature=QiAmwboXDF2nM8o31TmA0xmCvJUbw-ITt1TrKmAXm~Zopf~Q9D2iQA9p1aSbJWCaxV3luUu8E2kV5RDtl-d1TbYEyr3yDDLjSBIxtST~x9CxlYHM-hr8eRgQ-DldP63l2wOMlSUDSD6z7-KATa35TxWhXQnvlfDMYquH736vJsZZOn9drDzGCKA~~-p4lEF7KMgBGhmBmj-dYO4q02DeSbvwDAIR6WSSBu9iN778rmoz1awiCvfm~EG5JRxk2YQIVLq2ZNwbDk28x3YyyhVrL5SiORnJYH7fKH0uMIu7g8X~YInqRbn8ztOhABF~CwS5-2gDHHliKekzQJXP7kjwbQ__&Key-Pair-Id=K1676C64NMVM2J",
+   "rendered_image_url": "https://openapi-dl.data.tripo3d.com/tcli_ec71596064bd4b79a9b2980103819edb/20261118/4a02d36e-ebb8-4040-9ba6-343628a1a2bb/legacy_mesh.webp?Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9vcGVuYXBpLWRsLmRhdGEudHJpcG8zZC5jb20vdGNsaV9lYzcxNTk2MDY0YmQ0Yjc5YTliMjk4MDEwMzgxOWVkYi8yMDI2MTExOC80YTAyZDM2ZS1lYmI4LTQwNDAtOWJhNi0zNDM2MjhhMWEyYmIvbGVnYWN5X21lc2gud2VicCIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc5NTA3MDI4Nn19fV19&Signature=hsUrKCn8NTdtzE8VtlddtquZsscV-rWENjoMOuSMg3Rb7ikw9Dnp-gHwXJvNjessK6ibqnLetIBS5epJ-Fb9gzTEcn4NtJKd9Vo746QRRxdYB7G80ug~qrBi4b56WgzOJAeT829qThO0wqmC9U0JFp0bhLd4nozDQslXPR6isqlUWwwWTzQ0sQE4haVPOsJNKmq5FTDlIKsdrsUWOW1KwBmbDis3dHcfR2QicZTw6Ve4-l~EbljDEFS46OSPOqozXzrN~Ny7g8r~-VMoxjnLRPm1Ke9C1ySJBRvHqaV982YX0v-UI6I~HtsR~vnjWGrPg1NAN7bMGA5sqnXjVMa6fQ__&Key-Pair-Id=K1676C64NMVM2J",
+   "generated_image_url": "https://openapi-dl.data.tripo3d.com/tcli_ec71596064bd4b79a9b2980103819edb/20261118/4a02d36e-ebb8-4040-9ba6-343628a1a2bb/text2image_4a02d36e-ebb8-4040-9ba6-343628a1a2bb.jpeg?Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9vcGVuYXBpLWRsLmRhdGEudHJpcG8zZC5jb20vdGNsaV9lYzcxNTk2MDY0YmQ0Yjc5YTliMjk4MDEwMzgxOWVkYi8yMDI2MTExOC80YTAyZDM2ZS1lYmI4LTQwNDAtOWJhNi0zNDM2MjhhMWEyYmIvdGV4dDJpbWFnZV80YTAyZDM2ZS1lYmI4LTQwNDAtOWJhNi0zNDM2MjhhMWEyYmIuanBlZyIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc5NTA3MDI4Nn19fV19&Signature=NCxJyd7FSBNGID7W-cLNiIeOmpig7cFfaDTIqEWcYyIiJxJNw-q4EyXKK223MRzb~Sve-yXW8YLaeM5RMUN9OaAQAsg8ncaX5kj9d6eL0k1PJ6YOnE648~w21yFjVD392Gnci-uEI5bFzKsYDOyxCyYgB7QHNlsj~8SMdj2WLJSBPe05r6s300B6z-FYtp9iXRT1jV0U4reEthM5CYpIg86yLgyvV2ADmyUmgofrGIeEOk1kNb1YLAqLu2YAdznKoeitsfnq1YSdg3EYMGiRDI~m6-dn9l4Ob5o9JU~k8MOyShc67PTFclSsdGU6lTmP7hj9eQnycpbNKyeJ-Mk9-g__&Key-Pair-Id=K1676C64NMVM2J"
+  }
+ },
+ {
+  "step": "ilse:rigcheck",
+  "task": "6af4b0c2-12b7-4737-a2c7-b6cba2a7f66e",
+  "status": "success",
+  "credits": 0.0,
+  "output": {
+   "riggable": true,
+   "rig_type": "biped"
+  }
+ },
+ {
+  "step": "ilse:rig",
+  "task": "3072d9cd-73d7-4024-9b3f-a7f2bc7e1899",
+  "status": "success",
+  "credits": 25.0,
+  "output": {
+   "model_url": "https://openapi-dl.data.tripo3d.com/tcli_ec71596064bd4b79a9b2980103819edb/20261118/3072d9cd-73d7-4024-9b3f-a7f2bc7e1899/tripo_rigging_3072d9cd-73d7-4024-9b3f-a7f2bc7e1899.glb?Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9vcGVuYXBpLWRsLmRhdGEudHJpcG8zZC5jb20vdGNsaV9lYzcxNTk2MDY0YmQ0Yjc5YTliMjk4MDEwMzgxOWVkYi8yMDI2MTExOC8zMDcyZDljZC03M2Q3LTQwMjQtOWIzZi1hN2YyYmM3ZTE4OTkvdHJpcG9fcmlnZ2luZ18zMDcyZDljZC03M2Q3LTQwMjQtOWIzZi1hN2YyYmM3ZTE4OTkuZ2xiIiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzk1MDcwMjk4fX19XX0_&Signature=xDzZMzDJv9koYmofrC7K~JI2MKHm7zj7KETBZkW2R3ZLR2ApyLfe1kVdk8X44AaIJyTvSCzlhmbjOZCgMk6w6F-t2z-kA-KKEfWTQwtSfcjOKDWHpge~e0gH~C2S8SoarYlHY6snKrMYtwn8mCcnY9gMOxC1R7msua4VkuqB2q~fKGAospDW1jUE8uH5t7Zkpk3FaqTW3ZMWM4YPflbqsw94gHH6kjP0OVRz1xc1dhDZ~3gDsajpgJyXJ~CsNjA3IZ-JPob5AJ3RcE6t7TAXlUV9gqGQ32sqGckPecilTWMZwt7ZVb744UHvQQE7YhgVu2wf9dVJkIhrwDqPRIEl0Q__&Key-Pair-Id=K1676C64NMVM2J",
+   "rendered_image_url": "https://openapi-dl.data.tripo3d.com/tcli_ec71596064bd4b79a9b2980103819edb/20261118/3072d9cd-73d7-4024-9b3f-a7f2bc7e1899/legacy_mesh.webp?Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9vcGVuYXBpLWRsLmRhdGEudHJpcG8zZC5jb20vdGNsaV9lYzcxNTk2MDY0YmQ0Yjc5YTliMjk4MDEwMzgxOWVkYi8yMDI2MTExOC8zMDcyZDljZC03M2Q3LTQwMjQtOWIzZi1hN2YyYmM3ZTE4OTkvbGVnYWN5X21lc2gud2VicCIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc5NTA3MDI5OH19fV19&Signature=mUZRylck0AkxPV7530X-UgH5zdqkkcF28EQBWJwuA-nuTzButgnnA7MXUU5mWCuXqoHLbvr2p3tyr4-qC~gylUxParWrZ5Enp7Y1aDdL4jEFpgILrHSh7rLOkSHxwLwNFU04yavGNinZul6s8ODL~HilTWU4eSjdHawM09eUg5si0Ayyw16Nb4Pj~qRQ79r3sLHcixypDBAEoYpgZR7uPBieyvwPGWR0PSCHURsaOGnuF~KGqg-RACOdilFAYtQj6dzl-Dkw4hgfe8k3ASO30hCBy7XTpumMWBoTYbtXZg99hqshK3XctKr82ICdVhsRoxElJLZED53JYPPHBDSIJw__&Key-Pair-Id=K1676C64NMVM2J"
+  }
+ },
+ {
+  "step": "ilse:anim",
+  "task": "01e25946-cc45-46e5-b7b2-888aef671a0d",
+  "status": "success",
+  "credits": 50.0,
+  "output": {
+   "model_url": "https://openapi-dl.data.tripo3d.com/tcli_ec71596064bd4b79a9b2980103819edb/20261118/01e25946-cc45-46e5-b7b2-888aef671a0d/tripo_retarget_01e25946-cc45-46e5-b7b2-888aef671a0d.glb?Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9vcGVuYXBpLWRsLmRhdGEudHJpcG8zZC5jb20vdGNsaV9lYzcxNTk2MDY0YmQ0Yjc5YTliMjk4MDEwMzgxOWVkYi8yMDI2MTExOC8wMWUyNTk0Ni1jYzQ1LTQ2ZTUtYjdiMi04ODhhZWY2NzFhMGQvdHJpcG9fcmV0YXJnZXRfMDFlMjU5NDYtY2M0NS00NmU1LWI3YjItODg4YWVmNjcxYTBkLmdsYiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc5NTA3MDMxMn19fV19&Signature=TJJfeCI-jWTbDWGJmaSI-CIDuzkyFoD3OFGs5btw5QaEBTgmPBpHHubtALfPLEJ9M7~c9slwIc5u1XQlhkf79-VmiQCHpNlUu4SYDOjwiujk1nCLC23h5wxYhFwPQvjd1uqbl2aMXnVyaa~2lezSHTj7mg7vj0GpdDrk~lBRGUZZqv5DzN-MPx0uN9KCP-6YfxXCZ5fr8m~lWBaj61dFMkaMoTQExG8BMS9pdBjcSilvsz~lI8o5XFZ4r5LsE9iYPtoJyCsXkJJ-vILfoOY~tAm54v1HP0J4q-Wtf9Es-rsg4vYtTmmHZkyouy14cyIZyCm6jtmoXsTsAfqNefeKQA__&Key-Pair-Id=K1676C64NMVM2J"
+  }
+ },
+ {
+  "balance_after": {
+   "balance": 645.0,
+   "frozen": 0.0
+  },
+  "t": 1794983913.6447146
+ }
+]
