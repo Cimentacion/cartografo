@@ -1166,7 +1166,7 @@ function embarazoPosible(p){ // solo parejas de distinto sexo y con la mujer ent
   const y=G.yo,mujer=y.sexo=="f"?y:p;
   return p.sexo!=y.sexo&&mujer.edad>=216&&mujer.edad<45*12&&!(p.emb>0)&&!(p.pp>0)&&G.emb==0;
 }
-function encuentro(p,modo,prot){
+function encuentro0(p,modo,prot){
   const y=G.yo;gustos(p);add("animo",6);rel(p,2);p.pas=clamp((p.pas||0)+2);
   let s;
   if(modo=="tranquilo")s=vario("enc0",[`Una noche con ${p.nombre}, sin prisa y sin reloj.`,`${p.nombre} y tú apagáis los teléfonos. El resto no se cuenta.`,`Os buscáis ${p.nombre} y tú como si fuera la primera vez.`,`Una tarde de persianas bajadas con ${p.nombre}.`].concat(ENC_EXTRA.map(f=>f(p))));
@@ -1213,7 +1213,7 @@ function pedirDinero(p){
 function menuPersona(p){
   const y=G.yo,a=y.edad/12,pa=p.edad/12,ops=[];
   if(a<2){hacer(()=>estarCon(p));return}
-  const O=(t,fn,s)=>ops.push({t,s,fn:()=>hacer(()=>{p.vis=(p.vis||0)+1;return fn()})});
+  const O=(t,fn,s)=>ops.push({t,s,fn:()=>hacer(()=>{p.vis=(p.vis||0)+1;p.aten=G.yo.edad;return fn()})});
   const fam=["prog","abu","tio"].includes(p.rol),ajeno=["vec","conoc","comp"].includes(p.rol),par=Math.abs(pa-a)<=4,esPareja=p.id==G.pareja;
   O(a<12?(pa<16?"Jugar":"Estar un rato"):"Charlar",()=>estarCon(p));
   if(a<16&&pa<16){ // entre críos
@@ -3383,7 +3383,7 @@ function tickFamilia(){
     if(fam.length>=2){const falta=G.gente.filter(d=>!d.vivo&&d.con&&d.anoM==ano()&&d.rel>=40&&SANGRE.includes(d.rol));
       const a=pick(fam),b=pick(fam.filter(q=>q.id!=a.id));
       if(falta.length){const d=pick(falta);add("animo",-5);log(`Nochebuena. Es la primera sin ${tu(d)}. Alguien pone su cubierto sin darse cuenta y nadie se atreve a quitarlo.`,"mala")}
-      else if(y.edad>=192&&!G.pend&&ch(.3)){decidir("navidad",{a:a.id,b:b.id});log(`Nochebuena. En el segundo plato, ${tu(a)} y ${tu(b)} sacan el tema de todos los años.`)}
+      else if(y.edad>=192&&!G.pend&&ch(.12)){decidir("navidad",{a:a.id,b:b.id});log(`Nochebuena. En el segundo plato, ${tu(a)} y ${tu(b)} sacan el tema de todos los años.`)}
       else{add("animo",3);rel(a,2);rel(b,2);log(vario("nav",[`Nochebuena con los de siempre. ${cap1(tu(a))} trincha, ${tu(b)} opina de cómo trincha.`,`Nochebuena. ${cap1(tu(a))} cuenta la misma anécdota del año pasado y os reís igual.`,`Cena de Navidad. ${cap1(tu(b))} se duerme en el sofá antes de las uvas del ensayo.`,`Navidad. Sobra comida para tres días y ${tu(a)} insiste en que te lleves un táper.`,`Nochebuena. ${cap1(tu(a))} y ${tu(b)} cantan villancicos desafinando a conciencia.`,`Cena de Navidad. Se va la luz en mitad del brindis y seguís con velas. La mejor en años.`]))}}}
   // Encargo pendiente: buscar a un familiar del que te hablaron
   tickAniversarios();
@@ -3563,7 +3563,7 @@ function accionesIsla(){const y=G.yo,x=G.carcel.isla,L=[],A=(t,fn,cls)=>L.push({
   islenos().forEach(p=>{const ad=p.edad>=216&&y.edad>=216&&p.id!=G.pareja;
     A((p.amante||p.id==G.pareja?"Pasar la noche con ":"Pasar el rato con ")+p.nombre,()=>{rel(p,ri(4,8));add("animo",4);if(ad)sube(p,4);
       if(ad&&!p.amante&&(p.quim||0)>=45&&p.rel>=60&&ch(.5)){p.amante=true;p.beso=true;p.besoE=p.besoE||anios();p.pas=20;gustos(p);virgenIni(p);return `${p.nombre} y tú os quedáis solos junto a la hoguera cuando los demás duermen. No hay nadie en mil kilómetros a quien dar explicaciones. Pasa lo que llevaba semanas a punto de pasar.`+primeraVez(p)}
-      if(p.amante||p.id==G.pareja){p.pas=clamp((p.pas||0)+6);return vario("islaA",[`Os bañáis de noche en la poza, ${p.nombre} y tú, con el agua llena de luces verdes.`,`${p.nombre} se duerme con la cabeza en tu hombro. Aquí eso vale por una casa.`,`Os escapáis a la cala pequeña. Volvéis al amanecer, con arena en todas partes.`])}
+      if(p.amante||p.id==G.pareja){p.pas=clamp((p.pas||0)+6);if(p.id==G.pareja||p.esposa){x.int=x.m;p.aten=y.edad;p.deriva=Math.max(0,(p.deriva||0)-25);if(p.lio&&!G.pend&&!(p.lio.calla>y.edad)&&ch(.5)){decidir("cuernos",{id:p.id});add("animo",-12);return {txt:olorAjeno(p),mal:1}}}return vario("islaA",[`Os bañáis de noche en la poza, ${p.nombre} y tú, con el agua llena de luces verdes.`,`${p.nombre} se duerme con la cabeza en tu hombro. Aquí eso vale por una casa.`,`Os escapáis a la cala pequeña. Volvéis al amanecer, con arena en todas partes.`])}
       return vario("islaT",[`${p.nombre} te cuenta su vida entera, porque aquí hay tiempo para vidas enteras.`,`Jugáis al ajedrez con conchas y piedras. ${p.nombre} hace trampas y tú también.`,`${p.nombre} y tú inventáis nombres para las estrellas que no conocéis.`,`${p.nombre} te enseña un nudo que no se deshace. Lo usáis para todo.`])})});
   if(x.bal<6)A("Construir una balsa ("+x.bal+"/6)",()=>{x.bal++;add("cuerpo",.5);return vario("islaB",["Atas troncos con lianas trenzadas. Flota. Con uno encima, flota menos.","Coses una vela con la lona y con ropa que ya no abriga.","Refuerzas la balsa con cañas huecas. Empieza a parecer un plan."])});
   else A("Echaros al mar en la balsa",()=>{if(ch(.3+y.cuerpo/350+y.mente/350)){log("Empujáis la balsa en la marea de la mañana y no miráis atrás.");rescate("balsa");return null}if(ch(.35)){G.muerteDirecta="el mar, a bordo de una balsa hecha a mano";return {txt:"La segunda noche el mar se levanta. La balsa se abre como una fruta.",mal:1}}x.bal=2;add("salud",-18);return {txt:"La corriente os devuelve a la isla, medio ahogados, tres días después. De la balsa quedan cuatro troncos.",mal:1}},"riesgo");
@@ -3744,10 +3744,55 @@ DEC.pillados={man:1,tit:d=>"Os han visto",txt:d=>"",ops:d=>{const a=G.arc&&G.arc
       G.muerteDirecta="haber tocado lo que pertenecía a una reina de la noche";return {txt:`${m.nombre} no levanta la voz. No le hace falta.`,mal:1}}},
     {t:"Echarle la culpa a "+c.nombre,fn:()=>{rel(c,-60);c.amante=false;vConf(a,-12);return {txt:`Dices que fue ${gp(c,"él","ella")} quien insistió. Es medio verdad. ${m.nombre} asiente, y ${c.nombre} te mira mientras se lo llevan con una promesa en los ojos que tiene siglos para cumplir.`.replace("se lo llevan",gp(c,"se lo llevan","se la llevan"))+moral("chivato",2),mal:1}}}]}};
 
+/* ---------- Cuernos: la pareja desatendida, en casa o en la isla (siempre adultos) ---------- */
+const lioN=q=>{const l=q.lio||{},r=l.id&&P(l.id);return r?r.nombre:l.n||"alguien"};
+function lioEmpieza(q,r,isla){q.lio={id:r&&r.id||null,n:r?null:nombreNuevo(q.sexo=="m"?"f":"m"),m:0,isla:isla?1:0};q.liosN=(q.liosN||0)+1}
+function tickCuernos(){const y=G.yo;if(y.edad<216||G.muerto)return;
+  const enIsla=G.carcel&&G.carcel.tipo=="isla",l=vivos(q=>(q.id==G.pareja||q.esposa)&&q.edad>=216&&!q.vpArc);
+  l.forEach(q=>{if(q.aten==null)q.aten=y.edad;
+    if(enIsla){const x=G.carcel.isla;if(!q.isla)return;const riv=islenos().filter(r=>r.id!=q.id&&r.edad>=216&&r.sexo!=q.sexo);
+      if(!q.lio){if(!riv.length)return;const gap=x.m-(x.int||0);if(gap<2){q.deriva=Math.max(0,(q.deriva||0)-4);return}
+        const r=viv(q.derCon)||pick(riv);q.derCon=r.id;const antes=q.deriva||0;q.deriva=antes+ri(6,12)+(gap>6?5:0);rel(q,-1);
+        const paso=n=>!q.fueInfiel&&antes<n&&q.deriva>=n;
+        if(q.fueInfiel&&antes<60&&q.deriva>=60)log(`${q.nombre} vuelve a buscar la compañía de ${r.nombre}. Ya sabes cómo acaba esto si sigues sin acercarte.`,"mala");
+        if(paso(30))log(`${q.nombre} y ${r.nombre} pasan cada vez más rato juntos, pescando en la poza. ${cap1(gp(q,"Él","Ella"))} se ríe con ${gp(r,"él","ella")} de una forma que hacía tiempo que no le oías.`);
+        else if(paso(60))log(`Una noche te despiertas y ${q.nombre} no está en el refugio. Vuelve al rato, del lado de la playa donde duerme ${r.nombre}. «No podía dormir.» Hace semanas que no os tocáis.`,"mala");
+        else if(paso(85))log(`${r.nombre} le ha hecho a ${q.nombre} un collar de conchas. Lo lleva puesto. Cuando os cruzáis los tres junto al fuego, nadie mira a nadie.`,"mala");
+        else if(q.deriva>=100)lioEmpieza(q,r,1);return}
+      q.lio.m++;rel(q,-1);if(!G.pend&&!(q.lio.calla>y.edad)&&ch(.16)){decidir("cuernos",{id:q.id,acto:1});const r=lioN(q);log(`Vuelves antes de lo previsto de buscar leña. Detrás de las rocas de la cala pequeña, ${q.nombre} y ${r}. No hay nada que interpretar: ${gp(q,"él","ella")} encima, los ojos cerrados, tu nombre en ninguna parte. Tardan en verte.`,"mala");add("animo",-18)}
+      return}
+    if(G.carcel)return;const des=y.edad-q.aten;
+    if(!q.lio){if(des>=18&&!q.avisoD){q.avisoD=1;log(vario("desat",[`${q.nombre} te dice, sin enfado, que ya no sabe cómo te va el día. Hace año y medio que no hacéis nada juntos.`,`${q.nombre} se arregla para cenar contigo. No levantas la vista del plato. Recoge la mesa ${gp(q,"solo","sola")}.`,`«¿Tú te acuerdas de cuándo fue la última vez?», pregunta ${q.nombre} desde su lado de la cama. No te acuerdas.`]),"mala");rel(q,-4)}
+      if(des<12)q.avisoD=0;
+      if(des>=24&&ch(clamp(.01+(des-24)/12*.012+(q.pers==2?.01:0)+(q.lejos?.015:0)-(q.rel>=85?.008:0),.004,.07))){const c=vivos(r=>r.con&&!r.lejos&&r.edad>=216&&r.sexo!=q.sexo&&r.id!=q.id&&["conoc","vec","comp"].includes(r.rol)&&Math.abs(r.edad-q.edad)<18*12);lioEmpieza(q,c.length&&ch(.5)?pick(c):null)}
+      return}
+    const L=q.lio;L.m++;rel(q,-.6);q.pas=clamp((q.pas||0)-1);
+    if(des<4&&q.rel>=60&&ch(.1)){q.lio=null;q.fueInfiel=1;return} // vuelves a estar: lo deja sin que llegues a saberlo
+    if(G.pend||L.calla>y.edad)return;
+    if(ch(.05)){decidir("cuernos",{id:q.id,acto:1});add("animo",-18);log(vario("acto",[`Vuelves a casa a media mañana por unos papeles. Hay un abrigo que no conoces en el perchero y ruido en vuestro cuarto. Abres. ${q.nombre} y ${lioN(q)}, en vuestra cama, sin sábana que valga. Se quedan quietos como en una foto.`,`El coche de ${q.nombre} está aparcado donde no debería. Te acercas. Cristales empañados, el asiento echado atrás, y ${lioN(q)} debajo de ${gp(q,"él","ella")}. ${q.nombre} te ve por encima de su hombro.`,`Subes sin hacer ruido porque crees que duerme. No duerme. ${lioN(q)} está con ${gp(q,"él","ella")} contra la encimera, en tu cocina, con tu delantal tirado en el suelo.`]),"mala")}
+    else if(ch(.1))log(vario("indicios",[`${q.nombre} deja el móvil siempre boca abajo, y ha cambiado el patrón de desbloqueo.`,`${q.nombre} estrena ropa interior que tú no has visto puesta.`,`${q.nombre} llega tarde otra vez, con el pelo húmedo. «Había atasco.»`,`${q.nombre} sonríe a la pantalla y la apaga cuando entras.`,`Alguien del barrio te pregunta si ${q.nombre} y tú seguís juntos. Lo pregunta con demasiado cuidado.`]),"mala")})}
+function encuentro(p,modo,prot){const y=G.yo;let s=encuentro0(p,modo,prot);p.aten=y.edad;
+  if(p.lio&&!G.pend&&!(p.lio.calla>y.edad)&&ch(.5)){decidir("cuernos",{id:p.id});add("animo",-12);s+=" "+olorAjeno(p)}return s}
+function olorAjeno(p){return vario("olor",[`Al ${gp(p,"abrazarle","abrazarla")} notas un olor que no es el suyo ni el tuyo: otra piel, otro sudor, sexo de hace pocas horas mal tapado con jabón. Tiene una marca en la cadera que no le has hecho tú. Alguien ha estado ahí antes que tú, hoy mismo.`,`Algo no encaja desde el primer beso: sabe a otra boca. Está ${gp(p,"cansado","cansada")} de una forma que conoces, y tú acabas de llegar. Entiendes, con el cuerpo antes que con la cabeza, que hoy ya ha estado con otra persona.`,`Huele a una colonia que no es la tuya, en el cuello y más abajo. Se deja hacer con la mirada en el techo. No eres ${g("el primero","la primera")} de hoy, y lo sabes antes de terminar.`])}
+DEC.cuernos={man:1,tit:d=>d.acto?"Los has pillado":"No es tu olor",txt:d=>"",ops:d=>{const q=P(d.id),y=G.yo,L=q&&q.lio;if(!q||!L)return [{t:"Seguir",fn:()=>"Te quedas con la duda."}];
+  const r=L.id&&viv(L.id),rn=lioN(q),isla=G.carcel&&G.carcel.tipo=="isla",tuyos=vivos(p=>p.amante&&p.id!=q.id).length,ops=[];
+  const fin=()=>{q.lio=null;q.fueInfiel=1;q.deriva=0;q.aten=y.edad;if(isla)G.carcel.isla.int=G.carcel.isla.m};
+  if(!d.acto)ops.push({t:"Preguntarle con quién",fn:()=>{rel(q,-8);if(ch(.6)){d.acto=1;decidir("cuernos",{id:q.id,acto:1});return {txt:`«¿Con quién has estado?» ${q.nombre} tarda demasiado en contestar. Luego lo dice: ${rn}. Desde hace ${L.m>=12?Math.floor(L.m/12)+" años":Math.max(1,L.m)+" meses"}. «Tú no estabas. Hacía mucho que no estabas.»`,mal:1}}L.calla=y.edad+6;return {txt:`«¿Con quién has estado?» ${q.nombre} se ríe, se ofende y te da la vuelta a la pregunta. No confiesa nada. Tú sabes lo que has olido.`,mal:1}}});
+  ops.push({t:"Perdonar y empezar de nuevo",s:tuyos?"Tú tampoco estás para dar lecciones":"Te costará",fn:()=>{fin();rel(q,tuyos?-5:-15);add("animo",tuyos?-4:-10);if(r)rel(r,-60);return {txt:`${q.nombre} llora, tú no. Ponéis condiciones en voz baja: se acabó ${rn}, se acabaron las ausencias. ${tuyos?"Ninguno pregunta demasiado por lo del otro.":"Dormís en la misma cama sin tocaros durante semanas."} Algo se ha roto y algo sigue.`,mal:1}}});
+  ops.push({t:"Ir a por "+rn,s:"Depende de tu cuerpo",fn:()=>{if(ch(.25+y.cuerpo/150)){fin();rel(q,-12);add("carisma",1);if(r){rel(r,-70);if(isla&&ch(.12)){morir(r);return {txt:`Le sacas a rastras hasta la orilla. Pelea mal. Cae de espaldas contra las rocas y ya no se levanta. ${q.nombre} grita. Enterráis a ${rn} esa tarde, sin mirar a nadie. En la isla ya nadie duerme tranquilo.`+moral("tramposo",2),mal:1}}}
+      return `Le partes la cara a ${rn} ${isla?"delante de todos, en la arena":"en el portal de su casa"}. No vuelve a acercarse. ${q.nombre} no sabe si tenerte miedo o agradecértelo.`+moral("valiente")}
+    add("salud",-ri(10,20));add("animo",-6);return {txt:`Vas a por ${rn} y te sale mal: acabas en el suelo, con el labio partido, y ${q.nombre} mirando desde lejos sin acercarse a ninguno.`,mal:1}}});
+  ops.push({t:isla?"Romper: cada uno a un lado del refugio":G.casado&&q.id==G.pareja?"Pedir el divorcio":"Dejarlo",fn:()=>{const esp=q.esposa&&q.id!=G.pareja;q.fueInfiel=1;
+    if(isla){if(esp)q.esposa=false;else{G.pareja=null;G.casado=false}q.ex=1;q.amante=false;q.pas=0;rel(q,-35);add("animo",-12);q.lio.calla=1e9;return {txt:`Mueves tus cosas al otro extremo de la playa. ${q.nombre} se queda con ${rn}. La isla mide lo que mide: los ves cada día, y los oyes algunas noches.`,mal:1}}
+    q.lio=null;if(esp){q.esposa=false;q.casa=false;q.ex=1;rel(q,-35);add("animo",-8);return {txt:`Le dices a ${q.nombre} que recoja. Se va esa misma semana, a casa de ${rn}.`,mal:1}}
+    const x=romper(q,true);x.txt+=` Te enteras pronto de que se ha ido a vivir con ${rn}.`;return x}});
+  if(!d.acto)ops.push({t:"Callar y tragar",fn:()=>{L.calla=y.edad+12;add("animo",-10);G.renc=Math.min(100,(G.renc||0)+8);return {txt:`No dices nada. Terminas, te das la vuelta y miras la pared. ${q.nombre} respira tranquila, creyendo que no lo sabes. Lo sabes cada noche.`.replace("tranquila",gp(q,"tranquilo","tranquila")),mal:1}}});
+  return ops}};
+
 /* ---------- Enganches con el resto del juego ---------- */
 function tickNuevo(){
   const y=G.yo,a=y.edad/12;if(G.muerto)return;
-  tickFamilia();
+  tickFamilia();tickCuernos();
   if(G.carcel&&G.carcel.tipo=="isla"){tickIsla();if(G.guerra){G.guerra.m--;G.guerra.t++;if(G.guerra.m<=0){G.guerra=null}}return}
   if(G.guerra)tickGuerra();else if(!G.exo&&!enMagia()&&a>=1&&ch(.01/12))guerraIni();
   if(G.muerteDirecta)return;
