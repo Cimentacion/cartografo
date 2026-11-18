@@ -1,0 +1,8 @@
+[
+ {
+  "id": "ilse",
+  "faces": 9000,
+  "prompt": "Anime style 3D game character, full body, a beautiful adult woman in her late twenties, 1928 Berlin cabaret singer. Sleek glossy black bob haircut with straight blunt bangs, large expressive amber anime eyes with long lashes, small nose, red lips, pale skin, elegant slim figure. Red satin flapper dress with fringe hem, long pearl necklace, black feather headband, small gold earrings, black heels. Standing straight in a T-pose, arms extended horizontally, legs slightly apart, facing front. Japanese JRPG heroine, cel shaded, clean stylized anime face, high quality hand painted texture.",
+  "anims": ["preset:biped:standing_relax", "preset:biped:greet_01", "preset:biped:laugh_01", "preset:biped:heart_pose", "preset:biped:sing_01"]
+ }
+]
