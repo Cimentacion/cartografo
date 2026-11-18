@@ -900,7 +900,8 @@ const ACT=[
 function conocerEn(sitio,tipo,rasgo,oficio){
   const y=G.yo,a=y.edad/12;
   if(vivos(p=>p.rol=="conoc"&&!p.lejos).length>=16)return "";
-  const e=tipo=="adulto"?ri(28,62):a<18?Math.max(2,a+ri(-2,1)+R()):(ch(.5)?clamp(a+ri(-8,8),18,90):ch(.6)?ri(18,32):ri(18,78)),sexo=sx();
+  const r=R(),joven=a>=26?(ch(.6)?ri(18,25):ri(18,Math.floor(a)-3)):ri(18,Math.max(18,Math.floor(a))); // de adulto: un tercio de tu quinta, un tercio más jóvenes que tú, un tercio de cualquier edad
+  const e=tipo=="adulto"?ri(a>=30?22:28,62):a<18?Math.max(2,a+ri(-4,2)+R()):(r<.33?clamp(a+ri(-6,6),18,90):r<.68?joven:ri(18,78)),sexo=sx();
   const p=per("conoc",sexo,e,pick(ORI[G.origen].ap),{con:true,rel:ri(15,35),sitio,oficio:oficio?oficio[sexo=="m"?0:1]:null,rasgo:rasgo==null||ch(.3)?ri(0,4):rasgo,casado:e>28&&ch(.5)});
   return ` Conoces a ${p.nombre}, ${p.oficio?p.oficio:RASGOS[p.rasgo].n[sexo=="m"?0:1]+", "+edadTxt(p.edad)}.`;
 }
