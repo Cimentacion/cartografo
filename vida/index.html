@@ -206,8 +206,9 @@ function cargar(){try{const s=localStorage.getItem(CLAVE);if(s)G=JSON.parse(s);i
   if(G&&!G.v2){G.gente.forEach(p=>p.con=true);G.v2=1}
   if(G&&G.yo.aspecto==null)G.yo.aspecto=35;
   if(G&&G.yo.altAdulta==null)genCuerpo();
-  if(G&&(G.titulo||G.uni)&&!G.carrera)G.carrera="economia"}
-function borrar(){try{localStorage.removeItem(CLAVE)}catch(e){}}
+  if(G&&(G.titulo||G.uni)&&!G.carrera)G.carrera="economia";
+  try{cargaHitos()}catch(e){}}
+function borrar(){try{localStorage.removeItem(CLAVE);localStorage.removeItem(CLAVE+"-hitos")}catch(e){}SNAPS=[];SNAP_MES=null}
 
 const yo=()=>G.yo, anios=()=>Math.floor(G.yo.edad/12);
 const g=(m,f)=>G.yo.sexo=="m"?m:f;
@@ -375,6 +376,7 @@ function mudanza(motivo,mejor){
   if(!mejor)add("animo",-8);
 }
 function morir(p){
+  if(p.con&&(p.id==G.pareja||p.esposa||["prog","herm","hijo"].includes(p.rol)||p.rel>=60))hito("muerte",p.id,"la muerte de "+tu(p));
   const enCasa=p.casa;p.vivo=false;p.casa=false;
   const y=G.yo,a=p.edad/12;
   const causa=a<50?pick(["un accidente","una enfermedad que nadie vio venir"]):a<75?pick(["un infarto","un cáncer","un ictus"]):pick(["la edad","una neumonía","un fallo del corazón mientras dormía"]);
@@ -503,7 +505,7 @@ function tick(){
   // Cumpleaños
   if(y.edad%12==0)cumple();
   // Muertes ajenas
-  G.gente.slice().forEach(p=>{if(p.vivo&&!p.inm&&ch(mort(p.edad)/12)){morir(p);trasMuerte(p)}});
+  G.gente.slice().forEach(p=>{if(p.vivo&&!p.inm&&!(p.prot>y.edad)&&ch(mort(p.edad)/12)){morir(p);trasMuerte(p)}});
   // Hijos se van de casa
   G.gente.forEach(p=>{if(p.vivo&&p.casa&&p.rol=="herm"&&p.edad>24*12&&ch(.03)){p.casa=false;if(!G.indep)log(`${tu(p)} se va de casa. Su cuarto se queda raro.`)}});
   tickMundo();tickMagia();tickCompulsion();tickOscuro();tickTurbio();tickHarem();tickMagAd();tickAficiones();if(G.exo&&G.indep)G.yo.dinero+=(exo()||{barato:0}).barato;tickEcos();tickDinero();tickSalud();tickCadena();tickNuevo();
@@ -1512,6 +1514,7 @@ function accionesVida(){
 }
 function hacer(fn){
   if(G.muerto)return;
+  if(!G.viajado&&G.yo.edad>=120)SNAP_MES=snapNow();
   G.tn=(G.tn||0)+1;
   const r=fn();
   if(typeof r=="string")log(r);else if(r&&r.txt)log(r.txt,r.mal?"mala":"");
@@ -1810,6 +1813,8 @@ function sentencia(d,pAbs,mult){
   return encarcelar(m);
 }
 function encarcelar(m){
+  if(G.fl.previsto){G.fl.previsto=0;return {txt:"Esta vez sabías por dónde iban a venir y quién iba a hablar. Cambiaste el plan a tiempo: cuando llegan, no hay nada que encontrar."}}
+  hito("carcel",null,"entrar en prisión");
   const y=G.yo;G.fl.antec=1;const q=G.pareja&&P(G.pareja);
   G.carcel={m,tot:m,cond:0,ind:G.indep,casa:G.casa};G.trabajo=null;G.indep=false;
   G.gente.forEach(p=>{if(p.casa){p.encasa=1;p.casa=false}else p.encasa=0});
@@ -1819,7 +1824,7 @@ function encarcelar(m){
   return {txt:s,mal:1};
 }
 function liberar(){
-  if(G.carcel.tipo=="castillo"){finEncierro();return}if(G.carcel.tipo=="isla"){G.carcel.m=9999;return}
+  if(G.carcel.tipo=="castillo"){finEncierro();return}if(G.carcel.tipo=="plataforma"){finRig();return}if(G.carcel.tipo=="culto"){finCulto();return}if(G.carcel.tipo=="isla"){G.carcel.m=9999;return}
   const c=G.carcel,y=G.yo;G.fl.mesesCarcel=(G.fl.mesesCarcel||0)+(c.tot-Math.max(0,c.m));G.carcel=null;G.indep=c.ind;
   if(c.ind){G.casa=c.casa;G.gente.forEach(p=>{if(p.vivo&&p.encasa&&(p.id==G.pareja||p.rol=="hijo"&&p.edad<22*12||p.cuidas))p.casa=true});if(!G.prop){G.riqueza=Math.max(0,G.riqueza-1);genCasa();G.casa.deQuien=null;genVecinos()}}
   else{const pa=vivos(p=>p.rol=="prog"&&!p.lejos);if(pa.length){pa.forEach(p=>p.casa=true);G.casa=c.casa}else{G.indep=true;G.riqueza=0;genCasa();G.casa.deQuien=null;genVecinos()}}
@@ -1827,11 +1832,12 @@ function liberar(){
   log(`Sales de prisión. Te devuelven la bolsa de plástico con lo que traías. Fuera hay demasiado cielo y nadie sabe qué decirte.`+(G.pareja&&P(G.pareja)?` ${P(G.pareja).nombre} te espera en la puerta.`:""));
 }
 function accionesCarcel(){
-  if(G.carcel.tipo=="isla")return accionesIsla();if(G.carcel.tipo=="castillo")return accionesCastillo();
+  if(G.carcel.tipo=="isla")return accionesIsla();if(G.carcel.tipo=="castillo")return accionesCastillo();if(G.carcel.tipo=="plataforma")return accionesRig();if(G.carcel.tipo=="culto")return accionesCulto();
   const y=G.yo,c=G.carcel,L=[],A=(t,fn,cls)=>L.push({t,fn,cls});
+  if(G.tomo)L.push({t:"El tomo prohibido…",cls:"riesgo",abre:menuTomo});
   A("Cumplir sin meterte en líos",()=>{c.cond+=2;add("animo",-1);return vario("carc0",["Un mes de recuento, patio y recuento. No das un problema.","Aprendes a no mirar a quien no debes y a no deber nada a nadie.","Tachas el mes en la pared, como en las películas. Ayuda poco.","Te sabes el horario del módulo mejor que tu nombre."])});
   A("Hacer pesas en el patio",()=>{add("cuerpo",2);add("salud",.5);mover();return vario("carc1",["Barras, flexiones y garrafas llenas de agua. El cuerpo es lo único que aquí mejora.","Entrenas con los veteranos. Te corrigen la postura sin decir palabra."])});
-  A("Leer y estudiar",()=>{add("mente",2);c.cond+=1;pr("estudio",.5);return vario("carc2",["La biblioteca de la prisión tiene tres estanterías. Te lees dos.","Te apuntas a las clases del módulo. El maestro viene los martes.","Estudias por las noches con una linterna de boli."])});
+  A("Leer y estudiar",()=>{add("mente",2);c.cond+=1;pr("estudio",.5);return vario("carc2",["La biblioteca de la prisión tiene tres estanterías. Te lees dos.","Te apuntas a las clases del módulo. El maestro viene los martes.","Estudias por las noches con una linterna de boli."])+hallaTomo("carcel")});
   A("Trabajar en el taller",()=>{y.dinero+=90;c.cond+=1;add("cuerpo",.5);return vario("carc3",["Coses balones ocho horas al día por 90 al mes.","Lavandería. Dobla, plancha, dobla. 90 a final de mes.","Te ponen en cocina. Pelas patatas para cuatrocientos."])});
   A("Hacer contactos",()=>{G.del=G.del||{n:0,bot:0,cont:0};G.del.cont++;add("carisma",1);c.cond-=1;return vario("carc4",["Te sientas en la mesa adecuada del comedor. Aquí se aprende más que fuera.","Alguien te explica cómo se hacen las cosas bien, para la próxima.","Te deben un favor y lo apuntas. Fuera valdrá más."])},"riesgo");
   A("Trapichear dentro",()=>{c.cond-=2;if(ch(.2)){c.m+=6;return {txt:"Registro sorpresa en la celda. Encuentran lo que guardabas. Seis meses más.",mal:1}}const n=ri(100,400);y.dinero+=n;return `Tabaco, tarjetas y favores. Te sacas ${n} sin salir del pasillo.`},"riesgo");
@@ -1842,7 +1848,7 @@ function accionesCarcel(){
   return L;
 }
 function eventoCarcel(){
-  if(G.carcel.tipo=="isla"){eventoIsla();return}if(G.carcel.tipo=="castillo"){eventoCastillo();return}
+  if(G.carcel.tipo=="isla"){eventoIsla();return}if(G.carcel.tipo=="castillo"){eventoCastillo();return}if(G.carcel.tipo=="plataforma"){eventoRig();return}if(G.carcel.tipo=="culto"){eventoCulto();return}
   const y=G.yo,c=G.carcel;
   const E=[()=>{add("salud",-ri(4,10));c.cond-=1;log("Pelea en el patio. No la empezaste tú, pero acabas en enfermería con la ceja abierta.","mala")},
    ()=>{const q=per("conoc",y.sexo,y.edad/12+ri(-8,15),pick(ORI[G.origen].ap),{con:true,rel:ri(25,45),oficio:gp(y,"tu compañero de celda","tu compañera de celda")});log(`Cambian a quien dormía en la litera de arriba. Ahora compartes celda con ${q.nombre}, que ronca y sabe de todo.`)},
@@ -1971,7 +1977,7 @@ function filasExtra(){
   const bi=[G.prop&&("casa en propiedad"+(G.prop.deuda>0?" (debes "+Math.round(G.prop.deuda)+")":" pagada")),G.coche&&G.coche.n,G.neg&&(G.neg.n+" · "+(G.neg.sal>=70?"va viento en popa":G.neg.sal>=40?"se mantiene":"hace aguas"))].filter(Boolean);
   if(anios()>=18)b.push(["Patrimonio",patrimonio()+(bi.length?" · "+bi.join(", "):"")]);
   if(G.cron)b.push(["Salud",G.cron.n+(G.cron.trat?" · en tratamiento":" · sin tratar")]);
-  if(G.carcel&&G.carcel.tipo=="isla")b.push(["Isla desierta",G.carcel.isla.m+" meses · refugio "+G.carcel.isla.ref+"/5 · señales "+G.carcel.isla.sen+"/5"]);else if(G.carcel&&G.carcel.tipo=="castillo")b.push(["En el castillo","Hasta que decidan qué eres"]);else if(G.carcel)b.push(["Condena","Te quedan "+G.carcel.m+" meses"]);else if(G.fl.antec)b.push(["Antecedentes","Penales"+(G.fl.mesesCarcel?" · "+G.fl.mesesCarcel+" meses cumplidos":"")]);
+  if(G.carcel&&G.carcel.tipo=="isla")b.push(["Isla desierta",G.carcel.isla.m+" meses · refugio "+G.carcel.isla.ref+"/5 · señales "+G.carcel.isla.sen+"/5"]);else if(G.carcel&&G.carcel.tipo=="castillo")b.push(["En el castillo","Hasta que decidan qué eres"]);else if(G.carcel&&G.carcel.tipo=="plataforma")b.push(["Embarcado","Te quedan "+G.carcel.m+" meses de turno"]);else if(G.carcel&&G.carcel.tipo=="culto")b.push([G.carcel.cu.k=="sol"?"En la comuna":"En la Hermandad",G.carcel.m+" meses por delante"]);else if(G.carcel)b.push(["Condena","Te quedan "+G.carcel.m+" meses"]);else if(G.fl.antec)b.push(["Antecedentes","Penales"+(G.fl.mesesCarcel?" · "+G.fl.mesesCarcel+" meses cumplidos":"")]);
   if(G.vejez)b.push(["Vejez",{hijo:"vives con "+(P(G.vejez.id)?P(G.vejez.id).nombre:"tu familia"),resi:"residencia de pago",publica:"residencia pública",solo:"en tu casa, por tu cuenta"}[G.vejez.t]]);
   if(G.test)b.push(["Testamento",{iguales:"a partes iguales entre tus hijos",uno:"todo para "+(P(G.test.id)?P(G.test.id).nombre:"un hijo"),pareja:"todo para tu pareja",benef:"todo a una causa benéfica"}[G.test.t]]);
   if(G.dinastia&&G.dinastia.length)b.push(["Antes de ti",G.dinastia.join(" → ")]);
@@ -2661,6 +2667,8 @@ function parejaExtra(p,ops,O){
   ops.push({t:"Dejar la relación",s:"No hay vuelta fácil",fn:()=>abrirHoja("¿Dejar a "+p.nombre+"?",[{t:"Sí, se acabó",fn:()=>hacer(()=>romper(p,true))}])});
 }
 function romper(p,tu_){
+  if(!tu_&&p.noDeja>G.yo.edad){rel(p,10);return {txt:`${p.nombre} está a punto de decirte que se va. Tú ya has vivido esta conversación: esta vez dices lo que la otra vez callaste. Se queda.`}}
+  if(!tu_)hito("ruptura",p.id,`que ${p.nombre} te dejara`);
   G.pareja=null;G.casado=false;G.crush=null;p.casa=false;p.ex=1;p.amante=false;p.beso=false;p.quim=clamp((p.quim||0)*.3);p.pas=0;rel(p,tu_?-35:-20);add("animo",tu_?-6:-16);
   return {txt:tu_?vario("romp",[`Le dices a ${p.nombre} que se acabó. No hay gritos. Recoge sus cosas en dos viajes y deja las llaves en la mesa.`,`Lo dejas con ${p.nombre}. Os abrazáis en la puerta más rato del que tocaba, y luego ya no.`]):`${p.nombre} te deja. «No es por nada concreto. Es por todo.» La casa se queda con eco.`,mal:1};
 }
@@ -3531,7 +3539,7 @@ function viajeBarco(coste,riesgo){const y=G.yo,q=G.pareja&&P(G.pareja);y.dinero-
   if(ch(riesgo))return naufragio(q&&q.vivo&&!q.lejos&&q.rel>=40?q:null);
   add("animo",coste>1000?12:7);if(q&&!q.lejos)rel(q,coste>1000?8:4);if(coste>1000)add("aspecto",1);
   return vario("barco",["Cubierta, sal en la cara y un horizonte que no se acaba. Vuelves con la cabeza ordenada.","Te mareas las dos primeras horas y luego no quieres bajar del barco.","Delfines a proa al amanecer. Nadie más está despierto para verlos.","Una isla blanca, pescado a la brasa y siestas largas. Vuelves con otro color.","Tormenta la segunda noche: el barco cruje y tú con él. Al día siguiente, mar de aceite."])+(adultoYo()&&ch(.25)?conocerEn("del barco","par"):"")}
-function naufragio(q){const y=G.yo,o=ORI[G.origen],ids=[];
+function naufragio(q){const y=G.yo,o=ORI[G.origen],ids=[];if(G.fl.noBarco>y.edad){G.fl.noBarco=0;return "Reconoces el nombre del barco en el billete y lo rompes en el muelle. Lo ves zarpar sin ti. Sale en las noticias dos días después."}hito("naufragio",null,"el naufragio");
   encierro("isla",9999,{tipo:"un refugio de ramas y lona",barrio:"una isla que no sale en los mapas",deQuien:null},{isla:{m:0,com:3,ref:0,sen:0,bal:0}});G.trabajo=null;
   if(q){q.isla=1;ids.push(q.id)}
   for(let i=ri(1,3);i>0;i--){const p=per("conoc",sx(),ri(19,58),pick(o.ap),{con:true,rel:ri(15,30),sitio:"del naufragio",isla:1,rasgo:ri(0,4)});ids.push(p.id)}
@@ -3774,7 +3782,8 @@ function tickCuernos(){const y=G.yo;if(y.edad<216||G.muerto)return;
         else if(q.deriva>=100)lioEmpieza(q,r,1);return}
       q.lio.m++;rel(q,-1);if(!G.pend&&!(q.lio.calla>y.edad)&&ch(.16)){decidir("cuernos",{id:q.id,acto:1});const r=lioN(q);log(`Vuelves antes de lo previsto de buscar leña. Detrás de las rocas de la cala pequeña, ${q.nombre} y ${r}. No hay nada que interpretar: ${gp(q,"él","ella")} encima, los ojos cerrados, tu nombre en ninguna parte. Tardan en verte.`,"mala");add("animo",-18)}
       return}
-    if(G.carcel)return;const des=y.edad-q.aten;
+    if(G.carcel&&!(G.carcel.tipo=="plataforma"||G.carcel.tipo=="culto"&&!q.cuAqui))return;const des=y.edad-q.aten+(G.rig?10:0); // medio año fuera pesa
+
     if(!q.lio){if(des>=18&&!q.avisoD){q.avisoD=1;log(vario("desat",[`${q.nombre} te dice, sin enfado, que ya no sabe cómo te va el día. Hace año y medio que no hacéis nada juntos.`,`${q.nombre} se arregla para cenar contigo. No levantas la vista del plato. Recoge la mesa ${gp(q,"solo","sola")}.`,`«¿Tú te acuerdas de cuándo fue la última vez?», pregunta ${q.nombre} desde su lado de la cama. No te acuerdas.`]),"mala");rel(q,-4)}
       if(des<12)q.avisoD=0;
       if(des>=24&&ch(clamp(.012+(des-24)/12*.012+(q.lejos?.015:0),0,.07)*infidelidad(q))){const c=vivos(r=>r.con&&!r.lejos&&r.edad>=216&&r.sexo!=q.sexo&&r.id!=q.id&&["conoc","vec","comp"].includes(r.rol)&&Math.abs(r.edad-q.edad)<18*12);lioEmpieza(q,c.length&&ch(.5)?pick(c):null)}
@@ -3804,7 +3813,7 @@ DEC.cuernos={man:1,tit:d=>d.acto?"Los has pillado":"No es tu olor",txt:d=>"",ops
 
 /* ---------- Enganches con el resto del juego ---------- */
 function tickNuevo(){
-  const y=G.yo,a=y.edad/12;if(G.muerto)return;tickNuevo10();tickNuevo11();
+  const y=G.yo,a=y.edad/12;if(G.muerto)return;tickNuevo10();tickNuevo11();tickNuevo12();
   tickFamilia();tickCuernos();
   if(G.carcel&&G.carcel.tipo=="isla"){tickIsla();if(G.guerra){G.guerra.m--;G.guerra.t++;if(G.guerra.m<=0){G.guerra=null}}return}
   if(G.guerra)tickGuerra();else if(!G.exo&&!enMagia()&&a>=1&&ch(.01/12))guerraIni();
@@ -3814,7 +3823,7 @@ function tickNuevo(){
   tickVamp();tickCriaturas();tickArco();
   if(a>=18&&!G.arc&&!(G.arcH&&G.arcH.vamp)&&!G.carcel&&a<60&&ch((sabeMagia()?.09:.03)/12))vampEmpezar();
 }
-function eventosNuevos(ev,a){const y=G.yo;eventos10(ev,a);eventos11(ev,a);
+function eventosNuevos(ev,a){const y=G.yo;eventos10(ev,a);eventos11(ev,a);eventos12(ev,a);eventos13(ev,a);
   if(G.guerra&&!G.guerra.fuera&&!G.guerra.frente&&!G.pend){const v=vivos(p=>p.con&&!p.lejos&&!p.casa&&p.edad>=216&&(p.rol=="vec"||p.rol=="conoc"));
     if(v.length&&(G.prov||0)>0)ev(9,"vecHambre",()=>{const p=pick(v);decidir("vecinoHambre",{id:p.id});log(`${p.nombre} ${p.apellido} llama a tu puerta de noche, sin encender la luz de la escalera. Lleva tres días sin comer y sabe que tú guardas algo.`,"mala")});
     if((G.prov||0)>=2)ev(6,"saqueo",()=>{decidir("saqueo",{});log("De madrugada, golpes en la puerta y voces. Saben que en esta casa hay comida.","mala")})}
@@ -3832,7 +3841,7 @@ function eventosNuevos(ev,a){const y=G.yo;eventos10(ev,a);eventos11(ev,a);
   if(may.length&&muertosCerca(30).length&&a>=8)ev(2,"cemAcomp",()=>{const p=pick(may),d=pick(muertosCerca(30));rel(p,6);add("animo",-1);log(`${cap1(tu(p))} te pide que le acompañes al cementerio, a ver a ${d.nombre}. Le llevas el cubo. Habla con la lápida como si le contestaran.`)});
   if(a>=18&&!G.carcel)ev(1,"ferryReg",()=>{log("En una rifa te tocan dos pasajes de ferry a las islas. Los guardas en el cajón de los papeles: se pueden usar cuando quieras desde «Viajar por mar».");G.fl.ferry=1},1);
 }
-function accionesNuevas(L,a){const y=G.yo;acciones10(L,a);acciones11(L,a);
+function accionesNuevas(L,a){const y=G.yo;acciones10(L,a);acciones11(L,a);acciones12(L,a);
   if(G.guerra)accionesGuerra(L);
   if(G.reg&&!G.exo&&a>=14)L.push({t:"Bajo el Régimen…",cls:"riesgo",abre:menuRegimen});
   if(G.vamp)L.push({t:"La sed…"+(G.vamp.sed>=70?" (aprieta)":""),cls:"riesgo",abre:menuVamp});
@@ -3937,6 +3946,7 @@ function abrirTrama(k){const S=sit(k),T=S.tr&&TR[S.tr.k],st=T&&T.pasos[S.tr.p];i
 function menuSitio(k,t,s,base){const y=G.yo,a=y.edad/12,S=sit(k);tramaIni(k);const niv=sitNiv(k),ops=[];
   const V=(fn,enc)=>()=>hacer(()=>{const n0=sitNiv(k);S.v++;S.u=y.edad;let r=fn(),mal=r&&r.mal,x=txtDe(r);if(enc&&!G.pend)x+=encuentroSitio(k);
     if(k=="bar"&&S.gratis&&fn===base)y.dinero+=30;
+    if(k=="biblio")x+=hallaTomo("biblio");
     if(sitNiv(k)>n0)x+=` Ya eres ${NIVS[sitNiv(k)]} aquí: te saludan por tu nombre y se abren cosas nuevas.`;return mal?{txt:x,mal:1}:x});
   const st=S.tr&&TR[S.tr.k]&&TR[S.tr.k].pasos[S.tr.p];
   if(st&&y.edad>=S.tr.en&&(!st.ok||st.ok(S.tr.d)))ops.push({t:"★ "+st.b(S.tr.d),s:"Algo está pasando aquí",fn:()=>hacer(()=>{S.v++;S.tr.dicho=1;G.pend={k:"sit",s:k};return st.intro(S.tr.d)})});
@@ -4333,6 +4343,210 @@ function eventos11(ev,a){const y=G.yo;
 function acciones11(L,a){const y=G.yo;
   if(a>=12&&a<18&&!enMagia())L.push({t:"El instituto…",abre:menuInsti});
   if(G.grupo&&PAND[G.grupo]&&a>=11&&miembros().length)L.push({t:"Quedar con "+PAND[G.grupo].n+"…",abre:menuPandilla})}
+
+/* ================= AMPLIACIÓN 12: trabajos fuera de lo normal (presa, plataforma petrolífera) · el tomo prohibido y el viaje en el tiempo ================= */
+/* ---------- Hitos de la vida: lo que el tiempo permite deshacer ---------- */
+let SNAP_MES=null,SNAPS=[];
+const CLAVE_H=CLAVE+"-hitos";
+function snapNow(){try{const l=G.log;G.log=l.slice(-10);const s=JSON.stringify(G);G.log=l;return s}catch(e){return null}}
+function guardaHitos(){let n=0;while(n++<8){try{localStorage.setItem(CLAVE_H,JSON.stringify(SNAPS));return}catch(e){if(!SNAPS.length)return;SNAPS.shift()}}}
+function cargaHitos(){try{SNAPS=JSON.parse(localStorage.getItem(CLAVE_H)||"[]")||[]}catch(e){SNAPS=[]}if(G)SNAPS=SNAPS.filter(h=>h.uid==G.uid)}
+function hito(k,id,txt){if(!SNAP_MES||!G||G.viajado||G.muerto)return;const y=G.yo;if(SNAPS.some(h=>h.t==y.edad&&h.k==k&&h.id==id))return;
+  SNAPS.push({uid:G.uid,k,id,txt,t:y.edad,cuando:MESES[mes()]+" de "+ano()+", con "+edadTxt(y.edad),snap:SNAP_MES});while(SNAPS.length>6)SNAPS.shift();guardaHitos()}
+function viajar(i){const h=SNAPS[i];if(!h||!G.tomo||G.tomo.usado)return;const tomo=G.tomo,luego=SNAPS.filter(x=>x.t>=h.t),antes=G.yo.edad;let N;try{N=JSON.parse(h.snap)}catch(e){return}
+  G=N;G.tomo=Object.assign({},tomo,{usado:1,osc:(tomo.osc||0)+6});G.viajado=1;G.pend=null;const y=G.yo,sabe=[];
+  luego.forEach(x=>{const p=x.id!=null&&P(x.id);
+    if(x.k=="muerte"&&p&&p.vivo){p.prot=y.edad+ri(72,180);sabe.push("cuándo y cómo iba a morir "+tu(p))}
+    else if(x.k=="ruptura"&&p&&p.vivo){p.noDeja=y.edad+96;rel(p,12);sabe.push("el día en que "+p.nombre+" iba a dejarte")}
+    else if(x.k=="carcel"){G.fl.previsto=1;sabe.push("quién te delató y por dónde llegaron")}
+    else if(x.k=="naufragio"){G.fl.noBarco=y.edad+24;sabe.push("qué barco no hay que coger")}});
+  SNAPS=[];guardaHitos();SNAP_MES=null;add("mente",5);
+  titular("Otra vez","Ya has vivido esto");logro("desandas "+(antes-y.edad>=24?Math.floor((antes-y.edad)/12)+" años":Math.max(1,antes-y.edad)+" meses")+" de tu propia vida");
+  log(`Dices la última palabra del tomo y el mundo se pliega como una hoja. Abres los ojos: ${MESES[mes()]} de ${ano()}. Tienes otra vez ${edadTxt(y.edad)}, las manos de entonces y toda la memoria de después. ${sabe.length?"Sabes "+sabe.join("; sabes ")+". Esta vez vas a llegar antes.":"Sabes lo que viene. Esta vez vas a llegar antes."} El tomo está sobre la mesa, con esa página quemada: no habrá una tercera vez.`);
+  TAB="diario";guardar();cerrarHoja();render(true)}
+
+/* ---------- El tomo prohibido ---------- */
+const RIT=[[15,"Ver lo oculto","Lo que la gente esconde"],[30,"Atar una voluntad","Que alguien te mire como no te miraba"],[45,"Llamar a un muerto","Una conversación más"],[60,"Maldecir","Que a alguien le vaya mal de verdad"],[75,"Robar años","Los tuyos vuelven; los pierde otro"],[95,"Desandar el tiempo","Una sola vez"]];
+function hallaTomo(donde){const y=G.yo;if(G.tomo||y.edad<168||!ch(sabeMagia()?.03:.01))return "";G.tomo={d:sabeMagia()?10:0,osc:0};logro("encuentras el tomo prohibido");
+  return donde=="carcel"?" Entre los libros del carro hay uno sin tapas ni sello de la prisión, cosido a mano. El preso que reparte te mira raro: dice que ese no estaba ayer. Las páginas están escritas en una letra que cambia cuando parpadeas. Te lo llevas a la celda bajo la camisa.":" Al fondo de una caja mal catalogada hay un tomo sin título, encuadernado en algo que no es cuero de vaca. No tiene ficha ni sello. Las páginas están escritas en una letra que cambia cuando parpadeas. Nadie te ve meterlo en la mochila."}
+function menuTomo(){const y=G.yo,T=G.tomo,ops=[],H=(t,s,fn)=>ops.push({t,s,fn:()=>hacer(fn)});
+  H("Descifrar el tomo","Dominio "+Math.floor(T.d)+" / 100 · te desgasta",()=>{const d0=T.d;T.d=clamp(T.d+ri(2,4)+y.mente/45+(sabeMagia()?2:0));T.osc=(T.osc||0)+.6;add("animo",-2);add("mente",1);
+    let s=vario("tomoD",["Pasas las noches con el tomo y un diccionario de tres lenguas muertas. Avanzas una página. La página avanza contigo.","Copias un diagrama a lápiz. Cuando levantas la mano, el lápiz ha seguido dibujando solo un trazo más.","Lees en voz baja un párrafo y se apagan las farolas de tu calle. Vuelven al rato.","El tomo huele distinto cada noche: a tierra mojada, a incienso, a quemado.","Descifras una frase entera. Te sangra la nariz sobre el margen, y la mancha desaparece, absorbida.","Sueñas con la página siguiente antes de pasarla. Cuando la pasas, es exactamente esa.","Encuentras anotaciones de dueños anteriores en los márgenes. Las últimas de cada uno están escritas con prisa."]);
+    const n=RIT.find(r=>d0<r[0]&&T.d>=r[0]);if(n)s+=` Entiendes por fin un ritual entero: «${n[1]}».`;return s});
+  const adultos=()=>vivos(p=>p.con&&!p.lejos&&p.edad>=216&&y.edad>=216&&!p.casa||p.con&&!p.lejos&&p.edad>=216&&y.edad>=216);
+  const elige=(tit,l,fn)=>abrirHoja(tit,l.slice(0,40).map(p=>({t:p.nombre+" "+p.apellido,s:rolTxt(p),fn:()=>hacer(()=>fn(p))})));
+  if(T.d>=15)H("Ver lo oculto","Ritual · una vela negra y un espejo boca abajo",()=>{T.osc+=1;add("salud",-2);const q=G.pareja&&viv(G.pareja),cr=vivos(p=>(p.lobo||p.vamp)&&p.con&&!p.sabes&&!p.vpArc);
+    if(q&&q.lio)return {txt:`En el espejo no sales tú: sale ${q.nombre}, y no está ${gp(q,"solo","sola")}. Ves la cara de ${lioN(q)} con toda claridad. Das la vuelta al espejo antes de ver más.`,mal:1};
+    if(cr.length){const p=pick(cr);p.sabes=1;return `El espejo te enseña a ${p.nombre} tal como es de verdad. No es del todo una persona: es ${gp(p,"un","una")} ${criaturaTxt(p)}. Lleva años a dos metros de ti.`}
+    const x=y.edad>=168?secretoFamilia(null,"tomo"):"";return x?"El espejo se empaña y alguien escribe desde el otro lado. "+x.replace(/^Preguntas después y acaban contándotelo: /,"Lo que lees no lo sabía nadie vivo: "):"El espejo no enseña nada. A veces no hay nada escondido, y eso también es una respuesta."});
+  if(T.d>=30&&y.edad>=216)ops.push({t:"Atar una voluntad",s:"Ritual · un mechón, un nudo y un nombre",fn:()=>elige("¿A quién atas?",vivos(p=>p.con&&!p.lejos&&p.edad>=216),p=>{T.osc+=3;add("salud",-3);rel(p,25);pers(p);p.quim=clamp((p.quim||0)+25);p.atado=1;return `Haces siete nudos diciendo siete veces el nombre de ${p.nombre}. Al día siguiente te busca sin saber por qué, y te mira como si acabara de verte por primera vez. Algo en sus ojos va medio segundo por detrás.`+moral("tramposo",2)})});
+  if(T.d>=45&&muertosCerca(30).length)ops.push({t:"Llamar a un muerto",s:"Ritual · sal, una foto y la puerta abierta",fn:()=>abrirHoja("¿A quién llamas?",muertosCerca(30).slice(0,30).map(d=>({t:d.nombre+" "+d.apellido,s:rolTxt(d),fn:()=>hacer(()=>{T.osc+=2;add("salud",-3);d.paz=0;decidir("aparicion",{id:d.id});return `Trazas el círculo de sal y pones su foto en el centro. La llama se tumba hacia un lado, como si alguien pasara. ${cap1(tu(d))} está ${gp(d,"sentado","sentada")} en tu silla, con la ropa de los domingos.`})})))});
+  if(T.d>=60)ops.push({t:"Maldecir",s:"Ritual · se paga caro",fn:()=>elige("¿A quién maldices?",vivos(p=>p.con&&p.edad>=216),p=>{T.osc+=6;add("salud",-6);add("animo",-4);rel(p,-20);const f=fis(p);f.dc=(f.dc||0)-1;if(ch(.3))eco("maldito",ri(4,14),{id:p.id});return {txt:`Clavas su nombre en una vela y la dejas arder hasta el final. A ${p.nombre} empieza a torcérsele todo: el trabajo, la salud, el sueño. Tú no duermes mucho mejor.`+moral("egoista",3),mal:1}})});
+  if(T.d>=75)H("Robar años","Ritual · alguien cerca los pierde",()=>{const l=vivos(p=>p.con&&!p.inm&&p.edad>=216&&p.rel<50);if(!l.length)return {txt:"El ritual pide a alguien a quien no quieras demasiado. No tienes a nadie así cerca. El tomo se cierra solo.",mal:1};const p=pick(l);p.edad+=120;T.osc+=9;y.salud=100;add("aspecto",6);add("cuerpo",5);G.yo.altMod=G.yo.altMod||0;
+    return {txt:`Dices las palabras de madrugada. Por la mañana te has quitado diez años de la cara y de las rodillas. Esa misma semana te cruzas con ${p.nombre} ${p.apellido}: tiene el pelo blanco y anda agarrándose a las paredes. Te mira como si supiera.`+moral("egoista",3),mal:1}});
+  if(T.d>=95&&!T.usado){const hs=SNAPS.filter(h=>h.uid==G.uid);ops.push({t:"Desandar el tiempo",s:hs.length?"Ritual · una sola vez en la vida":"No hay ningún momento al que volver, todavía",fn:hs.length?()=>abrirHoja("¿A qué momento vuelves? (no hay vuelta de la vuelta)",SNAPS.map((h,i)=>({t:"Antes de "+h.txt,s:cap1(h.cuando),fn:()=>abrirHoja("Volver a "+h.cuando+": perderás todo lo vivido desde entonces",[{t:"Decir la última palabra",s:"Antes de "+h.txt,fn:()=>viajar(i)}])})).reverse()):()=>{}})}
+  else if(T.usado)ops.push({t:"Desandar el tiempo",s:"La página está quemada. Ya lo hiciste",fn:()=>{}});
+  RIT.filter(r=>T.d<r[0]).slice(0,1).forEach(r=>ops.push({t:"🔒 "+r[1],s:"Dominio "+r[0]+" · "+r[2],fn:()=>{}}));
+  abrirHoja("El tomo prohibido · dominio "+Math.floor(T.d)+(T.osc>=25?" · te buscan":T.osc>=10?" · te está cambiando":""),ops)}
+ECO.maldito=d=>{const p=viv(d.id);if(!p)return null;morir(p);return {txt:`Muere ${p.nombre} ${p.apellido}, de algo que los médicos no saben nombrar. Tú sí.`,mal:1}};
+DEC.duenos={man:1,tit:d=>"Vienen a por el tomo",txt:d=>"",ops:d=>{const y=G.yo,T=G.tomo;return [
+  {t:"Entregarlo",fn:()=>{G.tomo=null;add("animo",-6);return "Lo pones sobre la mesa. El más viejo lo envuelve en un paño sin tocarlo con la piel. «Has durado más que la mayoría.» Se van. Durante semanas te descubres pasando páginas en el aire."}},
+  {t:"Plantarles cara con lo que has aprendido",s:"Depende de tu dominio",fn:()=>{if(ch(clamp(T.d/130,.05,.8))){T.osc=8;add("mente",3);logro("te quedas el tomo frente a sus dueños");return "Dices tres palabras del capítulo que ellos no se atreven a abrir. Se les apagan las linternas. Retroceden sin darte la espalda. «Ya vendrá a buscarte él solo», dice el viejo. No aclara quién."}G.muerteDirecta="unos hombres con abrigo largo que vinieron a recuperar un libro";return {txt:"Empiezas a decir las palabras. Ellos las terminan antes.",mal:1}}},
+  {t:"Huir con el tomo",fn:()=>{T.osc=14;add("animo",-8);if(G.indep&&!G.prop){genCasa();G.casa.deQuien=null;genVecinos()}return {txt:"Sales por el patio con el tomo contra el pecho. Cambias de casa esa misma semana y de costumbres para siempre. Saben esperar.",mal:1}}}]}};
+
+/* ---------- La plataforma petrolífera ---------- */
+const RIGN=["Perforador","Gruísta","Buzo","Cocinero","Mecánico","Jefe de turno","Médico de a bordo","Soldador"];
+function embarcar(primera){const y=G.yo,R_=G.rig;encierro("plataforma",6,{tipo:"un camarote de dos literas",barrio:"la plataforma Aurora-7, a doscientas millas de la costa",deQuien:null},{rig:1});
+  if(primera){R_.ids=[];for(let i=0;i<3;i++){const sx_=ch(.8)?"m":"f",p=per("conoc",sx_,ri(24,56),pick(ORI[G.origen].ap),{con:true,rel:ri(15,28),sitio:"de la plataforma",oficio:RIGN[ri(0,RIGN.length-1)].toLowerCase()+(sx_=="f"?"":""),rasgo:ri(0,4)});R_.ids.push(p.id)}}
+  R_.n=(R_.n||0)+1;return primera?`El helicóptero te deja en una isla de hierro en mitad del mar. Seis meses aquí, seis en casa. Compartes camarote con ${P(R_.ids[0]).nombre}; ${P(R_.ids[1]).nombre} te enseña dónde no hay que pisar; ${P(R_.ids[2]).nombre} te dice que la primera semana no duerme nadie.`:`Otra vez el helicóptero, el casco, el olor a gasoil y a mar. Seis meses más en la Aurora-7. Ya te sabes el ruido de cada bomba.`}
+const tripu=()=>((G.rig||{}).ids||[]).map(viv).filter(Boolean);
+function accionesRig(){const y=G.yo,c=G.carcel,L=[],A=(t,fn,cls)=>L.push({t,fn,cls});
+  A("Turno doble",()=>{y.dinero+=800;add("cuerpo",1);add("salud",-2);add("animo",-2);return vario("rigT",["Doce horas más con la llave de cadena. Cobras 800 extra y no sientes los brazos.","Doblas turno en la torre. Desde arriba el mar es una chapa negra sin orillas.","Cubres al del turno de noche. Ves amanecer dos veces sin dormir entre medias."])});
+  A("Gimnasio de la plataforma",()=>{mover(.08);add("cuerpo",2);add("salud",1);return vario("rigG",["Un contenedor con cuatro máquinas y un saco. Suficiente.","Entrenas con el suelo moviéndose. Aprendes un equilibrio nuevo."])});
+  A("Timba en el comedor",()=>{const g=ch(.4+y.mente/300),n=ri(100,500);y.dinero+=g?n:-n;add("animo",g?4:-2);tripu().forEach(p=>rel(p,2));return g?`Póquer con la tripulación. Te levantas con ${n} más y dos enemigos cordiales.`:{txt:`Póquer con la tripulación. Pierdes ${n} y aprendes quién farolea.`,mal:1}});
+  A("Llamar a casa por satélite",()=>{y.dinero-=60;const q=G.pareja&&viv(G.pareja);add("animo",4);vivos(p=>p.encasa).forEach(p=>rel(p,3));if(q){q.aten=y.edad-3;rel(q,3);return vario("rigL",[`Veinte minutos de satélite con ${q.nombre}, con dos segundos de retraso en cada frase. Os pisáis, os reís, se corta.`,`${q.nombre} te cuenta el día entero con detalle. No pasa nada en ese día y es lo mejor que has oído en un mes.`,`Llamas a ${q.nombre}. De fondo se oye tu casa: la lavadora, la tele, la vida que sigue sin ti.`])}return "Llamas a casa. Te preguntan si comes bien. Dices que sí y miras la bandeja."});
+  A("Pescar desde la pasarela",()=>{add("animo",5);return vario("rigP",["Sacas un atún que casi te saca a ti. El cocinero te hace la ola.","Tres horas con el sedal a sesenta metros. No pica nada. Vuelves descansado.","Un tiburón se lleva el anzuelo, el cebo y medio carrete. Lo cuentas en la cena con los brazos muy abiertos."])});
+  A("Curso a distancia",()=>{add("mente",2);pr("estudio",1.5);return vario("rigC",["Estudias en la litera con los tapones puestos. Aquí sobra tiempo si sabes usarlo.","Haces el examen por satélite. Se corta dos veces. Apruebas igual."])});
+  tripu().forEach(p=>A("Pasar el rato con "+p.nombre,()=>{rel(p,ri(4,8));add("animo",3);if(p.edad>=216&&y.edad>=216)sube(p,2);return vario("rigX",[`${p.nombre} te enseña a hacer nudos que no se deshacen ni queriendo.`,`Guardia de noche con ${p.nombre}. Os contáis la vida entera entre alarma y alarma.`,`${p.nombre} te enseña fotos de su casa. Lleva once años así, medio año cada vez.`,`${p.nombre} y tú veis la misma película por cuarta vez, porque solo hay seis.`,`${p.nombre} te cuenta la vez que el mar entró hasta la cubierta dos. Luego te dice que duermas tranquilo.`])}));
+  A("Dejar pasar el mes",()=>vario("rigN",["Turno, rancho, litera. Turno, rancho, litera.","El mar no cambia y tú tampoco.","Tachas otro mes en el calendario de la taquilla."]),"sec");return L}
+function eventoRig(){const y=G.yo,c=G.carcel,l=tripu(),p=l.length?pick(l):null;
+  const E=[()=>{add("animo",-3);log("Temporal de tres días. Las olas pasan por encima de la cubierta baja y la plataforma entera canta como un órgano.","mala")},
+   ()=>{c.m++;c.tot++;add("animo",-5);log("El helicóptero de relevo no puede despegar por la niebla. Un mes más aquí, y los que iban a salir no hablan con nadie.","mala")},
+   ()=>{add("animo",6);log("Una manada de ballenas pasa tan cerca que se para el trabajo. Sesenta tíos con casco apoyados en la barandilla, callados.")},
+   ()=>{add("animo",4);log("El cocinero hace una tarta con lo que hay para el cumpleaños de alguien. Sabe a gloria y a gasoil.")},
+   ()=>{y.dinero+=600;log("Prima por récord de extracción: 600 por cabeza y una cena con mantel.")},
+   ()=>{if(!G.pend){decidir("rigGas",{id:p?p.id:null});log("Suena la alarma de gas en la cubierta tres. No es simulacro: se nota en los ojos.","mala")}},
+   ()=>{if(!G.pend&&p){decidir("rigAgua",{id:p.id});log(`¡Hombre al agua! Es ${p.nombre}. Ha resbalado de la pasarela con la mar picada y sin el arnés enganchado.`,"mala")}},
+   ()=>{if(!G.pend){decidir("rigCaja",{});log("En el contenedor de suministros hay una caja que no figura en ningún albarán. El de almacén te mira y luego mira la caja.")}}];
+  if(p)E.push(()=>{rel(p,6);log(`Novatada: te mandan a por «la llave de apretar olas». ${p.nombre} te avisa a tiempo y os reís de los demás.`)});
+  pick(E)()}
+DEC.rigGas={man:1,tit:d=>"Fuga de gas en cubierta tres",txt:d=>"",ops:d=>{const y=G.yo,p=d.id&&viv(d.id);return [
+  {t:"Ir al punto de reunión, como manda el protocolo",fn:()=>"Chaleco, casco, lista. Los de seguridad cierran la válvula en once minutos. Nadie habla hasta que suena el fin de alarma."+moral("prudente")},
+  {t:"Bajar a cerrar la válvula tú",s:"Depende de tu cuerpo y tu cabeza",fn:()=>{if(ch(.3+y.cuerpo/250+y.mente/250)){y.dinero+=1500;add("carisma",3);logro("cierras una fuga de gas en alta mar");tripu().forEach(q=>rel(q,10));return "Bajas aguantando la respiración y giras la rueda con todo el cuerpo. Se para el silbido. Arriba te abrazan sesenta personas que te deben la noche. Hay prima: 1500."+moral("valiente",2)}
+    if(ch(.25)){G.muerteDirecta="una fuga de gas en una plataforma, a doscientas millas de cualquier parte";return {txt:"Bajas. La nube es más grande de lo que parecía desde arriba.",mal:1}}add("salud",-20);return {txt:"Bajas y no llegas a la válvula. Te sacan a rastras, con los pulmones ardiendo. Dos semanas de enfermería.",mal:1}}}]}};
+DEC.rigAgua={man:1,tit:d=>"Hombre al agua",txt:d=>"",ops:d=>{const y=G.yo,p=viv(d.id);if(!p)return [{t:"Seguir",fn:()=>"Ya lo han sacado."}];return [
+  {t:"Tirarle el aro y dar la voz",fn:()=>{if(ch(.75)){rel(p,25);return `El aro cae a un metro. ${p.nombre} se agarra. Lo sube la grúa, azul de frío y vivo. Desde ese día te guarda el mejor sitio del comedor.`}morir(p);return {txt:`El aro cae lejos. La corriente es más rápida que la grúa. Buscáis hasta que anochece.`,mal:1}}},
+  {t:"Tirarte detrás",s:"Depende de tu cuerpo",fn:()=>{if(ch(.2+y.cuerpo/140)){rel(p,45);add("carisma",3);logro("le salvas la vida a "+p.nombre+" en mar abierto");return `Saltas con el arnés a medio poner. El agua corta. Llegas, le agarras del mono y no sueltas. Os suben a los dos. ${p.nombre} no dice gracias: te pone su manta.`+moral("valiente",3)}
+    if(ch(.3)){G.muerteDirecta="el mar, intentando sacar a un compañero";return {txt:"Saltas. El mar tiene otros planes para los dos.",mal:1}}add("salud",-15);if(ch(.5))morir(p);return {txt:`Saltas y el oleaje te estampa contra un pilar. Te sacan con dos costillas rotas.`+(p.vivo?` A ${p.nombre} lo recoge la lancha.`:` A ${p.nombre} no lo encuentran.`),mal:1}}}]}};
+DEC.rigCaja={man:1,tit:d=>"La caja sin albarán",txt:d=>"",ops:d=>{const y=G.yo;return [
+  {t:"No has visto nada",fn:()=>"Firmas el albarán de las otras cajas y te vas a cenar. El de almacén te invita al postre durante un mes."},
+  {t:"Pedir tu parte",fn:()=>{if(ch(.75)){y.dinero+=2000;return "Dos mil por mirar a otro lado en cada relevo. Dentro de la caja hay cosas que en tierra valen diez veces más."+moral("tramposo",2)}return encarcelar(ri(8,20))}},
+  {t:"Dar parte al jefe de plataforma",fn:()=>{tripu().forEach(q=>rel(q,-12));y.dinero+=500;return "Lo cuentas. Bajan a tres en el siguiente helicóptero, esposados. Te dan una gratificación de 500 y nadie se sienta contigo en el comedor."+moral("chivato",2)}}]}};
+function finRig(){const y=G.yo,R_=G.rig;finEncierro();R_.vuelve=y.edad+6;const q=G.pareja&&viv(G.pareja);add("animo",12);
+  log(`Fin del turno: el helicóptero, la costa, tu calle. Seis meses de tierra firme por delante. ${q?(q.lio?`${q.nombre} te recibe con un abrazo que llega un segundo tarde.`:`${q.nombre} te espera en la puerta. Tardáis en soltaros.`):"La casa huele a cerrado. Abres todas las ventanas."} El suelo se te mueve durante tres días.`)}
+
+/* ---------- La presa ---------- */
+function eventosPresa(ev,a){const y=G.yo,T=G.trabajo;G.presa=G.presa||{};const H=G.presa;
+  ev(5,"presaA",()=>log(vario("presaA",["Turno de noche en la presa. Recorres las galerías con una linterna y oyes al agua empujar al otro lado del muro.","Con la sequía, el embalse baja y asoma el campanario del pueblo que quedó debajo. Hay quien viene a mirarlo con prismáticos.","Mides filtraciones en la galería cuatro: gota a gota, en un vaso graduado, como hace cincuenta años.","Desde la coronación de la presa se ve el valle entero. En el pueblo de abajo duermen tranquilos porque tú no duermes.","Abren el aliviadero por mantenimiento. El ruido se te queda en el pecho hasta el día siguiente.","Un viejo viene cada domingo a sentarse frente al embalse. Su casa está ahí abajo, dice, a cuarenta metros.","Niebla en el valle. La presa parece flotar. El compañero de turno jura que oye campanas.","Baja el nivel y aparece un camino de piedra que entra recto en el agua. Lo seguís con la vista hasta donde se pierde."])));
+  if(!H.grieta&&T.m>=6&&!G.pend)ev(4,"presaG",()=>{H.grieta=1;decidir("presaGrieta",{});log("En la galería baja hay una fisura que no estaba el mes pasado. Cabe una moneda de canto. El ingeniero jefe dice que es «asiento normal» y que no lo apuntes así en el parte.","mala")});
+  if(!H.crecida&&T.m>=10&&!G.pend)ev(3,"presaC",()=>{H.crecida=1;decidir("presaCrecida",{});log("Tres días lloviendo río arriba. El embalse sube un palmo por hora. La central ordena aguantar sin abrir: aguas abajo hay un festival con diez mil personas en la ribera.","mala")});
+  if(!H.pueblo&&T.m>=4&&!G.pend)ev(3,"presaP",()=>{H.pueblo=1;decidir("presaPueblo",{});log("Sequía histórica. El pueblo viejo ha salido entero del agua: calles, la plaza, la iglesia sin tejado. Se puede bajar andando por el barro.")})}
+DEC.presaGrieta={man:1,tit:d=>"La fisura de la galería baja",txt:d=>"",ops:d=>{const y=G.yo;return [
+  {t:"Apuntarlo tal cual en el parte",fn:()=>{if(ch(.5)){add("carisma",2);logro("tu parte obliga a reparar la presa a tiempo");return "Lo escribes con medidas y fotos. Llega una inspección de fuera. Vacían medio embalse y sellan la galería. El ingeniero jefe pide el traslado sin despedirse."+moral("valiente",2)}G.trabajo=null;eco("presaRompe",ri(10,30),{yo:0});return {txt:"Lo escribes tal cual. A los quince días te despiden «por reestructuración». El parte desaparece del archivador.",mal:1}}},
+  {t:"Apuntar «asiento normal», como te han dicho",fn:()=>{eco("presaRompe",ri(8,30),{yo:1});G.yo.dinero+=400;return "Escribes lo que te dictan. Ese mes hay un plus en la nómina que nadie explica. Cada vez que pasas por la galería baja, miras al suelo."+moral("tramposo",2)}},
+  {t:"Mandar una copia anónima a la confederación",fn:()=>{if(ch(.6))return "Metes las fotos en un sobre sin remite. Tres meses después aparecen unos técnicos que no conoce nadie. Reparan en silencio. Nunca se sabrá quién avisó.";eco("presaRompe",ri(12,30),{yo:0});return "Mandas el sobre. No pasa nada. Quizá se perdió, quizá alguien lo abrió y lo guardó."}}]}};
+ECO.presaRompe=d=>{if(ch(.45))return null;const y=G.yo,v=vivos(p=>p.con&&!p.lejos&&(p.rol=="vec"||p.rol=="conoc")).slice(0,ri(1,3));v.forEach(p=>{p.vivo=false;p.casa=false;p.anoM=ano();p.mesM=mes()});add("animo",-20);titular("La presa","El valle, una mañana");
+  if(G.trabajo&&G.trabajo.presa)G.trabajo=null;let s="A las seis de la mañana cede la galería baja. El agua tarda nueve minutos en llegar al pueblo. "+(v.length?"Entre los que no salen a tiempo: "+v.map(p=>p.nombre+" "+p.apellido).join(", ")+". ":"");
+  if(d.yo&&ch(.6)){const x=encarcelar(ri(24,72));return {txt:s+"En el último parte de inspección, donde pone «asiento normal», está tu firma. "+x.txt,mal:1}}return {txt:s+(d.yo?"Tu firma está en el parte, pero cargan con todo los de arriba. Tú cargas con lo otro.":"Tú avisaste. Nadie lo recordará así."),mal:1}};
+DEC.presaCrecida={man:1,tit:d=>"El embalse al límite",txt:d=>"",ops:d=>{const y=G.yo;return [
+  {t:"Obedecer: aguantar sin abrir",fn:()=>{if(ch(.6))return "Aguantas con el agua a un palmo de la coronación. A las cuatro de la madrugada deja de llover. Nadie sabrá nunca lo cerca que estuvo."+moral("prudente");add("animo",-12);return {txt:"El agua pasa por encima del muro antes de que llegue la orden. Abajo hay tiempo de correr, pero no para todos.",mal:1}}},
+  {t:"Abrir compuertas por tu cuenta y avisar río abajo",fn:()=>{if(ch(.7)){logro("abres las compuertas contra la orden y aciertas");add("carisma",3);if(ch(.5)){G.trabajo=null;return "Abres y llamas tú mismo a protección civil. Desalojan el festival con el agua por los tobillos. No muere nadie. Te despiden por insubordinación y te aplauden en el bar."+moral("valiente",3)}return "Abres y avisas. Desalojan a tiempo. La central te abre expediente y luego, cuando ven los datos, lo cierra con una felicitación."+moral("valiente",3)}G.trabajo=null;add("animo",-10);return {txt:"Abres. La riada controlada arrasa el escenario vacío y veinte coches. Deja de llover una hora después: no hacía falta. Te despiden.",mal:1}}}]}};
+DEC.presaPueblo={man:1,tit:d=>"El pueblo que sale del agua",txt:d=>"",ops:d=>{const y=G.yo;return [
+  {t:"Bajar a recorrerlo",fn:()=>{add("mente",2);add("animo",3);const r=ri(0,2);if(r==0){y.dinero+=ri(300,1500);return "Entras en las casas sin puertas. En una alacena tapiada hay una caja de galletas llena de monedas de plata negras de limo. Nadie las reclama desde hace sesenta años."}
+    if(r==1){const x=secretoFamilia(null,"presa");return "En la iglesia sin tejado, el libro de bautismos sigue en su nicho, hecho una piedra de barro. Un vecino viejo que ha bajado contigo señala una casa. "+(x?x.replace(/^Preguntas después y acaban contándotelo: /,"«De ahí salieron los tuyos», dice. Y te cuenta: "):"«Ahí nací yo.» No dice más en toda la tarde.")}
+    return "Caminas por la calle mayor con barro hasta las rodillas. En el suelo de la escuela todavía se leen las baldosas del abecedario. Te llevas una, la de tu inicial."}},
+  {t:"Acompañar a los viejos que quieren ver su casa",fn:()=>{add("carisma",2);add("animo",4);return "Bajas del brazo a una mujer de noventa años hasta el umbral donde se casó. Se queda un rato dentro, sola. Sale con una teja en el bolso y diez años menos."+moral("generoso",2)}},
+  {t:"Verlo desde arriba",fn:()=>"Lo miras desde la coronación con los prismáticos. En dos semanas llueve y el agua vuelve a taparlo todo, calle por calle."}]}};
+
+/* ---------- Menú de trabajos raros y enganches ---------- */
+function menuRaros(){const y=G.yo,a=y.edad/12,ops=[];
+  if(G.rig&&!G.carcel)ops.push({t:"Dejar la plataforma",s:"No volver a embarcar",fn:()=>hacer(()=>{G.rig=null;G.trabajo=null;return "Devuelves el casco y la tarjeta. El mar se queda donde estaba. Tardas meses en dormir sin ruido de bombas."})});
+  if(!G.rig)ops.push({t:"Plataforma petrolífera",s:y.cuerpo>=50&&a<52?"3200 al mes embarcado · 6 meses en el mar, 6 en casa":"Piden menos de 52 años y buena forma (cuerpo 50)",fn:y.cuerpo>=50&&a<52?()=>hacer(()=>{G.rig={n:0};G.trabajo={n:"en una plataforma petrolífera",s:0,rig:1,m:0};logro("te embarcas en una plataforma petrolífera");return embarcar(true)}):()=>{}});
+  if(!(G.trabajo&&G.trabajo.presa)&&!G.rig)ops.push({t:"Vigilante de la presa del valle",s:y.mente>=40||y.cuerpo>=45?"2100 al mes · turnos de noche, lejos de todo":"Piden algo de cabeza o de aguante",fn:y.mente>=40||y.cuerpo>=45?()=>hacer(()=>{G.trabajo={n:"en la presa del valle",s:2100,presa:1,m:0};add("animo",4);logro("entras a trabajar en la presa");return "Te dan un manojo de llaves, una linterna y un cuaderno de partes. La presa mide ciento diez metros de alto y tiene once kilómetros de galerías por dentro. De noche, dentro, solo estás tú."}):()=>{}});
+  abrirHoja("Trabajos fuera de lo normal",ops)}
+function tickNuevo12(){const y=G.yo,a=y.edad/12;if(G.muerto)return;if(!G.uid)G.uid=Math.random().toString(36).slice(2);
+  const c=G.carcel;if(c&&c.tipo=="plataforma"){y.dinero+=3200;if(ch(.45))eventoRig()}
+  if(c&&c.tipo=="culto"&&ch(.4)&&!G.pend)eventoCulto();
+  else if(G.rig&&!c&&G.rig.vuelve!=null&&y.edad>=G.rig.vuelve&&!G.pend){if(a>=55||y.salud<35){G.rig=null;G.trabajo=null;log("El reconocimiento médico no te deja volver a embarcar. Se acabó el mar. Te dan una placa y una liquidación.");y.dinero+=6000}else log(embarcar(false))}
+  if(G.trabajo&&G.trabajo.presa)G.trabajo.m=(G.trabajo.m||0)+1;
+  const T=G.tomo;if(T&&!G.pend&&!(c&&c.tipo)){
+    if(T.osc>=25&&ch(.08)){decidir("duenos",{});log("Llaman a la puerta de madrugada, tres golpes iguales. Son cuatro, con abrigo largo, y no preguntan por ti: preguntan por el libro.","mala")}
+    else if(T.osc>=10&&ch(.06)){add("animo",-3);log(vario("tomoO",["Te miras al espejo y tardas un segundo de más en reconocerte.","Las plantas de tu casa se inclinan todas hacia el cajón donde guardas el tomo.","Un perro cruza de acera al verte. Luego otro.","Encuentras una página del tomo copiada con tu letra. No recuerdas haberla escrito.","Alguien ha preguntado en la biblioteca por un libro sin título. Dio una descripción exacta."]),"mala")}}
+  if(c&&!c.tipo&&!G.tomo&&ch(.004)){const s=hallaTomo("carcel");if(s)log(s.trim())}}
+function eventos12(ev,a){if(G.trabajo&&G.trabajo.presa&&!G.carcel)eventosPresa(ev,a)}
+function acciones12(L,a){if(G.tomo)L.push({t:"El tomo prohibido…",cls:"riesgo",abre:menuTomo});if(a>=18&&!G.exo)L.push({t:"Trabajos fuera de lo normal…",cls:"sec",abre:menuRaros})}
+
+/* ================= AMPLIACIÓN 13: temporadas en una comunidad del campo — la comuna del Valle Alto o la Hermandad de la Luna Negra (solo adultos; todo lo íntimo es aceptado y se da a entender) ================= */
+const CULTOS={sol:{n:"la comuna del Valle Alto",casa:"una cabaña de adobe compartida",guia:["el Abuelo","la Abuela"],d:"Huerta, cantos al amanecer, hogueras y pocas preguntas"},
+ luna:{n:"la Hermandad de la Luna Negra",casa:"una casa de piedra en una aldea abandonada",guia:["el Maestre","la Maestra"],d:"Una aldea sin luz, máscaras de cuerno y gente que de noche no es del todo gente"}};
+const cu=()=>G.carcel&&G.carcel.cu;
+const cuGente=()=>((cu()||{}).ids||[]).map(viv).filter(Boolean);
+function cultoEntrar(k,conPareja){const y=G.yo,C=CULTOS[k],q=conPareja&&G.pareja&&viv(G.pareja),m=ri(4,7),ids=[];
+  encierro("culto",m,{tipo:C.casa,barrio:C.n,deQuien:null},{cu:{k,conf:0,rito:-1,par:q?q.id:null,sos:0}});
+  const sg=sx(),g=per("conoc",sg,ri(48,70),pick(ORI[G.origen].ap),{con:true,rel:15,sitio:"de "+C.n,oficio:C.guia[sg=="m"?0:1]+" de "+C.n,rasgo:4});G.carcel.cu.g=g.id;
+  for(let i=0;i<3;i++){const s_=i==0?(y.sexo=="m"?"f":"m"):sx(),p=per("conoc",s_,ri(20,44),pick(ORI[G.origen].ap),{con:true,rel:ri(15,28),sitio:"de "+C.n,rasgo:ri(0,4),casado:false});if(k=="luna"&&ch(.6)){p.lobo=1}ids.push(p.id)}
+  G.carcel.cu.ids=ids;if(q)q.cuAqui=1;G.fl.cultos=(G.fl.cultos||0)+1;logro("pasas una temporada en "+C.n);
+  const X=P(ids[0]);return k=="sol"?`Un camino de tierra, una verja sin candado y un cartel pintado a mano: «Aquí no hay relojes». ${C.n[0].toUpperCase()+C.n.slice(1)}: cuarenta adultos, ninguna criatura —es norma de la casa—, una huerta enorme y ${g.nombre}, ${g.oficio.split(" de ")[0]}, que te abraza antes de saber tu nombre. ${q?`${q.nombre} y tú dejáis las mochilas en una cabaña de adobe.`:"Te dan un jergón en una cabaña de adobe."} ${X.nombre}, ${fisCorto(X)}, te enseña dónde está el agua y se queda un rato de más.`
+   :`La carretera se acaba y hay que seguir a pie hasta una aldea que no sale en los mapas. No hay luz eléctrica. Todos son adultos y todos han venido por su pie. ${q?"Os":"Te"} recibe ${g.nombre}, ${g.oficio.split(" de ")[0]}, con una máscara de cuerno colgada del cinto. «Aquí se entra libre. De salir ya hablaremos.» ${q?`${q.nombre} te aprieta la mano.`:""} ${X.nombre}, ${fisCorto(X)}, te mira desde un portal como quien huele algo.`}
+function cultoSalir(como){const c=finEncierro(),K=c.cu,C=CULTOS[K.k],y=G.yo,q=K.par&&viv(K.par);if(q)q.cuAqui=0;const l=(K.ids||[]).map(viv).filter(Boolean);l.forEach(p=>{if(!p.amante&&p.id!=G.pareja&&p.rel<50)p.lejos=true});const g=viv(K.g);if(g)g.lejos=true;
+  if(q&&q.seQueda){G.pareja=null;G.casado=false;q.ex=1;q.casa=false;q.lejos=true;return `Vuelves a casa sin ${q.nombre}, que ha decidido quedarse. En el coche sobra un asiento todo el camino.`}
+  return como=="fin"?`Se acaba la temporada en ${C.n}. Vuelves con la piel curtida, callos en las manos y una forma distinta de mirar a la gente${l.some(p=>p.amante)?", y con un número apuntado en la muñeca":""}.`:`Recoges tus cosas y te vas de ${C.n} antes de tiempo.`}
+function accionesCulto(){const y=G.yo,c=G.carcel,K=c.cu,C=CULTOS[K.k],L=[],A=(t,fn,cls)=>L.push({t,fn,cls}),sol=K.k=="sol",q=K.par&&viv(K.par),g=viv(K.g);
+  if(K.rito!=c.m)L.push({t:sol?"La noche de las hogueras…":"La luna negra…",cls:"riesgo",abre:()=>menuRito()});
+  A(sol?"Trabajar la huerta":"Cortar leña y reparar tejados",()=>{mover(.08);add("cuerpo",2);add("animo",3);K.conf+=2;return sol?vario("cuH",["Cavas, riegas y arrancas hierbas con veinte personas más. A mediodía nadie recuerda qué día es.","Recoges tomates hasta llenar seis cajas. Los mejores se comen allí mismo, calientes de sol.","Aprendes a hacer pan en el horno de leña. El tuyo sale plano, y se lo comen igual."]):vario("cuL",["Cortas leña para todo el invierno de la aldea. Nadie habla; se oyen las hachas.","Subes a retejar la casa grande. Desde arriba se ve el círculo de piedras del prado.","Limpias el pozo viejo. En el fondo hay cosas que no son piedras, y te mandan subir."])});
+  A(sol?"Cantos y silencio al amanecer":"Velar junto al fuego",()=>{add("animo",5);G.renc=Math.max(0,(G.renc||0)-5);K.conf+=3;return sol?vario("cuM",["Una hora cantando la misma sílaba con los ojos cerrados. Sales con la cabeza limpia como un plato.","Silencio de sol a sol. Descubres cuánto hablabas para no pensar.","Respiráis todos a la vez. Hay un momento en que no sabes dónde acabas tú."]):vario("cuV",["Velas el fuego toda la noche con otros tres. Nadie dice su nombre de fuera.","Te enseñan un canto bajo, sin letra, que hace vibrar el suelo.","Miráis las brasas hasta que salen figuras. Te preguntan cuáles has visto, y lo apuntan."])});
+  if(g)A("Hablar con "+g.nombre,()=>{rel(g,5);K.conf+=4;add("mente",1);return sol?vario("cuG",[`${g.nombre} te pregunta de qué huyes. No vale decir que de nada.`,`${g.nombre} te cuenta cómo empezó esto, con seis amigos y una furgoneta. Faltan dos, y no dice por qué.`,`${g.nombre} te pide un «donativo consciente». Lo dice con tanta paz que cuesta notar que es dinero.`]):vario("cuG2",[`${g.nombre} te explica qué se celebra en la luna negra: lo que el pueblo de abajo quemó hace tres siglos y no acabó de arder.`,`${g.nombre} te enseña las máscaras. Cada una tiene dueño, y la tuya todavía está sin tallar.`,`«Aquí hay hermanos que cambian con la luna», dice ${g.nombre}. «No preguntes cuáles. Lo sabrás por el olor.»`])});
+  cuGente().forEach(p=>{const ad=p.edad>=216&&y.edad>=216;A((p.amante?"Pasar la noche con ":"Acercarte a ")+p.nombre,()=>{rel(p,ri(4,8));add("animo",3);if(p.amante)return encuentro(p,"tranquilo",true);sube(p,5);
+      if((p.quim||0)>=40&&p.rel>=50&&ch(.5)){p.amante=true;p.beso=true;p.besoE=anios();p.pas=22;gustos(p);virgenIni(p);if(p.lobo)p.sabes=1;return (sol?`${p.nombre} te lleva al río cuando ya han apagado las hogueras. Aquí nadie es de nadie, te dice, pero esta noche prefiere que seáis solo dos.`:`${p.nombre} te espera en el pajar, sin máscara. «Fuera de aquí no me conocerías», dice. Luego ya no dice nada.`)+primeraVez(p)+(q&&q.id!=p.id?" "+(sol?`${q.nombre} hace como que duerme cuando vuelves.`:`${q.nombre} no pregunta dónde has estado. Aquí nadie pregunta.`):"")}
+      return sol?vario("cuX",[`${p.nombre} te enseña a trenzar mimbre. Tiene las manos seguras y tarda en soltar las tuyas.`,`Os bañáis en la poza ${p.nombre} y tú, con media comuna alrededor. Te mira por encima del agua.`,`${p.nombre} te cuenta la vida que dejó: un despacho, una hipoteca, un nombre que ya no usa.`,`Compartís guardia de hoguera. ${p.nombre} te tapa con su manta sin preguntar.`]):vario("cuX2",[`${p.nombre} te enseña a andar por el monte sin hacer ruido. Lo hace demasiado bien.`,`${p.nombre} te huele el pelo al pasar, sin disimulo, y sonríe con todos los dientes.`,`${p.nombre} te cuenta que llegó hace siete inviernos «por una noche». Se ríe de su propia frase.`,`Tallas tu máscara con ${p.nombre} al lado, corrigiéndote el pulso.`])})});
+  if(q)A("Pasar la noche con "+q.nombre,()=>{rel(q,5);q.aten=y.edad;return encuentro(q,"tranquilo",true)});
+  A("Marcharte ya",()=>{if(!sol&&K.conf>=20&&!ch(.35+y.cuerpo/400+y.mente/400)){add("salud",-ri(8,18));K.sos+=3;return {txt:"Intentas irte por el camino del collado. Antes de la primera curva hay cuatro sombras esperándote, tranquilas. Te devuelven a la aldea sin tocarte, y eso es lo que asusta. «Todavía no», dice una voz.",mal:1}}return cultoSalir("antes")},"sec");
+  A("Dejar pasar el mes",()=>vario("cuN",sol?["Un mes sin espejo. Te lo notas en la cara al tocarla.","Lluvia, sopa de verdura y partidas de damas con chapas.","Pierdes la cuenta de los días a propósito."]:["Niebla en la aldea durante semanas. De noche se oyen carreras por los tejados.","Aprendes los nombres de dentro de todos. Los de fuera ya no importan.","Un mes sin ver un coche ni oír una radio."]),"sec");return L}
+function menuRito(){const y=G.yo,c=G.carcel,K=c.cu,sol=K.k=="sol",q=K.par&&viv(K.par),gu=viv(K.g),virgen=G.fl.virgen!==false,mujer=y.sexo=="f",ops=[],H=(t,s,fn)=>ops.push({t,s,fn:()=>hacer(()=>{K.rito=c.m-1;return fn()})});
+  const cand=cuGente().filter(p=>p.edad>=216).concat(q&&q.edad>=216?[q]:[]);
+  if(K.conf>=12&&cand.length)ops.push({t:sol?(mujer&&virgen?"Ser la Doncella de mayo":mujer?"Ser la Reina del verano":"Ser el Rey del verano"):(mujer&&virgen?"Ser la Consagrada":mujer?"Ser la Señora de la noche":"Ser el Astado"),s:mujer&&virgen?"El rito entero gira en torno a ti y a quien tú elijas":"Presidir el rito con quien tú elijas",fn:()=>abrirHoja("¿A quién eliges?",cand.map(p=>({t:p.nombre,s:p.id==G.pareja?"Tu pareja":fisCorto(p),fn:()=>hacer(()=>{K.rito=c.m-1;K.conf+=10;add("carisma",3);add("animo",8);gustos(p);pers(p);p.pas=clamp((p.pas||0)+20);rel(p,12);if(p.id!=G.pareja){p.amante=true;p.beso=true;p.besoE=p.besoE||anios();virgenIni(p);if(q){rel(q,infidelidad(q)<.6?-25:-8)}}if(!sol){G.fl.pacto=1;add("cuerpo",4);if(G.tomo)G.tomo.d=clamp(G.tomo.d+8)}
+      logro(sol?"presides la noche de las hogueras":"presides la luna negra");
+      return (sol?(mujer&&virgen?`Te visten de blanco y te coronan de flores entre todas. Cuarenta personas cantan en círculo, de espaldas, alrededor de una tienda de lino donde solo entráis ${p.nombre} y tú. Nadie mira y todos saben. Es tu noche: se hace lo que tú quieres, al ritmo que tú quieres.`:`Te ponen la corona de espigas y abres el baile. A medianoche la comuna entera os acompaña hasta la tienda de lino, cantando, y se da la vuelta. Dentro solo estáis ${p.nombre} y tú, y fuera el canto dura hasta el alba.`)
+        :(mujer&&virgen?`Te ponen un manto negro y una diadema de plata vieja. El círculo de máscaras se abre para ti y se cierra detrás, de espaldas. En el centro, junto al fuego, solo ${p.nombre}, sin máscara, esperando a que seas tú quien dé el paso. ${gu?gu.nombre:"Alguien"} pronuncia tu nombre de dentro por primera vez. La noche es tuya; lo que pasa en ella lo decides tú.`:`Te calan la máscara grande, la de cuernos, que pesa como una promesa. El círculo canta de espaldas mientras ${p.nombre} y tú cumplís el rito junto al fuego. Cuando acaba, la Hermandad entera se arrodilla. Te notas distinto: más fuerte, más despierto, un poco menos tuyo.`.replace("distinto",g("distinto","distinta")).replace("despierto",g("despierto","despierta"))))+primeraVez(p)+(q&&p.id!=q.id?` ${q.nombre} lo ha visto todo desde el círculo.`:"")})})))});
+  H(sol?"Entrar en el círculo":"Ponerte la máscara y entrar",sol?"Lo que pasa en el prado no tiene nombres ni dueños":"Nadie sabe quién es quién, y de eso se trata",()=>{K.conf+=5;add("animo",7);G.fl.rito=(G.fl.rito||0)+1;const era=G.fl.virgen!==false;G.fl.virgen=false;if(q)rel(q,q.cuAqui&&infidelidad(q)>=1?4:-12);if(!sol&&G.tomo)G.tomo.osc+=1;
+    return (sol?vario("ritoS",["Tambores, vino con hierbas y cuarenta cuerpos al calor de las hogueras. Dejas la ropa en la linde y los apellidos también. No sabrías decir con cuántos ni con quién. Amaneces en la hierba, tapado con una manta que no es tuya.".replace("tapado",g("tapado","tapada")),"Empieza como un baile y a medianoche ya no lo es. Nadie te pide nada que no ofrezcas. Hay manos, risas, silencios. Cuando sale el sol, alguien reparte café como si nada."]):vario("ritoL",["Máscaras, antorchas y un canto que no se corta en toda la noche. Dentro del círculo nadie tiene cara ni nombre. Sales al alba con arañazos que no duelen y un vacío en la memoria de varias horas.","La hoguera se apaga y sigue todo a oscuras. Hay más cuerpos que máscaras, y algunos no tienen tacto de persona. No preguntas. Amaneces en el pajar, envuelto en una piel de animal.".replace("envuelto",g("envuelto","envuelta"))]))+(era?" Así ha sido tu primera vez: sin un nombre que recordar.":"")+(q?(q.cuAqui&&infidelidad(q)>=1?` ${q.nombre} también entró. Os buscáis por la mañana y os reís, un poco avergonzados.`:` ${q.nombre} se quedó fuera del círculo. Por la mañana no te mira.`):"")});
+  if(q)H(sol?"El rito de los lazos, en pareja":"El juramento de sangre, en pareja",sol?"Os atan las muñecas con una cinta hasta el alba":"Os atan con una cuerda negra y os dejan solos en el círculo",()=>{K.conf+=6;rel(q,12);q.pas=clamp((q.pas||0)+18);q.aten=y.edad;q.deriva=0;add("animo",8);gustos(q);
+    return (sol?`Os atan la muñeca izquierda con una cinta roja, a ${q.nombre} y a ti, y no os la quitan hasta que sale el sol. Hay que hacerlo todo juntos: comer, bailar, y lo demás. Descubrís cosas el uno del otro que en diez años de casa no habían salido.`:`Os atan con una cuerda negra y el círculo se vuelve de espaldas. ${gu?gu.nombre:"Alguien"} os hace un corte pequeño en la palma, a cada uno, y os junta las manos. Lo que pasa después junto al fuego es entre ${q.nombre} y tú, pero no del todo: algo más está mirando, y le gusta.`)+primeraVez(q)});
+  if(!sol)H("Correr con la manada","Monte arriba, detrás de los que cambian",()=>{K.conf+=6;mover(.1);add("cuerpo",3);cuGente().forEach(p=>{if(p.lobo)p.sabes=1});
+    if(!G.fl.lobo&&ch(.3)){G.fl.lobo=1;add("cuerpo",10);add("salud",5);logro("te muerden en la luna negra");return {txt:"Corres detrás de ellos hasta que dejan de correr a dos piernas. Uno se vuelve, enorme, y te muerde en el hombro, sin rabia, como quien firma. Arde tres días. Al cuarto oyes latir el corazón de los pájaros.",mal:1}}
+    return "Subes al monte con ellos. A medio camino la mitad ya no son personas. Corres en mitad de la manada, con el corazón en la boca, y nadie te toca. Al amanecer vuelven a tener manos y te ofrecen agua."});
+  H("Mirar desde la linde","Sin entrar",()=>{K.conf+=1;add("mente",1);return sol?"Te sientas en el muro con una manta. Desde fuera parece más torpe y más tierno que desde dentro. Alguien te trae un vaso de vino sin insistir.":"Te quedas en la última fila, sin máscara. Notas que te cuentan. Ves lo suficiente para no dormir bien."});
+  H("No ir",sol?"Nadie te obliga":"Aquí eso se nota",()=>{if(!sol){K.sos+=2;return {txt:"Te quedas en la casa con la puerta atrancada. Por la mañana hay una máscara colgada del picaporte, por fuera.",mal:1}}return "Te acuestas pronto. Los tambores llegan hasta la cabaña como una lluvia lejana."});
+  abrirHoja(sol?"La noche de las hogueras":"La luna negra",ops)}
+function eventoCulto(){const y=G.yo,c=G.carcel,K=c.cu,sol=K.k=="sol",q=K.par&&viv(K.par),l=cuGente(),p=l.length?pick(l):null,g=viv(K.g);
+  const E=sol?[()=>{add("animo",4);log("Asamblea de seis horas para decidir si se compra una cabra. Se compra. Se llama Asamblea.")},
+    ()=>{const n=Math.min(y.dinero,ri(150,500));y.dinero-=n;K.conf+=3;log(`Pasan «el cuenco»: cada cual pone lo que siente. Sientes ${n}, con cuarenta personas mirando.`)},
+    ()=>{add("mente",2);add("animo",ch(.7)?6:-6);log("Ceremonia de plantas con los que quieren. Ves tu vida desde arriba, como un mapa. Algunas carreteras no llevaban a ningún sitio.")},
+    ()=>{log("Llega la guardia civil a preguntar por una chica de veintitantos cuyos padres no saben de ella. Ella misma sale, enseña el carné y dice que está donde quiere. Se van.")},
+    ()=>{if(p){rel(p,5);log(`${p.nombre} te deja en la almohada una pulsera de hilo. Aquí eso significa algo, y te explican qué con muchas sonrisas.`)}}]
+   :[()=>{add("animo",-4);K.sos=Math.max(0,K.sos-1);log("De noche algo grande da vueltas a tu casa, despacio, oliendo las rendijas. Por la mañana hay huellas, y nadie las mira.","mala")},
+    ()=>{if(G.tomo){G.tomo.d=clamp(G.tomo.d+5);log(`${g?g.nombre:"El Maestre"} reconoce el tomo en cuanto lo ve. No intenta quitártelo. Te corrige la pronunciación de dos palabras, y de pronto una página entera tiene sentido.`)}else{add("mente",2);log("Te dejan leer el libro de la Hermandad: tres siglos de nombres de dentro. Los últimos de cada página están tachados.")}},
+    ()=>{log("Suben dos excursionistas perdidos. La aldea entera se vuelve un pueblo normal en diez minutos: gallinas, una radio, una señora barriendo. Les dan agua y les señalan el camino.")},
+    ()=>{if(p&&p.lobo){p.sabes=1;rel(p,4);log(`Ves a ${p.nombre} volver del monte al alba, ${gp(p,"desnudo","desnuda")}, con sangre de corzo hasta los codos y una paz enorme en la cara. Te saluda con la cabeza.`)}},
+    ()=>{K.sos+=1;log("Uno de los nuevos intenta irse sin despedirse. Por la mañana su mochila está en la plaza, vacía y bien doblada.","mala")}];
+  if(q&&!q.lio&&ch(.3)){const r=l.filter(x=>x.sexo!=q.sexo&&x.edad>=216)[0];if(r&&infidelidad(q)>=.8){q.deriva=(q.deriva||0)+30;if(q.deriva>=90){lioEmpieza(q,r);log(`${q.nombre} pasa cada vez más noches en la hoguera de ${r.nombre}. «Aquí nadie es de nadie», te recuerda cuando preguntas.`,"mala")}else log(`${q.nombre} y ${r.nombre} se ríen mucho juntos últimamente. Aquí eso no debería importar. Importa.`);return}}
+  if(q&&c.m<=1&&ch(.25)&&!q.seQueda&&!G.pend){decidir("cuQueda",{id:q.id});log(`${q.nombre} te lo dice mirando al suelo: no quiere volver. Dice que aquí es la primera vez que respira.`,"mala");return}
+  pick(E)()}
+DEC.cuQueda={man:1,tit:d=>P(d.id).nombre+" quiere quedarse",txt:d=>"",ops:d=>{const q=P(d.id),y=G.yo;return [
+  {t:"Convencerle de volver",s:"Depende de lo vuestro",fn:()=>{if(ch(.2+q.rel/140)){rel(q,5);return `Habláis toda la noche. Al final ${q.nombre} hace la mochila llorando. «Pero volvemos el año que viene.»`}q.seQueda=1;return {txt:`No hay manera. ${q.nombre} ya ha dado su ropa de fuera al fuego.`,mal:1}}},
+  {t:"Quedarte tú también otra temporada",fn:()=>{G.carcel.m+=6;G.carcel.tot+=6;rel(q,10);return `Te quedas. Otros seis meses sin relojes. En casa, el buzón se llena.`}},
+  {t:"Respetarlo y volver sin "+gp(q,"él","ella"),fn:()=>{q.seQueda=1;return {txt:`Le das un abrazo largo. ${q.nombre} te acompaña hasta la verja y no la cruza.`,mal:1}}}]}};
+DEC.invCulto={man:1,tit:d=>d.c=="sol"?"Una temporada en el Valle Alto":"La invitación de la Luna Negra",txt:d=>"",ops:d=>{const q=G.pareja&&viv(G.pareja),ok=q&&q.edad>=216&&!q.lejos,ops=[{t:"Ir solo".replace("solo",g("solo","sola")),s:"Varios meses fuera de todo",fn:()=>cultoEntrar(d.c,false)}];
+  if(ok)ops.push({t:"Ir con "+q.nombre,s:"En pareja",fn:()=>ch(.35+q.rel/200)?cultoEntrar(d.c,true):{txt:`${q.nombre} te mira como si le hubieras propuesto mudaros a la luna. «Ve tú si quieres.»`,mal:1}});
+  ops.push({t:"No ir",fn:()=>d.c=="sol"?"Guardas el folleto en un cajón. Huele a lavanda durante años.":"Quemas la tarjeta. La ceniza queda en forma de media luna hasta que la soplas."});return ops}};
+function finCulto(){const K=G.carcel.cu,sol=K.k=="sol",y=G.yo;
+  if(!sol&&K.conf>=25&&!ch(.4+y.cuerpo/350+y.mente/350)){G.carcel.m=3;G.carcel.tot+=3;K.sos+=2;add("animo",-8);log("Se cumple el tiempo y dices que te vas. Sonríen. Esa noche el camino del collado no está donde estaba. «Una luna más», dice una voz detrás de una máscara. Y luego otra.","mala");
+    if(K.sos>=7&&ch(.3))G.muertePend="una hermandad de la sierra que no dejaba marchar a nadie";return}
+  log(cultoSalir("fin"))}
+function eventos13(ev,a){const y=G.yo;if(a<19||a>62||G.carcel||G.pend||G.exo)return;
+  if((G.fl.cultos||0)<3)ev(G.fl.secta===0||G.grupo=="frikis"?1.5:1,"invSol",()=>{decidir("invCulto",{c:"sol"});log(vario("invS",["En el mercado, una pareja descalza vende pan y te da un folleto pintado a mano: «Una temporada en el Valle Alto. Solo adultos. Trae manos y deja el reloj.»","Un conocido vuelve de pasar medio año en una comuna de la sierra. Tiene otra cara. Te apunta en un papel cómo se llega.","Alguien ha dejado en tu parabrisas una flor seca y un mapa dibujado a boli: «Valle Alto. Se entra cuando se quiere y se sale igual.»"]))});
+  const osc=G.tomo&&(G.tomo.osc||0)>=4||G.fl.lobo||vivos(p=>p.lobo&&p.sabes&&p.con).length||sabeMagia();
+  ev(osc?2:.35,"invLuna",()=>{decidir("invCulto",{c:"luna"});log(vario("invL",["Encuentras en el bolsillo una tarjeta negra que no estaba: una media luna, unas coordenadas y una fecha. Por detrás, a mano: «Sabemos lo que lees de noche.»","Alguien a quien conoces de la noche te habla, muy bajo, de una aldea vacía donde en la luna nueva se hace lo que en las ciudades solo se sueña. Dice que preguntan por ti.","Una mujer con un colgante de cuerno te para en la calle. «Hueles a monte», dice. Te da una tarjeta negra y sigue andando."]))})}
 
 const SEL={origen:null,riqueza:null,sexo:null,don:null,hogar:null};
 function pantallaCrear(){
