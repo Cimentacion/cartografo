@@ -137,7 +137,7 @@ td.n{text-align:right;white-space:nowrap}
 <script>
 "use strict";
 /* ============ Utilidades ============ */
-const R=Math.random, ri=(a,b)=>Math.floor(R()*(b-a+1))+a, pick=a=>a[Math.floor(R()*a.length)], ch=p=>R()<p;
+const R=Math.random, ri=(a,b)=>Math.floor(R()*(b-a+1))+a, pick=a=>pick29(a), ch=p=>R()<p;
 const clamp=(v,a=0,b=100)=>Math.max(a,Math.min(b,v));
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -445,7 +445,7 @@ function cumple(){
   if(a>=4&&a<6&&(G.don||0)>=40&&!G.fl.manif&&!G.pend&&!G.indep)manifestar();
   if(a>=6&&a<18&&!G.indep){
     if(G.mg){if(!G.pend&&!G.mg.exp&&!(G.mg.intro<5)){G.pend={k:"volvermagia"};log("El carruaje de los ciervos blancos espera delante de casa, como cada año.")}}
-    else if(a<=11&&(G.don||0)>=40&&!G.pend){if(G.fl.manif)ofertaMagia();else manifestar()}
+    else if((a<=11||G.fl.magPide&&a<18)&&(G.don||0)>=40&&!G.pend){if(G.fl.manif){if(!G.fl.magNo)ofertaMagia()}else manifestar()}
   }
   if(a==18&&G.mg){if(G.mg.anos>=4&&(y.magia||0)>=55&&!G.mg.exp){G.mago=1;logro("te gradúas en Umbraluz");log("Umbraluz te entrega el báculo en una ceremonia a la luz del lago. Eres mago de pleno derecho; ahí fuera hay oficios que la gente corriente ni imagina.".replace("mago de",g("mago de","maga de")))}
     else log("Cumples la edad y Umbraluz no te entrega el báculo: te faltaron cursos o te faltó magia. Te queda lo aprendido y una vida corriente.","mala")}
@@ -666,7 +666,8 @@ function evento(){
     ev(1,"cwnuevo",()=>{const q=per("conoc",sx(),clamp(a+ri(-10,8),18,60),pick(ORI[G.origen].ap),{con:true,rel:ri(20,35),sitio:"del trabajo",casado:ch(.4),rasgo:ri(0,4)});log(`Entra alguien en tu turno: ${q.nombre}. Te toca enseñarle dónde está todo.`)});
   }
   if(G.pareja&&a>=18){const q=P(G.pareja);
-    ev(1,"suegros",()=>{rel(q,ch(.5)?4:-4);log(vario("suegros",[`Comida con la familia de ${q.nombre}. Te examinan con el segundo plato.`,`Los padres de ${q.nombre} se quedan una semana en casa. Una semana larga.`]))});
+    if(!SANGRE.includes(q.rol)&&!q.astra&&!q.amz&&!q.rev)ev(1,"suegros",()=>{rel(q,ch(.5)?4:-4);log(vario("suegros",[`Comida con la familia de ${q.nombre}. Te examinan con el segundo plato.`,`Los padres de ${q.nombre} se quedan una semana en casa. Una semana larga.`,`La madre de ${q.nombre} te llama por tu nombre por primera vez. Tardas en darte cuenta de lo que significa.`,`Domingo en casa de la familia de ${q.nombre}. Te ponen el plato más lleno, que es su manera de decir algo.`]))});
+    else if(SANGRE.includes(q.rol)&&vivos(p=>p.rol=="prog").length)ev(1,"suegrosF",()=>{log(vario("suegrosF",[`Comida familiar. En la mesa nadie dice nada de lo vuestro. ${q.nombre} y tú os sentáis en esquinas opuestas, por costumbre.`,`En casa hacen como que no saben. Se nota en que ya no os dejan a solas ni para fregar.`,`Alguien de la familia pregunta, delante de todos, si ${q.nombre} «tiene a alguien». Miráis cada uno a un plato.`]))});
     ev(1,"parejahosp",()=>{rel(q,8);add("animo",-5);log(`Operan a ${q.nombre} de urgencia. Tres noches en un sillón de hospital, cogiéndole la mano.`,"mala")});
     if(G.casado)ev(1,"hipoteca",()=>{y.dinero-=ri(300,900);add("animo",2);log(`${q.nombre} y tú firmáis una reforma de la casa. Polvo, albañiles y discusiones sobre azulejos.`)});
   }
@@ -1291,6 +1292,10 @@ function menuPersona(p){
     if(p.beso&&!p.amante&&!G.pareja&&!p.casado)O("Proponerle ir en serio",()=>irEnSerio(p));
     lujoExtra(p,ops,O,q);amorExtra(p,ops,O,q,d);
   }
+  if(a>=15&&pa>=15&&(a<18||pa<18)&&Math.abs(p.edad-G.yo.edad)<=24&&!SANGRE.includes(p.rol)&&!p.astra&&!p.amigoDe){
+    if(!esPareja&&!G.pareja&&(G.crush==p.id||p.rel>=50))O("Pedirle salir",()=>{if(ch(.25+G.yo.carisma/250+p.rel/220)){G.pareja=p.id;G.crush=null;rel(p,12);add("animo",12);return `Se lo pides a ${p.nombre} en un banco, mirando al suelo. Tarda una eternidad de dos segundos. «Vale.» Volvéis andando sin saber qué hacer con las manos.`}rel(p,-6);add("animo",-8);return {txt:`Se lo pides a ${p.nombre}. «Es que te veo como ${g("un amigo","una amiga")}.» Sonríes como si no pasara nada. Pasa.`,mal:1}},"A ver qué dice");
+    if(!p.beso&&(esPareja||G.crush==p.id&&p.rel>=60))O("Darle un beso",()=>{if(esPareja||ch(.3+p.rel/250)){p.beso=true;p.besoE=anios();rel(p,6);add("animo",10);logro("tu primer beso con "+p.nombre);return vario("besoJ",[`En el portal de ${p.nombre}, antes de que suba. Un beso corto, torpe, con los dientes chocando. Os reís los dos. Vuelves a casa andando sin tocar el suelo.`,`En la última fila del cine, a mitad de película. No sabríais decir de qué iba. Sabe a palomitas y a nervios.`,`En un banco del parque, cuando ya han encendido las farolas. ${p.nombre} cierra los ojos antes que tú. Dura tres segundos y te dura un mes.`,`Detrás del polideportivo, con las mochilas en el suelo. Os separáis muy serios, como si hubierais firmado algo.`])}rel(p,-3);return {txt:`Te acercas. ${p.nombre} gira la cara y el beso cae en la mejilla. «Todavía no.» Se pone ${gp(p,"rojo","roja")}. Tú también.`,mal:1}},esPareja?"":"Puede apartarse");
+    else if(p.beso&&esPareja)O("Pasar la tarde juntos",()=>{rel(p,ri(3,6));add("animo",5);return vario("tardeJ",[`Dais vueltas ${p.nombre} y tú por el centro, de la mano, sin dinero y sin plan. Os despedís en su portal con un beso rápido, por si se asoma alguien.`,`Hacéis los deberes ${p.nombre} y tú en la biblioteca, que es una excusa. Os pasáis notas por debajo de la mesa.`,`${p.nombre} te presenta a sus amigos. Te examinan en diez minutos. Apruebas raspado.`,`Compartís unos auriculares en el autobús, un casco cada uno, con la cabeza apoyada.`])})}
   if(esPareja&&a>=18&&pa>=18)ops.push({t:"Quedar a solas",s:"Pasión "+Math.round(p.pas||0),fn:()=>menuEncuentro(p)});
   if(a>=6)ops.push({t:G.fijo==p.id?"Quitar de arriba":"Fijar arriba en las listas",s:"No gasta el mes",fn:()=>{G.fijo=G.fijo==p.id?null:p.id;guardar();menuPersona(p)}});
   let tit=p.nombre+" · "+rolTxt(p)+amorTit(p);
@@ -2379,9 +2384,9 @@ function eventosMagiaCasa(ev,a){
 /* ---- El carruaje ---- */
 function ofertaMagia(){
   const ps=vivos(p=>p.rol=="prog");G.ofm=G.ofm||0;
-  const s=G.ofm?"El carruaje de los ciervos blancos vuelve, como prometió el cochero.":"Al amanecer hay un carruaje negro tirado por dos ciervos blancos parado delante de casa. El cochero trae una carta lacrada con un pozo dibujado en la cera: en Umbraluz, una escuela que no sale en los mapas, saben lo que eres."+(G.fl.magOc?" Nadie se lo había contado.":" La noticia llegó lejos.");
-  const p=.5+(ps.length?ps.reduce((q,x)=>q+x.rel,0)/ps.length/250:.2)+G.ofm*.12-(G.fe?.15:0)+(G.fl.magOc?0:.08);
-  if(ch(p)){log(s+(ps.length?" Tus padres leen la carta tres veces y discuten toda la noche, bajito. Por la mañana hay una maleta abierta encima de tu cama, y dentro, doblado, tu jersey favorito. Te abrazan en la puerta más rato del necesario. «Escribe. Y come.»":" En el centro firman los papeles sin leerlos. La cuidadora te mete un bocadillo en el bolsillo y te guiña un ojo."));log(entrarMagia())}
+  const s=G.fl.magPide?"El carruaje de los ciervos blancos se para delante de casa. Esta vez lo has llamado tú.":G.ofm?"El carruaje de los ciervos blancos vuelve, como prometió el cochero.":"Al amanecer hay un carruaje negro tirado por dos ciervos blancos parado delante de casa. El cochero trae una carta lacrada con un pozo dibujado en la cera: en Umbraluz, una escuela que no sale en los mapas, saben lo que eres."+(G.fl.magOc?" Nadie se lo había contado.":" La noticia llegó lejos.");
+  const pide=G.fl.magPide?1:0;G.fl.magPide=0;const p=(pide?.25:0)+.5+(ps.length?ps.reduce((q,x)=>q+x.rel,0)/ps.length/250:.2)+G.ofm*.12-(G.fe?.15:0)+(G.fl.magOc?0:.08);
+  if(ch(p)){log(s+(ps.length?" Tus padres leen la carta tres veces y discuten toda la noche, bajito. Por la mañana hay una maleta abierta encima de tu cama, y dentro, doblado, tu jersey favorito. Te abrazan en la puerta más rato del necesario. «Escribe. Y come.»":" En el centro firman los papeles sin leerlos. La cuidadora te mete un bocadillo en el bolsillo y te guiña un ojo.")+" El cochero espera con la portezuela abierta. Falta que digas tú algo.");decidir("carruaje",{})}
   else{G.ofm++;log(s+(ps.length?` ${cap(tu(ps[0]))} cierra la puerta: «${G.fl.magOc?"Aquí no vive nadie así":"Este crío no se va a ninguna parte"}.»`:" El director del centro rompe la carta sin abrirla.")+" El cochero dice que volverá el año que viene.","mala")}
 }
 function entrarMagia(){
@@ -3848,7 +3853,7 @@ function eventosNuevos(ev,a){const y=G.yo;eventos10(ev,a);eventos11(ev,a);evento
   if(may.length&&muertosCerca(30).length&&a>=8)ev(2,"cemAcomp",()=>{const p=pick(may),d=pick(muertosCerca(30));rel(p,6);add("animo",-1);log(`${cap1(tu(p))} te pide que le acompañes al cementerio, a ver a ${d.nombre}. Le llevas el cubo. Habla con la lápida como si le contestaran.`)});
   if(a>=18&&!G.carcel)ev(1,"ferryReg",()=>{log("En una rifa te tocan dos pasajes de ferry a las islas. Los guardas en el cajón de los papeles: se pueden usar cuando quieras desde «Viajar por mar».");G.fl.ferry=1},1);
 }
-function accionesNuevas(L,a){const y=G.yo;acciones10(L,a);acciones11(L,a);acciones12(L,a);acciones15(L,a);acciones16(L,a);acciones17(L,a);acciones18(L,a);acciones19(L,a);acciones20(L,a);acciones21(L,a);acciones25(L,a);acciones26(L,a);acciones27(L,a);
+function accionesNuevas(L,a){const y=G.yo;acciones10(L,a);acciones11(L,a);acciones12(L,a);acciones15(L,a);acciones16(L,a);acciones17(L,a);acciones18(L,a);acciones19(L,a);acciones20(L,a);acciones21(L,a);acciones25(L,a);acciones26(L,a);acciones27(L,a);acciones30(L,a);
   if(G.guerra)accionesGuerra(L);
   if(G.reg&&!G.exo&&a>=14)L.push({t:"Bajo el Régimen…",cls:"riesgo",abre:menuRegimen});
   if(G.vamp)L.push({t:"La sed…"+(G.vamp.sed>=70?" (aprieta)":""),cls:"riesgo",abre:menuVamp});
@@ -5256,7 +5261,7 @@ function tickNuevo17(){const y=G.yo,a=y.edad/12;if(G.muerto)return;G.hisH=G.hisH
   const sg=vivos(p=>["herm","primo"].includes(p.rol)&&!p.astra&&p.edad>=216&&(p.amante||G.pareja==p.id))[0];
   if(sg&&!(G.his&&G.his.sangre)&&(G.hisH.sangre||0)<2&&ch(sg.casa?.06:.035))hisIni("sangre",{id:sg.id});
   const q=G.pareja&&viv(G.pareja);
-  if(q&&G.casado&&!q.vpArc&&!G.hisH.politica&&a>=24&&ch(.006)){const sx_=y.sexo=="m"?(ch(.85)?"f":"m"):(ch(.85)?"m":"f"),c=per("conoc",sx_,clamp(q.edad/12+ri(-6,6),20,60),q.apellido,{con:true,rel:25,sitio:"de la familia de "+q.nombre,oficio:(sx_=="f"?"cuñada":"cuñado")+" tuyo, "+(sx_=="f"?"hermana":"hermano")+" de "+q.nombre,casado:ch(.5)});c.oficio=(sx_=="f"?"hermana":"hermano")+" de "+q.nombre;c.tox=null;hisIni("politica",{c:c.id,q:q.id})}
+  if(q&&G.casado&&!q.vpArc&&!SANGRE.includes(q.rol)&&!q.astra&&!q.amz&&!q.rev&&!G.hisH.politica&&a>=24&&ch(.006)){const sx_=y.sexo=="m"?(ch(.85)?"f":"m"):(ch(.85)?"m":"f"),c=per("conoc",sx_,clamp(q.edad/12+ri(-6,6),20,60),q.apellido,{con:true,rel:25,sitio:"de la familia de "+q.nombre,oficio:(sx_=="f"?"cuñada":"cuñado")+" tuyo, "+(sx_=="f"?"hermana":"hermano")+" de "+q.nombre,casado:ch(.5)});c.oficio=(sx_=="f"?"hermana":"hermano")+" de "+q.nombre;c.tox=null;hisIni("politica",{c:c.id,q:q.id})}
   if(q&&G.casado&&!G.fl.bigamo&&!G.hisH.bigamia){const am=vivos(p=>p.amante&&p.edad>=216&&p.rel>=70&&p.id!=q.id&&!p.casado)[0];if(am&&ch(.03))hisIni("bigamia",{a:am.id,q:q.id})}
   if(a>=20&&a<40&&!G.fl.mant&&!G.hisH.mantenido&&atr()>=58&&y.dinero<2500&&ch(.006)){const p=per("conoc",opuesto(),ri(60,74),pick(ORI[G.origen].ap),{con:true,rel:20,oficio:"con tres empresas y mucho tiempo",casado:false});p.tox=null;p.lobo=p.vamp=0;p.lujo=90;hisIni("mantenido",{id:p.id})}
   if(a>=24&&a<48&&!G.pareja&&!G.hisH.interes&&ch(.0008)){const p=per("conoc",opuesto(),ri(72,84),pick(ORI[G.origen].ap),{con:true,rel:20,oficio:"con una fortuna y poca salud",casado:false});p.tox=null;p.lobo=p.vamp=0;hisIni("interes",{id:p.id})}
@@ -6744,6 +6749,107 @@ function tickNuevo28(){const y=G.yo;if(G.man&&(G.carcel||y.edad-G.man.ini>2)){G.
   G.gente.forEach(p=>{if(p.herM&&!p.vivo&&!p.herPag){p.herPag=1;const imp=ch(.3),n=Math.round(p.herM*(imp?.5:1));y.dinero+=n;log(`Se abre el testamento de ${p.nombre}. La cláusula del cónyuge se cumple: heredas ${n}.`+(imp?" El resto se lo come el pleito con la familia, que impugna durante cuatro años y te llama, en los escritos, «la persona que apareció al final».":" La familia no impugna. Tampoco te saluda."))}})}
 function eventos28(ev,a){const y=G.yo;if(G.carcel||G.pend||G.man||a<23||a>62)return;if(G.fl.mansionUlt&&y.edad-G.fl.mansionUlt<60)return;
   ev(G.fl.mansionUlt?.5:.8,"mansion28",()=>{G.fl.mansionUlt=y.edad;decidir("mansion",{});log("En el buzón, entre facturas, un sobre de papel grueso cerrado con lacre negro. Dentro, una tarjeta sin firma: una fecha, una carretera secundaria y tres líneas. «Un mes. Antifaz obligatorio. Lo que se es fuera, se deja en la puerta.» No sabes quién te ha puesto en esa lista.")})}
+
+
+/* ================= AMPLIACIÓN 29: contra la repetición (memoria de frases, variantes y recorte de lo ya leído) ================= */
+function h29(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return h}
+function pick29(a){const n=a.length,i0=Math.floor(R()*n);try{if(!G||n<2||typeof a[0]!="string"||a[0].length<22)return a[i0];const rc=G.rc=G.rc||[];let i=i0,k=0;while(rc.includes(h29(a[i]))&&k++<n)i=(i+1)%n;rc.push(h29(a[i]));if(rc.length>260)rc.splice(0,rc.length-260);return a[i]}catch(e){return a[i0]}}
+const ALT29={
+ "Vuelves a casa repasando qué falló.":["Vuelves andando, para que te dé el aire.","Te dices que la próxima, y casi te lo crees.","Esa noche lo repasas todo mirando al techo.","Felicitas a quien gana con la mejor cara que tienes."],
+ "Os habéis mirado dos veces.":["Os habéis cruzado la mirada más de lo que explica el azar.","Te ha sostenido la mirada un segundo de más.","Habéis coincidido tres veces en la misma esquina de la sala."],
+ "La tercera ya no es casualidad.":["Eso ya no es casualidad.","Alguno de los dos va a tener que decir algo.","Queda en el aire quién da el primer paso."],
+ "Te queda como hecha a medida.":["Te miras de reojo en todos los escaparates de vuelta.","Con eso puesto andas distinto.","La dependienta dice que te sienta de cine, y por una vez es verdad.","Guardas la bolsa de la tienda, que también es buena."],
+ "Fin del turno: el helicóptero, la costa, tu calle.":["Relevo. El helicóptero os suelta en tierra oliendo a gasoil.","Se acaban los seis meses: el mar se queda atrás por la ventanilla.","Bajas del helicóptero con la mochila y las piernas raras."],
+ "Seis meses de tierra firme por delante.":["Medio año sin casco por delante.","Tienes seis meses para acordarte de cómo se vive.","Ahora toca medio año de suelo que no se mueve."],
+ "La casa huele a cerrado.":["En casa hay polvo en todo y un calendario parado en otro mes.","El buzón no cierra de tanta propaganda.","La nevera tiene un yogur de cuando te fuiste."],
+ "Abres todas las ventanas.":["Tardas un día entero en ventilar.","Pones una lavadora y te sientas a oírla.","Lo primero es una ducha larga, con agua que no sabe a metal."],
+ "El suelo se te mueve durante tres días.":["Las primeras noches echas de menos el ruido de las bombas.","Tardas una semana en dejar de mirar el parte del mar.","Te despiertas a las cinco, por costumbre, sin nada que hacer."],
+ "Otra vez el helicóptero, el casco, el olor a gasoil y a mar.":["Vuelta al helicóptero, con la mochila de siempre.","De nuevo la plataforma, pequeña desde arriba y enorme en cuanto pisas.","Otro embarque: chaleco, cabeceo y media hora de mar gris."],
+ "Ya te sabes el ruido de cada bomba.":["Te saludan por el mote.","Tu litera sigue como la dejaste.","El novato de este turno te pregunta lo que tú preguntabas."],
+ "Carteles en todas las farolas, coches con megáfono y promesas de asfaltado.":["Vuelven los mítines en la plaza y las caras sonrientes en cada farola.","La calle amanece empapelada: toca votar otra vez.","Megáfonos, caramelos para los críos y promesas que ya oíste."],
+ "Hay elecciones municipales, y en la agrupación te miran a ti.":["En la agrupación hacen listas, y tu nombre sale en la conversación.","Te preguntan, como quien no quiere, si esta vez te animas.","Hay que decidir quién va en la papeleta."],
+ "Alguien ha traído a un invitado que nadie conoce.":["Este año hay una silla nueva en la mesa.","Alguien llega con pareja nueva y todos disimulan fatal.","Aparece un primo que nadie esperaba, con una botella."],
+ "Nochebuena, con el mantel de las fechas.":["Nochebuena, con la vajilla que solo sale hoy.","Otra Nochebuena: el mismo mantel, alguna cana más.","Nochebuena. La tele puesta sin sonido y todos hablando a la vez."],
+ "Nochebuena con los de siempre.":["Nochebuena en familia, que ya es decir.","Nochebuena. Se cuentan las mismas tres historias y os reís igual.","Nochebuena con los que quedan, que son los que importan."],
+ "Navidad con media familia resfriada.":["Navidad con sobras de ayer y siesta general.","Navidad. Alguien se duerme en el sofá con el gorro de papel puesto.","Navidad, y una discusión de política que dura lo que el turrón."],
+ "Cena de Navidad en casa.":["La cena de Navidad sale tarde, como todos los años.","Cenáis en casa, apretados.","Esta Navidad se cena con la calefacción a tope y la ventana abierta."],
+ "Este año toca en vuestra casa.":["Este año os toca poner la mesa a vosotros.","La familia entera cabe, nadie sabe cómo, en vuestro salón.","Os toca ser anfitriones: tres días cocinando para una noche."],
+ "Huele a horno desde el portal.":["Hay cola en la pescadería desde las ocho.","El horno lleva encendido desde por la mañana.","Faltan sillas; se resuelve con el taburete de la cocina."],
+ "La mesa no da para tantos y cabéis igual.":["Coméis por turnos de codo.","Los críos cenan en una mesa aparte y arman más ruido que los mayores.","Sobra comida para una semana."],
+ "Viene media familia y medio barrio.":["Viene gente que no veías desde la última boda.","Se presenta todo el mundo, incluso los que dijeron que no.","La casa se llena hasta el rellano."],
+ "Estornudas más de lo normal: polen.":["Primavera: ojos rojos y pañuelo en la manga.","Vuelve el polen, puntual como un recibo.","Los plátanos de sombra sueltan pelusa y tú, estornudos."],
+ "Hace un calor que derrite el asfalto.":["Calor de persiana bajada y ventilador.","El termómetro de la farmacia marca un número que da risa.","Duermes con una sábana mojada. No sirve de mucho."],
+ "Ha cambiado la hora y a las seis es de noche.":["Cambian la hora: sales del trabajo ya a oscuras.","Otoño cerrado: a media tarde hay que encender la luz.","Atrasan los relojes y la tarde se queda en nada."],
+ "Fuera, los almendros han florecido de un día para otro.":["De un día para otro, todo el mundo va en manga corta.","La primera tarde de luz larga del año.","Huele a tierra mojada y a azahar."],
+ "Primer día de manga larga.":["Sacas la chaqueta del fondo del armario.","La primera mañana de vaho al respirar.","Vuelve el brasero, y el olor a castañas en la esquina."],
+ "Las chicharras no callan ni de noche.":["Las noches son de terraza y de mosquitos.","Agosto vacía la calle a mediodía.","El asfalto sigue caliente a las once de la noche."],
+ "Enero, mes largo y bolsillo corto.":["La cuesta de enero se hace más empinada que otros años.","Enero: rebajas, frío y buenos propósitos.","Empieza el año con las facturas del anterior."],
+ "Algo se te rompe por dentro.":["Te quedas sin saber dónde poner las manos.","Tardas en entender lo que te están diciendo.","Te sientas, porque las piernas han decidido por ti."],
+ "Recoges tu taza y poco más.":["Cabe todo en una caja de folios.","Te despides de dos personas y del guardia de la puerta.","Sales por la puerta de siempre por última vez."],
+ "Aquí los días son largos y los meses, cortos.":["Cuentas los días por las comidas.","El calendario de la celda tiene los días tachados con una uña.","Otro mes que no ha existido para nadie de fuera."],
+ "Recuento, comida, patio, recuento.":["Diana, recuento, patio, recuento, luces fuera.","Lo de siempre: cola para todo.","La misma vuelta al patio, en el mismo sentido."],
+ "Un mes igual que el anterior.":["Nada que contar, que aquí es buena noticia.","Un mes sin partes y sin visitas.","El mes pasa sin dejar marca."],
+ "Turno, rancho, litera.":["Faena, comedor, camarote.","Doce horas de cubierta y a dormir.","Trabajar, comer, dormir, y vuelta."],
+ "Barras, flexiones y garrafas llenas de agua.":["Dominadas en el marco de la puerta.","Carreras de un lado a otro del patio, contando.","Pesas hechas con sacos de sal."],
+ "El cuerpo es lo único que aquí mejora.":["Por lo menos duermes de cansancio.","Es la única hora en que no piensas.","Sudar es lo más parecido a estar fuera."],
+ "Cuarenta minutos a través de un cristal.":["Una visita con un cristal y un teléfono en medio.","Media hora de locutorio.","Vienen a verte. El guardia mira el reloj."],
+ "Habláis de todo menos de esto.":["Te cuentan cosas de fuera como si fueran de otro país.","Dices que estás bien. Nadie se lo cree.","Se acaba el tiempo a media frase."],
+ "Entrenas con los veteranos.":["Hoy te toca con los que llevan veinte años.","Los mayores te hacen un hueco en su tanda.","Entrenas con los que saben."],
+ "Te corrigen la postura sin decir palabra.":["Uno te recoloca los pies con el suyo.","Aprendes más mirando que haciendo.","Te dejan equivocarte dos veces antes de decirte nada."],
+ "Pegas carteles con la cara de otro.":["Repartes papeletas en un mercado, con frío.","Haces de apoderado en una mesa donde no vota casi nadie.","Llevas el coche del megáfono dos semanas."],
+ "En política todo se apunta.":["Alguien toma nota de que estuviste.","Te lo deben, y lo sabes.","Ya llegará tu vez."],
+ "Te lo piensas, te lo vuelves a pensar, y cuando decides ir ya no está.":["Ensayas la frase tanto rato que se ha ido.","Das dos pasos y te paras a atarte un zapato que no hacía falta.","Te acercas justo cuando llega otra persona y se le adelanta."],
+ "Vuelves a casa con el «¿y si?»":["Te vas con la frase sin estrenar.","De camino a casa se te ocurre exactamente qué decir.","Otra vez será, te dices, sabiendo cómo suelen ser las otras veces."],
+ "Ya eres cara conocida aquí: te saludan por tu nombre y se abren cosas nuevas.":["Ya te tienen por de la casa, y eso abre puertas.","Aquí empiezan a contar contigo.","Te han guardado sitio: ya eres alguien en este lugar."],
+ "Esta noche hay luna llena.":["Esta noche sale entera.","Hoy toca.","La luna sube limpia sobre los tejados."],
+ "No ha salido nada.":["La puerta ha aguantado.","Nadie ha oído nada, o nadie lo dice.","Esta vez no ha pasado de ahí."],
+ "Tampoco has descansado.":["Te duele todo.","Pasas el día siguiente como con resaca.","Tienes hambre de una semana."],
+ "Te preguntan si comes bien.":["Te miran las ojeras y no dicen nada.","Te traen ropa limpia y tabaco para cambiar.","Te enseñan fotos por el cristal."],
+ "Seis meses más en la Aurora-7.":["Medio año más de hierro y sal.","Otros seis meses sin pisar tierra.","Empieza otro turno largo."],
+ "Temporal de tres días.":["Mar de fondo toda la semana.","El viento no afloja en cuatro días.","Olas como edificios desde el martes."],
+ "Las olas pasan por encima de la cubierta baja y la plataforma entera canta como un órgano.":["La estructura cruje de arriba abajo y nadie duerme.","Se suspenden los trabajos de cubierta; jugáis a las cartas agarrados a la mesa.","Vomita hasta el cocinero, que lleva veinte años embarcado."],
+ "Suena la alarma de gas en la cubierta tres.":["Salta la alarma de gas a media noche.","Sirena de gas: todo el mundo al punto de reunión.","La alarma de gas os saca de la cena."],
+ "Chaleco, casco, lista.":["Os cuentan dos veces.","Falta uno en el recuento, y aparece en el baño.","Nadie hace bromas."],
+ "Los de seguridad cierran la válvula en once minutos.":["Tardan un cuarto de hora en dar con la fuga.","Era una junta vieja. Esta vez.","La cierran a mano, con el traje puesto."],
+ "Novatada: te mandan a por «la llave de apretar olas».":["Novatada: te hacen buscar «el cubo de vapor» por toda la plataforma.","Al nuevo le toca pedir en almacén «tornillos de goma».","Le pintan el casco de rosa al que acaba de llegar."],
+ "El cocinero hace una tarta con lo que hay para el cumpleaños de alguien.":["Alguien cumple años: hay velas hechas con cerillas.","Cumpleaños a bordo, con flan de sobre.","Cantáis el cumpleaños feliz en cuatro idiomas a la vez."],
+ "En el contenedor de suministros hay una caja que no figura en ningún albarán.":["Llega un palé de más con el suministro.","Entre los suministros viene un bulto sin etiqueta.","Sobra una caja en la descarga, y nadie la reclama."],
+ "Alguien pone su cubierto sin darse cuenta y nadie se atreve a quitarlo.":["Hay un sitio en la mesa que nadie ocupa.","Alguien brinda por quien falta, y se hace un silencio corto.","Sacan su receta, con su letra, y sale casi igual."],
+ "Petardos, puestos de comida y todo el mundo en la calle.":["Fiestas: orquesta en la plaza hasta las tantas.","La calle cortada, farolillos y olor a fritanga.","Verbena: bailan los abuelos y miran los adolescentes."],
+ "Candado, cadena de barco y la llave fuera, en un tarro.":["Te encadenas otra vez, con doble vuelta.","Bajas al sótano con la cadena al hombro.","Cierras por dentro y tiras la llave por la rejilla."],
+ "Los perros del barrio llevan toda la tarde ladrando hacia tu ventana.":["Los gatos del patio no se dejan ver desde ayer.","Te pica la piel por dentro.","Llevas dos días oliendo cosas que no deberías poder oler."],
+ "Se te han afilado las uñas desde ayer.":["Te duelen los dientes, como a un crío.","El pulso te va más deprisa de la cuenta.","Tienes un hambre que no es de comida."],
+ "Tres días antes ya lo notas: las encías, el olor de la carne cruda en el mercado, las ganas de correr.":["Lo notas en la nuca antes de mirar el calendario.","Llevas toda la semana durmiendo mal y comiendo poco hecho.","El cuerpo te avisa con días de adelanto."],
+ "Sacan plaza cuatro.":["Entran tres.","Hay más opositores que sillas en el pabellón.","La lista de aprobados cabe en media hoja."],
+ "Próxima convocatoria: cuando salga.":["Vuelta a empezar por el tema uno.","Guardas los apuntes sin mirarlos una semana.","Te dices que la siguiente es la buena."],
+ "Dices que sí y miras la bandeja.":["Dices que aquí no se está tan mal.","Asientes mucho.","Cambias de tema hacia el fútbol."]};
+const ALTK29=Object.keys(ALT29);
+const CLAVE29=/positiv|embaraz|muer|murió|juicio|cárcel|conden|hered|despid|pierd|ganas |debes |cobra|\d/i;
+function varia29(t){try{if(!G||!G.yo||typeof t!="string"||t.length<20||G.muerto)return t;const vis=G.vis=G.vis||{},k=h29(t),c=vis[k]||0;vis[k]=c+1;if(!G.visN)G.visN=0;if(!c&&++G.visN>5000){G.vis={};G.visN=0}
+    for(let i=0;i<ALTK29.length;i++){const s=ALTK29[i];if(t.includes(s))t=t.replace(s,vario("alt29_"+i,[s].concat(ALT29[s])))}
+    t=t.replace(/Te gastas (\d+) en ropa buena de verdad\./,(m,n)=>vario("ropa29",[m,`Sales de la tienda con ${n} menos y una bolsa que pesa poco.`,`Pagas ${n} sin mirar el tique, para no arrepentirte.`,`${n} en tela buena: se nota al tacto y en la cuenta.`]));
+    t=t.replace(/Por fin sale la convocatoria: (\d+) plazas para (\d+) aspirantes, en un polideportivo, con el DNI encima de la mesa y un bolígrafo azul\./,(m,a,b)=>vario("conv29",[m,`Sale la convocatoria: ${a} plazas, ${b} personas, un pabellón con eco.`,`Día de examen. ${b} aspirantes para ${a} plazas, y un reloj de pared que suena.`,`Llega la fecha: ${a} plazas a repartir entre ${b}. Reconoces caras de otras veces.`]));
+    t=t.replace(/No dejas de pensar en ([^,.]+), que vive lejos\. Para que pase algo tendréis que estar en la misma ciudad\./,(m,n)=>vario("lejos29",[m,`${n} sigue lejos, y tú sigues dándole vueltas.`,`Miras cuánto cuesta un billete hasta donde vive ${n}. Cierras la pestaña.`,`Te acuerdas de ${n} en un momento tonto, haciendo la compra.`,`Con ${n} a tantos kilómetros, lo vuestro es una idea, no un plan.`]));
+    // 1) una entrada entera ya leída se queda en su primera frase; 2) las frases sueltas ya vistas dos veces se caen del final
+    if(!G.man&&t.length>70){const P_=t.split(/([.!?»]+["»]?\s+)/),fr=[];for(let i=0;i<P_.length;i+=2)fr.push([P_[i],P_[i+1]||""]);
+      if(fr.length>=2){const vf=G.vf=G.vf||{};let out=[fr[0]];const repE=c>=1;
+        for(let i=1;i<fr.length;i++){const x=fr[i][0],hk=h29(x),n=vf[hk]||0,clave=CLAVE29.test(x)||x.length<14;if(!clave)vf[hk]=n+1;if(clave||!(repE||n>=2))out.push(fr[i])}
+        if(repE){const ult=fr[fr.length-1];if(fr.length>=3&&!out.includes(ult))out.push(ult);else if(fr.length==2&&fr[0][0].length<40&&out.length==1)out.push(fr[1])}
+        if(fr[0][0].length<24&&out.length==1&&fr.length>1)out.push(fr[1]);
+        t=out.map(p=>p[0]+p[1]).join("").trim();if(!/[.!?»"]$/.test(t))t+="."}}
+    return t}catch(e){return t}}
+const _log29=log;log=function(t,c){return _log29(varia29(t),c)};
+
+
+/* ================= AMPLIACIÓN 30: el carruaje de Umbraluz también te pregunta a ti ================= */
+DEC.carruaje={man:1,tit:d=>"El carruaje espera",txt:d=>"",ops:d=>[
+  {t:"Subir",fn:()=>entrarMagia()},
+  {t:"Decir que este año no",s:"El cochero volverá el año que viene",fn:()=>{G.ofm=(G.ofm||0)+1;add("animo",-2);return "Dices que todavía no. El cochero no insiste: se toca el ala del sombrero y dice que hay sitio para ti cuando quieras, y que volverá con el otoño. Los ciervos se van sin hacer ruido. En casa nadie sabe si alegrarse."}},
+  {t:"Decir que no irás nunca",s:"El carruaje no volverá, salvo que lo llames tú",fn:()=>{G.fl.magNo=G.yo.edad;add("animo",-3);return {txt:"«No voy a ir. Ni este año ni ninguno.» El cochero te mira un rato largo, sin enfado. Rompe el lacre de la carta, la dobla y te la deja en la mano. «Entonces ya no vendremos a buscarte. Si un día cambias de idea, sabes qué nombre decir.» El carruaje se pierde al fondo de la calle. Lo que eres se queda contigo, sin escuela.",mal:1}}}]};
+const pideMagia=a=>a>=6&&a<18&&G.fl.manif&&!G.mg&&!enMagia()&&!G.fl.magPide&&(G.fl.magNo||(G.ofm||0)>0||a>11);
+function llamarMagia(){const y=G.yo,a=y.edad/12;G.fl.magNo=0;G.fl.magPide=1;G.don=Math.max(G.don||0,40);return (a<12?"No hay número que marcar. Escribes «Umbraluz» en un papel, con tu mejor letra, y lo quemas en el fogón cuando nadie mira, como te dijo el cochero. El humo sale recto, contra el viento.":"A tu edad casi nadie pide plaza. Aun así escribes el nombre en un papel y lo quemas en el fregadero. El humo no sube: se va por debajo de la puerta, como si supiera el camino.")+" Por la mañana hay una pluma blanca en el alféizar y una sola línea, con tinta que se borra mientras la lees: «El año que viene, con el otoño.»"}
+function acciones30(L,a){if(!pideMagia(a))return;const it=L.find(o=>o.t=="Llamar a…"),btn=()=>{const h=$("hojaIn"),b=document.createElement("button");b.innerHTML="La escuela de Umbraluz<small>Pedir que el carruaje vuelva el año que viene</small>";b.onclick=()=>hacer(llamarMagia);h.insertBefore(b,h.children[1]||null)};
+  if(it){const o=it.abre;it.abre=()=>{o();btn()}}else L.push({t:"Llamar a…",abre:()=>{abrirHoja("¿A quién llamas?",[]);btn()}})}
 
 const SEL={origen:null,riqueza:null,sexo:null,don:null,hogar:null};
 function pantallaCrear(){
