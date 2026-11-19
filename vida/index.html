@@ -3835,7 +3835,7 @@ function tickNuevo(){
   tickVamp();tickCriaturas();tickArco();
   if(a>=18&&!G.arc&&!(G.arcH&&G.arcH.vamp)&&!G.carcel&&a<60&&ch((sabeMagia()?.09:.03)/12))vampEmpezar();
 }
-function eventosNuevos(ev,a){const y=G.yo;eventos10(ev,a);eventos11(ev,a);eventos12(ev,a);eventos13(ev,a);eventosRaros(ev,a);eventos16(ev,a);eventos17(ev,a);eventos18(ev,a);eventos20(ev,a);eventos21(ev,a);eventos22(ev,a);eventos23(ev,a);eventos24(ev,a);eventos26(ev,a);eventos27(ev,a);eventos28(ev,a);eventos31(ev,a);eventos31b(ev,a);eventos32(ev,a);
+function eventosNuevos(ev,a){const y=G.yo;eventos10(ev,a);eventos11(ev,a);eventos12(ev,a);eventos13(ev,a);eventosRaros(ev,a);eventos16(ev,a);eventos17(ev,a);eventos18(ev,a);eventos20(ev,a);eventos21(ev,a);eventos22(ev,a);eventos23(ev,a);eventos24(ev,a);eventos26(ev,a);eventos27(ev,a);eventos28(ev,a);eventos31(ev,a);eventos31b(ev,a);eventos32(ev,a);eventos33(ev,a);
   if(G.guerra&&!G.guerra.fuera&&!G.guerra.frente&&!G.pend){const v=vivos(p=>p.con&&!p.lejos&&!p.casa&&p.edad>=216&&(p.rol=="vec"||p.rol=="conoc"));
     if(v.length&&(G.prov||0)>0)ev(9,"vecHambre",()=>{const p=pick(v);decidir("vecinoHambre",{id:p.id});log(`${p.nombre} ${p.apellido} llama a tu puerta de noche, sin encender la luz de la escalera. Lleva tres días sin comer y sabe que tú guardas algo.`,"mala")});
     if((G.prov||0)>=2)ev(6,"saqueo",()=>{decidir("saqueo",{});log("De madrugada, golpes en la puerta y voces. Saben que en esta casa hay comida.","mala")})}
@@ -3853,7 +3853,7 @@ function eventosNuevos(ev,a){const y=G.yo;eventos10(ev,a);eventos11(ev,a);evento
   if(may.length&&muertosCerca(30).length&&a>=8)ev(2,"cemAcomp",()=>{const p=pick(may),d=pick(muertosCerca(30));rel(p,6);add("animo",-1);log(`${cap1(tu(p))} te pide que le acompañes al cementerio, a ver a ${d.nombre}. Le llevas el cubo. Habla con la lápida como si le contestaran.`)});
   if(a>=18&&!G.carcel)ev(1,"ferryReg",()=>{log("En una rifa te tocan dos pasajes de ferry a las islas. Los guardas en el cajón de los papeles: se pueden usar cuando quieras desde «Viajar por mar».");G.fl.ferry=1},1);
 }
-function accionesNuevas(L,a){const y=G.yo;acciones10(L,a);acciones11(L,a);acciones12(L,a);acciones15(L,a);acciones16(L,a);acciones17(L,a);acciones18(L,a);acciones19(L,a);acciones20(L,a);acciones21(L,a);acciones25(L,a);acciones26(L,a);acciones27(L,a);acciones30(L,a);acciones31(L,a);acciones32(L,a);
+function accionesNuevas(L,a){const y=G.yo;acciones10(L,a);acciones11(L,a);acciones12(L,a);acciones15(L,a);acciones16(L,a);acciones17(L,a);acciones18(L,a);acciones19(L,a);acciones20(L,a);acciones21(L,a);acciones25(L,a);acciones26(L,a);acciones27(L,a);acciones30(L,a);acciones31(L,a);acciones32(L,a);acciones33(L,a);
   if(G.guerra)accionesGuerra(L);
   if(G.reg&&!G.exo&&a>=14)L.push({t:"Bajo el Régimen…",cls:"riesgo",abre:menuRegimen});
   if(G.vamp)L.push({t:"La sed…"+(G.vamp.sed>=70?" (aprieta)":""),cls:"riesgo",abre:menuVamp});
@@ -6371,7 +6371,7 @@ function acciones21(L,a){const y=G.yo;
 /* ---------- 1. El menú del mes, por secciones cuando crece ---------- */
 const GRP22=[["Trabajo y dinero",/^(Hacer crecer el negocio|Tu casa: obras|La plantilla|Tu equipo|Hacer un curso|Trabajos fuera|Oposiciones|Invertir|Dinero y bienes|Política local|El prestamista)/],
  ["Casa, viajes y recuerdos",/^(Tu testamento|Una escapada|Sacarte el carné|Planificación familiar|Qué comes|Un animal en casa|Cabos sueltos|El cajón|Tu vida hasta hoy|Ir al cementerio|Viajar por mar|Un viaje largo)/],
- ["Lo que no se cuenta",/^(Rodajes|El tomo|El pacto|Levantar a|El bar de los que|Bajo el Régimen|Ir al campo|Lo que se dice del campo)/]];
+ ["Lo que no se cuenta",/^(Un local donde|El club de carretera|El piso de la calle|El cine Edén|Rodajes|El tomo|El pacto|Levantar a|El bar de los que|Bajo el Régimen|Ir al campo|Lo que se dice del campo)/]];
 function agrupa22(L){if(!L||L.length<=20)return L;const out=[],G_={};
   L.forEach(o=>{const g=o.abre&&GRP22.find(x=>x[1].test(o.t));if(!g){out.push(o);return}if(!G_[g[0]]){G_[g[0]]={t:g[0],items:[]};out.push(G_[g[0]])}G_[g[0]].items.push(o)});
   return out.map(o=>{if(!o.items)return o;if(o.items.length==1)return o.items[0];const it=o.items,ri_=it.some(x=>x.cls=="riesgo")&&o.t=="Lo que no se cuenta";
@@ -7317,6 +7317,45 @@ function acciones32(L,a){const y=G.yo,F=G.fl||{};if(G.carcel)return;
   if(a>=18&&!F.carne&&y.dinero>=350&&!enMagia())L.push({t:"Sacarte el carné de conducir",s:"350 cada intento",fn:()=>hacer(carne32)});
   if(a>=18&&y.dinero>=140&&!enMagia()&&(G.indep||a>=20))L.push({t:"Una escapada…",cls:"sec",abre:menuEscapada});
   if(G.cuad&&cuad32().length&&!enMagia())L.push({t:"Quedar con "+G.cuad.n.toLowerCase(),fn:()=>hacer(quedar32)})}
+
+
+/* ================= AMPLIACIÓN 33: trabajar en un local (club, piso, el cine Edén y su cabina del fondo) ================= */
+const LOC33={club:{n:"el club de carretera",d:"Neón rosa, moqueta y camioneros. La casa se queda la mitad",pg:[120,220],rd:.03,et:.03},
+  piso:{n:"el piso de la calle discreta",d:"Con cita, timbre sin nombre y una madame que lo apunta todo",pg:[200,380],rd:.01,et:.02},
+  eden:{n:"el cine Edén",d:"Un cine X que se cae a trozos. Butacas rotas, baños sin luz y una cabina al fondo",pg:[60,130],rd:.05,et:.05}};
+function cobro33(k,mult){const y=G.yo,L=LOC33[k],n=Math.round(ri(L.pg[0],L.pg[1])*(1+y.aspecto/200)*(mult||1));y.dinero+=n;G.put.n++;G.put.gan=(G.put.gan||0)+n;return n}
+function cola33(k,sinGoma){const y=G.yo,L=LOC33[k],F=G.fl;let s="";if(F.virgen!==false)F.virgen=false;
+  if(ch(L.et*(sinGoma?4:.3))&&!F.ets){F.ets=1;s+=" Semanas después notas que algo no va bien ahí abajo."}
+  if(sinGoma&&y.sexo=="f"&&y.edad<45*12&&G.emb==0&&!anti25(null)&&ch(.06)){F.adop=0;G.emb=9;G.padre=null;s+=" Semanas después, el test da positivo. No hay manera de saber de quién."}
+  if(ch(L.rd)){y.dinero-=Math.min(y.dinero,300);add("animo",-6);s+=" Esa noche hay redada: luces, placas, todos contra la pared. Te toman los datos y te cae una multa de 300.";if(ch(.3))s+=escandalo17(3)||""}
+  const q=G.pareja&&viv(G.pareja);if(q&&!G.put.sabe&&ch(.05)){G.put.sabe=1;if(q.rel<70||ch(.5)){G.pareja=null;G.casado=false;q.casa=false;rel(q,-40);add("animo",-12);s+=` ${q.nombre} encuentra el dinero, luego hace preguntas, luego hace la maleta.`}else{rel(q,-15);s+=` ${q.nombre} se entera. No se va. Tampoco vuelve a preguntarte de dónde vienes.`}}
+  if(G.put.n==1)logro("cobras por primera vez por acostarte con alguien");if(G.put.n==40)logro("ya eres de la casa: cuarenta noches en el oficio");return s}
+function noche33(){const y=G.yo,k=G.put.k,n=cobro33(k);add("animo",ch(.4)?1:-3);add("salud",-.5);
+  const T={club:[`Noche de club. Tres copas de agua con gas que cobran como champán, dos subidas a la habitación. Uno quería hablar de su mujer; el otro, ni eso.`,`Un camionero que huele a gasoil y paga sin regatear. Luego una despedida de soltero que regatea todo. La casa se queda su mitad.`,`Noche floja. Horas en el taburete, con los tacones colgando. A última hora entra uno de traje que no quita la alianza ni la vista del reloj.`.replace("con los tacones colgando",y.sexo=="f"?"con los tacones colgando":"mirando la puerta"),`Uno paga la hora entera para dormir abrazado. Es el dinero más fácil y el más triste del mes.`],
+    piso:[`Tres citas. La madame apunta nombre, hora y manía de cada uno en una libreta de tapas negras. El de las seis solo quiere que le riñas.`,`Un señor mayor, educadísimo, que deja el dinero en un sobre y pide permiso para todo. Luego uno joven, nervioso, que acaba antes de quitarse los calcetines.`,`Un cliente de los fijos trae bombones. Otro, nuevo, pregunta si puedes hacer de su ex. Puedes. Se cobra aparte.`,`Tarde tranquila: ducha, sábanas limpias entre uno y otro, la radio bajita en la cocina. Casi parece un trabajo cualquiera.`],
+    eden:[`En la sala ponen la misma película desde hace seis años. Trabajas las últimas filas: manos, boca, cinco minutos cada uno, sin que nadie diga una palabra completa.`,`El acomodador cobra su parte por no mirar. Dos en el palco, uno en los baños, contra unos azulejos que nadie ha fregado en esta década.`,`Un viejo que viene cada tarde solo quiere que te sientes a su lado. Paga igual. El de detrás no es tan fino.`]}[k];
+  return vario("noche33"+k,T)+` Te llevas ${n}.`+cola33(k,false)}
+function cabina33(sin){const y=G.yo,m=y.sexo=="m",n=cobro33("eden",sin?2.2:1.2),c=ri(3,7);G.put.gh=(G.put.gh||0)+1;add("animo",ch(.35)?2:-4);add("salud",-.5);
+  let s=vario("gh33",[`La cabina del fondo: un tabique de contrachapado, un agujero a la altura de la cintura forrado con cinta americana, y un taburete. No ves caras ni te ven. Asoma una, llamas con los nudillos, y pasa un billete doblado por la rendija. ${c} en una hora.`,`Te encierras en la cabina con una botella de agua y un rollo de papel. Al otro lado se oye la cola: toses, monedas, una cremallera. Uno tras otro, por el agujero, sin nombre y sin voz. ${c} esta tarde; el último ni espera el cambio.`,`De rodillas en el taburete, la luz roja del pasillo colándose por el agujero. Aprendes a distinguirlos por los zapatos, que es lo único que se ve por debajo del tabique: mocasines, botas de obra, unas zapatillas de crío rico. ${c} hoy.`,`Hay uno que golpea dos veces antes, como quien pide permiso. Otro que agarra el borde del agujero con las dos manos. Otro que da las gracias a través de la madera. ${c} en total, y solo sabrías reconocer a uno, por el anillo.`]);
+  s+=sin?(m?" Hoy lo haces a pelo y hasta el final: pagan más del doble por eso, y lo piden casi todos.":" Hoy dejas que acaben dentro, de boca o dándoles la espalda contra el tabique: pagan más del doble, y lo piden casi todos. Sales con las rodillas marcadas y las bragas empapadas de desconocidos."):" Con goma todos; el que no quiere, se queda sin turno.";
+  s+=` Te llevas ${n}.`;
+  if(G.put.gh>=3&&!G.put.rec&&ch(.25)){const v=vivos(p=>p.con&&!p.lejos&&p.edad>=25*12&&p.sexo=="m"&&["vec","conoc","tio"].includes(p.rol)&&!p.casa&&p.id!=G.pareja);if(v.length){const p=pick(v);G.put.rec=p.id;decidir("gh33",{id:p.id});s+=` Al salir de la cabina, antes de tiempo, te cruzas en el pasillo con el último, todavía abrochándose. Es ${tu(p)}.`}}
+  return s+cola33("eden",sin)}
+DEC.gh33={man:1,tit:d=>"Os habéis visto",txt:d=>"",ops:d=>{const y=G.yo,p=P(d.id);return [
+  {t:"Hacer como que no",fn:()=>{rel(p,-3);return `Bajas la vista y sigues andando. ${p.nombre} hace lo mismo. A partir de hoy os saludáis en la escalera con una educación exagerada, y ninguno de los dos dirá nunca nada, que es el único trato posible.`}},
+  {t:"Cobrarle el silencio",s:"Tú sabes lo suyo; él, lo tuyo",cls:"riesgo",fn:()=>{if(p.casado||ch(.5)){const n=ri(400,1500);y.dinero+=n;rel(p,-25);return `«Tu mujer no sabe que vienes, ¿verdad?» ${p.nombre} se pone blanco. Te da ${n} esa misma semana, en un sobre, sin mirarte.`+moral("egoista",3)}return {txt:`${p.nombre} se ríe en tu cara: él no tiene a nadie a quien rendir cuentas. Tú sí. En una semana lo sabe el barrio entero.`+(escandalo17(6)||""),mal:1}}},
+  {t:"Decirle que vuelva, pero por la puerta",fn:()=>{rel(p,10);p.amante=true;p.beso=true;p.besoE=anios();gustos(p);p.cliente33=1;return `«Ya que sabes dónde encontrarme…» ${p.nombre} tarda en entender. Vuelve el jueves, y el otro jueves. Paga siempre, que es su manera de no llamarlo de otra forma.`}}]}};
+function menuLocal33(){const y=G.yo,ops=[],P_=G.put;
+  if(!P_||!P_.k){Object.keys(LOC33).forEach(k=>{const L=LOC33[k];ops.push({t:"Entrar en "+L.n,s:L.d,fn:()=>hacer(()=>{G.put=Object.assign(G.put||{n:0},{k,desde:y.edad});add("animo",-3);return k=="eden"?"El taquillero ni levanta la vista: «Las chicas y los chicos trabajan de la fila doce para atrás. La cabina del fondo se paga aparte y se reparte a medias. Aquí no pregunta nadie.» Dentro huele a lejía, a tabaco frío y a otra cosa.":k=="club"?"La encargada te mira de arriba abajo como quien tasa un coche. «Taquilla, llave y un nombre que no sea el tuyo. La mitad para la casa. Si un cliente se pone tonto, timbre.»":"Una señora con rebeca te enseña el cuarto: cama grande, espejo, toallas dobladas. «Aquí se viene limpia, puntual y sin novios en la puerta.»".replace("limpia",g("limpio","limpia"))})})});abrirHoja("Un local donde no se pregunta",ops);return}
+  const L=LOC33[P_.k];ops.push({t:"Hacer el turno",s:"Unos "+L.pg[0]+"–"+L.pg[1],fn:()=>hacer(noche33)});
+  if(P_.k=="eden"){ops.push({t:"La cabina del fondo, con goma",s:"Un agujero en el tabique · nadie ve a nadie",cls:"riesgo",fn:()=>hacer(()=>cabina33(false))});ops.push({t:"La cabina del fondo, a pelo",s:"Pagan más del doble · el riesgo también",cls:"riesgo",fn:()=>hacer(()=>cabina33(true))})}
+  ops.push({t:"Dejarlo",s:"Llevas "+P_.n+" noches · "+(P_.gan||0)+" ganado",fn:()=>hacer(()=>{P_.k=null;add("animo",4);return "Vacías la taquilla: un neceser, unos zapatos, un nombre falso que ya no vas a usar. Nadie te despide. En estos sitios nadie se va: simplemente un día deja de venir."})});
+  abrirHoja(cap1(L.n),ops)}
+function acciones33(L,a){if(a<18||G.carcel||enMagia()||G.man)return;const y=G.yo,P_=G.put;if(P_&&P_.k)L.push({t:cap1(LOC33[P_.k].n)+"…",cls:"riesgo",abre:menuLocal33});else if(y.dinero<400||G.fl.porno||(P_&&P_.n)||(G.amor&&G.amor.n>=8))L.push({t:"Un local donde no se pregunta…",cls:"riesgo",abre:menuLocal33})}
+function eventos33(ev,a){const y=G.yo,P_=G.put;if(!P_||!P_.k||a<18||G.pend||G.carcel)return;
+  ev(1,"putFijo33",()=>{const p=nuevo18(y.sexo=="m"&&G.ori=="g"?"m":y.sexo=="f"?"m":opuesto(),30,62,"cliente fijo",{rel:25});p.casado=ch(.6);p.cliente33=1;log(`Un cliente empieza a pedirte solo a ti. Se llama ${p.nombre}, o eso dice. Trae regalos pequeños, pregunta por tu día y una noche te pide el teléfono de verdad.`)},1);
+  ev(1,"putJefe33",()=>{const n=Math.min(y.dinero,ri(80,250));y.dinero-=n;log(vario("putJ33",[`La casa «ajusta» los porcentajes. Te faltan ${n} en el sobre y nadie admite preguntas.`,`Multa de la casa por llegar tarde: ${n}. El reglamento no está escrito en ningún sitio.`]),"mala")});
+  ev(1,"putComp33",()=>{add("animo",3);log(vario("putC33",["Una compañera veterana te enseña a guardar el dinero en tres sitios y a no beber nunca de un vaso que no has visto servir.","Entre turno y turno compartís un cigarro en la escalera de incendios. Nadie pregunta cómo llegó la otra aquí. Se habla de hijos, de alquileres, de series.","Un cliente se pone violento con la de la habitación de al lado. Vais todas. Sale con la camisa rota y sin cartera."]))})}
 
 const SEL={origen:null,riqueza:null,sexo:null,don:null,hogar:null};
 function pantallaCrear(){
