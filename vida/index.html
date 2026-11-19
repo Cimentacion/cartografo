@@ -848,7 +848,7 @@ function voc(k){G.voc=G.voc||{};return G.voc[k]||(G.voc[k]={p:0,t:0,cd:0})}
 function pr(k,n){const v=voc(k);v.p+=n*(v.beca?1.5:1)}
 function factorAltura(){const y=G.yo;return clamp(1+(Math.min(215,y.altAdulta+y.altMod)-(y.sexo=="m"?183:170))/45,.5,1.8)}
 function nivel(k){const v=voc(k);return v.p*(.3+G.yo[AREAS[k].st]/100)*(k=="baloncesto"?factorAltura():1)}
-function logro(txt){G.logros=G.logros||[];G.logros.push(anios()+" años: "+txt)}
+function logro(txt){G.logros=G.logros||[];G.logros.push(anios()+" años: "+txt);try{const r=RECU.find(x=>x[0].test(txt));if(r)recuerdo(r[1],r[2])}catch(e){}}
 function nuevaCiudad(){const o=ORI[G.origen],t=ch(.3)?"capital":"ciudad",l=o.lug[t].filter(n=>n!=G.lugar.nombre);return {tipo:t,nombre:l.length?pick(l):o.lug.ciudad[0]}}
 function chequeoVocacion(){
   const y=G.yo,a=y.edad/12;if(G.pend||!G.voc)return;
@@ -1966,6 +1966,7 @@ function continuarComo(id){
   Object.assign(G,{trabajo:null,pension:0,titulo:false,uni:0,carrera:null,cursos:{},curso:null,voc:{},fl:{},hitos:{anda:1,habla:1},crush:null,pareja:pareja?pareja.id:null,casado:!!pareja,emb:0,nac:[],pend:null,muerto:false,indep:true,
     mg:null,mago:0,don:0,mor:{},cn:{},cn12:null,del:null,carcel:null,cron:null,vejez:null,test:null,prop:null,neg:null,coche:null,ecos:[],amor:{n:0,pv:0},fijo:null,osc:null,exo:G.exo||null,una:{},rec:[],logros:[],tension:0,dieta:"",prof:{},ruina:0,cmp:null,padre:null});
   G.rasgos=[["estudioso","responsable"],["rebelde"],["sonador"],["trabajador"]][h.car||0].slice();
+  try{herencia16(nomV)}catch(e){}
   if(G.gente.some(p=>p.rol=="hijo"))G.fl.virgen=false;
   if(r>=65&&ed>=23){G.titulo=true;G.carrera=pick(Object.keys(CARRERAS))}
   G.riqueza=parte>150000?4:parte>50000?3:parte>10000?2:1;G.riqF=G.riqueza;genCasa();G.casa.deQuien=null;genVecinos();
@@ -3373,6 +3374,7 @@ function encuentroCementerio(){
 }
 function trasMuerte2(p){ // entierro y, si toca, herencia con pelea
   const y=G.yo;if(!p.con||G.carcel)return;
+  if(y.edad>=96&&p.rel>=55&&["prog","abu"].includes(p.rol))recuerdo(pick(["las gafas de ","el reloj de ","un pañuelo de ","el llavero de "])+tu(p),pick(["Todavía huele a su casa.","Lo tocas con cuidado, como si pudiera notarlo.","No sirve para nada y no lo cambiarías por nada."]));
   const cerca=["prog","herm","abu","hijo"].includes(p.rol)||p.id==G.pareja||p.esposa||p.rel>=65;
   if(cerca&&!p.lejos&&y.edad>=72&&!G.fun)G.fun={id:p.id,en:y.edad+1};
   if(y.edad>=216&&!G.her2&&["abu","tio"].includes(p.rol)&&p.rel>=30&&ch(.45)){
@@ -3816,7 +3818,7 @@ DEC.cuernos={man:1,tit:d=>d.acto?"Los has pillado":"No es tu olor",txt:d=>"",ops
 
 /* ---------- Enganches con el resto del juego ---------- */
 function tickNuevo(){
-  const y=G.yo,a=y.edad/12;if(G.muerto)return;tickNuevo10();tickNuevo11();tickNuevo12();tickNuevo14();tickNuevo15();
+  const y=G.yo,a=y.edad/12;if(G.muerto)return;tickNuevo10();tickNuevo11();tickNuevo12();tickNuevo14();tickNuevo15();tickNuevo16();
   tickFamilia();tickCuernos();
   if(G.carcel&&G.carcel.tipo=="isla"){tickIsla();if(G.guerra){G.guerra.m--;G.guerra.t++;if(G.guerra.m<=0){G.guerra=null}}return}
   if(G.guerra)tickGuerra();else if(!G.exo&&!enMagia()&&a>=1&&ch(.01/12))guerraIni();
@@ -3826,7 +3828,7 @@ function tickNuevo(){
   tickVamp();tickCriaturas();tickArco();
   if(a>=18&&!G.arc&&!(G.arcH&&G.arcH.vamp)&&!G.carcel&&a<60&&ch((sabeMagia()?.09:.03)/12))vampEmpezar();
 }
-function eventosNuevos(ev,a){const y=G.yo;eventos10(ev,a);eventos11(ev,a);eventos12(ev,a);eventos13(ev,a);eventosRaros(ev,a);
+function eventosNuevos(ev,a){const y=G.yo;eventos10(ev,a);eventos11(ev,a);eventos12(ev,a);eventos13(ev,a);eventosRaros(ev,a);eventos16(ev,a);
   if(G.guerra&&!G.guerra.fuera&&!G.guerra.frente&&!G.pend){const v=vivos(p=>p.con&&!p.lejos&&!p.casa&&p.edad>=216&&(p.rol=="vec"||p.rol=="conoc"));
     if(v.length&&(G.prov||0)>0)ev(9,"vecHambre",()=>{const p=pick(v);decidir("vecinoHambre",{id:p.id});log(`${p.nombre} ${p.apellido} llama a tu puerta de noche, sin encender la luz de la escalera. Lleva tres días sin comer y sabe que tú guardas algo.`,"mala")});
     if((G.prov||0)>=2)ev(6,"saqueo",()=>{decidir("saqueo",{});log("De madrugada, golpes en la puerta y voces. Saben que en esta casa hay comida.","mala")})}
@@ -3844,7 +3846,7 @@ function eventosNuevos(ev,a){const y=G.yo;eventos10(ev,a);eventos11(ev,a);evento
   if(may.length&&muertosCerca(30).length&&a>=8)ev(2,"cemAcomp",()=>{const p=pick(may),d=pick(muertosCerca(30));rel(p,6);add("animo",-1);log(`${cap1(tu(p))} te pide que le acompañes al cementerio, a ver a ${d.nombre}. Le llevas el cubo. Habla con la lápida como si le contestaran.`)});
   if(a>=18&&!G.carcel)ev(1,"ferryReg",()=>{log("En una rifa te tocan dos pasajes de ferry a las islas. Los guardas en el cajón de los papeles: se pueden usar cuando quieras desde «Viajar por mar».");G.fl.ferry=1},1);
 }
-function accionesNuevas(L,a){const y=G.yo;acciones10(L,a);acciones11(L,a);acciones12(L,a);acciones15(L,a);
+function accionesNuevas(L,a){const y=G.yo;acciones10(L,a);acciones11(L,a);acciones12(L,a);acciones15(L,a);acciones16(L,a);
   if(G.guerra)accionesGuerra(L);
   if(G.reg&&!G.exo&&a>=14)L.push({t:"Bajo el Régimen…",cls:"riesgo",abre:menuRegimen});
   if(G.vamp)L.push({t:"La sed…"+(G.vamp.sed>=70?" (aprieta)":""),cls:"riesgo",abre:menuVamp});
@@ -4146,7 +4148,7 @@ function menuMascota(){const y=G.yo,m=G.masc,ops=[],H=(t,s,fn)=>ops.push({t,s,fn
   H("Llevarle al veterinario","80 · revisión",()=>{y.dinero-=80;m.fin+=4;m.v=clamp(m.v+2);return `Revisión de ${m.n}: vacunas al día y una mirada de traición que te dura hasta la cena.`});
   abrirHoja(m.n+" · "+m.tipo+" · "+Math.floor(m.e/12)+" años",ops)}
 function tickMascota(){const y=G.yo,m=G.masc;if(!m||G.carcel)return;m.e++;m.v=clamp(m.v-.4);add("animo",.4);
-  if(m.e>=m.fin){G.masc=null;G.mascM=G.mascM||[];G.mascM.push(m.n);add("animo",-Math.round(8+m.v/6));log(vario("mascF",[`${m.n} ya casi no se levantaba. Una mañana no se levanta. Tenía ${Math.floor(m.e/12)} años, y los pasó casi todos esperándote detrás de la puerta.`,`${m.n} se duerme a tus pies y ya no despierta. ${Math.floor(m.e/12)} años. La casa suena distinta sin sus uñas en el suelo.`,`Llevas a ${m.n} al veterinario por última vez y le sujetas la cabeza hasta el final. Guardas su collar en el cajón de las cosas que no se tiran.`]),"mala");return}
+  if(m.e>=m.fin){G.masc=null;G.mascM=G.mascM||[];G.mascM.push(m.n);recuerdo("el collar de "+m.n,"Todavía tiene pelos enganchados en la hebilla.");add("animo",-Math.round(8+m.v/6));log(vario("mascF",[`${m.n} ya casi no se levantaba. Una mañana no se levanta. Tenía ${Math.floor(m.e/12)} años, y los pasó casi todos esperándote detrás de la puerta.`,`${m.n} se duerme a tus pies y ya no despierta. ${Math.floor(m.e/12)} años. La casa suena distinta sin sus uñas en el suelo.`,`Llevas a ${m.n} al veterinario por última vez y le sujetas la cabeza hasta el final. Guardas su collar en el cajón de las cosas que no se tiran.`]),"mala");return}
   if(m.e>=m.fin-18&&ch(.08))log(vario("mascV",[`${m.n} tiene el hocico blanco y ya no sube al sofá de un salto. Le pones un cojín en el suelo.`,`${m.n} duerme casi todo el día. Cuando llegas mueve la cola sin levantarse.`,`A ${m.n} le cuestan las escaleras. Subís juntos, peldaño a peldaño.`]));
   else if(ch(.05))log(vario("mascE",m.tipo=="perro"?[`${m.n} se ha comido una zapatilla. Solo una, para fastidiar.`,`${m.n} ladra al cartero como cada mañana. Es su único enemigo y lo cuida.`,`${m.n} se escapa y vuelve tres horas después, embarrado y feliz.`,`${m.n} se sienta a tu lado cuando estás mal, sin que nadie le avise.`]:[`${m.n} te deja un regalo en la alfombra: medio ratón.`,`${m.n} lleva dos días ofendido porque moviste su caja.`,`${m.n} se cuela en casa de la vecina y vuelve oliendo a su colonia.`,`${m.n} duerme encima de tu ropa limpia, exactamente encima.`]))}
 
@@ -4570,7 +4572,7 @@ function tickTox(){const y=G.yo;if(y.edad<216||G.muerto)return;
   if(K=="exhib"){decidir("toxExhib",{id:q.id,s:ri(0,SITPUB.length-1)});log(`${q.nombre} te mira de una manera que ya conoces, ${SITPUB[G.pend.s]}. «Aquí. Ahora. Si viene alguien, mejor.»`)}
   else if(K=="control"){const am=vivos(p=>p.con&&p.id!=q.id&&!p.casa&&p.rel>=40&&!SANGRE.includes(p.rol));
     if(par&&am.length&&ch(.5)){const a=pick(am);decidir("toxAmigos",{id:q.id,a:a.id});log(`${q.nombre} deja el tenedor. «No me gusta cómo te mira ${a.nombre}. No me gusta que le veas. O esa gente o yo, tú verás.»`.replace("le veas",gp(a,"le veas","la veas")),"mala")}
-    else{decidir("toxMovil",{id:q.id});log(`Sales de la ducha y ${q.nombre} tiene tu móvil en la mano, desbloqueado. No lo suelta. «¿Quién es toda esta gente?»`,"mala")}}
+    else{decidir("toxMovil",{id:q.id});log(vario("toxMov",[`Sales de la ducha y ${q.nombre} tiene tu móvil en la mano, desbloqueado. No lo suelta. «¿Quién es toda esta gente?»`,`${q.nombre} te pide el móvil «para mirar una cosa». Media hora después sigue con él, bajando por tus conversaciones de hace dos años.`,`Te despiertas a las cuatro. ${q.nombre} está ${gp(q,"sentado","sentada")} en el borde de la cama con la cara iluminada por tu pantalla.`,`${q.nombre} ha instalado en tu móvil una aplicación para saber dónde estás. «Es por si te pasa algo.» No te lo ha preguntado.`,`Vuelves del trabajo y ${q.nombre} te recita, de memoria, los nombres de todas las personas que te han escrito hoy.`]),"mala")}}
   else if(K=="liante"){const f=vivos(p=>p.con&&SANGRE.includes(p.rol)&&p.edad>=216&&p.rel>=30);if(!f.length)return;const a=pick(f);decidir("toxFamilia",{id:q.id,a:a.id,v:ch(.25)?1:0});log(vario("liante",[`${cap1(tu(a))} te llama dolida: ${q.nombre} le ha contado «lo que dices de ella a sus espaldas». ${q.nombre} jura que solo repitió tus palabras.`.replace("dolida",gp(a,"dolido","dolida")).replace("de ella",gp(a,"de él","de ella")),`En la comida familiar, ${q.nombre} suelta delante de todos algo que le contaste en confianza sobre ${tu(a)}. Luego pone cara de no entender el silencio.`,`${q.nombre} te cuenta, muy seria, que ${tu(a)} le ha hablado mal de ti. ${cap1(tu(a))} dice que es exactamente al revés.`.replace("seria",gp(q,"serio","seria"))]),"mala")}
   else if(K=="peligro"){const r=ri(0,2);
     if(r==0){decidir("toxDeuda",{id:q.id,n:ri(15,40)*100});log(`Dos tipos te paran en el portal. Saben tu nombre. ${q.nombre} les debe ${G.pend.n} y les ha dicho que tú respondes.`,"mala")}
@@ -4724,9 +4726,9 @@ SITX.llave=(S,niv,a)=>[{t:"Sentarte en la mesa de la anfitriona",s:"Desde ahí s
 function lugaresRaros(U,a){const y=G.yo;
   if(a>=21&&G.fl.llave)U("La Llave","Club privado · antifaces y tres reglas",()=>{add("animo",4);add("carisma",.5);return vario("llave",["Noche en La Llave. Terciopelo, luz baja y gente que habla sin apellidos.","Te ponen el antifaz en la puerta. Dentro, el mundo de fuera deja de pesar un rato.","En La Llave suena un piano que nadie parece tocar. Hay más miradas que palabras.","Hoy solo miras. Aquí eso también es participar."])},"llave");
   if(a>=12)U("El rastro de madrugada","Mantas en el suelo y cosas con historia",()=>{add("mente",1);add("animo",2);return vario("rastro",["Paseas entre mantas con media vida de otros en venta: dentaduras, medallas, cartas, un ojo de cristal.","A las seis de la mañana lo bueno ya está vendido. Lo raro, no.","Un puesto solo vende llaves. Ninguna abre nada que el dueño sepa.","Encuentras un juguete exacto al que perdiste de crío. Podría ser el mismo."])},"rastro");
-  if(a>=8)U("Los recreativos viejos",a>=14?"10 · máquinas que ya no se fabrican":"Con la paga",()=>{if(a>=14)y.dinero-=10;add("animo",4);add("mente",.5);return vario("recre",["Cambias un billete por fichas y la tarde se te va en luces.","El futbolín cojea de una pata y todo el mundo sabe compensarlo.","Hay una máquina que da calambre. Se juega igual.","Huele a moqueta vieja y a electricidad. Es un olor que no se olvida."])},"recre");
+  if(a>=8&&!(G.cerr&&G.cerr.recre))U("Los recreativos viejos",a>=14?"10 · máquinas que ya no se fabrican":"Con la paga",()=>{if(a>=14)y.dinero-=10;add("animo",4);add("mente",.5);return vario("recre",["Cambias un billete por fichas y la tarde se te va en luces.","El futbolín cojea de una pata y todo el mundo sabe compensarlo.","Hay una máquina que da calambre. Se juega igual.","Huele a moqueta vieja y a electricidad. Es un olor que no se olvida."])},"recre");
   if(a>=18&&G.lugar.tipo!="aldea")U("El hipódromo","Domingos de programa, prismáticos y sombreros",()=>{add("animo",3);add("carisma",.5);return vario("hipo",["Tarde de carreras. Aprendes a leer el programa como una partitura.","Te apoyas en la valla del paddock a ver pasar a los caballos, que es lo mejor y es gratis.","La grada entera se levanta en la recta. Tú también, sin saber a cuál vas."])},"hipo");
-  if(a>=10)U("La casa abandonada","Nadie entra, dicen. Hay un hueco en la verja",()=>{add("mente",1);add("animo",1);return vario("casona",["Te cuelas por el hueco de la verja. El jardín se ha comido los escalones.","Recorres la planta baja con la linterna. En la pared del salón hay marcas de cuadros que ya no están.","Hay un calendario en la cocina, parado en un mes de hace cincuenta años, con un día rodeado.","Alguien ha estado aquí hace poco: hay cera fresca en el suelo, en círculo."])},"casona")}
+  if(a>=10&&!(G.cerr&&G.cerr.casona))U("La casa abandonada","Nadie entra, dicen. Hay un hueco en la verja",()=>{add("mente",1);add("animo",1);return vario("casona",["Te cuelas por el hueco de la verja. El jardín se ha comido los escalones.","Recorres la planta baja con la linterna. En la pared del salón hay marcas de cuadros que ya no están.","Hay un calendario en la cocina, parado en un mes de hace cincuenta años, con un día rodeado.","Alguien ha estado aquí hace poco: hay cera fresca en el suelo, en círculo."])},"casona")}
 function tickNuevo14(){const y=G.yo;if(G.muerto)return;tickTox();if(G.trabajo&&G.trabajo.raro)G.trabajo.m=(G.trabajo.m||0)+1;if(G.fl.amano&&!G.carcel){y.dinero+=400;if(ch(.012)){G.fl.amano=0;const x=encarcelar(ri(8,24));log("Redada en el hipódromo. Tu nombre sale en la libreta de alguien. "+x.txt,"mala")}}}
 
 /* ================= AMPLIACIÓN 15: historias largas en paralelo, que se tuercen si alguien muere · cabos sueltos · segundas partes · matiz según tu situación ================= */
@@ -4943,6 +4945,113 @@ function tickNuevo15(){const y=G.yo,a=y.edad/12;if(G.muerto)return;tickHilos();t
   const q=G.pareja&&viv(G.pareja);if(q&&q.tox&&(q.toxN||0)>=4&&!(G.his&&G.his.toxico)&&(G.hisH.toxico||0)<2&&ch(.25))hisIni("toxico",{id:q.id});
   if(a>=22&&!G.hisH.llave){const l=vivos(p=>(p.id==G.pareja||p.amante)&&p.edad>=216&&p.cama&&(p.pas||0)>=45&&!p.lejos&&!p.tox);if(l.length&&ch(.03))hisIni("llave",{id:pick(l).id});else if(!l.length&&a>=25&&G.soloDesde!=null&&y.edad-G.soloDesde>=18&&ch(.006))hisIni("llave",{id:null})}}
 function acciones15(L,a){if((G.hilos||[]).length)L.push({t:"Cabos sueltos… ("+G.hilos.length+")",cls:"sec",abre:menuHilos})}
+
+/* ================= AMPLIACIÓN 16: némesis de por vida · el barrio cambia con las décadas · el cajón de los recuerdos ================= */
+/* ---------- El cajón de los recuerdos ---------- */
+const RECU=[[/Capitán con su hija|dejó en la cala/,"el sextante de latón del Capitán","Lo giras en la mano. Pesa como pesan las cosas que han visto mar."],
+ [/encargad[oa] del club/,"la libreta del club","Tus marcas de cuando corrías, con su letra. Y un asterisco que ya sabes qué significaba."],
+ [/sobrevives a un naufragio|rescatan tras/,"una concha de la isla","Si te la acercas al oído no se oye el mar: se oye aquel silencio."],
+ [/te casas con/,"la foto de la boda","Estáis los dos mirando a sitios distintos, riéndoos de algo que ya no recuerdas."],
+ [/ganas tu primera velada/,"los guantes de la velada","Todavía huelen a linimento y a miedo."],
+ [/salvas la biblioteca/,"el carné de socio de honor","Con una chincheta dorada todavía clavada en la esquina."],
+ [/pantalla nueve|iniciales en lo más alto/,"una ficha de los recreativos","La última. La que no llegaste a gastar."],
+ [/del frente/,"una medalla de latón","No la enseñas. Tampoco la tiras."],
+ [/defiendes la cabaña/,"un clavo torcido de la cabaña","Es solo un clavo. También es un país entero."],
+ [/campeonato comarcal/,"la medalla del campeonato","El lazo se ha desteñido. El recuerdo, no."],
+ [/delegad[oa] de clase/,"la hoja del recuento de votos","Palitos de tiza copiados a boli por alguien que te quería bien."],
+ [/temporada en la comuna/,"una pulsera de hilo blanco","Deshilachada. Te la pusieron cantando."],
+ [/temporada en la Hermandad|presides la luna negra/,"una máscara de cuerno a medio tallar","No la cuelgas en la pared. La guardas boca abajo."],
+ [/tomo prohibido/,"una página del tomo, copiada a mano","Con tu letra. Aunque no recuerdas haberla escrito."],
+ [/desandas/,"un reloj parado a una hora que ya viviste dos veces","Nadie más sabe por qué lo guardas."],
+ [/carta de amor con sesenta años|sesenta años después|veinte cartas/,"un sobre vacío con sello antiguo","El sobre lo conservaste tú. Lo de dentro llegó a donde tenía que llegar."],
+ [/faro|farero|mercante/,"un trozo de cristal de la lente del faro","Cuando le da el sol, la pared se llena de colores."],
+ [/plataforma petrolífera|fuga de gas|mar abierto/,"el casco de la plataforma","Rayado, con tu nombre a rotulador y el de quien te lo pintó."],
+ [/presa/,"una llave de las galerías de la presa","No abre ya ninguna puerta. O sí, y prefieres no saber cuál."],
+ [/vampir|Casa de la noche/,"un retrato pequeño, pintado hace siglos","La persona del retrato no ha cambiado. Tú sí."],
+ [/rama perdida de la familia/,"una foto de familia con caras que no conocías","Alguien escribió los nombres por detrás, con lápiz."],
+ [/sacas a .* del juego|salvas del desahucio/,"una estampa con una dedicatoria","«Para quien no miró a otro lado.»"],
+ [/sales de una relación/,"unas llaves de una casa a la que no vas a volver","Las guardas para acordarte de que saliste."],
+ [/dejas de estar/,"la primera nota que te pasaron por debajo de la puerta","Con la marca de una chocolatina."],
+ [/circo|cuchillos/,"un chaleco con lentejuelas","Te queda pequeño. Te queda bien."],
+ [/empiezas a trabajar/,"tu primera nómina","Una miseria. La enmarcaste igual."],
+ [/te muerden/,"un colmillo que no es de perro","Lo encontraste en tu propio hombro, cicatrizando."]];
+function recuerdo(n,txt,k){G.cajon=G.cajon||[];if(G.cajon.some(c=>c.n==n)||G.cajon.length>=40)return;G.cajon.push({n,txt,ano:ano(),e:G.yo.edad,k:k||""})}
+function menuCajon(){const y=G.yo,a=y.edad/12;abrirHoja("El cajón de los recuerdos",(G.cajon||[]).slice().reverse().map(c=>({t:cap1(c.n),s:(c.her?"Era de "+c.her+" · ":"")+"Lo guardas desde "+c.ano,fn:()=>hacer(()=>{const años=ano()-c.ano,viejo=a>=60;add("animo",c.her?2:años>=20?(viejo?5:3):2);if(viejo)G.renc=Math.max(0,(G.renc||0)-2);
+    return `Sacas ${c.n}. ${c.txt} `+(c.her?vario("cajH",[`No era tuyo. Ahora lo es, con todo lo que no sabes de él.`,`Te preguntas qué veía ${c.her} cuando lo miraba.`,`Lo dejas donde estaba. Hay cosas que se heredan sin instrucciones.`]):años<3?vario("caj0",["Todavía está demasiado cerca para ser un recuerdo.","Lo guardas otra vez, rápido."]):años<20?vario("caj1",[`Hace ${años} años. Te ves desde fuera, como en una foto mal encuadrada.`,`${años} años ya. Parecía que aquello iba a durar siempre.`,`Te sorprende lo joven que eras, y lo poco que lo sabías.`]):vario("caj2",[`${años} años. Casi nadie de los que estaban sigue aquí para contarlo contigo.`,`Lo tienes un rato largo en la mano. A cierta edad, los objetos son la gente que queda.`,`Hace ${años} años. Lo cuentas en voz alta, por si hay alguien en la casa. No hay nadie, y lo cuentas igual.`,`Se te había olvidado que podías ser tan feliz por tan poco.`]))})})))}
+/* ---------- Némesis ---------- */
+const NEMP=["Tu padre despidió al suyo cuando erais críos, y aquella Navidad en su casa no hubo nada. Tú no lo sabías. Él lo supo siempre.","Le quitaste, sin enterarte, a la única persona que le había mirado. Tú ni te fijaste en ella.","Un día, de pequeños, le viste llorar escondido y no dijiste nada. Nunca te perdonó que lo supieras.","En su casa le comparaban contigo en cada comida. «Mira qué bien le va a tal.» Llegó a odiar tu nombre antes que a ti.","Nunca hubo motivo. Necesitaba a alguien contra quien medirse, y estabas cerca."];
+const nem=()=>G.nem&&P(G.nem.id);
+function nemCrear(p,origen){G.nem={id:p.id,odio:40,pod:10,fase:0,sig:G.yo.edad+ri(18,48),por:ri(0,NEMP.length-1),sec:0};p.nem=1;rel(p,-30);log(origen,"mala")}
+function tickNem(){const y=G.yo,a=y.edad/12;if(G.muerto)return;
+  if(!G.nem){if(a<9||a>32||G.carcel||enMagia()||G.nemNo)return;const m=G.exMgr&&viv(G.exMgr),rv=m&&m.novio&&viv(m.novio);
+    if(rv&&!rv.nem){nemCrear(rv,`${rv.nombre} no se conforma con haberte quitado lo que querías. Necesita, además, que lo sepas cada día. Se ha propuesto ser tu sombra.`);return}
+    if(!ch(.012))return;const p=per(a<18?"comp":"conoc",y.sexo,Math.max(8,a+ri(-1,2)),pick(ORI[G.origen].ap),{con:true,rel:8,rasgo:ri(0,4)});
+    nemCrear(p,a<14?vario("nemO1",[`${p.nombre} ${p.apellido} te espera a la salida con dos más. No es por nada que hayas hecho. Es por algo que eres, y eso no tiene arreglo.`,`Le ganas a ${p.nombre} en algo delante de todo el mundo: una carrera, un examen, una apuesta tonta. Sonríe con la boca. «Esto no se queda así», dice bajito.`,`${p.nombre} ${p.apellido} hace correr sobre ti una mentira muy bien pensada. Cuando le miras, te sostiene la mirada. Ha empezado algo.`]):vario("nemO2",[`${p.nombre} ${p.apellido} y tú optáis a lo mismo y te lo llevas tú. Te da la mano. La aprieta demasiado. «Enhorabuena. Disfrútalo mientras dure.»`,`Coincides con ${p.nombre} ${p.apellido} en todas partes: mismo barrio, mismos sitios, mismas personas. Una noche te lo dice sin rodeos: «En esta ciudad sobra uno de los dos.»`]));return}
+  const N=G.nem,p=nem();if(!p)return;
+  if(!p.vivo){if(!N.fin){N.fin=1;hilo("nem","por qué te la tuvo jurada "+p.nombre+" toda la vida",`Su ${p.sexo=="m"?"viuda":"viudo"} te manda una carta que dejó para ti. Es corta. ${NEMP[N.por]} «Ahora que no estoy, te lo puedo decir: sin ti me habría aburrido muchísimo.»`);add("animo",-3);log(`Muere ${p.nombre} ${p.apellido}. Vas al entierro y te sientas al fondo. No sabes qué hacer con las manos. Treinta años contra alguien también son treinta años con alguien.`,"mala")}return}
+  N.pod=clamp(N.pod+.12+(a>30?.1:0));
+  if(G.carcel||G.pend||enMagia()||y.edad<N.sig)return;N.fase++;N.sig=y.edad+ri(72,132);
+  const k=a<18?"nemEsc":a<32?"nemJov":a<52?"nemPod":"nemFin";decidir(k,{});
+  log(k=="nemEsc"?vario("n1",[`Encuentras tu mochila en el váter del instituto, abierta. En el espejo, con rotulador: tu nombre y una palabra. Sabes de quién es la letra.`,`${p.nombre} ha convencido a media clase de que no te hable. Dura una semana. Es larguísima.`])
+     :k=="nemJov"?vario("n2",[`Te quedas sin el puesto que tenías apalabrado. Lo ocupa ${p.nombre} ${p.apellido}. Te manda un mensaje: «Nada personal.» Es lo más personal que has leído en tu vida.`,`${p.nombre} aparece, muy bien ${gp(p,"vestido","vestida")}, en la cena de tus amigos. Para el postre ya se sabe todos los nombres y dos secretos tuyos.`])
+     :k=="nemPod"?vario("n3",[`${p.nombre} ${p.apellido} ha prosperado. Ahora es quien firma los papeles de los que dependes: te llega una inspección, luego otra, luego una multa que nadie más ha recibido.`,`El edificio donde vives cambia de dueño. El nuevo es una sociedad. El administrador único es ${p.nombre} ${p.apellido}. La carta de subida llega esa misma semana.`])
+     :`${p.nombre} ${p.apellido} llama a tu puerta. Está ${gp(p,"viejo","vieja")}, como tú, y ${N.pod>60?"sigue teniendo más que tú de casi todo":"lo ha perdido casi todo"}. «He pensado que deberíamos hablar, antes de que uno de los dos no pueda.»`,"mala")}
+const nP=()=>nem();
+DEC.nemEsc={man:1,tit:d=>nP().nombre+", otra vez",txt:d=>"",ops:d=>{const p=nP(),N=G.nem,y=G.yo;return [
+  {t:"Devolvérsela",fn:()=>{N.odio=clamp(N.odio+15);if(ch(.3+y.cuerpo/200+y.carisma/300)){add("carisma",2);return `Se la devuelves delante de todos, y mejor. ${p.nombre} se queda blanco. Ganas esta. Los dos sabéis que no es la última.`+moral("valiente")}add("animo",-5);return {txt:"Te sale mal y además te pillan a ti. Dos semanas sin recreo, y su sonrisa al otro lado del cristal.",mal:1}}},
+  {t:"No darle el gusto",fn:()=>{N.odio=clamp(N.odio+5);add("mente",1);return `Haces como si no fuera contigo. Es lo que más le enfada: necesita que te duela a la vista.`}},
+  {t:"Preguntarle qué le has hecho",fn:()=>{N.odio=clamp(N.odio-8);N.sec=Math.max(N.sec,ch(.3)?1:0);return `Le pillas a solas y se lo preguntas, sin testigos. Tarda en contestar. «Nada», dice. «Por eso.» No lo entiendes. Tardarás años.`}}]}};
+DEC.nemJov={man:1,tit:d=>nP().nombre+" quiere lo tuyo",txt:d=>"",ops:d=>{const p=nP(),N=G.nem,y=G.yo,q=G.pareja&&viv(G.pareja);return [
+  {t:"Competir en serio",s:"Depende de lo que valgas",fn:()=>{N.odio=clamp(N.odio+10);if(ch(clamp((y.mente+y.carisma)/260,.1,.85))){y.dinero+=ri(500,2000);add("carisma",2);N.pod=clamp(N.pod-8);return `Te lo trabajas el doble. Al año siguiente eres tú quien le pasa por encima, limpiamente. Lo encaja con una educación que da miedo.`}if(G.trabajo&&ch(.5))G.trabajo=null;add("animo",-6);return {txt:`Lo intentas. ${p.nombre} juega con cartas que tú no sabías que existían. Pierdes más de lo que estaba en juego.`,mal:1}}},
+  {t:"Buscarle las cosquillas",s:"Todo el mundo esconde algo",fn:()=>{if(ch(.25+y.mente/200)){N.sec=2;return `Preguntas en los sitios adecuados. Tiene un asunto feo de hace años, tapado con dinero. No lo usas todavía. Lo guardas.`}N.odio=clamp(N.odio+10);return {txt:`Preguntas demasiado y se entera. «Qué decepción», te dice. «Creía que tú jugabas limpio.»`,mal:1}}},
+  {t:"Apartarte",fn:()=>{N.odio=clamp(N.odio-5);if(q&&ch(.2)&&infidelidad(q)>=1&&!q.lio){lioEmpieza(q,p);return {txt:`Le dejas el campo libre. Lo aprovecha entero: empiezan a verle demasiado cerca de ${q.nombre}.`,mal:1}}return `Cambias de sitio, de gente, de planes. Durante unos años funciona. Es una ciudad pequeña.`}}]}};
+DEC.nemPod={man:1,tit:d=>nP().nombre+" tiene la sartén por el mango",txt:d=>"",ops:d=>{const p=nP(),N=G.nem,y=G.yo;return [
+  {t:"Pelearlo por lo legal",s:y.dinero>=2000?"2000 en abogados":"Te faltan 2000",fn:()=>{if(y.dinero<2000)return {txt:"No tienes con qué pagar un abogado que le plante cara a los suyos. Pagas lo que te piden.",mal:1};y.dinero-=2000;if(ch(.35+y.mente/250)){N.pod=clamp(N.pod-20);add("carisma",2);return `Recurres, documentas, aguantas. Dos años después un juez te da la razón, con costas. ${p.nombre} te manda una botella de vino. La tarjeta dice: «Bien jugado.»`}return {txt:"Dos años de papeles para que al final se archive. Él ni se presentó a las vistas.".replace("Él",gp(p,"Él","Ella")),mal:1}}},
+  N.sec>=2?{t:"Usar lo que sabes",s:"Lo que guardabas desde hace años",fn:()=>{N.pod=clamp(N.pod-45);N.odio=clamp(N.odio+25);N.hundido=1;add("animo",-3);return {txt:`Dejas el sobre donde tiene que llegar. En un mes le llueven las preguntas, los titulares, las dimisiones. Te deja en paz porque no le queda con qué. No sienta tan bien como imaginabas.`+moral("tramposo",2),mal:1}}}
+   :{t:"Averiguar de qué pie cojea",s:"Depende de tu cabeza",fn:()=>{if(ch(.3+y.mente/180)){N.sec=2;return `Tiras de un hilo en el registro mercantil y sale una madeja. No lo usas. Todavía.`}return {txt:"No encuentras nada, y él encuentra que has buscado.".replace("él",gp(p,"él","ella")),mal:1}}},
+  {t:"Proponer una tregua",s:"Depende de tu carisma, y de cuánto os odiéis",fn:()=>{if(ch(clamp(.15+y.carisma/200-N.odio/250,.05,.8))){N.odio=clamp(N.odio-30);N.tregua=1;return `Le pides un café. Va. No os dais la mano, pero acordáis no pisaros. «Nos hacemos mayores», dice. Lo cumple, a su manera.`}N.odio=clamp(N.odio+5);return {txt:`Le pides un café. Va, te escucha, se levanta. «¿Ahora que te aprieta? No.»`,mal:1}}},
+  {t:"Tragar",fn:()=>{y.dinero-=Math.min(y.dinero,ri(500,1500));add("animo",-6);return {txt:"Pagas, firmas, agachas la cabeza. Es más barato que la guerra. Te lo repites cada noche.",mal:1}}}]}};
+DEC.nemFin={man:1,tit:d=>"Los dos, ya viejos",txt:d=>"",ops:d=>{const p=nP(),N=G.nem,y=G.yo;return [
+  {t:"Dejarle pasar",fn:()=>{N.paz=1;N.odio=0;rel(p,60);p.nem=0;add("animo",10);G.renc=Math.max(0,(G.renc||0)-20);logro("haces las paces con "+p.nombre+", después de toda una vida");return `Pones dos vasos. Tardáis en empezar. Luego lo dice de un tirón: ${NEMP[N.por]} Os quedáis hasta que amanece, repasando cuarenta años de golpes como dos viejos soldados de bandos contrarios. A partir de ese día jugáis al dominó los jueves. Hace trampas.`}},
+  {t:"Preguntarle solo por qué",fn:()=>{N.odio=clamp(N.odio-20);return `No le invitas a sentarse. «Dime por qué y vete.» Lo dice: ${NEMP[N.por]} Se va despacio. Te quedas en la puerta más rato del que hacía falta.`}},
+  {t:"Cerrarle la puerta",fn:()=>{N.odio=clamp(N.odio+5);return {txt:`«No tenemos nada que hablar.» Asiente, sin sorpresa. «Lo suponía. Pero había que intentarlo una vez.» Baja la escalera agarrado a la barandilla.`.replace("agarrado",gp(p,"agarrado","agarrada")),mal:1}}},
+  ...(N.pod<35&&!N.hundido?[{t:"Ayudarle, sin decir nada",s:"Está en las últimas",fn:()=>{y.dinero-=Math.min(y.dinero,1500);N.paz=1;rel(p,50);p.nem=0;add("animo",8);logro("ayudas a tu peor enemigo cuando ya no puede devolvértelo");return `Le pagas lo que debe sin que lo sepa, a través de otro. Se entera, claro. No te da las gracias. Te manda, a su manera, lo único que le queda: una caja con todo lo que guardó de vuestra guerra, recortes, cartas, una foto de los dos de críos, antes de todo.`+moral("generoso",3)}}]:[])]}};
+/* ---------- El barrio cambia ---------- */
+const BARRIO=[
+ {k:"recre",ok:()=>ano()>=1998&&G.sit&&G.sit.recre,t:()=>"Cierran los recreativos viejos. El dueño se jubila y el local va a ser una tienda de móviles. Ponen un cartel: «Última noche: fichas gratis».",dec:"barRecre"},
+ {k:"franq",ok:()=>!G.fl.barSocio&&!(G.sit&&G.sit.bar&&G.sit.bar.gratis),t:()=>"El bar de abajo cambia de manos: una franquicia, con carta plastificada y sillas iguales. El dueño de siempre se despide con una ronda y los ojos húmedos.",fx:()=>{if(G.sit&&G.sit.bar){G.sit.bar.v=Math.min(G.sit.bar.v,2);const f=G.sit.bar.fig&&viv(G.sit.bar.fig);if(f)f.lejos=true;G.sit.bar.fig=null}}},
+ {k:"alquiler",ok:()=>G.yo.edad>=216,t:()=>"El barrio se pone de moda. Abren tres cafeterías con nombres en inglés y los alquileres suben un tercio de golpe. A la vecina de toda la vida le llega una carta: no le renuevan.",dec:"barVecina"},
+ {k:"parque",ok:()=>true,t:()=>"El ayuntamiento quiere convertir medio parque en un aparcamiento. Ya han marcado los árboles con pintura roja.",dec:"barParque"},
+ {k:"mercado",ok:()=>true,t:()=>"Cierra el mercado de abastos. Los puestos de siempre se van uno a uno. En su lugar abrirá un supermercado con cajas automáticas.",fx:()=>{add("animo",-3)}},
+ {k:"cine",ok:()=>ano()>=1990,t:()=>"Cierra el último cine del barrio. En la marquesina se quedan torcidas las letras de la última película durante años.",fx:()=>{add("animo",-2)}},
+ {k:"turistas",ok:()=>ano()>=2005&&G.lugar.tipo!="aldea",t:()=>"Media escalera son ya pisos turísticos. Maletas con ruedas a las cuatro de la mañana y vecinos que cambian cada tres días."+(G.prop?" Tu casa vale un tercio más que hace cinco años, eso sí.":""),fx:()=>{if(G.prop)G.prop.v=Math.round(G.prop.v*1.3)}},
+ {k:"casona",ok:()=>G.sit&&G.sit.casona&&G.sit.casona.hechas.includes("heredera"),t:()=>"Derriban por fin la casa abandonada. En el solar harán pisos con piscina. El hueco de la verja por donde te colabas ya no lleva a ningún sitio.",fx:()=>{G.cerr=G.cerr||{};G.cerr.casona=1}}];
+function tickBarrio(){const y=G.yo,a=y.edad/12;if(G.muerto||G.carcel||G.exo||G.pend||a<10)return;G.barrio=G.barrio||{h:[],sig:y.edad+ri(60,110)};const B=G.barrio;
+  if(y.edad<B.sig)return;B.sig=y.edad+ri(70,120);const l=BARRIO.filter(x=>!B.h.includes(x.k)&&x.ok());if(!l.length)return;const x=pick(l);B.h.push(x.k);titular("El barrio cambia",ano()+"");log(x.t(),"mala");if(x.fx)x.fx();if(x.dec)decidir(x.dec,{})}
+DEC.barRecre={man:1,tit:d=>"La última noche de los recreativos",txt:d=>"",ops:d=>{const y=G.yo;return [
+  {t:"Ir y quedarte hasta el final",fn:()=>{add("animo",4);recuerdo("la última ficha de los recreativos","Te la dio el dueño al apagar las luces. «Para que no digas.»");G.cerr=G.cerr||{};G.cerr.recre=1;return "Están todos: los del futbolín, la reina del pinball, críos que no habían nacido cuando abrió. A las tres el dueño desenchufa las máquinas una a una. Cada pantalla hace un ruidito al morir."}},
+  {t:"Comprar una máquina",s:y.dinero>=300?"300":"Te faltan 300",fn:()=>{G.cerr=G.cerr||{};G.cerr.recre=1;if(y.dinero<300)return {txt:"Se las lleva un chatarrero al peso. Las ves salir en un camión.",mal:1};y.dinero-=300;G.fl.maquina=G.fl.maquina||2;recuerdo("una máquina recreativa, enchufada en tu salón","Zumba toda la noche. No la apagas.");return "Te llevas la del fondo entre tres, escaleras arriba. Ocupa medio salón. Es lo mejor que has comprado nunca."}},
+  {t:"No ir",fn:()=>{G.cerr=G.cerr||{};G.cerr.recre=1;return "No vas. Prefieres recordarlo abierto. Un mes después ya venden fundas de móvil donde estaba el futbolín."}}]}};
+DEC.barVecina={man:1,tit:d=>"No le renuevan el alquiler",txt:d=>"",ops:d=>{const y=G.yo,v=vivos(p=>p.rol=="vec"&&p.con&&p.edad>=60*12)[0];return [
+  {t:"Montar una plataforma de vecinos",s:"Depende de tu carisma",fn:()=>{if(ch(.3+y.carisma/160)){add("carisma",3);if(v)rel(v,30);logro("paráis un desahucio en tu escalera");return `Pancartas en los balcones, turnos en el portal, un periodista. El fondo que compró el edificio prefiere no salir en las noticias: le renuevan cinco años.${v?" "+v.nombre+" te baja un táper cada domingo desde entonces.":""}`+moral("valiente",2)}return {txt:"Venís doce. El día del lanzamiento hay más furgones que vecinos.",mal:1}}},
+  {t:"Ayudarla a buscar otro piso",fn:()=>{if(v){rel(v,15);v.lejos=true}add("animo",-2);return `Le encontráis algo en un barrio a cuarenta minutos, con ascensor. Se lleva las macetas. La escalera se queda sin la última persona que sabía los nombres de todos.`+moral("generoso")}},
+  {t:"No meterte",fn:()=>{if(v)v.lejos=true;return {txt:"Un martes hay un camión de mudanzas. El jueves, una cerradura nueva y un cartel con un código QR.",mal:1}}}]}};
+DEC.barParque={man:1,tit:d=>"Los árboles marcados de rojo",txt:d=>"",ops:d=>{const y=G.yo;return [
+  {t:"Encadenarte a un árbol",fn:()=>{if(ch(.5)){logro("salvas el parque de tu barrio");add("carisma",2);return "Sois veinte, luego cien. Las motosierras se van sin arrancar. El aparcamiento lo hacen en otro sitio. A tu árbol le ponen una placa que nadie lee."+moral("valiente",2)}add("salud",-3);return {txt:"Os desalojan a las seis de la mañana. A las ocho ya no hay árboles. Te queda una multa y una foto en el periódico.",mal:1}}},
+  {t:"Recoger firmas",fn:()=>ch(.3+y.carisma/200)?"Tres mil firmas y un pleno bronco. Salvan la mitad del parque, la de los columpios.":{txt:"Entregas las firmas en una ventanilla. Te dan un sello de entrada. El aparcamiento abre en primavera.",mal:1}},
+  {t:"Alegrarte: por fin habrá donde aparcar",fn:()=>({txt:"Aparcas a la puerta de casa por primera vez en veinte años. En verano, la calle arde sin una sombra."})}]}};
+/* ---------- Enganches de la ampliación 16 ---------- */
+function herencia16(nomV){const y=G.yo; // al seguir como un hijo: lo que se hereda y lo que no
+  (G.cajon||[]).forEach(c=>{if(!c.her){c.her=nomV;c.n=c.n.replace(/ de tu [a-záéíóúñ«»]+ /," de ")}});if((G.cajon||[]).length)log(`Entre las cosas de ${nomV} hay un cajón que nunca te dejó abrir. Ahora es tuyo, con todo lo que guardaba.`);
+  const N=G.nem,p=N&&P(N.id);if(N&&p&&p.vivo&&!N.paz){N.odio=clamp(N.odio*.6);N.sig=y.edad+ri(24,60);N.fase=0;log(`En el entierro, ${p.nombre} ${p.apellido} te da el pésame y te sostiene la mano un segundo de más. «Te pareces mucho.» No suena a cumplido. Lo de tu apellido no se acaba aquí.`,"mala")}else G.nem=null;
+  if((G.hilos||[]).length)log(`${nomV} dejó cosas sin resolver. Las heredas también: están apuntadas en una libreta, con signos de interrogación.`);
+  Object.assign(G,{sit:{},his:{},hisH:{},arc:null,arcH:{},club:null,clubH:[],exMgr:null,grupo:y.edad>=17*12?"":null,opt:null,vamp:null,rig:null,acoso:null,soloDesde:null,presa:null,raroH:{},viajado:0,uid:null,sueno:y.edad>=16*12?"x":null,gan:0,muAn:[],fun:null,her2:null});
+  if(G.tomo){G.tomo={d:Math.floor(G.tomo.d/3),osc:0,usado:0};log(`Y hay un libro sin título, encuadernado en algo que no es cuero de vaca. ${nomV} lo tenía envuelto en un paño, al fondo del armario.`)}
+  SNAPS=[];SNAP_MES=null;try{guardaHitos()}catch(e){}}
+function tickNuevo16(){const y=G.yo;if(G.muerto)return;tickNem();tickBarrio()}
+function eventos16(ev,a){const c=G.cajon||[];if(c.length&&a>=14&&!G.carcel)ev(1.5,"cajonE",()=>{const x=pick(c);add("animo",2);log(vario("cajE",[`Buscando otra cosa das con ${x.n}. Te sientas en el suelo del pasillo con ello en la mano y se te va media tarde.`,`Algo en la calle —un olor, una canción— te lleva derecho ${("a "+x.n).replace(/^a el /,"al ")}. Al llegar a casa lo sacas del cajón, solo para comprobar que sigue ahí.`,`Alguien pregunta en una cena por ${x.n}. Empiezas a contarlo y la mesa entera se calla para escuchar.`]))});
+  const N=G.nem,p=N&&nem();if(p&&p.vivo&&!N.paz&&a>=14)ev(1.5,"nemE",()=>log(vario("nemE",[`Ves el nombre de ${p.nombre} ${p.apellido} en el periódico. Le va bien. Doblas la página con más fuerza de la necesaria.`,`Te cruzas con ${p.nombre} en un entierro ajeno. Os saludáis con la cabeza, como dos países con frontera.`,`Alguien te cuenta, creyendo que te alegrará, que a ${p.nombre} le ha salido algo mal. Te alegra menos de lo que esperabas.`,`${p.nombre} manda una corona a un funeral de tu familia. Es la más grande. Lleva su nombre entero en la cinta.`]),"mala"))}
+function acciones16(L,a){if((G.cajon||[]).length&&a>=12)L.push({t:"El cajón de los recuerdos… ("+G.cajon.length+")",cls:"sec",abre:menuCajon})}
 
 const SEL={origen:null,riqueza:null,sexo:null,don:null,hogar:null};
 function pantallaCrear(){
