@@ -3820,7 +3820,7 @@ DEC.cuernos={man:1,tit:d=>d.acto?"Los has pillado":"No es tu olor",txt:d=>"",ops
 
 /* ---------- Enganches con el resto del juego ---------- */
 function tickNuevo(){
-  const y=G.yo,a=y.edad/12;if(G.muerto)return;tickNuevo10();tickNuevo11();tickNuevo12();tickNuevo14();tickNuevo15();tickNuevo16();tickNuevo17();tickNuevo18();tickNuevo19();tickNuevo20();tickNuevo21();tickNuevo22();tickNuevo24();tickNuevo25();
+  const y=G.yo,a=y.edad/12;if(G.muerto)return;tickNuevo10();tickNuevo11();tickNuevo12();tickNuevo14();tickNuevo15();tickNuevo16();tickNuevo17();tickNuevo18();tickNuevo19();tickNuevo20();tickNuevo21();tickNuevo22();tickNuevo24();tickNuevo25();tickNuevo27();
   tickFamilia();tickCuernos();
   if(G.carcel&&G.carcel.tipo=="isla"){tickIsla();if(G.guerra){G.guerra.m--;G.guerra.t++;if(G.guerra.m<=0){G.guerra=null}}return}
   if(G.guerra)tickGuerra();else if(!G.exo&&!enMagia()&&a>=1&&ch(.01/12))guerraIni();
@@ -3830,7 +3830,7 @@ function tickNuevo(){
   tickVamp();tickCriaturas();tickArco();
   if(a>=18&&!G.arc&&!(G.arcH&&G.arcH.vamp)&&!G.carcel&&a<60&&ch((sabeMagia()?.09:.03)/12))vampEmpezar();
 }
-function eventosNuevos(ev,a){const y=G.yo;eventos10(ev,a);eventos11(ev,a);eventos12(ev,a);eventos13(ev,a);eventosRaros(ev,a);eventos16(ev,a);eventos17(ev,a);eventos18(ev,a);eventos20(ev,a);eventos21(ev,a);eventos22(ev,a);eventos23(ev,a);eventos24(ev,a);eventos26(ev,a);
+function eventosNuevos(ev,a){const y=G.yo;eventos10(ev,a);eventos11(ev,a);eventos12(ev,a);eventos13(ev,a);eventosRaros(ev,a);eventos16(ev,a);eventos17(ev,a);eventos18(ev,a);eventos20(ev,a);eventos21(ev,a);eventos22(ev,a);eventos23(ev,a);eventos24(ev,a);eventos26(ev,a);eventos27(ev,a);
   if(G.guerra&&!G.guerra.fuera&&!G.guerra.frente&&!G.pend){const v=vivos(p=>p.con&&!p.lejos&&!p.casa&&p.edad>=216&&(p.rol=="vec"||p.rol=="conoc"));
     if(v.length&&(G.prov||0)>0)ev(9,"vecHambre",()=>{const p=pick(v);decidir("vecinoHambre",{id:p.id});log(`${p.nombre} ${p.apellido} llama a tu puerta de noche, sin encender la luz de la escalera. Lleva tres días sin comer y sabe que tú guardas algo.`,"mala")});
     if((G.prov||0)>=2)ev(6,"saqueo",()=>{decidir("saqueo",{});log("De madrugada, golpes en la puerta y voces. Saben que en esta casa hay comida.","mala")})}
@@ -3848,7 +3848,7 @@ function eventosNuevos(ev,a){const y=G.yo;eventos10(ev,a);eventos11(ev,a);evento
   if(may.length&&muertosCerca(30).length&&a>=8)ev(2,"cemAcomp",()=>{const p=pick(may),d=pick(muertosCerca(30));rel(p,6);add("animo",-1);log(`${cap1(tu(p))} te pide que le acompañes al cementerio, a ver a ${d.nombre}. Le llevas el cubo. Habla con la lápida como si le contestaran.`)});
   if(a>=18&&!G.carcel)ev(1,"ferryReg",()=>{log("En una rifa te tocan dos pasajes de ferry a las islas. Los guardas en el cajón de los papeles: se pueden usar cuando quieras desde «Viajar por mar».");G.fl.ferry=1},1);
 }
-function accionesNuevas(L,a){const y=G.yo;acciones10(L,a);acciones11(L,a);acciones12(L,a);acciones15(L,a);acciones16(L,a);acciones17(L,a);acciones18(L,a);acciones19(L,a);acciones20(L,a);acciones21(L,a);acciones25(L,a);acciones26(L,a);
+function accionesNuevas(L,a){const y=G.yo;acciones10(L,a);acciones11(L,a);acciones12(L,a);acciones15(L,a);acciones16(L,a);acciones17(L,a);acciones18(L,a);acciones19(L,a);acciones20(L,a);acciones21(L,a);acciones25(L,a);acciones26(L,a);acciones27(L,a);
   if(G.guerra)accionesGuerra(L);
   if(G.reg&&!G.exo&&a>=14)L.push({t:"Bajo el Régimen…",cls:"riesgo",abre:menuRegimen});
   if(G.vamp)L.push({t:"La sed…"+(G.vamp.sed>=70?" (aprieta)":""),cls:"riesgo",abre:menuVamp});
@@ -6366,7 +6366,7 @@ function acciones21(L,a){const y=G.yo;
 /* ---------- 1. El menú del mes, por secciones cuando crece ---------- */
 const GRP22=[["Trabajo y dinero",/^(Hacer un curso|Trabajos fuera|Oposiciones|Invertir|Dinero y bienes|Política local|El prestamista)/],
  ["Casa, viajes y recuerdos",/^(Planificación familiar|Qué comes|Un animal en casa|Cabos sueltos|El cajón|Tu vida hasta hoy|Ir al cementerio|Viajar por mar|Un viaje largo)/],
- ["Lo que no se cuenta",/^(El tomo|El pacto|Levantar a|El bar de los que|Bajo el Régimen|Ir al campo|Lo que se dice del campo)/]];
+ ["Lo que no se cuenta",/^(Rodajes|El tomo|El pacto|Levantar a|El bar de los que|Bajo el Régimen|Ir al campo|Lo que se dice del campo)/]];
 function agrupa22(L){if(!L||L.length<=20)return L;const out=[],G_={};
   L.forEach(o=>{const g=o.abre&&GRP22.find(x=>x[1].test(o.t));if(!g){out.push(o);return}if(!G_[g[0]]){G_[g[0]]={t:g[0],items:[]};out.push(G_[g[0]])}G_[g[0]].items.push(o)});
   return out.map(o=>{if(!o.items)return o;if(o.items.length==1)return o.items[0];const it=o.items,ri_=it.some(x=>x.cls=="riesgo")&&o.t=="Lo que no se cuenta";
@@ -6608,6 +6608,37 @@ function menuEmb(){const y=G.yo,f=y.sexo=="f",q=G.pareja&&viv(G.pareja),ops=[],H
   abrirHoja("El embarazo"+(leg?"":" · aquí y ahora, interrumpirlo es delito"),ops)}
 function acciones26(L,a){const y=G.yo;if(a<18||G.carcel)return;const hay=G.emb>0&&!G.fl.adop&&(y.sexo=="f"||G.pareja&&viv(G.pareja))||y.sexo=="m"&&vivos(p=>p.emb>0&&p.con&&p.edad>=216).length;if(hay)L.push({t:"El embarazo…",cls:"sec",abre:menuEmb})}
 function eventos26(ev,a){const y=G.yo;if(G.carcel||G.pend||a<18)return;const s=G.fl.secAb!=null&&viv(G.fl.secAb);if(s&&s.id==G.pareja)ev(.6,"secAb26",()=>{G.fl.secAb=null;if(s.rel>=60&&ch(.5)){rel(s,-6);log(`${s.nombre} encuentra el papel de la clínica en un abrigo. Te lo enseña sin decir nada. Luego: «Me habría gustado estar. No decidir: estar.» Tiene razón, y se lo dices.`)}else{rel(s,-25);log(`${s.nombre} encuentra el papel de la clínica en un abrigo. La discusión dura hasta que amanece. No es por lo que hiciste: es por haberlo hecho a solas.`,"mala")}},1)}
+
+
+/* ================= AMPLIACIÓN 27: lo que pasa por ir de cama en cama (solo adultos) ================= */
+const _lg27=ligue;ligue=function(prot){const r=_lg27(prot);try{if(G.yo.edad>=216){G.espor=(G.espor||0)+1;G.esporT=(G.esporT||0)+1}}catch(e){}return r};
+const TEMA27=[["Casero, «pareja de verdad»",900,3,"Una cama normal, luz de ventana y la orden de hacer como que no hay nadie mirando. Hay cuatro personas mirando, una con un micrófono de pértiga."],
+ ["De época, con corsés y candelabros",1400,4,"Tres horas de vestuario para veinte minutos sin él. El candelabro es de plástico y el palacio, un chalé de las afueras con gotelé."],
+ ["Oficina: jefe y secretaria",1100,4,"Un despacho alquilado por horas, una grapadora que nadie usa y un guion de once frases. Lo difícil es decirlas sin reírse."],
+ ["Al aire libre, en una cala",1600,5,"Madrugón, furgoneta y una cala a la que hay que bajar con cuerdas. Arena en sitios donde no debería haber arena. Un pescador mira desde lejos, muy quieto."],
+ ["Con varias personas",2200,7,"Una coreografía más que otra cosa: quién va dónde, quién espera, a quién le tapa la luz quién. El director dibuja flechas en una pizarra."],
+ ["Cuero, antifaces y órdenes",2000,6,"Todo pactado antes, con una palabra para parar que nadie usa. Lo más duro del día es quitarse luego el látex, que no sale."]];
+DEC.grabado={man:1,tit:d=>"Hay un vídeo tuyo",txt:d=>"",ops:d=>{const y=G.yo;return [
+  {t:"Denunciarlo",fn:()=>{if(ch(.45+y.mente/300)){y.dinero+=ri(20,60)*100;escandalo17(2);G.fama=(G.fama||0)+2;logro("llevas a juicio a quien te grabó sin permiso");return "Comisaría, juzgado, un perito que rastrea la subida. Tarda un año. Le caen dos de cárcel y una indemnización. El vídeo no desaparece del todo —nada desaparece—, pero ya no es un secreto que te tenga cogido: es un delito que cometió otro."+moral("valiente",2)}escandalo17(5);return {txt:"Denuncias. Se archiva: servidor en otro país, cuenta falsa. Lo único que consigues es que ahora lo sepan también en el juzgado.",mal:1}}},
+  {t:"Pagar para que lo retiren",s:"2000, y a ver si cumplen",fn:()=>{if(y.dinero<2000){escandalo17(5);return {txt:"No tienes dos mil. Te lo recuerdan por mensaje cada lunes. Al tercer lunes se lo mandan a tu lista de contactos.",mal:1}}y.dinero-=2000;if(ch(.5)){escandalo17(1);return "Pagas. Lo quitan. Durante meses buscas tu nombre cada noche antes de dormir. No vuelve a salir."}return {txt:"Pagas. Lo quitan una semana. Luego piden otros dos mil. Eras más rentable de lo que pensabas.",mal:1}}},
+  {t:"Que lo vea quien quiera",fn:()=>{escandalo17(4);add("carisma",2);G.fama=(G.fama||0)+3;return "Decides no esconderte. Cuando alguien te lo insinúa, contestas que sí, que eres tú, y que sales favorecido. A la tercera vez deja de tener gracia para ellos. Lo que te avergonzaba tenía fuerza mientras te avergonzaba.".replace("favorecido",g("favorecido","favorecida"))}}]}};
+DEC.productor={man:1,tit:d=>"Una tarjeta en la mesilla",txt:d=>"",ops:d=>{const y=G.yo;return [
+  {t:"Ir a la prueba",fn:()=>{G.fl.porno=1;add("animo",2);return "Un polígono, una nave con focos y un sofá de escay. Te hacen fotos vestido, te explican los contratos, los análisis cada catorce días y lo que se cobra por cada cosa. Nadie te toca. «Aquí se viene a trabajar», dice una mujer con gafas de cerca. Quedas en su lista: puedes rodar cuando quieras.".replace("vestido",g("vestido","vestida"))}},
+  {t:"Guardar la tarjeta, por si acaso",fn:()=>{G.fl.porno=1;return "La metes en la cartera, detrás del carné. Hay semanas en que te acuerdas de ella al mirar el saldo."}},
+  {t:"Tirarla",fn:()=>"La rompes en cuatro y la tiras en una papelera lejos de casa, como si pesara."}]}};
+function menuRodaje(){const y=G.yo,ops=TEMA27.map((T,i)=>({t:T[0],s:T[1]+" · una jornada"+((G.rodT||{})[i]?" · ya has hecho "+G.rodT[i]:""),fn:()=>hacer(()=>{G.rod=(G.rod||0)+1;G.rodT=G.rodT||{};G.rodT[i]=(G.rodT[i]||0)+1;y.dinero+=T[1]+Math.min(600,(G.rod-1)*60);G.fama=(G.fama||0)+.6;add("animo",ch(.5)?2:-2);
+    let s=T[3]+" Cobras "+(T[1]+Math.min(600,(G.rod-1)*60))+" en mano y firmas la cesión de imagen.";if(G.rod==1){G.alias27=nombreNuevo(y.sexo)+" "+pick(["Luna","Diamante","Reyes","Fuego","Seda","de la Noche"]);s+=` Te piden un nombre artístico. Dices el primero que se te ocurre: ${G.alias27}. Ya es tuyo.`;logro("ruedas tu primera escena para adultos")}
+    if(G.rod==8)logro("tienes ya un nombre en el cine para adultos: "+G.alias27);
+    if(ch(T[2]/100+G.rod*.006)){escandalo17(4);const q=G.pareja&&viv(G.pareja);if(q&&ch(.6)){rel(q,-25);s+=` Semanas después, ${q.nombre} deja el móvil encima de la mesa, con el vídeo en pausa, justo en tu cara. No dice nada. Espera.`}else s+=" Semanas después, alguien te reconoce: lo notas en la sonrisa del camarero y en el silencio de la mesa de al lado.";return {txt:s,mal:1}}return s})}));
+  if(G.rod>=5&&!(G.trabajo&&G.trabajo.raro=="cinex")&&RAROS.cinex)ops.push({t:"Firmar en exclusiva con la productora",s:RAROS.cinex.s+" al mes · pasa a ser tu trabajo",fn:()=>hacer(()=>{G.trabajo={n:RAROS.cinex.n,s:RAROS.cinex.s,raro:"cinex",m:0};G.raroH=G.raroH||{};return `Contrato de un año, doce escenas al mes y tu nombre —${G.alias27||"el artístico"}— en la carátula. Ya no es un extra: es a lo que te dedicas.`})});
+  ops.push({t:"Dejarlo: romper la tarjeta",fn:()=>hacer(()=>{G.fl.porno=0;return "Llamas para que te borren de la lista. «Las escenas ya rodadas no se retiran, lo pone el contrato.» Lo pone. Lo firmaste."})});
+  abrirHoja("Rodajes"+(G.alias27?" · "+G.alias27:"")+(G.rod?" · "+G.rod+" escenas":""),ops)}
+function tickNuevo27(){if(G.espor>0&&ch(.08))G.espor--}
+function eventos27(ev,a){const y=G.yo;if(G.carcel||G.pend||a<18)return;const n=G.espor||0,F=G.fl;
+  if(n>=4&&!F.grabV)ev(.5+n*.12,"grabado27",()=>{F.grabV=y.edad;decidir("grabado",{});log("Te lo manda un número que no conoces: un enlace, sin texto. Lo abres. Eres tú, hace unas semanas, en una habitación que reconoces, con alguien que resulta que había dejado el móvil apoyado en la estantería. Tiene ya cuatro mil visitas y tu nombre de pila en el título.","mala")},1);
+  if(n>=3&&!F.porno&&!F.prodV&&a>=21&&a<50&&atr()>=45)ev(.4+n*.1,"productor27",()=>{F.prodV=1;decidir("productor",{});log("Por la mañana, quien ha dormido contigo ya se ha puesto la ropa y te mira con ojo de oficio. No pide el teléfono: deja una tarjeta en la mesilla. «Produzco cine para adultos. Lo de anoche no era trabajo, que conste. Pero tienes algo, y pagamos bien. Si un día te hace falta, llama.»")},1);
+  if(F.grabV&&y.edad-F.grabV>36&&!F.grabV2)ev(.6,"grabado27b",()=>{F.grabV2=1;add("animo",-4);log("Años después, alguien nuevo en tu vida te mira un segundo de más al presentarse. Lo ha visto. Aquel vídeo sigue en algún sitio, con otro título, dando vueltas sin ti.","mala")},1)}
+function acciones27(L,a){if(a>=21&&!G.carcel&&G.fl.porno)L.push({t:"Rodajes…"+(G.rod?" ("+G.rod+")":""),cls:"riesgo",abre:menuRodaje})}
 
 const SEL={origen:null,riqueza:null,sexo:null,don:null,hogar:null};
 function pantallaCrear(){
