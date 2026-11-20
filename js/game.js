@@ -3226,10 +3226,10 @@ function buildCores() {
   D.liftDisp = dynPlate(64, 32, (g, t) => { g.fillStyle = '#080808'; g.fillRect(0, 0, 64, 32); g.fillStyle = '#ff4a2a'; g.font = 'bold 24px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 32, 17); }); D.liftDisp.set('0');
   // botonera: un botón por planta (hasta 24, en tres columnas), con la pantalla encima
   const pcv = document.createElement('canvas'); pcv.width = 128; pcv.height = 256; const ptx = new THREE.CanvasTexture(pcv);
-  const pnl = new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.72), new THREE.MeshBasicMaterial({ map: ptx, color: 0xdddddd })); pnl.position.set(-3.078, 1.27, 5.4); pnl.rotation.y = -PI / 2; cab.add(pnl);
+  const pnl = new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.72), new THREE.MeshBasicMaterial({ map: ptx, color: 0xdddddd })); pnl.position.set(-3.092, 1.27, 5.4); pnl.rotation.y = -PI / 2; cab.add(pnl);
   const pfr = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.95, 0.42), lam('steel', 0x7a7e84)); pfr.position.set(-3.07, 1.36, 5.4); cab.add(pfr);
-  const dsp = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.08), new THREE.MeshBasicMaterial({ map: D.liftDisp.t })); dsp.position.set(-3.08, 1.74, 5.4); dsp.rotation.y = -PI / 2; cab.add(dsp);
-  const pkeys = []; for (let j = 0; j < 24; j++) { const col = j % 3, row = j / 3 | 0; const me = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.11), M.inv); me.position.set(-3.1, 0.955 + row * 0.09, 5.4 + (col - 1) * 0.12); me.visible = false; me.userData.key = 'ef' + j; cab.add(me); rayTargets.push(me); pkeys.push(me); }
+  const dsp = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.08), new THREE.MeshBasicMaterial({ map: D.liftDisp.t })); dsp.position.set(-3.092, 1.74, 5.4); dsp.rotation.y = -PI / 2; cab.add(dsp);
+  const pkeys = []; for (let j = 0; j < 24; j++) { const col = j % 3, row = j / 3 | 0; const me = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.1), M.inv); me.position.set(-3.13, 0.976 + row * 0.0858, 5.4 + (col - 1) * 0.115); me.visible = false; me.userData.key = 'ef' + j; cab.add(me); rayTargets.push(me); pkeys.push(me); }
   D.liftPanel = { cv: pcv, tx: ptx, keys: pkeys, sig: '' };
   D.core.g.add(cab); D.core.cab = cab;
   // la puerta de cristal del portal y el portero automático de cada torre (fuera, siempre visibles)
