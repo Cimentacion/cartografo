@@ -167,7 +167,7 @@ function buildOneMart(M) {
   const fruitC = [0xe8b81a, 0xc82a1a, 0x5aa83a, 0xe86a1a];
   for (let i = 0; i < 4; i++) { const u = (i < 2 ? -1.5 - i * 0.62 : 1.5 + (i - 2) * 0.62); if (u - 0.3 < u0 || u + 0.3 > u1) continue; B(0.55, 0.3, 0.4, lam('wood', 0xb89060), u, 0.35, -0.35); for (let j = 0; j < 8; j++) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.055, 6, 4), lam(null, fruitC[(i + M.k) % 4])); m.position.set(u - 0.2 + (j % 4) * 0.13, 0.54, -0.45 + (j / 4 | 0) * 0.16); G.add(m); } B(0.06, 0.35, 0.06, lam(null, 0x4a4a4a), u - 0.22, 0.17, -0.2); B(0.06, 0.35, 0.06, lam(null, 0x4a4a4a), u + 0.22, 0.17, -0.2); rect(u - 0.28, u + 0.28, -0.56, -0.12, 0.6); }
   B(1.5, 0.08, 0.1, lam(null, 0x1a1a1a), 0, 2.42, -0.02); for (const sx of [-0.75, 0.75]) B(0.08, 2.42, 0.1, lam(null, 0x1a1a1a), sx, 1.21, -0.02);
-  const glow = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 2.6), new THREE.MeshBasicMaterial({ map: D.glowTex || null, color: 0xfff4d0, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }));
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 2.6), new THREE.MeshBasicMaterial({ map: D.barGlow || (D.barGlow = glowTex(255, 255, 255)), color: 0xfff4d0, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }));
   glow.rotation.x = -PI / 2; glow.position.set(0, 0.075, -1.2); G.add(glow);
   const winM = new THREE.MeshBasicMaterial({ map: prodTex(5 + M.seed), color: 0xfff6e0 });
   for (const s2 of [-1, 1]) { const ucc = s2 * 1.75; if (ucc - 0.7 < u0 || ucc + 0.7 > u1) continue; P(1.3, 1.5, winM, ucc, 1.35, -0.025, 0, PI); }

@@ -167,7 +167,7 @@ function buildOneBar(B) {
   }
   // luces: plafones del color del bar y el resplandor de la puerta en la acera
   const lm = bas(TH.light); for (let v = 1.6; v < D - 0.5; v += 2.4) for (const u of [uc - Wd * 0.25, uc + Wd * 0.25]) { C(0.14, 0.18, 0.12, 8, lm, u, H - 0.06, v); }
-  const glow = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 2.6), new THREE.MeshBasicMaterial({ map: D.glowTex || null, color: TH.light, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending }));
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 2.6), new THREE.MeshBasicMaterial({ map: D.barGlow || (D.barGlow = glowTex(255, 255, 255)), color: TH.light, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending }));
   glow.rotation.x = -PI / 2; glow.position.set(0, 0.075, -1.2); G.add(glow);
   // marco de la puerta y un letrero luminoso encima
   Bx(1.7, 0.1, 0.12, trim, 0, 2.45, -0.03); for (const sx of [-0.8, 0.8]) Bx(0.1, 2.45, 0.12, trim, sx, 1.22, -0.03);
