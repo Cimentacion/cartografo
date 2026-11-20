@@ -259,7 +259,7 @@ button.ghost:disabled{opacity:.4;cursor:default}
         <dl class="keys" id="ctl-list"></dl>
       </div>
     </div>
-    <p class="ver">Kebab Poniente · 2026-11-20 14:29 UTC</p>
+    <p class="ver">Kebab Poniente · 2026-11-20 14:37 UTC</p>
   </div></section>
 
   <section id="note" class="ov" hidden><div class="paper">
@@ -2726,10 +2726,10 @@ function layoutLife() {
   // los negocios del mapa, en la fachada más cercana
   for (const [x, z, kind, name] of MAP.poi) {
     if (Math.hypot(x, z) > 240 && !(inGuiri(x, z) && /amenity:(bar|pub|nightclub)/.test(kind))) continue;   // la zona guiri entera, aunque esté lejos
-    const p = nearestFacade(x, z, 14, 3.2); if (!p) continue;
+    const gb = inGuiri(x, z) && /amenity:(bar|pub|nightclub)/.test(kind), p = nearestFacade(x, z, gb ? 26 : 14, 3.2); if (!p) continue;
     const w = Math.min(4.2, p.L - 0.4);
     // si el sitio está ocupado, a un lado o al otro
-    let ok = false; for (const ds of [0, 4.4, -4.4, 8.8, -8.8]) { const s = p.s + ds; if (s < w / 2 || s > p.L - w / 2) continue; const q = Object.assign({}, p, { s }), a = p.b.P[p.i], c = p.b.P[(p.i + 1) % p.b.P.length]; q.x = q.qx = a[0] + (c[0] - a[0]) * s / p.L; q.z = q.qz = a[1] + (c[1] - a[1]) * s / p.L; if (facadeFree(q, w, used)) { Object.assign(p, q); ok = true; break; } }
+    let ok = false; for (const ds of gb ? [0, 4.4, -4.4, 8.8, -8.8, 13.2, -13.2, 17.6, -17.6] : [0, 4.4, -4.4, 8.8, -8.8]) { const s = p.s + ds; if (s < w / 2 || s > p.L - w / 2) continue; const q = Object.assign({}, p, { s }), a = p.b.P[p.i], c = p.b.P[(p.i + 1) % p.b.P.length]; q.x = q.qx = a[0] + (c[0] - a[0]) * s / p.L; q.z = q.qz = a[1] + (c[1] - a[1]) * s / p.L; if (facadeFree(q, w, used)) { Object.assign(p, q); ok = true; break; } }
     if (!ok) continue;
     p.w = w; p.kind = kind; p.name = name; used.push(p); L.shops.push(p);
   }
@@ -4187,7 +4187,7 @@ function buildOneMart(M) {
   const fruitC = [0xe8b81a, 0xc82a1a, 0x5aa83a, 0xe86a1a];
   for (let i = 0; i < 4; i++) { const u = (i < 2 ? -1.5 - i * 0.62 : 1.5 + (i - 2) * 0.62); if (u - 0.3 < u0 || u + 0.3 > u1) continue; B(0.55, 0.3, 0.4, lam('wood', 0xb89060), u, 0.35, -0.35); for (let j = 0; j < 8; j++) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.055, 6, 4), lam(null, fruitC[(i + M.k) % 4])); m.position.set(u - 0.2 + (j % 4) * 0.13, 0.54, -0.45 + (j / 4 | 0) * 0.16); G.add(m); } B(0.06, 0.35, 0.06, lam(null, 0x4a4a4a), u - 0.22, 0.17, -0.2); B(0.06, 0.35, 0.06, lam(null, 0x4a4a4a), u + 0.22, 0.17, -0.2); rect(u - 0.28, u + 0.28, -0.56, -0.12, 0.6); }
   B(1.5, 0.08, 0.1, lam(null, 0x1a1a1a), 0, 2.42, -0.02); for (const sx of [-0.75, 0.75]) B(0.08, 2.42, 0.1, lam(null, 0x1a1a1a), sx, 1.21, -0.02);
-  const glow = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 2.6), new THREE.MeshBasicMaterial({ map: D.glowTex || null, color: 0xfff4d0, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }));
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 2.6), new THREE.MeshBasicMaterial({ map: D.barGlow || (D.barGlow = glowTex(255, 255, 255)), color: 0xfff4d0, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }));
   glow.rotation.x = -PI / 2; glow.position.set(0, 0.075, -1.2); G.add(glow);
   const winM = new THREE.MeshBasicMaterial({ map: prodTex(5 + M.seed), color: 0xfff6e0 });
   for (const s2 of [-1, 1]) { const ucc = s2 * 1.75; if (ucc - 0.7 < u0 || ucc + 0.7 > u1) continue; P(1.3, 1.5, winM, ucc, 1.35, -0.025, 0, PI); }
@@ -4393,7 +4393,7 @@ TOWN.bars = (() => {
     const at = (u, v) => [ox + ux * u + vx * v, oz + uz * u + vz * v];
     const ok = (u0, u1, D) => { for (let u = u0; u <= u1 + 1e-6; u += (u1 - u0) / 5) for (let v = 0.3; v <= D + 1e-6; v += D / 6) { const [x, z] = at(u, v); if (!pip(x, z, P) || coreAt(x, z, 0.8) >= 0) return false; if (TOWN.bld.some(o => o !== b && o.t !== 'roof' && pip(x, z, o.P))) return false; if (all().some(m => inMartM(m, x, z, 0.6))) return false; } return true; };
     let got = null;
-    for (const W2 of [9, 8, 7, 6.2, 5.4]) { for (const D of [11, 10, 9, 8, 7, 6]) { for (const sh of [0, -1, 1, -2, 2, -3, 3]) { const u0 = -W2 / 2 + sh, u1 = u0 + W2; if (u0 > -1.4 || u1 < 1.4) continue; if (ok(u0, u1, D)) { got = { u0, u1, D, W: W2 }; break; } } if (got) break; } if (got) break; }
+    for (const W2 of [9, 8, 7, 6.2, 5.4, 4.6]) { for (const D of [11, 10, 9, 8, 7, 6, 5]) { for (const sh of [0, -1, 1, -2, 2, -3, 3]) { const u0 = -W2 / 2 + sh, u1 = u0 + W2; if (u0 > -1.4 || u1 < 1.4) continue; if (ok(u0, u1, D)) { got = { u0, u1, D, W: W2 }; break; } } if (got) break; } if (got) break; }
     if (!got) continue;
     p.mart = 1; p.bar = 1; const k = out.length;
     out.push(Object.assign(B0, got, { k, name: p.name || 'BAR', th: barTheme(p.name, p.kind.split(':')[1]), seed: 5000 + k * 131, inside: false, anch: [] }));
@@ -4545,7 +4545,7 @@ function buildOneBar(B) {
   }
   // luces: plafones del color del bar y el resplandor de la puerta en la acera
   const lm = bas(TH.light); for (let v = 1.6; v < D - 0.5; v += 2.4) for (const u of [uc - Wd * 0.25, uc + Wd * 0.25]) { C(0.14, 0.18, 0.12, 8, lm, u, H - 0.06, v); }
-  const glow = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 2.6), new THREE.MeshBasicMaterial({ map: D.glowTex || null, color: TH.light, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending }));
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 2.6), new THREE.MeshBasicMaterial({ map: D.barGlow || (D.barGlow = glowTex(255, 255, 255)), color: TH.light, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending }));
   glow.rotation.x = -PI / 2; glow.position.set(0, 0.075, -1.2); G.add(glow);
   // marco de la puerta y un letrero luminoso encima
   Bx(1.7, 0.1, 0.12, trim, 0, 2.45, -0.03); for (const sx of [-0.8, 0.8]) Bx(0.1, 2.45, 0.12, trim, sx, 1.22, -0.03);
@@ -7840,7 +7840,7 @@ function turDijkstra(Gr, src, variant) {
   dist[src] = 0; push(0, src);
   while (heap.length) {
     const [d, i] = pop(); if (d > dist[i]) continue;
-    for (const [j, L] of Gr.adj[i]) { const w = L * (variant ? 1 + 2.6 * hash(i, j) : 1), nd = d + w; if (nd < dist[j]) { dist[j] = nd; prev[j] = i; push(nd, j); } }
+    for (const [j, L] of Gr.adj[i]) { const w = L * (variant ? 1 + 1.3 * hash(i, j) : 1), nd = d + w; if (nd < dist[j]) { dist[j] = nd; prev[j] = i; push(nd, j); } }
   }
   return { dist, prev };
 }
@@ -7869,7 +7869,7 @@ function turInit() {
   // ropa: camisetas de fútbol, de tirantes, quemados del sol
   const SKIN = [0xf0b4a0, 0xe8a088, 0xf4d0c0, 0xe0c0a8, 0xf8c8b8, 0xd89070], SHIRT = [0xd81a1a, 0xf0f0f0, 0x1a3aa8, 0x7ab8e8, 0x1a7a3a, 0xe8d020, 0x1a1a1a, 0xf08020, 0x8a1a3a, 0x3a3a3a], SHORT = [0xb8a070, 0x3a4a6a, 0x1a1a1a, 0x6a7a4a, 0xe8e0d0, 0x8a2a2a], HAIR = [0x5a3a1a, 0xc8a060, 0x1a1210, 0xd8c090, 0x8a3a1a];
   spots.forEach((s, i) => {
-    const m = { i, ax: s.x, az: s.z, ay: s.y, bar: s.bar, v: 2.6 + R() * 1.8, del: R() * 28, sk: SKIN[R() * SKIN.length | 0], sh: SHIRT[R() * SHIRT.length | 0], so: SHORT[R() * SHORT.length | 0], ha: R() < 0.3 ? -1 : HAIR[R() * HAIR.length | 0], bel: R() * R(), pint: R() < 0.6 ? 1 : 0, sc: 0.92 + R() * 0.22, sd: R() * 100 };
+    const m = { i, ax: s.x, az: s.z, ay: s.y, bar: s.bar, v: 0, tt: 52 + R() * 62, del: R() * 18, sk: SKIN[R() * SKIN.length | 0], sh: SHIRT[R() * SHIRT.length | 0], so: SHORT[R() * SHORT.length | 0], ha: R() < 0.3 ? -1 : HAIR[R() * HAIR.length | 0], bel: R() * R(), pint: R() < 0.6 ? 1 : 0, sc: 0.92 + R() * 0.22, sd: R() * 100 };
     // camino: (salir del bar) → la calle más cercana → por la variante que le toque → su sitio delante del local
     const pts = [[s.x, s.z]];
     if (s.bar >= 0) { const [x1, z1] = barW(s.B, 0, 0.9), [x2, z2] = barW(s.B, 0, -1.4); pts.push([x1, z1], [x2, z2]); }
@@ -7883,7 +7883,7 @@ function turInit() {
     });
     m.pts = pts;
     let L = 0; m.cum = [0]; for (let k = 1; k < pts.length; k++) { L += Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]); m.cum.push(L); }
-    m.L0 = L; m.arr = m.del + L / m.v; M.push(m);
+    m.L0 = L; m.v = clamp(L / m.tt, 3.4, 6.6); m.arr = m.del + L / m.v; M.push(m);   // corren: tienen que llegar antes de que amanezca
   });
   // sitios delante del cristal, por orden de llegada: los primeros pegados, los demás detrás, en abanico
   const slots = []; for (let k = 0; slots.length < M.length; k++) { const rx = 4.4 + k * 0.72, rz = 0.5 + k * 0.72, n = Math.max(6, Math.round((rx + rz) * 1.6)); for (let j = 0; j < n; j++) { const a = 0.12 + (PI - 0.24) * j / (n - 1); slots.push([Math.cos(a) * rx, 5.85 + Math.sin(a) * rz, k]); } }
@@ -8066,7 +8066,7 @@ function updTourists(dt) {
     if (dd > 5 || _to.md === 4) { rp[0] = _to.x; rp[1] = _to.z; } else { const k = Math.min(1, dt * (TUR.ch[i] ? 10 : 14)); rp[0] += (_to.x - rp[0]) * k; rp[1] += (_to.z - rp[1]) * k; }
     rp[2] = angLerp(rp[2], _to.y, Math.min(1, dt * 8));
     const far = Math.abs(rp[0] - cx) + Math.abs(rp[1] - cz) > 140;
-    const rate = _to.md === 2 ? 10.5 : _to.md === 1 ? 7.5 : _to.md === 3 ? 7 : 1.6; TUR.ph[i] += dt * rate * (0.85 + (m.sd % 1) * 0.3);
+    const rate = _to.md === 2 ? 6 + m.v * 1.1 : _to.md === 1 ? 7.5 : _to.md === 3 ? 7 : 1.6; TUR.ph[i] += dt * rate * (0.85 + (m.sd % 1) * 0.3);
     TUR.iA.setXYZW(i, TUR.ph[i], _to.md, 0, m.sd);
     // los caídos, tumbados en el suelo
     if (_to.md === 4) { _te.set(-PI / 2, rp[2], 0, 'YXZ'); _tp.set(rp[0], 0.13, rp[1]); }
