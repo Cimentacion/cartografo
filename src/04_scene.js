@@ -443,7 +443,7 @@ function buildWorld() {
   for (const o of scene.children) if ((pre.has(o) || !post.has(o)) && !o.isLight && (o.isMesh || o.isGroup || o.isPoints) && o !== D.shopGrp) mv.push(o);
   for (const o of mv) D.shopGrp.add(o);
   scene.add(D.shopGrp);
-  buildMart(); buildAO();
+  buildMart(); buildBars(); buildAO();
 }
 
 /* freidora de Tripo: aceite dentro de la cuba, cesta de rejilla de verdad con su mango y escurridor perforado al lado

@@ -12,6 +12,7 @@ function newWorld(n, prev) {
     sp: [0, 1, 2, 3].map(() => spitWire(7 + 2 * (keep && prev.up ? prev.up.big | 0 : 0))), bin: [12, 12, 12], chop: { t: -1, n: 0 }, fry: { s: 0, t: 0, u: 0, q: 1 }, sh: [0, 0, 0], gr: 1, am: 2, shl: 6,
     bd: { s: 0, t: 0, o: 0 }, bt: 0, cu: [], pl: {}, ev: prev ? prev.ev : [], es: prev ? prev.es : 0, id: prev ? prev.id : 1, used: [], nx: 6,
   };
+  w.tk = []; w.tz = []; w.hm = 0;   // turistas de la zona guiri: caídos, los que persiguen, aviso de las cuatro
   newStreet(w); w.aj = prev && prev.aj ? Object.assign({}, prev.aj) : {}; w.fm = keep && prev.fm ? prev.fm.slice() : [];
   newKitchen(w, keep ? prev : null);
   if (prev) for (const k in prev.pl) w.pl[k] = { h: 0, hp: 3, ko: 0 };
@@ -353,7 +354,7 @@ function doShoot(pid, o, d) {
     }
     if (best) hits[best.i] = (hits[best.i] || 0) + 1;
   }
-  shootDogs(o, d);
+  shootDogs(o, d); shootTourists(o, d);
   let human = null;
   for (const id in hits) {
     const c = W.cu.find(q => q.i === +id), n = hits[id]; ev('blood', c.x, c.z);
@@ -432,7 +433,7 @@ function simulate(dt) {
   for (const pid in W.pl) { const P = W.pl[pid]; if (P.ko > 0) { P.ko -= dt; if (P.ko <= 0) { P.ko = 0; P.hp = 3; } } }
   while (W.sx < SCHED.length && W.t >= SCHED[W.sx].t) { fire(SCHED[W.sx].k); W.sx++; }
   // clientes nuevos
-  if (W.t >= W.nx && W.t < NIGHT_LEN - 14 && !W.cl) {
+  if (W.t >= W.nx && W.t < NIGHT_LEN - 14 && W.t < HORDE_T + 40 && !W.cl) {   // con la marabunta en la calle ya no viene nadie a comer
     const humans = W.cu.filter(c => !c.an && c.st <= S_WAIT).length;
     if (humans < (np > 1 ? 5 : 4)) { const a = pickArch(); if (a >= 0) { const c = spawn(a, 0); seatAtTable(c); spawnGroup(c); } }
     const hr = W.t / HOUR_LEN, base = Math.max(17, 34 - W.n * 2.5);
@@ -447,6 +448,7 @@ function simulate(dt) {
   simSpits(dt);
   simKitchen(dt);
   simStreet(dt, np);
+  simTourists(dt);
   if (W.fry.s === 1) W.fry.t += dt;
   for (const c of W.cu) updCustomer(c, dt);
   if (W.cu.some(c => c.rm)) W.cu = W.cu.filter(c => !c.rm);
@@ -476,7 +478,7 @@ function simulate(dt) {
 }
 
 /* ================= RED: cooperativo por presencia ================= */
-const NETV = 11;   // versión del protocolo: todos tienen que jugar con la misma
+const NETV = 12;   // versión del protocolo: todos tienen que jugar con la misma
 const NET = { room: null, myId: 'solo', isHost: true, joined: false, acts: [], seq: 0, lastSeq: {}, lastHost: null, hostGone: 0, sendT: 0, others: [], remote: null, count: 1, evInit: false, code: '', badVer: false, lostSaid: false };
 
 /* Fuera de Claude (GitHub) la sala va por PeerJS, de navegador a navegador y sin cuentas.

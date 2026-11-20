@@ -37,11 +37,11 @@ function layoutLife() {
   const used = [], r = mulberry32(8812), L = { shops: [], vend: [], sleep: [] };
   // los negocios del mapa, en la fachada más cercana
   for (const [x, z, kind, name] of MAP.poi) {
-    if (Math.hypot(x, z) > 240) continue;
-    const p = nearestFacade(x, z, 14, 3.2); if (!p) continue;
+    if (Math.hypot(x, z) > 240 && !(inGuiri(x, z) && /amenity:(bar|pub|nightclub)/.test(kind))) continue;   // la zona guiri entera, aunque esté lejos
+    const gb = inGuiri(x, z) && /amenity:(bar|pub|nightclub)/.test(kind), p = nearestFacade(x, z, gb ? 26 : 14, 3.2); if (!p) continue;
     const w = Math.min(4.2, p.L - 0.4);
     // si el sitio está ocupado, a un lado o al otro
-    let ok = false; for (const ds of [0, 4.4, -4.4, 8.8, -8.8]) { const s = p.s + ds; if (s < w / 2 || s > p.L - w / 2) continue; const q = Object.assign({}, p, { s }), a = p.b.P[p.i], c = p.b.P[(p.i + 1) % p.b.P.length]; q.x = q.qx = a[0] + (c[0] - a[0]) * s / p.L; q.z = q.qz = a[1] + (c[1] - a[1]) * s / p.L; if (facadeFree(q, w, used)) { Object.assign(p, q); ok = true; break; } }
+    let ok = false; for (const ds of gb ? [0, 4.4, -4.4, 8.8, -8.8, 13.2, -13.2, 17.6, -17.6] : [0, 4.4, -4.4, 8.8, -8.8]) { const s = p.s + ds; if (s < w / 2 || s > p.L - w / 2) continue; const q = Object.assign({}, p, { s }), a = p.b.P[p.i], c = p.b.P[(p.i + 1) % p.b.P.length]; q.x = q.qx = a[0] + (c[0] - a[0]) * s / p.L; q.z = q.qz = a[1] + (c[1] - a[1]) * s / p.L; if (facadeFree(q, w, used)) { Object.assign(p, q); ok = true; break; } }
     if (!ok) continue;
     p.w = w; p.kind = kind; p.name = name; used.push(p); L.shops.push(p);
   }
