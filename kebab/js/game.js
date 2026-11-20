@@ -304,7 +304,7 @@ const MSG = { aj: 'Atajo abierto',
   robgone: 'El atracador sale corriendo.', deliv: 'Reparto recibido: verdura y cartuchos.', nodeliv: 'El repartidor se ha cansado de llamar.',
   blackout: 'Se ha ido la luz. El cuadro está en el almacén.', power: 'Vuelve la luz.', binfull: 'Verdura cortada y a la cubeta.',
   gone: 'Lo de la puerta deja de arañar.', lost: 'Un cliente se ha ido sin cenar.', ko: 'Te has desmayado. Te despiertas en la cocina.',
-  last: 'Son las seis. Persiana abajo cuando salga el último.', killed: 'Eso no era un cliente.', nowit: 'Nadie lo ha visto. Todavía.', phone: 'Suena el teléfono.', callmiss: 'Nadie ha cogido el teléfono.', spirits: 'El local está lleno de espíritus. Dejaste el cartel en ABIERTO.', dlcancel: 'Han cancelado un pedido a domicilio.', bikehit: 'Te han tirado de la moto.', carhit: 'Te ha atropellado un coche.',
+  horde: 'Las cuatro. Cierran los bares de la zona guiri… y vienen todos para acá. Echa el cierre.', last: 'Son las seis. Persiana abajo cuando salga el último.', killed: 'Eso no era un cliente.', nowit: 'Nadie lo ha visto. Todavía.', phone: 'Suena el teléfono.', callmiss: 'Nadie ha cogido el teléfono.', spirits: 'El local está lleno de espíritus. Dejaste el cartel en ABIERTO.', dlcancel: 'Han cancelado un pedido a domicilio.', bikehit: 'Te han tirado de la moto.', carhit: 'Te ha atropellado un coche.',
 };
 const RULES = [
   'Los clientes de verdad parpadean. Si no parpadea y tiene los ojos negros, no es un cliente.',
@@ -418,7 +418,7 @@ const STR = {
     dl_new: 'Pedido a domicilio: {0}', dl_head: 'REPARTO', dl_road: 'en camino', dl_late: 'llega tarde', dl_anon: 'número oculto', e_dl: 'Repartos', map_shop: 'KEBAB',
     u_bag_take_dr: 'Coger la bolsa para {0} (falta la bebida: hay máquinas por la calle)', u_vm_buy: 'Comprar {0} en la máquina ({1})', u_vm_bag: 'Comprar {0} para la bolsa ({1})', u_vm_nobag: 'En la bolsa no falta {0}', u_vm_cash: 'No hay dinero en la caja ({0})', u_bag_put: 'Meter {0} en la bolsa', u_bag_take: 'Coger la bolsa para {0}', u_bag_none: 'Bolsa de reparto (no hay pedidos)', u_bag_nomatch: 'Eso no va en ningún pedido a domicilio', u_bag_fill: 'Bolsa de reparto · {0}',
     u_bike_on: 'Subir a la Vespino', u_bike_busy: 'La Vespino está ocupada', u_bike_hands: 'En la moto solo cabe la bolsa de reparto', u_bike_off: 'Bajar de la moto', u_bike_slow: 'Frena para bajar',
-    u_gate_out: 'Abrir el portal', u_gate_open: '{0} · el portal está abierto', u_icom: 'Portero automático · {0}', u_icom_call: 'Llamar al {0} por el portero', u_portal_in: 'Entrar al portal ({0})', u_portal_shut: 'El portal está cerrado: llama por el portero de la cancela', u_portal_out: 'Salir al jardín', u_stairs: 'Ir por la escalera', u_to_lobby: 'Salir al portal', u_to_floor: 'Salir a la planta {0}', u_lift_call: 'Llamar al ascensor', u_lift_go: 'Pulsar el {0}', u_lift_no13: 'No hay botón del 13: pulsar el 12 y subir andando', u_lift_down: 'Pulsar el 0 (bajo)', u_lift_busy: 'El ascensor está en marcha', u_light: 'Encender la luz', u_flat: 'Puerta {0}', u_flat_down: 'No abre nadie: dijo que bajaba al portal', floor0: 'BAJO', floorN: 'PLANTA {0}', icom_who: 'Portero', icom0: 'No contesta nadie.', icom1: '¿Sí? Ah, el kebab. Sube, es el {0}.', icom2: '¡Ya bajo! Espérame en el portal.', icom3: '(solo se oye ruido... y la cancela se abre sola)', u_bottle_take: 'Coger el bote de {0} (mantén Fuego para echar)', u_bottle_back: 'Dejar el bote', splashed: '¡Te han puesto perdido de salsa!', coworker: 'Compañero', u_ring: 'Llamar al timbre', u_wrongdoor: 'No es aquí. Va a {0}', u_wait_door: 'Ya has llamado. Espera.', u_give_bag: 'Dar la bolsa a {0}',
+    u_gate_out: 'Abrir el portal', u_gate_open: '{0} · el portal está abierto', u_icom: 'Portero automático · {0}', u_icom_call: 'Llamar al {0} por el portero', u_portal_in: 'Entrar al portal ({0})', u_portal_shut: 'El portal está cerrado: llama por el portero de la cancela', u_portal_out: 'Salir al jardín', u_stairs: 'Ir por la escalera', u_to_lobby: 'Salir al portal', u_to_floor: 'Salir a la planta {0}', u_lift_call: 'Llamar al ascensor', u_lift_go: 'Pulsar el {0}', u_lift_open: 'Abrir la puerta', u_lift_no13: 'No hay botón del 13: pulsar el 12 y subir andando', u_lift_down: 'Pulsar el 0 (bajo)', u_lift_busy: 'El ascensor está en marcha', u_light: 'Encender la luz', u_flat: 'Puerta {0}', u_flat_down: 'No abre nadie: dijo que bajaba al portal', floor0: 'BAJO', floorN: 'PLANTA {0}', icom_who: 'Portero', icom0: 'No contesta nadie.', icom1: '¿Sí? Ah, el kebab. Sube, es el {0}.', icom2: '¡Ya bajo! Espérame en el portal.', icom3: '(solo se oye ruido... y la cancela se abre sola)', u_bottle_take: 'Coger el bote de {0} (mantén Fuego para echar)', u_bottle_back: 'Dejar el bote', splashed: '¡Te han puesto perdido de salsa!', coworker: 'Compañero', u_ring: 'Llamar al timbre', u_wrongdoor: 'No es aquí. Va a {0}', u_wait_door: 'Ya has llamado. Espera.', u_give_bag: 'Dar la bolsa a {0}',
     ride_kb: '[W] gas · [S] freno · [A/D] girar · [E] bajar', ride_touch: 'joystick: gas y dirección · Usar: bajar', ride_pad: 'stick: gas y dirección · (A) bajar',
     pause_t: 'Pausa', pause_p: 'El turno está parado. Nadie se mueve.', resume: 'Seguir', tb_pause: 'Pausa',
     sug_btn: 'Sugerencias', apk_dl: 'Descargar APK (Android)', sug_t: 'Sugerencias', sug_p: '¿Qué le falta al juego? ¿Qué falla? Escríbelo tal cual.', sug_send: 'Enviar', sug_close: 'Cerrar', sug_ok: 'Enviada. Le llega directamente a Claude.', sug_saved: 'Guardada en este móvil ({0} pendiente/s). Pulsa Compartir y elige la app de Claude para mandarlas.', sug_share: 'Compartir', sug_copied: 'Copiadas. Pégalas en el chat de Claude.', sug_empty: 'Escribe algo primero.', upd_ready: 'Hay una versión nueva del juego.', upd_now: 'Actualizar ahora',
@@ -460,7 +460,7 @@ const STR = {
     dl_new: 'Delivery order: {0}', dl_head: 'DELIVERY', dl_road: 'on the way', dl_late: 'running late', dl_anon: 'withheld number', e_dl: 'Deliveries', map_shop: 'KEBAB',
     u_bag_take_dr: 'Take the bag for {0} (drink missing: there are machines on the street)', u_vm_buy: 'Buy {0} from the machine ({1})', u_vm_bag: 'Buy {0} for the bag ({1})', u_vm_nobag: 'No {0} missing from the bag', u_vm_cash: 'Not enough cash in the till ({0})', u_bag_put: 'Put {0} in the bag', u_bag_take: 'Take the bag for {0}', u_bag_none: 'Delivery bag (no orders)', u_bag_nomatch: "That isn't part of any delivery order", u_bag_fill: 'Delivery bag · {0}',
     u_bike_on: 'Get on the Vespino', u_bike_busy: 'Someone is on the Vespino', u_bike_hands: 'Only the delivery bag fits on the moped', u_bike_off: 'Get off', u_bike_slow: 'Slow down to get off',
-    u_gate_out: 'Open the door', u_gate_open: '{0} · the door is open', u_icom: 'Intercom · {0}', u_icom_call: 'Buzz {0} on the intercom', u_portal_in: 'Go into the lobby ({0})', u_portal_shut: 'The lobby is locked: buzz the flat at the gate', u_portal_out: 'Go out to the garden', u_stairs: 'Take the stairs', u_to_lobby: 'Go out to the lobby', u_to_floor: 'Go out to floor {0}', u_lift_call: 'Call the lift', u_lift_go: 'Press {0}', u_lift_no13: 'There is no 13 button: press 12 and walk up', u_lift_down: 'Press 0 (ground)', u_lift_busy: 'The lift is moving', u_light: 'Turn the light on', u_flat: 'Door {0}', u_flat_down: 'Nobody answers: they said they were coming down', floor0: 'GROUND', floorN: 'FLOOR {0}', icom_who: 'Intercom', icom0: 'Nobody answers.', icom1: 'Yes? Oh, the kebab. Come up, it\'s {0}.', icom2: 'Coming down! Wait for me in the lobby.', icom3: '(only static... and the gate opens by itself)', u_bottle_take: 'Take the {0} bottle (hold Fire to squirt)', u_bottle_back: 'Put the bottle back', splashed: 'You just got covered in sauce!', coworker: 'Coworker', u_ring: 'Ring the bell', u_wrongdoor: 'Not here. It goes to {0}', u_wait_door: 'You already rang. Wait.', u_give_bag: 'Give the bag to {0}',
+    u_gate_out: 'Open the door', u_gate_open: '{0} · the door is open', u_icom: 'Intercom · {0}', u_icom_call: 'Buzz {0} on the intercom', u_portal_in: 'Go into the lobby ({0})', u_portal_shut: 'The lobby is locked: buzz the flat at the gate', u_portal_out: 'Go out to the garden', u_stairs: 'Take the stairs', u_to_lobby: 'Go out to the lobby', u_to_floor: 'Go out to floor {0}', u_lift_call: 'Call the lift', u_lift_go: 'Press {0}', u_lift_open: 'Open the doors', u_lift_no13: 'There is no 13 button: press 12 and walk up', u_lift_down: 'Press 0 (ground)', u_lift_busy: 'The lift is moving', u_light: 'Turn the light on', u_flat: 'Door {0}', u_flat_down: 'Nobody answers: they said they were coming down', floor0: 'GROUND', floorN: 'FLOOR {0}', icom_who: 'Intercom', icom0: 'Nobody answers.', icom1: 'Yes? Oh, the kebab. Come up, it\'s {0}.', icom2: 'Coming down! Wait for me in the lobby.', icom3: '(only static... and the gate opens by itself)', u_bottle_take: 'Take the {0} bottle (hold Fire to squirt)', u_bottle_back: 'Put the bottle back', splashed: 'You just got covered in sauce!', coworker: 'Coworker', u_ring: 'Ring the bell', u_wrongdoor: 'Not here. It goes to {0}', u_wait_door: 'You already rang. Wait.', u_give_bag: 'Give the bag to {0}',
     ride_kb: '[W] throttle · [S] brake · [A/D] steer · [E] get off', ride_touch: 'joystick: throttle and steering · Use: get off', ride_pad: 'stick: throttle and steering · (A) get off',
     pause_t: 'Paused', pause_p: 'The shift is on hold. Nothing moves.', resume: 'Resume', tb_pause: 'Pause',
     sug_btn: 'Suggestions', apk_dl: 'Download APK (Android)', sug_t: 'Suggestions', sug_p: 'What is the game missing? What is broken? Just write it.', sug_send: 'Send', sug_close: 'Close', sug_ok: 'Sent. It goes straight to Claude.', sug_saved: 'Saved on this phone ({0} pending). Tap Share and pick the Claude app to send them.', sug_share: 'Share', sug_copied: 'Copied. Paste them into the Claude chat.', sug_empty: 'Write something first.', upd_ready: 'A new version of the game is ready.', upd_now: 'Update now',
@@ -502,7 +502,7 @@ const STR = {
     dl_new: 'Comandă la domiciliu: {0}', dl_head: 'LIVRARE', dl_road: 'pe drum', dl_late: 'întârzie', dl_anon: 'număr ascuns', e_dl: 'Livrări', map_shop: 'KEBAB',
     u_bag_take_dr: 'Ia geanta pentru {0} (lipsește băutura: sunt automate pe stradă)', u_vm_buy: 'Cumpără {0} de la automat ({1})', u_vm_bag: 'Cumpără {0} pentru geantă ({1})', u_vm_nobag: 'În geantă nu lipsește {0}', u_vm_cash: 'Nu sunt destui bani în casă ({0})', u_bag_put: 'Pune {0} în geantă', u_bag_take: 'Ia geanta pentru {0}', u_bag_none: 'Geantă de livrare (nicio comandă)', u_bag_nomatch: 'Asta nu e în nicio comandă la domiciliu', u_bag_fill: 'Geantă de livrare · {0}',
     u_bike_on: 'Urcă pe Vespino', u_bike_busy: 'Vespino e ocupată', u_bike_hands: 'Pe moped încape doar geanta de livrare', u_bike_off: 'Coboară de pe moped', u_bike_slow: 'Frânează ca să cobori',
-    u_gate_out: 'Deschide ușa', u_gate_open: '{0} · ușa e deschisă', u_icom: 'Interfon · {0}', u_icom_call: 'Sună la {0} la interfon', u_portal_in: 'Intră în hol ({0})', u_portal_shut: 'Holul e închis: sună la interfonul de la poartă', u_portal_out: 'Ieși în grădină', u_stairs: 'Mergi pe scări', u_to_lobby: 'Ieși în hol', u_to_floor: 'Ieși la etajul {0}', u_lift_call: 'Cheamă liftul', u_lift_go: 'Apasă {0}', u_lift_no13: 'Nu există buton pentru 13: apasă 12 și urcă pe jos', u_lift_down: 'Apasă 0 (parter)', u_lift_busy: 'Liftul e în mișcare', u_light: 'Aprinde lumina', u_flat: 'Ușa {0}', u_flat_down: 'Nu deschide nimeni: a zis că coboară în hol', floor0: 'PARTER', floorN: 'ETAJUL {0}', icom_who: 'Interfon', icom0: 'Nu răspunde nimeni.', icom1: 'Da? A, kebabul. Urcă, e la {0}.', icom2: 'Cobor imediat! Așteaptă-mă în hol.', icom3: '(doar se aude zgomot... și poarta se deschide singură)', u_bottle_take: 'Ia sticla de {0} (ține apăsat Foc ca să stropești)', u_bottle_back: 'Lasă sticla', splashed: 'Te-au umplut de sos!', coworker: 'Coleg', u_ring: 'Sună la ușă', u_wrongdoor: 'Nu e aici. Merge la {0}', u_wait_door: 'Ai sunat deja. Așteaptă.', u_give_bag: '{0}: dă-i geanta',
+    u_gate_out: 'Deschide ușa', u_gate_open: '{0} · ușa e deschisă', u_icom: 'Interfon · {0}', u_icom_call: 'Sună la {0} la interfon', u_portal_in: 'Intră în hol ({0})', u_portal_shut: 'Holul e închis: sună la interfonul de la poartă', u_portal_out: 'Ieși în grădină', u_stairs: 'Mergi pe scări', u_to_lobby: 'Ieși în hol', u_to_floor: 'Ieși la etajul {0}', u_lift_call: 'Cheamă liftul', u_lift_go: 'Apasă {0}', u_lift_open: 'Deschide ușa', u_lift_no13: 'Nu există buton pentru 13: apasă 12 și urcă pe jos', u_lift_down: 'Apasă 0 (parter)', u_lift_busy: 'Liftul e în mișcare', u_light: 'Aprinde lumina', u_flat: 'Ușa {0}', u_flat_down: 'Nu deschide nimeni: a zis că coboară în hol', floor0: 'PARTER', floorN: 'ETAJUL {0}', icom_who: 'Interfon', icom0: 'Nu răspunde nimeni.', icom1: 'Da? A, kebabul. Urcă, e la {0}.', icom2: 'Cobor imediat! Așteaptă-mă în hol.', icom3: '(doar se aude zgomot... și poarta se deschide singură)', u_bottle_take: 'Ia sticla de {0} (ține apăsat Foc ca să stropești)', u_bottle_back: 'Lasă sticla', splashed: 'Te-au umplut de sos!', coworker: 'Coleg', u_ring: 'Sună la ușă', u_wrongdoor: 'Nu e aici. Merge la {0}', u_wait_door: 'Ai sunat deja. Așteaptă.', u_give_bag: '{0}: dă-i geanta',
     ride_kb: '[W] accelerezi · [S] frânezi · [A/D] virezi · [E] cobori', ride_touch: 'joystick: accelerație și direcție · Apasă: cobori', ride_pad: 'stick: accelerație și direcție · (A) cobori',
     pause_t: 'Pauză', pause_p: 'Tura e oprită. Nu se mișcă nimic.', resume: 'Continuă', tb_pause: 'Pauză',
     sug_btn: 'Sugestii', apk_dl: 'Descarcă APK (Android)', sug_t: 'Sugestii', sug_p: 'Ce-i lipsește jocului? Ce nu merge? Scrie-o așa cum e.', sug_send: 'Trimite', sug_close: 'Închide', sug_ok: 'Trimisă. Ajunge direct la Claude.', sug_saved: 'Salvată pe telefon ({0} în așteptare). Apasă Distribuie și alege aplicația Claude ca să le trimiți.', sug_share: 'Distribuie', sug_copied: 'Copiate. Lipește-le în chatul cu Claude.', sug_empty: 'Scrie ceva mai întâi.', upd_ready: 'Există o versiune nouă a jocului.', upd_now: 'Actualizează acum',
@@ -531,8 +531,8 @@ const RULESX = {
 };
 const MSGX = {
   es: MSG,
-  en: { aj: 'Shortcut open', karma: 'Julián leaves fed. The neighbourhood hears about it. (+reputation)', sinpa: 'He left without paying.', robbed: 'They emptied the till.', robgone: 'The robber runs off.', deliv: 'Delivery received: vegetables and shells.', nodeliv: 'The delivery man got tired of knocking.', blackout: 'The power is out. The fuse box is in the storeroom.', power: 'The lights are back.', binfull: 'Vegetables chopped and in the tub.', gone: 'The thing at the door stops scratching.', lost: 'A customer left without dinner.', ko: 'You passed out. You wake up in the kitchen.', last: "It's six. Shutters down when the last one leaves.", killed: 'That was not a customer.', nowit: 'Nobody saw it. Yet.', phone: 'The phone is ringing.', callmiss: 'Nobody picked up the phone.', spirits: 'The shop is full of spirits. You left the sign on OPEN.', dlcancel: 'A delivery order was cancelled.', bikehit: 'You got knocked off the moped.', carhit: 'A car ran you over.' },
-  ro: { aj: 'Scurtătură deschisă', karma: 'Julián pleacă sătul. Află tot cartierul. (+reputație)', sinpa: 'A plecat fără să plătească.', robbed: 'Ți-au golit casa de marcat.', robgone: 'Hoțul o ia la fugă.', deliv: 'Livrare primită: legume și cartușe.', nodeliv: 'Livratorul s-a săturat să bată la ușă.', blackout: 'S-a luat curentul. Tabloul e în magazie.', power: 'A revenit curentul.', binfull: 'Legume tăiate și puse în tavă.', gone: 'Ce era la ușă nu mai zgârie.', lost: 'Un client a plecat nemâncat.', ko: 'Ai leșinat. Te trezești în bucătărie.', last: 'E șase. Tragi oblonul când pleacă ultimul.', killed: 'Ăla nu era client.', nowit: 'Nu a văzut nimeni. Încă.', phone: 'Sună telefonul.', callmiss: 'N-a răspuns nimeni la telefon.', spirits: 'Localul e plin de spirite. Ai lăsat plăcuța pe DESCHIS.', dlcancel: 'S-a anulat o comandă la domiciliu.', bikehit: 'Te-au dat jos de pe moped.', carhit: 'Te-a lovit o mașină.' },
+  en: { horde: "Four o'clock. The bars in the tourist strip are closing… and they're all coming this way. Lock up.", aj: 'Shortcut open', karma: 'Julián leaves fed. The neighbourhood hears about it. (+reputation)', sinpa: 'He left without paying.', robbed: 'They emptied the till.', robgone: 'The robber runs off.', deliv: 'Delivery received: vegetables and shells.', nodeliv: 'The delivery man got tired of knocking.', blackout: 'The power is out. The fuse box is in the storeroom.', power: 'The lights are back.', binfull: 'Vegetables chopped and in the tub.', gone: 'The thing at the door stops scratching.', lost: 'A customer left without dinner.', ko: 'You passed out. You wake up in the kitchen.', last: "It's six. Shutters down when the last one leaves.", killed: 'That was not a customer.', nowit: 'Nobody saw it. Yet.', phone: 'The phone is ringing.', callmiss: 'Nobody picked up the phone.', spirits: 'The shop is full of spirits. You left the sign on OPEN.', dlcancel: 'A delivery order was cancelled.', bikehit: 'You got knocked off the moped.', carhit: 'A car ran you over.' },
+  ro: { horde: 'Ora patru. Se închid barurile din zona turiștilor… și vin toți încoace. Trage obloanele.', aj: 'Scurtătură deschisă', karma: 'Julián pleacă sătul. Află tot cartierul. (+reputație)', sinpa: 'A plecat fără să plătească.', robbed: 'Ți-au golit casa de marcat.', robgone: 'Hoțul o ia la fugă.', deliv: 'Livrare primită: legume și cartușe.', nodeliv: 'Livratorul s-a săturat să bată la ușă.', blackout: 'S-a luat curentul. Tabloul e în magazie.', power: 'A revenit curentul.', binfull: 'Legume tăiate și puse în tavă.', gone: 'Ce era la ușă nu mai zgârie.', lost: 'Un client a plecat nemâncat.', ko: 'Ai leșinat. Te trezești în bucătărie.', last: 'E șase. Tragi oblonul când pleacă ultimul.', killed: 'Ăla nu era client.', nowit: 'Nu a văzut nimeni. Încă.', phone: 'Sună telefonul.', callmiss: 'N-a răspuns nimeni la telefon.', spirits: 'Localul e plin de spirite. Ai lăsat plăcuța pe DESCHIS.', dlcancel: 'S-a anulat o comandă la domiciliu.', bikehit: 'Te-au dat jos de pe moped.', carhit: 'Te-a lovit o mașină.' },
 };
 const GENX = {
   es: GEN,
@@ -891,6 +891,23 @@ const ATAJOS = [
   { x: 107.66, z: -211.23, ux: 0.675, uz: 0.738, s: 1 },
   { x: 238.99, z: -11.00, ux: 0.994, uz: 0.111, s: 1 }
 ];
+
+/* ================= ZONA GUIRI =================
+   Calle Gerona, Avenida de Filipinas, Derramador y alrededores (Rincón de Loix): los bares, pubs y cabarets
+   de verdad (OpenStreetMap). Por la noche están llenos de turistas que no son del todo turistas. */
+const GUIRI = { x0: -322, x1: 42, z0: -342, z1: -132 };
+function inGuiri(x, z, m) { m = m || 0; return x > GUIRI.x0 - m && x < GUIRI.x1 + m && z > GUIRI.z0 - m && z < GUIRI.z1 + m; }
+// tema del interior según el nombre del bar
+function barTheme(name, kind) {
+  const n = (name || '').toLowerCase();
+  if (/cabaret|california|valentine|palladium|insomnia|sin city|jailrock|rocker/.test(n) || kind === 'nightclub') return 'cab';
+  if (/saloon|dollar|western/.test(n)) return 'wst';
+  if (/aussie|outback|waikiki|calypso|banana|kai |jungle|beach|surprise|bikini|oasis|tiki/.test(n)) return 'tro';
+  if (/times square|talk of|last stop|why not|meeting|philippines|station|explorers|picadilly|4 kings|black chicken|zest/.test(n)) return 'spt';
+  return 'pub';
+}
+// la hora a la que cierran los bares y salen todos a por el local
+const HORDE_T = 5 * HOUR_LEN;   // 04:00
 
 /* ================= AUDIO (todo sintetizado) ================= */
 const AU = {
@@ -1461,7 +1478,7 @@ function buildWorld() {
   for (const o of scene.children) if ((pre.has(o) || !post.has(o)) && !o.isLight && (o.isMesh || o.isGroup || o.isPoints) && o !== D.shopGrp) mv.push(o);
   for (const o of mv) D.shopGrp.add(o);
   scene.add(D.shopGrp);
-  buildMart(); buildAO();
+  buildMart(); buildBars(); buildAO();
 }
 
 /* freidora de Tripo: aceite dentro de la cuba, cesta de rejilla de verdad con su mango y escurridor perforado al lado
@@ -2346,11 +2363,11 @@ function layoutLife() {
   const used = [], r = mulberry32(8812), L = { shops: [], vend: [], sleep: [] };
   // los negocios del mapa, en la fachada más cercana
   for (const [x, z, kind, name] of MAP.poi) {
-    if (Math.hypot(x, z) > 240) continue;
-    const p = nearestFacade(x, z, 14, 3.2); if (!p) continue;
+    if (Math.hypot(x, z) > 240 && !(inGuiri(x, z) && /amenity:(bar|pub|nightclub)/.test(kind))) continue;   // la zona guiri entera, aunque esté lejos
+    const gb = inGuiri(x, z) && /amenity:(bar|pub|nightclub)/.test(kind), p = nearestFacade(x, z, gb ? 26 : 14, 3.2); if (!p) continue;
     const w = Math.min(4.2, p.L - 0.4);
     // si el sitio está ocupado, a un lado o al otro
-    let ok = false; for (const ds of [0, 4.4, -4.4, 8.8, -8.8]) { const s = p.s + ds; if (s < w / 2 || s > p.L - w / 2) continue; const q = Object.assign({}, p, { s }), a = p.b.P[p.i], c = p.b.P[(p.i + 1) % p.b.P.length]; q.x = q.qx = a[0] + (c[0] - a[0]) * s / p.L; q.z = q.qz = a[1] + (c[1] - a[1]) * s / p.L; if (facadeFree(q, w, used)) { Object.assign(p, q); ok = true; break; } }
+    let ok = false; for (const ds of gb ? [0, 4.4, -4.4, 8.8, -8.8, 13.2, -13.2, 17.6, -17.6] : [0, 4.4, -4.4, 8.8, -8.8]) { const s = p.s + ds; if (s < w / 2 || s > p.L - w / 2) continue; const q = Object.assign({}, p, { s }), a = p.b.P[p.i], c = p.b.P[(p.i + 1) % p.b.P.length]; q.x = q.qx = a[0] + (c[0] - a[0]) * s / p.L; q.z = q.qz = a[1] + (c[1] - a[1]) * s / p.L; if (facadeFree(q, w, used)) { Object.assign(p, q); ok = true; break; } }
     if (!ok) continue;
     p.w = w; p.kind = kind; p.name = name; used.push(p); L.shops.push(p);
   }
@@ -2884,7 +2901,7 @@ function coreAt(x, z, m) {
   for (const C of TOWN.del) { if (Math.abs(x - C.ox) > 12 || Math.abs(z - C.oz) > 12) continue; const [u, v] = cl(C, x, z); if (u > CORE.u0 - m && u < CORE.u1 + m && v > -m && v < CORE.v1 + m) return C.k; }
   return -1;
 }
-function inBld(x, z) { return coreAt(x, z) >= 0 || inMart(x, z); }
+function inBld(x, z) { return coreAt(x, z) >= 0 || inMart(x, z) || (typeof inBar === 'function' && inBar(x, z)); }
 function inMod(x, z) { return inBld(x, z); }
 // altura del suelo: escaleras y ascensor de verdad
 function groundY(x, z, y) {
@@ -2954,7 +2971,7 @@ function buildBuildings() {
       const a = P[i], c = P[(i + 1) % n], L = Math.hypot(c[0] - a[0], c[1] - a[1]); if (L < 0.02) continue;
       const cut = b.host ? shopClip(a[0], a[1], c[0], c[1]) : null, C = portal[b.i + ':' + i];
       // planta baja (con hueco para el local o para el portal) y el resto de la fachada
-      const MTs = (TOWN.marts || []).filter(m => m.b === b && m.i === i).sort((p, q) => p.s - q.s);
+      const MTs = (TOWN.marts || []).concat(TOWN.bars || []).filter(m => m.b === b && m.i === i).sort((p, q) => p.s - q.s);
       let spans = cut ? [[0, cut[0]], [cut[1], 1]] : C ? [[0, (C.s0 - 1.7) / L], [(C.s0 + 0.3) / L, 1]] : [[0, 1]];
       if (!cut && !C && MTs.length) { spans = []; let s0 = 0; for (const MT of MTs) { spans.push([s0, (MT.s - 0.75) / L]); s0 = (MT.s + 0.75) / L; const x0 = lerp(a[0], c[0], (MT.s - 0.75) / L), z0 = lerp(a[1], c[1], (MT.s - 0.75) / L), x1 = lerp(a[0], c[0], (MT.s + 0.75) / L), z1 = lerp(a[1], c[1], (MT.s + 0.75) / L); vquad(x0, z0, x1, z1, 2.4, gh, u, 4, gnd[gi]); addSeg(x0, z0, x1, z1, 2.4, b.h); } spans.push([s0, 1]); }
       for (const [s, e] of spans) { if (e - s < 1e-3) continue; const x0 = lerp(a[0], c[0], s), z0 = lerp(a[1], c[1], s), x1 = lerp(a[0], c[0], e), z1 = lerp(a[1], c[1], e); vquad(x0, z0, x1, z1, 0, gh, u + s * L, 4, gnd[gi]); addSeg(x0, z0, x1, z1, 0, b.h); }
@@ -3014,10 +3031,43 @@ function buildBuildings() {
 // pared vertical en coordenadas del núcleo (u,v), mirando hacia (nu,nv)
 function cq(list, u0, v0, u1, v1, y0, y1, tile) { const L = Math.hypot(u1 - u0, v1 - v0); vquad(u0, v0, u1, v1, y0, y1, 0, tile || 1.4, list); }
 function cfloor(list, u0, u1, v0, v1, y, tile, down) { const g = polyGeo([[u0, v0], [u1, v0], [u1, v1], [u0, v1]], y, tile || 1.2, down); if (g) list.push(g); }
+/* ---------- cada portal, de su padre y de su madre ----------
+   Misma planta (escalera, ascensor y puertas en su sitio), pero suelos, paredes, zócalos, puertas, cabina,
+   luz y lo que hay en el portal cambian de un edificio a otro. */
+const CORE_STYLES = [
+  { n: 'setentas', fl0: ['marb', 0xd8d0c0], fl1: ['terr', 0xc0b8a8], wa0: ['plas2', 0xe0d8c8], wa1: ['plas2', 0xd0c4a0], dd0: ['terr', 0xa89478], dd1: ['plas2', 0xa89a7a], tr: ['marb', 0x5a4a3c], co: ['plas', 0xe2dace], inl: ['marb', 0x7a6650], door: ['wood2', 0x5a3a26], cab: ['steel', 0xa8acb2], lc: 0xfff0dc, zh0: 1.0, zh1: 0.85, lob: ['bench', 'mirror'], land: ['pic'] },
+  { n: 'hidráulico', fl0: ['ihyd', 0xffffff], fl1: ['ihyd', 0xe8e0d8], wa0: ['iwp1', 0xd8d0b8], wa1: ['iwp1', 0xc8c0a8], dd0: ['iplank', 0x7a5a3a], dd1: ['iplank', 0x6a4a30], tr: ['wood2', 0x3a2414], co: ['plas', 0xd8ccb0], inl: ['wood2', 0x4a2a18], door: ['wood2', 0x2a4a2a], cab: ['wood2', 0x8a5a34], lc: 0xffe2b0, zh0: 1.3, zh1: 1.2, lob: ['plants', 'pic', 'board'], land: ['plant', 'pic'] },
+  { n: 'lujo noventas', fl0: ['itrav', 0xf0e8d8], fl1: ['imarb', 0xe8e4dc], wa0: ['imarb', 0xe8e0d0], wa1: ['plas', 0xe8e0d0], dd0: ['ionyx', 0xd8c8a8], dd1: ['imarb', 0xc8c0b0], tr: ['steel', 0xc8a050], co: ['ionyx', 0xe0d0b0], inl: ['ionyx', 0x8a6a40], door: ['plas', 0xf0ece4], cab: ['steel', 0xc8a868], lc: 0xfff4e0, zh0: 1.2, zh1: 1.0, lob: ['desk', 'mirror', 'plants'], land: ['plant', 'ext'] },
+  { n: 'obrero', fl0: ['it139', 0xb8b0a0], fl1: ['it139', 0xa8a090], wa0: ['ipeel', 0xc8c4b0], wa1: ['ipeel2', 0xb8b4a0], dd0: ['xbrk', 0x9a8a7a], dd1: ['plas', 0x7a8a6a], tr: ['plas', 0x6a6a5a], co: ['conc', 0xb0aca0], inl: ['conc2', 0x7a7468], door: ['steel2', 0x6a7078], cab: ['steel2', 0x8a8a84], lc: 0xe8fff0, zh0: 1.1, zh1: 1.1, lob: ['board', 'bike'], land: ['ext'] },
+  { n: 'gresite', fl0: ['iterr', 0xe0dcd0], fl1: ['iterr', 0xd0ccc0], wa0: ['plas', 0xf0f0ea], wa1: ['plas', 0xe8ece8], dd0: ['xgres', 0x8ac0e8], dd1: ['xgres', 0x8ab8e0], tr: ['plas', 0x2a5a8a], co: ['plas', 0xf0f0ea], inl: ['xgres', 0x3a7ab8], door: ['plas', 0x2a5a9a], cab: ['steel', 0xb8c0c8], lc: 0xf0f8ff, zh0: 1.4, zh1: 1.2, lob: ['plants', 'sofa', 'board'], land: ['plant'] },
+  { n: 'moqueta', fl0: ['ipwood', 0xc8a078], fl1: ['icarp', 0x8a3a3a], wa0: ['iwp2', 0xd8c8a0], wa1: ['iwp2', 0xc8b890], dd0: ['wood2', 0x5a3420], dd1: ['wood2', 0x5a3420], tr: ['wood2', 0x3a2010], co: ['plas', 0xd8c8a8], inl: ['icarp', 0x6a1a1a], door: ['wood2', 0x3a2010], cab: ['wood2', 0x6a3a20], lc: 0xffd8a0, zh0: 0.95, zh1: 0.95, lob: ['sofa', 'pic', 'mirror'], land: ['pic', 'pic2'] },
+  { n: 'sesentas', fl0: ['xmosa', 0xffffff], fl1: ['xmosa', 0xe8e0d0], wa0: ['plas2', 0xe8d8b0], wa1: ['plas2', 0xe0d0a8], dd0: ['xtw', 0xe8c890], dd1: ['xtw', 0xd8b880], tr: ['plas', 0xc86a20], co: ['plas2', 0xe8d8b0], inl: ['terr', 0x8a5a2a], door: ['plas', 0xc8641a], cab: ['plas', 0xd88a3a], lc: 0xfff0d0, zh0: 1.5, zh1: 1.5, lob: ['bench', 'plants'], land: ['plant', 'ext'] },
+  { n: 'hormigón', fl0: ['xcon46', 0xc8c8c4], fl1: ['xcon47', 0xb8b8b4], wa0: ['plas', 0xf4f4f2], wa1: ['plas', 0xeeeeec], dd0: ['plas', 0x2a2a2a], dd1: ['plas', 0x3a3a3a], tr: ['plas', 0x1a1a1a], co: ['conc', 0xd0d0cc], inl: ['plas', 0x2a2a2a], door: ['plas', 0x4a4e54], cab: ['steel', 0x9a9ea4], lc: 0xe8f0ff, zh0: 0.12, zh1: 0.12, lob: ['bench', 'plants', 'mirror'], land: ['pic'] },
+];
+function coreStyle(C) {
+  if (C.sty !== undefined) return C.sty;
+  const h = (Math.abs(Math.round(C.ox * 13.7 + C.oz * 7.3)) * 2654435761 >>> 0) % 997, b = C.b, n = CORE_STYLES.length;
+  let s = h % n;
+  if (b.t === 'hot') s = [2, 5, 7][h % 3];          // hoteles: mármol, moqueta u hormigón pulido
+  else if (C.L >= 16 && h % 3) s = [2, 4, 7][h % 3]; // torres altas
+  // que dos portales vecinos no salgan iguales
+  for (const o of TOWN.del) if (o !== C && o.sty === s && Math.hypot(o.ox - C.ox, o.oz - C.oz) < 60) { s = (s + 1 + (h % (n - 1))) % n; break; }
+  return C.sty = s;
+}
+function picTex(seed) {
+  const r = mulberry32(seed);
+  return ctex(96, 72, (g) => {
+    const k = r(); g.fillStyle = '#c8a050'; g.fillRect(0, 0, 96, 72); g.fillStyle = '#2a2018'; g.fillRect(5, 5, 86, 62);
+    if (k < 0.33) { const gr = g.createLinearGradient(0, 8, 0, 64); gr.addColorStop(0, '#6a8ab8'); gr.addColorStop(0.6, '#e8c890'); gr.addColorStop(1, '#3a6a8a'); g.fillStyle = gr; g.fillRect(7, 7, 82, 58); g.fillStyle = '#2a3a2a'; g.beginPath(); g.moveTo(7, 50); g.lineTo(30, 30); g.lineTo(52, 46); g.lineTo(70, 26); g.lineTo(89, 44); g.lineTo(89, 65); g.lineTo(7, 65); g.fill(); }
+    else if (k < 0.66) { g.fillStyle = '#e8e0c8'; g.fillRect(7, 7, 82, 58); for (let i = 0; i < 7; i++) { g.fillStyle = ['#c81a1a', '#1a3a8a', '#e8b81a', '#1a1a1a'][i % 4]; g.fillRect(10 + r() * 60, 10 + r() * 40, 8 + r() * 20, 8 + r() * 16); } }
+    else { g.fillStyle = '#3a2a1a'; g.fillRect(7, 7, 82, 58); g.fillStyle = '#d8b890'; g.beginPath(); g.ellipse(48, 30, 13, 16, 0, 0, PI * 2); g.fill(); g.fillStyle = '#1a1210'; g.fillRect(34, 46, 28, 19); g.fillStyle = '#0a0808'; g.fillRect(42, 26, 3, 2); g.fillRect(52, 26, 3, 2); }
+  });
+}
+function boardTex() { return ctex(96, 64, (g) => { g.fillStyle = '#b8905a'; g.fillRect(0, 0, 96, 64); g.fillStyle = '#5a3a1a'; g.fillRect(0, 0, 96, 3); g.fillRect(0, 61, 96, 3); for (let i = 0; i < 7; i++) { g.fillStyle = ['#f0ece0', '#f0e080', '#e0f0ff', '#ffd8d0'][i % 4]; const x = 6 + (i % 4) * 22, y = 8 + (i / 4 | 0) * 26; g.fillRect(x, y, 18, 22); g.fillStyle = '#3a3a3a'; for (let l = 0; l < 4; l++) g.fillRect(x + 2, y + 4 + l * 4, 12, 1); g.fillStyle = '#c81a1a'; g.fillRect(x + 8, y, 2, 2); } g.fillStyle = '#1a1a1a'; g.font = 'bold 7px sans-serif'; g.fillText('COMUNIDAD', 30, 61); }); }
 function buildCores() {
   if (!TOWN.del.length) return;
   // plantilla de una planta (coordenadas del núcleo: x = u, z = v); dos versiones: planta baja (portal) y planta de pisos
-  const mk = (ground) => {
+  const mk = (ground, S) => {
     const fl = [], ce = [], wa = [], st = [], sl = [], dk = [];
     cfloor(fl, -4.6, 1.9, 0, 6.2, 0.005, ground ? 1.2 : 1.0); cfloor(ce, -4.6, 1.9, 0, 6.2, 2.8, 2, true);
     // paredes del rellano (mirando hacia dentro); vquad mira a la derecha de a→b
@@ -3064,8 +3114,8 @@ function buildCores() {
     for (const [u0, v0, u1, v1, g] of WALLS) {
       strip(tr, u0, v0, u1, v1, 0, 0.12, 0.025, g);                 // rodapié
       strip(tr, u0, v0, u1, v1, 2.66, 0.14, 0.09, [], 0.8);           // moldura del techo
-      strip(dd, u0, v0, u1, v1, 0.12, ground ? 1.0 : 0.85, 0.008, g, 0.6);   // zócalo de azulejo
-      strip(tr, u0, v0, u1, v1, ground ? 1.12 : 0.97, 0.05, 0.03, g); // remate del zócalo
+      const zh = ground ? S.zh0 : S.zh1; strip(dd, u0, v0, u1, v1, 0.12, zh, 0.008, g, 0.6);   // zócalo (de azulejo, madera, gresite…)
+      if (zh > 0.3) strip(tr, u0, v0, u1, v1, zh + 0.12, 0.05, 0.03, g); // remate del zócalo
     }
     // esquinas achaflanadas (en diagonal), con su rodapié
     for (const [cu, cv, a] of [[-4.6, 0.02, PI / 4], [1.9, 6.2, PI / 4], [-3.0, 6.2, -PI / 4]]) {
@@ -3101,32 +3151,52 @@ function buildCores() {
     for (let i = 0; i < 4; i++) { const t = i / 3, v = 1.7 + t * 3.2; rod(rl, [4.6, 0.85 + t * 1.42, v], [4.53, 0.88 + t * 1.42, v], 0.012); rod(rl, [1.9, 2.35 + (1 - t) * 1.42, v], [1.97, 2.38 + (1 - t) * 1.42, v], 0.012); }
     // apliques de pared (se encienden con el temporizador)
     for (const [u, v, ry] of [[-4.58, 0.6, PI / 2], [1.88, 3.6, -PI / 2], [-2.9, 5.4, PI / 2]]) { const g = new THREE.CylinderGeometry(0.11, 0.11, 0.2, 8, 1, false, 0, PI); g.rotateY(ry - PI / 2); g.translate(u, 1.95, v); lt.push(g); }
+    const pot = [], leaf = [], pic = [], pic2 = [], ext = [], sof = [], brd = [], bk = [];
+    const L = ground ? S.lob : S.land, has = (k) => L.indexOf(k) >= 0;
+    const plant = (u, v) => { pot.push(cgeo(0.2, 0.15, 0.4, 10, u, 0.2, v)); for (let i = 0; i < 7; i++) { const g = new THREE.PlaneGeometry(0.18, 0.62); g.translate(0, 0.31, 0); g.rotateX(-0.35 - (i % 3) * 0.2); g.rotateY(i * 0.9); g.translate(u, 0.38, v); leaf.push(g); } };
     if (ground) {
-      // buzones en la pared izquierda, espejo con marco, banco de piedra, columna exenta y felpudo
+      // buzones en la pared izquierda, columna exenta y felpudo (en todos)
       rl.push(bgeo(0.16, 1.0, 2.16, -4.52, 1.35, 1.9, 0, 1)); mb.push(pplate(2.1, 0.95, -4.435, 1.35, 1.9, 1, 0));
-      rl.push(bgeo(0.06, 1.7, 1.1, -0.9, 1.55, 6.16, PI / 2, 0.5)); mi.push(pplate(0.98, 1.58, -0.9, 1.55, 6.125, 0, -1));
-      co.push(bgeo(1.4, 0.08, 0.42, -0.9, 0.46, 5.95, 0, 0.8), bgeo(0.2, 0.42, 0.36, -1.45, 0.21, 5.95, 0, 0.8), bgeo(0.2, 0.42, 0.36, -0.35, 0.21, 5.95, 0, 0.8));
-      { const g = new THREE.CylinderGeometry(0.17, 0.19, 2.6, 8); g.translate(0.4, 1.3, 3.7); co.push(g); tr.push(cgeo(0.26, 0.28, 0.16, 8, 0.4, 0.08, 3.7), cgeo(0.25, 0.2, 0.16, 8, 0.4, 2.62, 3.7)); }
+      { const g = new THREE.CylinderGeometry(0.17, 0.19, 2.6, S.n === 'hormigón' ? 4 : 8); if (S.n === 'hormigón') g.rotateY(PI / 4); g.translate(0.4, 1.3, 3.7); co.push(g); tr.push(cgeo(0.26, 0.28, 0.16, 8, 0.4, 0.08, 3.7), cgeo(0.25, 0.2, 0.16, 8, 0.4, 2.62, 3.7)); }
       { const g = polyGeo([[-1.4, 0.15], [0.0, 0.15], [0.0, 1.05], [-1.4, 1.05]], 0.014, 1); if (g) dk.push(g); }
+      if (has('mirror')) { rl.push(bgeo(0.06, 1.7, 1.1, has('desk') ? 0.9 : -0.9, 1.55, 6.16, PI / 2, 0.5)); mi.push(pplate(0.98, 1.58, has('desk') ? 0.9 : -0.9, 1.55, 6.125, 0, -1)); }
+      // al fondo: banco de piedra, sofá o mostrador del conserje (siempre en el mismo hueco)
+      if (has('bench')) co.push(bgeo(1.4, 0.08, 0.42, -0.9, 0.46, 5.95, 0, 0.8), bgeo(0.2, 0.42, 0.36, -1.45, 0.21, 5.95, 0, 0.8), bgeo(0.2, 0.42, 0.36, -0.35, 0.21, 5.95, 0, 0.8));
+      else if (has('sofa')) sof.push(bgeo(1.4, 0.4, 0.55, -0.9, 0.2, 5.88, 0, 0.8), bgeo(1.4, 0.5, 0.15, -0.9, 0.62, 6.1, 0, 0.8), bgeo(0.15, 0.6, 0.55, -1.55, 0.3, 5.88, 0, 0.8), bgeo(0.15, 0.6, 0.55, -0.25, 0.3, 5.88, 0, 0.8));
+      else if (has('desk')) { co.push(bgeo(1.5, 1.05, 0.5, -0.9, 0.525, 5.85, 0, 0.8)); tr.push(bgeo(1.6, 0.05, 0.6, -0.9, 1.07, 5.85, 0, 0.8)); rl.push(cgeo(0.02, 0.02, 0.35, 5, -1.4, 1.27, 5.9), cgeo(0.12, 0.08, 0.12, 8, -1.4, 1.45, 5.9)); lt.push(cgeo(0.06, 0.06, 0.04, 8, -1.4, 1.39, 5.9)); }
+      if (has('plants')) { plant(1.5, 5.8); plant(-2.65, 5.8); }
+      if (has('pic')) pic.push(pplate(0.9, 0.68, 1.875, 1.75, 4.1, -1, 0));
+      if (has('board')) { brd.push(pplate(0.9, 0.6, -4.585, 1.6, 3.75, 1, 0)); }
+      if (has('bike')) { const w = (u) => { const g = new THREE.TorusGeometry(0.32, 0.025, 4, 14); g.rotateY(PI / 2); g.translate(1.55, 0.34, u); bk.push(g); }; w(2.6); w(3.65); bk.push(bgeo(0.03, 0.03, 1.05, 1.55, 0.6, 3.12, 0, 0.5, 0.3), bgeo(0.03, 0.4, 0.03, 1.55, 0.55, 3.4, 0, 0.5), bgeo(0.03, 0.03, 0.4, 1.55, 0.95, 2.8, 0, 0.5)); }
+    } else {
+      if (has('plant')) plant(1.5, 5.8);
+      if (has('pic')) pic.push(pplate(0.7, 0.52, 1.875, 1.7, 4.0, -1, 0));
+      if (has('pic2')) pic2.push(pplate(0.6, 0.46, -2.3, 1.75, 0.035, 0, 1));
+      if (has('ext')) { ext.push(bgeo(0.1, 0.62, 0.36, 1.84, 1.15, 2.95, 0, 0.5)); }
     }
-    return { fl, ce, wa, st, sl, dk, tr, co, rl, dd, inl, mb, lt, mi };
+    return { fl, ce, wa, st, sl, dk, tr, co, rl, dd, inl, mb, lt, mi, pot, leaf, pic, pic2, ext, sof, brd, bk };
   };
   const mailTex = ctex(128, 64, (g) => { g.fillStyle = '#8a7a5a'; g.fillRect(0, 0, 128, 64); for (let r = 0; r < 3; r++) for (let c = 0; c < 6; c++) { const x = 3 + c * 21, y = 3 + r * 20; g.fillStyle = '#b8a070'; g.fillRect(x, y, 19, 18); g.fillStyle = '#2a2018'; g.fillRect(x + 3, y + 4, 13, 2); g.fillStyle = '#efe8d8'; g.fillRect(x + 4, y + 10, 11, 4); g.fillStyle = '#5a4a30'; g.fillRect(x + 15, y + 13, 2, 3); } });
-  const mats = { fl0: lam('marb', 0xd8d0c0), fl1: lam('terr', 0xc0b8a8), ce: lam('plas', 0xd8d4cc), wa0: lam('plas2', 0xe0d8c8), wa1: lam('plas2', 0xd0c4a0), st: lam('conc2', 0xb0aca0), sl: lam('plas', 0xc8c0a8), dk: lam('wood2', 0x6a4a32), tr: lam('marb', 0x5a4a3c), co: lam('plas', 0xe2dace), rl: lam('steel', 0x6a6460), dd0: lam('terr', 0xa89478), dd1: lam('plas2', 0xa89a7a), inl: lam('marb', 0x7a6650), mb: new THREE.MeshLambertMaterial({ map: mailTex }), mi: lam(null, 0x8a96a4, { emissive: 0x1a2028 }) };
-  const tg = (ground) => { const t = mk(ground), o = {}; for (const k in t) if (t[k].length) o[k] = mergeGeos(t[k]); return o; };
-  const T0 = tg(true), T1 = tg(false);
+  const matsFor = (S, si) => ({ fl0: lam(...S.fl0), fl1: lam(...S.fl1), ce: lam('plas', 0xd8d4cc), wa0: lam(...S.wa0), wa1: lam(...S.wa1), st: lam('conc2', 0xb0aca0), sl: lam('plas', 0xc8c0a8), dk: lam('wood2', 0x6a4a32), tr: lam(...S.tr), co: lam(...S.co), rl: lam('steel', 0x6a6460), dd0: lam(...S.dd0), dd1: lam(...S.dd1), inl: lam(...S.inl), mb: new THREE.MeshLambertMaterial({ map: mailTex }), mi: lam(null, 0x8a96a4, { emissive: 0x1a2028 }),
+    pot: lam('conc', 0xa86a3a), leaf: new THREE.MeshLambertMaterial({ color: 0x3a7a2a, side: THREE.DoubleSide }), pic: new THREE.MeshLambertMaterial({ map: picTex(31 + si * 7) }), pic2: new THREE.MeshLambertMaterial({ map: picTex(77 + si * 5) }), ext: lam(null, 0xc81a10), sof: lam('icarp', [0x6a2a1a, 0x2a3a5a, 0x3a5a3a][si % 3]), brd: new THREE.MeshLambertMaterial({ map: boardTex() }), bk: lam('steel', 0x2a2a2a) });
+  const tg = (ground, S) => { const t = mk(ground, S), o = {}; for (const k in t) if (t[k].length) o[k] = mergeGeos(t[k]); return o; };
+  const TS = CORE_STYLES.map((S, si) => ({ T0: tg(true, S), T1: tg(false, S), mats: matsFor(S, si) }));
   D.core = { g: new THREE.Group(), floors: [], k: -1 }; scene.add(D.core.g); D.core.g.visible = false;
   // cuatro plantas visibles a la vez (la tuya, la de abajo y dos de arriba): se recolocan al moverte
   for (let i = 0; i < 4; i++) {
     const F = new THREE.Group(); D.core.g.add(F);
     const add = (geo, m) => { if (!geo) return; const me = new THREE.Mesh(geo, m); F.add(me); return me; };
-    const m0 = new THREE.Group(), m1 = new THREE.Group(); F.add(m0); F.add(m1);
-    for (const [T, grp, gr] of [[T0, m0, true], [T1, m1, false]]) for (const k in T) { if (k === 'lt') { const sc = new THREE.Mesh(T[k], bas(0xfff0d0)); grp.add(sc); F.userData.fx = (F.userData.fx || []).concat(sc); continue; } const m = k === 'fl' ? (gr ? mats.fl0 : mats.fl1) : k === 'wa' ? (gr ? mats.wa0 : mats.wa1) : k === 'dd' ? (gr ? mats.dd0 : mats.dd1) : mats[k]; grp.add(new THREE.Mesh(T[k], m)); }
+    const sty = TS.map(({ T0, T1, mats }) => {
+      const m0 = new THREE.Group(), m1 = new THREE.Group(); F.add(m0); F.add(m1); m0.visible = m1.visible = false;
+      for (const [T, grp, gr] of [[T0, m0, true], [T1, m1, false]]) for (const k in T) { if (k === 'lt') { const sc = new THREE.Mesh(T[k], bas(0xfff0d0)); grp.add(sc); F.userData.fx = (F.userData.fx || []).concat(sc); continue; } const m = k === 'fl' ? (gr ? mats.fl0 : mats.fl1) : k === 'wa' ? (gr ? mats.wa0 : mats.wa1) : k === 'dd' ? (gr ? mats.dd0 : mats.dd1) : mats[k]; grp.add(new THREE.Mesh(T[k], m)); }
+      return { m0, m1 };
+    });
+    const m1 = new THREE.Group(); F.add(m1);   // puertas de los pisos (las mismas en todos, cambia el color)
     // puertas de los pisos
     const doors = FLAT_UV.map(([u, v, nu, nv], j) => {
       const grp = new THREE.Group(); grp.position.set(u + nu * 0.02, 0, v + nv * 0.02); grp.rotation.y = Math.atan2(nu, nv); m1.add(grp);
       const piv = new THREE.Group(); piv.position.set(-0.49, 0, 0.04); grp.add(piv);
-      const door = new THREE.Mesh(new THREE.BoxGeometry(0.98, 2.08, 0.07), lam('wood2', 0x5a3a26)); door.position.set(0.49, 1.04, 0); piv.add(door);
+      const door = new THREE.Mesh(new THREE.BoxGeometry(0.98, 2.08, 0.07), D.coreDoorM || (D.coreDoorM = new THREE.MeshLambertMaterial({ map: TX.wood2, color: 0x5a3a26 }))); door.position.set(0.49, 1.04, 0); piv.add(door);
       const knob = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 4), lam(null, 0xc8a050)); knob.position.set(0.85, 1.0, 0.05); piv.add(knob);
       const pl = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.16), new THREE.MeshLambertMaterial({ map: textPlate('ABCD'[j], 64, 64, '#c8a860', '#2a1a0a'), emissive: 0x181008 })); pl.position.set(0, 2.25, 0.05); grp.add(pl);
       const mat = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.5), lam(null, 0x5a3a2a)); mat.rotation.x = -PI / 2; mat.position.set(0, 0.014, 0.35); grp.add(mat);
@@ -3145,18 +3215,22 @@ function buildCores() {
     for (const [u, v] of [[-2.0, 2.2], [3.2, 0.8]]) { const fx = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.6), bas(0xfff8e8)); fx.rotation.x = PI / 2; fx.position.set(u, 2.78, v); F.add(fx); F.userData.fx = (F.userData.fx || []).concat(fx); }
     const ih = (key, x, y, z, w, h, d) => { const me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), M.inv); me.position.set(x, y, z); me.visible = false; me.userData.key = key; F.add(me); rayTargets.push(me); return me; };
     ih('ec', -2.7, 1.1, 4.45, 0.3, 0.4, 0.3); ih('lz', 1.75, 1.2, 2.2, 0.3, 0.3, 0.3); const fh = FLAT_UV.map(([u, v, nu, nv], j) => ih('fd' + j, u + nu * 0.4, 1.1, v + nv * 0.4, nv ? 1.1 : 0.6, 2.2, nv ? 0.6 : 1.1));
-    D.core.floors.push({ F, m0, m1, doors, fp, f: -99, dl, dr, led, fh });
+    D.core.floors.push({ F, sty, m0: sty[0].m0, m1, doors, fp, f: -99, dl, dr, led, fh, s: -1 });
   }
   // la cabina del ascensor (sube y baja de verdad)
-  const cab = new THREE.Group(), cm = lam('steel', 0xa8acb2);
+  const cab = new THREE.Group(), cm = D.coreCabM = new THREE.MeshLambertMaterial({ map: TX.steel, color: 0xa8acb2 });
   const cab1 = (w, h, d, x, y, z) => { const me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), cm); me.position.set(x, y, z); cab.add(me); return me; };
   cab1(0.05, 2.3, 1.6, -4.55, 1.15, 5.4); cab1(0.05, 2.3, 1.6, -3.05, 1.15, 5.4); cab1(1.5, 2.3, 0.05, -3.8, 1.15, 6.15); cab1(1.5, 0.05, 1.6, -3.8, 2.3, 5.4); cab1(1.5, 0.05, 1.6, -3.8, 0.0, 5.4);
   const mir = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.3), bas(0x8a9098)); mir.position.set(-3.8, 1.35, 6.12); mir.rotation.y = PI; cab.add(mir);
   const lt = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.5), bas(0xfff8e8)); lt.rotation.x = PI / 2; lt.position.set(-3.8, 2.27, 5.4); cab.add(lt);
   D.liftDisp = dynPlate(64, 32, (g, t) => { g.fillStyle = '#080808'; g.fillRect(0, 0, 64, 32); g.fillStyle = '#ff4a2a'; g.font = 'bold 24px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 32, 17); }); D.liftDisp.set('0');
-  const pn = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 0.5), lam('steel', 0x7a7e84)); pn.position.set(-3.1, 1.2, 5.2); pn.rotation.y = -PI / 2; cab.add(pn);
-  const dsp = new THREE.Mesh(new THREE.PlaneGeometry(0.14, 0.07), new THREE.MeshBasicMaterial({ map: D.liftDisp.t })); dsp.position.set(-3.105, 1.55, 5.2); dsp.rotation.y = -PI / 2; cab.add(dsp);
-  { const me = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.6, 0.5), M.inv); me.position.set(-3.2, 1.2, 5.2); me.visible = false; me.userData.key = 'eb'; cab.add(me); rayTargets.push(me); }
+  // botonera: un botón por planta (hasta 24, en tres columnas), con la pantalla encima
+  const pcv = document.createElement('canvas'); pcv.width = 128; pcv.height = 256; const ptx = new THREE.CanvasTexture(pcv);
+  const pnl = new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.72), new THREE.MeshBasicMaterial({ map: ptx, color: 0xdddddd })); pnl.position.set(-3.092, 1.27, 5.4); pnl.rotation.y = -PI / 2; cab.add(pnl);
+  const pfr = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.95, 0.42), lam('steel', 0x7a7e84)); pfr.position.set(-3.07, 1.36, 5.4); cab.add(pfr);
+  const dsp = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.08), new THREE.MeshBasicMaterial({ map: D.liftDisp.t })); dsp.position.set(-3.092, 1.74, 5.4); dsp.rotation.y = -PI / 2; cab.add(dsp);
+  const pkeys = []; for (let j = 0; j < 24; j++) { const col = j % 3, row = j / 3 | 0; const me = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.1), M.inv); me.position.set(-3.13, 0.976 + row * 0.0858, 5.4 + (col - 1) * 0.115); me.visible = false; me.userData.key = 'ef' + j; cab.add(me); rayTargets.push(me); pkeys.push(me); }
+  D.liftPanel = { cv: pcv, tx: ptx, keys: pkeys, sig: '' };
   D.core.g.add(cab); D.core.cab = cab;
   // la puerta de cristal del portal y el portero automático de cada torre (fuera, siempre visibles)
   const glassM = new THREE.MeshLambertMaterial({ map: lobbyGlassTex(), emissive: 0x3a3428 }), frameM = lam('steel', 0x6a6e72);
@@ -3184,12 +3258,34 @@ function buildCores() {
     S(3.2, 1.6, 3.3, 5.0, -2, h); S(3.3, 1.6, 3.3, 5.0, -2, h);
     C.liftSeg = S(-4.6, 4.6, -3.0, 4.6);
     S(0.2, 3.5, 0.6, 3.5, 0, 2.8); S(0.6, 3.5, 0.6, 3.9, 0, 2.8); S(0.6, 3.9, 0.2, 3.9, 0, 2.8); S(0.2, 3.9, 0.2, 3.5, 0, 2.8);   // columna del portal
-    S(-1.6, 5.75, -0.2, 5.75, 0, 0.5);   // banco
+    { const Y = CORE_STYLES[coreStyle(C)], L0 = Y.lob, L1 = Y.land;
+      if (L0.indexOf('bench') >= 0) S(-1.6, 5.75, -0.2, 5.75, 0, 0.5); else if (L0.indexOf('sofa') >= 0) S(-1.65, 5.6, -0.15, 5.6, 0, 0.6); else if (L0.indexOf('desk') >= 0) { S(-1.65, 5.6, -0.15, 5.6, 0, 1.1); S(-1.65, 5.6, -1.65, 6.2, 0, 1.1); S(-0.15, 5.6, -0.15, 6.2, 0, 1.1); }
+      const pot = (u, v, y0, y1) => { S(u - 0.22, v - 0.22, u + 0.22, v - 0.22, y0, y1); S(u - 0.22, v - 0.22, u - 0.22, v + 0.22, y0, y1); S(u + 0.22, v - 0.22, u + 0.22, v + 0.22, y0, y1); };
+      if (L0.indexOf('plants') >= 0) { pot(1.5, 5.8, 0, 0.8); pot(-2.65, 5.8, 0, 0.8); }
+      if (L1.indexOf('plant') >= 0) pot(1.5, 5.8, FLH - 0.5, h);
+      if (L0.indexOf('bike') >= 0) S(1.5, 2.3, 1.5, 3.95, 0, 0.8); }
   }
   LG.int = new THREE.PointLight(0xfff0dc, 0, 12, 1.1); scene.add(LG.int);
 }
 
 /* ---------- moverse por dentro: ascensor, luces, portal ---------- */
+function liftPanel(C) {
+  const P = D.liftPanel; if (!P || !C) return;
+  const dl = liftDest(C.k), sig = C.k + '|' + EL.dest + '|' + (EL.st ? 1 : 0) + '|' + dl + '|' + EL.fl; if (sig === P.sig) return; P.sig = sig;
+  const g = P.cv.getContext('2d'); g.fillStyle = '#8a8e94'; g.fillRect(0, 0, 128, 256); g.fillStyle = '#6a6e74'; g.fillRect(2, 2, 124, 252);
+  for (let j = 0; j < 24; j++) {
+    const col = j % 3, row = j / 3 | 0, x = 8 + col * 40, y = 256 - 8 - (row + 1) * 30.5, ok = j < C.L;
+    P.keys[j].userData.key = ok ? 'ef' + j : 'xx';
+    if (!ok) { g.fillStyle = '#5a5e64'; g.fillRect(x + 6, y + 6, 24, 18); continue; }
+    const lit = (EL.st && EL.dest === j) || (!EL.st && EL.fl === j && EL.door > 0);
+    g.fillStyle = '#c8ccd2'; g.beginPath(); g.arc(x + 17, y + 15, 13, 0, PI * 2); g.fill(); g.fillStyle = lit ? '#ffb02a' : '#e8eaee'; g.beginPath(); g.arc(x + 17, y + 15, 10, 0, PI * 2); g.fill();
+    g.fillStyle = '#1a1a1a'; g.font = 'bold 13px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    if (j === 13) { g.fillStyle = '#c8b070'; g.fillRect(x + 2, y + 11, 30, 8); g.fillStyle = '#5a4a2a'; g.font = 'bold 7px sans-serif'; g.fillText('NO', x + 17, y + 15); }
+    else g.fillText(j === 0 ? 'B' : String(j), x + 17, y + 16);
+    if (j === dl && j > 0) { g.fillStyle = '#3aff6a'; g.fillRect(x + 31, y + 4, 4, 4); }
+  }
+  P.tx.needsUpdate = true;
+}
 function liftDest(k) {
   const C = TOWN.del[k], Pm = myP(), H = Pm && Pm.h;
   let o = H && H.k === 'bag' ? W.dl.find(q => q.i === H.d && (q.d / 4 | 0) === k) : null;
@@ -3217,6 +3313,13 @@ function localUse(key, R, H) {
     if (d === 13) return R(T('u_lift_no13'), true, null, () => { AU.play('click'); liftGo(12); });
     return R(T('u_lift_go', d), true, null, () => { AU.play('click'); liftGo(d); });
   }
+  if (kind === 'ef' && k >= 0) {
+    const f = +key.slice(2), C = TOWN.del[k]; if (f >= C.L) return null;
+    if (EL.st) return R(T('u_lift_busy'), false);
+    if (f === 13) return R(T('u_lift_no13'), true, null, () => { AU.play('click'); liftGo(12); });
+    if (f === myFloor() && Math.abs(EL.y - f * FLH) < 0.05) return R(T('u_lift_open'), true, null, () => { AU.play('click'); liftOpen(); });
+    return R(T('u_lift_go', f === 0 ? T('floor0') : f), true, null, () => { AU.play('click'); liftGo(f); });
+  }
   if (kind === 'lz') return R(T('u_light'), true, null, () => { IV.tl = 30; AU.play('click'); });
   return null;
 }
@@ -3230,6 +3333,7 @@ function updInterior(dt) {
   const C = TOWN.del[near];
   if (DC.k !== near) { DC.k = near; DC.g.position.set(C.ox, 0, C.oz); DC.g.rotation.y = Math.atan2(-C.uz, C.ux); for (const F of DC.floors) F.f = -99; if (EL.k !== near) { EL.k = near; EL.y = 0; EL.fl = 0; EL.door = 0; EL.st = ''; setDisp(0); } }
   DC.g.visible = true; IV.k = near;
+  if (DC.sty !== near) { DC.sty = near; const Y = CORE_STYLES[coreStyle(C)]; D.coreDoorM.map = TX[Y.door[0]] || null; D.coreDoorM.color.setHex(Y.door[1]); D.coreDoorM.needsUpdate = true; D.coreCabM.map = TX[Y.cab[0]] || null; D.coreCabM.color.setHex(Y.cab[1]); D.coreCabM.needsUpdate = true; LG.int.color.setHex(Y.lc); for (const F of DC.floors) F.f = -99; liftPanel(C); }
   // escalera: no bajar del portal ni subir de la última planta
   if (k >= 0) {
     const [u, v] = cl(C, me.x, me.z), top = (C.L - 1) * FLH;
@@ -3243,7 +3347,7 @@ function updInterior(dt) {
   const f0 = clamp(Math.round(me.y / FLH), 0, C.L - 1);
   DC.floors.forEach((F, i) => {
     const f = f0 - 1 + i; F.F.visible = f >= 0 && f < C.L; if (!F.F.visible) return;
-    if (F.f !== f) { F.f = f; F.F.position.y = f * FLH; F.m0.visible = f === 0; F.m1.visible = f > 0; F.fp.set(f === 0 ? T('floor0') : T('floorN', f)); for (const h of F.fh) h.userData.key = f > 0 ? h.userData.key : 'xx'; F.fh.forEach((h, j) => { h.userData.key = f > 0 ? 'fd' + j : 'xx'; }); }
+    if (F.f !== f) { F.f = f; F.F.position.y = f * FLH; const si = coreStyle(C); F.sty.forEach((q, j) => { q.m0.visible = j === si && f === 0; q.m1.visible = j === si && f > 0; }); F.m1.visible = f > 0; F.fp.set(f === 0 ? T('floor0') : T('floorN', f)); for (const h of F.fh) h.userData.key = f > 0 ? h.userData.key : 'xx'; F.fh.forEach((h, j) => { h.userData.key = f > 0 ? 'fd' + j : 'xx'; }); }
     // puertas de los pisos abiertas cuando sale alguien
     F.doors.forEach((d, j) => { const n = near * 4 + j; let op = 0; for (const c of W.cu) if (c.o && c.dk === n && Math.round((c.fy || 0) / FLH) === f && ((c.st === S_DOOR && !c.hid) || (c.st === S_BACK && c.t < 1.6) || (c.st === S_ATK && c.t < 1))) op = 1; d.piv.rotation.y = lerp(d.piv.rotation.y, op * 1.3, Math.min(1, dt * 4)); });
     const a = EL.k === near && EL.fl === f && !EL.st ? EL.door : 0; F.dl.position.x = -4.1 - a * 0.55; F.dr.position.x = -3.5 + a * 0.55;
@@ -3266,7 +3370,8 @@ function updInterior(dt) {
   else if (inCab) I = EL.st && Math.sin(TIME * 31) > 0.97 ? 0.15 : 1.3;
   else if (f0 === 0 && cl(C, me.x, me.z)[0] < 1.9) I = 1.5;
   else { IV.tl -= dt; I = IV.tl > 0 ? (IV.tl < 2 && Math.sin(TIME * 40) > 0 ? 0.3 : 1.4) : 0.12; }
-  LG.int.intensity = I; LG.int.position.set(me.x, me.y + 2.6, me.z);
+  LG.int.intensity = I; LG.int.position.set(me.x, me.y + 2.6, me.z); LG.int.color.setHex(CORE_STYLES[coreStyle(C)].lc); LG.int.distance = 12;
+  liftPanel(C);
   for (const F of DC.floors) for (const fx of F.F.userData.fx || []) fx.material.color.setScalar(I > 0.5 ? 1 : 0.15);
 }
 
@@ -3720,7 +3825,7 @@ function buildOneMart(M) {
   const fruitC = [0xe8b81a, 0xc82a1a, 0x5aa83a, 0xe86a1a];
   for (let i = 0; i < 4; i++) { const u = (i < 2 ? -1.5 - i * 0.62 : 1.5 + (i - 2) * 0.62); if (u - 0.3 < u0 || u + 0.3 > u1) continue; B(0.55, 0.3, 0.4, lam('wood', 0xb89060), u, 0.35, -0.35); for (let j = 0; j < 8; j++) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.055, 6, 4), lam(null, fruitC[(i + M.k) % 4])); m.position.set(u - 0.2 + (j % 4) * 0.13, 0.54, -0.45 + (j / 4 | 0) * 0.16); G.add(m); } B(0.06, 0.35, 0.06, lam(null, 0x4a4a4a), u - 0.22, 0.17, -0.2); B(0.06, 0.35, 0.06, lam(null, 0x4a4a4a), u + 0.22, 0.17, -0.2); rect(u - 0.28, u + 0.28, -0.56, -0.12, 0.6); }
   B(1.5, 0.08, 0.1, lam(null, 0x1a1a1a), 0, 2.42, -0.02); for (const sx of [-0.75, 0.75]) B(0.08, 2.42, 0.1, lam(null, 0x1a1a1a), sx, 1.21, -0.02);
-  const glow = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 2.6), new THREE.MeshBasicMaterial({ map: D.glowTex || null, color: 0xfff4d0, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }));
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 2.6), new THREE.MeshBasicMaterial({ map: D.barGlow || (D.barGlow = glowTex(255, 255, 255)), color: 0xfff4d0, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }));
   glow.rotation.x = -PI / 2; glow.position.set(0, 0.075, -1.2); G.add(glow);
   const winM = new THREE.MeshBasicMaterial({ map: prodTex(5 + M.seed), color: 0xfff6e0 });
   for (const s2 of [-1, 1]) { const ucc = s2 * 1.75; if (ucc - 0.7 < u0 || ucc + 0.7 > u1) continue; P(1.3, 1.5, winM, ucc, 1.35, -0.025, 0, PI); }
@@ -3907,6 +4012,197 @@ function towerFacade(k) {
   const map = new THREE.CanvasTexture(cv); map.wrapS = map.wrapT = THREE.RepeatWrapping; map.anisotropy = 4;
   const m = new THREE.MeshLambertMaterial({ map });
   return roomPatch(m, { kind: 0, win: [x0 / 128, 1 - y1 / 128, x1 / 128, 1 - y0 / 128], cell: [2, 2], ts: 1 });
+}
+
+/* ================= BARES DE LA ZONA GUIRI =================
+   Cada bar, pub o cabaret de OSM en la zona guiri tiene su local de verdad metido en el edificio, con la puerta
+   abierta a la calle: barra con grifos y botellas, taburetes, mesas, teles con el fútbol, dianas, escenario…
+   según lo que sea (pub inglés o irlandés, cabaret, saloon del oeste, tropical o de deportes).
+   Los nombres y los sitios son los del mapa; lo de dentro está hecho a partir del tipo de bar. */
+TOWN.bars = (() => {
+  const out = [], all = () => (TOWN.marts || []).concat(out);
+  const cand = LIFE.shops.filter(s => /amenity:(bar|pub|nightclub)/.test(s.kind) && inGuiri(s.x, s.z) && !s.mart);
+  for (const p of cand) {
+    const b = p.b, P = b.P, a = P[p.i], c = P[(p.i + 1) % P.length];
+    let ux = (c[0] - a[0]) / p.L, uz = (c[1] - a[1]) / p.L; const vx = -p.nx, vz = -p.nz;
+    if (-uz * vx + ux * vz < 0) { ux = -ux; uz = -uz; }
+    const ox = a[0] + (c[0] - a[0]) * p.s / p.L, oz = a[1] + (c[1] - a[1]) * p.s / p.L;
+    const B0 = { b, i: p.i, s: p.s, ox, oz, ux, uz, vx, vz, shop: p };
+    const at = (u, v) => [ox + ux * u + vx * v, oz + uz * u + vz * v];
+    const ok = (u0, u1, D) => { for (let u = u0; u <= u1 + 1e-6; u += (u1 - u0) / 5) for (let v = 0.3; v <= D + 1e-6; v += D / 6) { const [x, z] = at(u, v); if (!pip(x, z, P) || coreAt(x, z, 0.8) >= 0) return false; if (TOWN.bld.some(o => o !== b && o.t !== 'roof' && pip(x, z, o.P))) return false; if (all().some(m => inMartM(m, x, z, 0.6))) return false; } return true; };
+    let got = null;
+    for (const W2 of [9, 8, 7, 6.2, 5.4, 4.6]) { for (const D of [11, 10, 9, 8, 7, 6, 5]) { for (const sh of [0, -1, 1, -2, 2, -3, 3]) { const u0 = -W2 / 2 + sh, u1 = u0 + W2; if (u0 > -1.4 || u1 < 1.4) continue; if (ok(u0, u1, D)) { got = { u0, u1, D, W: W2 }; break; } } if (got) break; } if (got) break; }
+    if (!got) continue;
+    p.mart = 1; p.bar = 1; const k = out.length;
+    out.push(Object.assign(B0, got, { k, name: p.name || 'BAR', th: barTheme(p.name, p.kind.split(':')[1]), seed: 5000 + k * 131, inside: false, anch: [] }));
+  }
+  return out;
+})();
+function inBarK(x, z, pad) { for (const B of TOWN.bars) if (Math.abs(x - B.ox) < 16 && Math.abs(z - B.oz) < 16 && inMartM(B, x, z, pad)) return B.k; return -1; }
+function inBar(x, z) { return inBarK(x, z) >= 0; }
+function barW(B, u, v) { return [B.ox + B.ux * u + B.vx * v, B.oz + B.uz * u + B.vz * v]; }
+
+/* ---------- texturas ---------- */
+function bottlesTex(seed, mirror) {
+  const r = mulberry32(seed);
+  return ctex(256, 128, (g) => {
+    const bg = g.createLinearGradient(0, 0, 256, 128); bg.addColorStop(0, mirror ? '#6a6a72' : '#2a1a10'); bg.addColorStop(0.5, mirror ? '#9a9aa4' : '#3a2416'); bg.addColorStop(1, mirror ? '#5a5a62' : '#22140c'); g.fillStyle = bg; g.fillRect(0, 0, 256, 128);
+    for (let row = 0; row < 2; row++) {
+      const y0 = row * 64; g.fillStyle = '#c8b090'; g.fillRect(0, y0 + 60, 256, 4);
+      for (let x = 3; x < 250;) {
+        const w = 7 + r() * 7, h = 26 + r() * 26, col = ['#3a6a2a', '#8a4a10', '#d8c8a0', '#1a1a1a', '#b81a1a', '#2a4a8a', '#e8d070', '#6a1a3a', '#c8e0e8'][r() * 9 | 0];
+        const y = y0 + 60 - h; g.fillStyle = col; g.fillRect(x, y + h * 0.3, w, h * 0.7); g.fillRect(x + w * 0.3, y, w * 0.4, h * 0.32);
+        g.fillStyle = 'rgba(255,255,255,.75)'; g.fillRect(x + 1, y + h * 0.55, w - 2, h * 0.18); g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(x + 1, y + h * 0.32, 2, h * 0.6);
+        x += w + 2 + r() * 3;
+      }
+    }
+  });
+}
+function footTex(seed) {
+  const r = mulberry32(seed), tm = [['ENG', 'GER'], ['LIV', 'MUN'], ['CEL', 'RAN'], ['ARS', 'TOT'], ['NED', 'BEL'], ['CHE', 'NEW']][r() * 6 | 0];
+  return ctex(128, 72, (g) => {
+    g.fillStyle = '#2a7a2a'; g.fillRect(0, 0, 128, 72); for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? '#2f852f' : '#277327'; g.fillRect(i * 16, 0, 16, 72); }
+    g.strokeStyle = 'rgba(255,255,255,.8)'; g.lineWidth = 1.5; g.strokeRect(6, 8, 116, 58); g.beginPath(); g.moveTo(64, 8); g.lineTo(64, 66); g.stroke(); g.beginPath(); g.arc(64, 37, 10, 0, PI * 2); g.stroke();
+    for (let i = 0; i < 14; i++) { g.fillStyle = i < 7 ? '#e8e8e8' : '#c81a1a'; g.fillRect(10 + r() * 108, 12 + r() * 50, 2, 4); }
+    g.fillStyle = '#ffffff'; g.fillRect(56, 30 + r() * 10, 3, 3);
+    g.fillStyle = 'rgba(10,10,40,.85)'; g.fillRect(4, 2, 62, 11); g.fillStyle = '#fff'; g.font = 'bold 8px sans-serif'; g.fillText(tm[0] + ' ' + (r() * 3 | 0) + '-' + (r() * 3 | 0) + ' ' + tm[1], 7, 10);
+  });
+}
+function dartTex() {
+  return ctex(64, 64, (g) => {
+    g.fillStyle = '#111'; g.fillRect(0, 0, 64, 64);
+    for (let i = 0; i < 20; i++) { const a0 = i / 20 * PI * 2 - PI / 20, a1 = a0 + PI / 10; for (const [r0, r1, c] of [[30, 26, i % 2 ? '#1a8a2a' : '#c81a1a'], [26, 17, i % 2 ? '#e8dcb0' : '#1a1a1a'], [17, 14, i % 2 ? '#1a8a2a' : '#c81a1a'], [14, 4, i % 2 ? '#e8dcb0' : '#1a1a1a']]) { g.fillStyle = c; g.beginPath(); g.arc(32, 32, r0, a0, a1); g.arc(32, 32, r1, a1, a0, true); g.fill(); } }
+    g.fillStyle = '#1a8a2a'; g.beginPath(); g.arc(32, 32, 4, 0, PI * 2); g.fill(); g.fillStyle = '#c81a1a'; g.beginPath(); g.arc(32, 32, 2, 0, PI * 2); g.fill();
+  });
+}
+function buntingTex(cols) { return ctex(128, 32, (g) => { g.clearRect(0, 0, 128, 32); g.fillStyle = '#ddd'; g.fillRect(0, 0, 128, 2); for (let i = 0; i < 8; i++) { g.fillStyle = cols[i % cols.length]; g.beginPath(); g.moveTo(i * 16 + 1, 2); g.lineTo(i * 16 + 15, 2); g.lineTo(i * 16 + 8, 26); g.fill(); } }); }
+function curtainTex(c) { return ctex(64, 64, (g) => { for (let x = 0; x < 64; x++) { const k = 0.55 + 0.45 * Math.sin(x / 64 * PI * 8); g.fillStyle = 'rgb(' + (c[0] * k | 0) + ',' + (c[1] * k | 0) + ',' + (c[2] * k | 0) + ')'; g.fillRect(x, 0, 1, 64); } }); }
+function signGlowTex(text, fg, bg) {
+  return ctex(256, 64, (g) => { g.fillStyle = bg; g.fillRect(0, 0, 256, 64); g.textAlign = 'center'; g.textBaseline = 'middle'; let fs = 34; g.font = 'bold ' + fs + 'px Impact, sans-serif'; while (g.measureText(text).width > 236 && fs > 10) { fs--; g.font = 'bold ' + fs + 'px Impact, sans-serif'; } g.shadowColor = fg; g.shadowBlur = 10; g.fillStyle = fg; g.fillText(text, 128, 34); g.fillText(text, 128, 34); });
+}
+
+/* ---------- los bares ---------- */
+const BAR_TH = {
+  pub: { fl: ['icarp', 0x8a2a2a], wl: ['iplank', 0x5a3a24], wu: ['iwp2', 0x7a5a3a], ce: 0x3a2618, top: ['wood2', 0x4a2a18], acc: 0xc8a050, light: 0xffb060, li: 1.05, posters: [['FULL ENGLISH', 'BREAKFAST 4,95€', '#f0e8d0', '#1a3a8a'], ['QUIZ NIGHT', 'EVERY THURSDAY', '#1a3a1a', '#f0d070'], ['KARAOKE', 'TONIGHT 23H', '#c81a1a', '#ffffff'], ['HAPPY HOUR', 'PINTS 2€', '#e8c020', '#1a1a1a']], bunt: ['#c81a1a', '#f0f0f0', '#1a3a9a'] },
+  spt: { fl: ['it142', 0xa8a8a0], wl: ['xtw', 0x7a8a9a], wu: ['plas', 0x3a4a6a], ce: 0x2a2a30, top: ['steel2', 0x8a8a90], acc: 0xd02020, light: 0xd8e4ff, li: 1.2, posters: [['LIVE SPORT', 'ALL GAMES', '#1a2a8a', '#ffffff'], ['PREMIER', 'LEAGUE HERE', '#3a0a5a', '#40ff90'], ['POOL', 'TABLE 1€', '#1a6a2a', '#ffffff'], ['BUCKET', '5 BEERS 10€', '#c81a1a', '#ffffff']], bunt: ['#c81a1a', '#f0f0f0', '#1a3a9a', '#f0f0f0'] },
+  cab: { fl: ['ichk', 0x9a9aa0], wl: ['plas', 0x2a0a2a], wu: ['plas', 0x1a0a22], ce: 0x0a0610, top: ['marb', 0x2a2a2a], acc: 0xff3ab0, light: 0xff50c8, li: 1.0, posters: [['LIVE SHOW', 'TONIGHT 00:00', '#1a0020', '#ff4ad0'], ['DRAG NIGHT', 'FREE ENTRY', '#ff4ad0', '#1a0020'], ['TRIBUTE', 'ABBA · QUEEN', '#e8c020', '#1a0020'], ['COCKTAILS', '2 X 1', '#20e0ff', '#1a0020']], bunt: ['#ff3ab0', '#40e0ff', '#f0e040'] },
+  wst: { fl: ['iplank', 0x9a7a5a], wl: ['wood', 0x7a5232], wu: ['wood2', 0x8a6040], ce: 0x3a2416, top: ['wood2', 0x5a3420], acc: 0xd8a040, light: 0xffa848, li: 1.0, posters: [['WANTED', '$ 5000', '#e8d8a8', '#3a1a0a'], ['WANTED', 'DEAD OR ALIVE', '#e0d0a0', '#4a1a0a'], ['WHISKY', 'SHOT 2€', '#3a1a0a', '#f0c060'], ['LINE DANCE', 'SUNDAYS', '#e8d8a8', '#8a1a0a']], bunt: ['#c8a050', '#8a1a0a'] },
+  tro: { fl: ['iterr', 0xd8c8a0], wl: ['iplank', 0xc8a868], wu: ['plas', 0x1a6a6a], ce: 0x1a3a3a, top: ['wood', 0xb88a50], acc: 0x40e0a0, light: 0x70ffd8, li: 1.1, posters: [['COCKTAILS', 'MOJITO 5€', '#20c0a0', '#ffffff'], ['SURF', 'BEER', '#f08020', '#1a2a4a'], ['ALOHA', 'PARTY', '#ff50a0', '#ffffff'], ['SHOTS', '1€', '#e8e020', '#1a1a1a']], bunt: ['#ff50a0', '#40e0a0', '#f0e040', '#f08020'] },
+};
+function buildBars() { for (const B of TOWN.bars) buildOneBar(B); }
+function buildOneBar(B) {
+  const R = mulberry32(B.seed), TH = BAR_TH[B.th], G = new THREE.Group(); G.position.set(B.ox, 0, B.oz); G.rotation.y = Math.atan2(-B.uz, B.ux); scene.add(G); B.g = G;
+  const { u0, u1, D } = B, Wd = u1 - u0, H = 2.9, uc = (u0 + u1) / 2;
+  const P = (w, h, m, x, y, z, rx, ry, tile) => plane(w, h, m, x, y, z, rx, ry, tile, false, G);
+  const Bx = (w, h, d, m, x, y, z, o) => box(w, h, d, m, x, y, z, Object.assign({ parent: G }, o || {}));
+  const C = (rt, rb, h, sg, m, x, y, z, o) => cyl(rt, rb, h, sg, m, x, y, z, Object.assign({ parent: G }, o || {}));
+  const seg = (ua, va, ub, vb, y1) => { const [ax, az] = barW(B, ua, va), [bx, bz] = barW(B, ub, vb); addSeg(ax, az, bx, bz, 0, y1 || 2.6); };
+  const rect = (ua, ub, va, vb, y1) => { seg(ua, va, ub, va, y1); seg(ub, va, ub, vb, y1); seg(ub, vb, ua, vb, y1); seg(ua, vb, ua, va, y1); };
+  const taken = [];   // rectángulos ocupados, para no meter mesas encima de la barra
+  const free = (a0, a1, b0, b1) => a0 > u0 + 0.2 && a1 < u1 - 0.2 && b0 > 1.4 && b1 < D - 0.2 && !taken.some(t => a0 < t[1] && a1 > t[0] && b0 < t[3] && b1 > t[2]);
+  // suelo, techo y paredes
+  const flM = lam(TH.fl[0], TH.fl[1]), wlM = lam(TH.wl[0], TH.wl[1]), wuM = lam(TH.wu[0], TH.wu[1]), ceM = lam(null, TH.ce), acc = lam(null, TH.acc, { emissive: TH.acc, emissiveIntensity: 0.25 });
+  P(Wd, D, flM, uc, 0.03, D / 2, -PI / 2, 0, 1.4); P(Wd, D, ceM, uc, H, D / 2, PI / 2, 0);
+  const wall = (len, x, z, ry) => { P(len, 1.15, wlM, x, 0.575, z, 0, ry, 1.2); P(len, H - 1.15, wuM, x, 1.15 + (H - 1.15) / 2, z, 0, ry, 1.6); };
+  wall(D, u0 + 0.01, D / 2, PI / 2); wall(D, u1 - 0.01, D / 2, -PI / 2); wall(Wd, uc, D - 0.01, PI);
+  wall(-0.8 - u0, (u0 - 0.8) / 2, 0.02, 0); wall(u1 - 0.8, (u1 + 0.8) / 2, 0.02, 0); P(1.6, H - 2.4, wuM, 0, (H + 2.4) / 2, 0.02, 0, 0);
+  seg(u0, 0.02, -0.8, 0.02, 3); seg(0.8, 0.02, u1, 0.02, 3); seg(u0, 0.02, u0, D); seg(u1, 0.02, u1, D); seg(u0, D, u1, D);
+  // rodapié, remate del zócalo y vigas o molduras
+  const trim = lam(TH.top[0], TH.top[1]);
+  for (const [w, x, z, ry] of [[D, u0 + 0.03, D / 2, 1], [D, u1 - 0.03, D / 2, 1], [Wd, uc, D - 0.03, 0]]) { Bx(ry ? 0.05 : w, 0.12, ry ? w : 0.05, trim, x, 0.06, z); Bx(ry ? 0.06 : w, 0.06, ry ? w : 0.06, trim, x, 1.17, z); }
+  if (B.th === 'pub' || B.th === 'wst') for (let v = 1.2; v < D; v += 1.6) Bx(Wd, 0.16, 0.14, trim, uc, H - 0.08, v);
+  // la barra: a lo largo de la pared que tenga más sitio, con su contrabarra de botellas
+  const side = (B.k % 2 ? 1 : -1), bu = side > 0 ? u1 - 1.35 : u0 + 1.35, bl = Math.min(D - 2.2, 5.6), bv0 = Math.max(1.6, D - 0.8 - bl), bv1 = bv0 + bl;
+  const ctrM = lam(TH.top[0], TH.top[1]), topM = lam(B.th === 'cab' ? 'marb' : 'wood2', B.th === 'cab' ? 0x1a1a1a : 0x3a2010);
+  Bx(0.6, 1.05, bl, ctrM, bu, 0.525, (bv0 + bv1) / 2); Bx(0.72, 0.05, bl + 0.08, topM, bu - side * 0.04, 1.08, (bv0 + bv1) / 2);
+  Bx(0.03, 0.03, bl, lam('steel', 0xc8a050), bu - side * 0.36, 0.25, (bv0 + bv1) / 2);    // reposapiés de latón
+  Bx(0.04, 0.9, bl - 0.1, acc, bu - side * 0.31, 0.55, (bv0 + bv1) / 2);                      // franja luminosa en el frente
+  rect(bu - 0.33, bu + 0.33, bv0 - 0.02, bv1 + 0.02, 1.1); taken.push([bu - 1.3, bu + 1.3, bv0 - 0.3, bv1 + 0.3]);
+  // grifos de cerveza
+  const chrome = lam('steel', 0xd8dce0), handC = [0xc81a1a, 0x1a1a1a, 0xe8c020, 0x1a5a2a, 0xf0f0f0];
+  for (let i = 0; i < 4; i++) { const v = bv0 + 0.8 + i * 0.32; C(0.025, 0.025, 0.32, 6, chrome, bu, 1.26, v); C(0.012, 0.012, 0.12, 5, chrome, bu - side * 0.06, 1.38, v, { rz: PI / 2 }); Bx(0.03, 0.12, 0.05, lam(null, handC[(i + B.k) % 5]), bu - side * 0.1, 1.49, v); }
+  // vasos y posavasos encima
+  const glassM = lam(null, 0xc8a040, { emissive: 0x3a2a08 }), foamM = lam(null, 0xf0ece0);
+  for (let i = 0; i < 4; i++) { const v = bv0 + 2.4 + i * 0.5 + R() * 0.2; if (v > bv1 - 0.2) break; C(0.04, 0.035, 0.15, 7, glassM, bu - side * 0.2, 1.18, v); C(0.041, 0.041, 0.025, 7, foamM, bu - side * 0.2, 1.265, v); }
+  // contrabarra: estantes con botellas sobre espejo
+  const wu2 = side > 0 ? u1 - 0.18 : u0 + 0.18, btM = new THREE.MeshBasicMaterial({ map: bottlesTex(B.seed, B.th !== 'wst'), color: 0xd8d0c8 });
+  Bx(0.34, 0.9, bl, ctrM, wu2, 0.45, (bv0 + bv1) / 2); P(bl, 1.05, btM, wu2 - side * 0.16, 1.62, (bv0 + bv1) / 2, 0, -side * PI / 2);
+  for (const y of [1.12, 1.6, 2.1]) Bx(0.28, 0.03, bl, trim, wu2 - side * 0.02, y, (bv0 + bv1) / 2);
+  Bx(0.06, 0.24, bl * 0.7, new THREE.MeshBasicMaterial({ map: signGlowTex(B.name.toUpperCase(), '#' + new THREE.Color(TH.acc).getHexString(), '#100808') }), wu2 - side * 0.1, 2.45, (bv0 + bv1) / 2);
+  rect(Math.min(wu2 - 0.18, wu2 + 0.18), Math.max(wu2 - 0.18, wu2 + 0.18), bv0, bv1);
+  // taburetes delante de la barra (y sitio para los turistas)
+  const stoolM = lam(B.th === 'cab' ? null : 'wood2', B.th === 'cab' ? 0xc81a5a : 0x3a2414);
+  for (let v = bv0 + 0.4; v < bv1 - 0.2; v += 0.75) { const su = bu - side * 0.75; C(0.17, 0.17, 0.08, 10, stoolM, su, 0.74, v); C(0.025, 0.025, 0.7, 5, chrome, su, 0.37, v); C(0.14, 0.16, 0.03, 8, chrome, su, 0.02, v); B.anch.push([su - side * 0.05, v, side > 0 ? PI / 2 : -PI / 2, 1]); }
+  // mesas con sillas, donde quepan
+  const tblM = lam(B.th === 'spt' ? 'steel2' : 'wood2', B.th === 'spt' ? 0x5a5a60 : B.th === 'tro' ? 0xb88a50 : 0x4a2a18), chM = lam(B.th === 'tro' ? 'wood' : 'wood2', B.th === 'tro' ? 0xc8a060 : 0x3a2010);
+  const mesa = (u, v) => {
+    if (!free(u - 0.75, u + 0.75, v - 0.75, v + 0.75)) return false; taken.push([u - 0.85, u + 0.85, v - 0.85, v + 0.85]);
+    const hi = B.th === 'spt'; C(0.42, 0.42, 0.04, 12, tblM, u, hi ? 1.05 : 0.74, v); C(0.04, 0.04, hi ? 1.0 : 0.7, 6, chrome, u, hi ? 0.52 : 0.37, v); C(0.22, 0.24, 0.03, 10, chrome, u, 0.02, v);
+    if (R() < 0.7) { C(0.04, 0.035, 0.15, 7, glassM, u + 0.12, (hi ? 1.07 : 0.76) + 0.075, v - 0.05); C(0.041, 0.041, 0.025, 7, foamM, u + 0.12, (hi ? 1.07 : 0.76) + 0.16, v - 0.05); }
+    for (let j = 0; j < 3; j++) { const a = j / 3 * PI * 2 + R(), cu = u + Math.sin(a) * 0.62, cv = v + Math.cos(a) * 0.62; if (hi) { C(0.16, 0.16, 0.06, 8, stoolM, cu, 0.78, cv); C(0.02, 0.02, 0.76, 5, chrome, cu, 0.38, cv); } else { Bx(0.4, 0.05, 0.4, chM, cu, 0.45, cv, { ry: a }); Bx(0.4, 0.45, 0.05, chM, cu + Math.sin(a) * 0.18, 0.7, cv + Math.cos(a) * 0.18, { ry: a }); for (const [dx, dz] of [[-0.16, -0.16], [0.16, -0.16], [-0.16, 0.16], [0.16, 0.16]]) Bx(0.035, 0.45, 0.035, chM, cu + dx, 0.22, cv + dz, { ry: a }); } B.anch.push([cu, cv, a + PI, 0]); }
+    rect(u - 0.45, u + 0.45, v - 0.45, v + 0.45, 0.8); return true;
+  };
+  const tu0 = side > 0 ? u0 + 1.0 : u0 + 3.0, tu1 = side > 0 ? u1 - 3.0 : u1 - 1.0;
+  for (let v = 2.2; v < D - 0.8; v += 1.9) for (let u = tu0; u <= tu1 + 0.01; u += 1.9) mesa(u + (R() - 0.5) * 0.3, v + (R() - 0.5) * 0.3);
+  // carteles y cosas de la pared opuesta a la barra
+  const ow = side > 0 ? u0 + 0.03 : u1 - 0.03, ory = side > 0 ? PI / 2 : -PI / 2;
+  TH.posters.forEach((q, i) => { const v = 1.4 + i * (D - 2.2) / 4; if (v > D - 0.5) return; P(0.55, 0.7, new THREE.MeshLambertMaterial({ map: posterTex(q[0], q[1], q[2], q[3]), emissive: 0x181818 }), ow, 1.75, v, 0, ory); });
+  // teles con el fútbol (las de deportes, unas cuantas)
+  const ntv = B.th === 'spt' ? 3 : B.th === 'cab' ? 0 : 1, tvM = new THREE.MeshBasicMaterial({ map: footTex(B.seed), color: 0xd8e8d8 });
+  for (let i = 0; i < ntv; i++) { const v = D * (i + 1) / (ntv + 1); Bx(0.08, 0.62, 1.05, lam(null, 0x111111), ow + (side > 0 ? 0.05 : -0.05), 2.3, v); P(0.95, 0.54, tvM, ow + (side > 0 ? 0.1 : -0.1), 2.3, v, 0, ory); }
+  if (B.th !== 'spt') { const ftv = Bx(1.05, 0.62, 0.08, lam(null, 0x111111), uc + side * 0.8, 2.3, D - 0.07); P(0.95, 0.54, tvM, uc + side * 0.8, 2.3, D - 0.115, 0, PI); }
+  // banderines de colores cruzando el techo
+  const bt = new THREE.MeshBasicMaterial({ map: buntingTex(TH.bunt), transparent: true, alphaTest: 0.3, side: THREE.DoubleSide, color: 0xcccccc });
+  for (let v = 1.5; v < D - 0.5; v += 2.4) P(Wd - 0.2, 0.25, bt, uc, H - 0.25, v, 0, 0);
+  // lo propio de cada tipo
+  if (B.th === 'pub' || B.th === 'spt') {
+    const dv = D - 1.0; P(0.46, 0.46, new THREE.MeshLambertMaterial({ map: dartTex() }), ow, 1.75, Math.min(dv, 1.4 + 3 * (D - 2.2) / 4 + 0.7), 0, ory);
+    if (HASPROP('tragaperras')) { const tg = propItem('tragaperras', 1.75, side > 0 ? 0 : PI, uc - side * 1.2, 0, D - 0.4); if (tg) { G.add(tg); rect(uc - side * 1.2 - 0.35, uc - side * 1.2 + 0.35, D - 0.75, D); } }
+    if (B.th === 'spt' && Wd >= 6.2 && free(uc - 1.3, uc + 1.3, 2.2, 4.0)) { taken.push([uc - 1.4, uc + 1.4, 2.0, 4.2]); Bx(2.2, 0.12, 1.2, lam(null, 0x1a6a2a), uc, 0.82, 3.1); Bx(2.36, 0.14, 1.36, lam('wood2', 0x3a2010), uc, 0.74, 3.1); for (const [dx, dz] of [[-0.95, -0.5], [0.95, -0.5], [-0.95, 0.5], [0.95, 0.5]]) Bx(0.12, 0.7, 0.12, lam('wood2', 0x3a2010), uc + dx, 0.35, 3.1 + dz); rect(uc - 1.18, uc + 1.18, 2.42, 3.78, 0.9); B.anch.push([uc - 1.6, 3.1, PI / 2, 0], [uc + 1.6, 3.1, -PI / 2, 0]); }
+  }
+  if (B.th === 'cab') {
+    // escenario al fondo con telón rojo, barra de baile, bola de espejos y focos
+    const sw = Math.min(Wd - 1.2, 4.4); Bx(sw, 0.4, 1.4, lam('wood2', 0x1a1a1a), side * -0.5 + uc, 0.2, D - 0.7); rect(uc - side * 0.5 - sw / 2, uc - side * 0.5 + sw / 2, D - 1.4, D, 0.45);
+    P(sw, H - 0.4, new THREE.MeshLambertMaterial({ map: curtainTex([170, 20, 30]), emissive: 0x200004 }), uc - side * 0.5, 0.4 + (H - 0.4) / 2, D - 0.05, 0, PI);
+    C(0.025, 0.025, H - 0.4, 6, chrome, uc - side * 0.5, 0.4 + (H - 0.4) / 2, D - 0.8);
+    const ball = new THREE.Mesh(new THREE.IcosahedronGeometry(0.22, 1), lam(null, 0xd8d8e0, { emissive: 0x404050, flatShading: true })); ball.position.set(uc, H - 0.45, D * 0.45); G.add(ball); B.ball = ball;
+    for (let i = 0; i < 5; i++) { const sp = new THREE.Mesh(new THREE.CircleGeometry(0.5 + R() * 0.4, 12), new THREE.MeshBasicMaterial({ color: [0xff3ab0, 0x40e0ff, 0xf0e040, 0x8a40ff, 0xff5030][i], transparent: true, opacity: 0.22, depthWrite: false, blending: THREE.AdditiveBlending })); sp.rotation.x = -PI / 2; sp.position.set(u0 + 1 + R() * (Wd - 2), 0.05, 1.5 + R() * (D - 3)); G.add(sp); (B.spots = B.spots || []).push(sp); }
+    for (let i = 0; i < 4; i++) B.anch.push([uc - side * 0.5 + (i - 1.5) * 0.7, D - 1.9, 0, 0]);
+  }
+  if (B.th === 'wst') {
+    // barriles, cráneo de vaca y piano
+    for (let i = 0; i < 3; i++) { const bu2 = side > 0 ? u0 + 0.45 : u1 - 0.45, bv = D - 0.5 - i * 0.75; if (!free(bu2 - 0.35, bu2 + 0.35, bv - 0.35, bv + 0.35)) continue; taken.push([bu2 - 0.4, bu2 + 0.4, bv - 0.4, bv + 0.4]); C(0.3, 0.27, 0.8, 10, lam('wood', 0x7a4a22), bu2, 0.4, bv); C(0.31, 0.31, 0.04, 10, lam('steel', 0x3a3a3a), bu2, 0.62, bv); C(0.31, 0.31, 0.04, 10, lam('steel', 0x3a3a3a), bu2, 0.18, bv); rect(bu2 - 0.3, bu2 + 0.3, bv - 0.3, bv + 0.3, 0.8); }
+    Bx(0.5, 0.25, 0.1, lam(null, 0xe8dcc0), uc, 2.35, D - 0.06); for (const s of [-1, 1]) Bx(0.35, 0.05, 0.05, lam(null, 0xe8dcc0), uc + s * 0.38, 2.5, D - 0.07, { rz: s * 0.5 });
+    if (free(uc + side * 0.3 - 0.8, uc + side * 0.3 + 0.8, D - 0.85, D - 0.25)) { Bx(1.5, 1.2, 0.55, lam('wood2', 0x2a160a), uc + side * 0.3, 0.6, D - 0.5); Bx(1.3, 0.04, 0.2, lam(null, 0xf0ece0), uc + side * 0.3, 0.92, D - 0.82); rect(uc + side * 0.3 - 0.75, uc + side * 0.3 + 0.75, D - 0.8, D); }
+  }
+  if (B.th === 'tro') {
+    // techo de paja sobre la barra, tablas de surf y hojas de palmera
+    const straw = lam(null, 0xc8a860); Bx(1.3, 0.12, bl + 0.4, straw, bu, 2.55, (bv0 + bv1) / 2, { rz: side * 0.25 });
+    for (let i = 0; i < 2; i++) { const sv = D * (i + 1) / 3; const sb = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 2.0, 12), lam(null, [0xf08020, 0x20c0a0][i])); sb.scale.set(1, 1, 0.12); sb.position.set(ow + (side > 0 ? 0.08 : -0.08), 1.6, sv); sb.rotation.set(0, side > 0 ? 0 : 0, 0.15); G.add(sb); }
+    const leaf = new THREE.MeshLambertMaterial({ color: 0x2a7a2a, side: THREE.DoubleSide }); for (let i = 0; i < 6; i++) { const lf = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.3), leaf); lf.position.set(u0 + 0.5 + R() * (Wd - 1), H - 0.2, 1 + R() * (D - 2)); lf.rotation.set(-0.6, R() * 6, 0.3); G.add(lf); }
+  }
+  // luces: plafones del color del bar y el resplandor de la puerta en la acera
+  const lm = bas(TH.light); for (let v = 1.6; v < D - 0.5; v += 2.4) for (const u of [uc - Wd * 0.25, uc + Wd * 0.25]) { C(0.14, 0.18, 0.12, 8, lm, u, H - 0.06, v); }
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 2.6), new THREE.MeshBasicMaterial({ map: D.barGlow || (D.barGlow = glowTex(255, 255, 255)), color: TH.light, transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending }));
+  glow.rotation.x = -PI / 2; glow.position.set(0, 0.075, -1.2); G.add(glow);
+  // marco de la puerta y un letrero luminoso encima
+  Bx(1.7, 0.1, 0.12, trim, 0, 2.45, -0.03); for (const sx of [-0.8, 0.8]) Bx(0.1, 2.45, 0.12, trim, sx, 1.22, -0.03);
+  P(1.5, 0.32, new THREE.MeshBasicMaterial({ map: signGlowTex(B.name.toUpperCase(), '#' + new THREE.Color(TH.acc).getHexString(), '#0a0606') }), 0, 2.72, -0.08, 0, PI);
+  // gente en la puerta, fuera
+  for (let i = 0; i < 4; i++) B.anch.push([(i - 1.5) * 0.9 + (R() - 0.5) * 0.4, -1.6 - R() * 2.2, PI + (R() - 0.5) * 1.2, 2]);
+  freezeGroup(G, [B.ball].concat(B.spots || []).filter(Boolean));
+}
+function updBars(dt) {
+  if (!TOWN.bars.length) return;
+  let inK = -1;
+  for (const B of TOWN.bars) {
+    const near = Math.abs(camera.position.x - B.ox) + Math.abs(camera.position.z - B.oz) < 55; if (B.g) B.g.visible = near;
+    if (!near) continue;
+    if (B.ball) B.ball.rotation.y += dt * 0.8;
+    if (B.spots) B.spots.forEach((s, i) => { s.material.opacity = 0.12 + 0.12 * Math.max(0, Math.sin(TIME * (2 + i) + i)); });
+    if (inMartM(B, me.x, me.z)) inK = B.k;
+  }
+  if (inK >= 0) { const B = TOWN.bars[inK], TH = BAR_TH[B.th], [x, z] = barW(B, (B.u0 + B.u1) / 2, B.D * 0.5); LG.int.position.set(x, 2.5, z); LG.int.intensity = TH.li * (B.th === 'cab' ? 0.8 + 0.3 * Math.sin(TIME * 3) : 1); LG.int.distance = 14; LG.int.color.setHex(TH.light); }
 }
 
 /* ================= PERSONAJES ================= */
@@ -4099,6 +4395,7 @@ function newWorld(n, prev) {
     sp: [0, 1, 2, 3].map(() => spitWire(7 + 2 * (keep && prev.up ? prev.up.big | 0 : 0))), bin: [12, 12, 12], chop: { t: -1, n: 0 }, fry: { s: 0, t: 0, u: 0, q: 1 }, sh: [0, 0, 0], gr: 1, am: 2, shl: 6,
     bd: { s: 0, t: 0, o: 0 }, bt: 0, cu: [], pl: {}, ev: prev ? prev.ev : [], es: prev ? prev.es : 0, id: prev ? prev.id : 1, used: [], nx: 6,
   };
+  w.tk = []; w.tz = []; w.hm = 0;   // turistas de la zona guiri: caídos, los que persiguen, aviso de las cuatro
   newStreet(w); w.aj = prev && prev.aj ? Object.assign({}, prev.aj) : {}; w.fm = keep && prev.fm ? prev.fm.slice() : [];
   newKitchen(w, keep ? prev : null);
   if (prev) for (const k in prev.pl) w.pl[k] = { h: 0, hp: 3, ko: 0 };
@@ -4440,7 +4737,7 @@ function doShoot(pid, o, d) {
     }
     if (best) hits[best.i] = (hits[best.i] || 0) + 1;
   }
-  shootDogs(o, d);
+  shootDogs(o, d); shootTourists(o, d);
   let human = null;
   for (const id in hits) {
     const c = W.cu.find(q => q.i === +id), n = hits[id]; ev('blood', c.x, c.z);
@@ -4519,7 +4816,7 @@ function simulate(dt) {
   for (const pid in W.pl) { const P = W.pl[pid]; if (P.ko > 0) { P.ko -= dt; if (P.ko <= 0) { P.ko = 0; P.hp = 3; } } }
   while (W.sx < SCHED.length && W.t >= SCHED[W.sx].t) { fire(SCHED[W.sx].k); W.sx++; }
   // clientes nuevos
-  if (W.t >= W.nx && W.t < NIGHT_LEN - 14 && !W.cl) {
+  if (W.t >= W.nx && W.t < NIGHT_LEN - 14 && W.t < HORDE_T + 40 && !W.cl) {   // con la marabunta en la calle ya no viene nadie a comer
     const humans = W.cu.filter(c => !c.an && c.st <= S_WAIT).length;
     if (humans < (np > 1 ? 5 : 4)) { const a = pickArch(); if (a >= 0) { const c = spawn(a, 0); seatAtTable(c); spawnGroup(c); } }
     const hr = W.t / HOUR_LEN, base = Math.max(17, 34 - W.n * 2.5);
@@ -4534,6 +4831,7 @@ function simulate(dt) {
   simSpits(dt);
   simKitchen(dt);
   simStreet(dt, np);
+  simTourists(dt);
   if (W.fry.s === 1) W.fry.t += dt;
   for (const c of W.cu) updCustomer(c, dt);
   if (W.cu.some(c => c.rm)) W.cu = W.cu.filter(c => !c.rm);
@@ -4563,7 +4861,7 @@ function simulate(dt) {
 }
 
 /* ================= RED: cooperativo por presencia ================= */
-const NETV = 11;   // versión del protocolo: todos tienen que jugar con la misma
+const NETV = 12;   // versión del protocolo: todos tienen que jugar con la misma
 const NET = { room: null, myId: 'solo', isHost: true, joined: false, acts: [], seq: 0, lastSeq: {}, lastHost: null, hostGone: 0, sendT: 0, others: [], remote: null, count: 1, evInit: false, code: '', badVer: false, lostSaid: false };
 
 /* Fuera de Claude (GitHub) la sala va por PeerJS, de navegador a navegador y sin cuentas.
@@ -6263,7 +6561,7 @@ function sauceRecv(peer, pr, ch) {
     const h = sauceArc(x, 1.4, z, yaw, pitch, R.buf); drawArc(R.pts, R.buf, h.n, SAUCE_COL[on - 1]);
   } else R.pts.visible = false;
 }
-function updExtras(dt) { updRooms(); updPropChunks(); updFridgeDoor(dt); updTV(dt); if (D.windU) D.windU.value = TIME; if (D.shopGrp) D.shopGrp.visible = Math.hypot(camera.position.x, camera.position.z - 2) < 48; updSky(dt); updArrow(dt); updSauce(dt, myP()); updKitchen(dt); updMart(dt); updMist(dt); }
+function updExtras(dt) { updRooms(); updPropChunks(); updFridgeDoor(dt); updTV(dt); if (D.windU) D.windU.value = TIME; if (D.shopGrp) D.shopGrp.visible = Math.hypot(camera.position.x, camera.position.z - 2) < 48; updSky(dt); updArrow(dt); updSauce(dt, myP()); updKitchen(dt); updMart(dt); updBars(dt); updTourists(dt); updMist(dt); }
 
 // la puerta de la nevera se abre sola cuando te acercas a coger una bebida
 function updFridgeDoor(dt) {
@@ -7145,5 +7443,295 @@ function updTV(dt) {
   TV.drawT -= dt; if (near && TV.drawT <= 0) { TV.drawT = 1 / 12; tvDraw(TIME); }
   TV.glow.intensity = 0.25 + Math.random() * 0.12;
   tvAudio(dt); horrorAmb(dt);
+}
+
+/* ================= LOS TURISTAS DE LA ZONA GUIRI =================
+   Unos 140, dentro de los bares y en la puerta, con la pinta en la mano. No son del todo turistas: si pasas
+   cerca te persiguen y te pegan. A las 04:00 cierran los bares y salen todos a la vez hacia el local, cada uno
+   por su calle, corriendo, como una marabunta; se amontonan contra el cristal y, si el local sigue abierto,
+   los primeros se meten dentro.
+   Todo sale de una semilla fija: cada pantalla calcula dónde está cada uno a partir de la hora de la noche
+   (W.t), y por la red solo viajan los que te están persiguiendo (W.tz) y los que han caído a tiros (W.tk). */
+const TUR = { N: 140, m: [], ready: false, mesh: null, dead: {}, nk: -1, ch: {}, chSeen: {}, rp: [], ph: [], cd: [], t: 0, crowd: null, grT: 2, st: {} };
+const TUR_SPOTS = 14;   // los que se meten en el local si no has echado el cierre
+
+/* ---------- callejero: grafo de calles para que cada uno vaya por la suya ---------- */
+function turGraph() {
+  const N = [], key = new Map(), adj = [];
+  const node = (x, z, w) => { const k = Math.round(x * 2) + ',' + Math.round(z * 2); let i = key.get(k); if (i === undefined) { i = N.length; key.set(k, i); N.push({ x, z, w: w || 6 }); adj.push([]); } else N[i].w = Math.max(N[i].w, w || 6); return i; };
+  const B = MAP.bounds;
+  for (const r of MAP.rd) {
+    if (r.t === 'steps' || r.t === 'motorway') continue; const p = r.p; let prev = -1;
+    for (let i = 0; i + 1 < p.length; i += 2) {
+      const x = p[i], z = p[i + 1]; if (B && (x < B[0] + 2 || x > B[1] - 2 || z < B[2] + 2 || z > B[3] - 2)) { prev = -1; continue; }
+      const j = node(x, z, r.w); if (prev >= 0 && prev !== j) { const L = Math.hypot(N[prev].x - x, N[prev].z - z); adj[prev].push([j, L]); adj[j].push([prev, L]); } prev = j;
+    }
+  }
+  return { N, adj };
+}
+function turDijkstra(Gr, src, variant) {
+  const n = Gr.N.length, dist = new Float64Array(n).fill(Infinity), prev = new Int32Array(n).fill(-1), heap = [];
+  const push = (d, i) => { heap.push([d, i]); let k = heap.length - 1; while (k > 0) { const p = (k - 1) >> 1; if (heap[p][0] <= heap[k][0]) break; [heap[p], heap[k]] = [heap[k], heap[p]]; k = p; } };
+  const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let k = 0; for (;;) { const l = 2 * k + 1, r = l + 1; let m = k; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === k) break; [heap[m], heap[k]] = [heap[k], heap[m]]; k = m; } } return top; };
+  // cada variante encarece unas calles al azar (siempre las mismas para esa variante): salen caminos distintos
+  const hash = (a, b) => { let h = (Math.min(a, b) * 73856093) ^ (Math.max(a, b) * 19349663) ^ (variant * 83492791); h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+  dist[src] = 0; push(0, src);
+  while (heap.length) {
+    const [d, i] = pop(); if (d > dist[i]) continue;
+    for (const [j, L] of Gr.adj[i]) { const w = L * (variant ? 1 + 1.3 * hash(i, j) : 1), nd = d + w; if (nd < dist[j]) { dist[j] = nd; prev[j] = i; push(nd, j); } }
+  }
+  return { dist, prev };
+}
+/* ---------- quiénes son y por dónde van ---------- */
+function turInit() {
+  if (TUR.ready) return; TUR.ready = true;
+  const R = mulberry32(4044), M = TUR.m, bars = TOWN.bars;
+  // sitios: dentro de cada bar (barra y mesas) y en su puerta; si faltan, por la acera de Gerona y Filipinas
+  const spots = [];
+  if (bars.length) {
+    const q = Math.ceil(TUR.N / bars.length);
+    for (const B of bars) {
+      const ins = B.anch.filter(a => a[3] !== 2), out = B.anch.filter(a => a[3] === 2), pick = [];
+      const nIn = Math.min(ins.length, Math.max(2, Math.round(q * 0.6))), nOut = Math.min(out.length, q - nIn);
+      for (let i = 0; i < nIn; i++) pick.push(ins.splice(R() * ins.length | 0, 1)[0]);
+      for (let i = 0; i < nOut; i++) pick.push(out.splice(R() * out.length | 0, 1)[0]);
+      for (const a of pick) { const [x, z] = barW(B, a[0], a[1]); spots.push({ x, z, y: Math.atan2(-B.uz, B.ux) + a[2], bar: a[3] === 2 ? -1 : B.k, B }); }
+    }
+  }
+  for (const r of MAP.rd) { if (spots.length >= TUR.N) break; if (!/Gerona|Filipinas|Derramador/.test(r.n || '')) continue; for (let i = 0; i + 3 < r.p.length && spots.length < TUR.N; i += 2) { const x = r.p[i], z = r.p[i + 1]; if (!inGuiri(x, z) || R() < 0.5) continue; const dx = r.p[i + 2] - x, dz = r.p[i + 3] - z, L = Math.hypot(dx, dz) || 1, sd = R() < 0.5 ? 1 : -1, off = (r.w || 7) / 2 + 0.8; spots.push({ x: x - dz / L * off * sd, z: z + dx / L * off * sd, y: R() * 6.28, bar: -1 }); } }
+  while (spots.length > TUR.N) spots.splice(R() * spots.length | 0, 1);
+  // calles: varias variantes de camino desde la puerta del local
+  const Gr = turGraph(); let T = 0, bd = 1e9; Gr.N.forEach((n, i) => { const d = Math.hypot(n.x, n.z - 12); if (d < bd && Gr.adj[i].length) { bd = d; T = i; } });
+  const VAR = []; for (let v = 0; v < 9; v++) VAR.push(turDijkstra(Gr, T, v));
+  const near = (x, z, D) => { let best = -1, b2 = 1e9; Gr.N.forEach((n, i) => { if (!isFinite(D.dist[i])) return; const d = Math.hypot(n.x - x, n.z - z); if (d < b2) { b2 = d; best = i; } }); return best; };
+  // ropa: camisetas de fútbol, de tirantes, quemados del sol
+  const SKIN = [0xf0b4a0, 0xe8a088, 0xf4d0c0, 0xe0c0a8, 0xf8c8b8, 0xd89070], SHIRT = [0xd81a1a, 0xf0f0f0, 0x1a3aa8, 0x7ab8e8, 0x1a7a3a, 0xe8d020, 0x1a1a1a, 0xf08020, 0x8a1a3a, 0x3a3a3a], SHORT = [0xb8a070, 0x3a4a6a, 0x1a1a1a, 0x6a7a4a, 0xe8e0d0, 0x8a2a2a], HAIR = [0x5a3a1a, 0xc8a060, 0x1a1210, 0xd8c090, 0x8a3a1a];
+  spots.forEach((s, i) => {
+    const m = { i, ax: s.x, az: s.z, ay: s.y, bar: s.bar, v: 0, tt: 52 + R() * 62, del: R() * 18, sk: SKIN[R() * SKIN.length | 0], sh: SHIRT[R() * SHIRT.length | 0], so: SHORT[R() * SHORT.length | 0], ha: R() < 0.3 ? -1 : HAIR[R() * HAIR.length | 0], bel: R() * R(), pint: R() < 0.6 ? 1 : 0, sc: 0.92 + R() * 0.22, sd: R() * 100 };
+    // camino: (salir del bar) → la calle más cercana → por la variante que le toque → su sitio delante del local
+    const pts = [[s.x, s.z]];
+    if (s.bar >= 0) { const [x1, z1] = barW(s.B, 0, 0.9), [x2, z2] = barW(s.B, 0, -1.4); pts.push([x1, z1], [x2, z2]); }
+    const D = VAR[(i * 7 + (R() * 9 | 0)) % 9], st = pts[pts.length - 1], n0 = near(st[0], st[1], D);
+    const road = []; for (let j = n0; j >= 0; j = D.prev[j]) { road.push(j); if (j === T) break; }
+    const lat = (R() * 2 - 1);
+    road.forEach((j, k) => {
+      const n = Gr.N[j], a = Gr.N[road[Math.max(0, k - 1)]], b = Gr.N[road[Math.min(road.length - 1, k + 1)]];
+      let dx = b.x - a.x, dz = b.z - a.z; const L = Math.hypot(dx, dz) || 1; dx /= L; dz /= L;
+      const off = lat * Math.max(0, Math.min(3.2, n.w / 2 - 0.6)); pts.push([n.x - dz * off, n.z + dx * off]);
+    });
+    m.pts = pts;
+    let L = 0; m.cum = [0]; for (let k = 1; k < pts.length; k++) { L += Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]); m.cum.push(L); }
+    m.L0 = L; m.v = clamp(L / m.tt, 3.4, 6.6); m.arr = m.del + L / m.v; M.push(m);   // corren: tienen que llegar antes de que amanezca
+  });
+  // sitios delante del cristal, por orden de llegada: los primeros pegados, los demás detrás, en abanico
+  const slots = []; for (let k = 0; slots.length < M.length; k++) { const rx = 4.4 + k * 0.72, rz = 0.5 + k * 0.72, n = Math.max(6, Math.round((rx + rz) * 1.6)); for (let j = 0; j < n; j++) { const a = 0.12 + (PI - 0.24) * j / (n - 1); slots.push([Math.cos(a) * rx, 5.85 + Math.sin(a) * rz, k]); } }
+  const inner = []; for (let j = 0; j < TUR_SPOTS; j++) inner.push([-3.3 + (j % 5) * 1.6 + (j / 5 | 0) * 0.5, 4.5 - (j / 5 | 0) * 1.0]);
+  M.slice().sort((a, b) => a.arr - b.arr).forEach((m, k) => {
+    const s = slots[k]; m.sx = s[0] + (R() - 0.5) * 0.3; m.sz = s[1] + (R() - 0.5) * 0.3; m.ring = s[2]; m.ord = k;
+    if (k < TUR_SPOTS) { m.ix = inner[k][0]; m.iz = inner[k][1]; }
+    const last = m.pts[m.pts.length - 1]; m.L = m.L0 + Math.hypot(m.sx - last[0], m.sz - last[1]); m.pts.push([m.sx, m.sz]); m.cum.push(m.L);
+  });
+  TUR.N = M.length; for (let i = 0; i < TUR.N; i++) { TUR.rp.push([M[i].ax, M[i].az, M[i].ay]); TUR.ph.push(M[i].sd); TUR.cd.push(0); }
+}
+// dónde está el turista i a la hora t (lo mismo en todas las pantallas)
+function turAt(i, t, o) {
+  const m = TUR.m[i], k = TUR.dead[i];
+  if (k) { o.x = k[1]; o.z = k[2]; o.y = k[3]; o.md = 4; return o; }
+  const c = TUR.ch[i]; if (c) { o.x = c.x; o.z = c.z; o.y = c.y; o.md = c.s === 1 ? 2 : 1; return o; }
+  const t0 = HORDE_T + m.del;
+  if (t < t0) { o.x = m.ax; o.z = m.az; o.y = m.ay; o.md = 0; return o; }
+  let s = (t - t0) * m.v;
+  if (s >= m.L) {
+    const inside = !W.cl && m.ix !== undefined && t - t0 - m.L / m.v > 6;   // si no has cerrado, los primeros entran
+    o.x = inside ? m.ix : m.sx; o.z = inside ? m.iz : m.sz; o.y = Math.atan2(-o.x * 0.3, (inside ? 1.5 : 5.3) - o.z) + (inside ? 0 : 0);
+    o.md = !inside && m.ring <= 1 && Math.abs(o.x) < 4.6 ? 3 : 0; if (inside) o.y = Math.atan2(-o.x, -1 - o.z); return o;
+  }
+  const C = m.cum; let lo = 0, hi = C.length - 1; while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (C[mid] <= s) lo = mid; else hi = mid; }
+  const a = m.pts[lo], b = m.pts[hi], f = (s - C[lo]) / Math.max(1e-4, C[hi] - C[lo]);
+  o.x = a[0] + (b[0] - a[0]) * f; o.z = a[1] + (b[1] - a[1]) * f; o.y = Math.atan2(b[0] - a[0], b[1] - a[1]); o.md = m.v > 3.3 ? 2 : 1; return o;
+}
+function turSync() {
+  const tk = (W && W.tk) || [];
+  if (tk.length !== TUR.nk) { TUR.nk = tk.length; TUR.dead = {}; for (const k of tk) TUR.dead[k[0]] = k; }
+  TUR.ch = {}; for (const c of (W && W.tz) || []) TUR.ch[c.i] = c;
+}
+
+/* ---------- el anfitrión: persecuciones, golpes y tiros ---------- */
+const _to = {};
+function simTourists(dt) {
+  turInit(); if (!TUR.N) return;
+  if (!W.tk) W.tk = []; if (!W.tz) W.tz = [];
+  turSync();
+  const t = W.t, horde = t >= HORDE_T;
+  if (horde && !W.hm) { W.hm = 1; ev('msg', 0, 0, 'horde'); W.tz = []; turSync(); }
+  const pl = []; for (const pid in W.pl) { const p = PP[pid]; if (!p || W.pl[pid].ko > 0 || (p.y || 0) > 1.5) continue; pl.push({ pid, x: p.x, z: p.z, shop: inShop(p.x, p.z) }); }
+  // antes de las cuatro: los que están cerca de ti se te echan encima
+  if (!horde) {
+    for (const p of pl) {
+      if (p.shop || !inGuiri(p.x, p.z, 25)) continue;
+      for (let i = 0; i < TUR.N && W.tz.length < 7; i++) { if (TUR.dead[i] || TUR.ch[i]) continue; const m = TUR.m[i]; if (Math.abs(m.ax - p.x) > 7 || Math.abs(m.az - p.z) > 7 || Math.hypot(m.ax - p.x, m.az - p.z) > 6.5) continue; const c = { i, x: r2(m.ax), z: r2(m.az), y: r2(m.ay), s: 1, t: 0 }; W.tz.push(c); TUR.ch[i] = c; }
+    }
+    for (const c of W.tz) {
+      const m = TUR.m[c.i]; c.t += dt;
+      let tg = null, td = 1e9; for (const p of pl) { if (p.shop) continue; const d = Math.hypot(p.x - c.x, p.z - c.z); if (d < td) { td = d; tg = p; } }
+      if (c.s === 1 && (!tg || c.t > 24 || td > 30 || Math.hypot(c.x - m.ax, c.z - m.az) > 48)) { c.s = 2; }
+      const q = { x: c.x, z: c.z };
+      if (c.s === 1) { moveTo(q, tg.x, tg.z, 3.15, dt); c.y = r2(q.y !== undefined ? q.y : c.y); }
+      else { if (moveTo(q, m.ax, m.az, 2.0, dt)) c.rm = 1; c.y = r2(Math.atan2(m.ax - c.x, m.az - c.z)); }
+      collideSegs(q, 0.3, 0); c.x = r2(q.x); c.z = r2(q.z);
+      if (c.s === 1 && tg && td < 0.85 && TUR.cd[c.i] <= 0) { TUR.cd[c.i] = 1.3; knockOff(tg.pid); hurt(tg.pid); ev('scream', c.x, c.z); }
+    }
+    W.tz = W.tz.filter(c => !c.rm);
+  }
+  // la marabunta: el que te pilla, te pega
+  else for (let i = 0; i < TUR.N; i++) {
+    if (TUR.dead[i]) continue; const m = TUR.m[i]; if (t < HORDE_T + m.del) continue;
+    turAt(i, t, _to);
+    for (const p of pl) { if (Math.abs(p.x - _to.x) > 1 || Math.abs(p.z - _to.z) > 1) continue; if (p.shop && !(!W.cl && m.ix !== undefined)) continue; if (Math.hypot(p.x - _to.x, p.z - _to.z) < 0.8 && TUR.cd[i] <= 0) { TUR.cd[i] = 1.5; knockOff(p.pid); hurt(p.pid); } }
+  }
+  for (let i = 0; i < TUR.N; i++) if (TUR.cd[i] > 0) TUR.cd[i] -= dt;
+}
+// los perdigones: caen hasta dos por disparo
+function shootTourists(o, d) {
+  turInit(); if (!TUR.N || !W) return; if (!W.tk) W.tk = []; turSync();
+  const den = d[0] * d[0] + d[2] * d[2]; if (den < 1e-6) return;
+  const hits = [];
+  for (let i = 0; i < TUR.N; i++) {
+    if (TUR.dead[i]) continue; turAt(i, W.t, _to); const sc = TUR.m[i].sc;
+    const t = ((_to.x - o[0]) * d[0] + (_to.z - o[2]) * d[2]) / den; if (t < 0.2 || t > 17) continue;
+    const px = o[0] + d[0] * t - _to.x, pz = o[2] + d[2] * t - _to.z, y = o[1] + d[1] * t;
+    if (px * px + pz * pz < 0.2 + t * 0.004 && y > 0 && y < 1.85 * sc && !segBlocked(o[0], o[2], _to.x, _to.z, Math.max(0.5, y))) hits.push([t, i, _to.x, _to.z, _to.y]);
+  }
+  hits.sort((a, b) => a[0] - b[0]);
+  for (const h of hits.slice(0, 2)) { W.tk.push([h[1], r2(h[2]), r2(h[3]), r2(h[4])]); W.tz = (W.tz || []).filter(c => c.i !== h[1]); ev('blood', h[2], h[3]); ev('die', h[2], h[3]); }
+}
+
+/* ---------- cómo se ven: un solo modelo instanciado y animado en el shader ---------- */
+function turGeometry() {
+  // [ancho, alto, fondo, x, y, z, parte, color, barriga]
+  // partes: 0 cuerpo, 1 pierna izq., 2 pierna der., 3 brazo izq., 4 brazo der., 5 cabeza
+  // colores: 0 piel, 1 camiseta, 2 pantalón, 3 calcetín, 4 oscuro, 5 ojos, 6 pelo, 7 pinta
+  const P = [
+    [0.44, 0.5, 0.26, 0, 1.22, 0, 0, 1, 0], [0.4, 0.3, 0.2, 0, 1.06, 0.06, 0, 1, 1], [0.43, 0.17, 0.27, 0, 0.9, 0, 0, 2, 0], [0.12, 0.08, 0.12, 0, 1.5, 0, 0, 0, 0],
+    [0.18, 0.27, 0.19, -0.11, 0.73, 0, 1, 2, 0], [0.13, 0.42, 0.14, -0.11, 0.38, 0, 1, 0, 0], [0.14, 0.12, 0.15, -0.11, 0.12, 0, 1, 3, 0], [0.14, 0.07, 0.27, -0.11, 0.035, 0.05, 1, 4, 0],
+    [0.18, 0.27, 0.19, 0.11, 0.73, 0, 2, 2, 0], [0.13, 0.42, 0.14, 0.11, 0.38, 0, 2, 0, 0], [0.14, 0.12, 0.15, 0.11, 0.12, 0, 2, 3, 0], [0.14, 0.07, 0.27, 0.11, 0.035, 0.05, 2, 4, 0],
+    [0.14, 0.22, 0.14, -0.29, 1.36, 0, 3, 1, 0], [0.11, 0.36, 0.11, -0.3, 1.07, 0, 3, 0, 0], [0.1, 0.1, 0.1, -0.3, 0.86, 0.01, 3, 0, 0],
+    [0.14, 0.22, 0.14, 0.29, 1.36, 0, 4, 1, 0], [0.11, 0.36, 0.11, 0.3, 1.07, 0, 4, 0, 0], [0.1, 0.1, 0.1, 0.3, 0.86, 0.01, 4, 0, 0], [0.09, 0.15, 0.09, 0.3, 0.86, 0.09, 4, 7, 0],
+    [0.24, 0.27, 0.25, 0, 1.68, 0, 5, 0, 0], [0.255, 0.07, 0.265, 0, 1.83, -0.005, 5, 6, 0], [0.255, 0.18, 0.06, 0, 1.73, -0.11, 5, 6, 0],
+    [0.07, 0.045, 0.02, -0.055, 1.71, 0.126, 5, 4, 0], [0.07, 0.045, 0.02, 0.055, 1.71, 0.126, 5, 4, 0], [0.022, 0.022, 0.012, -0.055, 1.71, 0.138, 5, 5, 0], [0.022, 0.022, 0.012, 0.055, 1.71, 0.138, 5, 5, 0],
+    [0.12, 0.03, 0.02, 0, 1.6, 0.126, 5, 4, 0], [0.05, 0.06, 0.05, 0, 1.68, 0.14, 5, 0, 0],
+  ];
+  const list = [];
+  for (const [w, h, d, x, y, z, part, cs, bf] of P) {
+    const g = new THREE.BoxGeometry(w, h, d); g.translate(x, y, z); const n = g.attributes.position.count;
+    g.setAttribute('part', new THREE.Float32BufferAttribute(new Array(n).fill(part), 1)); g.setAttribute('cs', new THREE.Float32BufferAttribute(new Array(n).fill(cs), 1)); g.setAttribute('bf', new THREE.Float32BufferAttribute(new Array(n).fill(bf), 1));
+    list.push(g);
+  }
+  // juntar a mano (con los atributos propios)
+  let nv = 0, ni = 0; for (const g of list) { nv += g.attributes.position.count; ni += g.index.count; }
+  const G = new THREE.BufferGeometry(), A = { position: 3, normal: 3, uv: 2, part: 1, cs: 1, bf: 1 }, buf = {}; for (const k in A) buf[k] = new Float32Array(nv * A[k]);
+  const idx = new Uint16Array(ni); let vo = 0, io = 0;
+  for (const g of list) { for (const k in A) buf[k].set(g.attributes[k].array, vo * A[k]); const ix = g.index.array; for (let i = 0; i < ix.length; i++) idx[io + i] = ix[i] + vo; vo += g.attributes.position.count; io += ix.length; }
+  for (const k in A) G.setAttribute(k, new THREE.BufferAttribute(buf[k], A[k])); G.setIndex(new THREE.BufferAttribute(idx, 1));
+  return G;
+}
+function turMaterial() {
+  const m = new THREE.MeshLambertMaterial({ color: 0xffffff });
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uT = { value: 0 }; TUR.uT = sh.uniforms.uT;
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', `#include <common>
+attribute float part; attribute float cs; attribute float bf;
+attribute vec4 iA; attribute vec4 iB; attribute vec3 iSk; attribute vec3 iSh; attribute vec3 iSo; attribute vec3 iHa;
+varying vec3 vCol; varying float vGl;
+uniform float uT;
+mat3 rX(float a){ float c=cos(a), s=sin(a); return mat3(1.,0.,0., 0.,c,s, 0.,-s,c); }
+mat3 rZ(float a){ float c=cos(a), s=sin(a); return mat3(c,s,0., -s,c,0., 0.,0.,1.); }`)
+      .replace('#include <beginnormal_vertex>', `
+float ph = iA.x, md = iA.y, sw = sin(ph);
+float leg = 0., arm = 0., up = 0., hz = 0.25 * sin(iA.w * 3.1) + 0.12 * sin(uT * 0.7 + iA.w), hx = 0.2;
+if (md < 0.5) { arm = 0.06 * sw; hz += 0.12 * sin(ph * 0.5); }
+else if (md < 1.5) { leg = 0.62 * sw; arm = -0.5 * sw; hx = 0.1; }
+else if (md < 2.5) { leg = 0.95 * sw; arm = -1.0 * sw; hx = -0.15; hz *= 0.4; }
+else if (md < 3.5) { leg = 0.08 * sw; up = 2.5 + 0.45 * sin(ph * 2.0); hx = -0.3; }
+mat3 R = mat3(1.); vec3 pv = vec3(0.);
+if (part > 0.5 && part < 1.5) { R = rX(leg); pv = vec3(0., 0.9, 0.); }
+else if (part > 1.5 && part < 2.5) { R = rX(-leg); pv = vec3(0., 0.9, 0.); }
+else if (part > 2.5 && part < 3.5) { R = rX(arm - up) * rZ(-0.08 - up * 0.12); pv = vec3(-0.29, 1.46, 0.); }
+else if (part > 3.5 && part < 4.5) { R = rX(-arm - up - (iB.y > 0.5 && md < 0.5 ? 0.9 : 0.)) * rZ(0.08 + up * 0.12); pv = vec3(0.29, 1.46, 0.); }
+else if (part > 4.5) { R = rX(hx) * rZ(hz); pv = vec3(0., 1.55, 0.); }
+vec3 objectNormal = R * vec3( normal );`)
+      .replace('#include <begin_vertex>', `
+vec3 transformed = vec3( position );
+if (bf > 0.5) { transformed.z += iB.x * 0.13; transformed.x *= 1.0 + iB.x * 0.3; transformed.y -= iB.x * 0.03; }
+if (cs > 6.5 && iB.y < 0.5) transformed = vec3(0.3, 0.86, 0.01);
+transformed = R * (transformed - pv) + pv;
+vCol = cs < 0.5 ? iSk : cs < 1.5 ? iSh : cs < 2.5 ? iSo : cs < 3.5 ? vec3(0.9, 0.88, 0.84) : cs < 4.5 ? vec3(0.05, 0.03, 0.03) : cs < 5.5 ? vec3(0.3, 0.02, 0.02) : cs < 6.5 ? (iHa.r < 0. ? iSk : iHa) : vec3(0.85, 0.6, 0.2);
+vGl = cs > 4.5 && cs < 5.5 ? 1.0 : cs > 6.5 ? 0.15 : 0.0;`);
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vCol; varying float vGl;')
+      .replace('vec4 diffuseColor = vec4( diffuse, opacity );', 'vec4 diffuseColor = vec4( diffuse * vCol, opacity );')
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += vGl * vec3(1.4, 0.12, 0.05) + vCol * 0.06;');
+  };
+  return m;
+}
+function turBuildMesh() {
+  const N = TUR.N, g = turGeometry(), cols = (k) => new THREE.InstancedBufferAttribute(new Float32Array(N * 3), 3);
+  const iA = new THREE.InstancedBufferAttribute(new Float32Array(N * 4), 4), iB = new THREE.InstancedBufferAttribute(new Float32Array(N * 4), 4), iSk = cols(), iSh = cols(), iSo = cols(), iHa = cols();
+  const c = new THREE.Color();
+  TUR.m.forEach((m, i) => {
+    c.setHex(m.sk); iSk.setXYZ(i, c.r, c.g, c.b); c.setHex(m.sh); iSh.setXYZ(i, c.r, c.g, c.b); c.setHex(m.so); iSo.setXYZ(i, c.r, c.g, c.b);
+    if (m.ha < 0) iHa.setXYZ(i, -1, -1, -1); else { c.setHex(m.ha); iHa.setXYZ(i, c.r, c.g, c.b); }
+    iB.setXYZW(i, m.bel, m.pint, m.sc, 0); iA.setXYZW(i, 0, 0, 0, m.sd);
+  });
+  for (const [k, a] of Object.entries({ iA, iB, iSk, iSh, iSo, iHa })) g.setAttribute(k, a);
+  const mesh = new THREE.InstancedMesh(g, turMaterial(), N); mesh.frustumCulled = false; mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); iA.setUsage(THREE.DynamicDrawUsage);
+  scene.add(mesh); TUR.mesh = mesh; TUR.iA = iA;
+}
+const _tm = new THREE.Matrix4(), _tq = new THREE.Quaternion(), _te = new THREE.Euler(), _tp = new THREE.Vector3(), _ts = new THREE.Vector3();
+function updTourists(dt) {
+  if (!W || !TOWN.bars) return;
+  turInit(); if (!TUR.N) return; if (!TUR.mesh) turBuildMesh();
+  turSync();
+  // la hora: la del anfitrión, suavizada en los invitados
+  if (NET.isHost) TUR.t = W.t; else { TUR.t += dt; if (Math.abs(TUR.t - W.t) > 0.6) TUR.t = W.t; else TUR.t += (W.t - TUR.t) * Math.min(1, dt * 2); }
+  const playing = W.ph === 'play' || W.ph === 'end', t = playing ? TUR.t : 0, cx = camera.position.x, cz = camera.position.z;
+  if (TUR.uT) TUR.uT.value = TIME;
+  let nearN = 0, nx = 0, nz = 0, nd = 1e9;
+  for (let i = 0; i < TUR.N; i++) {
+    turAt(i, t, _to); const rp = TUR.rp[i], m = TUR.m[i];
+    const dd = Math.abs(_to.x - rp[0]) + Math.abs(_to.z - rp[1]);
+    if (dd > 5 || _to.md === 4) { rp[0] = _to.x; rp[1] = _to.z; } else { const k = Math.min(1, dt * (TUR.ch[i] ? 10 : 14)); rp[0] += (_to.x - rp[0]) * k; rp[1] += (_to.z - rp[1]) * k; }
+    rp[2] = angLerp(rp[2], _to.y, Math.min(1, dt * 8));
+    const far = Math.abs(rp[0] - cx) + Math.abs(rp[1] - cz) > 140;
+    const rate = _to.md === 2 ? 6 + m.v * 1.1 : _to.md === 1 ? 7.5 : _to.md === 3 ? 7 : 1.6; TUR.ph[i] += dt * rate * (0.85 + (m.sd % 1) * 0.3);
+    TUR.iA.setXYZW(i, TUR.ph[i], _to.md, 0, m.sd);
+    // los caídos, tumbados en el suelo
+    if (_to.md === 4) { _te.set(-PI / 2, rp[2], 0, 'YXZ'); _tp.set(rp[0], 0.13, rp[1]); }
+    else { _te.set(_to.md === 2 ? 0.18 : 0, rp[2], 0, 'YXZ'); _tp.set(rp[0], 0, rp[1]); }
+    _tq.setFromEuler(_te); const s = far ? 0 : m.sc; _ts.set(s, s, s); _tm.compose(_tp, _tq, _ts); TUR.mesh.setMatrixAt(i, _tm);
+    if (_to.md !== 4) { const d = Math.hypot(rp[0] - cx, rp[1] - cz); if (d < 35 && _to.md) nearN++; if (d < nd) { nd = d; nx = rp[0]; nz = rp[1]; }
+      // la marabunta te empuja (no se puede atravesar)
+      if (d < 0.55 && playing && !ride.on && me.y < 1) { const ex = me.x - rp[0], ez = me.z - rp[1], el = Math.hypot(ex, ez) || 1; me.x = rp[0] + ex / el * 0.55; me.z = rp[1] + ez / el * 0.55; collide(me); }
+    }
+  }
+  TUR.mesh.instanceMatrix.needsUpdate = true; TUR.iA.needsUpdate = true;
+  // al empezar a perseguirte uno nuevo, gruñe
+  for (const i in TUR.ch) if (!TUR.chSeen[i]) { TUR.chSeen[i] = 1; const c = TUR.ch[i]; if (typeof sndPlay === 'function') sndPlay(Math.random() < 0.5 ? 'hor05' : 'hor06', c.x, c.z, 0.9, 0.8 + Math.random() * 0.3); }
+  for (const i in TUR.chSeen) if (!TUR.ch[i]) delete TUR.chSeen[i];
+  turCrowdAudio(dt, nearN, nx, nz, nd, playing && t >= HORDE_T);
+}
+// el murmullo de la marabunta (ruido filtrado que respira) y algún gruñido suelto
+function turCrowdAudio(dt, n, x, z, d, horde) {
+  if (!AU.ctx) return; const c = AU.ctx;
+  if (!TUR.crowd) {
+    const len = c.sampleRate * 2, b = c.createBuffer(1, len, c.sampleRate), a = b.getChannelData(0); let l = 0; for (let i = 0; i < len; i++) { l = (l + 0.02 * (Math.random() * 2 - 1)) / 1.02; a[i] = l * 3.5; }
+    const src = c.createBufferSource(); src.buffer = b; src.loop = true; const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 420; bp.Q.value = 0.6; const g = c.createGain(); g.gain.value = 0;
+    const lfo = c.createOscillator(), lg = c.createGain(); lfo.frequency.value = 0.35; lg.gain.value = 0.25; lfo.connect(lg); lg.connect(g.gain); lfo.start();
+    src.connect(bp); bp.connect(g); g.connect(AU.out); src.start(); TUR.crowd = { g, bp };
+  }
+  const want = Math.min(0.9, n / 30) * (horde ? 1 : 0.5) * (inShop(camera.position.x, camera.position.z) ? 0.55 : 1);
+  TUR.crowd.g.gain.value += (want - TUR.crowd.g.gain.value) * Math.min(1, dt * 1.5);
+  TUR.grT -= dt; if (n >= 4 && TUR.grT <= 0 && typeof sndPlay === 'function') { TUR.grT = (horde ? 1.2 : 4) + Math.random() * 3; sndPlay(['hor05', 'hor06', 'hor04', 'hor02'][Math.random() * 4 | 0], x + (Math.random() - 0.5) * 4, z + (Math.random() - 0.5) * 4, horde ? 0.8 : 0.5, 0.7 + Math.random() * 0.4); }
 }
 
